@@ -67,7 +67,7 @@ export class Transaction extends LiteTransaction {
       .get(documentRef)
       .then(
         liteDocumentSnapshot =>
-          new DocumentSnapshot(
+          new DocumentSnapshot<ModelT, SerializedModelT>(
             this._firestore,
             userDataWriter,
             ref._key,

@@ -17,15 +17,6 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-<<<<<<< HEAD
-import {
-  AbstractUserDataWriter,
-  AggregateField,
-  AggregateQuerySnapshot,
-  DocumentData
-} from '../api';
-=======
->>>>>>> origin/master
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
@@ -630,56 +621,6 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-<<<<<<< HEAD
-export function firestoreClientRunCountQuery<
-  ModelT,
-  SerializedModelT extends DocumentData
->(
-  client: FirestoreClient,
-  query: LiteQuery<ModelT, SerializedModelT>,
-  userDataWriter: AbstractUserDataWriter
-): Promise<
-  AggregateQuerySnapshot<
-    { count: AggregateField<number> },
-    ModelT,
-    SerializedModelT
-  >
-> {
-  const deferred = new Deferred<
-    AggregateQuerySnapshot<
-      { count: AggregateField<number> },
-      ModelT,
-      SerializedModelT
-    >
-  >();
-  client.asyncQueue.enqueueAndForget(async () => {
-    try {
-      const remoteStore = await getRemoteStore(client);
-      if (!canUseNetwork(remoteStore)) {
-        deferred.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get count result because the client is offline.'
-          )
-        );
-      } else {
-        const datastore = await getDatastore(client);
-        const result = new CountQueryRunner(
-          query,
-          datastore,
-          userDataWriter
-        ).run();
-        deferred.resolve(result);
-      }
-    } catch (e) {
-      deferred.reject(e as Error);
-    }
-  });
-  return deferred.promise;
-}
-
-=======
->>>>>>> origin/master
 async function readDocumentFromCache(
   localStore: LocalStore,
   docKey: DocumentKey,

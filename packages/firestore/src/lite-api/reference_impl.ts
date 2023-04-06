@@ -140,7 +140,7 @@ export function getDoc<ModelT, SerializedModelT extends DocumentData>(
     result => {
       hardAssert(result.length === 1, 'Expected a single document result');
       const document = result[0];
-      return new DocumentSnapshot(
+      return new DocumentSnapshot<ModelT, SerializedModelT>(
         reference.firestore,
         userDataWriter,
         reference._key,
@@ -174,7 +174,7 @@ export function getDocs<ModelT, SerializedModelT extends DocumentData>(
   return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
-        new QueryDocumentSnapshot(
+        new QueryDocumentSnapshot<ModelT, SerializedModelT>(
           query.firestore,
           userDataWriter,
           doc.key,

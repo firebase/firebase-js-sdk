@@ -145,7 +145,7 @@ export function getDocFromCache<ModelT, SerializedModelT extends DocumentData>(
 
   return firestoreClientGetDocumentFromLocalCache(client, reference._key).then(
     doc =>
-      new DocumentSnapshot(
+      new DocumentSnapshot<ModelT, SerializedModelT>(
         firestore,
         userDataWriter,
         reference._key,
@@ -815,7 +815,7 @@ function convertToDocSnapshot<ModelT, SerializedModelT extends DocumentData>(
   const doc = snapshot.docs.get(ref._key);
 
   const userDataWriter = new ExpUserDataWriter(firestore);
-  return new DocumentSnapshot(
+  return new DocumentSnapshot<ModelT, SerializedModelT>(
     firestore,
     userDataWriter,
     ref._key,

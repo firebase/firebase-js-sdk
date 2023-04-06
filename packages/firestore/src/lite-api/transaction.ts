@@ -98,7 +98,7 @@ export class Transaction {
       }
       const doc = docs[0];
       if (doc.isFoundDocument()) {
-        return new DocumentSnapshot(
+        return new DocumentSnapshot<ModelT, SerializedModelT>(
           this._firestore,
           userDataWriter,
           doc.key,
@@ -106,7 +106,7 @@ export class Transaction {
           ref.converter
         );
       } else if (doc.isNoDocument()) {
-        return new DocumentSnapshot(
+        return new DocumentSnapshot<ModelT, SerializedModelT>(
           this._firestore,
           userDataWriter,
           ref._key,
