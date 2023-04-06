@@ -295,7 +295,7 @@ describe('api', () => {
       const appCheck = getFakeAppCheck(app);
       const internalgetLimitedUseToken = stub(
         internalApi,
-        'getLimitedUseToken'
+        'getToken'
       ).resolves({
         token: 'a-token-string'
       });
@@ -307,7 +307,7 @@ describe('api', () => {
       const appCheck = getFakeAppCheck(app);
       // If getLimitedUseToken() errors, it returns a dummy token with an error field
       // instead of throwing.
-      stub(internalApi, 'getLimitedUseToken').resolves({
+      stub(internalApi, 'getToken').resolves({
         token: 'a-dummy-token',
         error: Error('there was an error')
       });
