@@ -71,8 +71,8 @@ export type PartialWithFieldValue<T> =
  * primitive." https://github.com/microsoft/TypeScript/issues/40012
  */
 export type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>
-}
+  [P in keyof T]?: DeepPartial<T[P]>;
+};
 
 /**
  * Allows FieldValues to be passed in as a property value while maintaining
@@ -125,7 +125,10 @@ export type SetOptions =
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export class DocumentReference<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+export class DocumentReference<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   /** The type of this Firestore reference. */
   readonly type = 'document';
 
@@ -212,7 +215,10 @@ export class DocumentReference<ModelT = DocumentData, SerializedModelT extends D
  * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export class Query<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+export class Query<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   /** The type of this Firestore reference. */
   readonly type: 'query' | 'collection' = 'query';
 

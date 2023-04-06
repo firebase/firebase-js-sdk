@@ -133,7 +133,10 @@ export interface FirestoreDataConverter<
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+export class DocumentSnapshot<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
   // - No support for SnapshotMetadata.
@@ -261,7 +264,10 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+export class QuerySnapshot<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   /**
    * The query on which you called {@link getDocs} in order to get this
    * `QuerySnapshot`.

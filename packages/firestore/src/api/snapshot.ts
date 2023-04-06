@@ -381,7 +381,10 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+export class QuerySnapshot<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.

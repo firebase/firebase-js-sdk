@@ -93,7 +93,11 @@ export function getCount<ModelT, SerializedModelT extends DocumentData>(
  * ```
  * @internal TODO (sum/avg) remove when public
  */
-export function getAggregate<T extends AggregateSpec, ModelT, SerializedModelT extends DocumentData>(
+export function getAggregate<
+  T extends AggregateSpec,
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
   query: Query<ModelT, SerializedModelT>,
   aggregateSpec: T
 ): Promise<AggregateQuerySnapshot<T, ModelT, SerializedModelT>> {
@@ -118,7 +122,11 @@ export function getAggregate<T extends AggregateSpec, ModelT, SerializedModelT e
   );
 }
 
-function convertToAggregateQuerySnapshot<T extends AggregateSpec, ModelT, SerializedModelT extends DocumentData>(
+function convertToAggregateQuerySnapshot<
+  T extends AggregateSpec,
+  ModelT,
+  SerializedModelT extends DocumentData
+>(
   firestore: Firestore,
   query: Query<ModelT, SerializedModelT>,
   aggregateResult: ObjectValue
