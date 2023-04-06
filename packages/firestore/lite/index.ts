@@ -60,6 +60,7 @@ export {
 export {
   DocumentData,
   UpdateData,
+  DeepPartial,
   WithFieldValue,
   PartialWithFieldValue,
   SetOptions,

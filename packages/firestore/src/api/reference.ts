@@ -26,6 +26,7 @@ export {
   SetOptions,
   DocumentData,
   UpdateData,
+  DeepPartial,
   WithFieldValue,
   PartialWithFieldValue,
   refEqual
