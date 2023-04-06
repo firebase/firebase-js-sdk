@@ -92,7 +92,7 @@ export interface FirestoreDataConverter<
    * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
    * FieldValues such as {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
+  toFirestore(modelObject: WithFieldValue<ModelT>): WithFieldValue<SerializedModelT>;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type
@@ -119,7 +119,7 @@ export interface FirestoreDataConverter<
    * metadata.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>
+    snapshot: QueryDocumentSnapshot<SerializedModelT, SerializedModelT>
   ): ModelT;
 }
 

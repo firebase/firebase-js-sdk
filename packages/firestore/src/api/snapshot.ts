@@ -85,7 +85,7 @@ import { SnapshotListenOptions } from './reference_impl';
  */
 export interface FirestoreDataConverter<
   ModelT,
-  SerializedModelT extends DocumentData
+  SerializedModelT extends DocumentData = ModelT extends DocumentData ? ModelT : DocumentData
 > extends LiteFirestoreDataConverter<ModelT, SerializedModelT> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
@@ -97,7 +97,7 @@ export interface FirestoreDataConverter<
    * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
    * FieldValues such as {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
+  toFirestore(modelObject: WithFieldValue<ModelT>): WithFieldValue<SerializedModelT>;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type
@@ -124,7 +124,7 @@ export interface FirestoreDataConverter<
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    snapshot: QueryDocumentSnapshot<SerializedModelT, SerializedModelT>,
     options?: SnapshotOptions
   ): ModelT;
 }
