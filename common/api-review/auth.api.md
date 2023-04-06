@@ -754,7 +754,7 @@ export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
 export class TotpMultiFactorGenerator {
     static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
     static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
-    static FACTOR_ID: "totp";
+    static FACTOR_ID: 'totp';
     static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
 }
 
