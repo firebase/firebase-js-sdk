@@ -73,8 +73,8 @@ export type AggregateSpecData<T extends AggregateSpec> = {
  */
 export class AggregateQuerySnapshot<
   AggregateSpecT extends AggregateSpec,
-  ModelT,
-  SerializedModelT extends DocumentData
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
 > {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';

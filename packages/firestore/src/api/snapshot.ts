@@ -238,8 +238,8 @@ export interface DocumentChange<ModelT, SerializedModelT extends DocumentData> {
  * explicitly verify a document's existence.
  */
 export class DocumentSnapshot<
-  ModelT,
-  SerializedModelT extends DocumentData
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
 > extends LiteDocumentSnapshot<ModelT, SerializedModelT> {
   private readonly _firestoreImpl: Firestore;
 
@@ -353,8 +353,8 @@ export class DocumentSnapshot<
  * 'undefined'.
  */
 export class QueryDocumentSnapshot<
-  ModelT,
-  SerializedModelT extends DocumentData
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
 > extends DocumentSnapshot<ModelT, SerializedModelT> {
   /**
    * Retrieves all fields in the document as an `Object`.
@@ -381,7 +381,7 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<ModelT, SerializedModelT extends DocumentData> {
+export class QuerySnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.

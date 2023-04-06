@@ -125,7 +125,7 @@ export type SetOptions =
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export class DocumentReference<ModelT, SerializedModelT extends DocumentData> {
+export class DocumentReference<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
   /** The type of this Firestore reference. */
   readonly type = 'document';
 
@@ -212,7 +212,7 @@ export class DocumentReference<ModelT, SerializedModelT extends DocumentData> {
  * A `Query` refers to a query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export class Query<ModelT, SerializedModelT extends DocumentData> {
+export class Query<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
   /** The type of this Firestore reference. */
   readonly type: 'query' | 'collection' = 'query';
 
@@ -271,8 +271,8 @@ export class Query<ModelT, SerializedModelT extends DocumentData> {
  * document references, and querying for documents (using {@link (query:1)}).
  */
 export class CollectionReference<
-  ModelT,
-  SerializedModelT extends DocumentData
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
 > extends Query<ModelT, SerializedModelT> {
   /** The type of this Firestore reference. */
   readonly type = 'collection';
