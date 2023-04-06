@@ -14,13 +14,13 @@ jobs:
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
       - name: install Chrome stable
-        # Install Chrome unstable version 112.0.5615.49 as test starts to fail on version 111.
-        # We will unpin, once version 112 becomes stable.
+        # Install Chrome version 110.0.5481.177-1 as test starts to fail on version 111.
+        # We will retry to use the latest, once version 112 becomes stable.
         run: |
           sudo apt-get update
           sudo apt-get install wget
-          sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-unstable_112.0.5615.49_amd64.deb
-          sudo apt-get install -f ./google-chrome-unstable_112.0.5615.49_amd64.deb --allow-downgrades
+          sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
+          sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
