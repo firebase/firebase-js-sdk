@@ -30,7 +30,6 @@ export interface SignInWithEmailLinkRequest {
   tenantId?: string;
 }
 
-// add a comment to trigger packages/auth CI tests
 export interface SignInWithEmailLinkResponse extends IdTokenResponse {
   email: string;
   isNewUser: boolean;
