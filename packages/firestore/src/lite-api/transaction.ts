@@ -33,9 +33,9 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DeepPartial,
   DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   SetOptions,
   UpdateData,
   WithFieldValue
@@ -148,12 +148,12 @@ export class Transaction {
    */
   set<ModelT, SerializedModelT extends DocumentData>(
     documentRef: DocumentReference<ModelT, SerializedModelT>,
-    data: PartialWithFieldValue<ModelT>,
+    data: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
   ): this;
   set<ModelT, SerializedModelT extends DocumentData>(
     documentRef: DocumentReference<ModelT, SerializedModelT>,
-    value: PartialWithFieldValue<ModelT>,
+    value: DeepPartial<WithFieldValue<ModelT>>,
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);

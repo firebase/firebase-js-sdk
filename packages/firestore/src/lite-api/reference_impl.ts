@@ -40,9 +40,9 @@ import { validateHasExplicitOrderByForLimitToLast } from './query';
 import {
   CollectionReference,
   doc,
+  DeepPartial,
   DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   Query,
   SetOptions,
   UpdateData,
@@ -77,7 +77,7 @@ export function applyFirestoreDataConverter<
   SerializedModelT extends DocumentData
 >(
   converter: UntypedFirestoreDataConverter<ModelT, SerializedModelT> | null,
-  value: WithFieldValue<ModelT> | PartialWithFieldValue<ModelT>,
+  value: WithFieldValue<ModelT> | DeepPartial<WithFieldValue<ModelT>>,
   options?: PublicSetOptions
 ): PublicDocumentData {
   let convertedValue;
@@ -232,12 +232,12 @@ export function setDoc<ModelT, SerializedModelT extends DocumentData>(
  */
 export function setDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>,
-  data: PartialWithFieldValue<ModelT>,
+  data: DeepPartial<WithFieldValue<ModelT>>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>,
-  data: PartialWithFieldValue<ModelT>,
+  data: DeepPartial<WithFieldValue<ModelT>>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<ModelT, SerializedModelT>>(
@@ -410,7 +410,7 @@ export function addDoc<ModelT, SerializedModelT extends DocumentData>(
 
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
-    data as PartialWithFieldValue<ModelT>
+    data as DeepPartial<WithFieldValue<ModelT>>
   );
 
   const dataReader = newUserDataReader(reference.firestore);

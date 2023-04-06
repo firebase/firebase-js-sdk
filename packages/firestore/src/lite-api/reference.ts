@@ -51,18 +51,6 @@ export interface DocumentData {
 }
 
 /**
- * Similar to Typescript's `Partial<T>`, but allows nested fields to be
- * omitted and FieldValues to be passed in as property values.
- */
-export type PartialWithFieldValue<T> =
-  | Partial<T>
-  | (T extends Primitive
-      ? T
-      : T extends {}
-      ? { [K in keyof T]?: PartialWithFieldValue<T[K]> | FieldValue }
-      : never);
-
-/**
  * Similar to Typescript's `Partial<T>`, but applies recursively to nested
  * objects, making their properties optional as well.
  *

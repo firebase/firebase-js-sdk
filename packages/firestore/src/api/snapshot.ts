@@ -21,7 +21,6 @@ import { FieldPath } from '../lite-api/field_path';
 import {
   DeepPartial,
   DocumentData,
-  PartialWithFieldValue,
   Query,
   queryEqual,
   SetOptions,
@@ -93,7 +92,7 @@ export interface FirestoreDataConverter<
    * `ModelT` into a plain JavaScript object (suitable for writing directly to
    * the Firestore database) of type `SerializedModelT`. To use `set()` with
    * `merge` and `mergeFields`, `toFirestore()` must be defined with
-   * `PartialWithFieldValue<ModelT>`.
+   * `DeepPartial<WithFieldValue<ModelT>>`.
    *
    * The `WithFieldValue<ModelT>` type extends `ModelT` to also allow
    * FieldValues such as {@link (deleteField:1)} to be used as property values.
@@ -107,15 +106,15 @@ export interface FirestoreDataConverter<
    * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
    * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
-   * The `PartialWithFieldValue<ModelT>` type extends `Partial<ModelT>` to allow
-   * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
-   * It also supports nested `Partial` by allowing nested fields to be
+   * The `DeepPartial<WithFieldValue<ModelT>>` type extends `Partial<ModelT>` to
+   * allow FieldValues such as {@link (arrayUnion:1)} to be used as property
+   * values. It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<ModelT>,
+    modelObject: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
-  ): DeepPartial<SerializedModelT>;
+  ): DeepPartial<WithFieldValue<SerializedModelT>>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

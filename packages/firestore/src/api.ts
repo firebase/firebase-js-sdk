@@ -101,7 +101,6 @@ export {
   UpdateData,
   DeepPartial,
   WithFieldValue,
-  PartialWithFieldValue,
   refEqual,
   queryEqual
 } from './api/reference';

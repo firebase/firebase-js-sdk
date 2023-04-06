@@ -28,7 +28,6 @@ import {
   DeepPartial,
   DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   Query,
   queryEqual,
   SetOptions,
@@ -102,15 +101,15 @@ export interface FirestoreDataConverter<
    * {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
-   * The `PartialWithFieldValue<ModelT>` type extends `Partial<ModelT>` to allow
+   * The `DeepPartial<WithFieldValue<ModelT>>` type extends `Partial<ModelT>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
    * It also supports nested `Partial` by allowing nested fields to be
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<ModelT>,
+    modelObject: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
-  ): DeepPartial<SerializedModelT>;
+  ): DeepPartial<WithFieldValue<SerializedModelT>>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of

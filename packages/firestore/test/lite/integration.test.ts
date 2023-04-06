@@ -65,8 +65,8 @@ import {
   collectionGroup,
   SetOptions,
   DocumentData,
+  DeepPartial,
   WithFieldValue,
-  PartialWithFieldValue,
   UpdateData
 } from '../../src/lite-api/reference';
 import {
@@ -434,7 +434,7 @@ interface MutationTester {
   ): Promise<void>;
   set<ModelT, SerializedModelT extends DocumentData>(
     documentRef: DocumentReference<ModelT, SerializedModelT>,
-    data: PartialWithFieldValue<ModelT>,
+    data: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
   ): Promise<void>;
   update<ModelT, SerializedModelT extends DocumentData>(
@@ -470,7 +470,7 @@ describe('WriteBatch', () => {
 
     set<ModelT, SerializedModelT extends DocumentData>(
       ref: DocumentReference<ModelT, SerializedModelT>,
-      data: PartialWithFieldValue<ModelT>,
+      data: DeepPartial<WithFieldValue<ModelT>>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -535,7 +535,7 @@ describe('Transaction', () => {
 
     set<ModelT, SerializedModelT extends DocumentData>(
       ref: DocumentReference<ModelT, SerializedModelT>,
-      data: PartialWithFieldValue<ModelT>,
+      data: DeepPartial<WithFieldValue<ModelT>>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
@@ -1419,7 +1419,7 @@ describe('withConverter() support', () => {
     describe('nested partial support', () => {
       const testConverterMerge = {
         toFirestore(
-          testObj: PartialWithFieldValue<TestObject>,
+          testObj: DeepPartial<WithFieldValue<TestObject>>,
           options?: SetOptions
         ) {
           return { ...testObj };
@@ -1716,8 +1716,8 @@ describe('withConverter() support', () => {
           }
 
           withPartialFieldValueT(
-            value: PartialWithFieldValue<T>
-          ): PartialWithFieldValue<T> {
+            value: DeepPartial<WithFieldValue<T>>
+          ): DeepPartial<WithFieldValue<T>> {
             return value;
           }
 

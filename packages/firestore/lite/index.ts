@@ -62,7 +62,6 @@ export {
   UpdateData,
   DeepPartial,
   WithFieldValue,
-  PartialWithFieldValue,
   SetOptions,
   DocumentReference,
   Query,

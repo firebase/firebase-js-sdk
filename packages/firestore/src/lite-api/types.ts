@@ -19,8 +19,8 @@ import { UpdateData } from './reference';
 
 /**
  * These types primarily exist to support the `UpdateData`,
- * `WithFieldValue`, and `PartialWithFieldValue` types and are not consumed
- * directly by the end developer.
+ * `WithFieldValue`, and `DeepPartial<WithFieldValue>` types and are not
+ * consumed directly by the end developer.
  */
 
 /** Primitive types. */

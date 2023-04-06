@@ -28,6 +28,5 @@ export {
   UpdateData,
   DeepPartial,
   WithFieldValue,
-  PartialWithFieldValue,
   refEqual
 } from '../lite-api/reference';

@@ -40,10 +40,10 @@ import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
   CollectionReference,
+  DeepPartial,
   doc,
   DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   Query,
   SetOptions,
   UpdateData,
@@ -278,12 +278,12 @@ export function setDoc<ModelT, SerializedModelT extends DocumentData>(
  */
 export function setDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>,
-  data: PartialWithFieldValue<ModelT>,
+  data: DeepPartial<WithFieldValue<ModelT>>,
   options: SetOptions
 ): Promise<void>;
 export function setDoc<ModelT, SerializedModelT extends DocumentData>(
   reference: DocumentReference<ModelT, SerializedModelT>,
-  data: PartialWithFieldValue<ModelT>,
+  data: DeepPartial<WithFieldValue<ModelT>>,
   options?: SetOptions
 ): Promise<void> {
   reference = cast<DocumentReference<ModelT, SerializedModelT>>(

@@ -26,8 +26,9 @@ import {
   DocumentData,
   CollectionReference,
   DocumentReference,
+  DeepPartial,
+  WithFieldValue,
   SetOptions,
-  PartialWithFieldValue
 } from '../../src/lite-api/reference';
 import { setDoc } from '../../src/lite-api/reference_impl';
 import { FirestoreSettings } from '../../src/lite-api/settings';
@@ -125,7 +126,7 @@ export const postConverter = {
 
 export const postConverterMerge = {
   toFirestore(
-    post: PartialWithFieldValue<Post>,
+    post: DeepPartial<WithFieldValue<Post>>,
     options?: SetOptions
   ): DocumentData {
     if (

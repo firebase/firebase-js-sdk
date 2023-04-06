@@ -64,8 +64,8 @@ import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import {
+  DeepPartial,
   DocumentReference,
-  PartialWithFieldValue,
   WithFieldValue
 } from './reference';
 import { Timestamp } from './timestamp';
@@ -82,7 +82,7 @@ export interface UntypedFirestoreDataConverter<
 > {
   toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
   toFirestore(
-    modelObject: PartialWithFieldValue<ModelT>,
+    modelObject: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
   ): SerializedModelT;
   fromFirestore(snapshot: unknown, options?: unknown): ModelT;

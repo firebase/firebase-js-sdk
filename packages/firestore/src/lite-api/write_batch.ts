@@ -26,9 +26,9 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DeepPartial,
   DocumentData,
   DocumentReference,
-  PartialWithFieldValue,
   SetOptions,
   UpdateData,
   WithFieldValue
@@ -92,12 +92,12 @@ export class WriteBatch {
    */
   set<ModelT, SerializedModelT extends DocumentData>(
     documentRef: DocumentReference<ModelT, SerializedModelT>,
-    data: PartialWithFieldValue<ModelT>,
+    data: DeepPartial<WithFieldValue<ModelT>>,
     options: SetOptions
   ): WriteBatch;
   set<ModelT, SerializedModelT extends DocumentData>(
     documentRef: DocumentReference<ModelT, SerializedModelT>,
-    data: WithFieldValue<ModelT> | PartialWithFieldValue<ModelT>,
+    data: WithFieldValue<ModelT> | DeepPartial<WithFieldValue<ModelT>>,
     options?: SetOptions
   ): WriteBatch {
     this._verifyNotCommitted();
