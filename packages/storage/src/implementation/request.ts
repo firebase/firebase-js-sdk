@@ -139,22 +139,15 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       wasCanceled,
       connection
     }) => {
-      console.log('handling error');
       if (connection !== null) {
-        console.log("connection exists");
         const err = unknown();
-        console.log('getting error text', connection);
         err.serverResponse = connection.getErrorText();
-        console.log('done getting error text');
         if (this.errorCallback_) {
-          console.log('reject');
           reject(this.errorCallback_(connection, err));
         } else {
-          console.log('reject');
           reject(err);
         }
       } else {
-        console.log("connection doesn't exist");
         if (wasCanceled) {
           const err = this.appDelete_ ? appDeleted() : canceled();
           console.log('reject');
@@ -170,6 +163,7 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       handleError({ wasCanceled: true, connection: null });
       return;
     }
+    console.log(this.timeout_);
     this.backoffHandler = new ExponentialBackoff(
       this.makeRequest_,
       this.timeout_

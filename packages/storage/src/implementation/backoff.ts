@@ -54,50 +54,60 @@ export class ExponentialBackoff<T> {
   }
   startGlobalTimeout(): void {
     this.globalTimeoutId = setTimeout(() => {
-      console.log('global timeout executing');
+      console.log('time elapsed');
+      this.clearRetryTimeout();
       if(this.cancelState === CancelState.RUNNING) {
-        this.backoffDeferred.reject({ wasCanceled: true, connection: null });
+        this.backoffDeferred.reject({ wasCanceled: false, connection: null });
         this.cancelState = CancelState.STOPPED;
-        this.clearRetryTimeout();
       }
     }, this.timeout);
+    console.log(`created timeout of id ${this.globalTimeoutId}`);
   }
   clearGlobalTimeout(): void {
+    console.log(`cleared timeout of id ${this.globalTimeoutId}`);
     clearTimeout(this.globalTimeoutId);
   }
   clearRetryTimeout(): void {
     clearTimeout(this.retryTimeoutId);
+    console.log(`cleared timeout of id ${this.retryTimeoutId}`);
   }
   // Is there a chance that we have two operations going on at the same time?
   runOperation(): void {
     this.currentOperation = this.operation();
     this.currentOperation.then(res => {
       if(this.cancelState === CancelState.RUNNING) {
+        this.clearGlobalTimeout();
         this.backoffDeferred.resolve(res);
+      this.cancelState = CancelState.STOPPED;
       }
 
     }).catch(errInfo => {
       if(errInfo.retry) {
-        this.waitTimeInS *= 2;
+        if(this.waitTimeInS < 64) {
+          this.waitTimeInS *= 2;
+        }
         this.waitTimeInMS = (this.waitTimeInS + Math.random()) * 1000;
         this.delayOperation();
       } else {
+        this.clearGlobalTimeout();
         this.backoffDeferred.reject(errInfo);
       }
     });
   }
   delayOperation(): void {
     this.retryTimeoutId = setTimeout(() => {
-      console.log('delayOperation executing');
       this.runOperation();
       this.retryTimeoutId = null;
     }, this.waitTimeInMS);
+    console.log(`created timeout of id ${this.retryTimeoutId}`);
   }
   start(): void {
+    this.startGlobalTimeout();
+    setTimeout(() => this.runOperation(), 0);
     this.runOperation();
+    this.cancelState = CancelState.RUNNING;
   }
   stop(): void {
-    console.log('stopping');
     this.clearGlobalTimeout();
     this.clearRetryTimeout();
     if (this.cancelState === CancelState.RUNNING) {

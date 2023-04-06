@@ -403,10 +403,8 @@ export class UploadTask {
 
   private _transition(state: InternalTaskState): void {
     if (this._state === state) {
-      console.log('returning');
       return;
     }
-    console.log('transition state', state);
     switch (state) {
       case InternalTaskState.CANCELING:
       case InternalTaskState.PAUSING:
@@ -427,10 +425,8 @@ export class UploadTask {
         // assert(this.state_ === InternalTaskState.PAUSED ||
         //        this.state_ === InternalTaskState.PAUSING);
         const wasPaused = this._state === InternalTaskState.PAUSED;
-        console.log('wasPaused', wasPaused);
         this._state = state;
         if (wasPaused) {
-          console.log("now we're starting");
           this._start();
         }
         break;
