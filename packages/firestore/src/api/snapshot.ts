@@ -205,7 +205,10 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<ModelT, SerializedModelT extends DocumentData> {
+export interface DocumentChange<
+  ModelT = DocumentData,
+  SerializedModelT extends DocumentData = DocumentData
+> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 

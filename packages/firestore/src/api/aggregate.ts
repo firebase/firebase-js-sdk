@@ -112,13 +112,13 @@ export function getCountFromServer<
  * @internal TODO (sum/avg) remove when public
  */
 export function getAggregateFromServer<
-  T extends AggregateSpec,
+  AggregateSpecT extends AggregateSpec,
   ModelT,
   SerializedModelT extends DocumentData
 >(
   query: Query<ModelT, SerializedModelT>,
-  aggregateSpec: T
-): Promise<AggregateQuerySnapshot<T, ModelT, SerializedModelT>> {
+  aggregateSpec: AggregateSpecT
+): Promise<AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -148,19 +148,19 @@ export function getAggregateFromServer<
  * @internal
  */
 function convertToAggregateQuerySnapshot<
-  T extends AggregateSpec,
+  AggregateSpecT extends AggregateSpec,
   ModelT,
   SerializedModelT extends DocumentData
 >(
   firestore: Firestore,
   query: Query<ModelT, SerializedModelT>,
   aggregateResult: ObjectValue
-): AggregateQuerySnapshot<T, ModelT, SerializedModelT> {
+): AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT> {
   const userDataWriter = new ExpUserDataWriter(firestore);
-  const querySnapshot = new AggregateQuerySnapshot<T, ModelT, SerializedModelT>(
-    query,
-    userDataWriter,
-    aggregateResult
-  );
+  const querySnapshot = new AggregateQuerySnapshot<
+    AggregateSpecT,
+    ModelT,
+    SerializedModelT
+  >(query, userDataWriter, aggregateResult);
   return querySnapshot;
 }
