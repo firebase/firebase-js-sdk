@@ -10,7 +10,7 @@ import { FirebaseError } from '@firebase/util';
 import { LogLevelString as LogLevel } from '@firebase/logger';
 
 // @public
-export function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
+export function addDoc<ModelT, SerializedModelT extends DocumentData>(reference: CollectionReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): Promise<DocumentReference<ModelT, SerializedModelT>>;
 
 // @public
 export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
@@ -26,14 +26,14 @@ export class AggregateField<T> {
 export type AggregateFieldType = AggregateField<number | null>;
 
 // @public
-export class AggregateQuerySnapshot<T extends AggregateSpec> {
-    data(): AggregateSpecData<T>;
-    readonly query: Query<unknown>;
+export class AggregateQuerySnapshot<AggregateSpecT extends AggregateSpec, ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+    data(): AggregateSpecData<AggregateSpecT>;
+    readonly query: Query<ModelT, SerializedModelT>;
     readonly type = "AggregateQuerySnapshot";
 }
 
 // @public
-export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+export function aggregateQuerySnapshotEqual<AggregateSpecT extends AggregateSpec, ModelT, SerializedModelT extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT>, right: AggregateQuerySnapshot<AggregateSpecT, ModelT, SerializedModelT>): boolean;
 
 // @public
 export interface AggregateSpec {
@@ -69,25 +69,25 @@ export class Bytes {
 export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
 
 // @public
-export function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<SerializedModelT extends DocumentData = DocumentData>(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
 
 // @public
-export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData = DocumentData>(reference: CollectionReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
 
 // @public
-export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export function collection<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData = DocumentData>(reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): CollectionReference<SerializedModelT, SerializedModelT>;
 
 // @public
-export function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
+export function collectionGroup<SerializedModelT extends DocumentData>(firestore: Firestore, collectionId: string): Query<SerializedModelT, SerializedModelT>;
 
 // @public
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> extends Query<ModelT, SerializedModelT> {
     get id(): string;
-    get parent(): DocumentReference<DocumentData> | null;
+    get parent(): DocumentReference<DocumentData, DocumentData> | null;
     get path(): string;
     readonly type = "collection";
-    withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
-    withConverter(converter: null): CollectionReference<DocumentData>;
+    withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): CollectionReference<NewModelT, NewSerializedModelT>;
+    withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
 }
 
 // @public
@@ -96,19 +96,24 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 }): void;
 
 // @public
-export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
+export type DeepPartial<T> = {
+    [P in keyof T]?: DeepPartial<T[P]>;
+};
+
+// @public
+export function deleteDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>): Promise<void>;
 
 // @public
 export function deleteField(): FieldValue;
 
 // @public
-export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc<SerializedModelT extends DocumentData>(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<SerializedModelT, SerializedModelT>;
 
 // @public
-export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
+export function doc<ModelT, SerializedModelT extends DocumentData>(reference: CollectionReference<ModelT, SerializedModelT>, path?: string, ...pathSegments: string[]): DocumentReference<ModelT, SerializedModelT>;
 
 // @public
-export function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export function doc<OriginalModelT, OriginalSerializedModelT extends DocumentData, SerializedModelT extends DocumentData>(reference: DocumentReference<OriginalModelT, OriginalSerializedModelT>, path: string, ...pathSegments: string[]): DocumentReference<SerializedModelT, SerializedModelT>;
 
 // @public
 export interface DocumentData {
@@ -119,37 +124,37 @@ export interface DocumentData {
 export function documentId(): FieldPath;
 
 // @public
-export class DocumentReference<T = DocumentData> {
-    readonly converter: FirestoreDataConverter<T> | null;
+export class DocumentReference<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+    readonly converter: FirestoreDataConverter<ModelT, SerializedModelT> | null;
     readonly firestore: Firestore;
     get id(): string;
-    get parent(): CollectionReference<T>;
+    get parent(): CollectionReference<ModelT, SerializedModelT>;
     get path(): string;
     readonly type = "document";
-    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
-    withConverter(converter: null): DocumentReference<DocumentData>;
+    withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): DocumentReference<NewModelT, NewSerializedModelT>;
+    withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
 }
 
 // @public
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
     protected constructor();
-    data(): T | undefined;
-    exists(): this is QueryDocumentSnapshot<T>;
+    data(): ModelT | undefined;
+    exists(): this is QueryDocumentSnapshot<ModelT, SerializedModelT>;
     get(fieldPath: string | FieldPath): any;
     get id(): string;
-    get ref(): DocumentReference<T>;
+    get ref(): DocumentReference<ModelT, SerializedModelT>;
 }
 
 export { EmulatorMockTokenOptions }
 
 // @public
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export function endAt<ModelT, SerializedModelT extends DocumentData>(snapshot: DocumentSnapshot<ModelT, SerializedModelT>): QueryEndAtConstraint;
 
 // @public
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export function endBefore<ModelT, SerializedModelT extends DocumentData>(snapshot: DocumentSnapshot<ModelT, SerializedModelT>): QueryEndAtConstraint;
 
 // @public
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
@@ -173,10 +178,10 @@ export class Firestore {
 }
 
 // @public
-export interface FirestoreDataConverter<T> {
-    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
-    toFirestore(modelObject: WithFieldValue<T>): DocumentData;
-    toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
+export interface FirestoreDataConverter<ModelT, SerializedModelT extends DocumentData> {
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): ModelT;
+    toFirestore(modelObject: WithFieldValue<ModelT>): SerializedModelT;
+    toFirestore(modelObject: PartialWithFieldValue<ModelT>, options: SetOptions): DeepPartial<SerializedModelT>;
 }
 
 // @public
@@ -202,15 +207,15 @@ export class GeoPoint {
 }
 
 // @public
-export function getCount(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+export function getCount<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<AggregateQuerySnapshot<{
     count: AggregateField<number>;
-}>>;
+}, ModelT, SerializedModelT>>;
 
 // @public
-export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export function getDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>>;
 
 // @public
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>): Promise<QuerySnapshot<ModelT, SerializedModelT>>;
 
 // @public
 export function getFirestore(): Firestore;
@@ -255,20 +260,20 @@ export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T
 export type Primitive = string | number | boolean | undefined | null;
 
 // @public
-export class Query<T = DocumentData> {
+export class Query<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
     protected constructor();
-    readonly converter: FirestoreDataConverter<T> | null;
+    readonly converter: FirestoreDataConverter<ModelT, SerializedModelT> | null;
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
-    withConverter(converter: null): Query<DocumentData>;
-    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+    withConverter(converter: null): Query<DocumentData, DocumentData>;
+    withConverter<NewModelT, NewSerializedModelT extends DocumentData>(converter: FirestoreDataConverter<NewModelT, NewSerializedModelT>): Query<NewModelT, NewSerializedModelT>;
 }
 
 // @public
-export function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+export function query<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<ModelT, SerializedModelT>;
 
 // @public
-export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
+export function query<ModelT, SerializedModelT extends DocumentData>(query: Query<ModelT, SerializedModelT>, ...queryConstraints: QueryConstraint[]): Query<ModelT, SerializedModelT>;
 
 // @public
 export class QueryCompositeFilterConstraint {
@@ -284,9 +289,9 @@ export abstract class QueryConstraint {
 export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
 // @public
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> extends DocumentSnapshot<ModelT, SerializedModelT> {
     // @override
-    data(): T;
+    data(): ModelT;
 }
 
 // @public
@@ -295,7 +300,7 @@ export class QueryEndAtConstraint extends QueryConstraint {
 }
 
 // @public
-export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export function queryEqual<ModelT, SerializedModelT extends DocumentData>(left: Query<ModelT, SerializedModelT>, right: Query<ModelT, SerializedModelT>): boolean;
 
 // @public
 export class QueryFieldFilterConstraint extends QueryConstraint {
@@ -319,11 +324,11 @@ export class QueryOrderByConstraint extends QueryConstraint {
 }
 
 // @public
-export class QuerySnapshot<T = DocumentData> {
-    get docs(): Array<QueryDocumentSnapshot<T>>;
+export class QuerySnapshot<ModelT = DocumentData, SerializedModelT extends DocumentData = DocumentData> {
+    get docs(): Array<QueryDocumentSnapshot<ModelT, SerializedModelT>>;
     get empty(): boolean;
-    forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
-    readonly query: Query<T>;
+    forEach(callback: (result: QueryDocumentSnapshot<ModelT, SerializedModelT>) => void, thisArg?: unknown): void;
+    readonly query: Query<ModelT, SerializedModelT>;
     get size(): number;
 }
 
@@ -333,7 +338,7 @@ export class QueryStartAtConstraint extends QueryConstraint {
 }
 
 // @public
-export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
+export function refEqual<ModelT, SerializedModelT extends DocumentData>(left: DocumentReference<ModelT, SerializedModelT> | CollectionReference<ModelT, SerializedModelT>, right: DocumentReference<ModelT, SerializedModelT> | CollectionReference<ModelT, SerializedModelT>): boolean;
 
 // @public
 export function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
@@ -342,10 +347,10 @@ export function runTransaction<T>(firestore: Firestore, updateFunction: (transac
 export function serverTimestamp(): FieldValue;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): Promise<void>;
 
 // @public
-export function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+export function setDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): Promise<void>;
 
 // @public
 export function setLogLevel(logLevel: LogLevel): void;
@@ -365,16 +370,16 @@ export interface Settings {
 }
 
 // @public
-export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+export function snapshotEqual<ModelT, SerializedModelT extends DocumentData>(left: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>, right: DocumentSnapshot<ModelT, SerializedModelT> | QuerySnapshot<ModelT, SerializedModelT>): boolean;
 
 // @public
-export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export function startAfter<ModelT, SerializedModelT extends DocumentData>(snapshot: DocumentSnapshot<ModelT, SerializedModelT>): QueryStartAtConstraint;
 
 // @public
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export function startAt<ModelT, SerializedModelT extends DocumentData>(snapshot: DocumentSnapshot<ModelT, SerializedModelT>): QueryStartAtConstraint;
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
@@ -405,12 +410,12 @@ export class Timestamp {
 
 // @public
 export class Transaction {
-    delete(documentRef: DocumentReference<unknown>): this;
-    get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
-    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
-    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
-    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+    delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): this;
+    get<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): Promise<DocumentSnapshot<ModelT, SerializedModelT>>;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): this;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): this;
+    update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): this;
+    update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
 
 // @public
@@ -427,10 +432,10 @@ export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
 } & NestedUpdateFields<T> : Partial<T>;
 
 // @public
-export function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T>): Promise<void>;
+export function updateDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): Promise<void>;
 
 // @public
-export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+export function updateDoc<ModelT, SerializedModelT extends DocumentData>(reference: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
@@ -446,11 +451,11 @@ export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
 // @public
 export class WriteBatch {
     commit(): Promise<void>;
-    delete(documentRef: DocumentReference<unknown>): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
-    set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
-    update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
-    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+    delete<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>): WriteBatch;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: WithFieldValue<ModelT>): WriteBatch;
+    set<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: PartialWithFieldValue<ModelT>, options: SetOptions): WriteBatch;
+    update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, data: UpdateData<SerializedModelT>): WriteBatch;
+    update<ModelT, SerializedModelT extends DocumentData>(documentRef: DocumentReference<ModelT, SerializedModelT>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 }
 
 // @public
