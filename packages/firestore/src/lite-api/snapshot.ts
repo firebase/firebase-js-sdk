@@ -81,7 +81,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export interface FirestoreDataConverter<
   ModelT,
-  SerializedModelT extends DocumentData
+  SerializedModelT extends DocumentData = ModelT extends DocumentData ? ModelT : DocumentData
 > {
   /**
    * Called by the Firestore SDK to convert a custom model object of type

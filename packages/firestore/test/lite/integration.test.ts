@@ -428,26 +428,28 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: WithFieldValue<ModelT>
   ): Promise<void>;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: PartialWithFieldValue<ModelT>,
     options: SetOptions
   ): Promise<void>;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    data: UpdateData<T>
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
+    data: UpdateData<SerializedModelT>
   ): Promise<void>;
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
-  delete(documentRef: DocumentReference<unknown>): Promise<void>;
+  delete<ModelT, SerializedModelT extends DocumentData>(
+    documentRef: DocumentReference<ModelT, SerializedModelT>
+  ): Promise<void>;
 }
 
 genericMutationTests({
@@ -458,15 +460,17 @@ genericMutationTests({
 
 describe('WriteBatch', () => {
   class WriteBatchTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>
+    ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       batch.delete(ref);
       return batch.commit();
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>,
+      data: PartialWithFieldValue<ModelT>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -476,9 +480,9 @@ describe('WriteBatch', () => {
       return batch.commit();
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>,
+      dataOrField: UpdateData<SerializedModelT> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -521,29 +525,31 @@ describe('WriteBatch', () => {
 
 describe('Transaction', () => {
   class TransactionTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>
+    ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         transaction.delete(ref);
       });
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>,
+      data: PartialWithFieldValue<ModelT>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
           transaction.set(ref, data, options);
         } else {
-          transaction.set(ref, data as WithFieldValue<T>);
+          transaction.set(ref, data as WithFieldValue<ModelT>);
         }
       });
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<ModelT, SerializedModelT extends DocumentData>(
+      ref: DocumentReference<ModelT, SerializedModelT>,
+      dataOrField: UpdateData<SerializedModelT> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -556,7 +562,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as UpdateData<T>);
+          transaction.update(ref, dataOrField as UpdateData<SerializedModelT>);
         }
       });
     }
