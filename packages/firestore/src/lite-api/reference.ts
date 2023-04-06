@@ -68,9 +68,7 @@ export type DeepPartial<T> = {
  */
 export type WithFieldValue<T> =
   | T
-  | (T extends Primitive
-      ? T
-      : T extends {}
+  | (T extends {}
       ? { [K in keyof T]: WithFieldValue<T[K]> | FieldValue }
       : never);
 
