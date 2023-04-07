@@ -210,8 +210,7 @@ export interface Auth {
    * requests.
    *
    * The reCAPTCHA config indicates whether the reCAPTCHA verification flow should be triggered for
-   * a specific auth provider. Note that this only affect the client auth request but won't override
-   * the actual enablement state on the server side.
+   * a specific auth provider.
    *
    * For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console
    * or Admin SDKs. If the enablement is initialized to false via `initializeRecaptchaConfig()`, the auth
