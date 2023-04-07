@@ -81,7 +81,7 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     });
   }
 
-  private makeRequest_: () => Promise<Connection<I>> = () =>{
+  private makeRequest_: () => Promise<Connection<I>> = () => {
     const connection = this.connectionFactory_();
     this.pendingConnection_ = connection;
     const deferred = new Deferred<Connection<I>>();

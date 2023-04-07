@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Deferred } from "@firebase/util";
+import { Deferred } from '@firebase/util';
 
 /**
  * @fileoverview Provides a method for running a function with exponential
@@ -44,8 +44,10 @@ export class ExponentialBackoff<T> {
   private waitTimeInS = 1;
   private waitTimeInMS = 1;
   private currentOperation?: Promise<T>;
-  constructor(private operation: RequestOperation<T>, private timeout: number) {
-  }
+  constructor(
+    private operation: RequestOperation<T>,
+    private timeout: number
+  ) {}
   isCanceled(): boolean {
     return this.cancelState === CancelState.CANCELED;
   }
@@ -55,7 +57,7 @@ export class ExponentialBackoff<T> {
   startGlobalTimeout(): void {
     this.globalTimeoutId = setTimeout(() => {
       this.clearRetryTimeout();
-      if(this.cancelState === CancelState.RUNNING) {
+      if (this.cancelState === CancelState.RUNNING) {
         this.backoffDeferred.reject({ wasCanceled: false, connection: null });
         this.cancelState = CancelState.STOPPED;
       }
@@ -70,25 +72,26 @@ export class ExponentialBackoff<T> {
   // Is there a chance that we have two operations going on at the same time?
   runOperation(): void {
     this.currentOperation = this.operation();
-    this.currentOperation.then(res => {
-      if(this.cancelState === CancelState.RUNNING) {
-        this.clearGlobalTimeout();
-        this.backoffDeferred.resolve(res);
-      this.cancelState = CancelState.STOPPED;
-      }
-
-    }).catch(errInfo => {
-      if(errInfo.retry) {
-        if(this.waitTimeInS < 64) {
-          this.waitTimeInS *= 2;
+    this.currentOperation
+      .then(res => {
+        if (this.cancelState === CancelState.RUNNING) {
+          this.clearGlobalTimeout();
+          this.backoffDeferred.resolve(res);
+          this.cancelState = CancelState.STOPPED;
         }
-        this.waitTimeInMS = (this.waitTimeInS + Math.random()) * 1000;
-        this.delayOperation();
-      } else {
-        this.clearGlobalTimeout();
-        this.backoffDeferred.reject(errInfo);
-      }
-    });
+      })
+      .catch(errInfo => {
+        if (errInfo.retry) {
+          if (this.waitTimeInS < 64) {
+            this.waitTimeInS *= 2;
+          }
+          this.waitTimeInMS = (this.waitTimeInS + Math.random()) * 1000;
+          this.delayOperation();
+        } else {
+          this.clearGlobalTimeout();
+          this.backoffDeferred.reject(errInfo);
+        }
+      });
   }
   delayOperation(): void {
     this.retryTimeoutId = setTimeout(() => {
