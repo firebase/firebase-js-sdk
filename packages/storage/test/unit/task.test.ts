@@ -351,7 +351,6 @@ describe('Firebase Storage > Upload Task', () => {
     // Upload requests are not retryable, and this callback is to make sure we pause before the response comes back.
     function shouldRespondCallback(): boolean {
       if (callbackCount++ === 1) {
-        console.log('pausing');
         task.pause();
       }
       return true;
@@ -410,8 +409,6 @@ describe('Firebase Storage > Upload Task', () => {
           fixedAssertEquals(complete, 0);
 
           const state = snapshot.state;
-          console.log('state', state);
-          console.log('state', lastState);
           if (lastState !== TaskState.RUNNING && state === TaskState.RUNNING) {
             events.push('resume');
           } else if (
@@ -478,9 +475,7 @@ describe('Firebase Storage > Upload Task', () => {
       resolve(null);
     });
     await pausedStateCompleted.promise;
-    console.log('pausedState promise awaited');
     task.resume();
-    console.log('resuming');
     return promise;
   }
   enum StateType {
@@ -522,15 +517,12 @@ describe('Firebase Storage > Upload Task', () => {
       TaskEvent.STATE_CHANGED,
       snapshot => {
         const { state } = snapshot;
-        console.log('state changed', state);
         if (lastState !== TaskState.RUNNING && state === TaskState.RUNNING) {
-          console.log('resume');
           events.push({ type: StateType.RESUME });
         } else if (
           lastState !== TaskState.PAUSED &&
           state === TaskState.PAUSED
         ) {
-          console.log('pause');
           events.push({ type: StateType.PAUSE });
         }
         const p = {
@@ -542,7 +534,6 @@ describe('Firebase Storage > Upload Task', () => {
         lastState = state;
       },
       function onError(e) {
-          console.log('error');
         events.push({ type: StateType.ERROR, data: e });
         deferred.resolve({
           events,
@@ -656,7 +647,6 @@ describe('Firebase Storage > Upload Task', () => {
           if (!gotFirstEvent || timeout === 0) {
             clock.tick(timeout as number);
           } else {
-            console.log('ticking', timeout);
             // If the timeout isn't 0 and it isn't the max upload retry time, it's most likely due to exponential backoff.
             resolve(null);
           }
