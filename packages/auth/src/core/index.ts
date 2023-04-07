@@ -62,15 +62,19 @@ export function setPersistence(
 }
 
 /**
- * Initializes the reCAPTCHA configuration on the `Auth` instance.
+ * Loads the reCAPTCHA configuration into the `Auth` instance.
  *
  * @remarks
- * This will pull the reCAPTCHA config to the current Auth session and affect future auth
- * requests, which indicates whether the reCAPTCHA verification flow should be triggered for a
- * specific auth provider. If initializeRecaptchaConfig() is not invoked, the auth flow will start
- * without reCAPTCHA verification. But if reCAPTCHA verification is required, the reCAPTCHA config
- * will be automatically pulled internally and the flows will restart. Thus, calling this optional
- * method will reduce the latency of auth flows.
+ * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
+ * verification flow should be triggered for a specific auth provider, into the
+ * current Auth session and affect future auth requests.
+ *
+ * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
+ * verification, the SDK will transparently load the reCAPTCHA config and restart the
+ * auth flows.
+ *
+ * Thus, by calling this optional method, you will reduce the latency of future auth flows.
  *
  * @example
  * ```javascript
