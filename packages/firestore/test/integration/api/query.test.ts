@@ -67,7 +67,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { USE_EMULATOR, TARGET_BACKEND } from '../util/settings';
+import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', (persistence: boolean) => {
@@ -2158,14 +2158,6 @@ apiDescribe('Queries', (persistence: boolean) => {
         existenceFilterMismatches[0];
       expect(localCacheCount, 'localCacheCount').to.equal(100);
       expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-
-      // Skip the verification of the bloom filter when testing against
-      // production because the bloom filter is only implemented in nightly.
-      // TODO(b/271949433) Remove this "if" block once the bloom filter logic is
-      // deployed to production.
-      if (TARGET_BACKEND !== 'nightly') {
-        return 'passed';
-      }
 
       // Verify that Watch sent a valid bloom filter.
       if (!bloomFilter) {
