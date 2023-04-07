@@ -78,7 +78,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T> {
+export interface FirestoreDataConverter<AppType, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
@@ -88,7 +88,7 @@ export interface FirestoreDataConverter<T> {
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+  toFirestore(modelObject: WithFieldValue<AppType>): WithFieldValue<DbType>;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
@@ -102,9 +102,9 @@ export interface FirestoreDataConverter<T> {
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<AppType>,
     options: SetOptions
-  ): DocumentData;
+  ): PartialWithFieldValue<DbType>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
@@ -113,7 +113,7 @@ export interface FirestoreDataConverter<T> {
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.
    */
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DbType, DbType>): AppType;
 }
 
 /**
@@ -125,7 +125,7 @@ export interface FirestoreDataConverter<T> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
   // - No support for SnapshotMetadata.
@@ -137,7 +137,7 @@ export class DocumentSnapshot<T = DocumentData> {
     public _userDataWriter: AbstractUserDataWriter,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: UntypedFirestoreDataConverter<T> | null
+    public _converter: UntypedFirestoreDataConverter<AppType, DbType> | null
   ) {}
 
   /** Property of the `DocumentSnapshot` that provides the document's ID. */
@@ -148,8 +148,8 @@ export class DocumentSnapshot<T = DocumentData> {
   /**
    * The `DocumentReference` for the document included in the `DocumentSnapshot`.
    */
-  get ref(): DocumentReference<T> {
-    return new DocumentReference<T>(
+  get ref(): DocumentReference<AppType, DbType> {
+    return new DocumentReference<AppType, DbType>(
       this._firestore,
       this._converter,
       this._key
@@ -161,7 +161,7 @@ export class DocumentSnapshot<T = DocumentData> {
    *
    * @returns true if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<AppType, DbType> {
     return this._document !== null;
   }
 
@@ -172,7 +172,7 @@ export class DocumentSnapshot<T = DocumentData> {
    * @returns An `Object` containing all fields in the document or `undefined`
    * if the document doesn't exist.
    */
-  data(): T | undefined {
+  data(): AppType | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -187,7 +187,7 @@ export class DocumentSnapshot<T = DocumentData> {
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(this._document.data.value) as T;
+      return this._userDataWriter.convertValue(this._document.data.value) as AppType;
     }
   }
 
@@ -226,17 +226,15 @@ export class DocumentSnapshot<T = DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends DocumentSnapshot<AppType, DbType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
    * @override
    * @returns An `Object` containing all fields in the document.
    */
-  data(): T {
-    return super.data() as T;
+  data(): AppType {
+    return super.data() as AppType;
   }
 }
 
@@ -247,12 +245,12 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   /**
    * The query on which you called {@link getDocs} in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<AppType, DbType>;
 
   /** @hideconstructor */
   constructor(

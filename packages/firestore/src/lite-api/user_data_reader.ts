@@ -76,13 +76,13 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * An untyped Firestore Data Converter interface that is shared between the
  * lite, firestore-exp and classic SDK.
  */
-export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+export interface UntypedFirestoreDataConverter<AppType = DocumentData, DbType extends DocumentData> {
+  toFirestore(modelObject: WithFieldValue<AppType>): WithFieldValue<DbType>;
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<AppType>,
     options: SetOptions
-  ): DocumentData;
-  fromFirestore(snapshot: unknown, options?: unknown): T;
+  ): PartialWithFieldValue<DbType>;
+  fromFirestore(snapshot: unknown, options?: unknown): AppType;
 }
 
 /** The result of parsing document data (e.g. for a setData call). */

@@ -33,6 +33,7 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   SetOptions,
@@ -86,7 +87,7 @@ export class Transaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
+  get<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>): Promise<DocumentSnapshot<AppType, DbType>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction.lookup([ref._key]).then(docs => {
