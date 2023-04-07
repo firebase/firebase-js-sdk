@@ -120,6 +120,7 @@ export class UploadTask {
     this._errorHandler = error => {
       this._request = undefined;
       this._chunkMultiplier = 1;
+      console.log('ERR');
       if (error._codeEquals(StorageErrorCode.CANCELED)) {
         this._needToFetchStatus = true;
         this.completeTransitions_();
@@ -318,8 +319,10 @@ export class UploadTask {
         appCheckToken,
         /*retry=*/ false // Upload requests should not be retried as each retry should be preceded by another query request. Which is handled in this file.
       );
+      console.log('assigning request');
       this._request = uploadRequest;
       uploadRequest.getPromise().then((newStatus: ResumableUploadStatus) => {
+        console.log('new status came back');
         this._increaseMultiplier();
         this._request = undefined;
         this._updateProgress(newStatus.current);
@@ -405,6 +408,7 @@ export class UploadTask {
     if (this._state === state) {
       return;
     }
+    console.log(`${this._state} -> ${state}`);
     switch (state) {
       case InternalTaskState.CANCELING:
       case InternalTaskState.PAUSING:
@@ -413,11 +417,15 @@ export class UploadTask {
         //        this.state_ === InternalTaskState.PAUSING);
         this._state = state;
         if (this._request !== undefined) {
+          console.log('canceling request');
           this._request.cancel();
         } else if (this.pendingTimeout) {
+          console.log('pending timeout');
           clearTimeout(this.pendingTimeout);
           this.pendingTimeout = undefined;
           this.completeTransitions_();
+        } else {
+          console.log('nothing');
         }
         break;
       case InternalTaskState.RUNNING:
@@ -427,6 +435,7 @@ export class UploadTask {
         const wasPaused = this._state === InternalTaskState.PAUSED;
         this._state = state;
         if (wasPaused) {
+          this._notifyObservers();
           this._start();
         }
         break;
@@ -587,7 +596,6 @@ export class UploadTask {
   }
 
   private _finishPromise(): void {
-    console.log('finishPromise');
     if (this._resolve !== undefined) {
       let triggered = true;
       switch (taskStateFromInternalTaskState(this._state)) {
@@ -647,7 +655,6 @@ export class UploadTask {
    * @returns True if the operation took effect, false if ignored.
    */
   resume(): boolean {
-    console.log('this.state', this._state);
     const valid =
       this._state === InternalTaskState.PAUSED ||
       this._state === InternalTaskState.PAUSING;
@@ -663,6 +670,7 @@ export class UploadTask {
    */
   pause(): boolean {
     const valid = this._state === InternalTaskState.RUNNING;
+    console.log('pause');
     if (valid) {
       this._transition(InternalTaskState.PAUSING);
     }

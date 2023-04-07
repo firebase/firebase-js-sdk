@@ -150,11 +150,9 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       } else {
         if (wasCanceled) {
           const err = this.appDelete_ ? appDeleted() : canceled();
-          console.log('reject');
           reject(err);
         } else {
           const err = retryLimitExceeded();
-          console.log('reject');
           reject(err);
         }
       }
@@ -163,7 +161,6 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       handleError({ wasCanceled: true, connection: null });
       return;
     }
-    console.log(this.timeout_);
     this.backoffHandler = new ExponentialBackoff(
       this.makeRequest_,
       this.timeout_
@@ -197,11 +194,9 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
 
   /** @inheritDoc */
   cancel(appDelete?: boolean): void {
-    console.log('calling cancel');
     this.canceled_ = true;
     this.appDelete_ = appDelete || false;
     if (this.backoffHandler !== null) {
-      console.log('calling stop');
       this.backoffHandler.stop();
     }
     if (this.pendingConnection_ !== null) {

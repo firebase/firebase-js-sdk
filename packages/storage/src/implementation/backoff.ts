@@ -54,22 +54,18 @@ export class ExponentialBackoff<T> {
   }
   startGlobalTimeout(): void {
     this.globalTimeoutId = setTimeout(() => {
-      console.log('time elapsed');
       this.clearRetryTimeout();
       if(this.cancelState === CancelState.RUNNING) {
         this.backoffDeferred.reject({ wasCanceled: false, connection: null });
         this.cancelState = CancelState.STOPPED;
       }
     }, this.timeout);
-    console.log(`created timeout of id ${this.globalTimeoutId}`);
   }
   clearGlobalTimeout(): void {
-    console.log(`cleared timeout of id ${this.globalTimeoutId}`);
     clearTimeout(this.globalTimeoutId);
   }
   clearRetryTimeout(): void {
     clearTimeout(this.retryTimeoutId);
-    console.log(`cleared timeout of id ${this.retryTimeoutId}`);
   }
   // Is there a chance that we have two operations going on at the same time?
   runOperation(): void {
@@ -99,11 +95,9 @@ export class ExponentialBackoff<T> {
       this.runOperation();
       this.retryTimeoutId = null;
     }, this.waitTimeInMS);
-    console.log(`created timeout of id ${this.retryTimeoutId}`);
   }
   start(): void {
     this.startGlobalTimeout();
-    setTimeout(() => this.runOperation(), 0);
     this.runOperation();
     this.cancelState = CancelState.RUNNING;
   }
