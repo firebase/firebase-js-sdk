@@ -1,0 +1,18 @@
+DO NOT MERGE THIS FILE INTO THE MASTER BRANCH!
+
+Here are the byte size increases due to adding the Integer and Md5 classes to the bundles:
+
+--------------------------------------------------------------------------------------
+| File             | Orig Size | Integer Size | Md5 Size    | Combined Size Increase |
+|------------------|-----------|--------------|-------------|------------------------|
+| index.esm2017.js | 43470     | 3937 (+9%)   | 6066 (+14%) | 10003 (+23%)           |
+| index.esm.js     | 68723     | 5964 (+9%)   | 9325 (+14%) | 15289 (+22%)           |
+| index.js         | 55148     | 4479 (+8%)   | 6058 (+11%) | 10538 (+19%)           |
+--------------------------------------------------------------------------------------
+
+Sizes were calculated by running `yarn build` followed by `ls dist` in this directory.
+
+
+TODO: re-run these numbers after running terser/uglify on all of the js files to
+strip out comments and compact the source code to get better numbers for actual size
+increases that will be realized by production apps that perform minification.
