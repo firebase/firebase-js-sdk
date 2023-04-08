@@ -189,7 +189,7 @@ export async function getGoogleAnalyticsClientId(
         GtagCommand.GET,
         measurementId,
         'client_id',
-        fieldName => {
+        (fieldName: string) => {
           if (!fieldName) {
             reject('There was an issue retrieving the `client_id`');
           }

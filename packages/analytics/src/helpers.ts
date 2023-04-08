@@ -227,45 +227,50 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event' | 'consent' | 'get',
-    idOrNameOrParams: string | ControlParams,
-    gtagParams?: GtagConfigOrEventParams | ConsentSettings | string,
-    callback?: (s: string) => void
+    command: 'config' | 'set' | 'event' | 'consent' | 'get' | string,
+    ...args: unknown[]
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
       if (command === GtagCommand.EVENT) {
+        const [measurementId, gtagParams] = args;
         // If EVENT, second arg must be measurementId.
         await gtagOnEvent(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
+        const [measurementId, gtagParams] = args;
         // If CONFIG, second arg must be measurementId.
         await gtagOnConfig(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
           measurementIdToAppId,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
+        const [gtagParams] = args;
         // If CONFIG, second arg must be measurementId.
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else if (command === GtagCommand.GET) {
+        const [targetId, fieldName, callback] = args;
         gtagCore(
           GtagCommand.GET,
-          idOrNameOrParams as string,
-          gtagParams as string,
-          callback as (fieldName: string) => void
+          targetId as string,
+          fieldName as string,
+          callback as (...args: unknown[]) => void
         );
-      } else {
+      } else if (command === GtagCommand.SET) {
+        const [customParams] = args;
         // If SET, second arg must be params.
-        gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
+        gtagCore(GtagCommand.SET, customParams as CustomParams);
+      } else {
+        gtagCore(command, ...args);
       }
     } catch (e) {
       logger.error(e);

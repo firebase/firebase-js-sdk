@@ -53,6 +53,7 @@ export interface MinimalDynamicConfig {
   measurementId: string;
 }
 
+// We can kill this interface as it'll all be unknown
 /**
  * Standard `gtag` function provided by gtag.js.
  */
@@ -77,8 +78,9 @@ export interface Gtag {
     command: 'get',
     targetId: string,
     fieldName: string,
-    callback: (s: string) => void
+    callback: (...args: unknown[]) => void
   ): void;
+  (command: string, ...args: unknown[]): void;
 }
 
 export type DataLayer = IArguments[];
