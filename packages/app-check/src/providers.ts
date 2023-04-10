@@ -164,6 +164,10 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       }
     );
+    // Check if a failure state was set by the recaptcha "error-callback".
+    if (!getStateReference(this._app!).reCAPTCHAState?.succeeded) {
+      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+    }
     let result;
     try {
       result = await exchangeToken(
