@@ -66,8 +66,8 @@ export function setPersistence(
  *
  * @remarks
  * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
- * verification flow should be triggered for a specific auth provider, into the
- * current Auth session and affect future auth requests.
+ * verification flow should be triggered for each auth provider, into the
+ * current Auth session.
  *
  * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
  * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
