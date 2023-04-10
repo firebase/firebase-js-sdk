@@ -88,7 +88,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         {
           error: {
             code: 400,
-            message: ServerError.UNAUTHORIZED_DOMAIN // TODO(chuanr): change to new recaptcha error
+            message: ServerError.MISSING_CLIENT_TYPE
           }
         },
         400
@@ -98,7 +98,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         .returns(Promise.resolve('recaptcha-response'));
       await expect(verifier.verify()).to.be.rejectedWith(
         Error,
-        'auth/unauthorized-continue-uri'
+        'auth/missing-client-type'
       );
     });
 
