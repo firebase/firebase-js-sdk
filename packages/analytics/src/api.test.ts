@@ -21,6 +21,7 @@ import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import {
   getAnalytics,
+  getGoogleAnalyticsClientId,
   initializeAnalytics,
   setConsent,
   setDefaultEventParameters
@@ -35,6 +36,8 @@ import {
   defaultEventParametersForInit
 } from './functions';
 import { ConsentSettings } from './public-types';
+import { GtagCommand } from './constants';
+import * as util from '@firebase/util';
 
 describe('FirebaseAnalytics API tests', () => {
   let initStub: SinonStub = stub();
@@ -152,6 +155,21 @@ describe('FirebaseAnalytics API tests', () => {
       'consent',
       'update',
       consentParametersForInit
+    );
+  });
+  it('getGoogleAnalyticsClientId() calls gtag "get" through wrappedGtagFunction', () => {
+    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
+    stub(util, 'getModularInstance').returns({
+      app: { options: { measurementId: 'measurement-id-1' } }
+    });
+    app = getFullApp({ ...fakeAppParams, measurementId: 'measurement-id-1' });
+    const analyticsInstance = initializeAnalytics(app);
+    const id = getGoogleAnalyticsClientId(analyticsInstance);
+    console.log({ didWeGetTheId: id });
+    expect(wrappedGtag).to.have.been.calledWith(
+      GtagCommand.GET,
+      'measurement-id-1',
+      'client_id'
     );
   });
 });
