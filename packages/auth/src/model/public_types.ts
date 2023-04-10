@@ -203,21 +203,19 @@ export interface Auth {
    */
   setPersistence(persistence: Persistence): Promise<void>;
   /**
-   * Initializes the reCAPTCHA configuration on the `Auth` instance.
-   *
-   * @remarks
-   * This will initialize reCAPTCHA config of the current Auth session which affects the future auth
-   * requests.
-   *
-   * The reCAPTCHA config indicates whether the reCAPTCHA verification flow should be triggered for
-   * a specific auth provider.
-   *
-   * For example, assume that reCAPTCHA verfication is enabled for Email provider via Cloud console
-   * or Admin SDKs. If the enablement is initialized to false via `initializeRecaptchaConfig()`, the auth
-   * flow will be started without the reCAPTCHA verfication. This will result in a `reCAPTCHA token
-   * missing` error while the SDK will automatically start the auth flow again with the reCAPTCHA
-   * verfication flow. Developers can avoid such round trip by enabling the reCAPTCHA flow with this
-   * method.
+ * Loads the reCAPTCHA configuration into the `Auth` instance.
+ *
+ * @remarks
+ * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
+ * verification flow should be triggered for each auth provider, into the
+ * current Auth session.
+ *
+ * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
+ * verification, the SDK will transparently load the reCAPTCHA config and restart the
+ * auth flows.
+ *
+ * Thus, by calling this optional method, you will reduce the latency of future auth flows.
    *
    * @example
    * ```javascript
