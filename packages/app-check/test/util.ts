@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app';
+import { FirebaseApp, initializeApp, _addOrOverwriteComponent, _registerComponent } from '@firebase/app';
 import {
   GreCAPTCHA,
   GreCAPTCHATopLevel,
@@ -62,11 +62,14 @@ export function getFakeAppCheck(app: FirebaseApp): AppCheck {
 
 export function getFullApp(): FirebaseApp {
   const app = initializeApp(fakeConfig);
-  _registerComponent(
+  _addOrOverwriteComponent(app,
+    //@ts-ignore
     new Component(
       'heartbeat',
       () => {
-        return {} as any;
+        return {
+          triggerHeartbeat: () => {}
+        } as any;
       },
       ComponentType.PUBLIC
     )
