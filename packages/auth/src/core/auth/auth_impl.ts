@@ -17,6 +17,7 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   Auth,
   AuthErrorMap,
@@ -65,6 +66,7 @@ import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
+import { _logWarn } from '../util/log';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -113,6 +115,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   constructor(
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
+    private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -677,7 +680,30 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (heartbeatsHeader) {
       headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
+
+    // If the App Check service exists, add the App Check token in the headers
+    const appCheckToken = await this._getAppCheckToken();
+    if (appCheckToken) {
+      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckToken;
+    }
+
     return headers;
+  }
+
+  async _getAppCheckToken(): Promise<string | undefined> {
+    const appCheckTokenResult = await this.appCheckServiceProvider
+      .getImmediate({ optional: true })
+      ?.getToken();
+    if (appCheckTokenResult?.error) {
+      // Context: appCheck.getToken() will never throw even if an error happened.
+      // In the error case, a dummy token will be returned along with an error field describing
+      // the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      _logWarn(
+        `Error while retrieving App Check token: ${appCheckTokenResult.error}`
+      );
+    }
+    return appCheckTokenResult?.token;
   }
 }
 

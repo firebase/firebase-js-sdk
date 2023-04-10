@@ -75,7 +75,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
       '_initialize() not called before _openPopup()'
     );
 
-    const url = _getRedirectUrl(
+    const url = await _getRedirectUrl(
       auth,
       provider,
       authType,
@@ -92,9 +92,14 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
     eventId?: string
   ): Promise<never> {
     await this._originValidation(auth);
-    _setWindowLocation(
-      _getRedirectUrl(auth, provider, authType, _getCurrentUrl(), eventId)
+    const url = await _getRedirectUrl(
+      auth,
+      provider,
+      authType,
+      _getCurrentUrl(),
+      eventId
     );
+    _setWindowLocation(url);
     return new Promise(() => {});
   }
 
