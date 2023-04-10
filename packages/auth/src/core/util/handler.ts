@@ -118,14 +118,13 @@ export async function _getRedirectUrl(
   // Sets the App Check token to pass to the widget
   const appCheckToken = await auth._getAppCheckToken();
   const appCheckTokenFragment = appCheckToken
-    ? `${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
+    ? `#${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
     : '';
-  const fragment = appCheckTokenFragment ? `#${appCheckTokenFragment}` : '';
 
   // Start at index 1 to skip the leading '&' in the query string
   return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(
     1
-  )}${fragment}`;
+  )}${appCheckTokenFragment}`;
 }
 
 function getHandlerBase({ config }: AuthInternal): string {
