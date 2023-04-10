@@ -495,7 +495,7 @@ This will load the reCAPTCHA config, which indicates whether the reCAPTCHA verif
 
 If initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
 
-Thus, by calling this optional method, you will reduce the latency of future auth flows.
+Thus, by calling this optional method, you will reduce the latency of future auth flows. Loading the reCAPTCHA config early will also enhence the signal collected by reCAPTCHA.
 
 <b>Signature:</b>
 

@@ -75,6 +75,7 @@ export function setPersistence(
  * auth flows.
  *
  * Thus, by calling this optional method, you will reduce the latency of future auth flows.
+ * Loading the reCAPTCHA config early will also enhence the signal collected by reCAPTCHA.
  *
  * @example
  * ```javascript

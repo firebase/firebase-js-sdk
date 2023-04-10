@@ -41,6 +41,7 @@ export async function getRecaptchaParams(auth: Auth): Promise<string> {
   );
 }
 
+// The following functions are for reCAPTCHA enterprise integration.
 interface GetRecaptchaConfigRequest {
   tenantId?: string;
   clientType?: RecaptchaClientType;

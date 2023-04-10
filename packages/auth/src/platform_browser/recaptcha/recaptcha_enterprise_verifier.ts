@@ -80,7 +80,7 @@ export class RecaptchaEnterpriseVerifier {
         })
           .then(response => {
             if (response.recaptchaKey === undefined) {
-              reject(new Error('recaptchaKey undefined'));
+              reject(new Error('recaptcha Enterprise site key undefined'));
             } else {
               const config = new RecaptchaConfig(response);
               if (auth.tenantId == null) {
