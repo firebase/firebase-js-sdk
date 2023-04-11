@@ -20,7 +20,7 @@ Firebase Analytics
 |  [getAnalytics(app)](./analytics.md#getanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
 |  [initializeAnalytics(app, options)](./analytics.md#initializeanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
 |  <b>function(analyticsInstance...)</b> |
-|  [getGoogleAnalyticsClientId(analyticsInstance)](./analytics.md#getgoogleanalyticsclientid) | Retrieves a unique identifier for the web client. |
+|  [getGoogleAnalyticsClientId(analyticsInstance)](./analytics.md#getgoogleanalyticsclientid) | Retrieves a unique Google Analytics identifier for the web client. See [client\_id](https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->. |
@@ -124,7 +124,7 @@ export declare function initializeAnalytics(app: FirebaseApp, options?: Analytic
 
 ## getGoogleAnalyticsClientId()
 
-Retrieves a unique identifier for the web client.
+Retrieves a unique Google Analytics identifier for the web client. See [client\_id](https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id)<!-- -->.
 
 <b>Signature:</b>
 
