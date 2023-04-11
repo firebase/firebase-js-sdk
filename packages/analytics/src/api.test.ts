@@ -21,7 +21,6 @@ import '../testing/setup';
 import { getFullApp } from '../testing/get-fake-firebase-services';
 import {
   getAnalytics,
-  getGoogleAnalyticsClientId,
   initializeAnalytics,
   setConsent,
   setDefaultEventParameters
