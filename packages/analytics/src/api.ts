@@ -50,7 +50,8 @@ import {
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
   _setConsentDefaultForInit,
-  _setDefaultEventParametersForInit
+  _setDefaultEventParametersForInit,
+  internalGetGoogleAnalyticsClientId
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -175,31 +176,14 @@ export function setCurrentScreen(
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
-export async function getGoogleAnalyticsClientId(
+export function getGoogleAnalyticsClientId(
   analyticsInstance: Analytics
 ): Promise<string> {
   analyticsInstance = getModularInstance(analyticsInstance);
-  const measurementId = analyticsInstance.app.options.measurementId;
-  let clientId = '';
-  if (!measurementId) {
-    logger.error('The app has no recognizable measurement ID.');
-  } else {
-    clientId = await new Promise((resolve, reject) => {
-      wrappedGtagFunction(
-        GtagCommand.GET,
-        measurementId,
-        'client_id',
-        (fieldName: string) => {
-          if (!fieldName) {
-            reject('There was an issue retrieving the `client_id`');
-          }
-          resolve(fieldName);
-        }
-      );
-    });
-  }
-
-  return clientId;
+  return internalGetGoogleAnalyticsClientId(
+    wrappedGtagFunction,
+    initializationPromisesMap[analyticsInstance.app.options.measurementId!]
+  );
 }
 
 /**

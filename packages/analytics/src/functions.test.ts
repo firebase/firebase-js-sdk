@@ -27,10 +27,12 @@ import {
   defaultEventParametersForInit,
   _setDefaultEventParametersForInit,
   _setConsentDefaultForInit,
-  defaultConsentSettingsForInit
+  defaultConsentSettingsForInit,
+  internalGetGoogleAnalyticsClientId
 } from './functions';
 import { GtagCommand } from './constants';
 import { ConsentSettings } from './public-types';
+import { Gtag } from './types';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
@@ -237,5 +239,35 @@ describe('FirebaseAnalytics methods', () => {
     expect(defaultConsentSettingsForInit).to.deep.equal({
       ...additionalParams
     });
+  });
+  it('internalGetGoogleAnalyticsClientId() rejects when no client_id is available', async () => {
+    await expect(
+      internalGetGoogleAnalyticsClientId(
+        function fakeWrappedGtag(
+          unused1: unknown,
+          unused2: unknown,
+          unused3: unknown,
+          callBackStub: (fieldName: string) => {}
+        ): void {
+          callBackStub('');
+        } as Gtag,
+        fakeInitializationPromise
+      )
+    ).to.be.rejectedWith('There was an issue retrieving the `client_id`');
+  });
+  it('internalGetGoogleAnalyticsClientId() returns client_id when available', async () => {
+    const CLIENT_ID = 'clientId1234';
+    const id = await internalGetGoogleAnalyticsClientId(
+      function fakeWrappedGtag(
+        unused1: unknown,
+        unused2: unknown,
+        unused3: unknown,
+        callBackStub: (fieldName: string) => {}
+      ): void {
+        callBackStub(CLIENT_ID);
+      } as Gtag,
+      fakeInitializationPromise
+    );
+    expect(id).to.equal(CLIENT_ID);
   });
 });
