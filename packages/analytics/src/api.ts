@@ -176,7 +176,7 @@ export function setCurrentScreen(
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
-export function getGoogleAnalyticsClientId(
+export async function getGoogleAnalyticsClientId(
   analyticsInstance: Analytics
 ): Promise<string> {
   analyticsInstance = getModularInstance(analyticsInstance);
