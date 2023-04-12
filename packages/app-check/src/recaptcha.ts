@@ -155,7 +155,7 @@ function renderInvisibleWidget(
       getStateReference(app).reCAPTCHAState!.succeeded = false;
     }
   });
-  
+
   const state = getStateReference(app);
 
   state.reCAPTCHAState = {
