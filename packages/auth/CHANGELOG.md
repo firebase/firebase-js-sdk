@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 0.22.0
+
+### Minor Changes
+
+- [`965396d52`](https://github.com/firebase/firebase-js-sdk/commit/965396d522243fcc17b63558823ad761c87ae1ba) [#7177](https://github.com/firebase/firebase-js-sdk/pull/7177) - Fixed error message for missing password case.
+
+### Patch Changes
+
+- [`bd51cecba`](https://github.com/firebase/firebase-js-sdk/commit/bd51cecba5cfc1b1c1ca46bf94e65320da3da609) [#7179](https://github.com/firebase/firebase-js-sdk/pull/7179) (fixes [#7174](https://github.com/firebase/firebase-js-sdk/issues/7174)) - Fix typings for `TotpMultiFactorGenerator`. This fixes a reversion in 9.19.0.
+
 ## 0.21.6
 
 ### Patch Changes

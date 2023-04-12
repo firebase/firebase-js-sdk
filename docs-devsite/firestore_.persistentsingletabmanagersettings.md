@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PersistentSingleTabManagerSettings interface
-Type to configure an `PersistentSingleTabManager` instace.
+Type to configure an `PersistentSingleTabManager` instance.
 
 <b>Signature:</b>
 
