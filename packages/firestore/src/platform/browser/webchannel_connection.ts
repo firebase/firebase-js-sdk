@@ -23,6 +23,7 @@ import {
   WebChannelError,
   WebChannelOptions,
   FetchXmlHttpFactory,
+  Md5,
   XhrIo,
   getStatEventTarget,
   EventTarget,
@@ -95,12 +96,20 @@ export class WebChannelConnection extends RestConnection {
               break;
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
+
+              const md5 = new Md5();
+              md5.update([1, 2, 3, 4]);
+              md5.reset();
+              md5.update([4, 3, 2, 1]);
+              const value = md5.digest();
+
               logDebug(
                 LOG_TAG,
                 `RPC '${rpcName}' ${streamId} failed with status:`,
                 status,
                 'response text:',
-                xhr.getResponseText()
+                xhr.getResponseText(),
+                `${value}`
               );
               if (status > 0) {
                 let response = xhr.getResponseJson();
