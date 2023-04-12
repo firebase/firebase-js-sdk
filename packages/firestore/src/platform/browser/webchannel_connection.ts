@@ -97,15 +97,15 @@ export class WebChannelConnection extends RestConnection {
             case ErrorCode.HTTP_ERROR:
               const status = xhr.getStatus();
 
-              const integer1 = new Integer([1, 2, 3], streamId);
-              const integer2 = new Integer([3, 2, 1], streamId);
+              const integer1 = new Integer([1, 2, 3], 1);
+              const integer2 = new Integer([3, 2, 1], 1);
               const integer3 = integer1.add(integer2);
               const integer4 = integer3.multiply(integer2);
               const integer5 = integer4.modulo(integer3);
               const val1 = integer5.compare(integer4);
               const val2 = integer5.toString();
-              const val3 = integer5.getBits(streamId);
-              const val4 = Integer.fromNumber(streamId).toNumber();
+              const val3 = integer5.getBits(1234);
+              const val4 = Integer.fromNumber(4321).toNumber();
               const val5 = Integer.fromString(rpcName).toNumber();
 
               logDebug(
