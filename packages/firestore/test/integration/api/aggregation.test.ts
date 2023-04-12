@@ -295,7 +295,9 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
     });
   });
 
-  it('getAggregateFromServer fails if user is offline', () => {
+  // TODO(b/277628384): Re-enable this test once b/277628384 is fixed.
+  // eslint-disable-next-line no-restricted-properties
+  it.skip('getAggregateFromServer fails if user is offline', () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
       await disableNetwork(firestore);
       await expect(getCountFromServer(coll)).to.be.eventually.rejectedWith(
