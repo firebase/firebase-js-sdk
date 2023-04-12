@@ -161,7 +161,6 @@ export async function internalGetGoogleAnalyticsClientId(
         measurementId,
         'client_id',
         (fieldName: string) => {
-          console.log('inside the callback');
           if (!fieldName) {
             reject('There was an issue retrieving the `client_id`');
           }
