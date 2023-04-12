@@ -229,6 +229,18 @@
                 </button>
               </form>
 
+              <!-- Set Tenant -->
+              <div class="group">Set Tenant</div>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="set-tenant"
+                        class="form-control"
+                        placeholder="Tenant" />
+                <button class="btn btn-block btn-primary"
+                        id="set-tenant-btn">
+                  Set Tenant
+                </button>
+              </form>
+
               <!-- Sign up -->
               <div class="group">Sign Up</div>
               <form class="form form-bordered no-submit">
@@ -487,6 +499,12 @@
                     Phone
                   </a>
                 </li>
+                <li role="presentation">
+                  <a href="#mfa-totp-section" aria-controls="mfa-totp-section"
+                     data-toggle="tab" role="tab">
+                    TOTP
+                  </a>
+                </li>
               </ul>
               <div class="tab-content">
                 <div class="tab-pane active" id="mfa-phone-section">
@@ -504,7 +522,27 @@
                            class="form-control" placeholder="Display Name" />
                     <button class="btn btn-block btn-primary"
                             id="enroll-mfa-confirm-phone-verification">
-                      Complete Enrollment
+                      Complete Phone Enrollment
+                    </button>
+
+                  </form>
+                </div>
+                <div class="tab-pane" id="mfa-totp-section">
+                  <form class="form form-bordered no-submit">
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-totp-start">
+                      Start TOTP Enrollment
+                    </button>
+                    <br>
+                    <p hidden class="totp-text" id="totp-text"> Please scan the QR code below in a TOTP app </p>
+                    <p hidden class="totp-deadline" id="totp-deadline"></p>
+                    <img hidden class="totp-qr-image" id="totp-qr-image"/>
+                    <br> 
+                    <input type="text" id="enroll-mfa-totp-verification-code"
+                           class="form-control" placeholder="TOTP Verification Code(from App)" />
+                    <input type="text" id="enroll-mfa-totp-display-name"
+                           class="form-control" placeholder="Display Name" />
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-totp-finalize">
+                      Complete TOTP Enrollment
                     </button>
                   </form>
                 </div>
@@ -731,6 +769,17 @@
                       id="sign-in-with-phone-multi-factor">
                 Complete sign In
               </button>
+              </div>
+            </form>
+            <!-- For handling sign-in with TOTP 2nd factor. -->
+            <form class="form form-bordered no-submit hidden" id="multi-factor-totp">
+              <div class="form">
+                  <input type="text" id="multi-factor-totp-sign-in-verification-code"
+                         class="form-control" placeholder="Totp Verification code" />
+                  <button class="btn btn-block btn-primary"
+                          id="sign-in-with-totp-multi-factor">
+                    Complete sign In
+                  </button>
               </div>
             </form>
           </div>

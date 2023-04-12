@@ -49,6 +49,8 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithEmailAndPassword,
+  TotpMultiFactorGenerator,
+  TotpSecret,
   unlink,
   updateEmail,
   updatePassword,
@@ -97,6 +99,8 @@ let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
+let totpSecret = null;
+let totpDeadlineId = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -318,7 +322,14 @@ function onUseDeviceLanguage() {
   $('#language-code').val(auth.languageCode);
   alertSuccess('Using device language "' + auth.languageCode + '".');
 }
-
+/**
+ * Set tenant id for the firebase project.
+ */
+function onSetTenantIdClick(_event) {
+  const tenantId = $('#set-tenant').val();
+  auth.tenantId = tenantId === '' ? null : tenantId;
+  alertSuccess('Tenant Id : ' + auth.tenantId);
+}
 /**
  * Changes the Auth state persistence to the specified one.
  */
@@ -687,6 +698,80 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     }, onAuthError);
 }
 
+async function onStartEnrollWithTotpMultiFactor() {
+  console.log('Starting TOTP enrollment!');
+  if (!activeUser()) {
+    alertError('No active user found.');
+    return;
+  }
+  try {
+    multiFactorSession = await multiFactor(activeUser()).getSession();
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(
+      multiFactorSession
+    );
+    const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
+    console.log('TOTP URL is ' + url);
+    console.log(
+      'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
+    );
+    // display the numbr of seconds left to enroll.
+    $('p.totp-deadline').show();
+    totpDeadlineId = setInterval(function () {
+      var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
+      var t = deadline - new Date().getTime();
+      if (t < 0) {
+        clearInterval(totpDeadlineId);
+        document.getElementById('totp-deadline').innerText =
+          'TOTP enrollment expired!';
+      } else {
+        var minutes = Math.floor(t / (1000 * 60));
+        var seconds = Math.floor((t % (60 * 1000)) / 1000);
+        // accessing the field using $ does not work here.
+        document.getElementById(
+          'totp-deadline'
+        ).innerText = `Time left - ${minutes} minutes, ${seconds} seconds.`;
+      }
+    }, 1000);
+    // Use the QRServer API documented at https://goqr.me/api/doc/
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${url}&amp;size=30x30`;
+    $('img.totp-qr-image').attr('src', qrCodeUrl).show();
+    $('p.totp-text').show();
+  } catch (e) {
+    onAuthError(e);
+  }
+}
+
+async function onFinalizeEnrollWithTotpMultiFactor() {
+  const verificationCode = $('#enroll-mfa-totp-verification-code').val();
+  if (!activeUser() || !totpSecret || !verificationCode) {
+    alertError(' Missing active user OR TOTP secret OR verification code.');
+    return;
+  }
+
+  const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
+    totpSecret,
+    verificationCode
+  );
+  const displayName = $('#enroll-mfa-totp-display-name').val() || undefined;
+
+  try {
+    await multiFactor(activeUser()).enroll(multiFactorAssertion, displayName);
+    refreshUserData();
+    clearTOTPUIState();
+    alertSuccess('TOTP MFA enrolled!');
+  } catch (e) {
+    onAuthError(e);
+  }
+}
+
+function clearTOTPUIState() {
+  $('p.totp-deadline').hide();
+  $('img.totp-qr-image').hide();
+  $('p.totp-text').hide();
+  $('enroll-mfa-totp-verification-code').hide();
+  $('enroll-mfa-totp-display-name').hide();
+  clearInterval(totpDeadlineId);
+}
 /**
  * Signs in or links a provider's credential, based on current tab opened.
  * @param {!AuthCredential} credential The provider's credential.
@@ -1056,6 +1141,7 @@ function handleMultiFactorSignIn(resolver) {
   );
   // Hide phone form (other second factor types could be supported).
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   // Show second factor recovery dialog.
   $('#multiFactorModal').modal();
 }
@@ -1122,6 +1208,7 @@ function onSelectMultiFactorHint(index) {
   // Hide all forms for handling each type of second factors.
   // Currently only phone is supported.
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   if (
     !multiFactorErrorResolver ||
     typeof multiFactorErrorResolver.hints[index] === 'undefined'
@@ -1141,6 +1228,14 @@ function onSelectMultiFactorHint(index) {
     // Clear all input.
     $('#multi-factor-sign-in-verification-id').val('');
     $('#multi-factor-sign-in-verification-code').val('');
+  } else if (multiFactorErrorResolver.hints[index].factorId === 'totp') {
+    // Save selected second factor.
+    selectedMultiFactorHint = multiFactorErrorResolver.hints[index];
+
+    // Show sign-in with totp second factor menu.
+    $('#multi-factor-totp').removeClass('hidden');
+    // Clear all input.
+    $('#multi-factor-totp-sign-in-verification-code').val('');
   } else {
     // 2nd factor not found or not supported by app.
     alertError('Selected 2nd factor is not supported!');
@@ -1189,6 +1284,28 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
   }
   const cred = PhoneAuthProvider.credential(verificationId, code);
   const assertion = PhoneMultiFactorGenerator.assertion(cred);
+  multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
+    onAuthUserCredentialSuccess(userCredential);
+    $('#multiFactorModal').modal('hide');
+  }, onAuthError);
+}
+
+/**
+ * Completes sign-in with the 2nd factor totp assertion.
+ * @param {!jQuery.Event} event The jQuery event object.
+ */
+function onFinalizeSignInWithTotpMultiFactor(event) {
+  event.preventDefault();
+  // Make sure a second factor is selected.
+  const otp = $('#multi-factor-totp-sign-in-verification-code').val();
+  if (!otp || !selectedMultiFactorHint || !multiFactorErrorResolver) {
+    return;
+  }
+
+  const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+    selectedMultiFactorHint.uid,
+    otp
+  );
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
@@ -1326,7 +1443,6 @@ function signInWithPopupRedirect(provider) {
       customParameters[key] = value;
     }
   });
-  console.log('customParameters: ', customParameters);
   // For older jscore versions that do not support this.
   if (provider.setCustomParameters) {
     // Set custom parameters on current provider.
@@ -1999,12 +2115,24 @@ function initApp() {
   $('#sign-in-with-phone-multi-factor').click(
     onFinalizeSignInWithPhoneMultiFactor
   );
+
+  // Completes multi-factor sign-in with supplied OTP(One-Time Password).
+  $('#sign-in-with-totp-multi-factor').click(
+    onFinalizeSignInWithTotpMultiFactor
+  );
+
   // Starts multi-factor enrollment with phone number.
   $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);
   // Completes multi-factor enrollment with supplied SMS code.
   $('#enroll-mfa-confirm-phone-verification').click(
     onFinalizeEnrollWithPhoneMultiFactor
   );
+  // Starts multi-factor enrollment with TOTP.
+  $('#enroll-mfa-totp-start').click(onStartEnrollWithTotpMultiFactor);
+  // Completes multi-factor enrollment with supplied OTP(One-Time Password).
+  $('#enroll-mfa-totp-finalize').click(onFinalizeEnrollWithTotpMultiFactor);
+  // Sets tenant for the current auth instance
+  $('#set-tenant-btn').click(onSetTenantIdClick);
 }
 
 $(initApp);

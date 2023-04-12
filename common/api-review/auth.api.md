@@ -364,6 +364,7 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 // @public
 export const FactorId: {
     readonly PHONE: "phone";
+    readonly TOTP: "totp";
 };
 
 // @public
@@ -753,6 +754,40 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 
 // @public
 export function signOut(auth: Auth): Promise<void>;
+
+// @public
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
+}
+
+// @public
+export class TotpMultiFactorGenerator {
+    static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
+    static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
+    static FACTOR_ID: 'totp';
+    static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
+}
+
+// @public
+export interface TotpMultiFactorInfo extends MultiFactorInfo {
+}
+
+// @public
+export class TotpSecret {
+    readonly codeIntervalSeconds: number;
+    readonly codeLength: number;
+    readonly enrollmentCompletionDeadline: string;
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
+    generateQrCodeUrl(accountName?: string, issuer?: string): string;
+    readonly hashingAlgorithm: string;
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
+    readonly secretKey: string;
+    }
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {

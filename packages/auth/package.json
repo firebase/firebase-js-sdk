@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.21.5",
+  "version": "0.22.0",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -84,7 +84,7 @@
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
-    "test:all": "run-p test:browser:unit test:node:unit test:integration",
+    "test:all": "run-p test:browser:unit test:node:unit test:integration test:browser:integration:prodbackend",
     "test:integration": "firebase emulators:exec --project emulatedproject --only auth \"run-s test:browser:integration:local test:node:integration:local test:webdriver\"",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:integration:local": "run-s test:node:integration:local test:browser:integration:local test:webdriver",
@@ -92,6 +92,7 @@
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
     "test:browser:integration:local": "karma start --single-run --integration --local",
+    "test:browser:integration:prodbackend": "karma start --single-run --integration --prodbackend",
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:cordova": "karma start --single-run --cordova",
@@ -118,7 +119,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.5",
+    "@firebase/app": "0.9.7",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "chromedriver": "98.0.1",
@@ -127,7 +128,8 @@
     "rollup-plugin-typescript2": "0.31.2",
     "selenium-webdriver": "4.8.0",
     "typescript": "4.7.4",
-    "@types/express": "4.17.17"
+    "@types/express": "4.17.17",
+    "totp-generator": "0.0.14"
   },
   "repository": {
     "directory": "packages/auth",
