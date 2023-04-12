@@ -679,8 +679,9 @@ describe('internal api', () => {
     });
 
     it('uses reCAPTCHA (V3) token to exchange for AppCheck token', async () => {
+      const provider = new ReCaptchaV3Provider(FAKE_SITE_KEY);
       const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        provider,
       });
 
       const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
@@ -696,7 +697,7 @@ describe('internal api', () => {
       expect(reCAPTCHASpy).to.be.called;
 
       // throw new Error(JSON.stringify(exchangeTokenStub.args, null, 2));
-      throw new Error(JSON.stringify(await reCAPTCHA.getToken(app)));
+      throw new Error(JSON.stringify(await provider.getToken()));
       expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
         fakeRecaptchaToken
       );
