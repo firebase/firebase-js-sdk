@@ -118,7 +118,7 @@ describe('internal api', () => {
 
       expect(reCAPTCHASpy).to.be.called;
 
-      throw new Error("" + exchangeTokenStub.args);
+      throw new Error(JSON.stringify(exchangeTokenStub.args[0], null, 2));
 
       expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
         fakeRecaptchaToken
