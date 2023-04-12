@@ -18,6 +18,7 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { SinonStub, spy, stub, useFakeTimers } from 'sinon';
+import * as sinon from 'sinon';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   FAKE_SITE_KEY,
@@ -81,6 +82,7 @@ describe('internal api', () => {
     clearState();
     removegreCAPTCHAScriptsOnPage();
     return deleteApp(app);
+    sinon.restore();
   });
   // TODO: test error conditions
   describe('getToken()', () => {
