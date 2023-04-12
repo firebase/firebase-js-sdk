@@ -145,7 +145,6 @@ export async function setUserProperties(
  * @public
  *
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
- * @param properties Map of user properties to set
  */
 export async function internalGetGoogleAnalyticsClientId(
   gtagFunction: Gtag,
