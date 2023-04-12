@@ -211,7 +211,7 @@ export async function getToken(
 
 /**
  * Requests a Firebase App Check token. This method should be used
- * *only* if you need to authorize requests to a non-Firebase backend.
+ * only if you need to authorize requests to a non-Firebase backend.
  *
  * Returns limited-use tokens that are intended for use with your
  * non-Firebase backend endpoints that are protected with
