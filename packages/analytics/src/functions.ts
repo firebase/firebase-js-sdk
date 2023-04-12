@@ -24,7 +24,6 @@ import {
 } from './public-types';
 import { Gtag } from './types';
 import { GtagCommand } from './constants';
-import { logger } from './logger';
 
 /**
  * Event parameters to set on 'gtag' during initialization.
@@ -151,25 +150,19 @@ export async function internalGetGoogleAnalyticsClientId(
   initializationPromise: Promise<string>
 ): Promise<string> {
   const measurementId = await initializationPromise;
-  let clientId = '';
-  if (!measurementId) {
-    logger.error('The app has no recognizable measurement ID.');
-  } else {
-    clientId = await new Promise((resolve, reject) => {
-      gtagFunction(
-        GtagCommand.GET,
-        measurementId,
-        'client_id',
-        (fieldName: string) => {
-          if (!fieldName) {
-            reject('There was an issue retrieving the `client_id`');
-          }
-          resolve(fieldName);
+  return new Promise((resolve, reject) => {
+    gtagFunction(
+      GtagCommand.GET,
+      measurementId,
+      'client_id',
+      (fieldName: string) => {
+        if (!fieldName) {
+          reject('There was an issue retrieving the `client_id`');
         }
-      );
-    });
-  }
-  return clientId;
+        resolve(fieldName);
+      }
+    );
+  });
 }
 
 /**
