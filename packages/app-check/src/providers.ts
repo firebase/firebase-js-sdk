@@ -70,7 +70,8 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
     const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
       _e => {
         // reCaptcha.execute() throws null which is not very descriptive.
-        console.error(_e);
+        console.log('--------------------------------------------------------');
+        console.log(_e);
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       }
     );
