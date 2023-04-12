@@ -24,6 +24,8 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 import {
+  FAKE_APP_CHECK_CONTROLLER,
+  FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
   testAuth,
@@ -62,6 +64,7 @@ describe('core/auth/auth_impl', () => {
     const authImpl = new AuthImpl(
       FAKE_APP,
       FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+      FAKE_APP_CHECK_CONTROLLER_PROVIDER,
       {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
@@ -582,6 +585,7 @@ describe('core/auth/auth_impl', () => {
       const authImpl = new AuthImpl(
         FAKE_APP,
         FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
         {
           apiKey: FAKE_APP.options.apiKey!,
           apiHost: DefaultConfig.API_HOST,
@@ -651,6 +655,34 @@ describe('core/auth/auth_impl', () => {
     it('does not add heartbeat if controller unavailable', async () => {
       sinon
         .stub(FAKE_HEARTBEAT_CONTROLLER_PROVIDER, 'getImmediate')
+        .returns(undefined as any);
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v'
+      });
+    });
+
+    it('adds the App Check token if available', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
+        .returns(Promise.resolve({ token: 'fake-token' }));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+        'X-Firebase-AppCheck': 'fake-token'
+      });
+    });
+
+    it('does not add the App Check token if none returned', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
+        .returns(Promise.resolve({ token: '' }));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v'
+      });
+    });
+
+    it('does not add the App Check token if controller unavailable', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
         .returns(undefined as any);
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v'
