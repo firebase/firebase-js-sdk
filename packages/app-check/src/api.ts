@@ -219,7 +219,7 @@ export async function getToken(
  * Replay Protection</a>. This method
  * does not affect the token generation behavior of the
  * #getAppCheckToken() method.
- * 
+ *
  * @param appCheckInstance - The App Check service instance.
  * @returns The limited use token.
  * @public

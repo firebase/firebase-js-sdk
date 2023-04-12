@@ -61,7 +61,7 @@ export function formatDummyToken(
 export async function getToken(
   appCheck: AppCheckService,
   forceRefresh = false,
-  isLimitedUse = false,
+  isLimitedUse = false
 ): Promise<AppCheckTokenResult> {
   const app = appCheck.app;
   ensureActivated(app);
