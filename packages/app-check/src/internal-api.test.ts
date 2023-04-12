@@ -32,7 +32,7 @@ import {
   addTokenListener,
   removeTokenListener,
   formatDummyToken,
-  defaultTokenErrorData,
+  defaultTokenErrorData
 } from './internal-api';
 import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
@@ -664,11 +664,14 @@ describe('internal api', () => {
   });
 
   describe('getToken() for limited use', () => {
-    function getLimitedUseToken(appCheck: AppCheck): Promise<AppCheckTokenResult> {
+    function getLimitedUseToken(
+      appCheck: AppCheck
+    ): Promise<AppCheckTokenResult> {
       return getToken(
         appCheck as AppCheckService,
         /*forceRefresh*/ true,
-        /* isLimitedUse */ true);
+        /* isLimitedUse */ true
+      );
     }
 
     it('uses customTokenProvider to get an AppCheck token', async () => {

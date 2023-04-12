@@ -293,12 +293,11 @@ describe('api', () => {
     it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const appCheck = getFakeAppCheck(app);
-      const internalgetLimitedUseToken = stub(
-        internalApi,
-        'getToken'
-      ).resolves({
-        token: 'a-token-string'
-      });
+      const internalgetLimitedUseToken = stub(internalApi, 'getToken').resolves(
+        {
+          token: 'a-token-string'
+        }
+      );
       await getLimitedUseToken(appCheck);
       expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
     });
