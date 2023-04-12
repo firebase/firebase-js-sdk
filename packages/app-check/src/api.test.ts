@@ -305,8 +305,8 @@ describe('api', () => {
     it('getLimitedUseToken() throws errors returned with token', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const appCheck = getFakeAppCheck(app);
-      // If getLimitedUseToken() errors, it returns a dummy token with an error field
-      // instead of throwing.
+      // If the internal getToken() errors, it returns a dummy token
+      // with an error field instead of throwing.
       stub(internalApi, 'getToken').resolves({
         token: 'a-dummy-token',
         error: Error('there was an error')

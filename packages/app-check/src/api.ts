@@ -215,7 +215,8 @@ export async function getToken(
  *
  * Returns limited-use tokens that are intended for use with your
  * non-Firebase backend endpoints that are protected with
- * <a href=[--URL to public docs--]>Replay Protection</a>. This method
+ * <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection">
+ * Replay Protection</a>. This method
  * does not affect the token generation behavior of the
  * #getAppCheckToken() method.
  * 

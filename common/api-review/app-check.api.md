@@ -61,7 +61,7 @@ export interface CustomProviderOptions {
 }
 
 // @public
-export function getScopedToken(appCheckInstance: AppCheck): Promise<AppCheckTokenResult>;
+export function getLimitedUseToken(appCheckInstance: AppCheck): Promise<AppCheckTokenResult>;
 
 // @public
 export function getToken(appCheckInstance: AppCheck, forceRefresh?: boolean): Promise<AppCheckTokenResult>;
