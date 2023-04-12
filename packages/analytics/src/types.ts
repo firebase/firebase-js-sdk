@@ -75,7 +75,7 @@ export interface Gtag {
   ): void;
   (
     command: 'get',
-    targetId: string,
+    measurementId: string,
     fieldName: string,
     callback: (...args: unknown[]) => void
   ): void;

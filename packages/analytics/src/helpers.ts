@@ -258,10 +258,10 @@ function wrapGtag(
         // If CONFIG, second arg must be measurementId.
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else if (command === GtagCommand.GET) {
-        const [targetId, fieldName, callback] = args;
+        const [measurementId, fieldName, callback] = args;
         gtagCore(
           GtagCommand.GET,
-          targetId as string,
+          measurementId as string,
           fieldName as string,
           callback as (...args: unknown[]) => void
         );
