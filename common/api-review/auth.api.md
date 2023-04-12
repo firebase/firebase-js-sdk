@@ -776,13 +776,13 @@ export class TotpSecret {
     readonly codeIntervalSeconds: number;
     readonly codeLength: number;
     readonly enrollmentCompletionDeadline: string;
-    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
     generateQrCodeUrl(accountName?: string, issuer?: string): string;
     readonly hashingAlgorithm: string;
-    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
