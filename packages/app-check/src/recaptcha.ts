@@ -143,7 +143,6 @@ function renderInvisibleWidget(
   grecaptcha: GreCAPTCHA,
   container: string
 ): void {
-  const state = getStateReference(app);
   const widgetId = grecaptcha.render(container, {
     sitekey: siteKey,
     size: 'invisible',
@@ -156,6 +155,8 @@ function renderInvisibleWidget(
       getStateReference(app).reCAPTCHAState!.succeeded = false;
     }
   });
+  
+  const state = getStateReference(app);
 
   state.reCAPTCHAState = {
     ...state.reCAPTCHAState!, // state.reCAPTCHAState is set in the initialize()
