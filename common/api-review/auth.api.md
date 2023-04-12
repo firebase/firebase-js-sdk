@@ -85,7 +85,6 @@ export interface Auth {
     readonly config: Config;
     readonly currentUser: User | null;
     readonly emulatorConfig: EmulatorConfig | null;
-    initializeRecaptchaConfig(): Promise<void>;
     languageCode: string | null;
     readonly name: string;
     onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;

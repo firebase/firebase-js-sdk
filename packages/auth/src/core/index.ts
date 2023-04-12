@@ -25,6 +25,7 @@ import {
   ErrorFn,
   Unsubscribe
 } from '../model/public_types';
+import { _castAuth } from '../core/auth/auth_impl';
 
 export {
   debugErrorMap,
@@ -87,7 +88,8 @@ export function setPersistence(
  * @public
  */
 export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
-  return getModularInstance(auth).initializeRecaptchaConfig();
+  const authInternal = _castAuth(auth);
+  return authInternal.initializeRecaptchaConfig();
 }
 
 /**

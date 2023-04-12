@@ -38,7 +38,6 @@ export interface Auth
 |  Method | Description |
 |  --- | --- |
 |  [beforeAuthStateChanged(callback, onAbort)](./auth.auth.md#authbeforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
-|  [initializeRecaptchaConfig()](./auth.auth.md#authinitializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [setPersistence(persistence)](./auth.auth.md#authsetpersistence) | Changes the type of persistence on the <code>Auth</code> instance. |
@@ -165,33 +164,6 @@ beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, on
 <b>Returns:</b>
 
 [Unsubscribe](./util.md#unsubscribe)
-
-## Auth.initializeRecaptchaConfig()
-
-Loads the reCAPTCHA configuration into the `Auth` instance.
-
-This will load the reCAPTCHA config, which indicates whether the reCAPTCHA verification flow should be triggered for each auth provider, into the current Auth session.
-
-If initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
-
-Thus, by calling this optional method, you will reduce the latency of future auth flows. Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
-
-<b>Signature:</b>
-
-```typescript
-initializeRecaptchaConfig(): Promise<void>;
-```
-<b>Returns:</b>
-
-Promise&lt;void&gt;
-
-### Example
-
-
-```javascript
-auth.initializeRecaptchaConfig();
-
-```
 
 ## Auth.onAuthStateChanged()
 
