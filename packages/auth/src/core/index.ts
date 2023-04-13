@@ -25,6 +25,7 @@ import {
   ErrorFn,
   Unsubscribe
 } from '../model/public_types';
+import { _castAuth } from '../core/auth/auth_impl';
 
 export {
   debugErrorMap,
@@ -60,6 +61,37 @@ export function setPersistence(
 ): Promise<void> {
   return getModularInstance(auth).setPersistence(persistence);
 }
+
+/**
+ * Loads the reCAPTCHA configuration into the `Auth` instance.
+ *
+ * @remarks
+ * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
+ * verification flow should be triggered for each auth provider, into the
+ * current Auth session.
+ *
+ * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
+ * verification, the SDK will transparently load the reCAPTCHA config and restart the
+ * auth flows.
+ *
+ * Thus, by calling this optional method, you will reduce the latency of future auth flows.
+ * Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+ *
+ * @example
+ * ```javascript
+ * initializeRecaptchaConfig(auth);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @public
+ */
+export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  return authInternal.initializeRecaptchaConfig();
+}
+
 /**
  * Adds an observer for changes to the signed-in user's ID token.
  *

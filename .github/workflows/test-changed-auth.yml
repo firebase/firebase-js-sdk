@@ -14,8 +14,8 @@ jobs:
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
       - name: install Chrome stable
-        # Install Chrome version 110.0.5481.177-1 as test starts to fail on version 111.0.5563.64-1.
-        # We will retry to use the latest, once Chrome releases stable version 112 (April 4 ETA).
+        # Install Chrome version 110.0.5481.177-1 as test starts to fail on version 111.
+        # We will retry to use the latest, once version 112 becomes stable.
         run: |
           sudo apt-get update
           sudo apt-get install wget
@@ -27,7 +27,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: Bump Node memory limit
@@ -58,7 +58,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: Bump Node memory limit
