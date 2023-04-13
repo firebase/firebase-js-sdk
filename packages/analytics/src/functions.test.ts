@@ -248,7 +248,7 @@ describe('FirebaseAnalytics methods', () => {
           unused1: unknown,
           unused2: unknown,
           unused3: unknown,
-          callBackStub: (fieldName: string) => {}
+          callBackStub: (clientId: string) => {}
         ): void {
           callBackStub('');
         } as Gtag,
@@ -263,7 +263,7 @@ describe('FirebaseAnalytics methods', () => {
         unused1: unknown,
         unused2: unknown,
         unused3: unknown,
-        callBackStub: (fieldName: string) => {}
+        callBackStub: (clientId: string) => {}
       ): void {
         callBackStub(CLIENT_ID);
       } as Gtag,

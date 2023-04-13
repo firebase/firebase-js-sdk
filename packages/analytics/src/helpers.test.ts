@@ -276,7 +276,7 @@ describe('Gtag wrapping functions', () => {
         GtagCommand.GET,
         fakeMeasurementId,
         'client_id',
-        fieldName => console.log(fieldName)
+        clientId => console.log(clientId)
       );
       expect((window['dataLayer'] as DataLayer).length).to.equal(1);
     });

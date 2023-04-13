@@ -156,11 +156,11 @@ export async function internalGetGoogleAnalyticsClientId(
       GtagCommand.GET,
       measurementId,
       'client_id',
-      (fieldName: string) => {
-        if (!fieldName) {
+      (clientId: string) => {
+        if (!clientId) {
           reject(ERROR_FACTORY.create(AnalyticsError.NO_CLIENT_ID));
         }
-        resolve(fieldName);
+        resolve(clientId);
       }
     );
   });
