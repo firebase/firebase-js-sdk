@@ -20,6 +20,8 @@ import { ActionCodeOperation, Auth } from '../../model/public_types';
 import {
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary,
   _performApiRequest,
   _performSignInRequest
@@ -31,6 +33,9 @@ export interface SignInWithPasswordRequest {
   email: string;
   password: string;
   tenantId?: string;
+  captchaResponse?: string;
+  clientType?: RecaptchaClientType;
+  recaptchaVersion?: RecaptchaVersion;
 }
 
 export interface SignInWithPasswordResponse extends IdTokenResponse {
@@ -76,11 +81,16 @@ export interface PasswordResetRequest extends GetOobCodeRequest {
   requestType: ActionCodeOperation.PASSWORD_RESET;
   email: string;
   captchaResp?: string;
+  clientType?: RecaptchaClientType;
+  recaptchaVersion?: RecaptchaVersion;
 }
 
 export interface EmailSignInRequest extends GetOobCodeRequest {
   requestType: ActionCodeOperation.EMAIL_SIGNIN;
   email: string;
+  captchaResp?: string;
+  clientType?: RecaptchaClientType;
+  recaptchaVersion?: RecaptchaVersion;
 }
 
 export interface VerifyAndChangeEmailRequest extends GetOobCodeRequest {
