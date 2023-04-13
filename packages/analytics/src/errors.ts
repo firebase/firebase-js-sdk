@@ -27,7 +27,8 @@ export const enum AnalyticsError {
   FETCH_THROTTLE = 'fetch-throttle',
   CONFIG_FETCH_FAILED = 'config-fetch-failed',
   NO_API_KEY = 'no-api-key',
-  NO_APP_ID = 'no-app-id'
+  NO_APP_ID = 'no-app-id',
+  NO_CLIENT_ID = 'no-client-id'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -64,7 +65,8 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'contain a valid API key.',
   [AnalyticsError.NO_APP_ID]:
     'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
-    'contain a valid app ID.'
+    'contain a valid app ID.',
+  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty or falsy.'
 };
 
 interface ErrorParams {

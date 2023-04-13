@@ -24,6 +24,7 @@ import {
 } from './public-types';
 import { Gtag } from './types';
 import { GtagCommand } from './constants';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 /**
  * Event parameters to set on 'gtag' during initialization.
@@ -157,7 +158,7 @@ export async function internalGetGoogleAnalyticsClientId(
       'client_id',
       (fieldName: string) => {
         if (!fieldName) {
-          reject('There was an issue retrieving the `client_id`');
+          reject(ERROR_FACTORY.create(AnalyticsError.NO_CLIENT_ID));
         }
         resolve(fieldName);
       }
