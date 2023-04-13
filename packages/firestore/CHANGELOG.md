@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 3.10.1
+
+### Patch Changes
+
+- [`b66908df6`](https://github.com/firebase/firebase-js-sdk/commit/b66908df6f280b4f7bfce984e07c169d426c990b) [#7212](https://github.com/firebase/firebase-js-sdk/pull/7212) (fixes [#7198](https://github.com/firebase/firebase-js-sdk/issues/7198)) - Fix a bug that sometimes prevented aggregations from being run when muli-tab persistence was enabled.
+
 ## 3.10.0
 
 ### Minor Changes
