@@ -69,7 +69,8 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'contain a valid app ID.',
   [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty.',
   [AnalyticsError.INVALID_GTAG_RESOURCE]:
-    'Trusted Types detected an invalid gtag resource: {$gtagURL}.'
+    'Trusted Types detected an invalid gtag resource: {$gtagURL}.',
+  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty or falsy.'
 };
 
 interface ErrorParams {
