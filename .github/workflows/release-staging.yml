@@ -134,7 +134,9 @@ jobs:
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
     - name: Check for changes requiring a reference doc publish
       id: docs-check
-      run: git diff --exit-code origin/master HEAD docs-devsite
+      run: |
+        LAST_PUBLISHED_VERSION=$(npm info firebase version)
+        git diff --exit-code firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite
     - name: No diff, docs not needed
       if: ${{ success() }}
       run: echo "DOCS_NEEDED=false" >> $GITHUB_STATE

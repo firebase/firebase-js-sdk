@@ -124,7 +124,15 @@ export const enum AuthErrorCode {
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
-  ALREADY_INITIALIZED = 'already-initialized'
+  ALREADY_INITIALIZED = 'already-initialized',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
+  MISSING_RECAPTCHA_TOKEN = 'missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN = 'invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION = 'invalid-recaptcha-action',
+  MISSING_CLIENT_TYPE = 'missing-client-type',
+  MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
+  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
+  INVALID_REQ_TYPE = 'invalid-req-type'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -358,7 +366,22 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'initializeAuth() has already been called with ' +
       'different options. To avoid this error, call initializeAuth() with the ' +
       'same options as when it was originally called, or call getAuth() to return the' +
-      ' already initialized instance.'
+      ' already initialized instance.',
+    [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]:
+      'The reCAPTCHA token is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]:
+      'The reCAPTCHA token is invalid when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_ACTION]:
+      'The reCAPTCHA action is invalid when sending request to the backend.',
+    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
+      'reCAPTCHA Enterprise integration is not enabled for this project.',
+    [AuthErrorCode.MISSING_CLIENT_TYPE]:
+      'The reCAPTCHA client type is missing when sending request to the backend.',
+    [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:
+      'The reCAPTCHA version is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
+    [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
+      'The reCAPTCHA version is invalid when sending request to the backend.'
   };
 }
 
@@ -560,5 +583,13 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   USER_SIGNED_OUT: 'auth/user-signed-out',
   WEAK_PASSWORD: 'auth/weak-password',
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
-  ALREADY_INITIALIZED: 'auth/already-initialized'
+  ALREADY_INITIALIZED: 'auth/already-initialized',
+  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled',
+  MISSING_RECAPTCHA_TOKEN: 'auth/missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN: 'auth/invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION: 'auth/invalid-recaptcha-action',
+  MISSING_CLIENT_TYPE: 'auth/missing-client-type',
+  MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
+  INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
+  INVALID_REQ_TYPE: 'auth/invalid-req-type'
 } as const;

@@ -232,14 +232,20 @@
               <!-- Set Tenant -->
               <div class="group">Set Tenant</div>
               <form class="form form-bordered no-submit">
-                <input type="text" id="set-tenant"
-                        class="form-control"
-                        placeholder="Tenant" />
-                <button class="btn btn-block btn-primary"
-                        id="set-tenant-btn">
-                  Set Tenant
+                <input type="text" id="tenant-id" class="form-control"
+                       placeholder="Tenant ID" />
+                <button class="btn btn-block btn-primary set-tenant-id"
+                        data-expired=false>
+                  Set Tenant ID
                 </button>
               </form>
+
+              <!-- Recaptcha Configs -->
+              <div class="group">Recaptcha Configs</div>
+              <button class="btn btn-block btn-primary"
+                      id="initialize-recaptcha-config">
+                Initialize reCAPTCHA Config
+              </button>
 
               <!-- Sign up -->
               <div class="group">Sign Up</div>
