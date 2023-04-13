@@ -70,6 +70,15 @@ describe('internal api', () => {
   let storageReadStub: SinonStub;
   let storageWriteStub: SinonStub;
 
+  function stubGetRecaptchaToken(
+    token: string = fakeRecaptchaToken,
+    isSuccess: boolean = true
+  ): SinonStub {
+    getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
+
+    return stub(reCAPTCHA, 'getToken').returns(Promise.resolve(token));
+  }
+
   beforeEach(() => {
     app = getFullApp();
     storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
@@ -104,9 +113,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
+      const reCAPTCHASpy = stubGetRecaptchaToken();
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
@@ -127,9 +134,8 @@ describe('internal api', () => {
         provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
 
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
+      const reCAPTCHASpy = stubGetRecaptchaToken();
+
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
@@ -151,9 +157,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
+      const reCAPTCHASpy = stubGetRecaptchaToken();
 
       const error = new Error('oops, something went wrong');
       stub(client, 'exchangeToken').returns(Promise.reject(error));
@@ -167,6 +171,26 @@ describe('internal api', () => {
       });
       expect(errorStub.args[0][1].message).to.include(
         'oops, something went wrong'
+      );
+      errorStub.restore();
+    });
+
+    it('resolves with a dummy token and an error if recaptcha failed', async () => {
+      const errorStub = stub(console, 'error');
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const reCAPTCHASpy = stubGetRecaptchaToken('', false);
+      const exchangeTokenStub = stub(client, 'exchangeToken');
+
+      const token = await getToken(appCheck as AppCheckService);
+
+      expect(reCAPTCHASpy).to.be.called;
+      expect(exchangeTokenStub).to.not.be.called;
+      expect(token.token).to.equal(formatDummyToken(defaultTokenErrorData));
+      expect(errorStub.args[0][1].message).to.include(
+        AppCheckError.RECAPTCHA_ERROR
       );
       errorStub.restore();
     });
@@ -213,7 +237,7 @@ describe('internal api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
@@ -247,7 +271,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').rejects('exchange error');
       const listener1 = spy();
       const errorFn1 = spy();
@@ -271,7 +295,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
@@ -324,7 +348,7 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
@@ -365,7 +389,7 @@ describe('internal api', () => {
         token: fakeRecaptchaAppCheckToken
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve({
           token: 'new-recaptcha-app-check-token',
@@ -390,7 +414,7 @@ describe('internal api', () => {
         cachedTokenPromise: undefined
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve({
           token: 'new-recaptcha-app-check-token',
@@ -431,7 +455,7 @@ describe('internal api', () => {
         cachedTokenPromise: undefined
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       let count = 0;
       stub(client, 'exchangeToken').callsFake(
         () =>
@@ -485,7 +509,7 @@ describe('internal api', () => {
         }
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(
         Promise.resolve({
           token: 'new-recaptcha-app-check-token',
@@ -532,7 +556,7 @@ describe('internal api', () => {
         issuedAtTimeMillis: 0
       };
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(Promise.resolve(freshToken));
 
       expect(await getToken(appCheck as AppCheckService)).to.deep.equal({
@@ -556,7 +580,7 @@ describe('internal api', () => {
         token: fakeRecaptchaAppCheckToken
       });
 
-      stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
+      stubGetRecaptchaToken();
       stub(client, 'exchangeToken').returns(Promise.reject(new Error('blah')));
 
       const tokenResult = await getToken(appCheck as AppCheckService, true);
@@ -589,6 +613,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
+      stubGetRecaptchaToken();
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
@@ -615,6 +640,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
+      stubGetRecaptchaToken();
       const warnStub = stub(logger, 'warn');
       stub(client, 'exchangeToken').returns(
         Promise.reject(
@@ -765,6 +791,8 @@ describe('internal api', () => {
         })
       );
 
+      stubGetRecaptchaToken();
+
       addTokenListener(
         appCheck as AppCheckService,
         ListenerType.INTERNAL,
@@ -798,6 +826,8 @@ describe('internal api', () => {
           issuedAtTimeMillis: 0
         }
       });
+
+      stubGetRecaptchaToken();
 
       const fakeListener: AppCheckTokenListener = stub();
 
@@ -838,6 +868,8 @@ describe('internal api', () => {
         }
       });
 
+      stubGetRecaptchaToken();
+
       const fakeListener: AppCheckTokenListener = stub();
 
       const fakeExchange = stub(client, 'exchangeToken').returns(
@@ -865,6 +897,8 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
+
+      stubGetRecaptchaToken();
       setInitialState(app, {
         ...getStateReference(app),
         token: {
@@ -905,6 +939,8 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
+
+      stubGetRecaptchaToken();
       setInitialState(app, {
         ...getStateReference(app),
         token: {

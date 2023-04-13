@@ -25,7 +25,12 @@ import { stub, useFakeTimers } from 'sinon';
 import { expect } from 'chai';
 import { FirebaseError } from '@firebase/util';
 import { AppCheckError } from './errors';
-import { clearState } from './state';
+import {
+  clearState,
+  DEFAULT_STATE,
+  getStateReference,
+  setInitialState
+} from './state';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 
 describe('ReCaptchaV3Provider', () => {
@@ -34,6 +39,7 @@ describe('ReCaptchaV3Provider', () => {
   beforeEach(() => {
     clock = useFakeTimers();
     app = getFullApp();
+    setInitialState(app, DEFAULT_STATE);
     stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
     stub(reCAPTCHA, 'getToken').returns(
       Promise.resolve('fake-recaptcha-token')
@@ -46,7 +52,6 @@ describe('ReCaptchaV3Provider', () => {
     return deleteApp(app);
   });
   it('getToken() gets a token from the exchange endpoint', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaV3Provider('fake-site-key');
     stub(client, 'exchangeToken').resolves({
       token: 'fake-exchange-token',
@@ -54,11 +59,11 @@ describe('ReCaptchaV3Provider', () => {
       expireTimeMillis: 10
     });
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
     expect(token.token).to.equal('fake-exchange-token');
   });
   it('getToken() throttles 1d on 403', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaV3Provider('fake-site-key');
     stub(client, 'exchangeToken').rejects(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
@@ -66,13 +71,13 @@ describe('ReCaptchaV3Provider', () => {
       })
     );
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     await expect(provider.getToken()).to.be.rejectedWith('1d');
     // Wait 10s and try again to see if wait time string decreases.
     clock.tick(10000);
     await expect(provider.getToken()).to.be.rejectedWith('23h');
   });
   it('getToken() throttles exponentially on 503', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaV3Provider('fake-site-key');
     let exchangeTokenStub = stub(client, 'exchangeToken').rejects(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
@@ -80,6 +85,7 @@ describe('ReCaptchaV3Provider', () => {
       })
     );
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     await expect(provider.getToken()).to.be.rejectedWith('503');
     expect(exchangeTokenStub).to.be.called;
     exchangeTokenStub.resetHistory();
@@ -120,6 +126,7 @@ describe('ReCaptchaEnterpriseProvider', () => {
   beforeEach(() => {
     clock = useFakeTimers();
     app = getFullApp();
+    setInitialState(app, DEFAULT_STATE);
     stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
     stub(reCAPTCHA, 'getToken').returns(
       Promise.resolve('fake-recaptcha-token')
@@ -132,7 +139,6 @@ describe('ReCaptchaEnterpriseProvider', () => {
     return deleteApp(app);
   });
   it('getToken() gets a token from the exchange endpoint', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
     stub(client, 'exchangeToken').resolves({
       token: 'fake-exchange-token',
@@ -140,11 +146,11 @@ describe('ReCaptchaEnterpriseProvider', () => {
       expireTimeMillis: 10
     });
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     const token = await provider.getToken();
     expect(token.token).to.equal('fake-exchange-token');
   });
   it('getToken() throttles 1d on 403', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
     stub(client, 'exchangeToken').rejects(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
@@ -152,13 +158,13 @@ describe('ReCaptchaEnterpriseProvider', () => {
       })
     );
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     await expect(provider.getToken()).to.be.rejectedWith('1d');
     // Wait 10s and try again to see if wait time string decreases.
     clock.tick(10000);
     await expect(provider.getToken()).to.be.rejectedWith('23h');
   });
   it('getToken() throttles exponentially on 503', async () => {
-    const app = getFullApp();
     const provider = new ReCaptchaEnterpriseProvider('fake-site-key');
     let exchangeTokenStub = stub(client, 'exchangeToken').rejects(
       new FirebaseError(AppCheckError.FETCH_STATUS_ERROR, 'some-message', {
@@ -166,6 +172,7 @@ describe('ReCaptchaEnterpriseProvider', () => {
       })
     );
     provider.initialize(app);
+    getStateReference(app).reCAPTCHAState!.succeeded = true;
     await expect(provider.getToken()).to.be.rejectedWith('503');
     expect(exchangeTokenStub).to.be.called;
     exchangeTokenStub.resetHistory();

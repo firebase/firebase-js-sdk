@@ -39,6 +39,8 @@ export interface AppCheckState {
 export interface ReCAPTCHAState {
   initialized: Deferred<GreCAPTCHA>;
   widgetId?: string;
+  // True if the most recent recaptcha check succeeded.
+  succeeded?: boolean;
 }
 
 export interface DebugState {
