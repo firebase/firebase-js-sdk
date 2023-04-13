@@ -66,7 +66,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.NO_APP_ID]:
     'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
     'contain a valid app ID.',
-  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty or falsy.'
+  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty.'
 };
 
 interface ErrorParams {
