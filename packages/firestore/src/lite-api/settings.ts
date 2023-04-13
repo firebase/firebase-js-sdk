@@ -33,12 +33,12 @@ export const DEFAULT_SSL = true;
 // should be kept in sync with the value used by the server, as the server will
 // silently ignore a value below the minimum and fall back to the default.
 // Googlers see http://google3/net/webchannel/internal/webchannel_config.cc;l=118;rcl=510899643
-const MIN_LONG_POLLING_TIMEOUT = 5000;
+const MIN_LONG_POLLING_TIMEOUT_SECONDS = 5;
 
-// No maximum long-polling timeout is not enforced by the server; however, a
-// "reasonable" maximum value is set by the client to provide some guard rails.
+// No maximum long-polling timeout is configured in the server, and defaults to
+// 30 seconds, which is what Watch appears to use.
 // Googlers see b/266868871 for relevant discussion.
-const MAX_LONG_POLLING_TIMEOUT = 600000;
+const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
@@ -71,7 +71,9 @@ export interface PrivateSettings extends FirestoreSettings {
   // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
   // Used in firestore@exp
-  experimentalLongPollingTimeout?: number;
+  experimentalLongPollingOptions?: {
+    idleHttpRequestTimeoutSeconds?: number
+  };
   // Used in firestore@exp
   useFetchStreams?: boolean;
 
@@ -96,7 +98,9 @@ export class FirestoreSettingsImpl {
 
   readonly experimentalAutoDetectLongPolling: boolean;
 
-  readonly experimentalLongPollingTimeout: number | undefined;
+  readonly experimentalLongPollingOptions?: {
+    idleHttpRequestTimeoutSeconds?: number
+  };
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -145,7 +149,7 @@ export class FirestoreSettingsImpl {
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling =
       !!settings.experimentalAutoDetectLongPolling;
-    this.experimentalLongPollingTimeout = settings?.experimentalLongPollingTimeout;
+    this.experimentalLongPollingOptions = settings?.experimentalLongPollingOptions;
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -155,28 +159,29 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
-    if (typeof this.experimentalLongPollingTimeout === 'number') {
-      if (! Number.isInteger(this.experimentalLongPollingTimeout)) {
+    const experimentalLongPollingTimeout = this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
+    if (experimentalLongPollingTimeout !== undefined) {
+      if (! Number.isInteger(experimentalLongPollingTimeout)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${this.experimentalLongPollingTimeout} (must be an integer)`
+          `${experimentalLongPollingTimeout} (must be an integer)`
         );
       }
-      if (this.experimentalLongPollingTimeout < MIN_LONG_POLLING_TIMEOUT) {
+      if (experimentalLongPollingTimeout < MIN_LONG_POLLING_TIMEOUT_SECONDS) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${this.experimentalLongPollingTimeout} ` +
-          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT})`
+          `${experimentalLongPollingTimeout} ` +
+          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
         );
       }
-      if (this.experimentalLongPollingTimeout > MAX_LONG_POLLING_TIMEOUT) {
+      if (experimentalLongPollingTimeout > MAX_LONG_POLLING_TIMEOUT_SECONDS) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${this.experimentalLongPollingTimeout} ` +
-          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT})`
+          `${experimentalLongPollingTimeout} ` +
+          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
         );
       }
     }
@@ -192,8 +197,7 @@ export class FirestoreSettingsImpl {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
-      this.experimentalLongPollingTimeout ===
-        other.experimentalLongPollingTimeout &&
+      (this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds === other.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );

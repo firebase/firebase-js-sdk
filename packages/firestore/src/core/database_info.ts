@@ -48,7 +48,7 @@ export class DatabaseInfo {
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
-    readonly longPollingTimeout: number | undefined,
+    readonly longPollingOptions: { idleHttpRequestTimeoutSeconds?: number } | undefined,
     readonly useFetchStreams: boolean
   ) {}
 }

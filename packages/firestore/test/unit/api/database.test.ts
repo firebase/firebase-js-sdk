@@ -279,65 +279,65 @@ describe.only('Settings', () => {
     );
   });
 
-  it('experimentalLongPollingTimeout is undefined by default', () => {
+  it('idleHttpRequestTimeoutSeconds is undefined by default', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(db._getSettings().experimentalLongPollingTimeout).to.be.undefined;
+    expect(db._getSettings().experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds).to.be.undefined;
   });
 
-  it('experimentalLongPollingTimeout minimum value is allowed', () => {
+  it('idleHttpRequestTimeoutSeconds minimum value is allowed', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    db._setSettings({experimentalLongPollingTimeout: 5000});
-    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(5000);
+    db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 5 }});
+    expect(db._getSettings().experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds).to.equal(5);
   });
 
-  it('experimentalLongPollingTimeout maximum value is allowed', () => {
+  it('idleHttpRequestTimeoutSeconds maximum value is allowed', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    db._setSettings({experimentalLongPollingTimeout: 600000});
-    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(600000);
+    db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 30 }});
+    expect(db._getSettings().experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds).to.equal(30);
   });
 
-  it('experimentalLongPollingTimeout typical value is allowed', () => {
+  it('idleHttpRequestTimeoutSeconds typical value is allowed', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    db._setSettings({experimentalLongPollingTimeout: 25000});
-    expect(db._getSettings().experimentalLongPollingTimeout).to.equal(25000);
+    db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 25 }});
+    expect(db._getSettings().experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds).to.equal(25);
   });
 
-  it('experimentalLongPollingTimeout value of 4999 throws', () => {
+  it('idleHttpRequestTimeoutSeconds value one less than minimum throws', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(() => db._setSettings({experimentalLongPollingTimeout: 4999}))
-      .to.throw(/invalid.*timeout.*4999.*\(.*5000.*\)/i);
+    expect(() => db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 4 }}))
+      .to.throw(/invalid.*timeout.*4.*\(.*5.*\)/i);
   });
 
-  it('experimentalLongPollingTimeout value of 0 throws', () => {
+  it('idleHttpRequestTimeoutSeconds value one more than maximum throws', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(() => db._setSettings({experimentalLongPollingTimeout: 0}))
-      .to.throw(/invalid.*timeout.*0.*\(.*5000.*\)/i);
+    expect(() => db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 31 }}))
+      .to.throw(/invalid.*timeout.*31.*\(.*30.*\)/i);
   });
 
-  it('experimentalLongPollingTimeout value of -1 throws', () => {
+  it('idleHttpRequestTimeoutSeconds value of 0 throws', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(() => db._setSettings({experimentalLongPollingTimeout: -1}))
-      .to.throw(/invalid.*timeout.*-1.*\(.*5000.*\)/i);
+    expect(() => db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 0 }}))
+      .to.throw(/invalid.*timeout.*0.*\(.*5.*\)/i);
   });
 
-  it('experimentalLongPollingTimeout value of 600001 throws', () => {
+  it('idleHttpRequestTimeoutSeconds value of -1 throws', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(() => db._setSettings({experimentalLongPollingTimeout: 600001}))
-      .to.throw(/invalid.*timeout.*600001.*\(.*600000.*\)/i);
+    expect(() => db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: -1 }}))
+      .to.throw(/invalid.*timeout.*-1.*\(.*5.*\)/i);
   });
 
-  it('experimentalLongPollingTimeout non-integral value throws', () => {
+  it('idleHttpRequestTimeoutSeconds non-integral value throws', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(() => db._setSettings({experimentalLongPollingTimeout: 123.456}))
+    expect(() => db._setSettings({experimentalLongPollingOptions: { idleHttpRequestTimeoutSeconds: 123.456 }}))
       .to.throw(/invalid.*timeout.*123.456.*\(.*integer.*\)/i);
   });
 
