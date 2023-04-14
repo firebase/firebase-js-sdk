@@ -111,7 +111,6 @@ export interface FirestoreSettings extends LiteSettings {
  * `FirestoreSettings.experimentalLongPollingOptions`.
  */
 export interface ExperimentalLongPollingOptions {
-
   /**
    * The desired maximum timeout interval (in seconds) to complete a long
    * polling GET response. Valid values are integers between 5 and 30,
@@ -127,5 +126,4 @@ export interface ExperimentalLongPollingOptions {
    * requests.
    */
   idleHttpRequestTimeoutSeconds?: number;
-
 }

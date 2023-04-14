@@ -117,7 +117,13 @@ export function makeDatabaseInfo(
     settings.ssl,
     settings.experimentalForceLongPolling,
     settings.experimentalAutoDetectLongPolling,
-    settings.experimentalLongPollingTimeout,
+    getLongPollingTimeout(settings),
     settings.useFetchStreams
   );
+}
+
+function getLongPollingTimeout(settings: FirestoreSettingsImpl): number | null {
+  const value =
+    settings.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
+  return value === undefined ? null : value * 1000;
 }

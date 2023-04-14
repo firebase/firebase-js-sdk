@@ -57,7 +57,7 @@ export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
-  private readonly longPollingTimeout: number | undefined;
+  private readonly longPollingTimeout: number | null;
 
   constructor(info: DatabaseInfo) {
     super(info);

@@ -72,7 +72,7 @@ export interface PrivateSettings extends FirestoreSettings {
   experimentalAutoDetectLongPolling?: boolean;
   // Used in firestore@exp
   experimentalLongPollingOptions?: {
-    idleHttpRequestTimeoutSeconds?: number
+    idleHttpRequestTimeoutSeconds?: number;
   };
   // Used in firestore@exp
   useFetchStreams?: boolean;
@@ -99,7 +99,7 @@ export class FirestoreSettingsImpl {
   readonly experimentalAutoDetectLongPolling: boolean;
 
   readonly experimentalLongPollingOptions?: {
-    idleHttpRequestTimeoutSeconds?: number
+    idleHttpRequestTimeoutSeconds?: number;
   };
 
   readonly ignoreUndefinedProperties: boolean;
@@ -149,7 +149,8 @@ export class FirestoreSettingsImpl {
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling =
       !!settings.experimentalAutoDetectLongPolling;
-    this.experimentalLongPollingOptions = settings?.experimentalLongPollingOptions;
+    this.experimentalLongPollingOptions =
+      settings.experimentalLongPollingOptions;
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -159,29 +160,30 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
-    const experimentalLongPollingTimeout = this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
+    const experimentalLongPollingTimeout =
+      this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
     if (experimentalLongPollingTimeout !== undefined) {
-      if (! Number.isInteger(experimentalLongPollingTimeout)) {
+      if (!Number.isInteger(experimentalLongPollingTimeout)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${experimentalLongPollingTimeout} (must be an integer)`
+            `${experimentalLongPollingTimeout} (must be an integer)`
         );
       }
       if (experimentalLongPollingTimeout < MIN_LONG_POLLING_TIMEOUT_SECONDS) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${experimentalLongPollingTimeout} ` +
-          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
+            `${experimentalLongPollingTimeout} ` +
+            `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
         );
       }
       if (experimentalLongPollingTimeout > MAX_LONG_POLLING_TIMEOUT_SECONDS) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `invalid long polling timeout: ` +
-          `${experimentalLongPollingTimeout} ` +
-          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
+            `${experimentalLongPollingTimeout} ` +
+            `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
         );
       }
     }
@@ -197,7 +199,8 @@ export class FirestoreSettingsImpl {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
-      (this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds === other.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds) &&
+      this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds ===
+        other.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );
