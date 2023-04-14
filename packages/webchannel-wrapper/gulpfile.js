@@ -131,9 +131,7 @@ function createRollupTask({
       );
     }
     if (format === 'es') {
-      plugins.push(
-        emitModulePackageFile()
-      );
+      plugins.push(emitModulePackageFile());
     }
     const inputOptions = {
       input: inputPath,
