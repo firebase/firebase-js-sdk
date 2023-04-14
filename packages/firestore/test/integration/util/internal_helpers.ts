@@ -21,10 +21,7 @@ import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
-import {
-  ExperimentalLongPollingOptions,
-  cloneLongPollingOptions
-} from '../../../src/api/long_polling_options';
+import { cloneLongPollingOptions } from '../../../src/api/long_polling_options';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
