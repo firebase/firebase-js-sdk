@@ -284,7 +284,7 @@ describe('Settings', () => {
     const db = newTestFirestore();
     expect(
       db._getSettings().experimentalLongPollingOptions
-        ?.idleHttpRequestTimeoutSeconds
+        .idleHttpRequestTimeoutSeconds
     ).to.be.undefined;
   });
 
@@ -296,7 +296,7 @@ describe('Settings', () => {
     });
     expect(
       db._getSettings().experimentalLongPollingOptions
-        ?.idleHttpRequestTimeoutSeconds
+        .idleHttpRequestTimeoutSeconds
     ).to.equal(5);
   });
 
@@ -308,7 +308,7 @@ describe('Settings', () => {
     });
     expect(
       db._getSettings().experimentalLongPollingOptions
-        ?.idleHttpRequestTimeoutSeconds
+        .idleHttpRequestTimeoutSeconds
     ).to.equal(30);
   });
 
@@ -320,7 +320,7 @@ describe('Settings', () => {
     });
     expect(
       db._getSettings().experimentalLongPollingOptions
-        ?.idleHttpRequestTimeoutSeconds
+        .idleHttpRequestTimeoutSeconds
     ).to.equal(25);
   });
 
