@@ -75,7 +75,7 @@ export {
   TaskState
 } from './api/bundle';
 
-export { FirestoreSettings, PersistenceSettings } from './api/settings';
+export { ExperimentalLongPollingOptions, FirestoreSettings, PersistenceSettings } from './api/settings';
 
 export {
   DocumentChange,
