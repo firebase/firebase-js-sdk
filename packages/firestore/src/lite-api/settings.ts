@@ -19,6 +19,7 @@ import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
   ExperimentalLongPollingOptions,
+  cloneLongPollingOptions,
   longPollingOptionsEqual
 } from '../api/long_polling_options';
 import {
@@ -149,8 +150,9 @@ export class FirestoreSettingsImpl {
     this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
     this.experimentalAutoDetectLongPolling =
       !!settings.experimentalAutoDetectLongPolling;
-    this.experimentalLongPollingOptions =
-      settings.experimentalLongPollingOptions ?? {};
+    this.experimentalLongPollingOptions = cloneLongPollingOptions(
+      settings.experimentalLongPollingOptions ?? {}
+    );
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -160,33 +162,7 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
-    const experimentalLongPollingTimeout =
-      this.experimentalLongPollingOptions.idleHttpRequestTimeoutSeconds;
-    if (experimentalLongPollingTimeout !== undefined) {
-      if (!Number.isInteger(experimentalLongPollingTimeout)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `invalid long polling timeout: ` +
-            `${experimentalLongPollingTimeout} (must be an integer)`
-        );
-      }
-      if (experimentalLongPollingTimeout < MIN_LONG_POLLING_TIMEOUT_SECONDS) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `invalid long polling timeout: ` +
-            `${experimentalLongPollingTimeout} ` +
-            `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
-        );
-      }
-      if (experimentalLongPollingTimeout > MAX_LONG_POLLING_TIMEOUT_SECONDS) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `invalid long polling timeout: ` +
-            `${experimentalLongPollingTimeout} ` +
-            `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
-        );
-      }
-    }
+    validateLongPollingOptions(this.experimentalLongPollingOptions);
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -206,5 +182,39 @@ export class FirestoreSettingsImpl {
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );
+  }
+}
+
+function validateLongPollingOptions(
+  options: ExperimentalLongPollingOptions
+): void {
+  if (options.idleHttpRequestTimeoutSeconds !== undefined) {
+    if (!Number.isInteger(options.idleHttpRequestTimeoutSeconds)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ` +
+          `${options.idleHttpRequestTimeoutSeconds} (must be an integer)`
+      );
+    }
+    if (
+      options.idleHttpRequestTimeoutSeconds < MIN_LONG_POLLING_TIMEOUT_SECONDS
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ` +
+          `${options.idleHttpRequestTimeoutSeconds} ` +
+          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
+    if (
+      options.idleHttpRequestTimeoutSeconds > MAX_LONG_POLLING_TIMEOUT_SECONDS
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ` +
+          `${options.idleHttpRequestTimeoutSeconds} ` +
+          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
   }
 }
