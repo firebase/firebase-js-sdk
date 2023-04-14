@@ -95,11 +95,13 @@ export interface FirestoreSettings extends LiteSettings {
   experimentalAutoDetectLongPolling?: boolean;
 
   /**
-   * Options for long polling when it is used.
+   * Options that configure the SDK’s underlying network transport (WebChannel)
+   * when long-polling is used.
    *
    * These options are only used if `experimentalForceLongPolling` is true or if
    * `experimentalAutoDetectLongPolling` is true and the auto-detection
-   * determined that long-polling was needed. Otherwise, they have no effect.
+   * determined that long-polling was needed. Otherwise, these options have no
+   * effect.
    */
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
 }

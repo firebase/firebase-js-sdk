@@ -16,7 +16,8 @@
  */
 
 /**
- * Options that configure the "long polling" networking mode.
+ * Options that configure the SDK’s underlying network transport (WebChannel)
+ * when long-polling is used.
  *
  * Note: This interface is "experimental" and is subject to change.
  *
@@ -26,16 +27,16 @@
  */
 export interface ExperimentalLongPollingOptions {
   /**
-   * The desired maximum timeout interval, in seconds, to complete a long
-   * polling GET response. Valid values are integers between 5 and 30,
+   * The desired maximum timeout interval, in seconds, to complete a
+   * long-polling GET response. Valid values are integers between 5 and 30,
    * inclusive.
    *
-   * By default, when long polling is used the "hanging GET" request sent by
+   * By default, when long-polling is used the "hanging GET" request sent by
    * the client times out after 30 seconds. To request a different timeout
    * from the server, set this setting with the desired timeout.
    *
    * Changing the default timeout may be useful, for example, if the buffering
-   * proxy that necessitated enabling long polling in the first place has a
+   * proxy that necessitated enabling long-polling in the first place has a
    * shorter timeout for hanging GET requests, in which case setting the
    * long-polling timeout to a shorter value, such as 25 seconds, may fix
    * prematurely-closed hanging GET requests.

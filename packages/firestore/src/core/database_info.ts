@@ -35,7 +35,7 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
-   * @param longPollingOptions Options that configure long polling, if used.
+   * @param longPollingOptions Options that configure long-polling.
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
    */
