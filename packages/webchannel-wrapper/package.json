@@ -10,8 +10,8 @@
     ".": {
       "types": "./src/index.d.ts",
       "require": "./dist/index.js",
-      "esm5": "./dist/index.esm.js",
-      "default": "./dist/index.esm2017.js"
+      "esm5": "./dist/index.esm.mjs",
+      "default": "./dist/index.esm2017.mjs"
     },
     "./package.json": "./package.json"
   },
