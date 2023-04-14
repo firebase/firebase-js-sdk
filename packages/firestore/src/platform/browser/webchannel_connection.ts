@@ -32,6 +32,7 @@ import {
 } from '@firebase/webchannel-wrapper';
 
 import { Token } from '../../api/credentials';
+import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';
 import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
@@ -57,14 +58,14 @@ export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
-  private readonly longPollingTimeout: number | null;
+  private readonly longPollingOptions: ExperimentalLongPollingOptions;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
     this.autoDetectLongPolling = info.autoDetectLongPolling;
     this.useFetchStreams = info.useFetchStreams;
-    this.longPollingTimeout = info.longPollingTimeout;
+    this.longPollingOptions = info.longPollingOptions;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -202,8 +203,10 @@ export class WebChannelConnection extends RestConnection {
       detectBufferingProxy: this.autoDetectLongPolling
     };
 
-    if (this.longPollingTimeout) {
-      request.longPollingTimeout = this.longPollingTimeout;
+    const idleHttpRequestTimeoutSeconds =
+      this.longPollingOptions.idleHttpRequestTimeoutSeconds;
+    if (idleHttpRequestTimeoutSeconds !== undefined) {
+      request.longPollingTimeout = idleHttpRequestTimeoutSeconds * 1000;
     }
 
     if (this.useFetchStreams) {

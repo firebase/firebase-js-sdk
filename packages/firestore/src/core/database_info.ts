@@ -1,5 +1,6 @@
 import { FirebaseApp } from '@firebase/app';
 
+import { ExperimentalLongPollingOptions } from '../api/long_polling_options';
 import { Code, FirestoreError } from '../util/error';
 
 /**
@@ -34,9 +35,7 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
-   * @param longPollingTimeout The desired maximum timeout interval (in
-   * milliseconds) to complete a long-polling GET response; the server _may_
-   * ignore this value; may be null to use the default (30 seconds).
+   * @param longPollingOptions Options that configure long polling, if used.
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
    */
@@ -48,7 +47,7 @@ export class DatabaseInfo {
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
-    readonly longPollingTimeout: number | null,
+    readonly longPollingOptions: ExperimentalLongPollingOptions,
     readonly useFetchStreams: boolean
   ) {}
 }

@@ -18,6 +18,10 @@
 import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
 import {
+  ExperimentalLongPollingOptions,
+  longPollingOptionsEqual
+} from '../api/long_polling_options';
+import {
   LRU_COLLECTION_DISABLED,
   LRU_DEFAULT_CACHE_SIZE_BYTES
 } from '../local/lru_garbage_collector';
@@ -71,9 +75,7 @@ export interface PrivateSettings extends FirestoreSettings {
   // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
   // Used in firestore@exp
-  experimentalLongPollingOptions?: {
-    idleHttpRequestTimeoutSeconds?: number;
-  };
+  experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   // Used in firestore@exp
   useFetchStreams?: boolean;
 
@@ -98,9 +100,7 @@ export class FirestoreSettingsImpl {
 
   readonly experimentalAutoDetectLongPolling: boolean;
 
-  readonly experimentalLongPollingOptions?: {
-    idleHttpRequestTimeoutSeconds?: number;
-  };
+  readonly experimentalLongPollingOptions: ExperimentalLongPollingOptions;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -150,7 +150,7 @@ export class FirestoreSettingsImpl {
     this.experimentalAutoDetectLongPolling =
       !!settings.experimentalAutoDetectLongPolling;
     this.experimentalLongPollingOptions =
-      settings.experimentalLongPollingOptions;
+      settings.experimentalLongPollingOptions ?? {};
     this.useFetchStreams = !!settings.useFetchStreams;
 
     validateIsNotUsedTogether(
@@ -161,7 +161,7 @@ export class FirestoreSettingsImpl {
     );
 
     const experimentalLongPollingTimeout =
-      this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
+      this.experimentalLongPollingOptions.idleHttpRequestTimeoutSeconds;
     if (experimentalLongPollingTimeout !== undefined) {
       if (!Number.isInteger(experimentalLongPollingTimeout)) {
         throw new FirestoreError(
@@ -199,8 +199,10 @@ export class FirestoreSettingsImpl {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
-      this.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds ===
-        other.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds &&
+      longPollingOptionsEqual(
+        this.experimentalLongPollingOptions,
+        other.experimentalLongPollingOptions
+      ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );

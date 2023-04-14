@@ -18,6 +18,7 @@
 import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
 import { FirestoreLocalCache } from './cache_config';
+import { ExperimentalLongPollingOptions } from './long_polling_options';
 
 export { DEFAULT_HOST } from '../lite-api/settings';
 
@@ -101,29 +102,4 @@ export interface FirestoreSettings extends LiteSettings {
    * determined that long-polling was needed. Otherwise, they have no effect.
    */
   experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
-}
-
-/**
- * Options for long polling when it is used.
- *
- * See `FirestoreSettings.experimentalAutoDetectLongPolling`,
- * `FirestoreSettings.experimentalForceLongPolling`, and
- * `FirestoreSettings.experimentalLongPollingOptions`.
- */
-export interface ExperimentalLongPollingOptions {
-  /**
-   * The desired maximum timeout interval (in seconds) to complete a long
-   * polling GET response. Valid values are integers between 5 and 30,
-   * inclusive.
-   *
-   * By default, when long polling is used the "hanging GET" request sent by
-   * the client times out after 30 seconds. To request a different timeout
-   * from the server, set this setting with the desired timeout. This may be
-   * useful, for example, if the buffering proxy that necessitated enabling
-   * long polling in the first place has a shorter timeout for hanging GET
-   * requests, in which case setting the long-polling timeout to a shorter
-   * value, such as 25 seconds, may fix prematurely-closed hanging GET
-   * requests.
-   */
-  idleHttpRequestTimeoutSeconds?: number;
 }

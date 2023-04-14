@@ -21,6 +21,10 @@ import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
+import {
+  ExperimentalLongPollingOptions,
+  cloneLongPollingOptions
+} from '../../../src/api/long_polling_options';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
@@ -57,7 +61,9 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     !!DEFAULT_SETTINGS.ssl,
     !!DEFAULT_SETTINGS.experimentalForceLongPolling,
     !!DEFAULT_SETTINGS.experimentalAutoDetectLongPolling,
-    DEFAULT_SETTINGS.experimentalLongPollingOptions,
+    cloneLongPollingOptions(
+      DEFAULT_SETTINGS.experimentalLongPollingOptions ?? {}
+    ),
     /*use FetchStreams= */ false
   );
 }

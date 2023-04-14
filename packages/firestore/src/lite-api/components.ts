@@ -19,6 +19,7 @@
 import { _FirebaseService } from '@firebase/app';
 
 import { CredentialsProvider } from '../api/credentials';
+import { cloneLongPollingOptions } from '../api/long_polling_options';
 import { User } from '../auth/user';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { newConnection } from '../platform/connection';
@@ -117,13 +118,7 @@ export function makeDatabaseInfo(
     settings.ssl,
     settings.experimentalForceLongPolling,
     settings.experimentalAutoDetectLongPolling,
-    getLongPollingTimeout(settings),
+    cloneLongPollingOptions(settings.experimentalLongPollingOptions),
     settings.useFetchStreams
   );
-}
-
-function getLongPollingTimeout(settings: FirestoreSettingsImpl): number | null {
-  const value =
-    settings.experimentalLongPollingOptions?.idleHttpRequestTimeoutSeconds;
-  return value === undefined ? null : value * 1000;
 }
