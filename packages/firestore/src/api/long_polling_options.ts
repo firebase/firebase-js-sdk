@@ -16,7 +16,9 @@
  */
 
 /**
- * Options for long polling when it is used.
+ * Options that configure the "long polling" networking mode.
+ *
+ * Note: This interface is "experimental" and is subject to change.
  *
  * See `FirestoreSettings.experimentalAutoDetectLongPolling`,
  * `FirestoreSettings.experimentalForceLongPolling`, and
@@ -24,18 +26,20 @@
  */
 export interface ExperimentalLongPollingOptions {
   /**
-   * The desired maximum timeout interval (in seconds) to complete a long
+   * The desired maximum timeout interval, in seconds, to complete a long
    * polling GET response. Valid values are integers between 5 and 30,
    * inclusive.
    *
    * By default, when long polling is used the "hanging GET" request sent by
    * the client times out after 30 seconds. To request a different timeout
-   * from the server, set this setting with the desired timeout. This may be
-   * useful, for example, if the buffering proxy that necessitated enabling
-   * long polling in the first place has a shorter timeout for hanging GET
-   * requests, in which case setting the long-polling timeout to a shorter
-   * value, such as 25 seconds, may fix prematurely-closed hanging GET
-   * requests.
+   * from the server, set this setting with the desired timeout.
+   *
+   * Changing the default timeout may be useful, for example, if the buffering
+   * proxy that necessitated enabling long polling in the first place has a
+   * shorter timeout for hanging GET requests, in which case setting the
+   * long-polling timeout to a shorter value, such as 25 seconds, may fix
+   * prematurely-closed hanging GET requests.
+   * For example, see https://github.com/firebase/firebase-js-sdk/issues/6987.
    */
   idleHttpRequestTimeoutSeconds?: number;
 }
@@ -48,8 +52,8 @@ export function longPollingOptionsEqual(
   options2: ExperimentalLongPollingOptions
 ): boolean {
   return (
-    options1?.idleHttpRequestTimeoutSeconds ===
-    options2?.idleHttpRequestTimeoutSeconds
+    options1.idleHttpRequestTimeoutSeconds ===
+    options2.idleHttpRequestTimeoutSeconds
   );
 }
 
@@ -60,10 +64,11 @@ export function longPollingOptionsEqual(
 export function cloneLongPollingOptions(
   options: ExperimentalLongPollingOptions
 ): ExperimentalLongPollingOptions {
-  const result: ExperimentalLongPollingOptions = {};
+  const clone: ExperimentalLongPollingOptions = {};
+
   if (options.idleHttpRequestTimeoutSeconds !== undefined) {
-    result.idleHttpRequestTimeoutSeconds =
-      options.idleHttpRequestTimeoutSeconds;
+    clone.idleHttpRequestTimeoutSeconds = options.idleHttpRequestTimeoutSeconds;
   }
-  return result;
+
+  return clone;
 }
