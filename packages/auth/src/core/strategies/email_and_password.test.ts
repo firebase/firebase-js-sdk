@@ -18,15 +18,25 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+import * as sinon from 'sinon';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
+import * as jsHelpers from '../../platform_browser/load_js';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -39,6 +49,7 @@ import {
   signInWithEmailAndPassword,
   verifyPasswordResetCode
 } from './email_and_password';
+import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -62,7 +73,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
     await sendPasswordResetEmail(auth, email);
     expect(mock.calls[0].request).to.eql({
       requestType: ActionCodeOperation.PASSWORD_RESET,
-      email
+      email,
+      clientType: 'CLIENT_TYPE_WEB'
     });
   });
 
@@ -104,7 +116,8 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iOSBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
@@ -132,8 +145,165 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         canHandleCodeInApp: true,
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
-        androidPackageName: 'my-package'
+        androidPackageName: 'my-package',
+        clientType: 'CLIENT_TYPE_WEB'
       });
+    });
+  });
+
+  context('#recaptcha', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
+    beforeEach(async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('calls send password reset email with recaptcha enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendPasswordResetEmail(auth, email);
+
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.PASSWORD_RESET,
+        email,
+        captchaResp: 'recaptcha-response',
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('calls send password reset with recaptcha disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseOff
+      );
+      await auth.initializeRecaptchaConfig();
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendPasswordResetEmail(auth, email);
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.PASSWORD_RESET,
+        email,
+        clientType: 'CLIENT_TYPE_WEB'
+      });
+    });
+
+    it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.PASSWORD_RESET,
+          email,
+          clientType: RecaptchaClientType.WEB
+        },
+        {
+          error: {
+            code: 400,
+            message: ServerError.MISSING_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      // Second call with a valid recaptcha token (captchaResp) should succeed
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.PASSWORD_RESET,
+          email,
+          captchaResp: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          email
+        }
+      );
+
+      // Mock recaptcha js loading method and manually set window.recaptcha
+      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub
+        .withArgs('site-key', {
+          action: RecaptchaActionName.GET_OOB_CODE
+        })
+        .returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
+      const response = await sendPasswordResetEmail(auth, email);
+      expect(response).to.eq(undefined);
     });
   });
 });
@@ -399,6 +569,181 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
+  });
+
+  context('#recaptcha', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+
+    beforeEach(async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('calls create user with email password with recaptcha enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      const { _tokenResponse, user, operationType } =
+        (await createUserWithEmailAndPassword(
+          auth,
+          'some-email',
+          'some-password'
+        )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).to.eq(serverUser.localId);
+      expect(user.isAnonymous).to.be.false;
+    });
+
+    it('calls create user with email password with recaptcha disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      const { _tokenResponse, user, operationType } =
+        (await createUserWithEmailAndPassword(
+          auth,
+          'some-email',
+          'some-password'
+        )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).to.eq(serverUser.localId);
+      expect(user.isAnonymous).to.be.false;
+    });
+
+    it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
+      mockEndpointWithParams(
+        Endpoint.SIGN_UP,
+        {
+          email: 'some-email',
+          password: 'some-password',
+          clientType: RecaptchaClientType.WEB
+        },
+        {
+          error: {
+            code: 400,
+            message: ServerError.MISSING_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      // Second call with a valid recaptcha token (captchaResp) should succeed
+      mockEndpointWithParams(
+        Endpoint.SIGN_UP,
+        {
+          email: 'some-email',
+          password: 'some-password',
+          captchaResp: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          idToken: 'id-token',
+          refreshToken: 'refresh-token',
+          expiresIn: '1234',
+          localId: serverUser.localId!
+        }
+      );
+
+      // Mock recaptcha js loading method and manually set window.recaptcha
+      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub
+        .withArgs('site-key', {
+          action: RecaptchaActionName.SIGN_UP_PASSWORD
+        })
+        .returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      const { _tokenResponse, user, operationType } =
+        (await createUserWithEmailAndPassword(
+          auth,
+          'some-email',
+          'some-password'
+        )) as UserCredentialInternal;
+      expect(_tokenResponse).to.eql({
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      expect(operationType).to.eq(OperationType.SIGN_IN);
+      expect(user.uid).to.eq(serverUser.localId);
+      expect(user.isAnonymous).to.be.false;
+    });
   });
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "3.9.0",
+  "version": "3.10.0",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -32,6 +32,8 @@
     "test:browser": "karma start --single-run",
     "test:browser:emulator:debug": "karma start --browsers=Chrome --targetBackend=emulator",
     "test:browser:emulator": "karma start --single-run --targetBackend=emulator",
+    "test:browser:nightly": "karma start --single-run --targetBackend=nightly",
+    "test:browser:prod": "karma start --single-run --targetBackend=prod",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "ts-node ./scripts/run-tests.ts  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
@@ -103,9 +105,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.9.5",
-    "@firebase/app-compat": "0.2.5",
-    "@firebase/auth": "0.21.5",
+    "@firebase/app": "0.9.7",
+    "@firebase/app-compat": "0.2.7",
+    "@firebase/auth": "0.22.0",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",

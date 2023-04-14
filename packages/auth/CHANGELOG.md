@@ -1,5 +1,23 @@
 # @firebase/auth
 
+## 0.22.0
+
+### Minor Changes
+
+- [`965396d52`](https://github.com/firebase/firebase-js-sdk/commit/965396d522243fcc17b63558823ad761c87ae1ba) [#7177](https://github.com/firebase/firebase-js-sdk/pull/7177) - Fixed error message for missing password case.
+
+### Patch Changes
+
+- [`bd51cecba`](https://github.com/firebase/firebase-js-sdk/commit/bd51cecba5cfc1b1c1ca46bf94e65320da3da609) [#7179](https://github.com/firebase/firebase-js-sdk/pull/7179) (fixes [#7174](https://github.com/firebase/firebase-js-sdk/issues/7174)) - Fix typings for `TotpMultiFactorGenerator`. This fixes a reversion in 9.19.0.
+
+## 0.21.6
+
+### Patch Changes
+
+- [`58bae8757`](https://github.com/firebase/firebase-js-sdk/commit/58bae875799ed2ace8232f5d9e7aaaaa7a84d064) [#7146](https://github.com/firebase/firebase-js-sdk/pull/7146) - Support TOTP as a multi-factor option in Firebase Auth/GCIP.
+
+- [`00737a1ab`](https://github.com/firebase/firebase-js-sdk/commit/00737a1abd469f3deb041d8ff482165cc16bc34e) [#7125](https://github.com/firebase/firebase-js-sdk/pull/7125) (fixes [#7118](https://github.com/firebase/firebase-js-sdk/issues/7118)) - Modify \_fail to use AuthErrorCode.NETWORK_REQUEST_FAILED
+
 ## 0.21.5
 
 ### Patch Changes

@@ -42,7 +42,6 @@ import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import {
-  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -536,20 +535,11 @@ export function firestoreClientRunAggregateQuery(
     // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
     // above
     try {
-      const remoteStore = await getRemoteStore(client);
-      if (!canUseNetwork(remoteStore)) {
-        deferred.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get aggregate result because the client is offline.'
-          )
-        );
-      } else {
-        const datastore = await getDatastore(client);
-        deferred.resolve(
-          invokeRunAggregationQueryRpc(datastore, query, aggregates)
-        );
-      }
+      // TODO(b/277628384): check `canUseNetwork()` and handle multi-tab.
+      const datastore = await getDatastore(client);
+      deferred.resolve(
+        invokeRunAggregationQueryRpc(datastore, query, aggregates)
+      );
     } catch (e) {
       deferred.reject(e as Error);
     }

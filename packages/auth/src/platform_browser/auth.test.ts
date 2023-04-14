@@ -29,6 +29,7 @@ import {
 import { OperationType } from '../model/enums';
 
 import {
+  FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
   testAuth,
   testUser
@@ -73,6 +74,7 @@ describe('core/auth/auth_impl', () => {
     const authImpl = new AuthImpl(
       FAKE_APP,
       FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+      FAKE_APP_CHECK_CONTROLLER_PROVIDER,
       {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
@@ -141,15 +143,20 @@ describe('core/auth/initializeAuth', () => {
       authDomain = FAKE_APP.options.authDomain,
       blockMiddleware = false
     ): Promise<Auth> {
-      const auth = new AuthImpl(FAKE_APP, FAKE_HEARTBEAT_CONTROLLER_PROVIDER, {
-        apiKey: FAKE_APP.options.apiKey!,
-        apiHost: DefaultConfig.API_HOST,
-        apiScheme: DefaultConfig.API_SCHEME,
-        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
-        authDomain,
-        clientPlatform: ClientPlatform.BROWSER,
-        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
-      });
+      const auth = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          authDomain,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+        }
+      );
 
       _initializeAuthInstance(auth, {
         persistence,
@@ -378,6 +385,7 @@ describe('core/auth/initializeAuth', () => {
         const auth = new AuthImpl(
           FAKE_APP,
           FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+          FAKE_APP_CHECK_CONTROLLER_PROVIDER,
           {
             apiKey: FAKE_APP.options.apiKey!,
             apiHost: DefaultConfig.API_HOST,
