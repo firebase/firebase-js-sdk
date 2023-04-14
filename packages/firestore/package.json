@@ -32,6 +32,8 @@
     "test:browser": "karma start --single-run",
     "test:browser:emulator:debug": "karma start --browsers=Chrome --targetBackend=emulator",
     "test:browser:emulator": "karma start --single-run --targetBackend=emulator",
+    "test:browser:nightly": "karma start --single-run --targetBackend=nightly",
+    "test:browser:prod": "karma start --single-run --targetBackend=prod",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "ts-node ./scripts/run-tests.ts  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
