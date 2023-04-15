@@ -210,6 +210,35 @@ export async function getToken(
 }
 
 /**
+ * Requests a Firebase App Check token. This method should be used
+ * only if you need to authorize requests to a non-Firebase backend.
+ *
+ * Returns limited-use tokens that are intended for use with your
+ * non-Firebase backend endpoints that are protected with
+ * <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection">
+ * Replay Protection</a>. This method
+ * does not affect the token generation behavior of the
+ * #getAppCheckToken() method.
+ *
+ * @param appCheckInstance - The App Check service instance.
+ * @returns The limited use token.
+ * @public
+ */
+export async function getLimitedUseToken(
+  appCheckInstance: AppCheck
+): Promise<AppCheckTokenResult> {
+  const result = await getTokenInternal(
+    appCheckInstance as AppCheckService,
+    /* forceRefresh */ true,
+    /* isLimitedUse */ true
+  );
+  if (result.error) {
+    throw result.error;
+  }
+  return { token: result.token };
+}
+
+/**
  * Registers a listener to changes in the token state. There can be more
  * than one listener registered at the same time for one or more
  * App Check instances. The listeners call back on the UI thread whenever

@@ -21,7 +21,8 @@ import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
   getToken,
-  onTokenChanged
+  onTokenChanged,
+  getLimitedUseToken
 } from './api';
 import {
   FAKE_SITE_KEY,
@@ -284,6 +285,32 @@ describe('api', () => {
         error: Error('there was an error')
       });
       await expect(getToken(appCheck, true)).to.be.rejectedWith(
+        'there was an error'
+      );
+    });
+  });
+  describe('getLimitedUseToken()', () => {
+    it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      const internalgetLimitedUseToken = stub(internalApi, 'getToken').resolves(
+        {
+          token: 'a-token-string'
+        }
+      );
+      await getLimitedUseToken(appCheck);
+      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
+    });
+    it('getLimitedUseToken() throws errors returned with token', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      // If the internal getToken() errors, it returns a dummy token
+      // with an error field instead of throwing.
+      stub(internalApi, 'getToken').resolves({
+        token: 'a-dummy-token',
+        error: Error('there was an error')
+      });
+      await expect(getLimitedUseToken(appCheck)).to.be.rejectedWith(
         'there was an error'
       );
     });
