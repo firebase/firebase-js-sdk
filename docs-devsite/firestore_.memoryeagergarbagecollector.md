@@ -12,9 +12,9 @@ https://github.com/firebase/firebase-js-sdk
 # MemoryEagerGarbageCollector interface
 A garbage collector deletes documents whenever they are not part of any active queries, and have no local mutations attached to them.
 
-This collector tries to ensure lowest memory footprints from the SDK, at the risk of querying backend repeated for a document it could have cached locally.
+This collector tries to ensure lowest memory footprints from the SDK, at the risk of documents not being cached for offline queries or for direct queries to the cache.
 
-Use factory function  to create a instance of this collector.
+Use factory function  to create an instance of this collector.
 
 <b>Signature:</b>
 
