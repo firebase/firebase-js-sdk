@@ -53,13 +53,9 @@ export interface FirestoreSettings {
 export interface PrivateSettings extends FirestoreSettings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
-  // Used in firestore@exp
   cacheSizeBytes?: number;
-  // Used in firestore@exp
   experimentalForceLongPolling?: boolean;
-  // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
-  // Used in firestore@exp
   useFetchStreams?: boolean;
 
   localCache?: FirestoreLocalCache;

@@ -23,7 +23,7 @@ import { Delay } from '../../core/util/delay';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
-import { Recaptcha } from './recaptcha';
+import { Recaptcha, isV2 } from './recaptcha';
 import { MockReCaptcha } from './recaptcha_mock';
 
 // ReCaptcha will load using the same callback, so the callback function needs
@@ -59,8 +59,8 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   load(auth: AuthInternal, hl = ''): Promise<Recaptcha> {
     _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
 
-    if (this.shouldResolveImmediately(hl)) {
-      return Promise.resolve(_window().grecaptcha!);
+    if (this.shouldResolveImmediately(hl) && isV2(_window().grecaptcha)) {
+      return Promise.resolve(_window().grecaptcha! as Recaptcha);
     }
     return new Promise<Recaptcha>((resolve, reject) => {
       const networkTimeout = _window().setTimeout(() => {
@@ -71,9 +71,9 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         _window().clearTimeout(networkTimeout);
         delete _window()[_JSLOAD_CALLBACK];
 
-        const recaptcha = _window().grecaptcha;
+        const recaptcha = _window().grecaptcha as Recaptcha;
 
-        if (!recaptcha) {
+        if (!recaptcha || !isV2(recaptcha)) {
           reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
           return;
         }
