@@ -74,7 +74,7 @@ describeSpec('Garbage Collection:', [], () => {
   );
 
   specTest(
-    'Contents of query are kept after listen is removed, and GC threshold is reached',
+    'Contents of query are removed after listen is removed, and GC threshold is reached',
     [],
     () => {
       const query1 = query('collection');

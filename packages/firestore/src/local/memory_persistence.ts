@@ -355,9 +355,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   static factory(
     persistence: MemoryPersistence,
-    lruParams: LruParams | null
+    lruParams: LruParams
   ): MemoryLruDelegate {
-    return new MemoryLruDelegate(persistence, lruParams!!);
+    return new MemoryLruDelegate(persistence, lruParams);
   }
 
   // No-ops, present so memory persistence doesn't have to care which delegate
