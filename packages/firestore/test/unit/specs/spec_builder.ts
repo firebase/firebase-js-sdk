@@ -252,7 +252,7 @@ export class SpecBuilder {
   ensureManualLruGC(): this {
     debugAssert(
       !this.currentStep,
-      'withGCEnabled() must be called before all spec steps.'
+      'ensureManualLruGC() must be called before all spec steps.'
     );
     this.config.useEagerGCForMemory = false;
     return this;
