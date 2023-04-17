@@ -53,7 +53,7 @@ import {
 } from '../util/input_validation';
 
 import { FieldPath } from './field_path';
-import { DocumentReference, Query } from './reference';
+import {DocumentData, DocumentReference, Query} from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 import {
   newUserDataReader,
@@ -95,7 +95,7 @@ export abstract class AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType>;
 }
 
 /**
@@ -114,7 +114,7 @@ export abstract class QueryConstraint extends AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType>;
 }
 
 /**
@@ -131,11 +131,11 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+  query: Query<AppType, DbType>,
   compositeFilter: QueryCompositeFilterConstraint,
   ...queryConstraints: QueryNonFilterConstraint[]
-): Query<T>;
+): Query<AppType, DbType>;
 
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
@@ -147,18 +147,18 @@ export function query<T>(
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+  query: Query<AppType, DbType>,
   ...queryConstraints: QueryConstraint[]
-): Query<T>;
+): Query<AppType, DbType>;
 
-export function query<T>(
-  query: Query<T>,
+export function query<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+  query: Query<AppType, DbType>,
   queryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
   ...additionalQueryConstraints: Array<
     QueryConstraint | QueryNonFilterConstraint
   >
-): Query<T> {
+): Query<AppType, DbType> {
   let queryConstraints: AppliableConstraint[] = [];
 
   if (queryConstraint instanceof AppliableConstraint) {
@@ -205,17 +205,17 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     return new QueryFieldFilterConstraint(_field, _op, _value);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
     const filter = this._parse(query);
     validateNewFieldFilter(query._query, filter);
-    return new Query(
+    return new Query<AppType, DbType>(
       query.firestore,
       query.converter,
       queryWithAddedFilter(query._query, filter)
     );
   }
 
-  _parse<T>(query: Query<T>): FieldFilter {
+  _parse<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): FieldFilter {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -295,7 +295,7 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return new QueryCompositeFilterConstraint(type, _queryConstraints);
   }
 
-  _parse<T>(query: Query<T>): Filter {
+  _parse<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Filter {
     const parsedFilters = this._queryConstraints
       .map(queryConstraint => {
         return queryConstraint._parse(query);
@@ -309,7 +309,7 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return CompositeFilter.create(parsedFilters, this._getOperator());
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
     const parsedFilter = this._parse(query);
     if (parsedFilter.getFilters().length === 0) {
       // Return the existing query if not adding any more filters (e.g. an empty
@@ -318,7 +318,7 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     }
     validateNewFilter(query._query, parsedFilter);
 
-    return new Query(
+    return new Query<AppType, DbType>(
       query.firestore,
       query.converter,
       queryWithAddedFilter(query._query, parsedFilter)
@@ -435,7 +435,7 @@ export class QueryOrderByConstraint extends QueryConstraint {
     return new QueryOrderByConstraint(_field, _direction);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
@@ -500,8 +500,8 @@ export class QueryLimitConstraint extends QueryConstraint {
     return new QueryLimitConstraint(type, _limit, _limitType);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
-    return new Query(
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
+    return new Query<AppType, DbType>(
       query.firestore,
       query.converter,
       queryWithLimit(query._query, this._limit, this._limitType)
@@ -564,14 +564,14 @@ export class QueryStartAtConstraint extends QueryConstraint {
     return new QueryStartAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
       this._docOrFields,
       this._inclusive
     );
-    return new Query(
+    return new Query<AppType, DbType>(
       query.firestore,
       query.converter,
       queryWithStartAt(query._query, bound)
@@ -671,7 +671,7 @@ export class QueryEndAtConstraint extends QueryConstraint {
     return new QueryEndAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppType, DbType extends DocumentData>(query: Query<AppType, DbType>): Query<AppType, DbType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -751,10 +751,10 @@ export function endAt(
 }
 
 /** Helper function to create a bound from a document or fields */
-function newQueryBoundFromDocOrFields<T>(
-  query: Query,
+function newQueryBoundFromDocOrFields<AppType, DbType extends DocumentData>(
+  query: Query<AppType, DbType>,
   methodName: string,
-  docOrFields: Array<unknown | DocumentSnapshot<T>>,
+  docOrFields: Array<unknown | DocumentSnapshot<AppType, DbType>>,
   inclusive: boolean
 ): Bound {
   docOrFields[0] = getModularInstance(docOrFields[0]);

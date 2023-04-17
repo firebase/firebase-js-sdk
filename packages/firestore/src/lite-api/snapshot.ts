@@ -40,8 +40,8 @@ import {
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `AppType` into Firestore data.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
@@ -80,9 +80,11 @@ import { AbstractUserDataWriter } from './user_data_writer';
  */
 export interface FirestoreDataConverter<AppType, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppType` into a plain Javascript object, `DbType` (suitable for writing
+   * directly to the Firestore database). Used with
+   * {@link @firebase/firestore/lite#(setDoc:1)},
+   * {@link @firebase/firestore/lite#(WriteBatch.set:1)}
    * and {@link @firebase/firestore/lite#(Transaction.set:1)}.
    *
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
@@ -91,10 +93,13 @@ export interface FirestoreDataConverter<AppType, DbType extends DocumentData = A
   toFirestore(modelObject: WithFieldValue<AppType>): WithFieldValue<DbType>;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). Used with {@link @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#(WriteBatch.set:1)}
-   * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppType` into a plain Javascript object, `DbType` (suitable for writing
+   * directly to the Firestore database). Used with
+   * {@link @firebase/firestore/lite#(setDoc:1)},
+   * {@link @firebase/firestore/lite#(WriteBatch.set:1)}
+   * and {@link @firebase/firestore/lite#(Transaction.set:1)} with `merge:true`
+   * or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
@@ -107,8 +112,9 @@ export interface FirestoreDataConverter<AppType, DbType extends DocumentData = A
   ): PartialWithFieldValue<DbType>;
 
   /**
-   * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data()`.
+   * Called by the Firestore SDK to convert Firestore data `DbType` into an
+   * object of type `AppType`. You can access your data by calling
+   * `snapshot.data()`.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.

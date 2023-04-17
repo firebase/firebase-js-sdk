@@ -179,7 +179,7 @@ export class DocumentReference<AppType = DocumentData, DbType extends DocumentDa
    * @param converter - `null` removes the current converter.
    * @returns A `DocumentReference<DocumentData>` that does not use a converter.
    */
-  withConverter(converter: null): DocumentReference<DocumentData>;
+  withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
   withConverter<NewAppType = DocumentData, NewDbType extends DocumentData = NewAppType extends DocumentData ? NewAppType : DocumentData>(
     converter: FirestoreDataConverter<NewAppType, NewDbType> | null
   ): DocumentReference<NewAppType, NewDbType> {
@@ -538,7 +538,7 @@ export function doc<AppType = DocumentData, DbType extends DocumentData = AppTyp
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function refEqual<AppType, DbType extends DocumentData>(
+export function refEqual<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
   left: DocumentReference<AppType, DbType> | CollectionReference<AppType, DbType>,
   right: DocumentReference<AppType, DbType> | CollectionReference<AppType, DbType>
 ): boolean {
@@ -568,7 +568,7 @@ export function refEqual<AppType, DbType extends DocumentData>(
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function queryEqual<AppType, DbType extends DocumentData>(left: Query<AppType, DbType>, right: Query<AppType, DbType>): boolean {
+export function queryEqual<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(left: Query<AppType, DbType>, right: Query<AppType, DbType>): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
 
