@@ -83,7 +83,8 @@ module.exports = function (config) {
         'esModuleInterop': true,
         'sourceMap': true,
         'target': 'es5',
-        'importHelpers': true
+        'importHelpers': true,
+        'noEmitOnError': true
       }
     },
     plugins: [

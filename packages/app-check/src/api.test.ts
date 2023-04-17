@@ -60,6 +60,10 @@ describe('api', () => {
   let storageReadStub: SinonStub;
   let storageWriteStub: SinonStub;
 
+  function setRecaptchaSuccess(isSuccess: boolean = true): void {
+    getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
+  }
+
   beforeEach(() => {
     app = getFullApp();
     storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
@@ -291,6 +295,8 @@ describe('api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
+      setRecaptchaSuccess(true);
+
       expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
@@ -334,6 +340,8 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
+
+      setRecaptchaSuccess(true);
 
       expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
@@ -390,6 +398,8 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: false
       });
+
+      setRecaptchaSuccess(true);
 
       expect(getStateReference(app).tokenObservers.length).to.equal(0);
 

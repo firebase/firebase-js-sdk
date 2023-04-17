@@ -21,7 +21,7 @@ jobs:
         sudo apt-get install google-chrome-stable
     - uses: actions/checkout@v3
     - name: Set up Node (16)
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: 16.x
     - name: Bump Node memory limit

@@ -35,6 +35,7 @@ import {
   initializeV3 as initializeRecaptchaV3,
   initializeEnterprise as initializeRecaptchaEnterprise
 } from './recaptcha';
+import { getStateReference } from './state';
 import { AppCheckProvider, AppCheckTokenInternal, ThrottleData } from './types';
 import { getDurationString } from './util';
 
@@ -73,6 +74,10 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       }
     );
+    // Check if a failure state was set by the recaptcha "error-callback".
+    if (!getStateReference(this._app!).reCAPTCHAState?.succeeded) {
+      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+    }
     let result;
     try {
       result = await exchangeToken(
@@ -159,6 +164,10 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
         throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
       }
     );
+    // Check if a failure state was set by the recaptcha "error-callback".
+    if (!getStateReference(this._app!).reCAPTCHAState?.succeeded) {
+      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+    }
     let result;
     try {
       result = await exchangeToken(
