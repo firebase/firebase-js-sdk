@@ -25,7 +25,7 @@ import { PrivateSettings } from './firebase_export';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const __karma__: any;
 
-export enum TargetBackend {
+enum TargetBackend {
   EMULATOR = 'emulator',
   QA = 'qa',
   NIGHTLY = 'nightly',
@@ -35,7 +35,7 @@ export enum TargetBackend {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
-export const TARGET_BACKEND: TargetBackend = getTargetBackend();
+const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
 export const USE_EMULATOR: boolean = TARGET_BACKEND === TargetBackend.EMULATOR;
 
