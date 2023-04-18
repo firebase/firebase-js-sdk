@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 0.23.0
+
+### Minor Changes
+
+- [`b04f04081`](https://github.com/firebase/firebase-js-sdk/commit/b04f0408139f75c69b6f6eea396f3e961f658bd1) [#7191](https://github.com/firebase/firebase-js-sdk/pull/7191) - [feature] Added Firebase App Check support to Firebase Auth.
+
+- [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828) [#7193](https://github.com/firebase/firebase-js-sdk/pull/7193) - [feature] Add reCAPTCHA enterprise support.
+
 ## 0.22.0
 
 ### Minor Changes
