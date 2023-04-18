@@ -305,7 +305,6 @@ function wrapGtag(
         );
       } else if (command === GtagCommand.CONSENT) {
         const [gtagParams] = args;
-        // If CONFIG, second arg must be measurementId.
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else if (command === GtagCommand.GET) {
         const [measurementId, fieldName, callback] = args;

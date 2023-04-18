@@ -142,8 +142,6 @@ export async function setUserProperties(
  * Retrieves a unique Google Analytics identifier for the web client.
  * See {@link https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id | client_id}.
  *
- * @public
- *
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  */
 export async function internalGetGoogleAnalyticsClientId(
