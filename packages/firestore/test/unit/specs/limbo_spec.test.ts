@@ -211,7 +211,7 @@ describeSpec('Limbo Documents:', [], () => {
     return (
       spec()
         // No GC so we can keep the cache populated.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
 
         // Full query to populate the cache with docA and docB
         .userListens(fullQuery)
@@ -283,7 +283,7 @@ describeSpec('Limbo Documents:', [], () => {
       return (
         spec()
           // No GC so we can keep the cache populated.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
 
           // Full query to populate the cache with docA and docB
           .userListens(fullQuery)
@@ -520,7 +520,7 @@ describeSpec('Limbo Documents:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/a', { matches: true })
         .userSets('collection/b', { matches: true })
         .writeAcks('collection/a', 1000)
@@ -998,7 +998,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
 
           // Start a limbo resolution listen for a document (doc1).
           .userListens(fullQuery)
@@ -1036,7 +1036,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.
@@ -1086,7 +1086,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.

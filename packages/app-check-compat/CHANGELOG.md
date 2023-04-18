@@ -1,5 +1,12 @@
 # @firebase/app-check-compat
 
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [[`8c44d5863`](https://github.com/firebase/firebase-js-sdk/commit/8c44d586355ffd2d58b6841730ebdac89229954c)]:
+  - @firebase/app-check@0.6.5
+
 ## 0.3.4
 
 ### Patch Changes

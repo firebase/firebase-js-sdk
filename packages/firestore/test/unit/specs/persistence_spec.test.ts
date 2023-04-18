@@ -78,7 +78,7 @@ describeSpec('Persistence:', [], () => {
     const doc1 = doc('collection/key', 1000, { foo: 'bar' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1)
         .expectEvents(query1, { added: [doc1] })
@@ -93,7 +93,7 @@ describeSpec('Persistence:', [], () => {
     const query1 = query('collection');
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/key', { foo: 'bar' })
         // Normally the write would get GC'd from remote documents here.
         .writeAcks('collection/key', 1000)

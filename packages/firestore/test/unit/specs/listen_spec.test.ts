@@ -210,7 +210,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
 
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcks(query1)
       .watchRemoves(
@@ -265,7 +265,7 @@ describeSpec('Listens:', [], () => {
       return (
         spec()
           // Disable GC so the cache persists across listens.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docAv1)
           .expectEvents(query1, { added: [docAv1] })
@@ -301,7 +301,7 @@ describeSpec('Listens:', [], () => {
       return (
         spec()
           // Disable GC so the cache persists across listens.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docAv1)
           .expectEvents(query1, { added: [docAv1] })
@@ -334,7 +334,7 @@ describeSpec('Listens:', [], () => {
     return (
       spec()
         // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(visibleQuery)
         .watchAcksFull(visibleQuery, 1000, docAv1)
         .expectEvents(visibleQuery, { added: [docAv1] })
@@ -377,7 +377,7 @@ describeSpec('Listens:', [], () => {
     return (
       spec()
         // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(visibleQuery)
         .watchAcksFull(visibleQuery, 1000, docAv1)
         .expectEvents(visibleQuery, { added: [docAv1] })
@@ -474,7 +474,7 @@ describeSpec('Listens:', [], () => {
     const docB = doc('collection/b', 1000, { key: 'a' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         // Add a collection query with two documents, one of which gets deleted
         // (the second document guarantees that we later raise an event from
         // cache).
@@ -508,7 +508,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const deletedDocA = deletedDoc('collection/a', 2000);
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
@@ -528,7 +528,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
@@ -548,7 +548,7 @@ describeSpec('Listens:', [], () => {
       const docA = doc('collection/a', 1000, { key: 'a' });
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcks(query1)
           .watchSends({ affects: [query1] }, docA)
@@ -570,7 +570,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
 
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchRemoves(
         query1,
@@ -586,7 +586,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 2000, { key: 'a' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -606,7 +606,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection', filter('array', 'array-contains', 42));
     const docA = doc('collection/a', 2000, { foo: 'bar', array: [1, 42, 3] });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -628,7 +628,7 @@ describeSpec('Listens:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
@@ -657,7 +657,7 @@ describeSpec('Listens:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docA)
           .expectEvents(query1, { added: [docA] })
@@ -690,7 +690,7 @@ describeSpec('Listens:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, initialVersion, docA)
           .expectEvents(query1, { added: [docA] })
@@ -1704,7 +1704,7 @@ describeSpec('Listens:', [], () => {
     return (
       spec()
         // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         // Populate the cache with the empty query results.
         .userListens(query1)
         .watchAcksFull(query1, 1000)
@@ -1731,7 +1731,7 @@ describeSpec('Listens:', [], () => {
       return (
         spec()
           // Disable GC so the cache persists across listens.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           // Populate the cache with the empty query results.
           .userListens(query1)
           .watchAcksFull(query1, 1000, doc1)

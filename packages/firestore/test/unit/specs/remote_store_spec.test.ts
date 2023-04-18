@@ -26,7 +26,7 @@ describeSpec('Remote store:', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcks(query1)
       .userUnlistens(query1) // Now we simulate a quick unlisten.
@@ -46,7 +46,7 @@ describeSpec('Remote store:', [], () => {
     const doc3 = doc('collection/c', 1000, { key: 'c' });
     const doc4 = doc('collection/d', 1000, { key: 'd' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcks(query1)
       .userUnlistens(query1) // Now we simulate a quick unlisten.
@@ -72,7 +72,7 @@ describeSpec('Remote store:', [], () => {
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         // Close before we get an ack, this should reset our pending
         // target counts.
