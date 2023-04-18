@@ -72,7 +72,7 @@ export declare function initializeAppCheck(app: FirebaseApp | undefined, options
 
 ## getLimitedUseToken()
 
-Requests a Firebase App Check token. This method should be used \*only\* if you need to authorize requests to a non-Firebase backend.
+Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.
 
 Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method.
 
