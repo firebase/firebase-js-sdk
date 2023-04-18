@@ -1,5 +1,23 @@
 # firebase
 
+## 9.20.0
+
+### Minor Changes
+
+- [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828) [#7193](https://github.com/firebase/firebase-js-sdk/pull/7193) - [feature] Add reCAPTCHA enterprise support.
+
+### Patch Changes
+
+- Updated dependencies [[`b04f04081`](https://github.com/firebase/firebase-js-sdk/commit/b04f0408139f75c69b6f6eea396f3e961f658bd1), [`8c44d5863`](https://github.com/firebase/firebase-js-sdk/commit/8c44d586355ffd2d58b6841730ebdac89229954c), [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828), [`b66908df6`](https://github.com/firebase/firebase-js-sdk/commit/b66908df6f280b4f7bfce984e07c169d426c990b)]:
+  - @firebase/auth@0.23.0
+  - @firebase/auth-compat@0.4.0
+  - @firebase/app@0.9.8
+  - @firebase/app-check@0.6.5
+  - @firebase/firestore@3.10.1
+  - @firebase/app-compat@0.2.8
+  - @firebase/app-check-compat@0.3.5
+  - @firebase/firestore-compat@0.3.7
+
 ## 9.19.1
 
 ### Patch Changes
