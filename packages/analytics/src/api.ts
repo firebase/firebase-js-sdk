@@ -182,7 +182,6 @@ export async function getGoogleAnalyticsClientId(
   analyticsInstance = getModularInstance(analyticsInstance);
   return internalGetGoogleAnalyticsClientId(
     wrappedGtagFunction,
-    // test
     initializationPromisesMap[analyticsInstance.app.options.appId!]
   );
 }
