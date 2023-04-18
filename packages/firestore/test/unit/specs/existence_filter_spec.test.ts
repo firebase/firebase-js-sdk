@@ -74,7 +74,7 @@ describeSpec('Existence Filters:', [], () => {
     const doc1 = doc('collection/1', 2000, { v: 2 });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1)
         .expectEvents(query1, { added: [doc1] })

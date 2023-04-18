@@ -184,7 +184,7 @@ class CachedTargetIdGenerator {
  * duplicate tests in every client.
  */
 export class SpecBuilder {
-  protected config: SpecConfig = { useGarbageCollection: true, numClients: 1 };
+  protected config: SpecConfig = { useEagerGCForMemory: true, numClients: 1 };
   // currentStep is built up (in particular, expectations can be added to it)
   // until nextStep() is called to append it to steps.
   protected currentStep: SpecStep | null = null;
@@ -247,13 +247,14 @@ export class SpecBuilder {
     return runSpec(name, tags, usePersistence, this.config, this.steps);
   }
 
-  // Configures Garbage Collection behavior (on or off). Default is on.
-  withGCEnabled(gcEnabled: boolean): this {
+  // Ensures manual LRU GC for both memory and indexeddb persistence.
+  // In spec tests, GC is always manually triggered via triggerLruGC().
+  ensureManualLruGC(): this {
     debugAssert(
       !this.currentStep,
-      'withGCEnabled() must be called before all spec steps.'
+      'ensureManualLruGC() must be called before all spec steps.'
     );
-    this.config.useGarbageCollection = gcEnabled;
+    this.config.useEagerGCForMemory = false;
     return this;
   }
 
@@ -320,7 +321,7 @@ export class SpecBuilder {
     const targetId = this.queryMapping.get(target)!;
     this.removeQueryFromActiveTargets(query, targetId);
 
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+    if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
@@ -937,7 +938,7 @@ export class SpecBuilder {
 
     this.removeQueryFromActiveTargets(query, targetId);
 
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+    if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
@@ -1007,6 +1008,21 @@ export class SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.expectedWaitForPendingWritesEvents = count;
+    return this;
+  }
+
+  triggerLruGC(cacheThreshold: number): this {
+    this.nextStep();
+    this.currentStep = {
+      triggerLruGC: cacheThreshold
+    };
+    return this;
+  }
+
+  removeExpectedTargetMapping(query: Query): this {
+    const target = queryToTarget(query);
+    this.queryMapping.delete(target);
+    this.queryIdGenerator.purge(target);
     return this;
   }
 
@@ -1241,6 +1257,6 @@ export function client(
   withGcEnabled?: boolean
 ): MultiClientSpecBuilder {
   const specBuilder = new MultiClientSpecBuilder();
-  specBuilder.withGCEnabled(withGcEnabled === true);
+  specBuilder.ensureManualLruGC();
   return specBuilder.client(num);
 }

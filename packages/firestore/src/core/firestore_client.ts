@@ -80,9 +80,9 @@ import {
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
-  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine_impl';

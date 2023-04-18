@@ -18,23 +18,25 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import {
+  clearIndexedDbPersistence,
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   Firestore,
-  terminate,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
+  newTestApp,
+  newTestFirestore,
   persistentLocalCache,
-  clearIndexedDbPersistence,
-  CollectionReference,
-  DocumentData,
+  PrivateSettings,
   QuerySnapshot,
   setDoc,
-  PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore,
-  newTestApp,
-  writeBatch,
-  WriteBatch
+  terminate,
+  WriteBatch,
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -141,6 +143,47 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
+}
+
+export function withEnsuredEagerGcTestDb(
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestDbsSettings(
+    false,
+    DEFAULT_PROJECT_ID,
+    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
+export function withEnsuredLruGcTestDb(
+  persistence: boolean,
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  const newSettings = { ...DEFAULT_SETTINGS };
+  if (persistence) {
+    newSettings.localCache = persistentLocalCache({
+      cacheSizeBytes: 1 * 1024 * 1024
+    });
+  } else {
+    newSettings.localCache = memoryLocalCache({
+      garbageCollector: memoryLruGarbageCollector({
+        cacheSizeBytes: 1 * 1024 * 1024
+      })
+    });
+  }
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    newSettings,
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
