@@ -60,60 +60,54 @@ export function formatDummyToken(
  */
 export async function getToken(
   appCheck: AppCheckService,
-  forceRefresh = false,
-  isLimitedUse = false
+  forceRefresh = false
 ): Promise<AppCheckTokenResult> {
   const app = appCheck.app;
   ensureActivated(app);
 
   const state = getStateReference(app);
 
-  let token: AppCheckTokenInternal | undefined = undefined;
+  /**
+   * First check if there is a token in memory from a previous `getToken()` call.
+   */
+  let token: AppCheckTokenInternal | undefined = state.token;
   let error: Error | undefined = undefined;
 
-  if (!isLimitedUse) {
-    /**
-     * First check if there is a token in memory from a previous `getToken()` call.
-     */
-    token = state.token;
+  /**
+   * If an invalid token was found in memory, clear token from
+   * memory and unset the local variable `token`.
+   */
+  if (token && !isValid(token)) {
+    state.token = undefined;
+    token = undefined;
+  }
 
-    /**
-     * If an invalid token was found in memory, clear token from
-     * memory and unset the local variable `token`.
-     */
-    if (token && !isValid(token)) {
-      state.token = undefined;
-      token = undefined;
-    }
-
-    /**
-     * If there is no valid token in memory, try to load token from indexedDB.
-     */
-    if (!token) {
-      // cachedTokenPromise contains the token found in IndexedDB or undefined if not found.
-      const cachedToken = await state.cachedTokenPromise;
-      if (cachedToken) {
-        if (isValid(cachedToken)) {
-          token = cachedToken;
-        } else {
-          // If there was an invalid token in the indexedDB cache, clear it.
-          await writeTokenToStorage(app, undefined);
-        }
+  /**
+   * If there is no valid token in memory, try to load token from indexedDB.
+   */
+  if (!token) {
+    // cachedTokenPromise contains the token found in IndexedDB or undefined if not found.
+    const cachedToken = await state.cachedTokenPromise;
+    if (cachedToken) {
+      if (isValid(cachedToken)) {
+        token = cachedToken;
+      } else {
+        // If there was an invalid token in the indexedDB cache, clear it.
+        await writeTokenToStorage(app, undefined);
       }
     }
+  }
 
-    // Return the cached token (from either memory or indexedDB) if it's valid
-    if (!forceRefresh && token && isValid(token)) {
-      return {
-        token: token.token
-      };
-    }
+  // Return the cached token (from either memory or indexedDB) if it's valid
+  if (!forceRefresh && token && isValid(token)) {
+    return {
+      token: token.token
+    };
   }
 
   // Only set to true if this `getToken()` call is making the actual
   // REST call to the exchange endpoint, versus waiting for an already
-  // in-flight call (see debug and regular exchange endpoint paths below).
-  // This will never be true if isLimitedUseToken is true.
+  // in-flight call (see debug and regular exchange endpoint paths below)
   let shouldCallListeners = false;
 
   /**
@@ -122,58 +116,44 @@ export async function getToken(
    * Check token using the debug token, and return it directly.
    */
   if (isDebugMode()) {
-    // Avoid making another call to the exchange endpoint if one is in flight
-    // (unless requesting a limited use token)
-    let promise = isLimitedUse ? null : state.exchangeTokenPromise;
-    if (!promise) {
-      promise = exchangeToken(
+    // Avoid making another call to the exchange endpoint if one is in flight.
+    if (!state.exchangeTokenPromise) {
+      state.exchangeTokenPromise = exchangeToken(
         getExchangeDebugTokenRequest(app, await getDebugToken()),
         appCheck.heartbeatServiceProvider
-      );
-
-      if (!isLimitedUse) {
-        promise = promise.finally(() => {
-          // Clear promise when settled - either resolved or rejected.
-          state.exchangeTokenPromise = undefined;
-        });
-        shouldCallListeners = true;
-        state.exchangeTokenPromise = promise;
-      }
+      ).finally(() => {
+        // Clear promise when settled - either resolved or rejected.
+        state.exchangeTokenPromise = undefined;
+      });
+      shouldCallListeners = true;
     }
-    const tokenFromDebugExchange: AppCheckTokenInternal = await promise;
-
-    if (!isLimitedUse) {
-      await writeTokenToStorage(app, tokenFromDebugExchange);
-      // Write debug token to state if this isn't a limited use token.
-      state.token = tokenFromDebugExchange;
-    }
+    const tokenFromDebugExchange: AppCheckTokenInternal =
+      await state.exchangeTokenPromise;
+    // Write debug token to indexedDB.
+    await writeTokenToStorage(app, tokenFromDebugExchange);
+    // Write debug token to state.
+    state.token = tokenFromDebugExchange;
     return { token: tokenFromDebugExchange.token };
   }
 
   /**
    * There are no valid tokens in memory or indexedDB and we are not in
-   * debug mode, or we are requesting a limited use token.
+   * debug mode.
    * Request a new token from the exchange endpoint.
    */
   try {
-    // Avoid making another call to the exchange endpoint if one is in flight
-    // (unless requesting a limited use token)
-    let promise = isLimitedUse ? null : state.exchangeTokenPromise;
-    if (!promise) {
+    // Avoid making another call to the exchange endpoint if one is in flight.
+    if (!state.exchangeTokenPromise) {
       // state.provider is populated in initializeAppCheck()
       // ensureActivated() at the top of this function checks that
       // initializeAppCheck() has been called.
-      promise = state.provider!.getToken();
-      if (!isLimitedUse) {
-        promise = promise.finally(() => {
-          // Clear promise when settled - either resolved or rejected.
-          state.exchangeTokenPromise = undefined;
-        });
-        state.exchangeTokenPromise = promise;
-        shouldCallListeners = true;
-      }
+      state.exchangeTokenPromise = state.provider!.getToken().finally(() => {
+        // Clear promise when settled - either resolved or rejected.
+        state.exchangeTokenPromise = undefined;
+      });
+      shouldCallListeners = true;
     }
-    token = await promise;
+    token = await getStateReference(app).exchangeTokenPromise;
   } catch (e) {
     if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
@@ -213,20 +193,42 @@ export async function getToken(
     interopTokenResult = {
       token: token.token
     };
-    if (!isLimitedUse) {
-      // write the new token to the memory state as well as the persistent storage.
-      // Only do it if we got a valid new token and this isn't a limited use token.
-      state.token = token;
-      await writeTokenToStorage(app, token);
-    }
+    // write the new token to the memory state as well as the persistent storage.
+    // Only do it if we got a valid new token
+    state.token = token;
+    await writeTokenToStorage(app, token);
   }
 
-  if (shouldCallListeners && !isLimitedUse) {
-    // If we're here, isLimitedUse should always be false -- but put it in
-    // the 'if' clause just in case.
+  if (shouldCallListeners) {
     notifyTokenListeners(app, interopTokenResult);
   }
   return interopTokenResult;
+}
+
+/**
+ * Internal API for limited use tokens. Skips all FAC state and simply calls
+ * the underlying provider.
+ */
+export async function getLimitedUseToken(
+  appCheck: AppCheckService
+): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
+  ensureActivated(app);
+
+  const { provider } = getStateReference(app);
+
+  if (isDebugMode()) {
+    const debugToken = await getDebugToken();
+    const { token } = await exchangeToken(
+      getExchangeDebugTokenRequest(app, debugToken),
+      appCheck.heartbeatServiceProvider
+    );
+    return { token };
+  } else {
+    // provider is definitely valid since we ensure AppCheck was activated
+    const { token } = await provider!.getToken();
+    return { token };
+  }
 }
 
 export function addTokenListener(

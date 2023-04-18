@@ -33,7 +33,8 @@ import {
   addTokenListener,
   removeTokenListener,
   formatDummyToken,
-  defaultTokenErrorData
+  defaultTokenErrorData,
+  getLimitedUseToken
 } from './internal-api';
 import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
@@ -46,11 +47,11 @@ import {
   setInitialState,
   getDebugState
 } from './state';
-import { AppCheck, AppCheckTokenListener } from './public-types';
+import { AppCheckTokenListener } from './public-types';
 import { Deferred } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
-import { AppCheckTokenResult, ListenerType } from './types';
+import { ListenerType } from './types';
 import { AppCheckError, ERROR_FACTORY } from './errors';
 
 const fakeRecaptchaToken = 'fake-recaptcha-token';
@@ -666,16 +667,6 @@ describe('internal api', () => {
   });
 
   describe('getToken() for limited use', () => {
-    function getLimitedUseToken(
-      appCheck: AppCheck
-    ): Promise<AppCheckTokenResult> {
-      return getToken(
-        appCheck as AppCheckService,
-        /*forceRefresh*/ true,
-        /* isLimitedUse */ true
-      );
-    }
-
     it('uses customTokenProvider to get an AppCheck token', async () => {
       const customTokenProvider = getFakeCustomTokenProvider();
       const customProviderSpy = spy(customTokenProvider, 'getToken');
@@ -683,7 +674,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
-      const token = await getLimitedUseToken(appCheck);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(customProviderSpy).to.be.called;
       expect(token).to.deep.equal({
@@ -698,7 +689,7 @@ describe('internal api', () => {
       const appCheck = initializeAppCheck(app, {
         provider: customTokenProvider
       });
-      await getLimitedUseToken(appCheck);
+      await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(getStateReference(app).token).to.be.undefined;
       expect(getStateReference(app).isTokenAutoRefreshEnabled).to.be.false;
@@ -709,15 +700,13 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
+      const reCAPTCHASpy = stubGetRecaptchaToken();
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
       ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
 
-      const token = await getLimitedUseToken(appCheck);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
 
@@ -732,15 +721,13 @@ describe('internal api', () => {
         provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
       });
 
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
+      const reCAPTCHASpy = stubGetRecaptchaToken();
       const exchangeTokenStub: SinonStub = stub(
         client,
         'exchangeToken'
       ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
 
-      const token = await getLimitedUseToken(appCheck);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
 
       expect(reCAPTCHASpy).to.be.called;
 
@@ -748,32 +735,6 @@ describe('internal api', () => {
         exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
       ).to.equal(fakeRecaptchaToken);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-    });
-
-    it('resolves with a dummy token and an error if failed to get a token', async () => {
-      const errorStub = stub(console, 'error');
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
-      });
-
-      const reCAPTCHASpy = stub(reCAPTCHA, 'getToken').returns(
-        Promise.resolve(fakeRecaptchaToken)
-      );
-
-      const error = new Error('oops, something went wrong');
-      stub(client, 'exchangeToken').returns(Promise.reject(error));
-
-      const token = await getLimitedUseToken(appCheck);
-
-      expect(reCAPTCHASpy).to.be.called;
-      expect(token).to.deep.equal({
-        token: formatDummyToken(defaultTokenErrorData),
-        error
-      });
-      expect(errorStub.args[0][1].message).to.include(
-        'oops, something went wrong'
-      );
-      errorStub.restore();
     });
 
     it('exchanges debug token if in debug mode', async () => {
@@ -789,63 +750,11 @@ describe('internal api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
 
-      const token = await getLimitedUseToken(appCheck);
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
       );
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
-    });
-
-    it('throttles for a period less than 1d on 503', async () => {
-      // More detailed check of exponential backoff in providers.test.ts
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
-      });
-      const warnStub = stub(logger, 'warn');
-      stub(client, 'exchangeToken').returns(
-        Promise.reject(
-          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
-            httpStatus: 503
-          })
-        )
-      );
-
-      const token = await getLimitedUseToken(appCheck);
-
-      // ReCaptchaV3Provider's _throttleData is private so checking
-      // the resulting error message to be sure it has roughly the
-      // correct throttle time. This also tests the time formatter.
-      // Check both the error itself and that it makes it through to
-      // console.warn
-      expect(token.error?.message).to.include('503');
-      expect(token.error?.message).to.include('00m');
-      expect(token.error?.message).to.not.include('1d');
-      expect(warnStub.args[0][0]).to.include('503');
-    });
-
-    it('throttles 1d on 403', async () => {
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
-      });
-      const warnStub = stub(logger, 'warn');
-      stub(client, 'exchangeToken').returns(
-        Promise.reject(
-          ERROR_FACTORY.create(AppCheckError.FETCH_STATUS_ERROR, {
-            httpStatus: 403
-          })
-        )
-      );
-
-      const token = await getLimitedUseToken(appCheck);
-
-      // ReCaptchaV3Provider's _throttleData is private so checking
-      // the resulting error message to be sure it has roughly the
-      // correct throttle time. This also tests the time formatter.
-      // Check both the error itself and that it makes it through to
-      // console.warn
-      expect(token.error?.message).to.include('403');
-      expect(token.error?.message).to.include('1d');
-      expect(warnStub.args[0][0]).to.include('403');
     });
   });
 

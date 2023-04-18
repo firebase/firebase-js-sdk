@@ -293,26 +293,16 @@ describe('api', () => {
     it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: true });
       const appCheck = getFakeAppCheck(app);
-      const internalgetLimitedUseToken = stub(internalApi, 'getToken').resolves(
-        {
-          token: 'a-token-string'
-        }
-      );
-      await getLimitedUseToken(appCheck);
-      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
-    });
-    it('getLimitedUseToken() throws errors returned with token', async () => {
-      const app = getFakeApp({ automaticDataCollectionEnabled: true });
-      const appCheck = getFakeAppCheck(app);
-      // If the internal getToken() errors, it returns a dummy token
-      // with an error field instead of throwing.
-      stub(internalApi, 'getToken').resolves({
-        token: 'a-dummy-token',
-        error: Error('there was an error')
+      const internalgetLimitedUseToken = stub(
+        internalApi,
+        'getLimitedUseToken'
+      ).resolves({
+        token: 'a-token-string'
       });
-      await expect(getLimitedUseToken(appCheck)).to.be.rejectedWith(
-        'there was an error'
-      );
+      expect(await getLimitedUseToken(appCheck)).to.eql({
+        token: 'a-token-string'
+      });
+      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
     });
   });
   describe('onTokenChanged()', () => {

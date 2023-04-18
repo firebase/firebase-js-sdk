@@ -35,6 +35,7 @@ import { AppCheckService } from './factory';
 import { AppCheckProvider, ListenerType } from './types';
 import {
   getToken as getTokenInternal,
+  getLimitedUseToken as getLimitedUseTokenInternal,
   addTokenListener,
   removeTokenListener,
   isValid,
@@ -224,18 +225,10 @@ export async function getToken(
  * @returns The limited use token.
  * @public
  */
-export async function getLimitedUseToken(
+export function getLimitedUseToken(
   appCheckInstance: AppCheck
 ): Promise<AppCheckTokenResult> {
-  const result = await getTokenInternal(
-    appCheckInstance as AppCheckService,
-    /* forceRefresh */ true,
-    /* isLimitedUse */ true
-  );
-  if (result.error) {
-    throw result.error;
-  }
-  return { token: result.token };
+  return getLimitedUseTokenInternal(appCheckInstance as AppCheckService);
 }
 
 /**
