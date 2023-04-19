@@ -845,7 +845,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'a' });
 
-    return client(0, /* withGcEnabled= */ false)
+    return client(0)
       .becomeVisible()
       .client(1)
       .userListens(query1)
@@ -1754,7 +1754,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query1 = query('collection');
       return (
-        client(0, /* withGcEnabled= */ false)
+        client(0)
           // Populate the cache with the empty query results.
           .userListens(query1)
           .watchAcksFull(query1, 1000)
@@ -1785,7 +1785,7 @@ describeSpec('Listens:', [], () => {
       const doc1Deleted = deletedDoc('collection/a', 2000);
 
       return (
-        client(0, /* withGcEnabled= */ false)
+        client(0)
           // Populate the cache with the empty query results.
           .userListens(query1)
           .watchAcksFull(query1, 1000, doc1)

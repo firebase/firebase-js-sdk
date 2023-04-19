@@ -1252,10 +1252,7 @@ export function spec(): SpecBuilder {
 
 /** Starts a new multi-client SpecTest. */
 // PORTING NOTE: Only used by web multi-tab tests.
-export function client(
-  num: number,
-  withGcEnabled?: boolean
-): MultiClientSpecBuilder {
+export function client(num: number): MultiClientSpecBuilder {
   const specBuilder = new MultiClientSpecBuilder();
   specBuilder.ensureManualLruGC();
   return specBuilder.client(num);
