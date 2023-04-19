@@ -26,6 +26,7 @@ import {
   Bytes,
   collection,
   collectionGroup,
+  CollectionReference,
   deleteDoc,
   disableNetwork,
   doc,
@@ -35,6 +36,7 @@ import {
   enableNetwork,
   endAt,
   endBefore,
+  Firestore,
   GeoPoint,
   getDocs,
   getDocsFromCache,
@@ -2062,14 +2064,20 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('resuming a query should use existence filter to detect deletes', async () => {
+  it('resuming a query should use bloom filter to avoid full requery', async () => {
     // Prepare the names and contents of the 100 documents to create.
     const testDocs: { [key: string]: object } = {};
     for (let i = 0; i < 100; i++) {
       testDocs['doc' + (1000 + i)] = { key: 42 };
     }
 
-    return withTestCollection(persistence, testDocs, async (coll, db) => {
+    // The function that runs a single iteration of the test.
+    // Below this definition, there is a "while" loop that calls this function
+    // potentially multiple times.
+    const runTestIteration = async (
+      coll: CollectionReference,
+      db: Firestore
+    ): Promise<'retry' | 'passed'> => {
       // Run a query to populate the local cache with the 100 documents and a
       // resume token.
       const snapshot1 = await getDocs(coll);
@@ -2094,7 +2102,8 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // Resume the query and save the resulting snapshot for verification.
       // Use some internal testing hooks to "capture" the existence filter
-      // mismatches to verify them.
+      // mismatches to verify that Watch sent a bloom filter, and it was used to
+      // avert a full requery.
       const [existenceFilterMismatches, snapshot2] =
         await captureExistenceFilterMismatches(() => getDocs(coll));
 
@@ -2126,7 +2135,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       // TODO(b/272754156) Re-write this test using a snapshot listener instead
       // of calls to getDocs() and remove this check for disabled persistence.
       if (!persistence) {
-        return;
+        return 'passed';
       }
 
       // Skip the verification of the existence filter mismatch when testing
@@ -2136,7 +2145,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       // mismatch once the Firestore emulator is fixed to send an existence
       // filter.
       if (USE_EMULATOR) {
-        return;
+        return 'passed';
       }
 
       // Verify that Watch sent an existence filter with the correct counts when
@@ -2145,11 +2154,58 @@ apiDescribe('Queries', (persistence: boolean) => {
         existenceFilterMismatches,
         'existenceFilterMismatches'
       ).to.have.length(1);
-      const { localCacheCount, existenceFilterCount } =
+      const { localCacheCount, existenceFilterCount, bloomFilter } =
         existenceFilterMismatches[0];
       expect(localCacheCount, 'localCacheCount').to.equal(100);
       expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-    });
+
+      // Verify that Watch sent a valid bloom filter.
+      if (!bloomFilter) {
+        expect.fail(
+          'The existence filter should have specified a bloom filter in its ' +
+            '`unchanged_names` field.'
+        );
+        throw new Error('should never get here');
+      }
+
+      expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
+      expect(bloomFilter.bitmapLength, 'bloomFilter.bitmapLength').to.be.above(
+        0
+      );
+      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+
+      // Verify that the bloom filter was successfully used to avert a full
+      // requery. If a false positive occurred then retry the entire test.
+      // Although statistically rare, false positives are expected to happen
+      // occasionally. When a false positive _does_ happen, just retry the test
+      // with a different set of documents. If that retry _also_ experiences a
+      // false positive, then fail the test because that is so improbable that
+      // something must have gone wrong.
+      if (attemptNumber === 1 && !bloomFilter.applied) {
+        return 'retry';
+      }
+      expect(
+        bloomFilter.applied,
+        `bloomFilter.applied with attemptNumber=${attemptNumber}`
+      ).to.be.true;
+
+      return 'passed';
+    };
+
+    // Run the test
+    let attemptNumber = 0;
+    while (true) {
+      attemptNumber++;
+      const iterationResult = await withTestCollection(
+        persistence,
+        testDocs,
+        runTestIteration
+      );
+      if (iterationResult === 'passed') {
+        break;
+      }
+    }
   }).timeout('90s');
 });
 

@@ -215,13 +215,13 @@ export function withTestDbs(
     fn
   );
 }
-export async function withTestDbsSettings(
+export async function withTestDbsSettings<T>(
   persistence: boolean,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
-  fn: (db: Firestore[]) => Promise<void>
-): Promise<void> {
+  fn: (db: Firestore[]) => Promise<T>
+): Promise<T> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
   }
@@ -238,7 +238,7 @@ export async function withTestDbsSettings(
   }
 
   try {
-    await fn(dbs);
+    return await fn(dbs);
   } finally {
     for (const db of dbs) {
       await terminate(db);
@@ -329,11 +329,11 @@ export function withTestDocAndInitialData(
   });
 }
 
-export function withTestCollection(
+export function withTestCollection<T>(
   persistence: boolean,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
-): Promise<void> {
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
 }
 
@@ -346,12 +346,12 @@ export function withEmptyTestCollection(
 
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
-export function withTestCollectionSettings(
+export function withTestCollectionSettings<T>(
   persistence: boolean,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
-): Promise<void> {
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,

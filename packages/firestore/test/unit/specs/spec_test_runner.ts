@@ -710,12 +710,12 @@ abstract class TestRunner {
   }
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
-    const { targetIds, keys } = watchFilter;
+    const { targetIds, keys, bloomFilter } = watchFilter;
     debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
-    const filter = new ExistenceFilter(keys.length);
+    const filter = new ExistenceFilter(keys.length, bloomFilter);
     const change = new ExistenceFilterChange(targetIds[0], filter);
     return this.doWatchEvent(change);
   }
@@ -1145,6 +1145,9 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
+      if (expected.expectedCount !== undefined) {
+        targetData = targetData.withExpectedCount(expected.expectedCount);
+      }
 
       const expectedLabels =
         toListenRequestLabels(this.serializer, targetData) ?? undefined;
@@ -1161,6 +1164,11 @@ abstract class TestRunner {
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
+      if (expected.expectedCount !== undefined) {
+        expect(actualTarget.expectedCount).to.equal(
+          expectedTarget.expectedCount
+        );
+      }
       delete actualTargets[targetId];
     });
     expect(objectSize(actualTargets)).to.equal(
@@ -1631,6 +1639,7 @@ export interface SpecClientState {
 export interface SpecWatchFilter {
   targetIds: TargetId[];
   keys: string[];
+  bloomFilter?: api.BloomFilter;
 }
 
 export type SpecLimitType = 'LimitToFirst' | 'LimitToLast';

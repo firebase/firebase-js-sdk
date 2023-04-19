@@ -34,6 +34,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
+import { BloomFilter as ProtoBloomFilter } from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
@@ -77,6 +78,7 @@ export interface ActiveTargetSpec {
   targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 export interface ActiveTargetMap {
@@ -86,6 +88,7 @@ export interface ActiveTargetMap {
 export interface ResumeSpec {
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 /**
@@ -295,7 +298,11 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(query: Query, resumeToken: string): this {
+  restoreListen(
+    query: Query,
+    resumeToken: string,
+    expectedCount?: number
+  ): this {
     const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
@@ -303,7 +310,8 @@ export class SpecBuilder {
     }
 
     this.addQueryToActiveTargets(targetId!, query, {
-      resumeToken
+      resumeToken,
+      expectedCount
     });
 
     const currentStep = this.currentStep!;
@@ -533,22 +541,26 @@ export class SpecBuilder {
       targetPurpose?: TargetPurpose;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
+      expectedCount?: number;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, targetPurpose, resumeToken, readTime }) => {
-      this.addQueryToActiveTargets(
-        this.getTargetId(query),
-        query,
-        {
-          resumeToken,
-          readTime
-        },
-        targetPurpose
-      );
-    });
+    targets.forEach(
+      ({ query, resumeToken, readTime, expectedCount, targetPurpose }) => {
+        this.addQueryToActiveTargets(
+          this.getTargetId(query),
+          query,
+          {
+            resumeToken,
+            readTime,
+            expectedCount
+          },
+          targetPurpose
+        );
+      }
+    );
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
@@ -776,7 +788,11 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(queries: Query[], docs: DocumentKey[] = []): this {
+  watchFilters(
+    queries: Query[],
+    docs: DocumentKey[] = [],
+    bloomFilter?: ProtoBloomFilter
+  ): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -784,7 +800,7 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter: SpecWatchFilter = { targetIds, keys };
+    const filter: SpecWatchFilter = { targetIds, keys, bloomFilter };
     this.currentStep = {
       watchFilter: filter
     };
@@ -1107,6 +1123,10 @@ export class SpecBuilder {
     resume: ResumeSpec = {},
     targetPurpose?: TargetPurpose
   ): void {
+    if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
+      fail('Expected count is present without a resume token or read time.');
+    }
+
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
@@ -1146,8 +1166,9 @@ export class SpecBuilder {
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
-        targetPurpose: this.activeTargets[targetId].targetPurpose,
-        resumeToken: this.activeTargets[targetId].resumeToken
+        resumeToken: this.activeTargets[targetId].resumeToken,
+        expectedCount: this.activeTargets[targetId].expectedCount,
+        targetPurpose: this.activeTargets[targetId].targetPurpose
       };
     } else {
       delete this.activeTargets[targetId];

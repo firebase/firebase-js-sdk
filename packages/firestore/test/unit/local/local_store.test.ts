@@ -1280,7 +1280,8 @@ function genericLocalStoreTests(
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData
+      getTargetDataForTarget: () => targetData,
+      getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
@@ -1320,7 +1321,8 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
@@ -1333,7 +1335,8 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));

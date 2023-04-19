@@ -1809,4 +1809,92 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Resuming a query should specify expectedCount when adding the target',
+    // TODO(b/278759194) Remove 'no-android' once bloom filter is merged.
+    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
+    ['no-ios', 'no-android'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+
+      return (
+        spec()
+          .ensureManualLruGC()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000)
+          .expectEvents(query1, {})
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // There are 0 remote documents from previous listen.
+          .userListens(query1, {
+            resumeToken: 'resume-token-1000',
+            expectedCount: 0
+          })
+          .expectEvents(query1, { fromCache: true })
+          .watchAcksFull(query1, 2000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          .userUnlistens(query1)
+          .userListens(query1, {
+            resumeToken: 'resume-token-2000',
+            expectedCount: 2
+          })
+          .expectEvents(query1, { added: [docA, docB], fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'Resuming a query should specify expectedCount that does not include pending mutations',
+    // TODO(b/278759194) Remove 'no-android' once bloom filter is merged.
+    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
+    ['no-ios', 'no-android'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docBLocal = doc('collection/b', 1000, {
+        key: 'b'
+      }).setHasLocalMutations();
+
+      return spec()
+        .ensureManualLruGC()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .userUnlistens(query1)
+        .userSets('collection/b', { key: 'b' })
+        .userListens(query1, {
+          resumeToken: 'resume-token-1000',
+          expectedCount: 1
+        })
+        .expectEvents(query1, {
+          added: [docA, docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        });
+    }
+  );
+
+  specTest(
+    'ExpectedCount in listen request should work after coming back online',
+    // TODO(b/278759194) Remove 'no-android' once bloom filter is merged.
+    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
+    ['no-ios', 'no-android'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return spec()
+        .ensureManualLruGC()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .disableNetwork()
+        .expectEvents(query1, { fromCache: true })
+        .enableNetwork()
+        .restoreListen(query1, 'resume-token-1000', /* expectedCount= */ 1);
+    }
+  );
 });
