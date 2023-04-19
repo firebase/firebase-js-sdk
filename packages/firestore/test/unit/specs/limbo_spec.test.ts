@@ -425,7 +425,7 @@ describeSpec('Limbo Documents:', [], () => {
       const docB = doc('collection/b', 1001, { key: 'b' });
       const deletedDocB = deletedDoc('collection/b', 1005);
 
-      return client(0, false)
+      return client(0)
         .expectPrimaryState(true)
         .client(1)
         .userListens(query1)
@@ -463,7 +463,7 @@ describeSpec('Limbo Documents:', [], () => {
       const deletedDocB = deletedDoc('collection/b', 1006);
       const deletedDocC = deletedDoc('collection/c', 1008);
 
-      return client(0, false)
+      return client(0)
         .expectPrimaryState(true)
         .userListens(query1)
         .watchAcksFull(query1, 1 * 1e6, docA, docB, docC)
