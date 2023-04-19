@@ -1822,7 +1822,7 @@ describeSpec('Listens:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000)
           .expectEvents(query1, {})
@@ -1859,7 +1859,7 @@ describeSpec('Listens:', [], () => {
       }).setHasLocalMutations();
 
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
@@ -1887,7 +1887,7 @@ describeSpec('Listens:', [], () => {
       const docA = doc('collection/a', 1000, { key: 'a' });
 
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
