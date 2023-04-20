@@ -216,6 +216,30 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
     });
   });
 
+  it('allows aliases with length greater than 1500 bytes', () => {
+    // Alias string length is bytes of UTF-8 encoded alias + 1;
+    let longAlias = "";
+    for (let i = 0; i < 150; i++) {
+      longAlias += "0123456789";
+    }
+
+    let longerAlias = longAlias + longAlias;
+
+    const testDocs = {
+      a: { num: 3 },
+      b: { num: 5 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        [longAlias]: count(),
+        [longerAlias]: sum("num")
+      });
+
+      expect(snapshot.data()[longAlias]).to.equal(2);
+      expect(snapshot.data()[longerAlias]).to.equal(8);
+    });
+  });
+
   it('can get duplicate aggregations using getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
@@ -428,7 +452,7 @@ apiDescribe.skip(
         });
 
         await expect(promise).to.eventually.be.rejectedWith(
-          /INVALID_ARGUMENT.*maximum number of aggregations/
+          /maximum number of aggregations/
         );
       });
     });
