@@ -359,38 +359,42 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalForceLongPolling).to.be.false;
   });
 
-  it('long polling autoDetect=[something truthy] is corced to true', () => {
+  it('long polling autoDetect=[something truthy] should be coerced to true', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalAutoDetectLongPolling: 1 as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: 1 as any
     });
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
   });
 
-  it('long polling autoDetect=[something falsy] is corced to false', () => {
+  it('long polling autoDetect=[something falsy] should be coerced to false', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalAutoDetectLongPolling: 0 as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: 0 as any
     });
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
   });
 
-  it('long polling force=[something truthy] is corced to true', () => {
+  it('long polling force=[something truthy] should be coerced to true', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalForceLongPolling: "I am truthy" as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: 'I am truthy' as any
     });
     expect(db._getSettings().experimentalForceLongPolling).to.be.true;
   });
 
-  it('long polling force=[something falsy] is corced to false', () => {
+  it('long polling force=[something falsy] should be coerced to false', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalForceLongPolling: NaN as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: NaN as any
     });
     expect(db._getSettings().experimentalForceLongPolling).to.be.false;
   });
