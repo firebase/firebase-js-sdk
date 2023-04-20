@@ -359,7 +359,7 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalForceLongPolling).to.be.false;
   });
 
-  it('long polling autoDetect=[something truthy] is corced to true', () => {
+  it('long polling autoDetect=[something truthy] should be coerced to true', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
@@ -368,7 +368,7 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
   });
 
-  it('long polling autoDetect=[something falsy] is corced to false', () => {
+  it('long polling autoDetect=[something falsy] should be coerced to false', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
@@ -377,7 +377,7 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
   });
 
-  it('long polling force=[something truthy] is corced to true', () => {
+  it('long polling force=[something truthy] should be coerced to true', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
@@ -386,7 +386,7 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalForceLongPolling).to.be.true;
   });
 
-  it('long polling force=[something falsy] is corced to false', () => {
+  it('long polling force=[something falsy] should be coerced to false', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
