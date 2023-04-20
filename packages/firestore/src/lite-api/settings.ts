@@ -136,14 +136,14 @@ export class FirestoreSettingsImpl {
 
     if (this.experimentalForceLongPolling) {
       this.experimentalAutoDetectLongPolling = false;
-    } else if (settings.experimentalAutoDetectLongPolling !== undefined) {
+    } else if (settings.experimentalAutoDetectLongPolling === undefined) {
+      this.experimentalAutoDetectLongPolling = DEFAULT_AUTO_DETECT_LONG_POLLING;
+    } else {
       // For backwards compatibility, coerce the value to boolean even though
       // the TypeScript compiler has narrowed the type to boolean already.
       // noinspection PointlessBooleanExpressionJS
       this.experimentalAutoDetectLongPolling =
         !!settings.experimentalAutoDetectLongPolling;
-    } else {
-      this.experimentalAutoDetectLongPolling = DEFAULT_AUTO_DETECT_LONG_POLLING;
     }
 
     this.useFetchStreams = !!settings.useFetchStreams;
