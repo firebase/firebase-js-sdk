@@ -29,6 +29,8 @@ import { validateIsNotUsedTogether } from '../util/input_validation';
 export const DEFAULT_HOST = 'firestore.googleapis.com';
 export const DEFAULT_SSL = true;
 
+const DEFAULT_AUTO_DETECT_LONG_POLLING = false;
+
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
@@ -130,17 +132,18 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
-    if (settings.experimentalForceLongPolling) {
-      this.experimentalForceLongPolling = true;
+    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
+
+    if (this.experimentalForceLongPolling) {
       this.experimentalAutoDetectLongPolling = false;
+    } else if (settings.experimentalAutoDetectLongPolling !== undefined) {
+      // For backwards compatibility, coerce the value to boolean even though
+      // the TypeScript compiler has narrowed the type to boolean already.
+      // noinspection PointlessBooleanExpressionJS
+      this.experimentalAutoDetectLongPolling =
+        !!settings.experimentalAutoDetectLongPolling;
     } else {
-      this.experimentalForceLongPolling = false;
-      if (settings.experimentalAutoDetectLongPolling === undefined) {
-        this.experimentalAutoDetectLongPolling = false;
-      } else {
-        this.experimentalAutoDetectLongPolling =
-          settings.experimentalAutoDetectLongPolling;
-      }
+      this.experimentalAutoDetectLongPolling = DEFAULT_AUTO_DETECT_LONG_POLLING;
     }
 
     this.useFetchStreams = !!settings.useFetchStreams;
