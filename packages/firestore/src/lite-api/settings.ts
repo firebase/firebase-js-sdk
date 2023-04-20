@@ -123,17 +123,23 @@ export class FirestoreSettingsImpl {
       }
     }
 
-    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
-    this.experimentalAutoDetectLongPolling =
-      !!settings.experimentalAutoDetectLongPolling;
-    this.useFetchStreams = !!settings.useFetchStreams;
-
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling,
       'experimentalAutoDetectLongPolling',
       settings.experimentalAutoDetectLongPolling
     );
+
+    if (!settings.experimentalForceLongPolling) {
+      this.experimentalForceLongPolling = false;
+      this.experimentalAutoDetectLongPolling =
+        settings.experimentalAutoDetectLongPolling ?? true;
+    } else {
+      this.experimentalForceLongPolling = true;
+      this.experimentalAutoDetectLongPolling = false;
+    }
+
+    this.useFetchStreams = !!settings.useFetchStreams;
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
