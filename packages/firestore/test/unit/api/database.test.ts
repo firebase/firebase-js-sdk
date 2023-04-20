@@ -379,6 +379,16 @@ describe('Settings', () => {
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
   });
 
+  it('long polling autoDetect=null should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: null as any
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+  });
+
   it('long polling force=[something truthy] should be coerced to true', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
@@ -395,6 +405,16 @@ describe('Settings', () => {
     db._setSettings({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalForceLongPolling: NaN as any
+    });
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling force=null should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: null as any
     });
     expect(db._getSettings().experimentalForceLongPolling).to.be.false;
   });
