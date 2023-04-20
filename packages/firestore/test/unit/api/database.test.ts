@@ -279,6 +279,86 @@ describe('Settings', () => {
     );
   });
 
+  it('long polling should be disabled by default', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in force mode if force=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalForceLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+  });
+
+  it('long polling should be in auto-detect mode if autoDetect=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be disabled if force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be disabled if autoDetect=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in auto-detect mode if autoDetect=true and force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in force mode if autoDetect=false and force=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false,
+      experimentalForceLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+  });
+
+  it('long polling should be disabled if autoDetect=false and force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false,
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
   it('gets settings from useEmulator', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
