@@ -363,7 +363,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalAutoDetectLongPolling: 1 as any,
+      experimentalAutoDetectLongPolling: 1 as any
     });
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
   });
@@ -372,7 +372,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalAutoDetectLongPolling: 0 as any,
+      experimentalAutoDetectLongPolling: 0 as any
     });
     expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
   });
@@ -381,7 +381,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalForceLongPolling: "I am truthy" as any,
+      experimentalForceLongPolling: 'I am truthy' as any
     });
     expect(db._getSettings().experimentalForceLongPolling).to.be.true;
   });
@@ -390,7 +390,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({
-      experimentalForceLongPolling: NaN as any,
+      experimentalForceLongPolling: NaN as any
     });
     expect(db._getSettings().experimentalForceLongPolling).to.be.false;
   });
