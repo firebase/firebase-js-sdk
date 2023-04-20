@@ -130,13 +130,17 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
-    if (!settings.experimentalForceLongPolling) {
-      this.experimentalForceLongPolling = false;
-      this.experimentalAutoDetectLongPolling =
-        settings.experimentalAutoDetectLongPolling ?? false;
-    } else {
+    if (settings.experimentalForceLongPolling) {
       this.experimentalForceLongPolling = true;
       this.experimentalAutoDetectLongPolling = false;
+    } else {
+      this.experimentalForceLongPolling = false;
+      if (settings.experimentalAutoDetectLongPolling === undefined) {
+        this.experimentalAutoDetectLongPolling = false;
+      } else {
+        this.experimentalAutoDetectLongPolling =
+          settings.experimentalAutoDetectLongPolling;
+      }
     }
 
     this.useFetchStreams = !!settings.useFetchStreams;
