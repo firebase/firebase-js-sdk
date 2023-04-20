@@ -41,12 +41,10 @@ gulp.task('cdn-type-module-path', function () {
 
 //google3 does not allow imports from absolute URLs, so we cannot use the gstatic link
 gulp.task('cdn-type-module-path-internal', function () {
-  return (
-    gulp
-      .src(files)
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(replace(/(['"])@firebase\/app(['"])/g, "'./firebase-app.js'"))
-      .pipe(sourcemaps.write('.'))
-      .pipe(gulp.dest('.'))
-  );
+  return gulp
+    .src(files)
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(replace(/(['"])@firebase\/app(['"])/g, "'./firebase-app.js'"))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest('.'));
 });
