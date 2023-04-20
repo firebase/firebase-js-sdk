@@ -21,7 +21,8 @@ import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
   getToken,
-  onTokenChanged
+  onTokenChanged,
+  getLimitedUseToken
 } from './api';
 import {
   FAKE_SITE_KEY,
@@ -286,6 +287,22 @@ describe('api', () => {
       await expect(getToken(appCheck, true)).to.be.rejectedWith(
         'there was an error'
       );
+    });
+  });
+  describe('getLimitedUseToken()', () => {
+    it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      const internalgetLimitedUseToken = stub(
+        internalApi,
+        'getLimitedUseToken'
+      ).resolves({
+        token: 'a-token-string'
+      });
+      expect(await getLimitedUseToken(appCheck)).to.eql({
+        token: 'a-token-string'
+      });
+      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
     });
   });
   describe('onTokenChanged()', () => {

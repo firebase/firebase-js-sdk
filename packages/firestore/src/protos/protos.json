@@ -928,6 +928,30 @@
                     }
                   }
                 },
+                "BitSequence": {
+                  "fields": {
+                    "bitmap": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "padding": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
+                "BloomFilter": {
+                  "fields": {
+                    "bits": {
+                      "type": "BitSequence",
+                      "id": 1
+                    },
+                    "hashCount": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
                 "DocumentMask": {
                   "fields": {
                     "fieldPaths": {
@@ -2052,6 +2076,10 @@
                     "once": {
                       "type": "bool",
                       "id": 6
+                    },
+                    "expectedCount": {
+                      "type": "google.protobuf.Int32Value",
+                      "id": 12
                     }
                   },
                   "nested": {
@@ -2660,6 +2688,10 @@
                     "count": {
                       "type": "int32",
                       "id": 2
+                    },
+                    "unchangedNames": {
+                      "type": "BloomFilter",
+                      "id": 3
                     }
                   }
                 }

@@ -34,6 +34,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { FieldIndex } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { ResourcePath } from '../../../src/model/path';
+import { BloomFilter as ProtoBloomFilter } from '../../../src/protos/firestore_proto_api';
 import {
   isPermanentWriteError,
   mapCodeFromRpcCode,
@@ -77,6 +78,7 @@ export interface ActiveTargetSpec {
   targetPurpose?: TargetPurpose;
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 export interface ActiveTargetMap {
@@ -86,6 +88,7 @@ export interface ActiveTargetMap {
 export interface ResumeSpec {
   resumeToken?: string;
   readTime?: TestSnapshotVersion;
+  expectedCount?: number;
 }
 
 /**
@@ -184,7 +187,7 @@ class CachedTargetIdGenerator {
  * duplicate tests in every client.
  */
 export class SpecBuilder {
-  protected config: SpecConfig = { useGarbageCollection: true, numClients: 1 };
+  protected config: SpecConfig = { useEagerGCForMemory: true, numClients: 1 };
   // currentStep is built up (in particular, expectations can be added to it)
   // until nextStep() is called to append it to steps.
   protected currentStep: SpecStep | null = null;
@@ -247,13 +250,14 @@ export class SpecBuilder {
     return runSpec(name, tags, usePersistence, this.config, this.steps);
   }
 
-  // Configures Garbage Collection behavior (on or off). Default is on.
-  withGCEnabled(gcEnabled: boolean): this {
+  // Ensures manual LRU GC for both memory and indexeddb persistence.
+  // In spec tests, GC is always manually triggered via triggerLruGC().
+  ensureManualLruGC(): this {
     debugAssert(
       !this.currentStep,
-      'withGCEnabled() must be called before all spec steps.'
+      'ensureManualLruGC() must be called before all spec steps.'
     );
-    this.config.useGarbageCollection = gcEnabled;
+    this.config.useEagerGCForMemory = false;
     return this;
   }
 
@@ -294,7 +298,11 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(query: Query, resumeToken: string): this {
+  restoreListen(
+    query: Query,
+    resumeToken: string,
+    expectedCount?: number
+  ): this {
     const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
@@ -302,7 +310,8 @@ export class SpecBuilder {
     }
 
     this.addQueryToActiveTargets(targetId!, query, {
-      resumeToken
+      resumeToken,
+      expectedCount
     });
 
     const currentStep = this.currentStep!;
@@ -320,7 +329,7 @@ export class SpecBuilder {
     const targetId = this.queryMapping.get(target)!;
     this.removeQueryFromActiveTargets(query, targetId);
 
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+    if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
@@ -532,22 +541,26 @@ export class SpecBuilder {
       targetPurpose?: TargetPurpose;
       resumeToken?: string;
       readTime?: TestSnapshotVersion;
+      expectedCount?: number;
     }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, targetPurpose, resumeToken, readTime }) => {
-      this.addQueryToActiveTargets(
-        this.getTargetId(query),
-        query,
-        {
-          resumeToken,
-          readTime
-        },
-        targetPurpose
-      );
-    });
+    targets.forEach(
+      ({ query, resumeToken, readTime, expectedCount, targetPurpose }) => {
+        this.addQueryToActiveTargets(
+          this.getTargetId(query),
+          query,
+          {
+            resumeToken,
+            readTime,
+            expectedCount
+          },
+          targetPurpose
+        );
+      }
+    );
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
@@ -775,7 +788,11 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(queries: Query[], docs: DocumentKey[] = []): this {
+  watchFilters(
+    queries: Query[],
+    docs: DocumentKey[] = [],
+    bloomFilter?: ProtoBloomFilter
+  ): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -783,7 +800,7 @@ export class SpecBuilder {
     const keys = docs.map(key => {
       return key.path.canonicalString();
     });
-    const filter: SpecWatchFilter = { targetIds, keys };
+    const filter: SpecWatchFilter = { targetIds, keys, bloomFilter };
     this.currentStep = {
       watchFilter: filter
     };
@@ -937,7 +954,7 @@ export class SpecBuilder {
 
     this.removeQueryFromActiveTargets(query, targetId);
 
-    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
+    if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
@@ -1007,6 +1024,21 @@ export class SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.expectedWaitForPendingWritesEvents = count;
+    return this;
+  }
+
+  triggerLruGC(cacheThreshold: number): this {
+    this.nextStep();
+    this.currentStep = {
+      triggerLruGC: cacheThreshold
+    };
+    return this;
+  }
+
+  removeExpectedTargetMapping(query: Query): this {
+    const target = queryToTarget(query);
+    this.queryMapping.delete(target);
+    this.queryIdGenerator.purge(target);
     return this;
   }
 
@@ -1091,6 +1123,10 @@ export class SpecBuilder {
     resume: ResumeSpec = {},
     targetPurpose?: TargetPurpose
   ): void {
+    if (!(resume?.resumeToken || resume?.readTime) && resume?.expectedCount) {
+      fail('Expected count is present without a resume token or read time.');
+    }
+
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
@@ -1130,8 +1166,9 @@ export class SpecBuilder {
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
         queries: queriesAfterRemoval,
-        targetPurpose: this.activeTargets[targetId].targetPurpose,
-        resumeToken: this.activeTargets[targetId].resumeToken
+        resumeToken: this.activeTargets[targetId].resumeToken,
+        expectedCount: this.activeTargets[targetId].expectedCount,
+        targetPurpose: this.activeTargets[targetId].targetPurpose
       };
     } else {
       delete this.activeTargets[targetId];
@@ -1236,11 +1273,8 @@ export function spec(): SpecBuilder {
 
 /** Starts a new multi-client SpecTest. */
 // PORTING NOTE: Only used by web multi-tab tests.
-export function client(
-  num: number,
-  withGcEnabled?: boolean
-): MultiClientSpecBuilder {
+export function client(num: number): MultiClientSpecBuilder {
   const specBuilder = new MultiClientSpecBuilder();
-  specBuilder.withGCEnabled(withGcEnabled === true);
+  specBuilder.ensureManualLruGC();
   return specBuilder.client(num);
 }

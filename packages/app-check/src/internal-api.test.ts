@@ -32,7 +32,8 @@ import {
   addTokenListener,
   removeTokenListener,
   formatDummyToken,
-  defaultTokenErrorData
+  defaultTokenErrorData,
+  getLimitedUseToken
 } from './internal-api';
 import * as reCAPTCHA from './recaptcha';
 import * as client from './client';
@@ -660,6 +661,98 @@ describe('internal api', () => {
       expect(token.error?.message).to.include('403');
       expect(token.error?.message).to.include('1d');
       expect(warnStub.args[0][0]).to.include('403');
+    });
+  });
+
+  describe('getLimitedUseToken()', () => {
+    it('uses customTokenProvider to get an AppCheck token', async () => {
+      const customTokenProvider = getFakeCustomTokenProvider();
+      const customProviderSpy = spy(customTokenProvider, 'getToken');
+
+      const appCheck = initializeAppCheck(app, {
+        provider: customTokenProvider
+      });
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
+
+      expect(customProviderSpy).to.be.called;
+      expect(token).to.deep.equal({
+        token: 'fake-custom-app-check-token'
+      });
+    });
+
+    it('does not interact with state', async () => {
+      const customTokenProvider = getFakeCustomTokenProvider();
+      spy(customTokenProvider, 'getToken');
+
+      const appCheck = initializeAppCheck(app, {
+        provider: customTokenProvider
+      });
+      await getLimitedUseToken(appCheck as AppCheckService);
+
+      expect(getStateReference(app).token).to.be.undefined;
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.be.false;
+    });
+
+    it('uses reCAPTCHA (V3) token to exchange for AppCheck token', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const reCAPTCHASpy = stubGetRecaptchaToken();
+      const exchangeTokenStub: SinonStub = stub(
+        client,
+        'exchangeToken'
+      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
+
+      expect(reCAPTCHASpy).to.be.called;
+
+      expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
+        fakeRecaptchaToken
+      );
+      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+    });
+
+    it('uses reCAPTCHA (Enterprise) token to exchange for AppCheck token', async () => {
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+
+      const reCAPTCHASpy = stubGetRecaptchaToken();
+      const exchangeTokenStub: SinonStub = stub(
+        client,
+        'exchangeToken'
+      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
+
+      expect(reCAPTCHASpy).to.be.called;
+
+      expect(
+        exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
+      ).to.equal(fakeRecaptchaToken);
+      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+    });
+
+    it('exchanges debug token if in debug mode', async () => {
+      const exchangeTokenStub: SinonStub = stub(
+        client,
+        'exchangeToken'
+      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const debugState = getDebugState();
+      debugState.enabled = true;
+      debugState.token = new Deferred();
+      debugState.token.resolve('my-debug-token');
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+
+      const token = await getLimitedUseToken(appCheck as AppCheckService);
+      expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
+        'my-debug-token'
+      );
+      expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
   });
 

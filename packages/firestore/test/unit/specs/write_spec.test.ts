@@ -109,7 +109,7 @@ describeSpec('Writes:', [], () => {
         v: 1
       }).setHasLocalMutations();
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/doc', { v: 1 })
         .userListens(query1)
         .expectEvents(query1, {
@@ -129,7 +129,7 @@ describeSpec('Writes:', [], () => {
         v: 1
       }).setHasCommittedMutations();
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/doc', { v: 1 })
         .writeAcks('collection/doc', 1000)
         .userListens(query1)
@@ -146,7 +146,7 @@ describeSpec('Writes:', [], () => {
     const docV2 = doc('collection/doc', /* remoteVersion= */ 1000, { v: 2 });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 250)
         .expectEvents(query1, {})
@@ -291,7 +291,7 @@ describeSpec('Writes:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/doc', { local: 1 })
         .userListens(query1)
         .expectEvents(query1, {
