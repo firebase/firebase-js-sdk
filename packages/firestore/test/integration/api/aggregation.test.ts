@@ -218,12 +218,12 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
 
   it('allows aliases with length greater than 1500 bytes', () => {
     // Alias string length is bytes of UTF-8 encoded alias + 1;
-    let longAlias = "";
+    let longAlias = '';
     for (let i = 0; i < 150; i++) {
-      longAlias += "0123456789";
+      longAlias += '0123456789';
     }
 
-    let longerAlias = longAlias + longAlias;
+    const longerAlias = longAlias + longAlias;
 
     const testDocs = {
       a: { num: 3 },
@@ -232,7 +232,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getAggregateFromServer(coll, {
         [longAlias]: count(),
-        [longerAlias]: sum("num")
+        [longerAlias]: sum('num')
       });
 
       expect(snapshot.data()[longAlias]).to.equal(2);

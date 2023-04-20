@@ -245,20 +245,25 @@ export async function invokeRunAggregationQueryRpc(
   aggregates: Aggregate[]
 ): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toRunAggregationQueryRequest(
+  const wrapper = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
     queryToTarget(query),
     aggregates
   );
 
-  const parent = request.parent;
+  const parent = wrapper.request.parent;
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
-    delete request.parent;
+    delete wrapper.request.parent;
   }
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
+  >(
+    'RunAggregationQuery',
+    parent!,
+    wrapper.request,
+    /*expectedResponseCount=*/ 1
+  );
 
   // Omit RunAggregationQueryResponse that only contain readTimes.
   const filteredResult = response.filter(proto => !!proto.result);
@@ -276,7 +281,22 @@ export async function invokeRunAggregationQueryRpc(
     'aggregationQueryResponse.result.aggregateFields'
   );
 
-  return filteredResult[0].result.aggregateFields;
+  // Remap the short-form aliases that were sent to the server
+  // to the client-side aliases. Users will access the results
+  // using the client-side alias.
+  const unmappedAggregateFields = filteredResult[0].result?.aggregateFields;
+  const remappedFields = Object.keys(unmappedAggregateFields).reduce<
+    ApiClientObjectMap<Value>
+  >((accumulator, key) => {
+    debugAssert(
+      !isNullOrUndefined(wrapper.aliasMap[key]),
+      `'${key}' not present in aliasMap result`
+    );
+    accumulator[wrapper.aliasMap[key]] = unmappedAggregateFields[key]!;
+    return accumulator;
+  }, {});
+
+  return remappedFields;
 }
 
 export function newPersistentWriteStream(
