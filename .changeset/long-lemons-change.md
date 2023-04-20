@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Enabled "auto-detect long polling" networking mode by default. It can be explicitly disabled by setting `FirestoreSettings.experimentalForceLongPolling` to `false`.
+Enabled long-polling networking mode auto detection by default. It can be explicitly disabled by setting `FirestoreSettings.experimentalForceLongPolling` to `false`.
