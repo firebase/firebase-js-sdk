@@ -160,7 +160,10 @@ const cdnBuilds = [
           ...plugins,
           typescriptPluginCDN,
           terser({
-            format: { comments: false }
+            format: { comments: false },
+            mangle: {
+              reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex']
+            }
           })
         ],
         external: ['@firebase/app']
