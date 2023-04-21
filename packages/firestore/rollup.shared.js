@@ -297,7 +297,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
         // not have the identical variable name issue but we should be
         // consistent.
         mangle: {
-          reserved: ['_getProvider']
+          reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex']
         }
       }),
       sourcemaps()
