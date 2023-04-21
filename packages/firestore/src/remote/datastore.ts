@@ -245,25 +245,20 @@ export async function invokeRunAggregationQueryRpc(
   aggregates: Aggregate[]
 ): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const wrapper = toRunAggregationQueryRequest(
+  const { request, aliasMap } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
     queryToTarget(query),
     aggregates
   );
 
-  const parent = wrapper.request.parent;
+  const parent = request.parent;
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
-    delete wrapper.request.parent;
+    delete request.parent;
   }
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >(
-    'RunAggregationQuery',
-    parent!,
-    wrapper.request,
-    /*expectedResponseCount=*/ 1
-  );
+  >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
 
   // Omit RunAggregationQueryResponse that only contain readTimes.
   const filteredResult = response.filter(proto => !!proto.result);
@@ -289,10 +284,10 @@ export async function invokeRunAggregationQueryRpc(
     ApiClientObjectMap<Value>
   >((accumulator, key) => {
     debugAssert(
-      !isNullOrUndefined(wrapper.aliasMap[key]),
+      !isNullOrUndefined(aliasMap[key]),
       `'${key}' not present in aliasMap result`
     );
-    accumulator[wrapper.aliasMap[key]] = unmappedAggregateFields[key]!;
+    accumulator[aliasMap[key]] = unmappedAggregateFields[key]!;
     return accumulator;
   }, {});
 

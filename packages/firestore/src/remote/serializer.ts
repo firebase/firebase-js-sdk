@@ -887,16 +887,14 @@ export function toQueryTarget(
   return result;
 }
 
-export interface RunAggregationQueryRequestWrapper {
-  request: ProtoRunAggregationQueryRequest;
-  aliasMap: Record<string, string>;
-}
-
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
   aggregates: Aggregate[]
-): RunAggregationQueryRequestWrapper {
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+} {
   const queryTarget = toQueryTarget(serializer, target);
   const aliasMap: Record<string, string> = {};
 
