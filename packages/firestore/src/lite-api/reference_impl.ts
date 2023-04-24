@@ -39,7 +39,8 @@ import { FieldPath } from './field_path';
 import { validateHasExplicitOrderByForLimitToLast } from './query';
 import {
   CollectionReference,
-  doc, DocumentData,
+  doc,
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   Query,
@@ -71,25 +72,21 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * their `set()` or fails due to invalid data originating from a `toFirestore()`
  * call.
  */
-export function applyFirestoreDataConverter<AppType, DbType extends PublicDocumentData>(
+export function applyFirestoreDataConverter<
+  AppType,
+  DbType extends PublicDocumentData
+>(
   converter: UntypedFirestoreDataConverter<AppType, DbType> | null,
   value: WithFieldValue<AppType> | PartialWithFieldValue<AppType>,
   options?: PublicSetOptions
 ): PublicDocumentData {
-  let convertedValue;
-  if (converter) {
-    if (options && (options.merge || options.mergeFields)) {
-      // Cast to `any` in order to satisfy the union type constraint on
-      // toFirestore().
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      convertedValue = (converter as any).toFirestore(value, options);
-    } else {
-      convertedValue = converter.toFirestore(value as WithFieldValue<T>);
-    }
-  } else {
-    convertedValue = value as PublicDocumentData;
+  if (!converter) {
+    return value as PublicDocumentData;
   }
-  return convertedValue;
+  if (options && (options.merge || options.mergeFields)) {
+    return converter.toFirestore(value, options);
+  }
+  return converter.toFirestore(value as WithFieldValue<AppType>);
 }
 
 export class LiteUserDataWriter extends AbstractUserDataWriter {
@@ -120,10 +117,18 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the current
  * document contents.
  */
-export function getDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function getDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>
 ): Promise<DocumentSnapshot<AppType, DbType>> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const datastore = getDatastore(reference.firestore);
   const userDataWriter = new LiteUserDataWriter(reference.firestore);
 
@@ -154,7 +159,12 @@ export function getDoc<AppType = DocumentData, DbType extends DocumentData = App
  * @param query - The `Query` to execute.
  * @returns A Promise that will be resolved with the results of the query.
  */
-export function getDocs<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(query: Query<AppType, DbType>): Promise<QuerySnapshot<AppType, DbType>> {
+export function getDocs<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(query: Query<AppType, DbType>): Promise<QuerySnapshot<AppType, DbType>> {
   query = cast<Query<AppType, DbType>>(query, Query);
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -198,7 +208,12 @@ export function getDocs<AppType = DocumentData, DbType extends DocumentData = Ap
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
-export function setDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function setDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   data: WithFieldValue<AppType>
 ): Promise<void>;
@@ -219,17 +234,30 @@ export function setDoc<AppType = DocumentData, DbType extends DocumentData = App
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
-export function setDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function setDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   data: PartialWithFieldValue<AppType>,
   options: SetOptions
 ): Promise<void>;
-export function setDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function setDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   data: PartialWithFieldValue<AppType>,
   options?: SetOptions
 ): Promise<void> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
     data,
@@ -269,7 +297,12 @@ export function setDoc<AppType = DocumentData, DbType extends DocumentData = App
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
-export function updateDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function updateDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   data: UpdateData<DbType>
 ): Promise<void>;
@@ -294,19 +327,32 @@ export function updateDoc<AppType = DocumentData, DbType extends DocumentData = 
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend.
  */
-export function updateDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function updateDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
-export function updateDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function updateDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: DocumentReference<AppType, DbType>,
   fieldOrUpdateData: string | FieldPath | UpdateData<DbType>,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const dataReader = newUserDataReader(reference.firestore);
 
   // For Compat types, we have to "extract" the underlying types before
@@ -353,10 +399,16 @@ export function updateDoc<AppType = DocumentData, DbType extends DocumentData = 
  * @returns A `Promise` resolved once the document has been successfully
  * deleted from the backend.
  */
-export function deleteDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
-  reference: DocumentReference<AppType, DbType>
-): Promise<void> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+export function deleteDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(reference: DocumentReference<AppType, DbType>): Promise<void> {
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
     new DeleteMutation(reference._key, Precondition.none())
@@ -378,11 +430,19 @@ export function deleteDoc<AppType = DocumentData, DbType extends DocumentData = 
  * @returns A `Promise` resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.
  */
-export function addDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(
+export function addDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
   reference: CollectionReference<AppType, DbType>,
   data: WithFieldValue<AppType>
 ): Promise<DocumentReference<AppType, DbType>> {
-  reference = cast<CollectionReference<AppType, DbType>>(reference, CollectionReference);
+  reference = cast<CollectionReference<AppType, DbType>>(
+    reference,
+    CollectionReference
+  );
   const docRef = doc(reference);
 
   const convertedValue = applyFirestoreDataConverter(

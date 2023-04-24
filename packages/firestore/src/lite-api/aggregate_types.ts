@@ -19,7 +19,7 @@ import { AggregateType } from '../core/aggregate';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
 
-import {DocumentData, Query} from './reference';
+import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 export { AggregateType };
@@ -71,7 +71,13 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 

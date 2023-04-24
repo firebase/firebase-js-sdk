@@ -78,7 +78,12 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * }
  * ```
  */
-export interface FirestoreDataConverter<AppType, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export interface FirestoreDataConverter<
+  AppType,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
    * `AppType` into a plain Javascript object, `DbType` (suitable for writing
@@ -131,7 +136,12 @@ export interface FirestoreDataConverter<AppType, DbType extends DocumentData = A
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export class DocumentSnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
   // - No support for SnapshotMetadata.
@@ -193,7 +203,9 @@ export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentDat
       );
       return this._converter.fromFirestore(snapshot);
     } else {
-      return this._userDataWriter.convertValue(this._document.data.value) as AppType;
+      return this._userDataWriter.convertValue(
+        this._document.data.value
+      ) as AppType;
     }
   }
 
@@ -232,7 +244,12 @@ export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentDat
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends DocumentSnapshot<AppType, DbType> {
+export class QueryDocumentSnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> extends DocumentSnapshot<AppType, DbType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -251,7 +268,12 @@ export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends Docume
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export class QuerySnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   /**
    * The query on which you called {@link getDocs} in order to get this
    * `QuerySnapshot`.
@@ -260,14 +282,14 @@ export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData =
 
   /** @hideconstructor */
   constructor(
-    _query: Query<T>,
-    readonly _docs: Array<QueryDocumentSnapshot<T>>
+    _query: Query<AppType, DbType>,
+    readonly _docs: Array<QueryDocumentSnapshot<AppType, DbType>>
   ) {
     this.query = _query;
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>> {
+  get docs(): Array<QueryDocumentSnapshot<AppType, DbType>> {
     return [...this._docs];
   }
 
@@ -289,7 +311,7 @@ export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData =
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<AppType, DbType>) => void,
     thisArg?: unknown
   ): void {
     this._docs.forEach(callback, thisArg);
@@ -303,9 +325,14 @@ export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData =
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
+export function snapshotEqual<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
+  left: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>,
+  right: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
