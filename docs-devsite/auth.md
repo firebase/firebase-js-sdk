@@ -31,6 +31,7 @@ Firebase Authentication
 |  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
+|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
@@ -93,6 +94,8 @@ Firebase Authentication
 |  [PhoneMultiFactorGenerator](./auth.phonemultifactorgenerator.md#phonemultifactorgenerator_class) | Provider for generating a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface)<!-- -->. |
 |  [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
 |  [SAMLAuthProvider](./auth.samlauthprovider.md#samlauthprovider_class) | An [AuthProvider](./auth.authprovider.md#authprovider_interface) for SAML. |
+|  [TotpMultiFactorGenerator](./auth.totpmultifactorgenerator.md#totpmultifactorgenerator_class) | Provider for generating a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface)<!-- -->. |
+|  [TotpSecret](./auth.totpsecret.md#totpsecret_class) | Provider for generating a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface)<!-- -->.<!-- -->Stores the shared secret key and other parameters to generate time-based OTPs. Implements methods to retrieve the shared secret key and generate a QR code URL. |
 |  [TwitterAuthProvider](./auth.twitterauthprovider.md#twitterauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.TWITTER. |
 
 ## Interfaces
@@ -130,6 +133,8 @@ Firebase Authentication
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
+|  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
+|  [TotpMultiFactorInfo](./auth.totpmultifactorinfo.md#totpmultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for TOTP second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.TOTP. |
 |  [User](./auth.user.md#user_interface) | A user account. |
 |  [UserCredential](./auth.usercredential.md#usercredential_interface) | A structure containing a [User](./auth.user.md#user_interface)<!-- -->, the [OperationType](./auth.md#operationtype)<!-- -->, and the provider ID. |
 |  [UserInfo](./auth.userinfo.md#userinfo_interface) | User profile information, visible only to the Firebase project's apps. |
@@ -482,6 +487,40 @@ const operationType = result.operationType;
 
 ```
 
+## initializeRecaptchaConfig()
+
+Loads the reCAPTCHA configuration into the `Auth` instance.
+
+This will load the reCAPTCHA config, which indicates whether the reCAPTCHA verification flow should be triggered for each auth provider, into the current Auth session.
+
+If initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
+
+Thus, by calling this optional method, you will reduce the latency of future auth flows. Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeRecaptchaConfig(auth: Auth): Promise<void>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+### Example
+
+
+```javascript
+initializeRecaptchaConfig(auth);
+
+```
+
 ## isSignInWithEmailLink()
 
 Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->.
@@ -532,7 +571,7 @@ export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObs
 
 Adds an observer for changes to the signed-in user's ID token.
 
-This includes sign-in, sign-out, and token refresh events.
+This includes sign-in, sign-out, and token refresh events. This will not be triggered automatically upon ID token expiration. Use [User.getIdToken()](./auth.user.md#usergetidtoken) to refresh the ID token.
 
 <b>Signature:</b>
 
@@ -1791,6 +1830,14 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 }
 ```
 
@@ -1855,6 +1902,7 @@ An enum of factors that may be used for multifactor authentication.
 ```typescript
 FactorId: {
     readonly PHONE: "phone";
+    readonly TOTP: "totp";
 }
 ```
 

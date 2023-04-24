@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
@@ -27,15 +28,21 @@ import {
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { normalizeByteString } from '../model/normalize';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { Base64DecodeError } from '../util/base64_decode_error';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { TestingHooks } from '../util/testing_hooks';
+import {
+  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo,
+  TestingHooks
+} from '../util/testing_hooks';
 
+import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
 
@@ -84,6 +91,11 @@ export const enum WatchTargetChangeState {
   Reset
 }
 
+const enum BloomFilterApplicationStatus {
+  Success,
+  Skipped,
+  FalsePositive
+}
 export class WatchTargetChange {
   constructor(
     /** What kind of change occurred to the watch target. */
@@ -252,6 +264,11 @@ export interface TargetMetadataProvider {
    * has become inactive
    */
   getTargetDataForTarget(targetId: TargetId): TargetData | null;
+
+  /**
+   * Returns the database ID of the Firestore instance.
+   */
+  getDatabaseId(): DatabaseId;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
@@ -272,11 +289,13 @@ export class WatchChangeAggregator {
   private pendingDocumentTargetMapping = documentTargetMap();
 
   /**
-   * A list of targets with existence filter mismatches. These targets are
+   * A map of targets with existence filter mismatches. These targets are
    * known to be inconsistent and their listens needs to be re-established by
    * RemoteStore.
    */
-  private pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+  private pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+    primitiveComparator
+  );
 
   /**
    * Processes and adds the DocumentWatchChange to the current set of changes.
@@ -410,18 +429,127 @@ export class WatchChangeAggregator {
         }
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
+        // Existence filter mismatch. Mark the documents as being in limbo, and
+        // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
-          // Existence filter mismatch: We reset the mapping and raise a new
-          // snapshot with `isFromCache:true`.
-          this.resetTarget(targetId);
-          this.pendingTargetResets = this.pendingTargetResets.add(targetId);
-          TestingHooks.instance?.notifyOnExistenceFilterMismatch({
-            localCacheCount: currentSize,
-            existenceFilterCount: watchChange.existenceFilter.count
-          });
+          // Apply bloom filter to identify and mark removed documents.
+          const status = this.applyBloomFilter(watchChange, currentSize);
+
+          if (status !== BloomFilterApplicationStatus.Success) {
+            // If bloom filter application fails, we reset the mapping and
+            // trigger re-run of the query.
+            this.resetTarget(targetId);
+
+            const purpose: TargetPurpose =
+              status === BloomFilterApplicationStatus.FalsePositive
+                ? TargetPurpose.ExistenceFilterMismatchBloom
+                : TargetPurpose.ExistenceFilterMismatch;
+            this.pendingTargetResets = this.pendingTargetResets.insert(
+              targetId,
+              purpose
+            );
+          }
+          TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+            createExistenceFilterMismatchInfoForTestingHooks(
+              status,
+              currentSize,
+              watchChange.existenceFilter
+            )
+          );
         }
       }
     }
+  }
+
+  /**
+   * Apply bloom filter to remove the deleted documents, and return the
+   * application status.
+   */
+  private applyBloomFilter(
+    watchChange: ExistenceFilterChange,
+    currentCount: number
+  ): BloomFilterApplicationStatus {
+    const { unchangedNames, count: expectedCount } =
+      watchChange.existenceFilter;
+
+    if (!unchangedNames || !unchangedNames.bits) {
+      return BloomFilterApplicationStatus.Skipped;
+    }
+
+    const {
+      bits: { bitmap = '', padding = 0 },
+      hashCount = 0
+    } = unchangedNames;
+
+    let normalizedBitmap: Uint8Array;
+    try {
+      normalizedBitmap = normalizeByteString(bitmap).toUint8Array();
+    } catch (err) {
+      if (err instanceof Base64DecodeError) {
+        logWarn(
+          'Decoding the base64 bloom filter in existence filter failed (' +
+            err.message +
+            '); ignoring the bloom filter and falling back to full re-query.'
+        );
+        return BloomFilterApplicationStatus.Skipped;
+      } else {
+        throw err;
+      }
+    }
+
+    let bloomFilter: BloomFilter;
+    try {
+      // BloomFilter throws error if the inputs are invalid.
+      bloomFilter = new BloomFilter(normalizedBitmap, padding, hashCount);
+    } catch (err) {
+      if (err instanceof BloomFilterError) {
+        logWarn('BloomFilter error: ', err);
+      } else {
+        logWarn('Applying bloom filter failed: ', err);
+      }
+      return BloomFilterApplicationStatus.Skipped;
+    }
+
+    if (bloomFilter.bitCount === 0) {
+      return BloomFilterApplicationStatus.Skipped;
+    }
+
+    const removedDocumentCount = this.filterRemovedDocuments(
+      watchChange.targetId,
+      bloomFilter
+    );
+
+    if (expectedCount !== currentCount - removedDocumentCount) {
+      return BloomFilterApplicationStatus.FalsePositive;
+    }
+
+    return BloomFilterApplicationStatus.Success;
+  }
+
+  /**
+   * Filter out removed documents based on bloom filter membership result and
+   * return number of documents removed.
+   */
+  private filterRemovedDocuments(
+    targetId: number,
+    bloomFilter: BloomFilter
+  ): number {
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    let removalCount = 0;
+
+    existingKeys.forEach(key => {
+      const databaseId = this.metadataProvider.getDatabaseId();
+      const documentPath = `projects/${databaseId.projectId}/databases/${
+        databaseId.database
+      }/documents/${key.path.canonicalString()}`;
+
+      if (!bloomFilter.mightContain(documentPath)) {
+        this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
+        removalCount++;
+      }
+    });
+
+    return removalCount;
   }
 
   /**
@@ -506,7 +634,9 @@ export class WatchChangeAggregator {
 
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
-    this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+    this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+      primitiveComparator
+    );
 
     return remoteEvent;
   }
@@ -695,4 +825,27 @@ function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
 
 function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
   return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
+}
+
+function createExistenceFilterMismatchInfoForTestingHooks(
+  status: BloomFilterApplicationStatus,
+  localCacheCount: number,
+  existenceFilter: ExistenceFilter
+): TestingHooksExistenceFilterMismatchInfo {
+  const result: TestingHooksExistenceFilterMismatchInfo = {
+    localCacheCount,
+    existenceFilterCount: existenceFilter.count
+  };
+
+  const unchangedNames = existenceFilter.unchangedNames;
+  if (unchangedNames) {
+    result.bloomFilter = {
+      applied: status === BloomFilterApplicationStatus.Success,
+      hashCount: unchangedNames?.hashCount ?? 0,
+      bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
+      padding: unchangedNames?.bits?.padding ?? 0
+    };
+  }
+
+  return result;
 }

@@ -688,8 +688,7 @@ function genericMutationTests(
     });
 
     it('supports partials with merge', async () => {
-      return withTestDb(async db => {
-        const coll = collection(db, 'posts');
+      return withTestCollection(async coll => {
         const ref = doc(coll, 'post').withConverter(postConverterMerge);
         await setDoc(ref, new Post('walnut', 'author'));
         await setDoc(
@@ -704,8 +703,7 @@ function genericMutationTests(
     });
 
     it('supports partials with mergeFields', async () => {
-      return withTestDb(async db => {
-        const coll = collection(db, 'posts');
+      return withTestCollection(async coll => {
         const ref = doc(coll, 'post').withConverter(postConverterMerge);
         await setDoc(ref, new Post('walnut', 'author'));
         await setDoc(ref, { title: 'olive' }, { mergeFields: ['title'] });
@@ -1359,8 +1357,7 @@ describe('withConverter() support', () => {
       }
     };
 
-    return withTestDb(async db => {
-      const coll = collection(db, 'tests');
+    return withTestCollection(async coll => {
       const ref = doc(coll, 'number').withConverter(primitiveConverter);
       await setDoc(ref, 3);
       const result = await getDoc(ref);

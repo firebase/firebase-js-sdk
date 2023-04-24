@@ -30,7 +30,7 @@ describeSpec(
   ['benchmark'],
   () => {
     specTest('Insert a new document', [], () => {
-      const steps = spec().withGCEnabled(false);
+      const steps = spec().ensureManualLruGC();
       for (let i = 0; i < STEP_COUNT; ++i) {
         steps
           .userSets(`collection/{i}`, { doc: i })
@@ -44,7 +44,7 @@ describeSpec(
       [],
       () => {
         let currentVersion = 1;
-        const steps = spec().withGCEnabled(false);
+        const steps = spec().ensureManualLruGC();
 
         for (let i = 0; i < STEP_COUNT; ++i) {
           const query1 = query(`collection/${i}`);
@@ -77,7 +77,7 @@ describeSpec(
       const cachedDocumentCount = 100;
       9;
       const query1 = query(`collection`, orderBy('v'));
-      const steps = spec().withGCEnabled(false);
+      const steps = spec().ensureManualLruGC();
       const docs: Document[] = [];
 
       for (let i = 0; i < cachedDocumentCount; ++i) {
@@ -101,7 +101,7 @@ describeSpec(
 
     specTest('Update a single document', [], () => {
       const steps = spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets(`collection/doc`, { v: 0 });
 
       for (let i = 1; i <= STEP_COUNT; ++i) {
@@ -119,7 +119,7 @@ describeSpec(
         const query1 = query(`collection/doc`);
 
         let currentVersion = 1;
-        const steps = spec().withGCEnabled(false);
+        const steps = spec().ensureManualLruGC();
 
         let docLocal = doc(`collection/doc`, 0, {
           v: 0
@@ -168,7 +168,7 @@ describeSpec(
         const documentsPerStep = 100;
 
         const query1 = query(`collection`, orderBy('v'));
-        const steps = spec().withGCEnabled(false);
+        const steps = spec().ensureManualLruGC();
 
         let currentVersion = 1;
 
@@ -206,7 +206,7 @@ describeSpec(
         const documentsPerStep = 100;
 
         let currentVersion = 1;
-        const steps = spec().withGCEnabled(false);
+        const steps = spec().ensureManualLruGC();
 
         for (let i = 1; i <= STEP_COUNT; ++i) {
           const collPath = `collection/${i}/coll`;
@@ -241,7 +241,7 @@ describeSpec(
       const queriesPerStep = 25;
 
       let currentVersion = 1;
-      const steps = spec().withGCEnabled(false);
+      const steps = spec().ensureManualLruGC();
 
       for (let i = 1; i <= STEP_COUNT; ++i) {
         // We use a different subcollection for each iteration to ensure
@@ -290,7 +290,7 @@ describeSpec(
         const matchingCount = 10;
         const queryCount = 10;
 
-        const steps = spec().withGCEnabled(false);
+        const steps = spec().ensureManualLruGC();
 
         const collPath = `collection`;
         const query1 = query(collPath, orderBy('val'));

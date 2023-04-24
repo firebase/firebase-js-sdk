@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import {
+  collection,
   deleteDoc,
   disableNetwork,
   doc,
@@ -34,7 +35,8 @@ import {
   toDataMap,
   apiDescribe,
   withTestCollection,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  withEnsuredLruGcTestDb
 } from '../util/helpers';
 
 apiDescribe('GetOptions', (persistence: boolean) => {
@@ -68,10 +70,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
 
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, (docRef, db) => {
-      // Register a snapshot to force the data to stay in the cache and not be
-      // garbage collected.
-      onSnapshot(docRef, () => {});
+    // Use an instance with Gc turned on.
+    return withEnsuredLruGcTestDb(persistence, async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
       return getDoc(docRef)
         .then(() => disableNetwork(db))
         .then(() => getDoc(docRef))

@@ -332,13 +332,41 @@ export interface LoadBundleTaskProgress {
 export { LogLevel }
 
 // @public
+export interface MemoryCacheSettings {
+    garbageCollector?: MemoryGarbageCollector;
+}
+
+// @public
+export interface MemoryEagerGarbageCollector {
+    // (undocumented)
+    kind: 'memoryEager';
+}
+
+// @public
+export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector;
+
+// @public
+export type MemoryGarbageCollector = MemoryEagerGarbageCollector | MemoryLruGarbageCollector;
+
+// @public
 export interface MemoryLocalCache {
     // (undocumented)
     kind: 'memory';
 }
 
 // @public
-export function memoryLocalCache(): MemoryLocalCache;
+export function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCache;
+
+// @public
+export interface MemoryLruGarbageCollector {
+    // (undocumented)
+    kind: 'memoryLru';
+}
+
+// @public
+export function memoryLruGarbageCollector(settings?: {
+    cacheSizeBytes?: number;
+}): MemoryLruGarbageCollector;
 
 // @public
 export function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;

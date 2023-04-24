@@ -21,7 +21,8 @@ import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
   getToken,
-  onTokenChanged
+  onTokenChanged,
+  getLimitedUseToken
 } from './api';
 import {
   FAKE_SITE_KEY,
@@ -59,6 +60,10 @@ describe('api', () => {
   let app: FirebaseApp;
   let storageReadStub: SinonStub;
   let storageWriteStub: SinonStub;
+
+  function setRecaptchaSuccess(isSuccess: boolean = true): void {
+    getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
+  }
 
   beforeEach(() => {
     app = getFullApp();
@@ -284,12 +289,30 @@ describe('api', () => {
       );
     });
   });
+  describe('getLimitedUseToken()', () => {
+    it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      const internalgetLimitedUseToken = stub(
+        internalApi,
+        'getLimitedUseToken'
+      ).resolves({
+        token: 'a-token-string'
+      });
+      expect(await getLimitedUseToken(appCheck)).to.eql({
+        token: 'a-token-string'
+      });
+      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
+    });
+  });
   describe('onTokenChanged()', () => {
     it('Listeners work when using top-level parameters pattern', async () => {
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
+
+      setRecaptchaSuccess(true);
 
       expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
@@ -334,6 +357,8 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
+
+      setRecaptchaSuccess(true);
 
       expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
@@ -390,6 +415,8 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: false
       });
+
+      setRecaptchaSuccess(true);
 
       expect(getStateReference(app).tokenObservers.length).to.equal(0);
 

@@ -226,6 +226,14 @@ export const AuthErrorCodes: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 };
 
 // @public
@@ -361,6 +369,7 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 // @public
 export const FactorId: {
     readonly PHONE: "phone";
+    readonly TOTP: "totp";
 };
 
 // @public
@@ -420,6 +429,9 @@ export const indexedDBLocalPersistence: Persistence;
 
 // @public
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
+
+// @public
+export function initializeRecaptchaConfig(auth: Auth): Promise<void>;
 
 // @public
 export const inMemoryPersistence: Persistence;
@@ -744,6 +756,40 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 
 // @public
 export function signOut(auth: Auth): Promise<void>;
+
+// @public
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
+}
+
+// @public
+export class TotpMultiFactorGenerator {
+    static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
+    static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
+    static FACTOR_ID: 'totp';
+    static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
+}
+
+// @public
+export interface TotpMultiFactorInfo extends MultiFactorInfo {
+}
+
+// @public
+export class TotpSecret {
+    readonly codeIntervalSeconds: number;
+    readonly codeLength: number;
+    readonly enrollmentCompletionDeadline: string;
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
+    generateQrCodeUrl(accountName?: string, issuer?: string): string;
+    readonly hashingAlgorithm: string;
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
+    readonly secretKey: string;
+    }
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
