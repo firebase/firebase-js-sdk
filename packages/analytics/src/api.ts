@@ -50,7 +50,8 @@ import {
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
   _setConsentDefaultForInit,
-  _setDefaultEventParametersForInit
+  _setDefaultEventParametersForInit,
+  internalGetGoogleAnalyticsClientId
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -165,6 +166,24 @@ export function setCurrentScreen(
     screenName,
     options
   ).catch(e => logger.error(e));
+}
+
+/**
+ * Retrieves a unique Google Analytics identifier for the web client.
+ * See {@link https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id | client_id}.
+ *
+ * @public
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ */
+export async function getGoogleAnalyticsClientId(
+  analyticsInstance: Analytics
+): Promise<string> {
+  analyticsInstance = getModularInstance(analyticsInstance);
+  return internalGetGoogleAnalyticsClientId(
+    wrappedGtagFunction,
+    initializationPromisesMap[analyticsInstance.app.options.appId!]
+  );
 }
 
 /**

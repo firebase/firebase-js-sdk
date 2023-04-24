@@ -71,7 +71,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { SortedSet } from '../util/sorted_set';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
@@ -316,9 +315,6 @@ export async function syncEngineListen(
       syncEngineImpl.localStore,
       queryToTarget(query)
     );
-    if (syncEngineImpl.isPrimaryClient) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
@@ -331,6 +327,10 @@ export async function syncEngineListen(
       status === 'current',
       targetData.resumeToken
     );
+
+    if (syncEngineImpl.isPrimaryClient) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
   }
 
   return viewSnapshot;
@@ -638,7 +638,9 @@ export async function syncEngineRejectListen(
     const event = new RemoteEvent(
       SnapshotVersion.min(),
       /* targetChanges= */ new Map<TargetId, TargetChange>(),
-      /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
+      /* targetMismatches= */ new SortedMap<TargetId, TargetPurpose>(
+        primitiveComparator
+      ),
       documentUpdates,
       resolvedLimboDocuments
     );

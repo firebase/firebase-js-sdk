@@ -102,6 +102,29 @@ export interface ExistenceFilterMismatchInfo {
    * in the ExistenceFilter message's `count` field.
    */
   existenceFilterCount: number;
+
+  /**
+   * Information about the bloom filter provided by Watch in the ExistenceFilter
+   * message's `unchangedNames` field. If this property is omitted or undefined
+   * then that means that Watch did _not_ provide a bloom filter.
+   */
+  bloomFilter?: {
+    /**
+     * Whether a full requery was averted by using the bloom filter. If false,
+     * then something happened, such as a false positive, to prevent using the
+     * bloom filter to avoid a full requery.
+     */
+    applied: boolean;
+
+    /** The number of hash functions used in the bloom filter. */
+    hashCount: number;
+
+    /** The number of bytes in the bloom filter's bitmask. */
+    bitmapLength: number;
+
+    /** The number of bits of padding in the last byte of the bloom filter. */
+    padding: number;
+  };
 }
 
 /**

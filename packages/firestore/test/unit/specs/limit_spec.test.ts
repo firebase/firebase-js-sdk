@@ -52,7 +52,7 @@ describeSpec('Limits:', [], () => {
       const doc2 = doc('collection/b', 1000, { key: 'b' });
 
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1, doc2)
         .expectEvents(query1, {
@@ -166,7 +166,7 @@ describeSpec('Limits:', [], () => {
     const doc2 = doc('collection/b', 1002, { matches: true });
     const doc3 = doc('collection/c', 1000, { matches: true });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(fullQuery)
       .watchAcksFull(fullQuery, 1002, doc1, doc2, doc3)
       .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
@@ -193,7 +193,7 @@ describeSpec('Limits:', [], () => {
       const doc2 = doc('collection/b', 1002, { matches: true });
       const doc3 = doc('collection/c', 1003, { matches: true });
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
         .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
@@ -227,7 +227,7 @@ describeSpec('Limits:', [], () => {
       const doc2 = doc('collection/b', 1002, { pos: 2 });
       const doc3 = doc('collection/c', 1003, { pos: 3 });
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
         .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
@@ -263,7 +263,7 @@ describeSpec('Limits:', [], () => {
       const doc2 = doc('collection/b', 1002, { pos: 2 });
       const doc3 = doc('collection/c', 1003, { pos: 3 });
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
         .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
@@ -304,7 +304,7 @@ describeSpec('Limits:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(limitQuery)
           .watchAcksFull(limitQuery, 1001, firstDocument)
           .expectEvents(limitQuery, { added: [firstDocument] })
@@ -384,7 +384,7 @@ describeSpec('Limits:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         // We issue a limit query with an orderBy constraint.
         .userListens(limitQuery)
         .watchAcksFull(limitQuery, 2001, firstDocument)
