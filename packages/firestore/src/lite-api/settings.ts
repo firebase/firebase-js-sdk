@@ -45,6 +45,9 @@ const MIN_LONG_POLLING_TIMEOUT_SECONDS = 5;
 // Googlers see b/266868871 for relevant discussion.
 const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 
+// Whether long-polling auto-detected is enabled by default.
+const DEFAULT_AUTO_DETECT_LONG_POLLING = false;
+
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
  * You must set these before invoking any other methods.
@@ -142,14 +145,6 @@ export class FirestoreSettingsImpl {
       }
     }
 
-    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
-    this.experimentalAutoDetectLongPolling =
-      !!settings.experimentalAutoDetectLongPolling;
-    this.experimentalLongPollingOptions = cloneLongPollingOptions(
-      settings.experimentalLongPollingOptions ?? {}
-    );
-    this.useFetchStreams = !!settings.useFetchStreams;
-
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling,
@@ -157,7 +152,26 @@ export class FirestoreSettingsImpl {
       settings.experimentalAutoDetectLongPolling
     );
 
+    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
+
+    if (this.experimentalForceLongPolling) {
+      this.experimentalAutoDetectLongPolling = false;
+    } else if (settings.experimentalAutoDetectLongPolling === undefined) {
+      this.experimentalAutoDetectLongPolling = DEFAULT_AUTO_DETECT_LONG_POLLING;
+    } else {
+      // For backwards compatibility, coerce the value to boolean even though
+      // the TypeScript compiler has narrowed the type to boolean already.
+      // noinspection PointlessBooleanExpressionJS
+      this.experimentalAutoDetectLongPolling =
+        !!settings.experimentalAutoDetectLongPolling;
+    }
+
+    this.experimentalLongPollingOptions = cloneLongPollingOptions(
+      settings.experimentalLongPollingOptions ?? {}
+    );
     validateLongPollingOptions(this.experimentalLongPollingOptions);
+
+    this.useFetchStreams = !!settings.useFetchStreams;
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
