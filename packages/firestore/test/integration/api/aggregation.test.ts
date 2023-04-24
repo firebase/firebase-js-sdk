@@ -234,7 +234,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getAggregateFromServer(coll, {
         [longAlias]: count(),
-        [longerAlias]: sum('num')
+        [longerAlias]: count()
       });
 
       expect(snapshot.data()[longAlias]).to.equal(2);
