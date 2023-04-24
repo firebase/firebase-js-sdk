@@ -16,4 +16,5 @@
  */
 
 export * from './api.standalone';
+export * from './internal';
 export { getDatabase } from './api/Database';
