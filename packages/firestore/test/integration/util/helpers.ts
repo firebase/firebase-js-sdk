@@ -18,23 +18,25 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import {
+  clearIndexedDbPersistence,
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   Firestore,
-  terminate,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
+  newTestApp,
+  newTestFirestore,
   persistentLocalCache,
-  clearIndexedDbPersistence,
-  CollectionReference,
-  DocumentData,
+  PrivateSettings,
   QuerySnapshot,
   setDoc,
-  PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore,
-  newTestApp,
-  writeBatch,
-  WriteBatch
+  terminate,
+  WriteBatch,
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -143,6 +145,47 @@ export function withTestDb(
   });
 }
 
+export function withEnsuredEagerGcTestDb(
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  return withTestDbsSettings(
+    false,
+    DEFAULT_PROJECT_ID,
+    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
+export function withEnsuredLruGcTestDb(
+  persistence: boolean,
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  const newSettings = { ...DEFAULT_SETTINGS };
+  if (persistence) {
+    newSettings.localCache = persistentLocalCache({
+      cacheSizeBytes: 1 * 1024 * 1024
+    });
+  } else {
+    newSettings.localCache = memoryLocalCache({
+      garbageCollector: memoryLruGarbageCollector({
+        cacheSizeBytes: 1 * 1024 * 1024
+      })
+    });
+  }
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    newSettings,
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
@@ -172,13 +215,13 @@ export function withTestDbs(
     fn
   );
 }
-export async function withTestDbsSettings(
+export async function withTestDbsSettings<T>(
   persistence: boolean,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
-  fn: (db: Firestore[]) => Promise<void>
-): Promise<void> {
+  fn: (db: Firestore[]) => Promise<T>
+): Promise<T> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
   }
@@ -195,7 +238,7 @@ export async function withTestDbsSettings(
   }
 
   try {
-    await fn(dbs);
+    return await fn(dbs);
   } finally {
     for (const db of dbs) {
       await terminate(db);
@@ -286,11 +329,11 @@ export function withTestDocAndInitialData(
   });
 }
 
-export function withTestCollection(
+export function withTestCollection<T>(
   persistence: boolean,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
-): Promise<void> {
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
 }
 
@@ -303,12 +346,12 @@ export function withEmptyTestCollection(
 
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
-export function withTestCollectionSettings(
+export function withTestCollectionSettings<T>(
   persistence: boolean,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
-): Promise<void> {
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,

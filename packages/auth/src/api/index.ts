@@ -42,7 +42,8 @@ export const enum HttpHeader {
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version',
   X_FIREBASE_GMPID = 'X-Firebase-gmpid',
-  X_FIREBASE_CLIENT = 'X-Firebase-Client'
+  X_FIREBASE_CLIENT = 'X-Firebase-Client',
+  X_FIREBASE_APP_CHECK = 'X-Firebase-AppCheck'
 }
 
 export const enum Endpoint {
@@ -65,7 +66,24 @@ export const enum Endpoint {
   START_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
-  GET_PROJECT_CONFIG = '/v1/projects'
+  GET_PROJECT_CONFIG = '/v1/projects',
+  GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig'
+}
+
+export const enum RecaptchaClientType {
+  WEB = 'CLIENT_TYPE_WEB',
+  ANDROID = 'CLIENT_TYPE_ANDROID',
+  IOS = 'CLIENT_TYPE_IOS'
+}
+
+export const enum RecaptchaVersion {
+  ENTERPRISE = 'RECAPTCHA_ENTERPRISE'
+}
+
+export const enum RecaptchaActionName {
+  SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
+  GET_OOB_CODE = 'getOobCode',
+  SIGN_UP_PASSWORD = 'signUpPassword'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);

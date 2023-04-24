@@ -176,7 +176,9 @@ export class LruScheduler implements Scheduler {
   }
 }
 
-/** Implements the steps for LRU garbage collection. */
+/**
+ * Implements the steps for LRU garbage collection.
+ */
 class LruGarbageCollectorImpl implements LruGarbageCollector {
   constructor(
     private readonly delegate: LruDelegate,

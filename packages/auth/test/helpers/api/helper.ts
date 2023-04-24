@@ -23,10 +23,35 @@ export function endpointUrl(endpoint: Endpoint): string {
   return `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
 }
 
+export function endpointUrlWithParams(
+  endpoint: Endpoint,
+  params: Record<string, any>
+): string {
+  let url = `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
+  for (const key in params) {
+    if (Object.prototype.hasOwnProperty.call(params, key)) {
+      url += '&';
+      url += key;
+      url += '=';
+      url += encodeURIComponent(params[key]);
+    }
+  }
+  return url;
+}
+
 export function mockEndpoint(
   endpoint: Endpoint,
   response: object,
   status = 200
 ): Route {
-  return mock(endpointUrl(endpoint), response, status);
+  return mockEndpointWithParams(endpoint, {}, response, status);
+}
+
+export function mockEndpointWithParams(
+  endpoint: Endpoint,
+  params: Record<string, any>,
+  response: object,
+  status = 200
+): Route {
+  return mock(endpointUrlWithParams(endpoint, params), response, status);
 }

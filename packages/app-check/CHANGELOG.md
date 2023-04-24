@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.6.5
+
+### Patch Changes
+
+- [`8c44d5863`](https://github.com/firebase/firebase-js-sdk/commit/8c44d586355ffd2d58b6841730ebdac89229954c) [#7203](https://github.com/firebase/firebase-js-sdk/pull/7203) - Catch all ReCAPTCHA errors and, if caught, prevent App Check from making a request to the exchange endpoint.
+
 ## 0.6.4
 
 ### Patch Changes

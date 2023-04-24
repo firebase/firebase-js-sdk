@@ -208,7 +208,7 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
   persistence!: MockMemoryPersistence;
   connection!: MockConnection;
 
-  constructor(private readonly gcEnabled: boolean) {
+  constructor(private readonly eagerGCEnabled: boolean) {
     super();
   }
 
@@ -220,7 +220,7 @@ export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentPr
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
     return new MockMemoryPersistence(
-      this.gcEnabled
+      this.eagerGCEnabled
         ? MemoryEagerDelegate.factory
         : p => new MemoryLruDelegate(p, LruParams.DEFAULT),
       newSerializer(cfg.databaseInfo.databaseId)
@@ -257,8 +257,8 @@ export class MockConnection implements Connection {
   shouldResourcePathBeIncludedInRequest: boolean = false;
 
   /**
-   * Tracks the currently active watch targets as detected by the mock watch
-   * stream, as a mapping from target ID to query Target.
+   * Tracks the currently active watch targets as detected by the mock watch //
+   * stream, as a mapping from target ID to query Target. //
    */
   activeTargets: {
     [targetId: number]: {

@@ -17,7 +17,7 @@
 
 import '../test/setup';
 import { expect } from 'chai';
-import { stub } from 'sinon';
+import { stub, match } from 'sinon';
 import { deleteApp, FirebaseApp } from '@firebase/app';
 import {
   getFullApp,
@@ -93,7 +93,9 @@ describe('recaptcha', () => {
 
       expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
         sitekey: FAKE_SITE_KEY,
-        size: 'invisible'
+        size: 'invisible',
+        callback: match.any,
+        'error-callback': match.any
       });
 
       expect(getStateReference(app).reCAPTCHAState?.widgetId).to.equal(
@@ -141,7 +143,9 @@ describe('recaptcha', () => {
 
       expect(renderStub).to.be.calledWith(`fire_app_check_${app.name}`, {
         sitekey: FAKE_SITE_KEY,
-        size: 'invisible'
+        size: 'invisible',
+        callback: match.any,
+        'error-callback': match.any
       });
 
       expect(getStateReference(app).reCAPTCHAState?.widgetId).to.equal(

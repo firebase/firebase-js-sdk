@@ -279,6 +279,146 @@ describe('Settings', () => {
     );
   });
 
+  it('long polling should be disabled by default', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in force mode if force=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalForceLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+  });
+
+  it('long polling should be in auto-detect mode if autoDetect=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be disabled if force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be disabled if autoDetect=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in auto-detect mode if autoDetect=true and force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling should be in force mode if autoDetect=false and force=true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false,
+      experimentalForceLongPolling: true
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+  });
+
+  it('long polling should be disabled if autoDetect=false and force=false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      experimentalAutoDetectLongPolling: false,
+      experimentalForceLongPolling: false
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling autoDetect=[something truthy] should be coerced to true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: 1 as any
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+  });
+
+  it('long polling autoDetect=[something falsy] should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: 0 as any
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+  });
+
+  it('long polling autoDetect=null should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalAutoDetectLongPolling: null as any
+    });
+    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+  });
+
+  it('long polling force=[something truthy] should be coerced to true', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: 'I am truthy' as any
+    });
+    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+  });
+
+  it('long polling force=[something falsy] should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: NaN as any
+    });
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
+  it('long polling force=null should be coerced to false', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const db = newTestFirestore();
+    db._setSettings({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      experimentalForceLongPolling: null as any
+    });
+    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+  });
+
   it('gets settings from useEmulator', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
