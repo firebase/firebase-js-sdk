@@ -64,8 +64,8 @@ import {
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
- * Converts custom model object of type T into `DocumentData` by applying the
- * converter if it exists.
+ * Converts custom model object of type `AppType` into `DocumentData` by
+ * applying the converter if it exists.
  *
  * This function is used when converting user objects to `DocumentData`
  * because we want to provide the user with a more specific error message if

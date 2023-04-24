@@ -208,9 +208,11 @@ export function aggregateFieldEqual(
  * @returns `true` if the objects are "equal", as defined above, or `false`
  * otherwise.
  */
-export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
-  left: AggregateQuerySnapshot<T>,
-  right: AggregateQuerySnapshot<T>
+export function aggregateQuerySnapshotEqual<
+  AggregateSpecType extends AggregateSpec
+>(
+  left: AggregateQuerySnapshot<AggregateSpecType>,
+  right: AggregateQuerySnapshot<AggregateSpecType>
 ): boolean {
   return (
     queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
