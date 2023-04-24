@@ -55,14 +55,14 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 <b>Signature:</b>
 
 ```typescript
-delete(documentRef: DocumentReference<unknown>): WriteBatch;
+delete<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>): WriteBatch;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be deleted. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppType, DbType&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
@@ -77,15 +77,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
+set<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>, data: WithFieldValue<AppType>): WriteBatch;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppType, DbType&gt; | A reference to the document to be set. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppType&gt; | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
@@ -100,15 +100,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
+set<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>, data: PartialWithFieldValue<AppType>, options: SetOptions): WriteBatch;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppType, DbType&gt; | A reference to the document to be set. |
+|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;AppType&gt; | An object of the fields and values for the document. |
 |  options | [SetOptions](./firestore_.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
@@ -128,15 +128,15 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 <b>Signature:</b>
 
 ```typescript
-update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
+update<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>, data: UpdateData<DbType>): WriteBatch;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be updated. |
-|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;T&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppType, DbType&gt; | A reference to the document to be updated. |
+|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;DbType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
@@ -157,14 +157,14 @@ Nested fields can be update by providing dot-separated field path strings or by 
 <b>Signature:</b>
 
 ```typescript
-update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+update<AppType, DbType extends DocumentData>(documentRef: DocumentReference<AppType, DbType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be updated. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppType, DbType&gt; | A reference to the document to be updated. |
 |  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
