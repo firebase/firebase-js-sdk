@@ -42,8 +42,8 @@ import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `AppType` into Firestore data.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
@@ -58,7 +58,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *   }
  * }
  *
- * const postConverter = {
+ * const postConverter: FirestoreDataConverter<Post, DocumentData> = {
  *   toFirestore(post: WithFieldValue<Post>): DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
@@ -83,8 +83,7 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  * ```
  */
-export interface FirestoreDataConverter<T>
-  extends LiteFirestoreDataConverter<T> {
+export interface FirestoreDataConverter<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends LiteFirestoreDataConverter<AppType, DbType> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain JavaScript object (suitable for writing directly to the
@@ -94,7 +93,7 @@ export interface FirestoreDataConverter<T>
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+  toFirestore(modelObject: WithFieldValue<AppType>): WithFieldValue<DbType>;
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
@@ -108,9 +107,9 @@ export interface FirestoreDataConverter<T>
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<AppType>,
     options: SetOptions
-  ): DocumentData;
+  ): PartialWithFieldValue<DbType>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
@@ -120,9 +119,9 @@ export interface FirestoreDataConverter<T>
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
+    snapshot: QueryDocumentSnapshot<DbType, DbType>,
     options?: SnapshotOptions
-  ): T;
+  ): AppType;
 }
 
 /**
@@ -200,12 +199,12 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<T = DocumentData> {
+export interface DocumentChange<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<T>;
+  readonly doc: QueryDocumentSnapshot<AppType, DbType>;
 
   /**
    * The index of the changed document in the result set immediately prior to
@@ -232,9 +231,7 @@ export interface DocumentChange<T = DocumentData> {
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<
-  T = DocumentData
-> extends LiteDocumentSnapshot<T> {
+export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends LiteDocumentSnapshot<AppType, DbType> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -250,7 +247,7 @@ export class DocumentSnapshot<
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
-    converter: UntypedFirestoreDataConverter<T> | null
+    converter: UntypedFirestoreDataConverter<AppType, DbType> | null
   ) {
     super(_firestore, userDataWriter, key, document, converter);
     this._firestoreImpl = _firestore;
@@ -260,7 +257,7 @@ export class DocumentSnapshot<
   /**
    * Returns whether or not the data exists. True if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<AppType, DbType> {
     return super.exists();
   }
 
@@ -278,7 +275,7 @@ export class DocumentSnapshot<
    * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
-  data(options: SnapshotOptions = {}): T | undefined {
+  data(options: SnapshotOptions = {}): AppType | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -297,7 +294,7 @@ export class DocumentSnapshot<
       return this._userDataWriter.convertValue(
         this._document.data.value,
         options.serverTimestamps
-      ) as T;
+      ) as AppType;
     }
   }
 
@@ -346,9 +343,7 @@ export class DocumentSnapshot<
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends DocumentSnapshot<AppType, DbType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -362,8 +357,8 @@ export class QueryDocumentSnapshot<
    * have not yet been set to their final value).
    * @returns An `Object` containing all fields in the document.
    */
-  data(options: SnapshotOptions = {}): T {
-    return super.data(options) as T;
+  data(options: SnapshotOptions = {}): AppType {
+    return super.data(options) as AppType;
   }
 }
 
@@ -374,7 +369,7 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -385,16 +380,16 @@ export class QuerySnapshot<T = DocumentData> {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<AppType, DbType>;
 
-  private _cachedChanges?: Array<DocumentChange<T>>;
+  private _cachedChanges?: Array<DocumentChange<AppType, DbType>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
   constructor(
     readonly _firestore: Firestore,
     readonly _userDataWriter: AbstractUserDataWriter,
-    query: Query<T>,
+    query: Query<AppType, DbType>,
     readonly _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
@@ -405,8 +400,8 @@ export class QuerySnapshot<T = DocumentData> {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>> {
-    const result: Array<QueryDocumentSnapshot<T>> = [];
+  get docs(): Array<QueryDocumentSnapshot<AppType, DbType>> {
+    const result: Array<QueryDocumentSnapshot<AppType, DbType>> = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -429,13 +424,13 @@ export class QuerySnapshot<T = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<AppType, DbType>) => void,
     thisArg?: unknown
   ): void {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        new QueryDocumentSnapshot<T>(
+        new QueryDocumentSnapshot<AppType, DbType>(
           this._firestore,
           this._userDataWriter,
           doc.key,
@@ -459,7 +454,7 @@ export class QuerySnapshot<T = DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T>> {
+  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<AppType, DbType>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -483,10 +478,10 @@ export class QuerySnapshot<T = DocumentData> {
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
-export function changesFromSnapshot<T>(
-  querySnapshot: QuerySnapshot<T>,
+export function changesFromSnapshot<AppType, DbType extends DocumentData>(
+  querySnapshot: QuerySnapshot<AppType, DbType>,
   includeMetadataChanges: boolean
-): Array<DocumentChange<T>> {
+): Array<DocumentChange<AppType, DbType>> {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -505,7 +500,7 @@ export function changesFromSnapshot<T>(
           ) < 0,
         'Got added events in wrong order'
       );
-      const doc = new QueryDocumentSnapshot<T>(
+      const doc = new QueryDocumentSnapshot<AppType, DbType>(
         querySnapshot._firestore,
         querySnapshot._userDataWriter,
         change.doc.key,
@@ -533,7 +528,7 @@ export function changesFromSnapshot<T>(
         change => includeMetadataChanges || change.type !== ChangeType.Metadata
       )
       .map(change => {
-        const doc = new QueryDocumentSnapshot<T>(
+        const doc = new QueryDocumentSnapshot<AppType, DbType>(
           querySnapshot._firestore,
           querySnapshot._userDataWriter,
           change.doc.key,
@@ -588,10 +583,7 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
-): boolean {
+export function snapshotEqual<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(left: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>, right: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

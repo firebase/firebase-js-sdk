@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AggregateField, AggregateSpec, Query } from '../api';
+import {AggregateField, AggregateSpec, DocumentData, Query} from '../api';
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
@@ -57,9 +57,7 @@ export {
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCountFromServer(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCountFromServer<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(query: Query<AppType, DbType>): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }, AppType, DbType>> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
@@ -101,10 +99,7 @@ export function getCountFromServer(
  * ```
  * @internal TODO (sum/avg) remove when public
  */
-export function getAggregateFromServer<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T
-): Promise<AggregateQuerySnapshot<T>> {
+export function getAggregateFromServer<AggregateSpecType extends AggregateSpec, AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(query: Query<AppType, DbType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppType, DbType>> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -133,16 +128,11 @@ export function getAggregateFromServer<T extends AggregateSpec>(
  * @param aggregateResult Core aggregation result
  * @internal
  */
-function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
-  firestore: Firestore,
-  query: Query<unknown>,
-  aggregateResult: ObjectValue
-): AggregateQuerySnapshot<T> {
+function convertToAggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppType, DbType extends DocumentData>(firestore: Firestore, query: Query<AppType, DbType>, aggregateResult: ObjectValue): AggregateQuerySnapshot<AggregateSpecType, AppType, DbType> {
   const userDataWriter = new ExpUserDataWriter(firestore);
-  const querySnapshot = new AggregateQuerySnapshot<T>(
+  return new AggregateQuerySnapshot<AggregateSpecType, AppType, DbType>(
     query,
     userDataWriter,
     aggregateResult
   );
-  return querySnapshot;
 }
