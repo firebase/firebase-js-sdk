@@ -56,7 +56,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *   }
  * }
  *
- * const postConverter = {
+ * const postConverter: FirestoreDataConverter<Post, DocumentData> = {
  *   toFirestore(post: WithFieldValue<Post>): DocumentData {
  *     return {title: post.title, author: post.author};
  *   },

@@ -83,12 +83,18 @@ import { SnapshotListenOptions } from './reference_impl';
  * }
  * ```
  */
-export interface FirestoreDataConverter<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends LiteFirestoreDataConverter<AppType, DbType> {
+export interface FirestoreDataConverter<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> extends LiteFirestoreDataConverter<AppType, DbType> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppType` into a plain JavaScript object, `DbType` (suitable for writing
+   * directly to the Firestore database). To use `set()` with `merge` and
+   * mergeFields`, `toFirestore()` must be defined with
+   * `PartialWithFieldValue<T>`.
    *
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
@@ -96,10 +102,11 @@ export interface FirestoreDataConverter<AppType = DocumentData, DbType extends D
   toFirestore(modelObject: WithFieldValue<AppType>): WithFieldValue<DbType>;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
-   * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppType` into a plain JavaScript object, `DbType` (suitable for writing
+   * directly to the Firestore database). Used with {@link (setDoc:1)},
+   * {@link (WriteBatch.set:1)} and {@link (Transaction.set:1)} with
+   * `merge:true` or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
@@ -113,7 +120,8 @@ export interface FirestoreDataConverter<AppType = DocumentData, DbType extends D
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type `AppType`. You can access your data by calling:
+   * `snapshot.data(options)`.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
@@ -199,7 +207,12 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export interface DocumentChange<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 
@@ -231,7 +244,12 @@ export interface DocumentChange<AppType = DocumentData, DbType extends DocumentD
  * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends LiteDocumentSnapshot<AppType, DbType> {
+export class DocumentSnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> extends LiteDocumentSnapshot<AppType, DbType> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -343,7 +361,12 @@ export class DocumentSnapshot<AppType = DocumentData, DbType extends DocumentDat
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> extends DocumentSnapshot<AppType, DbType> {
+export class QueryDocumentSnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> extends DocumentSnapshot<AppType, DbType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -369,7 +392,12 @@ export class QueryDocumentSnapshot<AppType = DocumentData, DbType extends Docume
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData> {
+export class QuerySnapshot<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -454,7 +482,9 @@ export class QuerySnapshot<AppType = DocumentData, DbType extends DocumentData =
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<AppType, DbType>> {
+  docChanges(
+    options: SnapshotListenOptions = {}
+  ): Array<DocumentChange<AppType, DbType>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -583,7 +613,15 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(left: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>, right: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>): boolean {
+export function snapshotEqual<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
+  left: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>,
+  right: DocumentSnapshot<AppType, DbType> | QuerySnapshot<AppType, DbType>
+): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
       left._firestore === right._firestore &&

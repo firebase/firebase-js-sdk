@@ -40,7 +40,8 @@ import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
   CollectionReference,
-  doc, DocumentData,
+  doc,
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   Query,
@@ -91,8 +92,18 @@ export interface SnapshotListenOptions {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDoc<AppType = DocumentData, DbType extends DocumentData = AppType extends DocumentData ? AppType : DocumentData>(reference: DocumentReference<AppType, DbType>): Promise<DocumentSnapshot<AppType, DbType>> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+export function getDoc<
+  AppType = DocumentData,
+  DbType extends DocumentData = AppType extends DocumentData
+    ? AppType
+    : DocumentData
+>(
+  reference: DocumentReference<AppType, DbType>
+): Promise<DocumentSnapshot<AppType, DbType>> {
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -132,7 +143,10 @@ export function getDocFromCache<
 >(
   reference: DocumentReference<AppType, DbType>
 ): Promise<DocumentSnapshot<AppType, DbType>> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -168,7 +182,10 @@ export function getDocFromServer<
 >(
   reference: DocumentReference<AppType, DbType>
 ): Promise<DocumentSnapshot<AppType, DbType>> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -219,9 +236,7 @@ export function getDocsFromCache<
   DbType extends DocumentData = AppType extends DocumentData
     ? AppType
     : DocumentData
->(
-  query: Query<AppType, DbType>
-): Promise<QuerySnapshot<AppType, DbType>> {
+>(query: Query<AppType, DbType>): Promise<QuerySnapshot<AppType, DbType>> {
   query = cast<Query<AppType, DbType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -243,9 +258,7 @@ export function getDocsFromServer<
   DbType extends DocumentData = AppType extends DocumentData
     ? AppType
     : DocumentData
->(
-  query: Query<AppType, DbType>
-): Promise<QuerySnapshot<AppType, DbType>> {
+>(query: Query<AppType, DbType>): Promise<QuerySnapshot<AppType, DbType>> {
   query = cast<Query<AppType, DbType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -307,7 +320,10 @@ export function setDoc<
   data: PartialWithFieldValue<AppType>,
   options?: SetOptions
 ): Promise<void> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const convertedValue = applyFirestoreDataConverter(
@@ -387,7 +403,10 @@ export function updateDoc<
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  reference = cast<DocumentReference<AppType, DbType>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppType, DbType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const dataReader = newUserDataReader(firestore);
@@ -434,9 +453,7 @@ export function deleteDoc<
   DbType extends DocumentData = AppType extends DocumentData
     ? AppType
     : DocumentData
->(
-  reference: DocumentReference<AppType, DbType>
-): Promise<void> {
+>(reference: DocumentReference<AppType, DbType>): Promise<void> {
   const firestore = cast(reference.firestore, Firestore);
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
   return executeWrite(firestore, mutations);
