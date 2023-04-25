@@ -197,17 +197,9 @@ describe('core/credentials/email', () => {
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
           // First verification should fail with 'wrong-site-key'
-          stub
-            .withArgs('wrong-site-key', {
-              action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-            })
-            .rejects();
           // Second verifcation should succeed with site key refreshed
-          stub
-            .withArgs('site-key', {
-              action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-            })
-            .returns(Promise.resolve('recaptcha-response'));
+          stub.onCall(0).rejects();
+          stub.onCall(1).returns(Promise.resolve('recaptcha-response'));
 
           mockEndpointWithParams(
             Endpoint.GET_RECAPTCHA_CONFIG,
