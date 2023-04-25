@@ -541,6 +541,9 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
+ * Internally we use an enum type for FactorId, ActionCodeOperation, but there is a copy in https://github.com/firebase/firebase-js-sdk/blob/48a2096aec53a7eaa9ffcc2625016ecb9f90d113/packages/auth/src/model/enum_maps.ts#L23 that uses maps.
+ * const enums are better for tree-shaking, however can cause runtime errors if exposed in public APIs, example - https://github.com/microsoft/rushstack/issues/3058
+ * So, we expose enum maps publicly, but use const enums internally to get some tree-shaking benefit.
  * @internal
  */
 export const enum FactorId {
