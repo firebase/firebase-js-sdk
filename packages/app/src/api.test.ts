@@ -199,8 +199,12 @@ describe('API tests', () => {
       expect(getApp(appName)).to.equal(app);
     });
 
-    it('throws retrieving a non existing App', () => {
+    it('throws retrieving a non existing App (custom name)', () => {
       expect(() => getApp('RandomName')).throws(/No Firebase App 'RandomName'/);
+    });
+
+    it('throws retrieving a non existing App (default name)', () => {
+      expect(() => getApp()).throws(/No Firebase App/);
     });
   });
 
