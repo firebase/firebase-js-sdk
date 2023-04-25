@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.7.0
+
+### Minor Changes
+
+- [`195e82ebb`](https://github.com/firebase/firebase-js-sdk/commit/195e82ebba29d501892cf9269ecee74eec9df220) [#7169](https://github.com/firebase/firebase-js-sdk/pull/7169) - Add new limited use token method to App Check
+
 ## 0.6.5
 
 ### Patch Changes
