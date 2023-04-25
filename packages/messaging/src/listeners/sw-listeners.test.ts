@@ -92,9 +92,9 @@ describe('SwController', () => {
   // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
   let messaging: MessagingService;
-  let getTokenStub: Stub<typeof tokenManagementModule['getTokenInternal']>;
+  let getTokenStub: Stub<(typeof tokenManagementModule)['getTokenInternal']>;
   let deleteTokenStub: Stub<
-    typeof tokenManagementModule['deleteTokenInternal']
+    (typeof tokenManagementModule)['deleteTokenInternal']
   >;
 
   beforeEach(() => {

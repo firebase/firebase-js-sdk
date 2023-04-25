@@ -24,7 +24,7 @@ export interface UserCredential
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [operationType](./auth.usercredential.md#usercredentialoperationtype) | typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\[keyof typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\] | The type of operation which was used to authenticate the user (such as sign-in or link). |
+|  [operationType](./auth.usercredential.md#usercredentialoperationtype) | (typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->)\[keyof typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\] | The type of operation which was used to authenticate the user (such as sign-in or link). |
 |  [providerId](./auth.usercredential.md#usercredentialproviderid) | string \| null | The provider which was used to authenticate the user. |
 |  [user](./auth.usercredential.md#usercredentialuser) | [User](./auth.user.md#user_interface) | The user authenticated by this credential. |
 
@@ -35,7 +35,7 @@ The type of operation which was used to authenticate the user (such as sign-in o
 <b>Signature:</b>
 
 ```typescript
-operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
 ```
 
 ## UserCredential.providerId

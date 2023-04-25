@@ -39,9 +39,9 @@ import { getFakeTokenDetails } from '../testing/fakes/token-details';
 describe('Token Manager', () => {
   let tokenDetails: TokenDetails;
   let messaging: MessagingService;
-  let requestGetTokenStub: Stub<typeof apiModule['requestGetToken']>;
-  let requestUpdateTokenStub: Stub<typeof apiModule['requestUpdateToken']>;
-  let requestDeleteTokenStub: Stub<typeof apiModule['requestDeleteToken']>;
+  let requestGetTokenStub: Stub<(typeof apiModule)['requestGetToken']>;
+  let requestUpdateTokenStub: Stub<(typeof apiModule)['requestUpdateToken']>;
+  let requestDeleteTokenStub: Stub<(typeof apiModule)['requestDeleteToken']>;
 
   beforeEach(() => {
     tokenDetails = getFakeTokenDetails();

@@ -416,7 +416,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
+  operation: (typeof ActionCodeOperationMap)[keyof typeof ActionCodeOperationMap];
 }
 
 /**
@@ -589,7 +589,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -629,7 +629,7 @@ export interface MultiFactorError extends AuthError {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
-    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+    readonly operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
   };
 }
 
@@ -646,7 +646,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -1049,7 +1049,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
 }
 
 /**
