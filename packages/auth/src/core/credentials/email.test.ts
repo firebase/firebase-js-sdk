@@ -192,6 +192,7 @@ describe('core/credentials/email', () => {
           sinon
             .stub(jsHelpers, '_loadJS')
             .returns(Promise.resolve(new Event('')));
+          window.grecaptcha = undefined;
 
           const getRecaptchaConfigMock = mockEndpointWithParams(
             Endpoint.GET_RECAPTCHA_CONFIG,
