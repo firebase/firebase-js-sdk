@@ -416,7 +416,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
+  operation: (typeof ActionCodeOperationMap)[keyof typeof ActionCodeOperationMap];
 }
 
 /**
@@ -541,6 +541,9 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
+ * Internally we use an enum type for FactorId, ActionCodeOperation, but there is a copy in https://github.com/firebase/firebase-js-sdk/blob/48a2096aec53a7eaa9ffcc2625016ecb9f90d113/packages/auth/src/model/enum_maps.ts#L23 that uses maps.
+ * const enums are better for tree-shaking, however can cause runtime errors if exposed in public APIs, example - https://github.com/microsoft/rushstack/issues/3058
+ * So, we expose enum maps publicly, but use const enums internally to get some tree-shaking benefit.
  * @internal
  */
 export const enum FactorId {
@@ -589,7 +592,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -629,7 +632,7 @@ export interface MultiFactorError extends AuthError {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
-    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+    readonly operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
   };
 }
 
@@ -646,7 +649,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -1049,7 +1052,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
 }
 
 /**

@@ -81,7 +81,6 @@ import {
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
-  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   Aggregation as ProtoAggregation,
   Status as ProtoStatus,
   Target as ProtoTarget,
@@ -438,22 +437,6 @@ export function fromDocument(
   return hasCommittedMutations ? result.setHasCommittedMutations() : result;
 }
 
-export function fromAggregationResult(
-  aggregationQueryResponse: ProtoRunAggregationQueryResponse
-): ObjectValue {
-  assertPresent(
-    aggregationQueryResponse.result,
-    'aggregationQueryResponse.result'
-  );
-  assertPresent(
-    aggregationQueryResponse.result.aggregateFields,
-    'aggregationQueryResponse.result.aggregateFields'
-  );
-  return new ObjectValue({
-    mapValue: { fields: aggregationQueryResponse.result?.aggregateFields }
-  });
-}
-
 function fromFound(
   serializer: JsonProtoSerializer,
   doc: ProtoBatchGetDocumentsResponse
@@ -579,8 +562,8 @@ export function fromWatchChange(
     assertPresent(change.filter, 'filter');
     const filter = change.filter;
     assertPresent(filter.targetId, 'filter.targetId');
-    const count = filter.count || 0;
-    const existenceFilter = new ExistenceFilter(count);
+    const { count = 0, unchangedNames } = filter;
+    const existenceFilter = new ExistenceFilter(count, unchangedNames);
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
@@ -908,26 +891,38 @@ export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
   aggregates: Aggregate[]
-): ProtoRunAggregationQueryRequest {
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+} {
   const queryTarget = toQueryTarget(serializer, target);
+  const aliasMap: Record<string, string> = {};
 
   const aggregations: ProtoAggregation[] = [];
+  let aggregationNum = 0;
+
   aggregates.forEach(aggregate => {
+    // Map all client-side aliases to a unique short-form
+    // alias. This avoids issues with client-side aliases that
+    // exceed the 1500-byte string size limit.
+    const serverAlias = `aggregate_${aggregationNum++}`;
+    aliasMap[serverAlias] = aggregate.alias;
+
     if (aggregate.aggregateType === 'count') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         count: {}
       });
     } else if (aggregate.aggregateType === 'avg') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         avg: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }
       });
     } else if (aggregate.aggregateType === 'sum') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         sum: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }
@@ -936,11 +931,14 @@ export function toRunAggregationQueryRequest(
   });
 
   return {
-    structuredAggregationQuery: {
-      aggregations,
-      structuredQuery: queryTarget.structuredQuery
+    request: {
+      structuredAggregationQuery: {
+        aggregations,
+        structuredQuery: queryTarget.structuredQuery
+      },
+      parent: queryTarget.parent
     },
-    parent: queryTarget.parent
+    aliasMap
   };
 }
 
@@ -1008,7 +1006,7 @@ export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
   targetData: TargetData
 ): ProtoApiClientObjectMap<string> | null {
-  const value = toLabel(serializer, targetData.purpose);
+  const value = toLabel(targetData.purpose);
   if (value == null) {
     return null;
   } else {
@@ -1018,15 +1016,14 @@ export function toListenRequestLabels(
   }
 }
 
-function toLabel(
-  serializer: JsonProtoSerializer,
-  purpose: TargetPurpose
-): string | null {
+export function toLabel(purpose: TargetPurpose): string | null {
   switch (purpose) {
     case TargetPurpose.Listen:
       return null;
     case TargetPurpose.ExistenceFilterMismatch:
       return 'existence-filter-mismatch';
+    case TargetPurpose.ExistenceFilterMismatchBloom:
+      return 'existence-filter-mismatch-bloom';
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
@@ -1051,6 +1048,10 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+    const expectedCount = toInt32Proto(serializer, targetData.expectedCount);
+    if (expectedCount !== null) {
+      result.expectedCount = expectedCount;
+    }
   } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
     // TODO(wuandy): Consider removing above check because it is most likely true.
     // Right now, many tests depend on this behaviour though (leaving min() out
@@ -1059,6 +1060,10 @@ export function toTarget(
       serializer,
       targetData.snapshotVersion.toTimestamp()
     );
+    const expectedCount = toInt32Proto(serializer, targetData.expectedCount);
+    if (expectedCount !== null) {
+      result.expectedCount = expectedCount;
+    }
   }
 
   return result;

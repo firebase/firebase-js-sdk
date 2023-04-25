@@ -24,7 +24,7 @@ export interface MultiFactorInfo
 |  --- | --- | --- |
 |  [displayName](./auth.multifactorinfo.md#multifactorinfodisplayname) | string \| null | The user friendly name of the current second factor. |
 |  [enrollmentTime](./auth.multifactorinfo.md#multifactorinfoenrollmenttime) | string | The enrollment date of the second factor formatted as a UTC string. |
-|  [factorId](./auth.multifactorinfo.md#multifactorinfofactorid) | typeof [FactorIdMap](./auth.md#factorid)<!-- -->\[keyof typeof [FactorIdMap](./auth.md#factorid)<!-- -->\] | The identifier of the second factor. |
+|  [factorId](./auth.multifactorinfo.md#multifactorinfofactorid) | (typeof [FactorIdMap](./auth.md#factorid)<!-- -->)\[keyof typeof [FactorIdMap](./auth.md#factorid)<!-- -->\] | The identifier of the second factor. |
 |  [uid](./auth.multifactorinfo.md#multifactorinfouid) | string | The multi-factor enrollment ID. |
 
 ## MultiFactorInfo.displayName
@@ -54,7 +54,7 @@ The identifier of the second factor.
 <b>Signature:</b>
 
 ```typescript
-readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 ```
 
 ## MultiFactorInfo.uid

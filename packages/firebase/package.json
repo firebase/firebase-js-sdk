@@ -367,6 +367,7 @@
   },
   "scripts": {
     "build": "rollup -c && gulp cdn-type-module-path && yarn build:compat",
+    "build:internal": "rollup -c && gulp cdn-type-module-path-internal && yarn build:compat",
     "build:compat": "rollup -c compat/rollup.config.js",
     "dev": "rollup -c -w",
     "test": "echo 'No test suite for firebase wrapper'",

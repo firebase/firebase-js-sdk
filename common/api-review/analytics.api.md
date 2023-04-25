@@ -134,6 +134,9 @@ export interface EventParams {
 export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
+export function getGoogleAnalyticsClientId(analyticsInstance: Analytics): Promise<string>;
+
+// @public
 export interface GtagConfigParams {
     // (undocumented)
     [key: string]: unknown;

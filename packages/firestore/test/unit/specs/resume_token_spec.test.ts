@@ -43,7 +43,7 @@ describeSpec('Resume tokens:', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcks(query1)
       .watchSends({ affects: [query1] }, doc1)

@@ -61,16 +61,22 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
+  FieldTransform,
   Mutation,
   MutationResult,
   MutationType,
+  PatchMutation,
   Precondition
 } from '../../../src/model/mutation';
 import {
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
+import { ObjectValue } from '../../../src/model/object_value';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
+import { ServerTimestampTransform } from '../../../src/model/transform_operation';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { RemoteEvent } from '../../../src/remote/remote_event';
@@ -94,6 +100,7 @@ import {
   docUpdateRemoteEvent,
   existenceFilterEvent,
   expectEqual,
+  field,
   filter,
   key,
   localViewChanges,
@@ -1273,7 +1280,8 @@ function genericLocalStoreTests(
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData
+      getTargetDataForTarget: () => targetData,
+      getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
@@ -1313,7 +1321,8 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
@@ -1326,7 +1335,8 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
@@ -2266,6 +2276,36 @@ function genericLocalStoreTests(
         compareDocsWithCreateTime
       )
       .finish();
+  });
+
+  it('deeply nested server timestamps do not cause stack overflow', async () => {
+    const timestamp = Timestamp.now();
+    const initialServerTimestamp = serverTimestamp(timestamp, null);
+    const value: ObjectValue = ObjectValue.empty();
+    value.set(
+      field('timestamp'),
+      serverTimestamp(timestamp, initialServerTimestamp)
+    );
+
+    const mutations: PatchMutation[] = [];
+    for (let i = 0; i < 100; ++i) {
+      mutations.push(
+        new PatchMutation(
+          key('foo/bar'),
+          value,
+          new FieldMask([field('timestamp')]),
+          Precondition.none(),
+          [
+            new FieldTransform(
+              field('timestamp'),
+              new ServerTimestampTransform()
+            )
+          ]
+        )
+      );
+    }
+    await expect(expectLocalStore().afterMutations(mutations).finish()).to.not
+      .be.eventually.rejected;
   });
 
   it('uses target mapping to execute queries', () => {

@@ -64,4 +64,10 @@ export async function captureExistenceFilterMismatches<T>(
 export interface ExistenceFilterMismatchInfo {
   localCacheCount: number;
   existenceFilterCount: number;
+  bloomFilter?: {
+    applied: boolean;
+    hashCount: number;
+    bitmapLength: number;
+    padding: number;
+  };
 }

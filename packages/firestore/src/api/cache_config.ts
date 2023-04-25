@@ -17,6 +17,7 @@
 
 import {
   IndexedDbOfflineComponentProvider,
+  LruGcMemoryOfflineComponentProvider,
   MemoryOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
@@ -55,9 +56,14 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
    */
   _offlineComponentProvider: MemoryOfflineComponentProvider;
 
-  constructor() {
+  constructor(settings?: MemoryCacheSettings) {
     this._onlineComponentProvider = new OnlineComponentProvider();
-    this._offlineComponentProvider = new MemoryOfflineComponentProvider();
+    if (settings?.garbageCollector) {
+      this._offlineComponentProvider =
+        settings.garbageCollector._offlineComponentProvider;
+    } else {
+      this._offlineComponentProvider = new MemoryOfflineComponentProvider();
+    }
   }
 
   toJSON(): {} {
@@ -119,11 +125,125 @@ class PersistentLocalCacheImpl implements PersistentLocalCache {
 export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 /**
+ * Union type from all support gabage collectors for memory local cache.
+ */
+export type MemoryGarbageCollector =
+  | MemoryEagerGarbageCollector
+  | MemoryLruGarbageCollector;
+
+/**
+ * A garbage collector deletes documents whenever they are not part of any
+ * active queries, and have no local mutations attached to them.
+ *
+ * This collector tries to ensure lowest memory footprints from the SDK,
+ * at the risk of documents not being cached for offline queries or for
+ * direct queries to the cache.
+ *
+ * Use factory function {@link memoryEagerGarbageCollector()} to create an
+ * instance of this collector.
+ */
+export type MemoryEagerGarbageCollector = {
+  kind: 'memoryEager';
+  /**
+   * @internal
+   */
+  _offlineComponentProvider: MemoryOfflineComponentProvider;
+};
+
+/**
+ * A garbage collector deletes Least-Recently-Used documents in multiple
+ * batches.
+ *
+ * This collector is configured with a target size, and will only perform
+ * collection when the cached documents exceed the target size. It avoids
+ * querying backend repeated for the same query or document, at the risk
+ * of having a larger memory footprint.
+ *
+ * Use factory function {@link memoryLruGarbageCollector()} to create a
+ * instance of this collector.
+ */
+export type MemoryLruGarbageCollector = {
+  kind: 'memoryLru';
+  /**
+   * @internal
+   */
+  _offlineComponentProvider: MemoryOfflineComponentProvider;
+};
+
+class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
+  kind: 'memoryEager' = 'memoryEager';
+  /**
+   * @internal
+   */
+  _offlineComponentProvider: MemoryOfflineComponentProvider;
+
+  constructor() {
+    this._offlineComponentProvider = new MemoryOfflineComponentProvider();
+  }
+
+  toJSON(): {} {
+    return { kind: this.kind };
+  }
+}
+
+class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
+  kind: 'memoryLru' = 'memoryLru';
+  /**
+   * @internal
+   */
+  _offlineComponentProvider: MemoryOfflineComponentProvider;
+
+  constructor(cacheSize?: number) {
+    this._offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
+      cacheSize
+    );
+  }
+
+  toJSON(): {} {
+    return { kind: this.kind };
+  }
+}
+
+/**
+ * Creates an instance of `MemoryEagerGarbageCollector`. This is also the
+ * default garbage collector unless it is explicitly specified otherwise.
+ */
+export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector {
+  return new MemoryEagerGabageCollectorImpl();
+}
+
+/**
+ * Creates an instance of `MemoryLruGarbageCollector`.
+ *
+ * A target size can be specified as part of the setting parameter. The
+ * collector will start deleting documents once the cache size exceeds
+ * the given size. The default cache size is 40MB (40 * 1024 * 1024 bytes).
+ */
+export function memoryLruGarbageCollector(settings?: {
+  cacheSizeBytes?: number;
+}): MemoryLruGarbageCollector {
+  return new MemoryLruGabageCollectorImpl(settings?.cacheSizeBytes);
+}
+
+/**
+ * An settings object to configure an `MemoryLocalCache` instance.
+ */
+export type MemoryCacheSettings = {
+  /**
+   * The garbage collector to use, for the memory cache layer.
+   * A `MemoryEagerGarbageCollector` is used when this is undefined.
+   */
+  garbageCollector?: MemoryGarbageCollector;
+};
+
+/**
  * Creates an instance of `MemoryLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
  */
-export function memoryLocalCache(): MemoryLocalCache {
-  return new MemoryLocalCacheImpl();
+export function memoryLocalCache(
+  settings?: MemoryCacheSettings
+): MemoryLocalCache {
+  return new MemoryLocalCacheImpl(settings);
 }
 
 /**

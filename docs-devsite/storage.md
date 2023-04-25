@@ -485,7 +485,7 @@ An enumeration of the possible string formats for upload.
 <b>Signature:</b>
 
 ```typescript
-export declare type StringFormat = typeof StringFormat[keyof typeof StringFormat];
+export declare type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
 ```
 
 ## TaskEvent

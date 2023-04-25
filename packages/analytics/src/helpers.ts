@@ -277,37 +277,49 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event' | 'consent',
-    idOrNameOrParams: string | ControlParams,
-    gtagParams?: GtagConfigOrEventParams | ConsentSettings
+    command: 'config' | 'set' | 'event' | 'consent' | 'get' | string,
+    ...args: unknown[]
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
       if (command === GtagCommand.EVENT) {
+        const [measurementId, gtagParams] = args;
         // If EVENT, second arg must be measurementId.
         await gtagOnEvent(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
+        const [measurementId, gtagParams] = args;
         // If CONFIG, second arg must be measurementId.
         await gtagOnConfig(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
           measurementIdToAppId,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
-        // If CONFIG, second arg must be measurementId.
+        const [gtagParams] = args;
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
-      } else {
+      } else if (command === GtagCommand.GET) {
+        const [measurementId, fieldName, callback] = args;
+        gtagCore(
+          GtagCommand.GET,
+          measurementId as string,
+          fieldName as string,
+          callback as (...args: unknown[]) => void
+        );
+      } else if (command === GtagCommand.SET) {
+        const [customParams] = args;
         // If SET, second arg must be params.
-        gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
+        gtagCore(GtagCommand.SET, customParams as CustomParams);
+      } else {
+        gtagCore(command, ...args);
       }
     } catch (e) {
       logger.error(e);

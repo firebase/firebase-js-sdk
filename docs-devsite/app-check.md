@@ -19,6 +19,7 @@ Firebase App Check
 |  <b>function(app...)</b> |
 |  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck) | Activate App Check for the given app. Can be called only once per app. |
 |  <b>function(appCheckInstance...)</b> |
+|  [getLimitedUseToken(appCheckInstance)](./app-check.md#getlimitedusetoken) | Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.<!-- -->Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method. |
 |  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken) | Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight. |
 |  [onTokenChanged(appCheckInstance, observer)](./app-check.md#ontokenchanged) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
 |  [onTokenChanged(appCheckInstance, onNext, onError, onCompletion)](./app-check.md#ontokenchanged) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
@@ -68,6 +69,30 @@ export declare function initializeAppCheck(app: FirebaseApp | undefined, options
 <b>Returns:</b>
 
 [AppCheck](./app-check.appcheck.md#appcheck_interface)
+
+## getLimitedUseToken()
+
+Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.
+
+Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getLimitedUseToken(appCheckInstance: AppCheck): Promise<AppCheckTokenResult>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  appCheckInstance | [AppCheck](./app-check.appcheck.md#appcheck_interface) | The App Check service instance. |
+
+<b>Returns:</b>
+
+Promise&lt;[AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->&gt;
+
+The limited use token.
 
 ## getToken()
 
