@@ -196,7 +196,7 @@ describe('core/credentials/email', () => {
           window.grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
-          // First verification should fail with 'wrong-site-key'
+          // Force first verification call to fail to simulate verification error
           // Second verifcation should succeed with site key refreshed
           stub.onCall(0).rejects();
           stub.onCall(1).returns(Promise.resolve('recaptcha-response'));
@@ -210,7 +210,7 @@ describe('core/credentials/email', () => {
             recaptchaConfigResponseEnforce
           );
           await auth.initializeRecaptchaConfig();
-          auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
+          auth._agentRecaptchaConfig!.siteKey = 'cached-site-key';
 
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
