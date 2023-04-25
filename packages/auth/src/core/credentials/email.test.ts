@@ -184,32 +184,17 @@ describe('core/credentials/email', () => {
           });
         });
 
-        it('calls sign in with password with recaptcha forced refresh succeed', async () => {
+        it('calls sign in with password with recaptcha forced refresh', async () => {
           if (typeof window === 'undefined') {
             return;
           }
-          // Mock recaptcha js loading method and manually set window.recaptcha
+          // Mock recaptcha js loading method but not set window.recaptcha to simulate recaptcha token retrieval failure
           sinon
             .stub(jsHelpers, '_loadJS')
             .returns(Promise.resolve(new Event('')));
-          const recaptcha = new MockGreCAPTCHATopLevel();
-          window.grecaptcha = recaptcha;
-          const stub = sinon.stub(recaptcha.enterprise, 'execute');
+          window.grecaptcha = undefined;
 
-          // First verification should fail with 'wrong-site-key'
-          stub
-            .withArgs('wrong-site-key', {
-              action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-            })
-            .rejects();
-          // Second verifcation should succeed with site key refreshed
-          stub
-            .withArgs('site-key', {
-              action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-            })
-            .returns(Promise.resolve('recaptcha-response'));
-
-          mockEndpointWithParams(
+          const getRecaptchaConfigMock = mockEndpointWithParams(
             Endpoint.GET_RECAPTCHA_CONFIG,
             {
               clientType: RecaptchaClientType.WEB,
@@ -218,21 +203,14 @@ describe('core/credentials/email', () => {
             recaptchaConfigResponseEnforce
           );
           await auth.initializeRecaptchaConfig();
-          auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
+          auth._agentRecaptchaConfig!.siteKey = 'cached-site-key';
 
-          const idTokenResponse = await credential._getIdTokenResponse(auth);
-          expect(idTokenResponse.idToken).to.eq('id-token');
-          expect(idTokenResponse.refreshToken).to.eq('refresh-token');
-          expect(idTokenResponse.expiresIn).to.eq('1234');
-          expect(idTokenResponse.localId).to.eq(serverUser.localId);
-          expect(apiMock.calls[0].request).to.eql({
-            captchaResponse: 'recaptcha-response',
-            clientType: RecaptchaClientType.WEB,
-            email: 'some-email',
-            password: 'some-password',
-            recaptchaVersion: RecaptchaVersion.ENTERPRISE,
-            returnSecureToken: true
-          });
+          await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
+            'No reCAPTCHA enterprise script loaded.'
+          );
+          // Should call getRecaptchaConfig once to refresh the cached recaptcha config
+          expect(getRecaptchaConfigMock.calls.length).to.eq(2);
+          expect(auth._agentRecaptchaConfig?.siteKey).to.eq('site-key');
         });
 
         it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
