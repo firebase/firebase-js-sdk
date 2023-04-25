@@ -27,7 +27,10 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../../api/errors';
 
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
-import { RecaptchaEnterpriseVerifier } from './recaptcha_enterprise_verifier';
+import {
+  RecaptchaEnterpriseVerifier,
+  FAKE_TOKEN
+} from './recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -81,7 +84,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       expect(await verifier.verify()).to.eq('recaptcha-response');
     });
 
-    it('reject if error is thrown when retieve site key', async () => {
+    it('reject if error is thrown when retrieve site key', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         request,
@@ -102,7 +105,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       );
     });
 
-    it('reject if error is thrown when retieve recaptcha token', async () => {
+    it('return fake recaptcha token if error is thrown when retrieve recaptcha token', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
         request,
@@ -110,11 +113,8 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       );
       sinon
         .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.reject(Error('retieve-recaptcha-token-error')));
-      await expect(verifier.verify()).to.be.rejectedWith(
-        Error,
-        'retieve-recaptcha-token-error'
-      );
+        .returns(Promise.reject(Error('retrieve-recaptcha-token-error')));
+      expect(await verifier.verify()).to.eq(FAKE_TOKEN);
     });
   });
 });

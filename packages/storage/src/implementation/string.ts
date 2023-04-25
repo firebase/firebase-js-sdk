@@ -22,7 +22,7 @@ import { decodeBase64 } from '../platform/base64';
  * An enumeration of the possible string formats for upload.
  * @public
  */
-export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
+export type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
 /**
  * An enumeration of the possible string formats for upload.
  * @public

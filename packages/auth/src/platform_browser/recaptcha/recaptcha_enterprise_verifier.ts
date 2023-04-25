@@ -33,6 +33,7 @@ const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js?render=';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
+export const FAKE_TOKEN = 'NO_RECAPTCHA';
 
 export class RecaptchaEnterpriseVerifier {
   /**
@@ -105,18 +106,14 @@ export class RecaptchaEnterpriseVerifier {
       const grecaptcha = window.grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
-          try {
-            grecaptcha.enterprise
-              .execute(siteKey, { action })
-              .then(token => {
-                resolve(token);
-              })
-              .catch(error => {
-                reject(error);
-              });
-          } catch (error) {
-            reject(error);
-          }
+          grecaptcha.enterprise
+            .execute(siteKey, { action })
+            .then(token => {
+              resolve(token);
+            })
+            .catch(() => {
+              resolve(FAKE_TOKEN);
+            });
         });
       } else {
         reject(Error('No reCAPTCHA enterprise script loaded.'));

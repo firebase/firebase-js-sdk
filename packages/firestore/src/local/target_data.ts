@@ -23,22 +23,22 @@ import { ByteString } from '../util/byte_string';
 /** An enumeration of the different purposes we have for targets. */
 export const enum TargetPurpose {
   /** A regular, normal query target. */
-  Listen,
+  Listen = 'TargetPurposeListen',
 
   /**
    * The query target was used to refill a query after an existence filter
    * mismatch.
    */
-  ExistenceFilterMismatch,
+  ExistenceFilterMismatch = 'TargetPurposeExistenceFilterMismatch',
 
   /**
    * The query target was used if the query is the result of a false positive in
    * the bloom filter.
    */
-  ExistenceFilterMismatchBloom,
+  ExistenceFilterMismatchBloom = 'TargetPurposeExistenceFilterMismatchBloom',
 
   /** The query target was used to resolve a limbo document. */
-  LimboResolution
+  LimboResolution = 'TargetPurposeLimboResolution'
 }
 
 /**
