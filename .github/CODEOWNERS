@@ -7,38 +7,13 @@
 #
 #######################################################################################################
 
-# ===========================================================
-#  @firebase/jssdk-global-approvers
-# ===========================================================
-#  Used for approving minor changes, large-scale refactorings, and emergency situations.
-#  (secret team to avoid review requests)
-#
-#   - @lahirumaramba
-#   - @hsubox76
-#   - @allspain
-#   - @dwyfrequency
-
-
-# ===========================================================
-#  @firebase/firestore-js-team
-# ===========================================================
-#  Used for approving firestore changes.
-#  (secret team to avoid review requests)
-#
-# - @schmidt-sebastian
-# - @thebrianchen
-# - @wu-hui
-# - @ehsannas
-# - @dconeybe
-
-
 # These owners will be the default owners for everything in the repo.
 *       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
-packages/database-types @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database-types @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
