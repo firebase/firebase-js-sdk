@@ -238,7 +238,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
       });
 
       expect(snapshot.data()[longAlias]).to.equal(2);
-      expect(snapshot.data()[longerAlias]).to.equal(8);
+      expect(snapshot.data()[longerAlias]).to.equal(2);
     });
   });
 
