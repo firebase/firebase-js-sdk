@@ -81,7 +81,6 @@ import {
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
-  RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   Aggregation as ProtoAggregation,
   Status as ProtoStatus,
   Target as ProtoTarget,
@@ -436,22 +435,6 @@ export function fromDocument(
     result.setHasCommittedMutations();
   }
   return hasCommittedMutations ? result.setHasCommittedMutations() : result;
-}
-
-export function fromAggregationResult(
-  aggregationQueryResponse: ProtoRunAggregationQueryResponse
-): ObjectValue {
-  assertPresent(
-    aggregationQueryResponse.result,
-    'aggregationQueryResponse.result'
-  );
-  assertPresent(
-    aggregationQueryResponse.result.aggregateFields,
-    'aggregationQueryResponse.result.aggregateFields'
-  );
-  return new ObjectValue({
-    mapValue: { fields: aggregationQueryResponse.result?.aggregateFields }
-  });
 }
 
 function fromFound(
@@ -908,26 +891,38 @@ export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
   aggregates: Aggregate[]
-): ProtoRunAggregationQueryRequest {
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+} {
   const queryTarget = toQueryTarget(serializer, target);
+  const aliasMap: Record<string, string> = {};
 
   const aggregations: ProtoAggregation[] = [];
+  let aggregationNum = 0;
+
   aggregates.forEach(aggregate => {
+    // Map all client-side aliases to a unique short-form
+    // alias. This avoids issues with client-side aliases that
+    // exceed the 1500-byte string size limit.
+    const serverAlias = `aggregate_${aggregationNum++}`;
+    aliasMap[serverAlias] = aggregate.alias;
+
     if (aggregate.aggregateType === 'count') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         count: {}
       });
     } else if (aggregate.aggregateType === 'avg') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         avg: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }
       });
     } else if (aggregate.aggregateType === 'sum') {
       aggregations.push({
-        alias: aggregate.alias.canonicalString(),
+        alias: serverAlias,
         sum: {
           field: toFieldPathReference(aggregate.fieldPath!)
         }
@@ -936,11 +931,14 @@ export function toRunAggregationQueryRequest(
   });
 
   return {
-    structuredAggregationQuery: {
-      aggregations,
-      structuredQuery: queryTarget.structuredQuery
+    request: {
+      structuredAggregationQuery: {
+        aggregations,
+        structuredQuery: queryTarget.structuredQuery
+      },
+      parent: queryTarget.parent
     },
-    parent: queryTarget.parent
+    aliasMap
   };
 }
 

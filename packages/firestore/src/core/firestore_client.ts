@@ -36,10 +36,10 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
-import { ObjectValue } from '../model/object_value';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import {
   RemoteStore,
@@ -526,8 +526,8 @@ export function firestoreClientRunAggregateQuery(
   client: FirestoreClient,
   query: Query,
   aggregates: Aggregate[]
-): Promise<ObjectValue> {
-  const deferred = new Deferred<ObjectValue>();
+): Promise<ApiClientObjectMap<Value>> {
+  const deferred = new Deferred<ApiClientObjectMap<Value>>();
 
   client.asyncQueue.enqueueAndForget(async () => {
     // TODO (sum/avg) should we update this to use the event manager?
