@@ -42,7 +42,7 @@ export interface ExperimentalLongPollingOptions {
    * prematurely-closed hanging GET requests.
    * For example, see https://github.com/firebase/firebase-js-sdk/issues/6987.
    */
-  idleHttpRequestTimeoutSeconds?: number;
+  timeoutSeconds?: number;
 }
 
 /**
@@ -52,10 +52,7 @@ export function longPollingOptionsEqual(
   options1: ExperimentalLongPollingOptions,
   options2: ExperimentalLongPollingOptions
 ): boolean {
-  return (
-    options1.idleHttpRequestTimeoutSeconds ===
-    options2.idleHttpRequestTimeoutSeconds
-  );
+  return options1.timeoutSeconds === options2.timeoutSeconds;
 }
 
 /**
@@ -67,8 +64,8 @@ export function cloneLongPollingOptions(
 ): ExperimentalLongPollingOptions {
   const clone: ExperimentalLongPollingOptions = {};
 
-  if (options.idleHttpRequestTimeoutSeconds !== undefined) {
-    clone.idleHttpRequestTimeoutSeconds = options.idleHttpRequestTimeoutSeconds;
+  if (options.timeoutSeconds !== undefined) {
+    clone.timeoutSeconds = options.timeoutSeconds;
   }
 
   return clone;

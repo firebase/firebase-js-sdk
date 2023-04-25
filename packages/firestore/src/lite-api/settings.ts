@@ -198,11 +198,11 @@ function validateLongPollingOptions(
   options: ExperimentalLongPollingOptions
 ): void {
   if (options.idleHttpRequestTimeoutSeconds !== undefined) {
-    if (!Number.isInteger(options.idleHttpRequestTimeoutSeconds)) {
+    if (isNaN(options.idleHttpRequestTimeoutSeconds)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `invalid long polling timeout: ` +
-          `${options.idleHttpRequestTimeoutSeconds} (must be an integer)`
+          `${options.idleHttpRequestTimeoutSeconds} (must not be NaN)`
       );
     }
     if (
