@@ -20,7 +20,6 @@ import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
 import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
-import { AggregateAlias } from '../model/aggregate_alias';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -110,7 +109,7 @@ export function getAggregateFromServer<T extends AggregateSpec>(
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
-      new AggregateAlias(alias),
+      alias,
       aggregate._aggregateType,
       aggregate._internalFieldPath
     );

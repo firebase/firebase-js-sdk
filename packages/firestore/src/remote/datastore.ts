@@ -246,7 +246,7 @@ export async function invokeRunAggregationQueryRpc(
   aggregates: Aggregate[]
 ): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toRunAggregationQueryRequest(
+  const { request, aliasMap } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
     queryToTarget(query),
     aggregates
@@ -277,7 +277,22 @@ export async function invokeRunAggregationQueryRpc(
     'aggregationQueryResponse.result.aggregateFields'
   );
 
-  return filteredResult[0].result.aggregateFields;
+  // Remap the short-form aliases that were sent to the server
+  // to the client-side aliases. Users will access the results
+  // using the client-side alias.
+  const unmappedAggregateFields = filteredResult[0].result?.aggregateFields;
+  const remappedFields = Object.keys(unmappedAggregateFields).reduce<
+    ApiClientObjectMap<Value>
+  >((accumulator, key) => {
+    debugAssert(
+      !isNullOrUndefined(aliasMap[key]),
+      `'${key}' not present in aliasMap result`
+    );
+    accumulator[aliasMap[key]] = unmappedAggregateFields[key]!;
+    return accumulator;
+  }, {});
+
+  return remappedFields;
 }
 
 export function newPersistentWriteStream(
