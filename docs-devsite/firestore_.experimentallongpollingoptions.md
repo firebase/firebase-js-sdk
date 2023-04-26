@@ -26,11 +26,11 @@ export declare interface ExperimentalLongPollingOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [idleHttpRequestTimeoutSeconds](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptionsidlehttprequesttimeoutseconds) | number | The desired maximum timeout interval, in seconds, to complete a long-polling GET response. Valid values are integers between 5 and 30, inclusive.<!-- -->By default, when long-polling is used the "hanging GET" request sent by the client times out after 30 seconds. To request a different timeout from the server, set this setting with the desired timeout.<!-- -->Changing the default timeout may be useful, for example, if the buffering proxy that necessitated enabling long-polling in the first place has a shorter timeout for hanging GET requests, in which case setting the long-polling timeout to a shorter value, such as 25 seconds, may fix prematurely-closed hanging GET requests. For example, see https://github.com/firebase/firebase-js-sdk/issues/6987. |
+|  [timeoutSeconds](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptionstimeoutseconds) | number | The desired maximum timeout interval, in seconds, to complete a long-polling GET response. Valid values are between 5 and 30, inclusive. Floating point values are allowed and will be rounded to the nearest millisecond.<!-- -->By default, when long-polling is used the "hanging GET" request sent by the client times out after 30 seconds. To request a different timeout from the server, set this setting with the desired timeout.<!-- -->Changing the default timeout may be useful, for example, if the buffering proxy that necessitated enabling long-polling in the first place has a shorter timeout for hanging GET requests, in which case setting the long-polling timeout to a shorter value, such as 25 seconds, may fix prematurely-closed hanging GET requests. For example, see https://github.com/firebase/firebase-js-sdk/issues/6987. |
 
-## ExperimentalLongPollingOptions.idleHttpRequestTimeoutSeconds
+## ExperimentalLongPollingOptions.timeoutSeconds
 
-The desired maximum timeout interval, in seconds, to complete a long-polling GET response. Valid values are integers between 5 and 30, inclusive.
+The desired maximum timeout interval, in seconds, to complete a long-polling GET response. Valid values are between 5 and 30, inclusive. Floating point values are allowed and will be rounded to the nearest millisecond.
 
 By default, when long-polling is used the "hanging GET" request sent by the client times out after 30 seconds. To request a different timeout from the server, set this setting with the desired timeout.
 
@@ -39,5 +39,5 @@ Changing the default timeout may be useful, for example, if the buffering proxy 
 <b>Signature:</b>
 
 ```typescript
-idleHttpRequestTimeoutSeconds?: number;
+timeoutSeconds?: number;
 ```

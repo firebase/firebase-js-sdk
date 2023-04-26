@@ -186,7 +186,7 @@ export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
 export interface ExperimentalLongPollingOptions {
-    idleHttpRequestTimeoutSeconds?: number;
+    timeoutSeconds?: number;
 }
 
 // @public
