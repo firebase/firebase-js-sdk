@@ -95,4 +95,5 @@ export {
   hijackHash as _TEST_ACCESS_hijackHash,
   forceRestClient as _TEST_ACCESS_forceRestClient
 } from './api/test_access';
+export * from './internal/notindex';
 /* eslint-enable camelcase */

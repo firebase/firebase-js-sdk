@@ -26,20 +26,22 @@ import {
   ComponentType,
   Provider
 } from '@firebase/component';
-import { _repoManagerDatabaseFromApp, _setSDKVersion } from '../api.standalone';
+import { setSDKVersion } from '../core/version';
+import { Database } from '../api.standalone';
+import { repoManagerDatabaseFromApp } from '../api/Database';
 
 
 
 /**
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
- *
+ * @internal
  * @param app - A valid FirebaseApp-like object
  * @param url - A valid Firebase databaseURL
  * @param version - custom version e.g. firebase-admin version
  * @param customAuthImpl - custom auth implementation
  */
-export function initStandalone({
+export function _initStandalone({
   app,
   url,
   version,
@@ -51,8 +53,8 @@ export function initStandalone({
   version: string;
   customAuthImpl: FirebaseAuthInternal;
   nodeAdmin?: boolean;
-}) {
-  _setSDKVersion(version);
+}): Database {
+  setSDKVersion(version);
 
   /**
    * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
@@ -66,7 +68,7 @@ export function initStandalone({
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
   );
 
-  return _repoManagerDatabaseFromApp(
+  return repoManagerDatabaseFromApp(
         app,
         authProvider,
         /* appCheckProvider= */ undefined,
