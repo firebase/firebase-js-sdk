@@ -15,7 +15,7 @@ jobs:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
       - name: install Chrome stable
         # Install Chrome version 110.0.5481.177-1 as test starts to fail on version 111.
-        # We will retry to use the latest, once version 112 becomes stable.
+        # Temporary: Auth team will explore what's going wrong with the auth tests.
         run: |
           sudo apt-get update
           sudo apt-get install wget
