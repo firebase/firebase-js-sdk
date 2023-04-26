@@ -197,31 +197,25 @@ export class FirestoreSettingsImpl {
 function validateLongPollingOptions(
   options: ExperimentalLongPollingOptions
 ): void {
-  if (options.idleHttpRequestTimeoutSeconds !== undefined) {
-    if (isNaN(options.idleHttpRequestTimeoutSeconds)) {
+  if (options.timeoutSeconds !== undefined) {
+    if (isNaN(options.timeoutSeconds)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `invalid long polling timeout: ` +
-          `${options.idleHttpRequestTimeoutSeconds} (must not be NaN)`
+          `${options.timeoutSeconds} (must not be NaN)`
       );
     }
-    if (
-      options.idleHttpRequestTimeoutSeconds < MIN_LONG_POLLING_TIMEOUT_SECONDS
-    ) {
+    if (options.timeoutSeconds < MIN_LONG_POLLING_TIMEOUT_SECONDS) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `invalid long polling timeout: ` +
-          `${options.idleHttpRequestTimeoutSeconds} ` +
+        `invalid long polling timeout: ${options.timeoutSeconds} ` +
           `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
       );
     }
-    if (
-      options.idleHttpRequestTimeoutSeconds > MAX_LONG_POLLING_TIMEOUT_SECONDS
-    ) {
+    if (options.timeoutSeconds > MAX_LONG_POLLING_TIMEOUT_SECONDS) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `invalid long polling timeout: ` +
-          `${options.idleHttpRequestTimeoutSeconds} ` +
+        `invalid long polling timeout: ${options.timeoutSeconds} ` +
           `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
       );
     }

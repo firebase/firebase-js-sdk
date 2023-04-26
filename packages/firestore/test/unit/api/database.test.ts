@@ -265,7 +265,7 @@ describe('SnapshotMetadata', () => {
   });
 });
 
-describe.only('Settings', () => {
+describe('Settings', () => {
   it('can not use mutually exclusive settings together', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();

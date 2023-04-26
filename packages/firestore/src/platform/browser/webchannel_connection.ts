@@ -203,10 +203,9 @@ export class WebChannelConnection extends RestConnection {
       detectBufferingProxy: this.autoDetectLongPolling
     };
 
-    const idleHttpRequestTimeoutSeconds =
-      this.longPollingOptions.idleHttpRequestTimeoutSeconds;
-    if (idleHttpRequestTimeoutSeconds !== undefined) {
-      request.longPollingTimeout = idleHttpRequestTimeoutSeconds * 1000;
+    const longPollingTimeoutSeconds = this.longPollingOptions.timeoutSeconds;
+    if (longPollingTimeoutSeconds !== undefined) {
+      request.longPollingTimeout = Math.round(longPollingTimeoutSeconds * 1000);
     }
 
     if (this.useFetchStreams) {

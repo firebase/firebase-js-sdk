@@ -28,33 +28,25 @@ describe('long_polling_options', () => {
     expect(longPollingOptionsEqual({}, {})).to.be.true;
   });
 
-  it('longPollingOptionsEqual() should return true if both objects have the same idleHttpRequestTimeoutSeconds', () => {
-    const options1: ExperimentalLongPollingOptions = {
-      idleHttpRequestTimeoutSeconds: 123
-    };
-    const options2: ExperimentalLongPollingOptions = {
-      idleHttpRequestTimeoutSeconds: 123
-    };
+  it('longPollingOptionsEqual() should return true if both objects have the same timeoutSeconds', () => {
+    const options1: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
+    const options2: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
     expect(longPollingOptionsEqual(options1, options2)).to.be.true;
   });
 
-  it('longPollingOptionsEqual() should return false if the objects have different idleHttpRequestTimeoutSeconds', () => {
-    const options1: ExperimentalLongPollingOptions = {
-      idleHttpRequestTimeoutSeconds: 123
-    };
-    const options2: ExperimentalLongPollingOptions = {
-      idleHttpRequestTimeoutSeconds: 321
-    };
+  it('longPollingOptionsEqual() should return false if the objects have different timeoutSeconds', () => {
+    const options1: ExperimentalLongPollingOptions = { timeoutSeconds: 123 };
+    const options2: ExperimentalLongPollingOptions = { timeoutSeconds: 321 };
     expect(longPollingOptionsEqual(options1, options2)).to.be.false;
   });
 
   it('longPollingOptionsEqual() should ignore properties not defined in ExperimentalLongPollingOptions', () => {
     const options1 = {
-      idleHttpRequestTimeoutSeconds: 123,
+      timeoutSeconds: 123,
       someOtherProperty: 42
     } as ExperimentalLongPollingOptions;
     const options2 = {
-      idleHttpRequestTimeoutSeconds: 123,
+      timeoutSeconds: 123,
       someOtherProperty: 24
     } as ExperimentalLongPollingOptions;
     expect(longPollingOptionsEqual(options1, options2)).to.be.true;
@@ -64,19 +56,19 @@ describe('long_polling_options', () => {
     expect(cloneLongPollingOptions({})).to.deep.equal({});
   });
 
-  it('cloneLongPollingOptions() should copy idleHttpRequestTimeoutSeconds', () => {
-    expect(
-      cloneLongPollingOptions({ idleHttpRequestTimeoutSeconds: 1234 })
-    ).to.deep.equal({ idleHttpRequestTimeoutSeconds: 1234 });
+  it('cloneLongPollingOptions() should copy timeoutSeconds', () => {
+    expect(cloneLongPollingOptions({ timeoutSeconds: 1234 })).to.deep.equal({
+      timeoutSeconds: 1234
+    });
   });
 
   it('cloneLongPollingOptions() should not copy properties not defined in ExperimentalLongPollingOptions', () => {
     const options = {
-      idleHttpRequestTimeoutSeconds: 1234,
+      timeoutSeconds: 1234,
       someOtherProperty: 42
     } as ExperimentalLongPollingOptions;
     expect(cloneLongPollingOptions(options)).to.deep.equal({
-      idleHttpRequestTimeoutSeconds: 1234
+      timeoutSeconds: 1234
     });
   });
 });
