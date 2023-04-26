@@ -28,8 +28,9 @@
 export interface ExperimentalLongPollingOptions {
   /**
    * The desired maximum timeout interval, in seconds, to complete a
-   * long-polling GET response. Valid values are integers between 5 and 30,
-   * inclusive.
+   * long-polling GET response. Valid values are between 5 and 30, inclusive.
+   * Floating point values are allowed and will be rounded to the nearest
+   * millisecond.
    *
    * By default, when long-polling is used the "hanging GET" request sent by
    * the client times out after 30 seconds. To request a different timeout
