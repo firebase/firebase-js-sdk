@@ -30,6 +30,7 @@ import {
   _getProvider,
   _removeServiceInstance
 } from './internal';
+import { logger } from './logger';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -60,10 +61,12 @@ describe('Internal API tests', () => {
     it('does NOT throw registering duplicate components', () => {
       const app = initializeApp({}) as FirebaseAppImpl;
       const testComp = createTestComponent('test');
+      const debugStub = stub(logger, 'debug');
 
       _addComponent(app, testComp);
 
       expect(() => _addComponent(app, testComp)).to.not.throw();
+      expect(debugStub).to.be.called;
       expect(app.container.getProvider('test').getComponent()).to.equal(
         testComp
       );
