@@ -1,5 +1,15 @@
 # @firebase/webchannel-wrapper
 
+## 0.10.0
+
+### Minor Changes
+
+- [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564) [#7229](https://github.com/firebase/firebase-js-sdk/pull/7229) - Implemented an optimization in the local cache synchronization logic that reduces the number of billed document reads when documents were deleted on the server while the client was not actively listening to the query (e.g. while the client was offline).
+
+### Patch Changes
+
+- [`5e5c41225`](https://github.com/firebase/firebase-js-sdk/commit/5e5c41225869a5b3f315f2440d382ab010ba2e39) [#7228](https://github.com/firebase/firebase-js-sdk/pull/7228) - Make webchannel-wrapper exports Node-ESM-friendly.
+
 ## 0.9.0
 
 ### Minor Changes
