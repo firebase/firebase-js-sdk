@@ -124,11 +124,11 @@ async function main() {
   const errors = [];
   try {
     await exec(`yarn changeset status`);
-    console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_STATE`);
+    console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
   } catch (e) {
     const error = e as Error;
     if (error.message.match('No changesets present')) {
-      console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_STATE`);
+      console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
     } else {
       const messageLines = error.message.replace(/🦋  error /g, '').split('\n');
       let formattedStatusError =
@@ -149,7 +149,7 @@ async function main() {
        * step. See:
        * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
        */
-      console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_STATE`);
+      console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
     }
   }
 
@@ -185,13 +185,13 @@ async function main() {
             `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
               `additional line to bump the main "firebase" package to ${bumpText}.`
           );
-          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_STATE`);
+          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
         } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
           errors.push(
             `- Package ${bumpPackage} has a ${bumpText} bump. ` +
               `Increase the bump for the main "firebase" package to ${bumpText}.`
           );
-          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_STATE`);
+          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
         }
       }
     }
@@ -207,7 +207,7 @@ async function main() {
    */
   if (errors.length > 0)
     console.log(
-      `"CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_STATE`
+      `"CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`
     );
   process.exit();
 }

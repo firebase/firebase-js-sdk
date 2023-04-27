@@ -313,7 +313,7 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Signs out the current user.
+   * Signs out the current user. This does not automatically revoke the user's ID token.
    */
   signOut(): Promise<void>;
 }
