@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.10.0
+
+### Minor Changes
+
+- [`0a27d2fbf`](https://github.com/firebase/firebase-js-sdk/commit/0a27d2fbf268f07099d4fa5ecab7fbf35a579780) [#7158](https://github.com/firebase/firebase-js-sdk/pull/7158) - Add method `getGoogleAnalyticsClientId()` to retrieve an unique identifier for a web client. This allows users to log purchase and other events from their backends using Google Analytics 4 Measurement Protocol and to have those events be connected to actions taken on the client within their Firebase web app. `getGoogleAnalyticsClientId()` will simplify this event recording process.
+
 ## 0.9.5
 
 ### Patch Changes
