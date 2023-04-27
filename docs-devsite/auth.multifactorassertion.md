@@ -24,7 +24,7 @@ export interface MultiFactorAssertion
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [factorId](./auth.multifactorassertion.md#multifactorassertionfactorid) | typeof [FactorIdMap](./auth.md#factorid)<!-- -->\[keyof typeof [FactorIdMap](./auth.md#factorid)<!-- -->\] | The identifier of the second factor. |
+|  [factorId](./auth.multifactorassertion.md#multifactorassertionfactorid) | (typeof [FactorIdMap](./auth.md#factorid)<!-- -->)\[keyof typeof [FactorIdMap](./auth.md#factorid)<!-- -->\] | The identifier of the second factor. |
 
 ## MultiFactorAssertion.factorId
 
@@ -33,5 +33,5 @@ The identifier of the second factor.
 <b>Signature:</b>
 
 ```typescript
-readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 ```

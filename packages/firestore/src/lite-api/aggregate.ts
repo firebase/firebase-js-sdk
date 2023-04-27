@@ -18,8 +18,7 @@
 import { deepEqual } from '@firebase/util';
 
 import { AggregateImpl } from '../core/aggregate';
-import { AggregateAlias } from '../model/aggregate_alias';
-import { ObjectValue } from '../model/object_value';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -109,7 +108,7 @@ export function getAggregate<
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
-      new AggregateAlias(alias),
+      alias,
       aggregate._aggregateType,
       aggregate._internalFieldPath
     );
@@ -134,7 +133,7 @@ function convertToAggregateQuerySnapshot<
 >(
   firestore: Firestore,
   query: Query<AppType, DbType>,
-  aggregateResult: ObjectValue
+  aggregateResult: ApiClientObjectMap<Value>
 ): AggregateQuerySnapshot<AggregateSpecType, AppType, DbType> {
   const userDataWriter = new LiteUserDataWriter(firestore);
   const querySnapshot = new AggregateQuerySnapshot<

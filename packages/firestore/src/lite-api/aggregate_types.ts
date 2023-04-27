@@ -16,8 +16,8 @@
  */
 
 import { AggregateType } from '../core/aggregate';
-import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
 import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
@@ -91,7 +91,7 @@ export class AggregateQuerySnapshot<
   constructor(
     query: Query<AppType, DbType>,
     private readonly _userDataWriter: AbstractUserDataWriter,
-    private readonly _data: ObjectValue
+    private readonly _data: ApiClientObjectMap<Value>
   ) {
     this.query = query;
   }
@@ -108,8 +108,8 @@ export class AggregateQuerySnapshot<
    * query.
    */
   data(): AggregateSpecData<AggregateSpecType> {
-    return this._userDataWriter.convertValue(
-      this._data.value
+    return this._userDataWriter.convertObjectMap(
+      this._data
     ) as AggregateSpecData<AggregateSpecType>;
   }
 }
