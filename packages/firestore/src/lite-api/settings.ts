@@ -37,7 +37,7 @@ export const DEFAULT_SSL = true;
 // The minimum long-polling timeout is hardcoded on the server. The value here
 // should be kept in sync with the value used by the server, as the server will
 // silently ignore a value below the minimum and fall back to the default.
-// Googlers see http://google3/net/webchannel/internal/webchannel_config.cc;l=118;rcl=510899643
+// Googlers see b/266868871 for relevant discussion.
 const MIN_LONG_POLLING_TIMEOUT_SECONDS = 5;
 
 // No maximum long-polling timeout is configured in the server, and defaults to
