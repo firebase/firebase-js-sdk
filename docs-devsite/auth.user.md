@@ -36,7 +36,7 @@ export interface User extends UserInfo
 |  --- | --- |
 |  [delete()](./auth.user.md#userdelete) | Deletes and signs out the user. |
 |  [getIdToken(forceRefresh)](./auth.user.md#usergetidtoken) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
-|  [getIdTokenResult(forceRefresh)](./auth.user.md#usergetidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service. |
+|  [getIdTokenResult(forceRefresh)](./auth.user.md#usergetidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [reload()](./auth.user.md#userreload) | Refreshes the user, if signed in. |
 |  [toJSON()](./auth.user.md#usertojson) | Returns a JSON-serializable representation of this object. |
 
@@ -154,7 +154,7 @@ Promise&lt;string&gt;
 
 ## User.getIdTokenResult()
 
-Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
 
 Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 
