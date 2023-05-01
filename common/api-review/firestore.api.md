@@ -185,6 +185,11 @@ export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstr
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
+export interface ExperimentalLongPollingOptions {
+    timeoutSeconds?: number;
+}
+
+// @public
 export class FieldPath {
     constructor(...fieldNames: string[]);
     isEqual(other: FieldPath): boolean;
@@ -227,6 +232,7 @@ export interface FirestoreSettings {
     cacheSizeBytes?: number;
     experimentalAutoDetectLongPolling?: boolean;
     experimentalForceLongPolling?: boolean;
+    experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
     host?: string;
     ignoreUndefinedProperties?: boolean;
     localCache?: FirestoreLocalCache;

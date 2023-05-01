@@ -5758,16 +5758,7 @@ chainsaw@~0.1.0:
   dependencies:
     traverse ">=0.3.0 <0.4"
 
-chalk@2.x, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.4.1, chalk@^2.4.2:
-  version "2.4.2"
-  resolved "https://registry.npmjs.org/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
-  integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
-  dependencies:
-    ansi-styles "^3.2.1"
-    escape-string-regexp "^1.0.5"
-    supports-color "^5.3.0"
-
-chalk@4.1.2, chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
+chalk@4.1.2, chalk@4.x, chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
   version "4.1.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
   integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
@@ -5785,6 +5776,15 @@ chalk@^1.0.0, chalk@^1.1.1, chalk@^1.1.3:
     has-ansi "^2.0.0"
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
+
+chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.4.1, chalk@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.npmjs.org/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
+  integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
+  dependencies:
+    ansi-styles "^3.2.1"
+    escape-string-regexp "^1.0.5"
+    supports-color "^5.3.0"
 
 chalk@^5.0.0:
   version "5.0.1"
@@ -9190,45 +9190,45 @@ google-auth-library@^8.0.2:
     jws "^4.0.0"
     lru-cache "^6.0.0"
 
-google-closure-compiler-java@^20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20220301.0.0.tgz#6283bad6991ae9cfb3a9fdf72bbd7bf0c8f21fb6"
-  integrity sha512-kv5oaUI4xn3qWYWtRHRqbm314kesfeFlCxiFRcvBIx13mKfR0qvbOkgajLpSM6nb3voNM/E9MB9mfvHJ9XIXSg==
+google-closure-compiler-java@^20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20230228.0.0.tgz#d74036a40917166e7b4fb6cf5e8878eada2ab93f"
+  integrity sha512-t0sXYJbhfkuNTF6zniwrTv4gLap620D32v6GwBJQzlYUg0lb7yQHN9KswwqBsuuO917cPNwW4okI0O40G7GrMQ==
 
-google-closure-compiler-linux@^20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20220301.0.0.tgz#3ac8cd1cb51d703a89bc49c239df4c10b57f37bb"
-  integrity sha512-N2D0SRnxZ7kqdoZ2WsmLIjmizR4Xr0HaUYDK2RCOtsV21RYV8OR2u0ATp7aXhYy8WfxvYH478Ehvmc9Uzy986A==
+google-closure-compiler-linux@^20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20230228.0.0.tgz#17cb6187015e0e2ae8c2dd5b560228fdf5625818"
+  integrity sha512-5YLxfWS8lvHkD/a0+pitTuDV1X9QPBToGQ5mnLFg7HcbBR1w6I5ZKHjl7FAsAOHEXYwIrStwwaLzrNzbolrZLg==
 
-google-closure-compiler-osx@^20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20220301.0.0.tgz#1a49eb1d78b6bfb90ebe51c24a7151cee4f319a3"
-  integrity sha512-Xqf0m5takwfv43ML4aODJxmAsAZQMTMo683gyRs0APAecncs+YKxaDPMH+pQAdI3HPY2QsvkarlunAp0HSwU5A==
+google-closure-compiler-osx@^20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20230228.0.0.tgz#245caa71b2eff3c5f4a4ec2046b2dd766c5fbe2f"
+  integrity sha512-ORveHpHuNhJEJIGir35+xP4UuBOldSO8XeOwJV5yunUhZAPzR4aixdTdtm6i0GsqW4/Eu2cjcHrkIR3eFCcwSg==
 
-google-closure-compiler-windows@^20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20220301.0.0.tgz#b09df91a789e458eb9ebf054a9bb2d2b29622b6f"
-  integrity sha512-s+FU/vcpLTEgx8MCMgj0STCYkVk7syzF9KqiYPOTtbTD9ra99HPe/CEuQG7iJ3Fty9dhm9zEaetv4Dp4Wr6x+Q==
+google-closure-compiler-windows@^20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20230228.0.0.tgz#dff4afcd6d21a831b38a9bdb873eed0daca79807"
+  integrity sha512-xKMjUq6JwEOFqS97S86TWkn+BMiDHjP85mMgAmR8vRmKxgfHIyxMcr+RlMz0msgY9jedgj119KXyOe32lIQTjA==
 
-google-closure-compiler@20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20220301.0.0.tgz#1c4f56076ae5b2c900a91d0a72515f7ee7f5d3cd"
-  integrity sha512-+yAqhufKIWddg587tnvRll92eLJQIlzINmgr1h5gLXZVioY3svrSYKH4TZiUuNj0UnVFoK0o1YuW122x+iFl2g==
+google-closure-compiler@20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20230228.0.0.tgz#a891408dca350bb7fe56ee50e2b4ee97f3a740d6"
+  integrity sha512-jFI4QNZgM4WhNIoaRNwA5kHq6n6NKSWZj3N9HgRsJE9bN4LUrkIURI+svChbEp/WmGh3Bt3o3/5kUlOOWyCo3Q==
   dependencies:
-    chalk "2.x"
-    google-closure-compiler-java "^20220301.0.0"
+    chalk "4.x"
+    google-closure-compiler-java "^20230228.0.0"
     minimist "1.x"
     vinyl "2.x"
     vinyl-sourcemaps-apply "^0.2.0"
   optionalDependencies:
-    google-closure-compiler-linux "^20220301.0.0"
-    google-closure-compiler-osx "^20220301.0.0"
-    google-closure-compiler-windows "^20220301.0.0"
+    google-closure-compiler-linux "^20230228.0.0"
+    google-closure-compiler-osx "^20230228.0.0"
+    google-closure-compiler-windows "^20230228.0.0"
 
-google-closure-library@20220301.0.0:
-  version "20220301.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20220301.0.0.tgz#c9aaa99218f949b1f914a86f2a4529dea20e2e47"
-  integrity sha512-GRRBfG80JPqkKkTxiRoVr/x4UmnPW2aeA72NH0zapPtrvSkAOCzfJFrdudLrAJJtXPdSE65+CkYrpZX8tP0mCQ==
+google-closure-library@20230228.0.0:
+  version "20230228.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20230228.0.0.tgz#8ef2f9de391c69e8b8e26e7c0bcd413b0b6bb605"
+  integrity sha512-yIe7gpacdmfM8n6Cvswajw7MgiWYwr46/1HHVCYKthyrfEBabDa1zCH6BPJJi07cnN7ImCyKtOGZXz6EAwtXBg==
 
 google-gax@^3.0.1:
   version "3.1.3"

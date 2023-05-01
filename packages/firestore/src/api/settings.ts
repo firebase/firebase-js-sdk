@@ -18,6 +18,7 @@
 import { FirestoreSettings as LiteSettings } from '../lite-api/settings';
 
 import { FirestoreLocalCache } from './cache_config';
+import { ExperimentalLongPollingOptions } from './long_polling_options';
 
 export { DEFAULT_HOST } from '../lite-api/settings';
 
@@ -92,4 +93,15 @@ export interface FirestoreSettings extends LiteSettings {
    * cannot be combined with `experimentalForceLongPolling`.
    */
   experimentalAutoDetectLongPolling?: boolean;
+
+  /**
+   * Options that configure the SDK’s underlying network transport (WebChannel)
+   * when long-polling is used.
+   *
+   * These options are only used if `experimentalForceLongPolling` is true or if
+   * `experimentalAutoDetectLongPolling` is true and the auto-detection
+   * determined that long-polling was needed. Otherwise, these options have no
+   * effect.
+   */
+  experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
 }

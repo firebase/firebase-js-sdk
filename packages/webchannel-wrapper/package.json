@@ -27,8 +27,8 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@rollup/plugin-commonjs": "21.1.0",
-    "google-closure-compiler": "20220301.0.0",
-    "google-closure-library": "20220301.0.0",
+    "google-closure-compiler": "20230228.0.0",
+    "google-closure-library": "20230228.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "rollup": "2.79.1",
