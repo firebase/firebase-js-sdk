@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # RecaptchaVerifier class
 An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier.
 
+`RecaptchaVerifier` is not available in Node.js.
+
 <b>Signature:</b>
 
 ```typescript

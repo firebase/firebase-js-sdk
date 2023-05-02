@@ -253,4 +253,5 @@ const phoneCredential = PhoneAuthProvider.credential(verificationId, verificatio
 const userCredential = await signInWithCredential(auth, phoneCredential);
 
 ```
+`PhoneAuthProvider` is not available in Node.js.
 

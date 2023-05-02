@@ -37,6 +37,9 @@ import { ProviderId, SignInMethod } from '../../model/enums';
 /**
  * Provider for generating an {@link PhoneAuthCredential}.
  *
+ * @remarks
+ * `PhoneAuthProvider` is not available in Node.js.
+ *
  * @example
  * ```javascript
  * // 'recaptcha-container' is the ID of an element in the DOM.
@@ -47,8 +50,6 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
  * const userCredential = await signInWithCredential(auth, phoneCredential);
  * ```
- *
- * `PhoneAuthProvider` is not available in Node.js.
  * 
  * @public
  */

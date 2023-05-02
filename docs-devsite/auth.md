@@ -57,7 +57,7 @@ Firebase Authentication
 |  [getIdToken(user, forceRefresh)](./auth.md#getidtoken) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [linkWithCredential(user, credential)](./auth.md#linkwithcredential) | Links the user account with the given credentials. |
-|  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#linkwithphonenumber) | Links the user account with the given phone number. |
+|  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#linkwithphonenumber) | Links the user account with the given phone number.<!-- -->This method is not available in Node.js. |
 |  [linkWithPopup(user, provider, resolver)](./auth.md#linkwithpopup) | Links the authenticated provider to the user account using a pop-up based OAuth flow. |
 |  [linkWithRedirect(user, provider, resolver)](./auth.md#linkwithredirect) | Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow. |
 |  [multiFactor(user)](./auth.md#multifactor) | The [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) corresponding to the user. |
@@ -92,7 +92,7 @@ Firebase Authentication
 |  [PhoneAuthCredential](./auth.phoneauthcredential.md#phoneauthcredential_class) | Represents the credentials returned by [PhoneAuthProvider](./auth.phoneauthprovider.md#phoneauthprovider_class)<!-- -->. |
 |  [PhoneAuthProvider](./auth.phoneauthprovider.md#phoneauthprovider_class) | Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md#phoneauthcredential_class)<!-- -->. |
 |  [PhoneMultiFactorGenerator](./auth.phonemultifactorgenerator.md#phonemultifactorgenerator_class) | Provider for generating a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface)<!-- -->. |
-|  [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
+|  [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier.<code>RecaptchaVerifier</code> is not available in Node.js. |
 |  [SAMLAuthProvider](./auth.samlauthprovider.md#samlauthprovider_class) | An [AuthProvider](./auth.authprovider.md#authprovider_interface) for SAML. |
 |  [TotpMultiFactorGenerator](./auth.totpmultifactorgenerator.md#totpmultifactorgenerator_class) | Provider for generating a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface)<!-- -->. |
 |  [TotpSecret](./auth.totpsecret.md#totpsecret_class) | Provider for generating a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface)<!-- -->.<!-- -->Stores the shared secret key and other parameters to generate time-based OTPs. Implements methods to retrieve the shared secret key and generate a QR code URL. |
@@ -147,7 +147,7 @@ Firebase Authentication
 |  [ActionCodeOperation](./auth.md#actioncodeoperation) | An enumeration of the possible email action types. |
 |  [AuthErrorCodes](./auth.md#autherrorcodes) | A map of potential <code>Auth</code> error codes, for easier comparison with errors thrown by the SDK. |
 |  [browserLocalPersistence](./auth.md#browserlocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type <code>LOCAL</code> using <code>localStorage</code> for the underlying storage. |
-|  [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications. |
+|  [browserPopupRedirectResolver](./auth.md#browserpopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications.<!-- -->This method is not available in Node.js. |
 |  [browserSessionPersistence](./auth.md#browsersessionpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of <code>SESSION</code> using <code>sessionStorage</code> for the underlying storage. |
 |  [cordovaPopupRedirectResolver](./auth.md#cordovapopupredirectresolver) | An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for Cordova based applications. |
 |  [debugErrorMap](./auth.md#debugerrormap) | A verbose error map with detailed descriptions for most error codes.<!-- -->See discussion at [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) |
@@ -453,7 +453,7 @@ export declare function getRedirectResult(auth: Auth, resolver?: PopupRedirectRe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->.<!-- -->This method is not available in Node.js. |
 
 <b>Returns:</b>
 
@@ -720,6 +720,7 @@ A `Promise` that resolves once the persistence change has completed
 setPersistence(auth, browserSessionPersistence);
 
 ```
+This method has no effect in Node.js.
 
 ## signInAnonymously()
 
@@ -906,6 +907,7 @@ const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applic
 const credential = await confirmationResult.confirm(verificationCode);
 
 ```
+This method is not available in Node.js.
 
 ## signInWithPopup()
 
@@ -925,7 +927,7 @@ export declare function signInWithPopup(auth: Auth, provider: AuthProvider, reso
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->.<!-- -->This method is not available in Node.js. |
 
 <b>Returns:</b>
 
@@ -965,7 +967,7 @@ export declare function signInWithRedirect(auth: Auth, provider: AuthProvider, r
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->.<!-- -->This method is not available in Node.js. |
 
 <b>Returns:</b>
 
@@ -1204,6 +1206,8 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Links the user account with the given phone number.
 
+This method is not available in Node.js.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1257,6 +1261,7 @@ const provider = new FacebookAuthProvider();
 await linkWithPopup(result.user, provider);
 
 ```
+This method is not available in Node.js.
 
 ## linkWithRedirect()
 
@@ -1276,7 +1281,7 @@ export declare function linkWithRedirect(user: User, provider: AuthProvider, res
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->.<!-- -->This method is not available in Node.js. |
 
 <b>Returns:</b>
 
@@ -1349,6 +1354,8 @@ Re-authenticates a user using a fresh phone credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword) that require tokens from recent sign-in attempts.
 
+This method is not available in Node.js.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1402,6 +1409,7 @@ const result = await signInWithPopup(auth, provider);
 await reauthenticateWithPopup(result.user, provider);
 
 ```
+This method is not available in Node.js.
 
 ## reauthenticateWithRedirect()
 
@@ -1421,7 +1429,7 @@ export declare function reauthenticateWithRedirect(user: User, provider: AuthPro
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->.<!-- -->This method is not available in Node.js. |
 
 <b>Returns:</b>
 
@@ -1615,6 +1623,7 @@ const phoneCredential = PhoneAuthProvider.credential(verificationId, verificatio
 await updatePhoneNumber(user, phoneCredential);
 
 ```
+This method is not available in Node.js.
 
 ## updateProfile()
 
@@ -1854,6 +1863,8 @@ browserLocalPersistence: Persistence
 ## browserPopupRedirectResolver
 
 An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications.
+
+This method is not available in Node.js.
 
 <b>Signature:</b>
 

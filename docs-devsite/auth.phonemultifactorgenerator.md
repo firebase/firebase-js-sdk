@@ -28,7 +28,7 @@ export declare class PhoneMultiFactorGenerator
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertion(credential)](./auth.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) to confirm ownership of the phone second factor. |
+|  [assertion(credential)](./auth.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) to confirm ownership of the phone second factor.<!-- -->This method is not available in Node.js. |
 
 ## PhoneMultiFactorGenerator.FACTOR\_ID
 
@@ -43,6 +43,8 @@ static FACTOR_ID: string;
 ## PhoneMultiFactorGenerator.assertion()
 
 Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) to confirm ownership of the phone second factor.
+
+This method is not available in Node.js.
 
 <b>Signature:</b>
 

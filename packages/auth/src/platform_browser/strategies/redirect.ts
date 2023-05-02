@@ -44,6 +44,8 @@ import { getModularInstance } from '@firebase/util';
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link signInWithRedirect}.
+ * 
+ * This method is not available in Node.js.
  *
  * @example
  * ```javascript
@@ -75,8 +77,6 @@ import { getModularInstance } from '@firebase/util';
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- * 
- * This method is not available in Node.js.
  *
  * @public
  */
@@ -115,6 +115,8 @@ export async function _signInWithRedirect(
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link reauthenticateWithRedirect}.
+ * 
+ * This method is not available in Node.js.
  *
  * @example
  * ```javascript
@@ -138,8 +140,6 @@ export async function _signInWithRedirect(
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- * 
- * This method is not available in Node.js.
  *
  * @public
  */
@@ -185,6 +185,8 @@ export async function _reauthenticateWithRedirect(
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link linkWithRedirect}.
  *
+ * This method is not available in Node.js.
+ *
  * @example
  * ```javascript
  * // Sign in using some other provider.
@@ -203,8 +205,6 @@ export async function _reauthenticateWithRedirect(
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- *
- * This method is not available in Node.js.
  *
  * @public
  */
@@ -246,6 +246,8 @@ export async function _linkWithRedirect(
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
  * error. If no redirect operation was called, returns `null`.
+ * 
+ * This method is not available in Node.js.
  *
  * @example
  * ```javascript
@@ -275,8 +277,6 @@ export async function _linkWithRedirect(
  * @param auth - The {@link Auth} instance.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- * 
- * This method is not available in Node.js.
  *
  * @public
  */
