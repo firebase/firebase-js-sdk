@@ -2,100 +2,99 @@ name: 🐞 Bug Report V2
 description: File a bug report
 title: '[Bug]: '
 labels: ''
-assignees: ''
+assignees: '      '
 body:
-  body:
-    - type: markdown
-      attributes:
-        value: |
-          '[READ THIS] Are you in the right place?'
-          '  * For issues or feature requests related to __the code in this repository__,'
-          '    file a Github issue.'
-          '    * If this is a __feature request__, make sure the issue title starts with "FR:". '
-          '  * For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) '
-          '    with the firebase tag. '
-          '  * For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) '
-          '    google group. '
-          '  * For help troubleshooting your application that does not fall under one '
-          '    of the above categories, reach out to the personalized '
-          '    [Firebase support channel](https://firebase.google.com/support/).'
-    - type: input
-      id: operating-system
-      attributes:
-        label: Operating System
-        description: Describe your operating system
-        placeholder: ex. iOS 16.4
-      validations:
-        required: true
-    - type: input
-      id: browser-version
-      attributes:
-        label: Browser Version
-        description: Describe your browser version
-        placeholder: ex. Safari/604.1
-      validations:
-        required: true
-    - type: input
-      id: firebase-sdk-version
-      attributes:
-        label: Firebase SDK Version
-        description: Describe your Firebase SDK Version
-        placeholder: ex. 9.16.0
-      validations:
-        required: true
-    - type: input
-      id: firebase-sdk-product
-      attributes:
-        label: Firebase SDK Product
-        description: Describe your Firebase SDK Product
-        placeholder: ex. Auth
-      validations:
-        required: true
-    - type: textarea
-      id: framework
-      attributes:
-        label: Describe the framework
-        description: Describe the framework your app is built with
-        placeholder: ex. React Native using ExpoGo
-      validations:
-        required: true
-    - type: markdown
-      attributes:
-        value: |
-          'Describe the problem'
-    - type: textarea
-      id: steps-to-reproduce
-      attributes:
-        label: Steps to reproduce
-        description: Describe the steps to reproduce
-        placeholder: |
-          ' What happened? How can we make the problem occur?'
-          'This could be a description, log/console output, etc.'
-      validations:
-        required: true
-    - type: input
-      id: browser-version
-      attributes:
-        label: Browser Version
-        description: Describe your browser version
-        placeholder: |
-          ' What happened? How can we make the problem occur?'
-          'This could be a description, log/console output, etc.'
-      validations:
-        required: true
-    - type: textarea
-      id: logs
-      attributes:
-        label: Relevant log output
-        description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-        render: javascript
-      validations:
-        required: true
-    - type: textarea
-      id: reproduce-code
-      attributes:
-        label: Code to reproduce issue
-        description: Please copy and paste any relevant code here to reproduce the problem or links to code to reproduce it.
-        render: javascript
-      validations:
-        required: true
+  - type: markdown
+    attributes:
+      value: |
+        '[READ THIS] Are you in the right place?'
+        '  * For issues or feature requests related to __the code in this repository__,'
+        '    file a Github issue.'
+        '    * If this is a __feature request__, make sure the issue title starts with "FR:". '
+        '  * For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) '
+        '    with the firebase tag. '
+        '  * For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) '
+        '    google group. '
+        '  * For help troubleshooting your application that does not fall under one '
+        '    of the above categories, reach out to the personalized '
+        '    [Firebase support channel](https://firebase.google.com/support/).'
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: Describe your operating system
+      placeholder: ex. iOS 16.4
+    validations:
+      required: true
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser Version
+      description: Describe your browser version
+      placeholder: ex. Safari/604.1
+    validations:
+      required: true
+  - type: input
+    id: firebase-sdk-version
+    attributes:
+      label: Firebase SDK Version
+      description: Describe your Firebase SDK Version
+      placeholder: ex. 9.16.0
+    validations:
+      required: true
+  - type: input
+    id: firebase-sdk-product
+    attributes:
+      label: Firebase SDK Product
+      description: Describe your Firebase SDK Product
+      placeholder: ex. Auth
+    validations:
+      required: true
+  - type: textarea
+    id: framework
+    attributes:
+      label: Describe the framework
+      description: Describe the framework your app is built with
+      placeholder: ex. React Native using ExpoGo
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        'Describe the problem'
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Describe the steps to reproduce
+      placeholder: |
+        ' What happened? How can we make the problem occur?'
+        'This could be a description, log/console output, etc.'
+    validations:
+      required: true
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser Version
+      description: Describe your browser version
+      placeholder: |
+        ' What happened? How can we make the problem occur?'
+        'This could be a description, log/console output, etc.'
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: javascript
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-code
+    attributes:
+      label: Code to reproduce issue
+      description: Please copy and paste any relevant code here to reproduce the problem or links to code to reproduce it.
+      render: javascript
+    validations:
+      required: true
