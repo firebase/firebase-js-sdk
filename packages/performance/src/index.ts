@@ -1,8 +1,6 @@
 /**
  * The Firebase Performance Monitoring Web SDK.
- * 
- * The Firebase Performance Monitoring Web SDK currently does not work
- * in Node.js.
+ * This SDK currently does not work in Node.js.
  *
  * @packageDocumentation
  */

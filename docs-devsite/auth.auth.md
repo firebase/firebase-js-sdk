@@ -221,6 +221,8 @@ This will affect the currently saved Auth session and applies this type of persi
 
 This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the Auth state for applications that are shared by other users or have sensitive data.
 
+This method has no effect in Node.js.
+
 <b>Signature:</b>
 
 ```typescript

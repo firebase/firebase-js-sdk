@@ -81,6 +81,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * This function can work on other platforms that do not support the
  * {@link RecaptchaVerifier} (like React Native), but you need to use a
  * third-party {@link ApplicationVerifier} implementation.
+ * 
+ * This method is not available in Node.js.
  *
  * @example
  * ```javascript
@@ -90,8 +92,6 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * // Obtain a verificationCode from the user.
  * const credential = await confirmationResult.confirm(verificationCode);
  * ```
- * 
- * This method is not available in Node.js.
  *
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -118,6 +118,7 @@ export async function signInWithPhoneNumber(
 /**
  * Links the user account with the given phone number.
  * 
+ * @remarks
  * This method is not available in Node.js.
  *
  * @param user - The user.
@@ -146,7 +147,8 @@ export async function linkWithPhoneNumber(
 /**
  * Re-authenticates a user using a fresh phone credential.
  *
- * @remarks Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
+ * @remarks
+ * Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
  * 
  * This method is not available in Node.js.
  *
@@ -255,6 +257,9 @@ export async function _verifyPhoneNumber(
 
 /**
  * Updates the user's phone number.
+ * 
+ * @remarks
+ * This method is not available in Node.js.
  *
  * @example
  * ```
@@ -266,8 +271,6 @@ export async function _verifyPhoneNumber(
  * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
  * await updatePhoneNumber(user, phoneCredential);
  * ```
- * 
- * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param credential - A credential authenticating the new phone number.
