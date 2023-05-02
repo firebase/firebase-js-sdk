@@ -6,17 +6,12 @@ body:
     id: before-you-start
     attributes:
       value: |
-        '[READ THIS] Are you in the right place?'
-        '  * For issues or feature requests related to __the code in this repository__,'
-        '    file a Github issue.'
-        '    * If this is a __feature request__, make sure the issue title starts with "FR:". '
-        '  * For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) '
-        '    with the firebase tag. '
-        '  * For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) '
-        '    google group. '
-        '  * For help troubleshooting your application that does not fall under one '
-        '    of the above categories, reach out to the personalized '
-        '    [Firebase support channel](https://firebase.google.com/support/).'
+        *[READ THIS]:* to evaluate if you are in the right place?
+        - For issues or feature requests related to __the code in this repository__, file a Github issue.
+        - If this is a __feature request__, make sure the issue title starts with "FR:".
+        - For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) with the firebase tag.
+        - For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) google group.
+        - For help troubleshooting your application that does not fall under one of the above categories, reach out to the personalized [Firebase support channel](https://firebase.google.com/support/).
   - type: input
     id: operating-system
     attributes:
@@ -67,16 +62,6 @@ body:
     attributes:
       label: Steps to reproduce
       description: Describe the steps to reproduce
-      placeholder: |
-        ' What happened? How can we make the problem occur?'
-        'This could be a description, log/console output, etc.'
-    validations:
-      required: true
-  - type: input
-    id: browser-version
-    attributes:
-      label: Browser Version
-      description: Describe your browser version
       placeholder: |
         ' What happened? How can we make the problem occur?'
         'This could be a description, log/console output, etc.'
