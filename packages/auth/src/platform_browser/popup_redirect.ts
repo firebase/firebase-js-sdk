@@ -189,6 +189,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolverInternal {
 /**
  * An implementation of {@link PopupRedirectResolver} suitable for browser
  * based applications.
+ * 
+ * This method is not available in Node.js.
  *
  * @public
  */

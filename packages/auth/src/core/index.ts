@@ -48,6 +48,7 @@ export {
  * ```javascript
  * setPersistence(auth, browserSessionPersistence);
  * ```
+ * This method has no effect in Node.js.
  *
  * @param auth - The {@link Auth} instance.
  * @param persistence - The {@link Persistence} to use.

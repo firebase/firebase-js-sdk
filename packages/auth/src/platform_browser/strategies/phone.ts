@@ -90,6 +90,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * // Obtain a verificationCode from the user.
  * const credential = await confirmationResult.confirm(verificationCode);
  * ```
+ * 
+ * This method is not available in Node.js.
  *
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -115,6 +117,8 @@ export async function signInWithPhoneNumber(
 
 /**
  * Links the user account with the given phone number.
+ * 
+ * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -143,6 +147,8 @@ export async function linkWithPhoneNumber(
  * Re-authenticates a user using a fresh phone credential.
  *
  * @remarks Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
+ * 
+ * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -260,6 +266,8 @@ export async function _verifyPhoneNumber(
  * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
  * await updatePhoneNumber(user, phoneCredential);
  * ```
+ * 
+ * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param credential - A credential authenticating the new phone number.
