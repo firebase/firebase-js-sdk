@@ -48,6 +48,8 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * const userCredential = await signInWithCredential(auth, phoneCredential);
  * ```
  *
+ * `PhoneAuthProvider` is not available in Node.js.
+ * 
  * @public
  */
 export class PhoneAuthProvider {

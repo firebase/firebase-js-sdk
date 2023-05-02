@@ -82,6 +82,7 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
+ * This method is not available in Node.js.
  *
  * @public
  */
@@ -118,6 +119,8 @@ export async function signInWithPopup(
  * // Reauthenticate using a popup.
  * await reauthenticateWithPopup(result.user, provider);
  * ```
+ * 
+ * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
@@ -160,6 +163,8 @@ export async function reauthenticateWithPopup(
  * const provider = new FacebookAuthProvider();
  * await linkWithPopup(result.user, provider);
  * ```
+ * 
+ * This method is not available in Node.js.
  *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.

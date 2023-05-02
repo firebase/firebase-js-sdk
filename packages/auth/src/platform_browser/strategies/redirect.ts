@@ -75,6 +75,8 @@ import { getModularInstance } from '@firebase/util';
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ * 
+ * This method is not available in Node.js.
  *
  * @public
  */
@@ -136,6 +138,8 @@ export async function _signInWithRedirect(
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ * 
+ * This method is not available in Node.js.
  *
  * @public
  */
@@ -200,6 +204,7 @@ export async function _reauthenticateWithRedirect(
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
+ * This method is not available in Node.js.
  *
  * @public
  */
@@ -270,6 +275,8 @@ export async function _linkWithRedirect(
  * @param auth - The {@link Auth} instance.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ * 
+ * This method is not available in Node.js.
  *
  * @public
  */

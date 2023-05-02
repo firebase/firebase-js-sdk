@@ -83,6 +83,8 @@ export class PhoneMultiFactorGenerator {
 
   /**
    * Provides a {@link PhoneMultiFactorAssertion} to confirm ownership of the phone second factor.
+   * 
+   * This method is not available in Node.js.
    *
    * @param phoneAuthCredential - A credential provided by {@link PhoneAuthProvider.credential}.
    * @returns A {@link PhoneMultiFactorAssertion} which can be used with
