@@ -426,7 +426,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -651,7 +651,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -701,7 +701,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -1237,7 +1237,7 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
-   * @webonly
+   * This is not available in Node.js.
    *
    * @example
    * ```javascript
@@ -1296,7 +1296,7 @@ declare namespace firebase {
    * The {@link firebase.performance.Performance `Performance`} service does not work with
    * any other app.
    *
-   * @webonly
+   * This is not available in Node.js.
    *
    * @example
    * ```javascript
@@ -1315,7 +1315,7 @@ declare namespace firebase {
   /**
    * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
    *
-   * @webonly
+   * This is not available in Node.js.
    *
    * @example
    * ```javascript
@@ -1335,7 +1335,7 @@ declare namespace firebase {
    * `firebase.analytics()` can be called with no arguments to access the default
    * app's {@link firebase.analytics.Analytics `Analytics`} service.
    *
-   * @webonly
+   * This is not available in Node.js.
    *
    * @example
    * ```javascript
@@ -1404,7 +1404,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.installations.Installations `Installations`} service for the
      * current app.
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -1418,7 +1418,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -1490,7 +1490,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -1503,7 +1503,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -1517,7 +1517,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -1532,7 +1532,7 @@ declare namespace firebase.app {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.appCheck {
   /**
@@ -1696,7 +1696,7 @@ declare namespace firebase.appCheck {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.installations {
   /**
@@ -1745,7 +1745,7 @@ declare namespace firebase.installations {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.performance {
   /**
@@ -1868,7 +1868,7 @@ declare namespace firebase.performance {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.remoteConfig {
   /**
@@ -2670,7 +2670,7 @@ declare namespace firebase.auth {
      *     Firebase console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -3350,7 +3350,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @example
      * ```javascript
@@ -3413,7 +3413,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This is not available in Node.js.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -4628,7 +4628,7 @@ declare namespace firebase.auth {
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
    *
-   * @webonly
+   * This is not available in Node.js.
    *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
@@ -4647,7 +4647,6 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
-   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -4776,7 +4775,7 @@ declare namespace firebase.auth {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.analytics {
   /**
@@ -7436,7 +7435,7 @@ declare namespace firebase.database.ServerValue {
 }
 
 /**
- * @webonly
+ * This is not available in Node.js.
  */
 declare namespace firebase.messaging {
   /**
@@ -8327,7 +8326,7 @@ declare namespace firebase.firestore {
      * work around a specific network reliability issue, please tell us about
      * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
-     * @webonly
+     * This is not available in Node.js.
      */
     experimentalForceLongPolling?: boolean;
 
@@ -8339,7 +8338,7 @@ declare namespace firebase.firestore {
      * This setting will likely be enabled by default in future releases and cannot be
      * combined with `experimentalForceLongPolling`.
      *
-     * @webonly
+     * This is not available in Node.js.
      */
     experimentalAutoDetectLongPolling?: boolean;
 
