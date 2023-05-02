@@ -1,5 +1,7 @@
 /**
- * Firebase Cloud Messaging
+ * The Firebase Cloud Messaging Web SDK.
+ * 
+ * The Firebase Cloud Messaging Web SDK currently does not work in Node.js.
  *
  * @packageDocumentation
  */
