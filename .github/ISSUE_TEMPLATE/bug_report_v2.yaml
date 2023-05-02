@@ -1,10 +1,9 @@
 name: 🐞 Bug Report V2
 description: File a bug report
 title: '[Bug]: '
-labels: ''
-assignees: '      '
 body:
   - type: markdown
+    id: before-you-start
     attributes:
       value: |
         '[READ THIS] Are you in the right place?'
@@ -59,6 +58,7 @@ body:
     validations:
       required: true
   - type: markdown
+    id: describe-your-problem
     attributes:
       value: |
         'Describe the problem'
