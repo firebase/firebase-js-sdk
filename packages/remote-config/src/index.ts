@@ -1,5 +1,7 @@
 /**
- * Firebase Remote Config
+ * The Firebase Remote Config Web SDK.
+ * 
+ * The Firebase Remote Config Web SDK currently does not work in Node.js.
  *
  * @packageDocumentation
  */
