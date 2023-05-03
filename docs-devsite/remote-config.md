@@ -10,9 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # remote-config package
-The Firebase Remote Config Web SDK.
-
-The Firebase Remote Config Web SDK currently does not work in Node.js.
+The Firebase Remote Config Web SDK. This SDK currently does not work in Node.js.
 
 ## Functions
 
