@@ -81,7 +81,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * This function can work on other platforms that do not support the
  * {@link RecaptchaVerifier} (like React Native), but you need to use a
  * third-party {@link ApplicationVerifier} implementation.
- * 
+ *
  * This method is not available in Node.js.
  *
  * @example
@@ -117,7 +117,7 @@ export async function signInWithPhoneNumber(
 
 /**
  * Links the user account with the given phone number.
- * 
+ *
  * @remarks
  * This method is not available in Node.js.
  *
@@ -149,7 +149,7 @@ export async function linkWithPhoneNumber(
  *
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
- * 
+ *
  * This method is not available in Node.js.
  *
  * @param user - The user.
@@ -257,7 +257,7 @@ export async function _verifyPhoneNumber(
 
 /**
  * Updates the user's phone number.
- * 
+ *
  * @remarks
  * This method is not available in Node.js.
  *

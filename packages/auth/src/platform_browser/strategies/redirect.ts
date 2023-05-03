@@ -44,7 +44,7 @@ import { getModularInstance } from '@firebase/util';
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link signInWithRedirect}.
- * 
+ *
  * This method is not available in Node.js.
  *
  * @example
@@ -115,7 +115,7 @@ export async function _signInWithRedirect(
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link reauthenticateWithRedirect}.
- * 
+ *
  * This method is not available in Node.js.
  *
  * @example
@@ -246,7 +246,7 @@ export async function _linkWithRedirect(
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
  * error. If no redirect operation was called, returns `null`.
- * 
+ *
  * This method is not available in Node.js.
  *
  * @example

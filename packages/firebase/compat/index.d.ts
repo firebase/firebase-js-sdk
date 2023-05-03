@@ -8047,30 +8047,6 @@ declare namespace firebase.storage {
     UNSUPPORTED_ENVIRONMENT = 'unsupported-environment'
   }
 
-  /**
-   * An error returned by the Firebase Storage SDK.
-   */
-  export interface FirebaseStorageError extends FirebaseError {
-    /**
-     * Stores custom error data unique to the `StorageError`.
-     */
-    customData: {
-      serverResponse: string | null;
-    };
-
-    get status(): number;
-    set status(status: number);
-    /**
-     * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
-     */
-    _codeEquals(code: StorageErrorCode): boolean;
-    /**
-     * Optional response message that was added by the server.
-     */
-    get serverResponse(): null | string;
-    set serverResponse(serverResponse: string | null);
-  }
-
   interface StorageObserver<T> {
     next?: NextFn<T> | null;
     error?: (error: FirebaseStorageError) => void | null;
@@ -8267,6 +8243,30 @@ declare namespace firebase.storage {
      * The total number of bytes to be uploaded.
      */
     totalBytes: number;
+  }
+
+  /**
+   * An error returned by the Firebase Storage SDK.
+   */
+  export interface FirebaseStorageError extends FirebaseError {
+    /**
+     * Stores custom error data unique to the `StorageError`.
+     */
+    customData: {
+      serverResponse: string | null;
+    };
+
+    get status(): number;
+    set status(status: number);
+    /**
+     * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
+     */
+    _codeEquals(code: StorageErrorCode): boolean;
+    /**
+     * Optional response message that was added by the server.
+     */
+    get serverResponse(): null | string;
+    set serverResponse(serverResponse: string | null);
   }
 }
 

@@ -43,7 +43,7 @@ type TokenCallback = (token: string) => void;
 
 /**
  * An {@link https://www.google.com/recaptcha/ | reCAPTCHA}-based application verifier.
- * 
+ *
  * @remarks
  * `RecaptchaVerifier` is not available in Node.js.
  *
