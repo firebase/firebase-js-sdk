@@ -50,7 +50,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
  * const userCredential = await signInWithCredential(auth, phoneCredential);
  * ```
- * 
+ *
  * @public
  */
 export class PhoneAuthProvider {

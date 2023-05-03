@@ -81,7 +81,7 @@ export interface FirestoreSettings extends LiteSettings {
    * may be removed in a future release. If you find yourself using it to
    * work around a specific network reliability issue, please tell us about
    * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
-   * 
+   *
    * This setting cannot be used in a Node.js environment.
    */
   experimentalForceLongPolling?: boolean;
@@ -93,7 +93,7 @@ export interface FirestoreSettings extends LiteSettings {
    *
    * This setting will likely be enabled by default in future releases and
    * cannot be combined with `experimentalForceLongPolling`.
-   * 
+   *
    * This setting cannot be used in a Node.js environment.
    */
   experimentalAutoDetectLongPolling?: boolean;
