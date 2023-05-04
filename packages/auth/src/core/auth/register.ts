@@ -66,17 +66,15 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
         const appCheckServiceProvider =
           container.getProvider<'app-check-internal'>('app-check-internal');
         const { apiKey, authDomain } = app.options;
-        _assert(
-          !apiKey?.includes(':'),
-          AuthErrorCode.INVALID_API_KEY,
-          { appName: app.name }
-        );
+        _assert(!apiKey?.includes(':'), AuthErrorCode.INVALID_API_KEY, {
+          appName: app.name
+        });
         // Auth domain is optional if IdP sign in isn't being used
         _assert(!authDomain?.includes(':'), AuthErrorCode.ARGUMENT_ERROR, {
           appName: app.name
         });
         const config: ConfigInternal = {
-          apiKey,
+          apiKey ?? "",
           authDomain,
           clientPlatform,
           apiHost: DefaultConfig.API_HOST,
