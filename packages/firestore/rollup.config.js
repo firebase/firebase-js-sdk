@@ -209,7 +209,7 @@ const allBuilds = [
     file: 'dist/firestore/src/global_index.d.ts',
     format: 'esm',
   },
-  plugins: [dts()],
+  plugins: [resolveDts()],
 }
 ];
 
