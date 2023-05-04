@@ -210,6 +210,7 @@ const allBuilds = [
     format: 'esm',
   },
   plugins: [resolveDts()],
+  external: [/^@firebase\/.*/],
 }
 ];
 
