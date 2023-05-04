@@ -65,10 +65,10 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           container.getProvider<'heartbeat'>('heartbeat');
         const appCheckServiceProvider =
           container.getProvider<'app-check-internal'>('app-check-internal');
-        const { apiKey, authDomain } = app.options;
-
+        const { apiKey, authDomain, useEmulators } = app.options;
+        // Alternatively, we could just get rid of this assert
         _assert(
-          apiKey && !apiKey.includes(':'),
+          useEmulators || (apiKey && !apiKey.includes(':')),
           AuthErrorCode.INVALID_API_KEY,
           { appName: app.name }
         );
