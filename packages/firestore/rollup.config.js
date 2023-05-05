@@ -22,6 +22,7 @@ import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import dts from 'rollup-plugin-dts';
 import resolveNode from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
@@ -211,8 +212,9 @@ const allBuilds = [
       format: 'esm',
     },
     plugins: [
-      resolveNode(),
-      dts()
+      commonjs(),
+      resolveNode()
+      //dts()
     ],
   }
 ];
