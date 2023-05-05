@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # performance package
-The Firebase Performance Monitoring Web SDK. This SDK does not work in Node.js.
+The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js environment.
 
 ## Functions
 

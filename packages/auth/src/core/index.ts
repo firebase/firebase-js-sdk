@@ -44,7 +44,7 @@ export {
  * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
- * This method has no effect in Node.js.
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
