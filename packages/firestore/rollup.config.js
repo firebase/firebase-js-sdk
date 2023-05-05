@@ -211,8 +211,8 @@ const allBuilds = [
       format: 'esm',
     },
     plugins: [
-      dts(),
-      resolveNode()
+      resolveNode(),
+      dts()
     ],
   }
 ];
