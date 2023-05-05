@@ -211,10 +211,9 @@ const allBuilds = [
       format: 'esm',
     },
     plugins: [
-      resolveNode(),
-      dts()
+      dts(),
+      resolveNode()
     ],
-    exclude: [/^@firebase\/.*/],
   }
 ];
 
