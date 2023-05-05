@@ -211,7 +211,7 @@ const allBuilds = [
     format: 'esm',
   },
   plugins: [resolveDts(), commonjs(),],
-  external: [/^@firebase\/.*/],
+  exclude: [/^@firebase\/.*/],
 }
 ];
 
