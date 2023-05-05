@@ -212,7 +212,7 @@ const allBuilds = [
       format: 'esm',
     },
     plugins: [
-      commonjs(),
+      //commonjs(),
       resolveNode()
       //dts()
     ],
