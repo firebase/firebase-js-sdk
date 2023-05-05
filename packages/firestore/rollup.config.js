@@ -213,7 +213,7 @@ const allBuilds = [
     },
     plugins: [
       resolveNode(),
-      commonjs()
+      //commonjs()
       //dts()
     ],
   }
