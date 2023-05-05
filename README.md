@@ -29,7 +29,7 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. The currently supported versions are `10.15.0` or greater.
+installed on your machine. The currently supported versions are `10.15.0` through `16.6.0`.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -43,9 +43,14 @@ In addition to Node.js we use `yarn` to facilitate multi package development.
 To install `yarn` follow the instructions listed on their website:
 https://yarnpkg.com/en/docs/install
 
+This repo currently supports building with yarn `1.x`. For instance, after installating yarn, run
+```bash
+$ yarn set version 1.22.11`
+```
+
 #### Java
 
-The closure compiler requires a modern Java installation. Java 8+ should be installed: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+The closure compiler requires a modern Java installation. Java 11+ should be installed: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
 #### Verify Prerequisites
 
@@ -57,8 +62,8 @@ $ yarn -v
 $ java -version
 ```
 
-Your Node.js version should be `10.15.0` or greater, your `yarn` version should
-be `1.0.0` or greater, and your `java` version should be `1.8.0` or greater.
+Your `node` version should be between `10.15.0` and `16.6.0`, your `yarn` version should
+be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
 for continuing development on the SDK, staying up to date on the stable versions
@@ -109,7 +114,7 @@ will be overwritten below.
 
 Visit the "Realtime Database" section of the console and create a realtime
 database. When prompted to select the set of initial security rules, select
-any option (e.g. "Start in Production Mode") since these permission settings
+any option (e.g. "Start in Locked Mode") since these permission settings
 will be overwritten below.
 
 #### Storage Setup
@@ -127,8 +132,10 @@ order to run the tests, you will need to update your bucket's CORS rules.
     }
 ]
 ```
-2. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
-3. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+1. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+1. You will need to login if this is your first time using `gsutil`. Run `gcloud auth login`
+and follow the instructions to login.
+1. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
 
 For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { AggregateAlias } from '../model/aggregate_alias';
 import { FieldPath } from '../model/path';
 
 /**
@@ -29,7 +28,7 @@ export type AggregateType = 'count' | 'avg' | 'sum';
  */
 export interface Aggregate {
   readonly fieldPath?: FieldPath;
-  readonly alias: AggregateAlias;
+  readonly alias: string;
   readonly aggregateType: AggregateType;
 }
 
@@ -38,7 +37,7 @@ export interface Aggregate {
  */
 export class AggregateImpl implements Aggregate {
   constructor(
-    readonly alias: AggregateAlias,
+    readonly alias: string,
     readonly aggregateType: AggregateType,
     readonly fieldPath?: FieldPath
   ) {}

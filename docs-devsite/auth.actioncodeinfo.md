@@ -23,7 +23,7 @@ export interface ActionCodeInfo
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [data](./auth.actioncodeinfo.md#actioncodeinfodata) | { email?: string \| null; multiFactorInfo?: [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) \| null; previousEmail?: string \| null; } | The data associated with the action code. |
-|  [operation](./auth.actioncodeinfo.md#actioncodeinfooperation) | typeof [ActionCodeOperationMap](./auth.md#actioncodeoperation)<!-- -->\[keyof typeof [ActionCodeOperationMap](./auth.md#actioncodeoperation)<!-- -->\] | The type of operation that generated the action code. |
+|  [operation](./auth.actioncodeinfo.md#actioncodeinfooperation) | (typeof [ActionCodeOperationMap](./auth.md#actioncodeoperation)<!-- -->)\[keyof typeof [ActionCodeOperationMap](./auth.md#actioncodeoperation)<!-- -->\] | The type of operation that generated the action code. |
 
 ## ActionCodeInfo.data
 
@@ -54,5 +54,5 @@ The type of operation that generated the action code.
 <b>Signature:</b>
 
 ```typescript
-operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
+operation: (typeof ActionCodeOperationMap)[keyof typeof ActionCodeOperationMap];
 ```

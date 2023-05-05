@@ -32,6 +32,7 @@ import {
 } from '@firebase/webchannel-wrapper';
 
 import { Token } from '../../api/credentials';
+import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';
 import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
@@ -57,12 +58,14 @@ export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
+  private readonly longPollingOptions: ExperimentalLongPollingOptions;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
     this.autoDetectLongPolling = info.autoDetectLongPolling;
     this.useFetchStreams = info.useFetchStreams;
+    this.longPollingOptions = info.longPollingOptions;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -199,6 +202,11 @@ export class WebChannelConnection extends RestConnection {
       forceLongPolling: this.forceLongPolling,
       detectBufferingProxy: this.autoDetectLongPolling
     };
+
+    const longPollingTimeoutSeconds = this.longPollingOptions.timeoutSeconds;
+    if (longPollingTimeoutSeconds !== undefined) {
+      request.longPollingTimeout = Math.round(longPollingTimeoutSeconds * 1000);
+    }
 
     if (this.useFetchStreams) {
       request.xmlHttpFactory = new FetchXmlHttpFactory({});

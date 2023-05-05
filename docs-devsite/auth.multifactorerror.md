@@ -25,7 +25,7 @@ export interface MultiFactorError extends AuthError
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [customData](./auth.multifactorerror.md#multifactorerrorcustomdata) | [AuthError](./auth.autherror.md#autherror_interface)<!-- -->\['customData'\] &amp; { readonly operationType: typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\[keyof typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\]; } | Details about the MultiFactorError. |
+|  [customData](./auth.multifactorerror.md#multifactorerrorcustomdata) | [AuthError](./auth.autherror.md#autherror_interface)<!-- -->\['customData'\] &amp; { readonly operationType: (typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->)\[keyof typeof [OperationTypeMap](./auth.md#operationtype)<!-- -->\]; } | Details about the MultiFactorError. |
 
 ## MultiFactorError.customData
 
@@ -35,7 +35,7 @@ Details about the MultiFactorError.
 
 ```typescript
 readonly customData: AuthError['customData'] & {
-        readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+        readonly operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
     };
 ```
 

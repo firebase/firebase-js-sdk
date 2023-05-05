@@ -1,5 +1,22 @@
 # @firebase/firestore
 
+## 3.11.0
+
+### Minor Changes
+
+- [`253b998fc`](https://github.com/firebase/firebase-js-sdk/commit/253b998fcfcd79327c2f7940d5435e36622215fc) [#6943](https://github.com/firebase/firebase-js-sdk/pull/6943) - Introduces a new LRU garbage document collector for memory cache.
+
+- [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564) [#7229](https://github.com/firebase/firebase-js-sdk/pull/7229) - Implemented an optimization in the local cache synchronization logic that reduces the number of billed document reads when documents were deleted on the server while the client was not actively listening to the query (e.g. while the client was offline).
+
+### Patch Changes
+
+- [`a57a2b5d4`](https://github.com/firebase/firebase-js-sdk/commit/a57a2b5d4512ecd65e634958a3ede60c15f27e0c) [#7139](https://github.com/firebase/firebase-js-sdk/pull/7139) - Fixed stack overflow caused by deeply nested server timestamps.
+
+- [`510c9b520`](https://github.com/firebase/firebase-js-sdk/commit/510c9b520e6fe158a4db169e005bd173a4563b6e) [#7170](https://github.com/firebase/firebase-js-sdk/pull/7170) - Simplified the internal handling of aggregation results.
+
+- Updated dependencies [[`5e5c41225`](https://github.com/firebase/firebase-js-sdk/commit/5e5c41225869a5b3f315f2440d382ab010ba2e39), [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564)]:
+  - @firebase/webchannel-wrapper@0.10.0
+
 ## 3.10.1
 
 ### Patch Changes

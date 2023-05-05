@@ -55,7 +55,7 @@ Firebase Authentication
 |  <b>function(user...)</b> |
 |  [deleteUser(user)](./auth.md#deleteuser) | Deletes and signs out the user. |
 |  [getIdToken(user, forceRefresh)](./auth.md#getidtoken) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
-|  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service. |
+|  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [linkWithCredential(user, credential)](./auth.md#linkwithcredential) | Links the user account with the given credentials. |
 |  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#linkwithphonenumber) | Links the user account with the given phone number. |
 |  [linkWithPopup(user, provider, resolver)](./auth.md#linkwithpopup) | Links the authenticated provider to the user account using a pop-up based OAuth flow. |
@@ -1156,7 +1156,7 @@ Promise&lt;string&gt;
 
 ## getIdTokenResult()
 
-Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
 
 Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 
