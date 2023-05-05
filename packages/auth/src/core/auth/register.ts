@@ -74,7 +74,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           appName: app.name
         });
         const config: ConfigInternal = {
-          apiKey ?? "",
+          apiKey: apiKey ?? "",
           authDomain,
           clientPlatform,
           apiHost: DefaultConfig.API_HOST,
