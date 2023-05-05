@@ -37,6 +37,7 @@ export interface Context {
   authToken?: string;
   messagingToken?: string;
   appCheckToken: string | null;
+  limitedUseAppCheckToken: string | null;
 }
 
 /**
@@ -133,10 +134,25 @@ export class ContextProvider {
     return null;
   }
 
+  async getLimitedUseAppCheckToken(): Promise<string | null> {
+    if (this.appCheck) {
+      const result = await this.appCheck.getLimitedUseToken();
+      if (result.error) {
+        // Do not send the App Check header to the functions endpoint if
+        // there was an error from the App Check exchange endpoint. The App
+        // Check SDK will already have logged the error to console.
+        return null;
+      }
+      return result.token;
+    }
+    return null;
+  }
+
   async getContext(): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
     const appCheckToken = await this.getAppCheckToken();
-    return { authToken, messagingToken, appCheckToken };
+    const limitedUseAppCheckToken = await this.getLimitedUseAppCheckToken();
+    return { authToken, messagingToken, appCheckToken, limitedUseAppCheckToken };
   }
 }

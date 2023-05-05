@@ -284,8 +284,14 @@ async function callAtURL(
   if (context.messagingToken) {
     headers['Firebase-Instance-ID-Token'] = context.messagingToken;
   }
-  if (context.appCheckToken !== null) {
-    headers['X-Firebase-AppCheck'] = context.appCheckToken;
+  if (options.useLimitedUseAppCheckToken) {
+    if (context.limitedUseAppCheckToken !== null) {
+      headers['X-Firebase-AppCheck'] = context.limitedUseAppCheckToken;
+    }
+  } else {
+    if (context.appCheckToken !== null) {
+      headers['X-Firebase-AppCheck'] = context.appCheckToken;
+    }
   }
 
   // Default timeout to 70s, but let the options override it.

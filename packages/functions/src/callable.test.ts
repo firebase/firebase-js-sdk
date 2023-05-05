@@ -133,6 +133,32 @@ describe('Firebase Functions > Call', () => {
     stub.restore();
   });
 
+  // it('appcheck token', async () => {
+  //   // mock auth-internal service
+  //   const authMock: FirebaseAuthInternal = {
+  //     getToken: async () => ({ accessToken: 'token' })
+  //   } as unknown as FirebaseAuthInternal;
+  //   const authProvider = new Provider<FirebaseAuthInternalName>(
+  //     'auth-internal',
+  //     new ComponentContainer('test')
+  //   );
+  //   authProvider.setComponent(
+  //     new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+  //   );
+
+  //   const functions = createTestService(app, region, authProvider);
+
+  //   // Stub out the internals to get an auth token.
+  //   const stub = sinon.stub(authMock, 'getToken').callThrough();
+  //   const func = httpsCallable(functions, 'tokenTest');
+  //   const result = await func({});
+  //   expect(result.data).to.deep.equal({});
+
+  //   expect(stub.callCount).to.equal(1);
+  //   stub.restore();
+  // });
+
+
   it('instance id', async () => {
     // Should effectively skip this test in environments where messaging doesn't work.
     // (Node, IE)
