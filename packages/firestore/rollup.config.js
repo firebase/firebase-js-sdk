@@ -20,7 +20,7 @@ import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
-import dts from '@rollup/plugin-dts';
+import dts from 'rollup-plugin-dts';
 import resolveNode from '@rollup/plugin-node-resolve';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
