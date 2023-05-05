@@ -21,6 +21,7 @@ import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import resolveDts from 'rollup-plugin-dts';
+import commonjs from '@rollup/plugin-commonjs';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
@@ -209,7 +210,7 @@ const allBuilds = [
     file: 'dist/firestore/src/global_index.d.ts',
     format: 'esm',
   },
-  plugins: [resolveDts()],
+  plugins: [resolveDts(), commonjs(),],
   external: [/^@firebase\/.*/],
 }
 ];
