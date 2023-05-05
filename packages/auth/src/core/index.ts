@@ -44,11 +44,12 @@ export {
  * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
+ * This method has no effect in Node.js.
+ *
  * @example
  * ```javascript
  * setPersistence(auth, browserSessionPersistence);
  * ```
- * This method has no effect in Node.js.
  *
  * @param auth - The {@link Auth} instance.
  * @param persistence - The {@link Persistence} to use.

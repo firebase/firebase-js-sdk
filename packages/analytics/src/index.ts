@@ -1,6 +1,6 @@
 /**
  * The Firebase Analytics Web SDK.
- * This SDK currently does not work in Node.js.
+ * This SDK does not work in Node.js.
  *
  * @packageDocumentation
  */

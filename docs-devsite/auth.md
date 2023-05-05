@@ -696,6 +696,8 @@ Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) ins
 
 This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the `Auth` state for applications that are shared by other users or have sensitive data.
 
+This method has no effect in Node.js.
+
 <b>Signature:</b>
 
 ```typescript
@@ -722,7 +724,6 @@ A `Promise` that resolves once the persistence change has completed
 setPersistence(auth, browserSessionPersistence);
 
 ```
-This method has no effect in Node.js.
 
 ## signInAnonymously()
 
