@@ -20,7 +20,8 @@ import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
-import dts from 'rollup-plugin-dts';
+//import dts from 'rollup-plugin-dts';
+import ts from 'rollup-plugin-ts';
 //import resolveNode from '@rollup/plugin-node-resolve';
 //import commonjs from '@rollup/plugin-commonjs';
 import typescriptPlugin from 'rollup-plugin-typescript2';
@@ -214,7 +215,7 @@ const allBuilds = [
     plugins: [
       //commonjs(),
       //resolveNode()
-      dts()
+      ts()
     ],
   }
 ];
