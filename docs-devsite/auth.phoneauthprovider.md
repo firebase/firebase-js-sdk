@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # PhoneAuthProvider class
 Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md#phoneauthcredential_class)<!-- -->.
 
-`PhoneAuthProvider` is not available in Node.js.
+`PhoneAuthProvider` does not work in a Node.js environment.
 
 <b>Signature:</b>
 

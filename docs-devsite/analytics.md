@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # analytics package
-The Firebase Analytics Web SDK. This SDK does not work in Node.js.
+The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment.
 
 ## Functions
 

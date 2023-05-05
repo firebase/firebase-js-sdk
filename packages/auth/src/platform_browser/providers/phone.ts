@@ -38,7 +38,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * Provider for generating an {@link PhoneAuthCredential}.
  *
  * @remarks
- * `PhoneAuthProvider` is not available in Node.js.
+ * `PhoneAuthProvider` does not work in a Node.js environment.
  *
  * @example
  * ```javascript
