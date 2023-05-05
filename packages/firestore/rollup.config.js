@@ -210,12 +210,16 @@ const allBuilds = [
     input: 'dist/firestore/src/index.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
-      format: 'esm',
+      format: 'es',
     },
     plugins: [
       //commonjs(),
       //resolveNode()
-      ts()
+      //ts()
+      ts({
+        sourceMap: true,
+        inlineSources: true,
+      })
     ],
   }
 ];
