@@ -39,12 +39,12 @@ body:
   - type: dropdown
     id: firebase-sdk-products
     attributes:
-      label: Firebase SDK Products
-      description: What Firebase SDK Products is your app using?
+      label: Firebase SDK Product:\
+      description: Which Firebase Products are used in your app?
       multiple: true
       options:
         - Analytics
-        - App-Check
+        - AppCheck
         - Auth
         - Component
         - Database
@@ -72,15 +72,13 @@ body:
       label: Describe the problem
       description: Describe what you were trying to do and what occurred
       placeholder: |
-        'What were you trying to accomplish? What happened?'
-        'This should include a background description, log/console output, etc.'
+        What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
     validations:
       required: true
   - type: textarea
     id: reproduce-code
     attributes:
-      label: Code to reproduce issue
-      description: Please copy and paste any relevant code here to reproduce the problem or links to code to reproduce it. This will be automatically formatted into code, so no need for backticks.
-      render: javascript
+      label: Steps and code to reproduce issue
+      description: Please provide a description of how to replicate your issue. Copy and paste any relevant code here to reproduce the problem or links to code to reproduce it.
     validations:
       required: true
