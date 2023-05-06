@@ -39,7 +39,7 @@ body:
   - type: dropdown
     id: firebase-sdk-products
     attributes:
-      label: Firebase SDK Product:\
+      label: 'Firebase SDK Product:'
       description: Which Firebase Products are used in your app?
       multiple: true
       options:
