@@ -32,8 +32,6 @@ import { repoManagerDatabaseFromApp } from '../api/Database';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
-
-
 /**
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
@@ -41,6 +39,7 @@ import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types
  * @param app - A valid FirebaseApp-like object
  * @param url - A valid Firebase databaseURL
  * @param version - custom version e.g. firebase-admin version
+ * @param customAppCheckImpl - custom app check implementation
  * @param customAuthImpl - custom auth implementation
  */
 export function _initStandalone({
@@ -70,21 +69,21 @@ export function _initStandalone({
     componentContainer
   );
   let appCheckProvider: Provider<AppCheckInternalComponentName>;
-  if(customAppCheckImpl) {
+  if (customAppCheckImpl) {
     appCheckProvider = new Provider<AppCheckInternalComponentName>(
-    'app-check-internal',
-    componentContainer
-  );
+      'app-check-internal',
+      componentContainer
+    );
   }
   authProvider.setComponent(
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
   );
 
   return repoManagerDatabaseFromApp(
-        app,
-        authProvider,
-        appCheckProvider,
-        url,
-        nodeAdmin
-      );
+    app,
+    authProvider,
+    appCheckProvider,
+    url,
+    nodeAdmin
+  );
 }
