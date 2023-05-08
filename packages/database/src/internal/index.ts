@@ -29,6 +29,8 @@ import {
 import { setSDKVersion } from '../core/version';
 import { Database } from '../api.standalone';
 import { repoManagerDatabaseFromApp } from '../api/Database';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 
 
@@ -46,12 +48,14 @@ export function _initStandalone({
   url,
   version,
   customAuthImpl,
+  customAppCheckImpl,
   nodeAdmin = false
 }: {
   app: FirebaseApp;
   url: string;
   version: string;
   customAuthImpl: FirebaseAuthInternal;
+  customAppCheckImpl?: FirebaseAppCheckInternal;
   nodeAdmin?: boolean;
 }): Database {
   setSDKVersion(version);
@@ -60,10 +64,18 @@ export function _initStandalone({
    * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
    * any actual function.
    */
+  const componentContainer = new ComponentContainer('database-standalone');
   const authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
-    new ComponentContainer('database-standalone')
+    componentContainer
   );
+  let appCheckProvider: Provider<AppCheckInternalComponentName>;
+  if(customAppCheckImpl) {
+    appCheckProvider = new Provider<AppCheckInternalComponentName>(
+    'app-check-internal',
+    componentContainer
+  );
+  }
   authProvider.setComponent(
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
   );
@@ -71,7 +83,7 @@ export function _initStandalone({
   return repoManagerDatabaseFromApp(
         app,
         authProvider,
-        /* appCheckProvider= */ undefined,
+        appCheckProvider,
         url,
         nodeAdmin
       );
