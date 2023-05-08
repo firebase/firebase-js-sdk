@@ -1,5 +1,6 @@
 import { FirebaseApp } from '@firebase/app';
 
+import { ExperimentalLongPollingOptions } from '../api/long_polling_options';
 import { Code, FirestoreError } from '../util/error';
 
 /**
@@ -34,6 +35,7 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param longPollingOptions Options that configure long-polling.
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
    */
@@ -45,6 +47,7 @@ export class DatabaseInfo {
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
+    readonly longPollingOptions: ExperimentalLongPollingOptions,
     readonly useFetchStreams: boolean
   ) {}
 }

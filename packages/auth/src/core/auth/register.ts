@@ -72,10 +72,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           AuthErrorCode.INVALID_API_KEY,
           { appName: app.name }
         );
-        // Auth domain is optional if IdP sign in isn't being used
-        _assert(!authDomain?.includes(':'), AuthErrorCode.ARGUMENT_ERROR, {
-          appName: app.name
-        });
+
         const config: ConfigInternal = {
           apiKey,
           authDomain,

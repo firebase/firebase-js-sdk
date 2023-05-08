@@ -304,7 +304,7 @@ export interface StorageReference {
 }
 
 // @public
-export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
+export type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
 
 // @public
 export const StringFormat: {
@@ -329,7 +329,7 @@ export const _TaskEvent: {
 export type TaskState = 'running' | 'paused' | 'success' | 'canceled' | 'error';
 
 // @internal
-export type _TaskState = typeof _TaskState[keyof typeof _TaskState];
+export type _TaskState = (typeof _TaskState)[keyof typeof _TaskState];
 
 // @internal
 export const _TaskState: {

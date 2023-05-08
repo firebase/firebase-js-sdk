@@ -277,6 +277,7 @@ abstract class TestRunner {
       /*ssl=*/ false,
       /*forceLongPolling=*/ false,
       /*autoDetectLongPolling=*/ false,
+      /*longPollingOptions=*/ {},
       /*useFetchStreams=*/ false
     );
 

@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.23.1
+
+### Patch Changes
+
+- [`1d6771eb3`](https://github.com/firebase/firebase-js-sdk/commit/1d6771eb358fd5cb9a6b53b7a0141b08f83f0b47) [#7140](https://github.com/firebase/firebase-js-sdk/pull/7140) - Increase the popup poller timeout to 8s to support blocking functions + Firefox
+
 ## 0.23.0
 
 ### Minor Changes
