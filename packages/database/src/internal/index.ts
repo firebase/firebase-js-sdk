@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseAppCheckInternal , AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
@@ -26,11 +27,10 @@ import {
   ComponentType,
   Provider
 } from '@firebase/component';
-import { setSDKVersion } from '../core/version';
+
 import { Database } from '../api.standalone';
 import { repoManagerDatabaseFromApp } from '../api/Database';
-import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { setSDKVersion } from '../core/version';
 
 /**
  * Used by console to create a database based on the app,
