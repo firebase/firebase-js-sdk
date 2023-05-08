@@ -46,7 +46,7 @@ const MIN_LONG_POLLING_TIMEOUT_SECONDS = 5;
 const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
 
 // Whether long-polling auto-detected is enabled by default.
-const DEFAULT_AUTO_DETECT_LONG_POLLING = false;
+const DEFAULT_AUTO_DETECT_LONG_POLLING = true;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
