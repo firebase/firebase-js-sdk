@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseAppCheckInternal , AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import {
+  FirebaseAppCheckInternal,
+  AppCheckInternalComponentName
+} from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
