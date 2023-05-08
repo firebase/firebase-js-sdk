@@ -929,9 +929,8 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo resolution throttling with bloom filter application',
-    // TODO(b/278759194) Remove 'no-android' once bloom filter is merged.
     // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios', 'no-android'],
+    ['no-ios'],
     () => {
       const query1 = query('collection');
       const docA1 = doc('collection/a1', 1000, { key: 'a1' });
