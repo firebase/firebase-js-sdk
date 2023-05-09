@@ -224,6 +224,7 @@ async function postJSON(
       headers
     });
   } catch (e) {
+    console.log("error!");
     // This could be an unhandled error on the backend, or it could be a
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
@@ -233,6 +234,8 @@ async function postJSON(
       json: null
     };
   }
+  console.log("!!!!");
+  console.log(response);
   let json: HttpResponseBody | null = null;
   try {
     json = await response.json();
@@ -314,6 +317,8 @@ async function callAtURL(
       'Firebase Functions instance was deleted.'
     );
   }
+
+  console.log(response);
 
   // Check for an error status, regardless of http status.
   const error = _errorForResponse(response.status, response.json);

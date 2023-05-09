@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
+import * as fetchModule from 'node-fetch';
 import { FunctionsErrorCodeCore } from './public-types';
 import {
   Provider,
@@ -32,7 +33,12 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
-import { makeFakeApp, createTestService } from '../test/utils';
+
+import {
+  FirebaseAppCheckInternal,
+  AppCheckInternalComponentName,
+} from '@firebase/app-check-interop-types';
+import { makeFakeApp, createTestService, createTestServiceWithFetchMock} from '../test/utils';
 import { httpsCallable } from './service';
 import { FUNCTIONS_TYPE } from './constants';
 import { FunctionsError } from './error';
@@ -108,32 +114,7 @@ describe('Firebase Functions > Call', () => {
     expect(result.data).to.equal(76);
   });
 
-  it('token', async () => {
-    // mock auth-internal service
-    const authMock: FirebaseAuthInternal = {
-      getToken: async () => ({ accessToken: 'token' })
-    } as unknown as FirebaseAuthInternal;
-    const authProvider = new Provider<FirebaseAuthInternalName>(
-      'auth-internal',
-      new ComponentContainer('test')
-    );
-    authProvider.setComponent(
-      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
-    );
-
-    const functions = createTestService(app, region, authProvider);
-
-    // Stub out the internals to get an auth token.
-    const stub = sinon.stub(authMock, 'getToken').callThrough();
-    const func = httpsCallable(functions, 'tokenTest');
-    const result = await func({});
-    expect(result.data).to.deep.equal({});
-
-    expect(stub.callCount).to.equal(1);
-    stub.restore();
-  });
-
-  // it('appcheck token', async () => {
+  // it('token', async () => {
   //   // mock auth-internal service
   //   const authMock: FirebaseAuthInternal = {
   //     getToken: async () => ({ accessToken: 'token' })
@@ -157,6 +138,59 @@ describe('Firebase Functions > Call', () => {
   //   expect(stub.callCount).to.equal(1);
   //   stub.restore();
   // });
+
+  // eslint-disable-next-line no-restricted-properties -- Here's a description
+  it('appcheck token', async () => {
+    // mock auth-internal service
+    const authMock: FirebaseAuthInternal = {
+      getToken: async () => ({ accessToken: 'token' })
+    } as unknown as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
+    // mock app-check-internal service
+    const appCheckMock: FirebaseAppCheckInternal = {
+      getToken: async () => ({ accessToken: 'token' }),
+      getLimitedUseToken: async () => ({ accessToken: 'limited-token' })
+    } as unknown as FirebaseAppCheckInternal;
+    const appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      new ComponentContainer('test')
+    );
+    appCheckProvider.setComponent(
+      new Component('app-check-internal', () => appCheckMock, ComponentType.PRIVATE)
+    );
+    const messagingProvider = new Provider<MessagingInternalComponentName>(
+      'messaging-internal',
+      new ComponentContainer('test')
+    );
+    const fetchStub = sinon
+    .stub(fetchModule, 'default').callThrough();
+    // .returns(Promise.resolve(new fetchModule.Response(JSON.stringify({data: "hi"}), { status: 200 })));
+
+    const functions = createTestServiceWithFetchMock(app, fetchStub, region, authProvider, messagingProvider, appCheckProvider);
+
+    // Stub out the internals to get an auth token.
+    const authStub = sinon.stub(authMock, 'getToken').callThrough();
+    const appCheckStub = sinon.stub(appCheckMock, 'getToken').callThrough();
+    const appCheckLimitedUseStub = sinon.stub(appCheckMock, 'getLimitedUseToken').callThrough();
+    const func = httpsCallable(functions, 'tokenTest');
+    const result = await func({});
+    expect(result.data).to.deep.equal({});
+
+    expect(authStub.callCount).to.equal(1);
+    expect(appCheckStub.callCount).to.equal(1);
+    expect(appCheckLimitedUseStub.callCount).to.equal(1);
+    expect(fetchStub.called).to.be.true;
+    authStub.restore();
+    appCheckStub.restore();
+    appCheckLimitedUseStub.restore();
+    fetchStub.restore();
+  });
 
 
   it('instance id', async () => {
