@@ -19,6 +19,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
+import dts from 'rollup-plugin-dts';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
@@ -89,9 +90,6 @@ const esmBuilds = [
       format: 'es',
     },
     plugins: [
-      //commonjs(),
-      //resolveNode()
-      //ts()
       dts({
         respectExternal: true,
       })
