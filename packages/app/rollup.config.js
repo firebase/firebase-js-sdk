@@ -83,18 +83,6 @@ const esmBuilds = [
       emitModulePackageFile()
     ]
   },
-  {
-    input: 'dist/src/index.d.ts',
-    output: {
-      file: 'dist/src/global_index.d.ts',
-      format: 'es',
-    },
-    plugins: [
-      dts({
-        respectExternal: true,
-      })
-    ],
-  }
 ];
 
 const cjsBuilds = [
@@ -109,6 +97,18 @@ const cjsBuilds = [
         '__RUNTIME_ENV__': 'node'
       })
     ]
+  },
+  {
+    input: './dist/app/src/index.d.ts',
+    output: {
+      file: './dist/app/src/global_index.d.ts',
+      format: 'es',
+    },
+    plugins: [
+      dts({
+        respectExternal: true,
+      })
+    ],
   }
 ];
 
