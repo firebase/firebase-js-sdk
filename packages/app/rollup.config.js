@@ -81,6 +81,21 @@ const esmBuilds = [
       }),
       emitModulePackageFile()
     ]
+  },
+  {
+    input: 'dist/app/src/index.d.ts',
+    output: {
+      file: 'dist/app/src/global_index.d.ts',
+      format: 'es',
+    },
+    plugins: [
+      //commonjs(),
+      //resolveNode()
+      //ts()
+      dts({
+        respectExternal: true,
+      })
+    ],
   }
 ];
 
