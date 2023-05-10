@@ -84,9 +84,9 @@ const esmBuilds = [
     ]
   },
   {
-    input: './dist/app/src/index.d.ts',
+    input: 'dist/src/index.d.ts',
     output: {
-      file: './dist/app/src/global_index.d.ts',
+      file: 'dist/src/global_index.d.ts',
       format: 'es',
     },
     plugins: [
