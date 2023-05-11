@@ -134,15 +134,16 @@ jobs:
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
     - name: Check for changes requiring a reference doc publish
       id: docs-check
+      # If a diff is found (length of DIFF_CONTENTS > 0) it will write DOCS_NEEDED=true
       run: |
         LAST_PUBLISHED_VERSION=$(npm info firebase version)
-        git diff --exit-code firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite
-    - name: No diff, docs not needed
-      if: ${{ success() }}
-      run: echo "DOCS_NEEDED=false" >> $GITHUB_STATE
-    - name: Diff returned something, docs are needed
-      if: ${{ failure() }}
-      run: echo "DOCS_NEEDED=true" >> $GITHUB_STATE
+        DIFF_CONTENTS=$(git diff firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite)
+        if [ -n "$DIFF_CONTENTS" ]
+        then
+        echo "DOCS_NEEDED=true" >> $GITHUB_OUTPUT
+        else
+        echo "DOCS_NEEDED=false" >> $GITHUB_OUTPUT
+        fi
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       if: ${{ always() }}
