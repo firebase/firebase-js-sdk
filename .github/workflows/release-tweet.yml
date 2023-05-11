@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js 14.x
         uses: actions/setup-node@master
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Poll release notes page on devsite
         run: node scripts/ci/poll_release_notes.js
         env:
