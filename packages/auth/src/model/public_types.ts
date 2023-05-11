@@ -313,7 +313,7 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Signs out the current user.
+   * Signs out the current user. This does not automatically revoke the user's ID token.
    */
   signOut(): Promise<void>;
 }
@@ -1009,7 +1009,7 @@ export interface User extends UserInfo {
    */
   getIdToken(forceRefresh?: boolean): Promise<string>;
   /**
-   * Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+   * Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
    *
    * @remarks
    * Returns the current token if it has not expired or if it will not expire in the next five
