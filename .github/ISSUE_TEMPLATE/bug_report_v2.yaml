@@ -1,6 +1,7 @@
 name: 🐞 Bug Report V2
 description: File a bug report
 title: '[Bug]: '
+labels: 'new, type: question'
 body:
   - type: markdown
     id: before-you-start
