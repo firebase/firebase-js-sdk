@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 3.12.0
+
+### Minor Changes
+
+- [`e45fea9b8`](https://github.com/firebase/firebase-js-sdk/commit/e45fea9b8ce2c284c5e147fd3ac2174087fbba09) [#7236](https://github.com/firebase/firebase-js-sdk/pull/7236) - Enabled long-polling networking mode auto detection by default. It can be explicitly disabled by setting `FirestoreSettings.experimentalForceLongPolling` to `false`.
+
+- [`8051e4a99`](https://github.com/firebase/firebase-js-sdk/commit/8051e4a99e199e5cc8e6ff51a1a1116e4a56337b) [#7176](https://github.com/firebase/firebase-js-sdk/pull/7176) - Added the ability to configure the long-polling hanging get request timeout using the new `experimentalLongPollingOptions.timeoutSeconds` setting
+
 ## 3.11.0
 
 ### Minor Changes

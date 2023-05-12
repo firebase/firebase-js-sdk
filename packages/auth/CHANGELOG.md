@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 0.23.2
+
+### Patch Changes
+
+- [`afdccd57a`](https://github.com/firebase/firebase-js-sdk/commit/afdccd57a93cedc3cff052dfb19c2863660ba592) [#7277](https://github.com/firebase/firebase-js-sdk/pull/7277) - Allow port numbers in authDomain
+
 ## 0.23.1
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # firebase
 
+## 9.22.0
+
+### Minor Changes
+
+- [`e45fea9b8`](https://github.com/firebase/firebase-js-sdk/commit/e45fea9b8ce2c284c5e147fd3ac2174087fbba09) [#7236](https://github.com/firebase/firebase-js-sdk/pull/7236) - Enabled long-polling networking mode auto detection by default. It can be explicitly disabled by setting `FirestoreSettings.experimentalForceLongPolling` to `false`.
+
+- [`8051e4a99`](https://github.com/firebase/firebase-js-sdk/commit/8051e4a99e199e5cc8e6ff51a1a1116e4a56337b) [#7176](https://github.com/firebase/firebase-js-sdk/pull/7176) - Added the ability to configure the long-polling hanging get request timeout using the new `experimentalLongPollingOptions.timeoutSeconds` setting
+
+### Patch Changes
+
+- Updated dependencies [[`466d3670a`](https://github.com/firebase/firebase-js-sdk/commit/466d3670ae32b61e3e0319bb73407bcd7ac90290), [`e45fea9b8`](https://github.com/firebase/firebase-js-sdk/commit/e45fea9b8ce2c284c5e147fd3ac2174087fbba09), [`e0551fa13`](https://github.com/firebase/firebase-js-sdk/commit/e0551fa13c9ae1556edf0ffb967f2f9e661f18a0), [`afdccd57a`](https://github.com/firebase/firebase-js-sdk/commit/afdccd57a93cedc3cff052dfb19c2863660ba592), [`8051e4a99`](https://github.com/firebase/firebase-js-sdk/commit/8051e4a99e199e5cc8e6ff51a1a1116e4a56337b)]:
+  - @firebase/app@0.9.10
+  - @firebase/firestore@3.12.0
+  - @firebase/auth@0.23.2
+  - @firebase/app-compat@0.2.10
+  - @firebase/firestore-compat@0.3.9
+  - @firebase/auth-compat@0.4.2
+
 ## 9.21.0
 
 ### Minor Changes
