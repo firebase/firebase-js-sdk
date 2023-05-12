@@ -37,7 +37,6 @@ export interface Context {
   authToken?: string;
   messagingToken?: string;
   appCheckToken: string | null;
-  limitedUseAppCheckToken: string | null;
 }
 
 /**
@@ -120,9 +119,13 @@ export class ContextProvider {
     }
   }
 
-  async getAppCheckToken(): Promise<string | null> {
+  async getAppCheckToken(
+    useLimitedUseAppCheckToken?: boolean
+  ): Promise<string | null> {
     if (this.appCheck) {
-      const result = await this.appCheck.getToken();
+      const result = useLimitedUseAppCheckToken
+        ? await this.appCheck.getLimitedUseToken()
+        : await this.appCheck.getToken();
       if (result.error) {
         // Do not send the App Check header to the functions endpoint if
         // there was an error from the App Check exchange endpoint. The App
@@ -134,25 +137,12 @@ export class ContextProvider {
     return null;
   }
 
-  async getLimitedUseAppCheckToken(): Promise<string | null> {
-    if (this.appCheck) {
-      const result = await this.appCheck.getLimitedUseToken();
-      if (result.error) {
-        // Do not send the App Check header to the functions endpoint if
-        // there was an error from the App Check exchange endpoint. The App
-        // Check SDK will already have logged the error to console.
-        return null;
-      }
-      return result.token;
-    }
-    return null;
-  }
-
-  async getContext(): Promise<Context> {
+  async getContext(useLimitedUseAppCheckToken?: boolean): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
-    const appCheckToken = await this.getAppCheckToken();
-    const limitedUseAppCheckToken = await this.getLimitedUseAppCheckToken();
-    return { authToken, messagingToken, appCheckToken, limitedUseAppCheckToken };
+    const appCheckToken = await this.getAppCheckToken(
+      useLimitedUseAppCheckToken
+    );
+    return { authToken, messagingToken, appCheckToken };
   }
 }

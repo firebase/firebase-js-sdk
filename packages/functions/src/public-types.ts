@@ -48,7 +48,7 @@ export interface HttpsCallableOptions {
    */
   timeout?: number;
   /**
-   * If set to true, uses limited use App Check token for callable function requests from this 
+   * If set to true, uses limited use App Check token for callable function requests from this
    * instance of Functions. By default, this is false.
    */
   useLimitedUseAppCheckToken?: boolean;
