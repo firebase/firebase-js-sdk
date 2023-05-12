@@ -138,16 +138,6 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('app check token', async () => {
-    const authProvider = new Provider<FirebaseAuthInternalName>(
-      'auth-internal',
-      new ComponentContainer('test')
-    );
-
-    const messagingProvider = new Provider<MessagingInternalComponentName>(
-      'messaging-internal',
-      new ComponentContainer('test')
-    );
-
     const appCheckMock: FirebaseAppCheckInternal = {
       getToken: async () => ({ token: 'app-check-token' })
     } as unknown as FirebaseAppCheckInternal;
@@ -165,8 +155,8 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(
       app,
       region,
-      authProvider,
-      messagingProvider,
+      undefined,
+      undefined,
       appCheckProvider
     );
 
@@ -181,16 +171,6 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('app check limited use token', async () => {
-    const authProvider = new Provider<FirebaseAuthInternalName>(
-      'auth-internal',
-      new ComponentContainer('test')
-    );
-
-    const messagingProvider = new Provider<MessagingInternalComponentName>(
-      'messaging-internal',
-      new ComponentContainer('test')
-    );
-
     const appCheckMock: FirebaseAppCheckInternal = {
       getLimitedUseToken: async () => ({ token: 'app-check-single-use-token' })
     } as unknown as FirebaseAppCheckInternal;
@@ -208,8 +188,8 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(
       app,
       region,
-      authProvider,
-      messagingProvider,
+      undefined,
+      undefined,
       appCheckProvider
     );
 

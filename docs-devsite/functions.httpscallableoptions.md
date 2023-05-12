@@ -23,6 +23,7 @@ export interface HttpsCallableOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [timeout](./functions.httpscallableoptions.md#httpscallableoptionstimeout) | number | Time in milliseconds after which to cancel if there is no response. Default is 70000. |
+|  [useLimitedUseAppCheckToken](./functions.httpscallableoptions.md#httpscallableoptionsuselimiteduseappchecktoken) | boolean | If set to true, uses limited use App Check token for callable function requests from this instance of Functions. By default, this is false. |
 
 ## HttpsCallableOptions.timeout
 
@@ -32,4 +33,14 @@ Time in milliseconds after which to cancel if there is no response. Default is 7
 
 ```typescript
 timeout?: number;
+```
+
+## HttpsCallableOptions.useLimitedUseAppCheckToken
+
+If set to true, uses limited use App Check token for callable function requests from this instance of Functions. By default, this is false.
+
+<b>Signature:</b>
+
+```typescript
+useLimitedUseAppCheckToken?: boolean;
 ```
