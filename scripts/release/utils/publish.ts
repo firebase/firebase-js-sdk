@@ -135,7 +135,14 @@ async function publishPackageInCI(
       }" >> ~/.npmrc`
     );
 
-    return spawn('npm', args, { cwd: path });
+    const spawnPromise = spawn('npm', args, { cwd: path });
+    const childProcess = spawnPromise.childProcess;
+    childProcess.stdout?.on('data', function (data) {
+      console.log(`[publishing ${pkg}] stdout: `, data.toString());
+    });
+    childProcess.stderr?.on('data', function (data) {
+      console.log(`[publishing ${pkg}] stderr: `, data.toString());
+    });
   } catch (err) {
     throw err;
   }
