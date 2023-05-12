@@ -143,6 +143,8 @@ async function publishPackageInCI(
     childProcess.stderr?.on('data', function (data) {
       console.log(`[publishing ${pkg}] stderr: `, data.toString());
     });
+    await spawnPromise;
+    return spawnPromise;
   } catch (err) {
     throw err;
   }
