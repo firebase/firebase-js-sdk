@@ -1,5 +1,13 @@
 # @firebase/app
 
+## 0.9.10
+
+### Patch Changes
+
+- [`466d3670a`](https://github.com/firebase/firebase-js-sdk/commit/466d3670ae32b61e3e0319bb73407bcd7ac90290) [#7263](https://github.com/firebase/firebase-js-sdk/pull/7263) - Make the error more helpful when `getApp()` is called before `initializeApp()`.
+
+- [`e0551fa13`](https://github.com/firebase/firebase-js-sdk/commit/e0551fa13c9ae1556edf0ffb967f2f9e661f18a0) [#7272](https://github.com/firebase/firebase-js-sdk/pull/7272) (fixes [#6871](https://github.com/firebase/firebase-js-sdk/issues/6871)) - Catch more heartbeat read/write errors.
+
 ## 0.9.9
 
 ### Patch Changes
