@@ -140,9 +140,7 @@ export class ContextProvider {
   async getContext(limitedUseAppCheckTokens?: boolean): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
-    const appCheckToken = await this.getAppCheckToken(
-      limitedUseAppCheckTokens
-    );
+    const appCheckToken = await this.getAppCheckToken(limitedUseAppCheckTokens);
     return { authToken, messagingToken, appCheckToken };
   }
 }

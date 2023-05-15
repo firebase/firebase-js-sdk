@@ -20,8 +20,8 @@ export interface FirebaseAppCheckInternal {
   // is present. Returns null if no token is present and no token requests are in-flight.
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
 
-  // Gets a limited use Firebase App Check token. This method should be used
-  // only if you need to authorize requests to a non-Firebase backend.
+  // Always returns a fresh limited-use token suitable for Replay Protection.
+  // The returned token must be used and consumed as soon as possible.
   getLimitedUseToken(): Promise<AppCheckTokenResult>;
 
   // Registers a listener to changes in the token state. There can be more than one listener
