@@ -277,7 +277,9 @@ async function callAtURL(
 
   // Add a header for the authToken.
   const headers: { [key: string]: string } = {};
-  const context = await functionsInstance.contextProvider.getContext();
+  const context = await functionsInstance.contextProvider.getContext(
+    options.limitedUseAppCheckTokens
+  );
   if (context.authToken) {
     headers['Authorization'] = 'Bearer ' + context.authToken;
   }
