@@ -25,6 +25,8 @@ export { DEFAULT_HOST } from '../lite-api/settings';
 /**
  * Settings that can be passed to `enableIndexedDbPersistence()` to configure
  * Firestore persistence.
+ *
+ * Persistence cannot be used in a Node.js environment.
  */
 export interface PersistenceSettings {
   /**
