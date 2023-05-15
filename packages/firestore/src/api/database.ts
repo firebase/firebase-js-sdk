@@ -320,6 +320,8 @@ export function configureFirestore(firestore: Firestore): void {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
+ * Persistence cannot be used in a Node.js environment.
+ *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
