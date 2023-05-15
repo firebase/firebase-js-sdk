@@ -120,10 +120,10 @@ export class ContextProvider {
   }
 
   async getAppCheckToken(
-    useLimitedUseAppCheckToken?: boolean
+    limitedUseAppCheckTokens?: boolean
   ): Promise<string | null> {
     if (this.appCheck) {
-      const result = useLimitedUseAppCheckToken
+      const result = limitedUseAppCheckTokens
         ? await this.appCheck.getLimitedUseToken()
         : await this.appCheck.getToken();
       if (result.error) {
@@ -137,11 +137,11 @@ export class ContextProvider {
     return null;
   }
 
-  async getContext(useLimitedUseAppCheckToken?: boolean): Promise<Context> {
+  async getContext(limitedUseAppCheckTokens?: boolean): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
     const appCheckToken = await this.getAppCheckToken(
-      useLimitedUseAppCheckToken
+      limitedUseAppCheckTokens
     );
     return { authToken, messagingToken, appCheckToken };
   }

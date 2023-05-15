@@ -196,7 +196,7 @@ describe('Firebase Functions > Call', () => {
     // Stub out the internals to get an app check token.
     const stub = sinon.stub(appCheckMock, 'getLimitedUseToken').callThrough();
     const func = httpsCallable(functions, 'appCheckTest', {
-      useLimitedUseAppCheckToken: true
+      limitedUseAppCheckTokens: true
     });
     const result = await func({});
     expect(result.data).to.deep.equal({ token: 'app-check-single-use-token' });

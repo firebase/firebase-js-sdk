@@ -43,8 +43,8 @@ export function httpsCallableFromURL<RequestData = unknown, ResponseData = unkno
 
 // @public
 export interface HttpsCallableOptions {
+    limitedUseAppCheckTokens?: boolean;
     timeout?: number;
-    useLimitedUseAppCheckToken?: boolean;
 }
 
 // @public

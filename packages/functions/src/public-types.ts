@@ -52,7 +52,7 @@ export interface HttpsCallableOptions {
    * instance of {@link Functions}. You must use limited-use tokens to call functions with
    * replay protection enabled. By default, this is false.
    */
-  useLimitedUseAppCheckToken?: boolean;
+  limitedUseAppCheckTokens?: boolean;
 }
 
 /**
