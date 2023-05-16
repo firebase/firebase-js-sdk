@@ -426,7 +426,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -651,7 +651,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -701,7 +701,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -1237,7 +1237,7 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
-   * This does not work in a Node.js environment.
+   * The Messaging SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1296,7 +1296,7 @@ declare namespace firebase {
    * The {@link firebase.performance.Performance `Performance`} service does not work with
    * any other app.
    *
-   * This does not work in a Node.js environment.
+   * The Performance SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1315,7 +1315,7 @@ declare namespace firebase {
   /**
    * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
    *
-   * This does not work in a Node.js environment.
+   * The Remote Config SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1335,7 +1335,7 @@ declare namespace firebase {
    * `firebase.analytics()` can be called with no arguments to access the default
    * app's {@link firebase.analytics.Analytics `Analytics`} service.
    *
-   * This does not work in a Node.js environment.
+   * The Analytics SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1404,7 +1404,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.installations.Installations `Installations`} service for the
      * current app.
      *
-     * This does not work in a Node.js environment.
+     * The Installations SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1418,7 +1418,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
-     * This does not work in a Node.js environment.
+     * The Messaging SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1490,7 +1490,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * This does not work in a Node.js environment.
+     * The Performance SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1503,7 +1503,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
      *
-     * This does not work in a Node.js environment.
+     * The Remote Config SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1517,7 +1517,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * This does not work in a Node.js environment.
+     * The Analytics SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1532,7 +1532,9 @@ declare namespace firebase.app {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Provider` or
+ * `ReCaptchaEnterpriseProvider`, but can be used in Node.js if you use
+ * `CustomProvider` and write your own attestation method.
  */
 declare namespace firebase.appCheck {
   /**
@@ -1696,7 +1698,7 @@ declare namespace firebase.appCheck {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * The Installations SDK does not work in a Node.js environment.
  */
 declare namespace firebase.installations {
   /**
@@ -1745,7 +1747,7 @@ declare namespace firebase.installations {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * The Performance SDK does not work in a Node.js environment.
  */
 declare namespace firebase.performance {
   /**
@@ -1868,7 +1870,7 @@ declare namespace firebase.performance {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * The Remote Config SDK does not work in a Node.js environment.
  */
 declare namespace firebase.remoteConfig {
   /**
@@ -2670,7 +2672,7 @@ declare namespace firebase.auth {
      *     Firebase console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3350,7 +3352,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3413,7 +3415,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * This does not work in a Node.js environment.
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -4628,7 +4630,7 @@ declare namespace firebase.auth {
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
    *
-   * This does not work in a Node.js environment.
+   * This class does not work in a Node.js environment.
    *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
@@ -4775,7 +4777,7 @@ declare namespace firebase.auth {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * The Analytics SDK does not work in a Node.js environment.
  */
 declare namespace firebase.analytics {
   /**
@@ -7435,7 +7437,7 @@ declare namespace firebase.database.ServerValue {
 }
 
 /**
- * This does not work in a Node.js environment.
+ * The Messaging SDK does not work in a Node.js environment.
  */
 declare namespace firebase.messaging {
   /**
@@ -8326,7 +8328,7 @@ declare namespace firebase.firestore {
      * work around a specific network reliability issue, please tell us about
      * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
-     * This does not work in a Node.js environment.
+     * This setting does not work in a Node.js environment.
      */
     experimentalForceLongPolling?: boolean;
 
@@ -8338,7 +8340,7 @@ declare namespace firebase.firestore {
      * This setting will likely be enabled by default in future releases and cannot be
      * combined with `experimentalForceLongPolling`.
      *
-     * This does not work in a Node.js environment.
+     * This setting does not work in a Node.js environment.
      */
     experimentalAutoDetectLongPolling?: boolean;
 

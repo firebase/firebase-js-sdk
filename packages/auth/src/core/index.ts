@@ -80,6 +80,8 @@ export function setPersistence(
  * Thus, by calling this optional method, you will reduce the latency of future auth flows.
  * Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
  *
+ * This method does not work in a Node.js environment.
+ * 
  * @example
  * ```javascript
  * initializeRecaptchaConfig(auth);
