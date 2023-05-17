@@ -90,10 +90,11 @@ export interface FirestoreSettings extends LiteSettings {
    * `experimentalForceLongPolling`, but only uses long-polling if required.
    *
    * After having had a default value of `false` since its inception in 2019,
-   * the default value of this setting was changed in mid-2023 to `true`. That
-   * is, auto-detection of long polling is now enabled by default. To disable
-   * it, set this setting to `false`, and please open a GitHub issue to share
-   * the problems that motivated you disabling long-polling auto-detection.
+   * the default value of this setting was changed in May 2023 to `true` in
+   * v9.22.0 of the Firebase JavaScript SDK. That is, auto-detection of long
+   * polling is now enabled by default. To disable it, set this setting to
+   * `false`, and please open a GitHub issue to share the problems that
+   * motivated you disabling long-polling auto-detection.
    */
   experimentalAutoDetectLongPolling?: boolean;
 
