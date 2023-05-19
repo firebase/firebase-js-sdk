@@ -606,8 +606,8 @@ export class QueryStartAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to start at.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export function startAt(
-  snapshot: DocumentSnapshot<unknown>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -619,8 +619,8 @@ export function startAt(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
@@ -638,8 +638,8 @@ export function startAt(
  * @param snapshot - The snapshot of the document to start after.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export function startAfter(
-  snapshot: DocumentSnapshot<unknown>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -651,8 +651,8 @@ export function startAfter(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAfter(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
@@ -715,8 +715,8 @@ export class QueryEndAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to end before.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endBefore(
-  snapshot: DocumentSnapshot<unknown>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
@@ -728,8 +728,8 @@ export function endBefore(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endBefore(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
@@ -747,8 +747,8 @@ export function endBefore(
  * @param snapshot - The snapshot of the document to end at.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endAt(
-  snapshot: DocumentSnapshot<unknown>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
@@ -760,8 +760,8 @@ export function endAt(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endAt',

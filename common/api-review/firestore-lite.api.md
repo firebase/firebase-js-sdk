@@ -143,13 +143,13 @@ export class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends D
 export { EmulatorMockTokenOptions }
 
 // @public
-export function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 
 // @public
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 // @public
-export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 
 // @public
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
@@ -368,13 +368,13 @@ export interface Settings {
 export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 
 // @public
-export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 
 // @public
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 
 // @public
-export function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;

@@ -2052,14 +2052,14 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 <b>Signature:</b>
 
 ```typescript
-export declare function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end at. |
 
 <b>Returns:</b>
 
@@ -2074,14 +2074,14 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 <b>Signature:</b>
 
 ```typescript
-export declare function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end before. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end before. |
 
 <b>Returns:</b>
 
@@ -2096,14 +2096,14 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 <b>Signature:</b>
 
 ```typescript
-export declare function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start after. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start after. |
 
 <b>Returns:</b>
 
@@ -2118,14 +2118,14 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 <b>Signature:</b>
 
 ```typescript
-export declare function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start at. |
 
 <b>Returns:</b>
 
