@@ -17,7 +17,7 @@ Using the converter allows you to specify generic type arguments when storing an
 <b>Signature:</b>
 
 ```typescript
-export declare interface FirestoreDataConverter<T> 
+export declare interface FirestoreDataConverter<AppModelType, DbModelType extends DocumentData = DocumentData> 
 ```
 
 ## Methods
@@ -35,18 +35,18 @@ Called by the Firestore SDK to convert Firestore data into an object of type T. 
 <b>Signature:</b>
 
 ```typescript
-fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): AppModelType;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md#documentdata_interface)<!-- -->&gt; | A <code>QueryDocumentSnapshot</code> containing your data and metadata. |
+|  snapshot | [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_lite.documentdata.md#documentdata_interface)<!-- -->&gt; | A <code>QueryDocumentSnapshot</code> containing your data and metadata. |
 
 <b>Returns:</b>
 
-T
+AppModelType
 
 ## FirestoreDataConverter.toFirestore()
 
@@ -57,18 +57,18 @@ The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as [dele
 <b>Signature:</b>
 
 ```typescript
-toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  modelObject | [WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;T&gt; |  |
+|  modelObject | [WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; |  |
 
 <b>Returns:</b>
 
-[DocumentData](./firestore_lite.documentdata.md#documentdata_interface)
+[WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;DbModelType&gt;
 
 ## FirestoreDataConverter.toFirestore()
 
@@ -79,19 +79,19 @@ The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues su
 <b>Signature:</b>
 
 ```typescript
-toFirestore(modelObject: PartialWithFieldValue<T>, options: SetOptions): DocumentData;
+toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  modelObject | [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;T&gt; |  |
+|  modelObject | [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; |  |
 |  options | [SetOptions](./firestore_lite.md#setoptions) |  |
 
 <b>Returns:</b>
 
-[DocumentData](./firestore_lite.documentdata.md#documentdata_interface)
+[PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;DbModelType&gt;
 
 ### Example
 
