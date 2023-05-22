@@ -1097,8 +1097,12 @@ export interface UserInfo {
  * @public
  */
 export interface UserMetadata {
+  /** Timestamp in milliseconds the user was created. */
+  readonly createdAt?: string;
   /** Time the user was created. */
   readonly creationTime?: string;
+  /** Timestamp in milliseconds the user last signed in. */
+  readonly lastLoginAt?: string;
   /** Time the user last signed in. */
   readonly lastSignInTime?: string;
 }
