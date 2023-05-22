@@ -99,7 +99,7 @@ export interface FirestoreSettings extends LiteSettings {
    * polling is now enabled by default. To disable it, set this setting to
    * `false`, and please open a GitHub issue to share the problems that
    * motivated you disabling long-polling auto-detection.
-   * 
+   *
    * This setting cannot be used in a Node.js environment.
    */
   experimentalAutoDetectLongPolling?: boolean;
