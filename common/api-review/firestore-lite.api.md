@@ -14,7 +14,7 @@ export function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValu
 
 // @public
 export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
-    [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
 
 // @public
