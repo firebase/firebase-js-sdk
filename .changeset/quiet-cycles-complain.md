@@ -1,6 +1,4 @@
 ---
-'firebase': patch
-'@firebase/firestore': patch
 '@firebase/webchannel-wrapper': patch
 ---
 
