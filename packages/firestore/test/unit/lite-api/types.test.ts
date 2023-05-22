@@ -19,49 +19,51 @@ import { expect } from 'chai';
 import {
   UpdateData
 } from '../../../src/lite-api/reference';
-import { hardAssert } from '../../../src/util/assert';
 
-type MyUnion = string | number;
+// A union type for testing
+type MyUnionType = string | number;
 
-type NestedObject = {
-  boo: boolean,
-  str: string,
-  num: number,
-  nul: null,
-  und: undefined,
-  customUnion: MyUnion
-}
+// An object type for testing
+interface MyObjectType {
+  booleanProperty: boolean,
+  stringProperty: string,
+  numberProperty: number,
+  nullProperty: null,
+  undefinedProperty: undefined,
+  unionProperty: MyUnionType
+};
 
-
-describe.only('UpdateData - v9', () => {
-  type MyServerType = {
+// v9 tests cover scenarios that worked in
+// Web SDK version v9.
+describe('UpdateData - v9', () => {
+  interface MyV9ServerType {
     // primitive types
-    boo: boolean,
-    str: string,
-    num: number,
-    nul: null,
-    und: undefined,
+    booleanProperty: boolean,
+    stringProperty: string,
+    numberProperty: number,
+    nullProperty: null,
+    undefinedProperty: undefined,
 
     // custom types
-    customUnion: MyUnion,
-    customObject: NestedObject,
+    unionProperty: MyUnionType,
+    objectProperty: MyObjectType,
 
     // nested objects
     nested: {
       bar: {
-        boo: boolean,
-        str: string,
+        booleanProperty: boolean,
+        stringProperty: string,
         anotherLayer: {
-          boo: boolean,
-          str: string,
+          booleanProperty: boolean,
+          stringProperty: string,
         }
       },
       baz: {
-        boo: boolean,
-        str: string,
+        booleanProperty: boolean,
+        stringProperty: string,
         anotherLayer: {
-          boo: boolean,
-          str: string,
+          booleanProperty: boolean,
+          stringProperty: string,
         }
       }
     },
@@ -69,77 +71,75 @@ describe.only('UpdateData - v9', () => {
     // index signatures nested 1 layer deep
     indexed: {
       [name: string]: {
-        desc: boolean,
-        num: number
+        booleanProperty: boolean,
+        numberProperty: number
       }
     },
 
-    // TODO v10 - index signatures nested 2 layers deep
-
     // property with dots in the name
     'property.with.dots': boolean
-  }
+  };
 
   it("Supports properties with primitive types", () => {
-    let testData : UpdateData<MyServerType>;
-    testData = {
-      boo: true,
-      str: "string",
-      num: 2,
-      nul: null,
-      und: undefined
+    let _ : UpdateData<MyV9ServerType>;
+    _ = {
+      booleanProperty: true,
+      stringProperty: "string",
+      numberProperty: 2,
+      nullProperty: null,
+      undefinedProperty: undefined
     };
 
-    testData = {
+    _ = {
       // @ts-expect-error
-      boo: "string",
+      booleanProperty: "string",
       // @ts-expect-error
-      str: 1,
+      stringProperty: 1,
       // @ts-expect-error
-      num: "string",
+      numberProperty: "string",
       // @ts-expect-error
-      nul: "string",
+      nullProperty: "string",
       // @ts-expect-error
-      und: "string",
+      undefinedProperty: "string",
     };
 
     expect(true).to.be.true;
   });
 
   it("Supports properties with custom types", () => {
-    let testData : UpdateData<MyServerType>;
-    testData = {
-      customUnion: "string",
-      customObject: {
-        boo: true,
-        str: "string",
-        num: 2,
-        nul: null,
-        und: undefined,
-        customUnion: 1,
+    let _ : UpdateData<MyV9ServerType>;
+    _ = {
+      unionProperty: "string",
+      objectProperty: {
+        booleanProperty: true,
+        stringProperty: "string",
+        numberProperty: 2,
+        nullProperty: null,
+        undefinedProperty: undefined,
+        unionProperty: 1,
       }
     };
 
-    testData = {
+    _ = {
       // @ts-expect-error
-      customUnion: true,
+      unionProperty: true,
 
       // @ts-expect-error
-      customObject: true
+      objectProperty: true
     };
 
-    testData = {
-      customObject: {
+    _ = {
+      objectProperty: {
         // @ts-expect-error
-        boo: "string",
+        booleanProperty: "string",
         // @ts-expect-error
-        str: 1,
+        stringProperty: 1,
         // @ts-expect-error
-        num: "string",
+        numberProperty: "string",
         // @ts-expect-error
-        nul: "string",
+        nullProperty: "string",
         // @ts-expect-error
-        und: "string",
+        undefinedProperty: "string",
       }
     };
 
@@ -148,15 +148,15 @@ describe.only('UpdateData - v9', () => {
 
   describe("given properties with dots", () => {
     it("preserves the value type", () => {
-      let testData: UpdateData<MyServerType>;
+      let _: UpdateData<MyV9ServerType>;
 
       // Allows values of expected type
-      testData = {
+      _ = {
         'property.with.dots': true
       };
 
       // Errors on values of unexpected type
-      testData = {
+      _ = {
         // @ts-expect-error
         'property.with.dots': 1
       };
@@ -165,51 +165,49 @@ describe.only('UpdateData - v9', () => {
     });
 
     it("does not allow matching a sub-string|path", () => {
-      let testData: UpdateData<MyServerType>;
-
-      testData = {
+      const _: UpdateData<MyV9ServerType>  = {
         // @ts-expect-error
         'property.with': true
       };
 
       expect(true).to.be.true;
     });
-  })
+  });
 
-  describe("given nested objects (no index properties)", () => {
+  describe("given nested objects without index properties", () => {
     it("supports object replacement at each layer (with partial)", () => {
-      let testData: UpdateData<MyServerType>;
-      testData = {
+      let _: UpdateData<MyV9ServerType>;
+      _ = {
         nested: {}
       };
 
-      testData = {
+      _ = {
         nested: {
           bar: {},
           baz: {}
         }
       };
 
-      testData = {
+      _ = {
         nested: {
           bar: {
-            boo: true,
-            str: "string"
+            booleanProperty: true,
+            stringProperty: "string"
           },
           baz: {
-            str: "string"
+            stringProperty: "string"
           }
         }
       };
 
-      testData = {
+      _ = {
         nested: {
           bar: {
-            boo: true,
-            str: "string",
+            booleanProperty: true,
+            stringProperty: "string",
             anotherLayer: {
-              boo: false,
-              str: "another string"
+              booleanProperty: false,
+              stringProperty: "another string"
             }
           }
         }
@@ -218,25 +216,25 @@ describe.only('UpdateData - v9', () => {
       expect(true).to.be.true;
     });
 
-    it("preserves value types at each layer", () => {
-      let testData: UpdateData<MyServerType>;
-      testData = {
+    it("errors for unexpected value types at each layer", () => {
+      let _: UpdateData<MyV9ServerType>;
+      _ = {
         // @ts-expect-error
         nested: true
       };
 
-      testData = {
+      _ = {
         nested: {
           bar: {
             // @ts-expect-error
-            str: true,
+            stringProperty: true,
             // @ts-expect-error
             anotherLayer: true
           },
           baz: {
             anotherLayer: {
               // @ts-expect-error
-              boo: "string value"
+              booleanProperty: "string value"
             }
           }
         }
@@ -246,13 +244,13 @@ describe.only('UpdateData - v9', () => {
     });
 
     it("does not allow properties that were not on the original type", () => {
-      let testData: UpdateData<MyServerType>;
-      testData = {
+      let _: UpdateData<MyV9ServerType>;
+      _ = {
         // @ts-expect-error
         unknown: true
       };
 
-      testData = {
+      _ = {
         nested: {
           // @ts-expect-error
           unknown: true
@@ -263,33 +261,34 @@ describe.only('UpdateData - v9', () => {
     });
 
     it("preserves value types for dot notation", () => {
-      let testData: UpdateData<MyServerType>;
+      let _: UpdateData<MyV9ServerType>;
 
       // 2 layers with dot notation
 
       // preserves type
-      testData = {
+      _ = {
         'nested.bar': {},
         'nested.baz': {},
       };
 
-      // preserves properties of nested objects
-      testData = {
+      // preserves properties of nested objects referenced
+      // with dot notation
+      _ = {
         'nested.bar': {
-          boo: true,
-          str: "string",
+          booleanProperty: true,
+          stringProperty: "string",
           anotherLayer: {
-            boo: false,
-            str: "string",
+            booleanProperty: false,
+            stringProperty: "string",
           }
         },
         'nested.baz': {
-          boo: true
+          booleanProperty: true
         }
       };
 
       // preserves type - failure
-      testData = {
+      _ = {
         // @ts-expect-error
         'nested.bar': false,
         // @ts-expect-error
@@ -297,31 +296,31 @@ describe.only('UpdateData - v9', () => {
       };
 
       // preserves properties of nested objects - failure
-      testData = {
+      _ = {
         'nested.bar': {
           // @ts-expect-error
-          boo: "string"
+          booleanProperty: "string"
         }
       };
 
       // 3 layers with dot notation
 
       // preserves type
-      testData = {
-        'nested.bar.boo': true,
+      _ = {
+        'nested.bar.booleanProperty': true,
         'nested.bar.anotherLayer': {},
       };
 
       // preserves properties of nested objects
-      testData = {
+      _ = {
         'nested.bar.anotherLayer': {
-          boo: false,
-          str: "string"
+          booleanProperty: false,
+          stringProperty: "string"
         }
       };
 
       // preserves type - failure
-      testData = {
+      _ = {
         // @ts-expect-error
         'nested.bar.anotherLayer': true,
         // @ts-expect-error
@@ -329,11 +328,119 @@ describe.only('UpdateData - v9', () => {
       };
 
       // preserves properties of nested objects - failure
-      testData = {
+      _ = {
         'nested.bar.anotherLayer': {
           // @ts-expect-error
-          boo: "string"
+          booleanProperty: "string"
         },
+      };
+
+      expect(true).to.be.true;
+    });
+  });
+
+  describe("given nested objects with index properties", () => {
+    it("supports object replacement at each layer (with partial)", () => {
+      let _: UpdateData<MyV9ServerType>;
+      _ = {
+        indexed: {}
+      };
+
+      _ = {
+        indexed: {
+          bar: {},
+          baz: {}
+        }
+      };
+
+      _ = {
+        indexed: {
+          bar: {
+            booleanProperty: true,
+          },
+          baz: {
+            numberProperty: 1
+          }
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it("errors for unexpected value types at each layer", () => {
+      let _: UpdateData<MyV9ServerType>;
+      _ = {
+        // @ts-expect-error
+        indexed: true
+      };
+
+      _ = {
+        indexed: {
+          bar: {
+            // @ts-expect-error
+            stringProperty: true,
+          }
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it("does not allow properties that were not on the original type", () => {
+      const _: UpdateData<MyV9ServerType> = {
+        indexed: {
+          foo: {
+            // @ts-expect-error
+            unknown: 1
+          },
+          bar: {
+            numberProperty: 2,
+            // @ts-expect-error
+            something: "string val"
+          }
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it("preserves value types for dot notation", () => {
+      let _: UpdateData<MyV9ServerType>;
+
+      // 2 layers with dot notation
+
+      // preserves type
+      _ = {
+        'indexed.bar': {},
+        'indexed.baz': {},
+      };
+
+      // preserves properties of nested objects referenced
+      // with dot notation
+      _ = {
+        'indexed.bar': {
+          booleanProperty: true,
+          numberProperty: 1
+        },
+        'indexed.baz': {
+          booleanProperty: true
+        }
+      };
+
+      // preserves type - failure
+      _ = {
+        // @ts-expect-error
+        'indexed.bar': false,
+        // @ts-expect-error
+        'indexed.baz': "string",
+      };
+
+      // preserves properties of nested objects - failure
+      _ = {
+        'indexed.bar': {
+          // @ts-expect-error
+          booleanProperty: "string"
+        }
       };
 
       expect(true).to.be.true;
