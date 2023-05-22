@@ -22,8 +22,20 @@ export interface UserMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [createdAt](./auth.usermetadata.md#usermetadatacreatedAt) | string | Timestamp in milliseconds the user was created. |
 |  [creationTime](./auth.usermetadata.md#usermetadatacreationtime) | string | Time the user was created. |
+|  [lastLoginAt](./auth.usermetadata.md#usermetadatalastLoginAt) | string | Timestamp in milliseconds the user last signed in. |
 |  [lastSignInTime](./auth.usermetadata.md#usermetadatalastsignintime) | string | Time the user last signed in. |
+
+## UserMetadata.usermetadatacreatedAt
+
+Timestamp in milliseconds the user was created.
+
+<b>Signature:</b>
+
+```typescript
+readonly createdAt?: string;
+```
 
 ## UserMetadata.creationTime
 
@@ -33,6 +45,16 @@ Time the user was created.
 
 ```typescript
 readonly creationTime?: string;
+```
+
+## UserMetadata.usermetadatalastLoginAt
+
+Timestamp in milliseconds the user last signed in.
+
+<b>Signature:</b>
+
+```typescript
+readonly lastLoginAt?: string;
 ```
 
 ## UserMetadata.lastSignInTime
