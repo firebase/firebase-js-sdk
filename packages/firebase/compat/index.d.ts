@@ -4770,7 +4770,9 @@ declare namespace firebase.auth {
    * Interface representing a user's metadata.
    */
   interface UserMetadata {
+    createdAt?: string;
     creationTime?: string;
+    lastLoginAt?: string;
     lastSignInTime?: string;
   }
 }
