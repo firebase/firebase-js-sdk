@@ -861,10 +861,10 @@ export interface UserInfo {
 
 // @public
 export interface UserMetadata {
-  readonly createdAt?: string;
-  readonly creationTime?: string;
-  readonly lastLoginAt?: string;
-  readonly lastSignInTime?: string;
+    readonly createdAt?: string;
+    readonly creationTime?: string;
+    readonly lastLoginAt?: string;
+    readonly lastSignInTime?: string;
 }
 
 // @public
