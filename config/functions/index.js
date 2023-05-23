@@ -76,6 +76,15 @@ exports.instanceIdTest = functions.https.onRequest((request, response) => {
   });
 });
 
+exports.appCheckTest = functions.https.onRequest((request, response) => {
+  cors(request, response, () => {
+    const token = request.get('X-Firebase-AppCheck');
+    assert.equal(token !== undefined, true);
+    assert.deepEqual(request.body, { data: {} });
+    response.send({ data: { token } });
+  });
+});
+
 exports.nullTest = functions.https.onRequest((request, response) => {
   cors(request, response, () => {
     assert.deepEqual(request.body, { data: null });
