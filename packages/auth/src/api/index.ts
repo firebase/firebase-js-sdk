@@ -110,7 +110,9 @@ export async function _performApiRequest<T, V>(
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
   if (!auth.emulatorConfig && !auth.config.apiKey) {
-    _assert(false, AuthErrorCode.INVALID_API_KEY, auth.app);
+    _assert(false, AuthErrorCode.INVALID_API_KEY, {
+      appName: auth.app.name
+    });
   }
   return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
