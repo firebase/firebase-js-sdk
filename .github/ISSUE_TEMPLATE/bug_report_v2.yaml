@@ -1,5 +1,5 @@
-name: 🐞 Bug Report V2
-description: File a bug report
+name: 🐞 Issue Report
+description: File a issue report
 title: 'Title for the issue'
 labels: 'new, type: question'
 body:
