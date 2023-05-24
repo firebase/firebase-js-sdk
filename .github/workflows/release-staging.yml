@@ -16,6 +16,10 @@ on:
         options:
         - master
         - v8
+      verbose:
+        description: 'Enable verbose logging'
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -24,10 +28,10 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
-    - name: Set up Node (14)
+    - name: Set up node (16)
       uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Merge master into release
       uses: actions/github-script@v6
       with:
@@ -107,6 +111,7 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+        VERBOSE_NPM_LOGGING: ${{github.event.inputs.verbose}}
     - name: Get release version
       id: get-version
       # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
@@ -134,15 +139,16 @@ jobs:
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
     - name: Check for changes requiring a reference doc publish
       id: docs-check
+      # If a diff is found (length of DIFF_CONTENTS > 0) it will write DOCS_NEEDED=true
       run: |
         LAST_PUBLISHED_VERSION=$(npm info firebase version)
-        git diff --exit-code firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite
-    - name: No diff, docs not needed
-      if: ${{ success() }}
-      run: echo "DOCS_NEEDED=false" >> $GITHUB_STATE
-    - name: Diff returned something, docs are needed
-      if: ${{ failure() }}
-      run: echo "DOCS_NEEDED=true" >> $GITHUB_STATE
+        DIFF_CONTENTS=$(git diff firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite)
+        if [ -n "$DIFF_CONTENTS" ]
+        then
+        echo "DOCS_NEEDED=true" >> $GITHUB_OUTPUT
+        else
+        echo "DOCS_NEEDED=false" >> $GITHUB_OUTPUT
+        fi
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       if: ${{ always() }}

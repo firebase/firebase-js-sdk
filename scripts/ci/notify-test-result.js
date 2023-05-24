@@ -111,7 +111,9 @@ async function notifyTestResults() {
     req.end();
   });
 
-  return Promise.all([chatPromise, logPromise]);
+  return Promise.all([chatPromise, logPromise]).catch(e => {
+    console.error(e);
+  });
 }
 
 notifyTestResults();
