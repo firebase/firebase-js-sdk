@@ -131,7 +131,7 @@ async function publishPackageInCI(
     }
 
     if (process.env.VERBOSE_NPM_LOGGING === 'true') {
-      args.push('--verbose')
+      args.push('--verbose');
     }
 
     // Write proxy registry token for this package to .npmrc.
