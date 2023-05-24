@@ -1,6 +1,6 @@
 name: 🐞 Bug Report V2
 description: File a bug report
-title: ''
+title: 'Title for the issue'
 labels: 'new, type: question'
 body:
   - type: markdown
