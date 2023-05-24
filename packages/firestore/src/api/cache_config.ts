@@ -266,6 +266,8 @@ export type PersistentCacheSettings = {
    * Specifies how multiple tabs/windows will be managed by the SDK.
    */
   tabManager?: PersistentTabManager;
+
+  autoCacheIndexEnabled?: boolean;
 };
 
 /**

@@ -453,6 +453,8 @@ export interface PersistenceSettings {
 
 // @public
 export interface PersistentCacheSettings {
+    // (undocumented)
+    autoCacheIndexEnabled?: boolean;
     cacheSizeBytes?: number;
     tabManager?: PersistentTabManager;
 }
