@@ -54,6 +54,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "dependencies": {
-    "node-fetch": "2.6.7"
+    "node-fetch": "3.3.1"
   }
 }
