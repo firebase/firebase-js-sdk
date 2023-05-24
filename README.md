@@ -45,7 +45,7 @@ https://yarnpkg.com/en/docs/install
 
 This repo currently supports building with yarn `1.x`. For instance, after installating yarn, run
 ```bash
-$ yarn set version 1.22.11`
+$ yarn set version 1.22.11
 ```
 
 #### Java
