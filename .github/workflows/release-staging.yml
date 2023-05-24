@@ -16,6 +16,10 @@ on:
         options:
         - master
         - v8
+      verbose:
+        description: 'Enable verbose logging'
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -107,6 +111,7 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+        VERBOSE_NPM_LOGGING: ${{github.event.inputs.verbose}}
     - name: Get release version
       id: get-version
       # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
