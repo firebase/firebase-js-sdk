@@ -53,10 +53,11 @@ describe('FirestoreTypeConverter', () => {
     async function foo(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('foo');
-      expect(data.numberProperty).to.equal(42);
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
     }
   });
 
@@ -79,10 +80,11 @@ describe('FirestoreTypeConverter', () => {
     async function foo(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('foo');
-      expect(data.numberProperty).to.equal(42);
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
     }
   });
 
@@ -121,10 +123,11 @@ describe('FirestoreTypeConverter', () => {
     async function foo(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('foo');
-      expect(data.numberProperty).to.equal(42);
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
     }
   });
 
@@ -147,19 +150,24 @@ describe('FirestoreTypeConverter', () => {
     async function foo(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.equal('foo');
-      expect(data.numberProperty).to.equal(42);
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
     }
   });
 
-  it('updateDoc() is typed incorrectly', () => {
+  it('converter is explicitly typed as FirestoreDataConverter<T, U>', () => {
     interface MyModelType {
       stringProperty: string;
       numberProperty: number;
     }
-    const converter: FirestoreDataConverter<MyModelType> = {
+    interface MyDbType {
+      a: string;
+      b: number;
+    }
+    const converter: FirestoreDataConverter<MyModelType, MyDbType> = {
       toFirestore(obj: WithFieldValue<MyModelType>) {
         return { a: obj.stringProperty, b: obj.numberProperty };
       },
@@ -172,14 +180,12 @@ describe('FirestoreTypeConverter', () => {
     };
     async function foo(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
-      // TODO(dconeybe) Update this test in the fix
-      //  https://github.com/firebase/firebase-js-sdk/pull/7310
-      // @ts-expect-error
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
       const data: MyModelType = snapshot.data()!;
-      expect(data.stringProperty).to.be.a('string');
-      expect(data.numberProperty).to.be.a('number');
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
     }
   });
 });
