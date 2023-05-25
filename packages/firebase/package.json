@@ -228,7 +228,7 @@
       "default": "./compat/analytics/dist/esm/index.esm.js"
     },
     "./compat/app": {
-      "types": "./compat/app/dist/compat/app/index.d.ts",
+      "types": "./compat/index.d.ts",
       "node": {
         "require": "./compat/app/dist/index.cjs.js",
         "import": "./compat/app/dist/index.mjs"
