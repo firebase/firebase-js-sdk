@@ -1,5 +1,6 @@
 ---
+'@firebase/auth': major
 'firebase': major
 ---
 
-In @firebase/auth, reorder RecaptchaVerifier parameters so auth is the first parameter
+Reorder RecaptchaVerifier parameters so auth is the first parameter
