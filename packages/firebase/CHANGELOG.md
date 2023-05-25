@@ -1,5 +1,19 @@
 # firebase
 
+## 9.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`e12e7f535`](https://github.com/firebase/firebase-js-sdk/commit/e12e7f53516b77f73e3781ffb64385d52982f653)]:
+  - @firebase/app@0.9.11
+  - @firebase/app-check@0.8.0
+  - @firebase/functions@0.10.0
+  - @firebase/app-compat@0.2.11
+  - @firebase/firestore@3.12.1
+  - @firebase/app-check-compat@0.3.7
+  - @firebase/functions-compat@0.3.5
+  - @firebase/firestore-compat@0.3.10
+
 ## 9.22.0
 
 ### Minor Changes
