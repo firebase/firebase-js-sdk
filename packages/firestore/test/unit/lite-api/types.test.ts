@@ -50,7 +50,7 @@ describe('FirestoreTypeConverter', () => {
         };
       }
     };
-    async function foo(docRef: DocumentReference): Promise<void> {
+    async function _(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
@@ -77,7 +77,7 @@ describe('FirestoreTypeConverter', () => {
         };
       }
     };
-    async function foo(docRef: DocumentReference): Promise<void> {
+    async function _(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
@@ -120,7 +120,7 @@ describe('FirestoreTypeConverter', () => {
         };
       }
     };
-    async function foo(docRef: DocumentReference): Promise<void> {
+    async function _(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
@@ -147,7 +147,7 @@ describe('FirestoreTypeConverter', () => {
         };
       }
     };
-    async function foo(docRef: DocumentReference): Promise<void> {
+    async function _(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
@@ -178,7 +178,7 @@ describe('FirestoreTypeConverter', () => {
         };
       }
     };
-    async function foo(docRef: DocumentReference): Promise<void> {
+    async function _(docRef: DocumentReference): Promise<void> {
       const newDocRef = docRef.withConverter(converter);
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
