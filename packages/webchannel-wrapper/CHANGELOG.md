@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 0.10.1
+
+### Patch Changes
+
+- [`23581c540`](https://github.com/firebase/firebase-js-sdk/commit/23581c54065f6b14a150ef579b71410842ac8518) [#7311](https://github.com/firebase/firebase-js-sdk/pull/7311) - Fix the new `experimentalLongPollingOptions.timeoutSeconds` setting, which was released in v9.22.0 but didn't work.
+
 ## 0.10.0
 
 ### Minor Changes

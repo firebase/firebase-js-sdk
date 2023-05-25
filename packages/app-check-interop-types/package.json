@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-interop-types",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "@firebase/app-check-interop-types Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

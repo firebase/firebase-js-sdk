@@ -1,5 +1,16 @@
 # @firebase/functions
 
+## 0.10.0
+
+### Minor Changes
+
+- [`e12e7f535`](https://github.com/firebase/firebase-js-sdk/commit/e12e7f53516b77f73e3781ffb64385d52982f653) [#7296](https://github.com/firebase/firebase-js-sdk/pull/7296) - Add support for App Check replay protection in callable functions
+
+### Patch Changes
+
+- Updated dependencies [[`e12e7f535`](https://github.com/firebase/firebase-js-sdk/commit/e12e7f53516b77f73e3781ffb64385d52982f653)]:
+  - @firebase/app-check-interop-types@0.3.0
+
 ## 0.9.4
 
 ### Patch Changes
