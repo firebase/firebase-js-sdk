@@ -25,6 +25,8 @@ export { DEFAULT_HOST } from '../lite-api/settings';
 /**
  * Settings that can be passed to `enableIndexedDbPersistence()` to configure
  * Firestore persistence.
+ *
+ * Persistence cannot be used in a Node.js environment.
  */
 export interface PersistenceSettings {
   /**
@@ -81,6 +83,8 @@ export interface FirestoreSettings extends LiteSettings {
    * may be removed in a future release. If you find yourself using it to
    * work around a specific network reliability issue, please tell us about
    * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   *
+   * This setting cannot be used in a Node.js environment.
    */
   experimentalForceLongPolling?: boolean;
 
@@ -95,6 +99,8 @@ export interface FirestoreSettings extends LiteSettings {
    * polling is now enabled by default. To disable it, set this setting to
    * `false`, and please open a GitHub issue to share the problems that
    * motivated you disabling long-polling auto-detection.
+   *
+   * This setting cannot be used in a Node.js environment.
    */
   experimentalAutoDetectLongPolling?: boolean;
 

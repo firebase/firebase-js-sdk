@@ -282,6 +282,8 @@ toc:
     path: /docs/reference/js/v8/firebase.storage.SettableMetadata
   - title: "Storage"
     path: /docs/reference/js/v8/firebase.storage.Storage
+  - title: "StorageErrorCode"
+    path: /docs/reference/js/v8/firebase.storage.StorageErrorCode
   - title: "StorageObserver"
     path: /docs/reference/js/v8/firebase.storage.StorageObserver
   - title: "UploadMetadata"
