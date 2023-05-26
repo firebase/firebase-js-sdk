@@ -161,6 +161,9 @@ const cdnBuilds = [
           typescriptPluginCDN,
           terser({
             format: { comments: false }
+            keep_fnames: true,
+            keep_classnames: true,
+            keep_interfacenames: true,
           })
         ],
         external: ['@firebase/app']
