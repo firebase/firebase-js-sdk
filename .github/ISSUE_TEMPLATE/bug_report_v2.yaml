@@ -1,6 +1,6 @@
-name: 🐞 Issue Report
-description: File a issue report
-title: 'Title for the issue'
+name: 🐞 Bug Report
+description: File a bug report
+title: 'Title for the bug'
 labels: 'new, type: question'
 body:
   - type: markdown
