@@ -64,7 +64,7 @@ const browserPlugins = function () {
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+//     terser(util.manglePrivatePropertiesOptions)
   ];
 };
 
