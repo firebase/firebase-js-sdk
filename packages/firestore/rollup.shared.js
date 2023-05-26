@@ -144,6 +144,9 @@ const manglePrivatePropertiesOptions = {
     comments: 'all',
     beautify: true
   },
+  keep_fnames: true,
+  keep_classnames: true,
+  keep_interfacenames: true,
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
