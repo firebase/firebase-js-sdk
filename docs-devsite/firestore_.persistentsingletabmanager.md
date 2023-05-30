@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PersistentSingleTabManager interface
-A tab manager supportting only one tab, no synchronization will be performed across tabs.
+A tab manager supporting only one tab, no synchronization will be performed across tabs.
 
 <b>Signature:</b>
 
