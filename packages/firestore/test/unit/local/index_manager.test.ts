@@ -939,6 +939,69 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(testingQuery, 'coll/val2');
   });
 
+  it('can have filters on the same field', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.ASCENDING],
+          ['b', IndexKind.ASCENDING]
+        ]
+      })
+    );
+    await addDoc('coll/val1', { 'a': 1, 'b': 1 });
+    await addDoc('coll/val2', { 'a': 2, 'b': 2 });
+    await addDoc('coll/val3', { 'a': 3, 'b': 3 });
+    await addDoc('coll/val4', { 'a': 4, 'b': 4 });
+
+    let testingQuery = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+      filter('a', '==', 2)
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '<=', 1)),
+      filter('a', '==', 2)
+    );
+    await verifyResults(testingQuery);
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+        filter('a', '==', 2)
+      ),
+      orderBy('a')
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+          filter('a', '==', 2)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+          filter('a', '==', 3)
+        ),
+        orderBy('a')
+      ),
+      orderBy('b', 'desc')
+    );
+    await verifyResults(testingQuery, 'coll/val3');
+  });
+
   it('support advances queries', async () => {
     // This test compares local query results with those received from the Java
     // Server SDK.
