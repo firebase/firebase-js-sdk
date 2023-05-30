@@ -162,8 +162,10 @@ const cdnBuilds = [
           terser({
             format: { comments: false },
             keep_fnames: true,
-            keep_classnames: true
-//             keep_interfacenames: true
+            keep_classnames: true,
+            mangle: {
+              reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex']
+            }
           })
         ],
         external: ['@firebase/app']
