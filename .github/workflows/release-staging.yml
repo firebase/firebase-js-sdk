@@ -16,7 +16,6 @@ on:
         options:
         - master
         - v8
-        - ch-debug-staging
       verbose:
         description: 'Enable verbose logging'
         type: boolean
