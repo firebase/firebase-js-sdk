@@ -33,6 +33,10 @@ import {
 import * as types from '@firebase/database-types';
 
 import { Database } from './Database';
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 
 /**
  * Used by console to create a database based on the app,
@@ -48,6 +52,7 @@ export function initStandalone<T>({
   url,
   version,
   customAuthImpl,
+  customAppCheckImpl,
   namespace,
   nodeAdmin = false
 }: {
@@ -55,6 +60,7 @@ export function initStandalone<T>({
   url: string;
   version: string;
   customAuthImpl: FirebaseAuthInternal;
+  customAppCheckImpl?: FirebaseAppCheckInternal;
   namespace: T;
   nodeAdmin?: boolean;
 }): {
@@ -63,24 +69,33 @@ export function initStandalone<T>({
 } {
   _setSDKVersion(version);
 
+  const container = new ComponentContainer('database-standalone');
   /**
    * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
    * any actual function.
    */
   const authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
-    new ComponentContainer('database-standalone')
+    container
   );
   authProvider.setComponent(
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
   );
+
+  let appCheckProvider: Provider<AppCheckInternalComponentName> = undefined;
+  if (customAppCheckImpl) {
+    appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      container
+    );
+  }
 
   return {
     instance: new Database(
       _repoManagerDatabaseFromApp(
         app,
         authProvider,
-        /* appCheckProvider= */ undefined,
+        appCheckProvider,
         url,
         nodeAdmin
       ),
