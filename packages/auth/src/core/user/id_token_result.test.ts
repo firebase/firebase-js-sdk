@@ -141,14 +141,3 @@ describe('core/user/id_token_result', () => {
     );
   });
 });
-
-describe('check_type', function() {
-  let token: ParsedToken;
-
-  it('error if string converts to int', function() {
-   token = {
-    "Bob": 1234
-  };
-    expect(1+1) == 2;
-  }); 
-});
