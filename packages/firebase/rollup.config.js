@@ -201,4 +201,4 @@ const cdnBuilds = [
       })
 ];
 
-export default [/* ...appBuilds, ...componentBuilds, */...cdnBuilds];
+export default [...appBuilds, ...componentBuilds, ...cdnBuilds];
