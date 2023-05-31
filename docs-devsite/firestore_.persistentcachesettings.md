@@ -12,6 +12,8 @@ https://github.com/firebase/firebase-js-sdk
 # PersistentCacheSettings interface
 An settings object to configure an `PersistentLocalCache` instance.
 
+Persistent cache cannot be used in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
