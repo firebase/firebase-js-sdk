@@ -165,7 +165,40 @@ const cdnBuilds = [
         ],
         external: ['@firebase/app']
       };
-    })
+    }),
+    {
+      input: 'app/index.cdn.ts',
+      output: {
+        file: 'firebase-app.cjs.js',
+        sourcemap: true,
+        format: 'cjs'
+      },
+      plugins: [...plugins, typescriptPluginCDN]
+    },
+    ...pkg.components
+      .filter(component => component !== 'app')
+      .map(component => {
+        // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
+        // Otherwise, we will create a directory with '/' in the name.
+        const componentName = component.replace('/', '-');
+  
+        return {
+          input: `${component}/index.ts`,
+          output: {
+            file: `firebase-${componentName}.cjs.js`,
+            sourcemap: true,
+            format: 'cjs'
+          },
+          plugins: [
+            ...plugins,
+            typescriptPluginCDN,
+            terser({
+              format: { comments: false }
+            })
+          ],
+          external: ['@firebase/app']
+        };
+      })
 ];
 
-export default [...appBuilds, ...componentBuilds, ...cdnBuilds];
+export default [/* ...appBuilds, ...componentBuilds, */...cdnBuilds];
