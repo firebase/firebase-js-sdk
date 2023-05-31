@@ -20,6 +20,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { ProviderId } from '../../model/enums';
+import {ParsedToken} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/helpers/jwt';
@@ -139,4 +140,15 @@ describe('core/user/id_token_result', () => {
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
   });
+});
+
+describe('check_type', function() {
+  let token: ParsedToken;
+
+  it('error if string converts to int', function() {
+   token = {
+    "Bob": 1234
+  };
+    expect(1+1) == 2;
+  }); 
 });
