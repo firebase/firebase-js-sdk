@@ -34,13 +34,11 @@ export class MultiFactorSessionImpl implements MultiFactorSession {
   private constructor(
     readonly type: MultiFactorSessionType,
     readonly credential: string,
-    //Angel change 1
     readonly user?: UserInternal
   ) {}
 
   static _fromIdtoken(
     idToken: string,
-    //Angel change 1
     user?: UserInternal
   ): MultiFactorSessionImpl {
     return new MultiFactorSessionImpl(

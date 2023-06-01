@@ -50,7 +50,6 @@ export class MultiFactorUserImpl implements MultiFactorUser {
   async getSession(): Promise<MultiFactorSession> {
     return MultiFactorSessionImpl._fromIdtoken(
       await this.user.getIdToken(),
-      //Angel change 2
       this.user
     );
   }
