@@ -21,6 +21,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';
+import { UserInternal } from '../../../model/user';
 import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
@@ -36,6 +37,7 @@ use(chaiAsPromised);
 
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
+  let user: UserInternal;
   let credential: PhoneAuthCredential;
   let assertion: PhoneMultiFactorAssertionImpl;
   let session: MultiFactorSessionImpl;
@@ -60,7 +62,7 @@ describe('platform_browser/mfa/phone', () => {
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
-        auth
+        user
       );
     });
 
@@ -78,7 +80,8 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.auth).to.eql(auth);
+      expect(session.user).to.eq(!undefined);
+      expect(session.user?.auth).to.eql(auth);
     });
 
     context('with display name', () => {
@@ -101,7 +104,8 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.auth).to.eql(auth);
+        expect(session.user).to.eq(!undefined);
+        expect(session.user?.auth).to.eql(auth);
       });
     });
   });
@@ -124,7 +128,8 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.auth).to.eql(undefined);
+      expect(session.user).to.eq(undefined);
+      expect(session.user?.auth).to.eql(undefined);
     });
   });
 });
