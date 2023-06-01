@@ -41,6 +41,7 @@ use(chaiAsPromised);
 describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
   let auth: TestAuth;
   let session: MultiFactorSessionImpl;
+  const fakeUid: string = 'uid';
   const startEnrollmentResponse: StartTotpMfaEnrollmentResponse = {
     totpSessionInfo: {
       sharedSecretKey: 'key123',
