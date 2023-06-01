@@ -3,7 +3,6 @@ name: Test All Packages
 on:
   push:
     branches: ['**']
-  workflow_dispatch:
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
