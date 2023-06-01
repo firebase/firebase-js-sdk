@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { UserInternal } from '../../model/user';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
@@ -38,10 +39,11 @@ import { MultiFactorAssertionImpl } from '../mfa_assertion';
 
 use(chaiAsPromised);
 
+const fakeUid: string = 'uid';
+
 describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
   let auth: TestAuth;
   let session: MultiFactorSessionImpl;
-  const fakeUid: string = 'uid';
   const startEnrollmentResponse: StartTotpMfaEnrollmentResponse = {
     totpSessionInfo: {
       sharedSecretKey: 'key123',
@@ -101,9 +103,10 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
       );
 
       auth = await testAuth();
+      let user = await testUser(auth, fakeUid);
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
-        auth
+        user
       );
       const secret = await TotpMultiFactorGenerator.generateSecret(session);
       expect(mock.calls[0].request).to.eql({
@@ -128,6 +131,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
 
 describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   let auth: TestAuth;
+  let user: UserInternal;
   let assertion: TotpMultiFactorAssertionImpl;
   let session: MultiFactorSessionImpl;
   let secret: TotpSecret;
@@ -163,7 +167,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
-        auth
+        user
       );
     });
 
@@ -181,7 +185,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.auth).to.eql(auth);
+      expect(session.user).to.eql(!undefined);
+      expect(session.user?.auth).to.eql(auth);
     });
 
     context('with display name', () => {
@@ -204,7 +209,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.auth).to.eql(auth);
+        expect(session.user).to.eq(!undefined);
+        expect(session.user?.auth).to.eql(auth);
       });
     });
   });
@@ -283,6 +289,7 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   // this is the name used by the fake app in testAuth().
   const fakeAppName: AppName = 'test-app';
   const fakeEmail: string = 'user@email';
+  //const fakeUid has been declared as a global variable.
   const auth = await testAuth();
   const secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
     serverResponse,
@@ -300,7 +307,7 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   describe('generateQrCodeUrl', () => {
     beforeEach(async () => {
       await auth.updateCurrentUser(
-        testUser(_castAuth(auth), 'uid', fakeEmail, true)
+        testUser(_castAuth(auth), fakeUid, fakeEmail, true)
       );
     });
 
