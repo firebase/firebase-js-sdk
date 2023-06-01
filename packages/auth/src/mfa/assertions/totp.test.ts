@@ -289,7 +289,7 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   // this is the name used by the fake app in testAuth().
   const fakeAppName: AppName = 'test-app';
   const fakeEmail: string = 'user@email';
-  //const fakeUid has been declared as a global variable.
+  //const fakeUid has been declared as a global variable "uid"
   const auth = await testAuth();
   const secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
     serverResponse,
