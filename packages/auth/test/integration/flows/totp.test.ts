@@ -70,6 +70,7 @@ describe(' Integration tests: Mfa TOTP', () => {
     const mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+
     const multiFactorAssertion =
       TotpMultiFactorGenerator.assertionForEnrollment(
         totpSecret,
@@ -86,13 +87,9 @@ describe(' Integration tests: Mfa TOTP', () => {
       this.skip();
     }
     const cr = await signInWithEmailAndPassword(auth, email, 'password');
-
     const mfaUser = multiFactor(cr.user);
-
     const session = await mfaUser.getSession();
-
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-
     totpTimestamp = new Date();
 
     const totpVerificationCode = getTotpCode(
@@ -168,8 +165,8 @@ describe(' Integration tests: Mfa TOTP', () => {
         resolver.hints[0].uid,
         totpVerificationCode
       );
-      const userCredential = await resolver.resolveSignIn(assertion);
 
+      const userCredential = await resolver.resolveSignIn(assertion);
       const mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
