@@ -37,7 +37,6 @@ use(chaiAsPromised);
 
 describe('platform_browser/mfa/phone', () => {
   let auth: TestAuth;
-  let user: UserInternal;
   let credential: PhoneAuthCredential;
   let assertion: PhoneMultiFactorAssertionImpl;
   let session: MultiFactorSessionImpl;
@@ -59,6 +58,7 @@ describe('platform_browser/mfa/phone', () => {
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
+    let user: UserInternal;
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
@@ -80,9 +80,9 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      if (session.user) {
-        expect(session.user.auth).to.eql(auth);
-      }
+      expect(session.user).to.not.eql(undefined);
+      expect(session.user).to.eql(user);
+      
     });
 
     context('with display name', () => {
@@ -105,9 +105,8 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        if (session.user) {
-          expect(session.user.auth).to.eql(auth);
-        }
+        expect(session.user).to.not.eql(undefined);
+        expect(session.user).to.eql(user);
       });
     });
   });
@@ -130,9 +129,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      if (session.user) {
-        expect(session.user.auth).to.eql(undefined);
-      }
+      expect(session.user).to.eql(undefined);
     });
   });
 });

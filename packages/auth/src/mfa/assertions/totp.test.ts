@@ -85,7 +85,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
     });
     afterEach(mockFetch.tearDown);
 
-    it('should throw error if auth instance is not found in mfaSession', async () => {
+    it('should throw error if user instance is not found in mfaSession', async () => {
       try {
         session = MultiFactorSessionImpl._fromIdtoken(
           'enrollment-id-token',
@@ -131,7 +131,6 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
 
 describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   let auth: TestAuth;
-  let user: UserInternal;
   let assertion: TotpMultiFactorAssertionImpl;
   let session: MultiFactorSessionImpl;
   let secret: TotpSecret;
@@ -164,6 +163,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
+    let user: UserInternal;
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
@@ -185,9 +185,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           sessionInfo: 'verification-id'
         }
       });
-      if (session.user) {
-        expect(session.user.auth).to.eql(auth);
-      }
+      expect(session.user).to.not.eql(undefined);
+      expect(session.user).to.eql(user);
     });
 
     context('with display name', () => {
@@ -210,9 +209,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        if (session.user) {
-          expect(session.user.auth).to.eql(auth);
-        }
+        expect(session.user).to.not.eql(undefined);
+        expect(session.user).to.eql(user);
       });
     });
   });
@@ -291,7 +289,6 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   // this is the name used by the fake app in testAuth().
   const fakeAppName: AppName = 'test-app';
   const fakeEmail: string = 'user@email';
-  //const fakeUid has been declared as a global variable "uid"
   const auth = await testAuth();
   const secret = TotpSecret._fromStartTotpMfaEnrollmentResponse(
     serverResponse,
