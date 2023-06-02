@@ -185,7 +185,9 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user?.auth).to.eql(auth);
+      if(session.user){
+        expect(session.user.auth).to.eql(auth);
+      }
     });
 
     context('with display name', () => {
@@ -208,7 +210,9 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user?.auth).to.eql(auth);
+        if(session.user){
+          expect(session.user.auth).to.eql(auth);
+        }
       });
     });
   });

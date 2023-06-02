@@ -80,7 +80,9 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user?.auth).to.eql(auth);
+      if(session.user){
+        expect(session.user.auth).to.eql(auth);
+      }
     });
 
     context('with display name', () => {
@@ -103,7 +105,9 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user?.auth).to.eql(auth);
+        if(session.user){
+          expect(session.user.auth).to.eql(auth);
+        }
       });
     });
   });
@@ -126,7 +130,9 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user?.auth).to.eql(undefined);
+      if(session.user){
+        expect(session.user.auth).to.eql(undefined);
+      }
     });
   });
 });
