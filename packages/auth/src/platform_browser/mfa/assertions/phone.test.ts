@@ -82,7 +82,6 @@ describe('platform_browser/mfa/phone', () => {
       });
       expect(session.user).to.not.eql(undefined);
       expect(session.user).to.eql(user);
-      
     });
 
     context('with display name', () => {
