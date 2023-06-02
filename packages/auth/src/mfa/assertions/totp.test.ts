@@ -103,7 +103,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
       );
 
       auth = await testAuth();
-      let user = await testUser(auth, fakeUid);
+      const user = await testUser(auth, fakeUid);
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
         user
@@ -185,7 +185,6 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.eql(!undefined);
       expect(session.user?.auth).to.eql(auth);
     });
 
@@ -209,7 +208,6 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user).to.eq(!undefined);
         expect(session.user?.auth).to.eql(auth);
       });
     });

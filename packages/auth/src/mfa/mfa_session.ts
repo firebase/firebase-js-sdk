@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AuthInternal } from '../model/auth';
+
 import { UserInternal } from '../model/user';
 import { MultiFactorSession } from '../model/public_types';
 
