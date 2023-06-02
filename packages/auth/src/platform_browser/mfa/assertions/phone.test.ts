@@ -80,7 +80,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      if(session.user){
+      if (session.user) {
         expect(session.user.auth).to.eql(auth);
       }
     });
@@ -105,7 +105,7 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        if(session.user){
+        if (session.user) {
           expect(session.user.auth).to.eql(auth);
         }
       });
@@ -130,7 +130,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      if(session.user){
+      if (session.user) {
         expect(session.user.auth).to.eql(undefined);
       }
     });
