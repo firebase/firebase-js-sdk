@@ -91,8 +91,7 @@ export class TotpMultiFactorGenerator {
   ): Promise<TotpSecret> {
     const mfaSession = session as MultiFactorSessionImpl;
     _assert(
-      typeof mfaSession.user !== 'undefined' && 
-        typeof mfaSession.user.auth !== 'undefined',
+     typeof mfaSession.user?.auth !== 'undefined',
       AuthErrorCode.INTERNAL_ERROR
     );
     const response = await startEnrollTotpMfa(mfaSession.user.auth, {
