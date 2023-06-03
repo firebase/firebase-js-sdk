@@ -80,7 +80,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.not.eql(undefined);
+      expect(session.user).to.not.be.undefined;
       expect(session.user).to.eql(user);
     });
 
@@ -104,7 +104,7 @@ describe('platform_browser/mfa/phone', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user).to.not.eql(undefined);
+        expect(session.user).to.not.be.undefined;
         expect(session.user).to.eql(user);
       });
     });
@@ -128,7 +128,7 @@ describe('platform_browser/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.eql(undefined);
+      expect(session.user).to.be.undefined;
     });
   });
 });
