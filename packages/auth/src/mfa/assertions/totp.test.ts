@@ -12,18 +12,14 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { 
-  testAuth, 
-  TestAuth, 
-  testUser 
-} from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { MultiFactorSessionImpl } from '../../mfa/mfa_session';
