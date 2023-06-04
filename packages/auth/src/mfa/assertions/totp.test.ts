@@ -18,7 +18,6 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { UserInternal } from '../../model/user';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
@@ -36,7 +35,6 @@ import { AuthErrorCode } from '../../core/errors';
 import { AppName } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { MultiFactorAssertionImpl } from '../mfa_assertion';
-import { getModularInstance } from '@firebase/util';
 
 use(chaiAsPromised);
 
