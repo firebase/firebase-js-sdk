@@ -21,7 +21,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';
-import { UserInternal } from '../../../model/user';
+import { testUser } from '../../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
@@ -58,7 +58,7 @@ describe('platform_browser/mfa/phone', () => {
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
-    let user: UserInternal;
+    const user = testUser(auth, 'uid');
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',

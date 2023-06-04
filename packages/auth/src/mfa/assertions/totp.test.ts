@@ -36,6 +36,7 @@ import { AuthErrorCode } from '../../core/errors';
 import { AppName } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { MultiFactorAssertionImpl } from '../mfa_assertion';
+import { getModularInstance } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -163,7 +164,7 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
-    let user: UserInternal;
+    const user = testUser(auth, fakeUid);
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
