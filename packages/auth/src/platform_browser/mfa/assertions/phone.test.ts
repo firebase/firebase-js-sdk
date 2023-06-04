@@ -20,7 +20,11 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../../test/helpers/api/helper';
-import { testAuth, TestAuth, testUser } from '../../../../test/helpers/mock_auth';
+import { 
+  testAuth, 
+  TestAuth, 
+  testUser 
+} from '../../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../../api';
 import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
