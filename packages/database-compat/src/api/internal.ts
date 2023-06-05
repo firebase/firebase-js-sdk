@@ -37,7 +37,6 @@ import * as types from '@firebase/database-types';
 
 import { Database } from './Database';
 
-
 /**
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
