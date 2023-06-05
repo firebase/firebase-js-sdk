@@ -87,6 +87,13 @@ export function initStandalone<T>({
       'app-check-internal',
       container
     );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => customAppCheckImpl,
+        ComponentType.PRIVATE
+      )
+    );
   }
 
   return {
