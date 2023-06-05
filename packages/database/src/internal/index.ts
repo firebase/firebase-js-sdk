@@ -77,6 +77,13 @@ export function _initStandalone({
       'app-check-internal',
       componentContainer
     );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => customAppCheckImpl,
+        ComponentType.PRIVATE
+      )
+    );
   }
   authProvider.setComponent(
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
