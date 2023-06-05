@@ -26,13 +26,30 @@ import { FirebaseError } from '@firebase/util';
 import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { UserInternal } from '../../model/user';
-import { getIdTokenResult } from './id_token_result';
+import { _parseToken, getIdTokenResult } from './id_token_result';
+import { _logError } from '../util/log';
+import { error } from 'console';
 
 use(chaiAsPromised);
 
 const MAY_1 = new Date('May 1, 2020');
 const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
+describe('core/user/id_token_result', () => {
+ 
+  let parsed: ParsedToken = {
+    foo:"123",
+    bar:"456"
+  }
+  it ('check that parsedToken is unknown', () => {
+      expect( () => parsed.baz ).to.throw(new Error
+    ("Type 'unknown' is not assignable to type 'string'."
+    ));
+    if (typeof parsed.bar === 'string') {
+      parsed.bar.length; // Works, we now know that bar is a string
+    }
+  });
+});
 
 describe('core/user/id_token_result', () => {
   let user: UserInternal;
