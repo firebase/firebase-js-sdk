@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
@@ -33,10 +36,7 @@ import {
 import * as types from '@firebase/database-types';
 
 import { Database } from './Database';
-import {
-  AppCheckInternalComponentName,
-  FirebaseAppCheckInternal
-} from '@firebase/app-check-interop-types';
+
 
 /**
  * Used by console to create a database based on the app,
