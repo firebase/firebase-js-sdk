@@ -52,7 +52,6 @@ const fakePassword = 'password';
 let mfaUser: MultiFactorUser | null;
 
 describe(' Integration tests: Mfa enrollement using totp', () => {
-
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {
@@ -64,8 +63,8 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
 
   afterEach(async () => {
     if (!emulatorUrl) {
-      if(mfaUser && mfaUser.enrolledFactors.length>0){
-        for(let i = 0; i<mfaUser.enrolledFactors.length; i++){
+      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
+        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
           mfaUser.unenroll(mfaUser.enrolledFactors[i]);
         }
       }
@@ -122,8 +121,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
   });
 });
 
-describe( 'Integration tests: sign-in for mfa-enrolled users', () => {
-  
+describe('Integration tests: sign-in for mfa-enrolled users', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     mfaUser = null;
@@ -156,15 +154,15 @@ describe( 'Integration tests: sign-in for mfa-enrolled users', () => {
 
   afterEach(async () => {
     if (!emulatorUrl) {
-      if(mfaUser && mfaUser.enrolledFactors.length>0){
-        for(let i = 0; i<mfaUser.enrolledFactors.length; i++){
+      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
+        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
           mfaUser.unenroll(mfaUser.enrolledFactors[i]);
         }
       }
       await cleanUpTestInstance(auth);
     }
   });
-  
+
   it('should not allow sign-in with incorrect totp', async function () {
     let resolver: any;
     if (emulatorUrl) {
