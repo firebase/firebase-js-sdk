@@ -220,7 +220,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
         totpVerificationCode
       );
       const userCredential = await resolver.resolveSignIn(assertion);
-      const mfaUser = multiFactor(userCredential.user);
+      mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
       await expect(signInWithEmailAndPassword(auth, email, fakePassword)).to.be
