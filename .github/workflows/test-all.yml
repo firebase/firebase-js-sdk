@@ -30,7 +30,7 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: yarn build
-      run: yarn build:ci
+      run: yarn build
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
