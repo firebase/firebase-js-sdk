@@ -77,7 +77,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const cr = await signInWithEmailAndPassword(auth, email, 'password');
+    const cr = await signInWithEmailAndPassword(auth, email, fakePassword);
     mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
@@ -98,7 +98,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const cr = await signInWithEmailAndPassword(auth, email, 'password');
+    const cr = await signInWithEmailAndPassword(auth, email, fakePassword);
     mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
@@ -169,7 +169,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
       this.skip();
     }
     try {
-      await signInWithEmailAndPassword(auth, email, 'password');
+      await signInWithEmailAndPassword(auth, email, fakePassword);
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
@@ -196,7 +196,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
       this.skip();
     }
     try {
-      await signInWithEmailAndPassword(auth, email, 'password');
+      await signInWithEmailAndPassword(auth, email, fakePassword);
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
@@ -223,7 +223,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
       const mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
-      await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
+      await expect(signInWithEmailAndPassword(auth, email, fakePassword)).to.be
         .fulfilled;
     }
   });
