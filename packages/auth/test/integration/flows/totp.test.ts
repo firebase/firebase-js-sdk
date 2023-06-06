@@ -21,6 +21,7 @@ import sinonChai from 'sinon-chai';
 import {
   Auth,
   multiFactor,
+  MultiFactorUser,
   signInWithEmailAndPassword,
   getMultiFactorResolver
 } from '@firebase/auth';
@@ -38,7 +39,6 @@ import {
   TotpSecret
 } from '../../../src/mfa/assertions/totp';
 import { getEmulatorUrl } from '../../helpers/integration/settings';
-import { MultiFactorUser } from '@firebase/auth';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -65,7 +65,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
     if (!emulatorUrl) {
       if (mfaUser && mfaUser.enrolledFactors.length > 0) {
         for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
-          mfaUser.unenroll(mfaUser.enrolledFactors[i]);
+          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
         }
       }
       await cleanUpTestInstance(auth);
@@ -148,7 +148,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
           totpVerificationCode
         );
 
-      mfaUser.enroll(multiFactorAssertion, displayName);
+      await mfaUser.enroll(multiFactorAssertion, displayName);
     }
   });
 
@@ -156,7 +156,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
     if (!emulatorUrl) {
       if (mfaUser && mfaUser.enrolledFactors.length > 0) {
         for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
-          mfaUser.unenroll(mfaUser.enrolledFactors[i]);
+          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
         }
       }
       await cleanUpTestInstance(auth);
