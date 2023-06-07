@@ -35,6 +35,7 @@ jobs:
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
+      # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
         xvfb-run lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*}' --concurrency 4 test:ci
         node scripts/print_test_logs.js
