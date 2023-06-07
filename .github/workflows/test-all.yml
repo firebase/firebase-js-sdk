@@ -9,6 +9,7 @@ env:
   DETECT_CHROMEDRIVER_VERSION: true
 
 jobs:
+  # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
   test-the-rest:
     name: (bulk) Node.js and Browser (Chrome) Tests
     runs-on: ubuntu-latest
