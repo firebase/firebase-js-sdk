@@ -35,7 +35,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn test:ci
+        xvfb-run lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*}' --concurrency 4 test:ci
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -72,13 +72,13 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: yarn build
-      run: yarn build:ci:auth
+    - name: build
+      run: lerna run build:deps --scope '@firebase/auth*'
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn test:ci:auth
+        yarn lerna run  --concurrency 4 test:ci --scope '@firebase/auth*'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -111,13 +111,13 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: yarn build
-      run: yarn build:ci:firestore
+    - name:  build
+      run: lerna run build:deps --scope '@firebase/firestore*'
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn test:ci:firestore
+        xvfb-run lerna run --concurrency 4 test:ci --scope '{@firebase/firestore*,firebase-firestore-integration-test}'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
