@@ -26,27 +26,13 @@ import { FirebaseError } from '@firebase/util';
 import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { UserInternal } from '../../model/user';
-import {getIdTokenResult } from './id_token_result';
+import { getIdTokenResult } from './id_token_result';
 
 use(chaiAsPromised);
 
 const MAY_1 = new Date('May 1, 2020');
 const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
-describe('core/user/id_token_result', () => {
-  const parsed: ParsedToken = {
-    foo: '123',
-    bar: '456'
-  };
-  it('check that parsedToken is unknown', () => {
-    expect(() => parsed.baz).to.throw(
-      new Error("Type 'unknown' is not assignable to type 'string'.")
-    );
-    if (typeof parsed.bar === 'string') {
-      parsed.bar.length; // Works, we now know that bar is a string
-    }
-  });
-});
 
 describe('core/user/id_token_result', () => {
   let user: UserInternal;
@@ -153,5 +139,16 @@ describe('core/user/id_token_result', () => {
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+  });
+
+  it('Parses custom claims with multiple types', () => {
+    const token: ParsedToken = {
+      'string_claim': 'foo',
+      'object_claim': 'bar',
+      'boolean_claim': true
+    };
+    expect(token.boolean_claim as boolean).to.equal(true);
+    expect(token.string_claim as string).to.equal('foo');
+    expect(token.object_claim as object).to.equal('bar');
   });
 });
