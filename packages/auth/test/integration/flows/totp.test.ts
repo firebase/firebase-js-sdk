@@ -31,6 +31,7 @@ import {
   getTestInstance,
   getTotpCode,
   email,
+  fakePassword,
   incorrectTotpCode
 } from '../../helpers/integration/helpers';
 
@@ -48,7 +49,6 @@ let totpSecret: TotpSecret;
 let displayName: string;
 let totpTimestamp: Date;
 let emulatorUrl: string | null;
-const fakePassword = 'password';
 let mfaUser: MultiFactorUser | null;
 
 describe(' Integration tests: Mfa enrollement using totp', () => {

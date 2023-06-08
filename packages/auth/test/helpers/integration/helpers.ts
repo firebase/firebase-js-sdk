@@ -113,5 +113,6 @@ export function getTotpCode(
   return token;
 }
 export const email = 'totpuser-donotdelete@test.com';
+export const fakePassword = 'password';
 //1000000 is always incorrect since it has 7 digits and we expect 6.
 export const incorrectTotpCode = '1000000';
