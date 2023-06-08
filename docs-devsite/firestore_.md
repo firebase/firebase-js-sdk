@@ -17,6 +17,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function(app...)</b> |
 |  [getFirestore(app)](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [getFirestore(app, databaseId)](./firestore_.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [initializeFirestore(app, settings, databaseId)](./firestore_.md#initializefirestore) | Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  <b>function(firestore...)</b> |
 |  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
@@ -45,6 +46,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [memoryEagerGarbageCollector()](./firestore_.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. This is also the default garbage collector unless it is explicitly specified otherwise. |
 |  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
+|  <b>function(databaseId...)</b> |
+|  [getFirestore(databaseId)](./firestore_.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_.md#arrayunion) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
@@ -219,6 +222,32 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  databaseId | string | The name of database. |
 
 <b>Returns:</b>
 
@@ -854,6 +883,31 @@ export declare function serverTimestamp(): FieldValue;
 <b>Returns:</b>
 
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
+
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  databaseId | string | The name of database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
 ## arrayRemove()
 
