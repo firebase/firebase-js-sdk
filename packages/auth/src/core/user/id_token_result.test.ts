@@ -144,11 +144,11 @@ describe('core/user/id_token_result', () => {
   it('Parses custom claims with multiple types', () => {
     const token: ParsedToken = {
       'string_claim': 'foo',
-      'object_claim': 'bar',
+      'object_claim': { key1: 'value1' },
       'boolean_claim': true
     };
     expect(token.boolean_claim as boolean).to.equal(true);
     expect(token.string_claim as string).to.equal('foo');
-    expect(token.object_claim as object).to.equal('bar');
+    expect((token.object_claim as { key1: string }).key1).to.equal('value1');
   });
 });
