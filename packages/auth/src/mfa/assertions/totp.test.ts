@@ -38,6 +38,8 @@ import { MultiFactorAssertionImpl } from '../mfa_assertion';
 
 use(chaiAsPromised);
 
+const fakeUid: string = 'uid';
+
 describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
   let auth: TestAuth;
   let session: MultiFactorSessionImpl;
@@ -82,7 +84,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
     });
     afterEach(mockFetch.tearDown);
 
-    it('should throw error if auth instance is not found in mfaSession', async () => {
+    it('should throw error if user instance is not found in mfaSession', async () => {
       try {
         session = MultiFactorSessionImpl._fromIdtoken(
           'enrollment-id-token',
@@ -100,9 +102,10 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
       );
 
       auth = await testAuth();
+      const user = await testUser(auth, fakeUid);
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
-        auth
+        user
       );
       const secret = await TotpMultiFactorGenerator.generateSecret(session);
       expect(mock.calls[0].request).to.eql({
@@ -159,10 +162,11 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
+    const user = testUser(auth, fakeUid);
     beforeEach(() => {
       session = MultiFactorSessionImpl._fromIdtoken(
         'enrollment-id-token',
-        auth
+        user
       );
     });
 
@@ -180,7 +184,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.auth).to.eql(auth);
+      expect(session.user).to.not.be.undefined;
+      expect(session.user).to.eql(user);
     });
 
     context('with display name', () => {
@@ -203,7 +208,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.auth).to.eql(auth);
+        expect(session.user).to.not.be.undefined;
+        expect(session.user).to.eql(user);
       });
     });
   });
@@ -299,7 +305,7 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
   describe('generateQrCodeUrl', () => {
     beforeEach(async () => {
       await auth.updateCurrentUser(
-        testUser(_castAuth(auth), 'uid', fakeEmail, true)
+        testUser(_castAuth(auth), fakeUid, fakeEmail, true)
       );
     });
 

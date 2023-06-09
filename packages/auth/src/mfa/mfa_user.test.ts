@@ -88,7 +88,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
       expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
       expect(mfaSession.credential).to.eq('access-token');
-      expect(mfaSession.auth).to.eq(auth);
+      expect(mfaSession.user?.auth).to.eq(auth);
     });
   });
 
