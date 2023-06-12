@@ -301,17 +301,18 @@ export function connectFirestoreEmulator(
 ): void {
   firestore = cast(firestore, Firestore);
   const settings = firestore._getSettings();
+  const newHostSetting = `${host}:${port}`;
 
-  if (settings.host !== DEFAULT_HOST && settings.host !== host) {
+  if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
-      'Host has been set in both settings() and useEmulator(), emulator host ' +
-        'will be used'
+      'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
+        'will be used.'
     );
   }
 
   firestore._setSettings({
     ...settings,
-    host: `${host}:${port}`,
+    host: newHostSetting,
     ssl: false
   });
 

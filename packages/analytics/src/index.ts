@@ -1,5 +1,6 @@
 /**
- * Firebase Analytics
+ * The Firebase Analytics Web SDK.
+ * This SDK does not work in a Node.js environment.
  *
  * @packageDocumentation
  */

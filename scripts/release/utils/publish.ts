@@ -151,6 +151,12 @@ async function publishPackageInCI(
       stderrText += data.toString();
     });
     await spawnPromise;
+    if (process.env.VERBOSE_NPM_LOGGING === 'true') {
+      console.log(`stdout for ${pkg} publish:`);
+      console.log(stdoutText);
+      console.log(`stderr for ${pkg} publish:`);
+      console.error(stderrText);
+    }
     return spawnPromise;
   } catch (err) {
     console.log(`Error publishing ${pkg}`);

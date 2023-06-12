@@ -63,6 +63,8 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * If succeeds, returns the signed in user along with the provider's credential. If sign in was
  * unsuccessful, returns an error object containing additional information about the error.
  *
+ * This method does not work in a Node.js environment.
+ *
  * @example
  * ```javascript
  * // Sign in using a popup.
@@ -81,7 +83,6 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- *
  *
  * @public
  */
@@ -109,6 +110,8 @@ export async function signInWithPopup(
  * @remarks
  * If the reauthentication is successful, the returned result will contain the user and the
  * provider's credential.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -151,6 +154,7 @@ export async function reauthenticateWithPopup(
  * @remarks
  * If the linking is successful, the returned result will contain the user and the provider's credential.
  *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
