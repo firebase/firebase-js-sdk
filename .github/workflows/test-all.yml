@@ -32,10 +32,6 @@ jobs:
     
     - name: yarn build
       run: yarn build
-
-    - name: Prune node_modules
-      if: ${{ !cancelled() }}
-      run: find . -type d -name "node_modules" -exec rm -rf {} +
     
     - name: Archive build
       if: ${{ !cancelled() }}
