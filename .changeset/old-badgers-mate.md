@@ -1,5 +1,6 @@
 ---
 '@firebase/auth': major
+'@firebase/auth-compat': patch
 'firebase': major
 ---
 
