@@ -7,6 +7,7 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
+  artifactRetentionDays: 2
 
 jobs:
   build:
@@ -32,8 +33,23 @@ jobs:
     - name: yarn build
       run: yarn build
 
-      
+    - name: Prune node_modules
+      if: ${{ !cancelled() }}
+      run: find . -type d -name "node_modules" -exec rm -rf {} +
+    
+    - name: Archive build
+      if: ${{ !cancelled() }}
+      run: |
+        tar cf build.tar .
+        gzip build.tar
 
+    - name: Upload build archive
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v3
+      with:
+          name: build.tar.gz
+          path: build.tar.gz
+          retention-days: ${{ env.artifactRetentionDays }}
         
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
   test-the-rest:
@@ -41,6 +57,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - name: Download build archive
+      uses: actions/download-artifact@v3
+      with:
+        name: build.tar.gz
+    - name: Unzip build artifact
+      run: tar xf build.tar.gz
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
@@ -57,8 +79,6 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: yarn build
-      run: yarn build
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -82,7 +102,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: Download build archive
+      uses: actions/download-artifact@v3
+      with:
+        name: build.tar.gz
+    - name: Unzip build artifact
+      run: tar xf build.tar.gz
+    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       # Install Chrome version 110.0.5481.177-1 as some Auth tests start to fail on version 111.
       # Temporary: Auth team will explore what's going wrong with the auth tests.
@@ -91,7 +117,6 @@ jobs:
         sudo apt-get install wget
         sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
         sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
-    - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
@@ -102,8 +127,6 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: build
-      run: lerna run build:deps --scope '@firebase/auth*'
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -123,10 +146,15 @@ jobs:
 
   test-firestore:
     name: (Firestore) Node.js and Browser (Chrome) Tests
-    needs: build
     runs-on: ubuntu-latest
     steps:
-    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: Download build archive
+      uses: actions/download-artifact@v3
+      with:
+        name: build.tar.gz
+    - name: Unzip build artifact
+      run: tar xf build.tar.gz
+    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         sudo apt-get update
@@ -142,8 +170,6 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: build
-      run: lerna run build:deps --scope '@firebase/firestore*'
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
