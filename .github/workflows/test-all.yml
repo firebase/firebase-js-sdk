@@ -146,6 +146,7 @@ jobs:
 
   test-firestore:
     name: (Firestore) Node.js and Browser (Chrome) Tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Download build archive
