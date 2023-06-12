@@ -91,16 +91,16 @@ export class TotpMultiFactorGenerator {
   ): Promise<TotpSecret> {
     const mfaSession = session as MultiFactorSessionImpl;
     _assert(
-      typeof mfaSession.auth !== 'undefined',
+      typeof mfaSession.user?.auth !== 'undefined',
       AuthErrorCode.INTERNAL_ERROR
     );
-    const response = await startEnrollTotpMfa(mfaSession.auth, {
+    const response = await startEnrollTotpMfa(mfaSession.user.auth, {
       idToken: mfaSession.credential,
       totpEnrollmentInfo: {}
     });
     return TotpSecret._fromStartTotpMfaEnrollmentResponse(
       response,
-      mfaSession.auth
+      mfaSession.user.auth
     );
   }
 

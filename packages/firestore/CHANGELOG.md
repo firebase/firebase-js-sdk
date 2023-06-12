@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 3.12.2
+
+### Patch Changes
+
+- [`fe7da7ec3`](https://github.com/firebase/firebase-js-sdk/commit/fe7da7ec3c83c200d7a0c7b90bb6bd27654309ee) [#7339](https://github.com/firebase/firebase-js-sdk/pull/7339) (fixes [#7331](https://github.com/firebase/firebase-js-sdk/issues/7331)) - Fix potentially false warning message.
+
 ## 3.12.1
 
 ### Patch Changes
