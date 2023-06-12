@@ -21,7 +21,6 @@ import sinonChai from 'sinon-chai';
 import {
   Auth,
   multiFactor,
-  MultiFactorUser,
   signInWithEmailAndPassword,
   getMultiFactorResolver
 } from '@firebase/auth';
@@ -31,7 +30,6 @@ import {
   getTestInstance,
   getTotpCode,
   email,
-  fakePassword,
   incorrectTotpCode
 } from '../../helpers/integration/helpers';
 
@@ -44,18 +42,15 @@ import { getEmulatorUrl } from '../../helpers/integration/settings';
 use(chaiAsPromised);
 use(sinonChai);
 
-let auth: Auth;
-let totpSecret: TotpSecret;
-let displayName: string;
-let totpTimestamp: Date;
-let emulatorUrl: string | null;
-let mfaUser: MultiFactorUser | null;
-
-describe(' Integration tests: Mfa enrollement using totp', () => {
+describe(' Integration tests: Mfa TOTP', () => {
+  let auth: Auth;
+  let totpSecret: TotpSecret;
+  let displayName: string;
+  let totpTimestamp: Date;
+  let emulatorUrl: string | null;
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {
-      mfaUser = null;
       auth = getTestInstance();
       displayName = 'totp-integration-test';
     }
@@ -63,11 +58,6 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
 
   afterEach(async () => {
     if (!emulatorUrl) {
-      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
-        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
-          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
-        }
-      }
       await cleanUpTestInstance(auth);
     }
   });
@@ -76,12 +66,10 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
     if (emulatorUrl) {
       this.skip();
     }
-
-    const cr = await signInWithEmailAndPassword(auth, email, fakePassword);
-    mfaUser = multiFactor(cr.user);
+    const cr = await signInWithEmailAndPassword(auth, email, 'password');
+    const mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-
     const multiFactorAssertion =
       TotpMultiFactorGenerator.assertionForEnrollment(
         totpSecret,
@@ -97,12 +85,16 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
     if (emulatorUrl) {
       this.skip();
     }
+    const cr = await signInWithEmailAndPassword(auth, email, 'password');
 
-    const cr = await signInWithEmailAndPassword(auth, email, fakePassword);
-    mfaUser = multiFactor(cr.user);
+    const mfaUser = multiFactor(cr.user);
+
     const session = await mfaUser.getSession();
+
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+
     totpTimestamp = new Date();
+
     const totpVerificationCode = getTotpCode(
       totpSecret.secretKey,
       totpSecret.codeIntervalSeconds,
@@ -115,61 +107,18 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
         totpSecret,
         totpVerificationCode
       );
-
     await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
       .fulfilled;
-  });
-});
-
-describe('Integration tests: sign-in for mfa-enrolled users', () => {
-  beforeEach(async () => {
-    emulatorUrl = getEmulatorUrl();
-    mfaUser = null;
-
-    if (!emulatorUrl) {
-      auth = getTestInstance();
-      displayName = 'totp-integration-test';
-
-      const cr = await signInWithEmailAndPassword(auth, email, fakePassword);
-      mfaUser = multiFactor(cr.user);
-      const session = await mfaUser.getSession();
-      totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
-      totpTimestamp = new Date();
-      const totpVerificationCode = getTotpCode(
-        totpSecret.secretKey,
-        totpSecret.codeIntervalSeconds,
-        totpSecret.codeLength,
-        totpTimestamp
-      );
-
-      const multiFactorAssertion =
-        TotpMultiFactorGenerator.assertionForEnrollment(
-          totpSecret,
-          totpVerificationCode
-        );
-
-      await mfaUser.enroll(multiFactorAssertion, displayName);
-    }
-  });
-
-  afterEach(async () => {
-    if (!emulatorUrl) {
-      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
-        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
-          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
-        }
-      }
-      await cleanUpTestInstance(auth);
-    }
   });
 
   it('should not allow sign-in with incorrect totp', async function () {
     let resolver: any;
+
     if (emulatorUrl) {
       this.skip();
     }
     try {
-      await signInWithEmailAndPassword(auth, email, fakePassword);
+      await signInWithEmailAndPassword(auth, email, 'password');
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
@@ -196,7 +145,7 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
       this.skip();
     }
     try {
-      await signInWithEmailAndPassword(auth, email, fakePassword);
+      await signInWithEmailAndPassword(auth, email, 'password');
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
@@ -220,10 +169,11 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
         totpVerificationCode
       );
       const userCredential = await resolver.resolveSignIn(assertion);
-      mfaUser = multiFactor(userCredential.user);
+
+      const mfaUser = multiFactor(userCredential.user);
 
       await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
-      await expect(signInWithEmailAndPassword(auth, email, fakePassword)).to.be
+      await expect(signInWithEmailAndPassword(auth, email, 'password')).to.be
         .fulfilled;
     }
   });
