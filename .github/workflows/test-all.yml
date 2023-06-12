@@ -9,7 +9,7 @@ env:
   DETECT_CHROMEDRIVER_VERSION: true
 
 jobs:
-  build-the-sdk:
+  build:
     name: Build the SDK
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +38,7 @@ jobs:
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
   test-the-rest:
     name: (bulk) Node.js and Browser (Chrome) Tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
@@ -78,6 +79,7 @@ jobs:
 
   test-auth:
     name: (Auth) Node.js and Browser (Chrome) Tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
@@ -121,6 +123,7 @@ jobs:
 
   test-firestore:
     name: (Firestore) Node.js and Browser (Chrome) Tests
+    needs: build
     runs-on: ubuntu-latest
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
