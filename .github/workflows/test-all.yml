@@ -14,31 +14,34 @@ jobs:
     name: Build the SDK
     runs-on: ubuntu-latest
     steps:
-
+    # Install Chrome so the correct version of webdriver can be installed by chromedriver when
+    # setting up the repo. This must be done to build and execute Auth properly.
+    - name: install Chrome stable
+      # Install Chrome version 110.0.5481.177-1 as some Auth tests start to fail on version 111.
+      # Temporary: Auth team will explore what's going wrong with the auth tests.
+      run: |
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
     - uses: actions/checkout@v3
-
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
-
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    
     - name: yarn build
       run: yarn build
-    
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
         tar -cf build.tar .
         gzip build.tar
-
     - name: Upload build archive
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v3
