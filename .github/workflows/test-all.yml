@@ -36,7 +36,8 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar -zcf build.tar.gz .
+        tar -cf build.tar .
+        gzip build.tar
 
     - name: Upload build archive
       if: ${{ !cancelled() }}
