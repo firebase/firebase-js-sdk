@@ -28,7 +28,7 @@ import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 
-describe.only('api/password_policy/getPasswordPolicy', () => {
+describe('api/password_policy/getPasswordPolicy', () => {
   let auth: TestAuth;
 
   beforeEach(async () => {
@@ -43,13 +43,13 @@ describe.only('api/password_policy/getPasswordPolicy', () => {
       customStrengthOptions: {
         minPasswordLength: 6
       },
-      allowedNonAlphanumericCharacters: ["!"],
+      allowedNonAlphanumericCharacters: ['!'],
       schemaVersion: 1
     });
 
     const response = await _getPasswordPolicy(auth);
     expect(response.customStrengthOptions.minPasswordLength).to.eql(6);
-    expect(response.allowedNonAlphanumericCharacters).to.eql(["!"]);
+    expect(response.allowedNonAlphanumericCharacters).to.eql(['!']);
     expect(response.schemaVersion).to.eql(1);
     expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(

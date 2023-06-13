@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod, _addTidIfNecessary } from '../index';
+import {
+  _performApiRequest,
+  Endpoint,
+  HttpMethod,
+  _addTidIfNecessary
+} from '../index';
 import { Auth } from '../../model/public_types';
 
 export interface GetPasswordPolicyRequest {
@@ -39,7 +44,10 @@ export async function _getPasswordPolicy(
   auth: Auth,
   request: GetPasswordPolicyRequest = {}
 ): Promise<GetPasswordPolicyResponse> {
-  return _performApiRequest<GetPasswordPolicyRequest, GetPasswordPolicyResponse>(
+  return _performApiRequest<
+    GetPasswordPolicyRequest,
+    GetPasswordPolicyResponse
+  >(
     auth,
     HttpMethod.GET,
     Endpoint.GET_PASSWORD_POLICY,
