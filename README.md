@@ -29,7 +29,9 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. The currently supported versions are `10.15.0` through `16.6.0`.
+installed on your machine. As of June 13th, 2023 the team has been testing with Node.js versions
+between `16.4.0` and `16.16.0`, but the required verison of Node.js may change as we update
+our dependencies.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -50,7 +52,7 @@ $ yarn set version 1.22.11
 
 #### Java
 
-The closure compiler requires a modern Java installation. Java 11+ should be installed: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+The closure compiler requires a modern Java installation. Java 11+ should be installed: https://www.oracle.com/java/technologies/downloads/#java11
 
 #### Verify Prerequisites
 
@@ -62,7 +64,7 @@ $ yarn -v
 $ java -version
 ```
 
-Your `node` version should be between `10.15.0` and `16.6.0`, your `yarn` version should
+Your `node` version should be between `16.4.0` and `16.6.0`, your `yarn` version should
 be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
