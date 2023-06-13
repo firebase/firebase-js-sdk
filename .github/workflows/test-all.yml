@@ -36,8 +36,7 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar cf build.tar .
-        gzip build.tar
+        tar -zcf build.tar.gz .
 
     - name: Upload build archive
       if: ${{ !cancelled() }}
@@ -53,17 +52,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
-    - name: install Chrome stable
-      run: |
-        sudo apt-get update
-        sudo apt-get install google-chrome-stable
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
@@ -79,7 +78,7 @@ jobs:
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
-        xvfb-run lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*}' --concurrency 4 test:ci
+        xvfb-run lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' --concurrency 4 test:ci
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -97,12 +96,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Download build archive
-      uses: actions/download-artifact@v3
-      with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       # Install Chrome version 110.0.5481.177-1 as some Auth tests start to fail on version 111.
@@ -112,6 +105,12 @@ jobs:
         sudo apt-get install wget
         sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
         sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
+    - name: Download build archive
+      uses: actions/download-artifact@v3
+      with:
+        name: build.tar.gz
+    - name: Unzip build artifact
+      run: tar xf build.tar.gz
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
@@ -144,17 +143,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
-    - name: install Chrome stable
-      run: |
-        sudo apt-get update
-        sudo apt-get install google-chrome-stable
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
