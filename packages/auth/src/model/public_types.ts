@@ -1252,3 +1252,85 @@ export interface Dependencies {
  */
 
 export interface TotpMultiFactorAssertion extends MultiFactorAssertion {}
+
+/**
+ * A structure specifying password policy requirements.
+ * 
+ * @public
+ */
+export interface PasswordPolicy {
+  /**
+   * Requirements enforced by this password policy.
+   */
+  customStrengthOptions: {
+    /**
+     * Minimum password length.
+     */
+    minPasswordLength?: number;
+    /**
+     * Maximum password length.
+     */
+    maxPasswordLength?: number;
+    /**
+     * Whether the password should contain a lowercase letter.
+     */
+    containsLowercaseLetter?: boolean;
+    /**
+     * Whether the password should contain an uppercase letter.
+     */
+    containsUppercaseLetter?: boolean;
+    /**
+     * Whether the password should contain a numeric character.
+     */
+    containsNumericCharacter?: boolean;
+    /**
+     * Whether the password should contain a non-alphanumeric character.
+     */
+    containsNonAlphanumericCharacter?: boolean;
+  };
+  /**
+   * List of characters that are considered non-alphanumeric during validation.
+   */
+  allowedNonAlphanumericCharacters: string[];
+}
+
+/**
+ * A structure indicating which password policy requirements were met or violated and what the
+ * requirements are.
+ * 
+ * @public
+ */
+export interface PasswordValidationStatus {
+  /**
+   * Whether the password meets all requirements.
+   */
+  isValid: boolean;
+  /**
+   * Whether the password meets the minimum password length.
+   */
+  meetsMinPasswordLength?: boolean;
+  /**
+   * Whether the password meets the maximum password length.
+   */
+  meetsMaxPasswordLength?: boolean;
+  /**
+   * Whether the password contains a lowercase letter, if required.
+   */
+  containsLowercaseLetter?: boolean;
+  /**
+   * Whether the password contains an uppercase letter, if required.
+   */
+  containsUppercaseLetter?: boolean;
+  /**
+   * Whether the password contains a numeric character, if required.
+   */
+  containsNumericCharacter?: boolean;
+  /**
+   * Whether the password contains a non-alphanumeric character, if required.
+   */
+  containsNonAlphanumericCharacter?: boolean;
+  /**
+   * The policy used to validate the password.
+   */
+  passwordPolicy: PasswordPolicy;
+}
