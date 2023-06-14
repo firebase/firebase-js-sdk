@@ -1255,7 +1255,7 @@ export interface TotpMultiFactorAssertion extends MultiFactorAssertion {}
 
 /**
  * A structure specifying password policy requirements.
- * 
+ *
  * @public
  */
 export interface PasswordPolicy {
@@ -1297,7 +1297,7 @@ export interface PasswordPolicy {
 /**
  * A structure indicating which password policy requirements were met or violated and what the
  * requirements are.
- * 
+ *
  * @public
  */
 export interface PasswordValidationStatus {

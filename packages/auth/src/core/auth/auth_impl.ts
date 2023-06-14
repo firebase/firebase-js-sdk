@@ -31,7 +31,8 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordPolicy
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -67,6 +68,7 @@ import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/re
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
+import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -101,6 +103,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _DEFAULT_AUTH_ERROR_FACTORY;
   _agentRecaptchaConfig: RecaptchaConfig | null = null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
+  _projectPasswordPolicy: PasswordPolicy | null = null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicy> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -420,6 +424,18 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     } else {
       return this._tenantRecaptchaConfigs[this.tenantId];
     }
+  }
+
+  _getPasswordPolicy(): PasswordPolicy | null {
+    if (this.tenantId == null) {
+      return this._projectPasswordPolicy;
+    } else {
+      return this._tenantPasswordPolicies[this.tenantId];
+    }
+  }
+
+  async _updatePasswordPolicy(): Promise<PasswordPolicy> {
+    return _getPasswordPolicy(this);
   }
 
   _getPersistence(): string {
