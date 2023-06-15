@@ -28,6 +28,11 @@ const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 module.exports = {
   mode: 'development',
   devtool: 'source-map',
+  optimization: {
+    runtimeChunk: false,
+    splitChunks: false,
+    minimize: false
+  },
   module: {
     rules: [
       {
@@ -107,6 +112,12 @@ module.exports = {
         PLATFORM_RE,
         `$1/platform/${targetPlatform}/$2.ts`
       );
+    }),
+    new webpack.ProvidePlugin({
+      // Create global `process` variable that points to the `process` package,
+      // as the `util` package expects a global `process` variable per
+      // https://stackoverflow.com/a/65018686/14239942.
+      process: 'process/browser'
     }),
     new webpack.EnvironmentPlugin([
       'RTDB_EMULATOR_PORT',
