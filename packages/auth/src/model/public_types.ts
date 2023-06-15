@@ -1262,36 +1262,36 @@ export interface PasswordPolicy {
   /**
    * Requirements enforced by this password policy.
    */
-  customStrengthOptions: {
+  readonly customStrengthOptions: {
     /**
      * Minimum password length.
      */
-    minPasswordLength?: number;
+    readonly minPasswordLength?: number;
     /**
      * Maximum password length.
      */
-    maxPasswordLength?: number;
+    readonly maxPasswordLength?: number;
     /**
      * Whether the password should contain a lowercase letter.
      */
-    containsLowercaseLetter?: boolean;
+    readonly containsLowercaseLetter?: boolean;
     /**
      * Whether the password should contain an uppercase letter.
      */
-    containsUppercaseLetter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
     /**
      * Whether the password should contain a numeric character.
      */
-    containsNumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
     /**
      * Whether the password should contain a non-alphanumeric character.
      */
-    containsNonAlphanumericCharacter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
   };
   /**
    * List of characters that are considered non-alphanumeric during validation.
    */
-  allowedNonAlphanumericCharacters: string[];
+  readonly allowedNonAlphanumericCharacters: string[];
 }
 
 /**
@@ -1304,33 +1304,33 @@ export interface PasswordValidationStatus {
   /**
    * Whether the password meets all requirements.
    */
-  isValid: boolean;
+  readonly isValid: boolean;
   /**
    * Whether the password meets the minimum password length.
    */
-  meetsMinPasswordLength?: boolean;
+  readonly meetsMinPasswordLength?: boolean;
   /**
    * Whether the password meets the maximum password length.
    */
-  meetsMaxPasswordLength?: boolean;
+  readonly meetsMaxPasswordLength?: boolean;
   /**
    * Whether the password contains a lowercase letter, if required.
    */
-  containsLowercaseLetter?: boolean;
+  readonly containsLowercaseLetter?: boolean;
   /**
    * Whether the password contains an uppercase letter, if required.
    */
-  containsUppercaseLetter?: boolean;
+  readonly containsUppercaseLetter?: boolean;
   /**
    * Whether the password contains a numeric character, if required.
    */
-  containsNumericCharacter?: boolean;
+  readonly containsNumericCharacter?: boolean;
   /**
    * Whether the password contains a non-alphanumeric character, if required.
    */
-  containsNonAlphanumericCharacter?: boolean;
+  readonly containsNonAlphanumericCharacter?: boolean;
   /**
    * The policy used to validate the password.
    */
-  passwordPolicy: PasswordPolicy;
+  readonly passwordPolicy: PasswordPolicy;
 }

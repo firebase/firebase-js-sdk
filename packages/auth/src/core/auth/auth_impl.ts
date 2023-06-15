@@ -91,6 +91,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
+  private readonly EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION: number = 1;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -437,10 +438,27 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _updatePasswordPolicy(): Promise<void> {
     const response = await _getPasswordPolicy(this);
 
+    if (
+      response.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
+    ) {
+      return Promise.reject(
+        this._errorFactory.create(
+          AuthErrorCode.PASSWORD_POLICY_VERSION_MISMATCH,
+          {}
+        )
+      );
+    }
+
+    const passwordPolicy = {
+      customStrengthOptions: response.customStrengthOptions,
+      allowedNonAlphanumericCharacters:
+        response.allowedNonAlphanumericCharacters
+    };
+
     if (this.tenantId == null) {
-      this._projectPasswordPolicy = response;
+      this._projectPasswordPolicy = passwordPolicy;
     } else {
-      this._tenantPasswordPolicies[this.tenantId] = response;
+      this._tenantPasswordPolicies[this.tenantId] = passwordPolicy;
     }
   }
 
