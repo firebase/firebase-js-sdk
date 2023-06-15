@@ -87,7 +87,7 @@ export interface AuthInternal extends Auth {
   _getPersistence(): string;
   _getRecaptchaConfig(): RecaptchaConfig | null;
   _getPasswordPolicy(): PasswordPolicy | null;
-  _updatePasswordPolicy(): Promise<PasswordPolicy>;
+  _updatePasswordPolicy(): Promise<void>;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
   _getAdditionalHeaders(): Promise<Record<string, string>>;

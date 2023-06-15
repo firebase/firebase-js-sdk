@@ -434,8 +434,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  async _updatePasswordPolicy(): Promise<PasswordPolicy> {
-    return _getPasswordPolicy(this);
+  async _updatePasswordPolicy(): Promise<void> {
+    const response = await _getPasswordPolicy(this);
+
+    if (this.tenantId == null) {
+      this._projectPasswordPolicy = response;
+    } else {
+      this._tenantPasswordPolicies[this.tenantId] = response;
+    }
   }
 
   _getPersistence(): string {

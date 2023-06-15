@@ -786,4 +786,88 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
   });
+
+  context('passwordPolicyState', () => {
+    const passwordPolicyResponse = {
+      customStrengthOptions: {
+        minPasswordLength: 6
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      schemaVersion: 1
+    };
+
+    const passwordPolicyResponseRequireNumeric = {
+      customStrengthOptions: {
+        minPasswordLength: 6,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      schemaVersion: 1
+    };
+
+    beforeEach(async () => {
+      mockFetch.setUp();
+    });
+
+    afterEach(() => {
+      mockFetch.tearDown();
+    });
+
+    it('password policy should be set for project if tenant ID is null', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {},
+        passwordPolicyResponse
+      );
+      await auth._updatePasswordPolicy();
+
+      expect(auth._getPasswordPolicy()).to.eql(passwordPolicyResponse);
+    });
+
+    it('password policy should be set for tenant if tenant ID is not nul', async () => {
+      auth = await testAuth();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: 'tenant-id'
+        },
+        passwordPolicyResponseRequireNumeric
+      );
+      await auth._updatePasswordPolicy();
+
+      expect(auth._getPasswordPolicy()).to.eql(
+        passwordPolicyResponseRequireNumeric
+      );
+    });
+
+    it('password policy should dynamically switch if tenant ID switches.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {},
+        passwordPolicyResponse
+      );
+      await auth._updatePasswordPolicy();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: 'tenant-id'
+        },
+        passwordPolicyResponseRequireNumeric
+      );
+      await auth._updatePasswordPolicy();
+
+      auth.tenantId = null;
+      expect(auth._getPasswordPolicy()).to.eql(passwordPolicyResponse);
+      auth.tenantId = 'tenant-id';
+      expect(auth._getPasswordPolicy()).to.eql(
+        passwordPolicyResponseRequireNumeric
+      );
+    });
+  });
 });
