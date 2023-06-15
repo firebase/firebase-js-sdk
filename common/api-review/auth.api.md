@@ -564,27 +564,27 @@ export interface ParsedToken {
 
 // @public
 export interface PasswordPolicy {
-    allowedNonAlphanumericCharacters: string[];
-    customStrengthOptions: {
-        minPasswordLength?: number;
-        maxPasswordLength?: number;
-        containsLowercaseLetter?: boolean;
-        containsUppercaseLetter?: boolean;
-        containsNumericCharacter?: boolean;
-        containsNonAlphanumericCharacter?: boolean;
+    readonly allowedNonAlphanumericCharacters: string[];
+    readonly customStrengthOptions: {
+        readonly minPasswordLength?: number;
+        readonly maxPasswordLength?: number;
+        readonly containsLowercaseLetter?: boolean;
+        readonly containsUppercaseLetter?: boolean;
+        readonly containsNumericCharacter?: boolean;
+        readonly containsNonAlphanumericCharacter?: boolean;
     };
 }
 
 // @public
 export interface PasswordValidationStatus {
-    containsLowercaseLetter?: boolean;
-    containsNonAlphanumericCharacter?: boolean;
-    containsNumericCharacter?: boolean;
-    containsUppercaseLetter?: boolean;
-    isValid: boolean;
-    meetsMaxPasswordLength?: boolean;
-    meetsMinPasswordLength?: boolean;
-    passwordPolicy: PasswordPolicy;
+    readonly containsLowercaseLetter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
+    readonly isValid: boolean;
+    readonly meetsMaxPasswordLength?: boolean;
+    readonly meetsMinPasswordLength?: boolean;
+    readonly passwordPolicy: PasswordPolicy;
 }
 
 // @public
