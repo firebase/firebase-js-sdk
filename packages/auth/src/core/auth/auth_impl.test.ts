@@ -787,7 +787,7 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context.only('passwordPolicyState', () => {
+  context('passwordPolicy', () => {
     const passwordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: 6
