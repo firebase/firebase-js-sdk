@@ -134,7 +134,7 @@ export class Firestore extends LiteFirestore {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
@@ -210,7 +210,7 @@ export function getFirestore(app: FirebaseApp): Firestore;
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
  * @beta
  */
@@ -230,7 +230,7 @@ export function getFirestore(): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
  * @beta
  */

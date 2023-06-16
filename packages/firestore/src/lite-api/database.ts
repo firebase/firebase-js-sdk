@@ -184,7 +184,7 @@ export function initializeFirestore(
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized `Firestore` instance.
  * @beta
  */
@@ -239,7 +239,7 @@ export function getFirestore(app: FirebaseApp): Firestore;
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
  * @beta
  */
@@ -251,7 +251,7 @@ export function getFirestore(databaseId: string): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
  * @beta
  */
