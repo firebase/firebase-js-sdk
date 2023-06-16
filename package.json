@@ -122,7 +122,7 @@
     "karma-sourcemap-loader": "0.3.8",
     "karma-spec-reporter": "0.0.34",
     "karma-summary-reporter": "3.1.1",
-    "karma-webpack": "ryanclark/karma-webpack#master",
+    "karma-webpack": "5.0.0",
     "lcov-result-merger": "3.1.0",
     "lerna": "4.0.0",
     "listr": "0.14.3",
@@ -152,5 +152,9 @@
     "watch": "1.0.2",
     "webpack": "5.76.0",
     "yargs": "17.7.1"
+  },
+  "dependencies": {
+    "patch-package": "7.0.0",
+    "postinstall-postinstall": "2.1.0"
   }
 }
