@@ -745,6 +745,111 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(user.isAnonymous).to.be.false;
     });
   });
+
+  context.only("#passwordPolicy", () => {
+    const passwordPolicyResponse = {
+      customStrengthOptions: {
+        minPasswordLength: 6
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      schemaVersion: 1
+    };
+    const passwordPolicyResponseRequireNumeric = {
+      customStrengthOptions: {
+        minPasswordLength: 6,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      schemaVersion: 1
+    };
+    const cachedPasswordPolicy = {
+      customStrengthOptions: {
+        minPasswordLength: 6
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')']
+    };
+    const cachedPasswordPolicyRequireNumeric = {
+      customStrengthOptions: {
+        minPasswordLength: 6,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: ['!', '(', ')']
+    };
+    let policyEndpointMock: mockFetch.Route;
+
+    beforeEach(() => {
+      policyEndpointMock = mockEndpoint(Endpoint.GET_PASSWORD_POLICY, passwordPolicyResponse);
+    });
+
+    it('does not update the password policy upon successful sign up when there is no existing policy cache', async () => {
+      await expect(createUserWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )).to.be.fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(0);
+      expect(auth._getPasswordPolicy()).to.be.null;
+    });
+
+    it('does not update the password policy upon successful sign up when there is an existing policy cache', async () => {
+      await auth._updatePasswordPolicy();
+
+      await expect(createUserWithEmailAndPassword(
+        auth,
+        'some-email',
+        'some-password'
+      )).to.be.fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(1);
+      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+    });
+
+    it('updates the password policy when password does not meet backend requirements', async () => {
+      await auth._updatePasswordPolicy();
+      expect(policyEndpointMock.calls.length).to.eq(1);
+      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+      policyEndpointMock = mockEndpoint(Endpoint.GET_PASSWORD_POLICY, passwordPolicyResponseRequireNumeric);
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
+          }
+        },
+        400
+      );
+      await expect(createUserWithEmailAndPassword(auth,
+        'some-email',
+        'some-password'
+      )).to.be.rejectedWith(FirebaseError, "Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).");
+      
+      expect(policyEndpointMock.calls.length).to.eq(1);
+      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicyRequireNumeric);
+    });
+
+    it('does not update the password policy upon error if policy has not previously been fetched', async () => {
+      mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
+          }
+        },
+        400
+      );
+      await expect(createUserWithEmailAndPassword(auth,
+        'some-email',
+        'some-password'
+      )).to.be.rejectedWith(FirebaseError, "Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).");
+      
+      expect(policyEndpointMock.calls.length).to.eq(0);
+      expect(auth._getPasswordPolicy()).to.be.null;
+    });
+  });
 });
 
 describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => {
