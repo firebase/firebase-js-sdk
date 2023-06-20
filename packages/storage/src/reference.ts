@@ -463,6 +463,7 @@ export function updateMetadata(
  */
 export function getDownloadURL(ref: Reference): Promise<string> {
   ref._throwIfRoot('getDownloadURL');
+  console.log("downloaded a url");
   const requestInfo = requestsGetDownloadUrl(
     ref.storage,
     ref._location,
