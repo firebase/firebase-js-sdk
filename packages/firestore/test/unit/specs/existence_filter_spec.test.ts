@@ -277,8 +277,7 @@ describeSpec('Existence Filters:', [], () => {
    */
   specTest(
     'Full re-query is skipped when bloom filter can identify documents deleted',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -310,8 +309,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Full re-query is triggered when bloom filter can not identify documents deleted',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -343,8 +341,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Bloom filter can process special characters in document name',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/ÀÒ∑', 1000, { v: 1 });
@@ -372,8 +369,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Bloom filter fills in default values for undefined padding and hashCount',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -445,8 +441,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Full re-query is triggered when bloom filter hashCount is invalid',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -480,8 +475,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Full re-query is triggered when bloom filter is empty',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -516,8 +510,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Same documents can have different bloom filters',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection', filter('v', '<=', 2));
       const query2 = query('collection', filter('v', '>=', 2));
@@ -567,8 +560,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Bloom filter is handled at global snapshot',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -600,8 +592,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Bloom filter limbo resolution is denied',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { v: 1 });
@@ -631,8 +622,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Bloom filter with large size works as expected',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docs = [];
