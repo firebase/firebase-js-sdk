@@ -71,6 +71,26 @@ export function getCountFromServer(
   return getAggregateFromServer(query, countQuerySpec);
 }
 
+export function getCountFromCache(
+  query: Query<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const countQuerySpec: { count: AggregateField<number> } = {
+    count: count()
+  };
+
+  return getAggregateFromCache(query, countQuerySpec);
+}
+
+export function getCount(
+  query: Query<unknown>
+): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+  const countQuerySpec: { count: AggregateField<number> } = {
+    count: count()
+  };
+
+  return getAggregate(query, countQuerySpec);
+}
+
 /**
  * Calculates the specified aggregations over the documents in the result
  * set of the given query, without actually downloading the documents.
@@ -213,7 +233,7 @@ function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
  * Attaches a listener for `AggregateQuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * calling the function that is returned when `onAggregateSnapshot` is called.
  *
  * NOTE: Although an `onCompletion` callback can be provided, it will
  * never be called because the snapshot stream is never-ending.
@@ -228,7 +248,7 @@ function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
  * the snapshot listener.
  */
 export function onAggregateSnapshot<T extends  AggregateSpec>(
-  query: Query<T>,
+  query: Query<unknown>,
   aggregateSpec: T,
   observer: {
     next?: (snapshot: AggregateQuerySnapshot<T>) => void;
@@ -236,11 +256,12 @@ export function onAggregateSnapshot<T extends  AggregateSpec>(
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * Attaches a listener for `AggregateQuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * calling the function that is returned when `onAggregateSnapshot` is called.
  *
  * NOTE: Although an `onCompletion` callback can be provided, it will
  * never be called because the snapshot stream is never-ending.
@@ -256,7 +277,7 @@ export function onAggregateSnapshot<T extends  AggregateSpec>(
  * the snapshot listener.
  */
 export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<T>,
+  query: Query<unknown>,
   aggregateSpec: T,
   options: SnapshotListenOptions,
   observer: {
@@ -265,11 +286,12 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
     complete?: () => void;
   }
 ): Unsubscribe;
+
 /**
- * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * Attaches a listener for `AggregateQuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * calling the function that is returned when `onAggregateSnapshot` is called.
  *
  * NOTE: Although an `onCompletion` callback can be provided, it will
  * never be called because the snapshot stream is never-ending.
@@ -289,17 +311,18 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
  * the snapshot listener.
  */
 export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<T>,
+  query: Query<unknown>,
   aggregateSpec: T,
   onNext: (snapshot: AggregateQuerySnapshot<T>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
- * calling the function that is returned when `onSnapshot` is called.
+ * calling the function that is returned when `onAggregateSnapshot` is called.
  *
  * NOTE: Although an `onCompletion` callback can be provided, it will
  * never be called because the snapshot stream is never-ending.
@@ -320,7 +343,7 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
  * the snapshot listener.
  */
 export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<T>,
+  query: Query<unknown>,
   aggregateSpec: T,
   options: SnapshotListenOptions,
   onNext: (snapshot: AggregateQuerySnapshot<T>) => void,
@@ -336,6 +359,135 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
   // TODO (streaming-count)
   throw new Error("Not implemented: API design only");
 }
+
+
+/**
+ * Attaches a listener for count snapshot events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onCountSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query - The base query to listen for aggregate updates.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set of the `query`. The AggregateSpec specifies
+ * aliases for each aggregate, which can be used to retrieve the aggregate
+ * result from the AggregateQuerySnapshot.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onCountSnapshot(
+  query: Query<unknown>,
+  observer: {
+    next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+
+/**
+ * Attaches a listener for count snapshot events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onCountSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query - The base query to listen for aggregate updates.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set of the `query`. The AggregateSpec specifies
+ * aliases for each aggregate, which can be used to retrieve the aggregate
+ * result from the AggregateQuerySnapshot.
+ * @param options - Options controlling the listen behavior.
+ * @param observer - A single object containing `next` and `error` callbacks.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onCountSnapshot(
+  query: Query<unknown>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+
+/**
+ * Attaches a listener for count snapshot events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onCountSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query - The base query to listen for aggregate updates.
+ * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * to perform over the result set of the `query`. The AggregateSpec specifies
+ * aliases for each aggregate, which can be used to retrieve the aggregate
+ * result from the AggregateQuerySnapshot.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot`
+ * is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are
+ * never ending.
+ * @param onError - A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onCountSnapshot(
+  query: Query<unknown>,
+  onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+
+/**
+ * Attaches a listener for count snapshot events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onCountSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query - The base query to listen for aggregate updates.
+ * @param options - Options controlling the listen behavior.
+ * @param onNext - A callback to be called every time a new `QuerySnapshot`
+ * is available.
+ * @param onCompletion - Can be provided, but will not be called since streams are
+ * never ending.
+ * @param onError - A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @returns An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onCountSnapshot(
+  query: Query<unknown>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+
+export function onCountSnapshot<T extends AggregateSpec>(
+  reference: Query<T> | DocumentReference<T>,
+  aggregateSpec: T,
+  ...args: unknown[]
+): Unsubscribe {
+  const countQuerySpec: { count: AggregateField<number> } = {
+    count: count()
+  };
+
+  // @ts-ignore
+  return onAggregateSnapshot(reference, aggregateSpec, ...args);
+}
+
 
 
 // TODO (streaming-count) do we need onSnapshotsInSync()?

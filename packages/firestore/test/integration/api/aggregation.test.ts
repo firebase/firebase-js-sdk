@@ -41,6 +41,11 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
+import {
+  getAggregate,
+  getAggregateFromCache,
+  onAggregateSnapshot
+} from "../../../src/api/aggregate";
 
 apiDescribe('Count queries', (persistence: boolean) => {
   it('can run count query getCountFromServer', () => {
@@ -357,7 +362,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
 apiDescribe.skip(
   'Aggregation queries - sum / average',
   (persistence: boolean) => {
-    it('can run sum query getAggregationFromServer', () => {
+    it('can run sum query getAggregateFromServer', () => {
       const testDocs = {
         a: { author: 'authorA', title: 'titleA', pages: 100 },
         b: { author: 'authorB', title: 'titleB', pages: 50 }
@@ -370,7 +375,7 @@ apiDescribe.skip(
       });
     });
 
-    it('can run average query getAggregationFromServer', () => {
+    it('can run average query getAggregateFromServer', () => {
       const testDocs = {
         a: { author: 'authorA', title: 'titleA', pages: 100 },
         b: { author: 'authorB', title: 'titleB', pages: 50 }
@@ -383,7 +388,8 @@ apiDescribe.skip(
       });
     });
 
-    it('can get multiple aggregations using getAggregationFromServer', () => {
+
+    it('can get multiple aggregations using getAggregateFromServer', () => {
       const testDocs = {
         a: { author: 'authorA', title: 'titleA', pages: 100 },
         b: { author: 'authorB', title: 'titleB', pages: 50 }
