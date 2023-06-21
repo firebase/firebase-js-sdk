@@ -29,7 +29,9 @@ import {
   enableIndexedDbPersistence,
   setDoc,
   memoryLocalCache,
-  getDocFromCache
+  getDocFromCache,
+  persistentLocalCache,
+  connectFirestoreEmulator
 } from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
@@ -132,6 +134,25 @@ describe('Firestore Provider', () => {
     const db = initializeFirestore(app, DEFAULT_SETTINGS);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     expect(enableIndexedDbPersistence(db)).to.be.rejected;
+
+    // SDK still functions.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    setDoc(doc(db, 'coll/doc'), { field: 'foo' });
+    expect((await getDocFromCache(doc(db, 'coll/doc'))).data()).to.deep.equal({
+      field: 'foo'
+    });
+  });
+
+  it.only('connectFirestoreEmulator() keeps other settings', async () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-use-enablePersistence'
+    );
+    const db = initializeFirestore(app, {
+      ...DEFAULT_SETTINGS,
+      localCache: persistentLocalCache()
+    });
+    connectFirestoreEmulator(db, "localhost", 8080);
 
     // SDK still functions.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
