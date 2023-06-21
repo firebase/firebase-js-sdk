@@ -6,6 +6,9 @@ on:
       - release
       - '*-releasebranch'
 
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Send PR number to tracker endpoint

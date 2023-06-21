@@ -6,6 +6,9 @@ env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
 
+permissions:
+  contents: read
+
 jobs:
   test-chrome:
     name: Test Auth on Chrome and Node If Changed

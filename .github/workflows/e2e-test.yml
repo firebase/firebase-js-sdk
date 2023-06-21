@@ -5,6 +5,9 @@ on:
   repository_dispatch:
     types: [staging-tests]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Run E2E Smoke Tests
