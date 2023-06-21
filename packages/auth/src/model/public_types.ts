@@ -291,6 +291,11 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+  /**
+   * return a promise that resolves immediately when the initial 
+   * auth state is settled and currentUser is available
+   */
+  authStateReady():Promise<void>;
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
   /** The current emulator configuration (or null). */
