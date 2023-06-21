@@ -102,13 +102,13 @@ const cjsBuilds = [
     input: './dist/app/src/index.d.ts',
     output: {
       file: './dist/app/src/global_index.d.ts',
-      format: 'es',
+      format: 'es'
     },
     plugins: [
       dts({
-        respectExternal: true,
+        respectExternal: true
       })
-    ],
+    ]
   }
 ];
 

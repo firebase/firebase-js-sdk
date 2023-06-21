@@ -207,13 +207,13 @@ const allBuilds = [
     input: 'dist/firestore/src/index.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
-      format: 'es',
+      format: 'es'
     },
     plugins: [
       dts({
-        respectExternal: true,
+        respectExternal: true
       })
-    ],
+    ]
   }
 ];
 
