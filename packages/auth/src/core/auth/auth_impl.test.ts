@@ -792,74 +792,77 @@ describe('core/auth/auth_impl', () => {
     let onAuthStateChangedCallback: sinon.SinonSpy;
     let authStateChangedSpy: sinon.SinonSpy;
 
-    beforeEach(async() => {
+    beforeEach(async () => {
       user = testUser(auth, 'uid');
 
       onAuthStateChangedCallback = sinon.spy();
       auth.onAuthStateChanged(onAuthStateChangedCallback);
-      authStateChangedSpy = sinon.spy(auth, "onAuthStateChanged");
+      authStateChangedSpy = sinon.spy(auth, 'onAuthStateChanged');
 
-      await auth._updateCurrentUser(null); 
+      await auth._updateCurrentUser(null);
     });
 
     //case one: if(this.currentUser) is true --> resolves immediately
-    it("immediately returns resolved promise if the user is previously logged in", async () => {
-      
+    it('immediately returns resolved promise if the user is previously logged in', async () => {
       expect(onAuthStateChangedCallback).to.be.calledOnce;
       await auth._updateCurrentUser(user);
       expect(onAuthStateChangedCallback).to.be.calledTwice;
 
-      await auth.authStateReady().then(() => {
-        expect(authStateChangedSpy).to.not.have.been.called;
-        expect(auth.currentUser).to.eq(user);
-      }).catch(error => {
-        throw new Error(error);
-      });
+      await auth
+        .authStateReady()
+        .then(() => {
+          expect(authStateChangedSpy).to.not.have.been.called;
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
 
       expect(onAuthStateChangedCallback).to.be.calledTwice;
     });
 
     //case two: if(this.currentUser) is false --> calls onAuthStateChanged
-    it("returns resolved promise once the user is initialized to object of type UserInternal",async () => {
-
+    it('returns resolved promise once the user is initialized to object of type UserInternal', async () => {
       expect(authStateChangedSpy).to.not.have.been.called;
       const promiseVar = auth.authStateReady();
       expect(authStateChangedSpy).to.be.calledOnce;
 
       await auth._updateCurrentUser(user);
-      
-      await promiseVar.then(() => {
-        // onAuthStateChangedCallback();
-        expect(auth.currentUser).to.eq(user);
-      }).catch(error => {
-        throw new Error(error);
-      });
+
+      await promiseVar
+        .then(() => {
+          // onAuthStateChangedCallback();
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
 
       expect(authStateChangedSpy).to.be.calledOnce;
       // expect(onAuthStateChangedCallback).to.be.calledThrice;
     });
 
     //case three: if user logged out more than once, promise should still be resolved with currentUser remained as null
-    it("resolves promise with currentUser remains as null when user logs out more than once", async () => {
-
+    it('resolves promise with currentUser remains as null when user logs out more than once', async () => {
       expect(authStateChangedSpy).to.not.have.been.called;
       const promiseVar = auth.authStateReady();
       expect(authStateChangedSpy).to.be.calledOnce;
 
       await auth._updateCurrentUser(null);
-      
-      await promiseVar.then(() => {
-        expect(auth.currentUser).to.eq(null);
-      }).catch(error => {
-        throw new Error(error);
-      });
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
 
       expect(authStateChangedSpy).to.be.calledOnce;
     });
 
     //case four: user sign in failed, expect promise to resolve and allow currentUser to be null.
-    it("resolves the promise with currentUser remain null during log in failure", async () => {
-
+    it('resolves the promise with currentUser remain null during log in failure', async () => {
       expect(authStateChangedSpy).to.not.have.been.called;
       const promiseVar = auth.authStateReady();
       expect(authStateChangedSpy).to.be.calledOnce;
@@ -872,18 +875,19 @@ describe('core/auth/auth_impl', () => {
         'auth/invalid-user-token'
       );
 
-      await promiseVar.then(() => {
-        expect(auth.currentUser).to.eq(null);
-      }).catch(error => {
-        throw new Error(error);
-      });
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
 
       expect(authStateChangedSpy).to.be.calledOnce;
     });
 
     //case five: user sign in delay, promise should be resolved after delay.
-    it("resolves the promise in a delayed user log in process", async () => {
-
+    it('resolves the promise in a delayed user log in process', async () => {
       setTimeout(async () => {
         await auth._updateCurrentUser(user);
       }, 5000);
@@ -893,13 +897,14 @@ describe('core/auth/auth_impl', () => {
       expect(authStateChangedSpy).to.be.calledOnce;
 
       await setTimeout(() => {
-        promiseVar.then(async () => {
-          await expect(auth.currentUser).to.eq(user);
-        }).catch(error => {
-          throw new Error(error);
-        });
+        promiseVar
+          .then(async () => {
+            await expect(auth.currentUser).to.eq(user);
+          })
+          .catch(error => {
+            throw new Error(error);
+          });
       }, 10000);
     });
   });
-
 });

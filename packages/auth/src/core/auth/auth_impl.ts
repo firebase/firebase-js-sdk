@@ -469,9 +469,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   authStateReady(): Promise<void> {
     return new Promise((resolve, reject) => {
-      if(this.currentUser){
+      if (this.currentUser) {
         resolve();
-      }else{
+      } else {
         const unsubscribe = this.onAuthStateChanged(() => {
           unsubscribe();
           resolve();

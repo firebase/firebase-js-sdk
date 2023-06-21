@@ -1661,7 +1661,7 @@ function checkDatabaseAuthAccess() {
     typeof firebase !== 'undefined' &&
     typeof firebase.database !== 'undefined'
   ) {
-    //Angel: subject to race conditions where the user was in the process of logging out when auth.currentUser is checked; 
+    //Angel: subject to race conditions where the user was in the process of logging out when auth.currentUser is checked;
     //       However, if we use authStateReady here, the promise might never be resolved if the log out process has been completed earlier
     if (lastUser && !myCurUser) {
       dbPath = 'users/' + lastUser.uid;
