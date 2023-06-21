@@ -122,7 +122,7 @@ function activeUser() {
   if (type === 'lastUser') {
     return lastUser;
   } else {
-    return auth.currentUser;
+    return auth.authStateReady().then(auth.currentUser);
   }
 }
 
@@ -172,7 +172,8 @@ function refreshUserData() {
     // Show enrolled second factors if available for the active user.
     showMultiFactorStatus(user);
     // Change color.
-    if (user === auth.currentUser) {
+    let myUser = auth.authStateReady().then(auth.currentUser);
+    if (user === myUser) {
       $('#user-info').removeClass('last-user');
       $('#user-info').addClass('current-user');
     } else {
@@ -1120,7 +1121,7 @@ function onRefreshToken() {
  * Signs out the user.
  */
 function onSignOut() {
-  setLastUser(auth.currentUser);
+  setLastUser(auth.authStateReady().then(auth.currentUser));
   auth.signOut().then(signOut, onAuthError);
 }
 
@@ -1654,12 +1655,15 @@ function checkDatabaseAuthAccess() {
   let dbRef;
   let dbPath;
   let errMessage;
+  let myCurUser = auth.authStateReady().then(auth.currentUser);
   // Run this check only when Database module is available.
   if (
     typeof firebase !== 'undefined' &&
     typeof firebase.database !== 'undefined'
   ) {
-    if (lastUser && !auth.currentUser) {
+    //Angel: subject to race conditions where the user was in the process of logging out when auth.currentUser is checked; 
+    //       However, if we use authStateReady here, the promise might never be resolved if the log out process has been completed earlier
+    if (lastUser && !myCurUser) {
       dbPath = 'users/' + lastUser.uid;
       // After sign out, confirm read/write access to users/$user_id blocked.
       dbRef = firebase.database().ref(dbPath);
@@ -1704,8 +1708,8 @@ function checkDatabaseAuthAccess() {
               );
             });
         });
-    } else if (auth.currentUser) {
-      dbPath = 'users/' + auth.currentUser.uid;
+    } else if (myCurUser) {
+      dbPath = 'users/' + myCurUser.uid;
       // Confirm read/write access to users/$user_id allowed.
       dbRef = firebase.database().ref(dbPath);
       dbRef
