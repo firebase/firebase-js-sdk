@@ -119,7 +119,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.12",
+    "@firebase/app": "0.9.13",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "chromedriver": "98.0.1",
