@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "9.22.2",
+  "version": "9.23.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -374,15 +374,15 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app": "0.9.12",
-    "@firebase/app-compat": "0.2.12",
+    "@firebase/app": "0.9.13",
+    "@firebase/app-compat": "0.2.13",
     "@firebase/app-types": "0.9.0",
     "@firebase/auth": "0.23.2",
     "@firebase/auth-compat": "0.4.2",
     "@firebase/database": "0.14.4",
     "@firebase/database-compat": "0.3.4",
-    "@firebase/firestore": "3.12.2",
-    "@firebase/firestore-compat": "0.3.11",
+    "@firebase/firestore": "3.13.0",
+    "@firebase/firestore-compat": "0.3.12",
     "@firebase/functions": "0.10.0",
     "@firebase/functions-compat": "0.3.5",
     "@firebase/installations": "0.6.4",
