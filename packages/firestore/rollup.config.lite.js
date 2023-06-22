@@ -106,8 +106,8 @@ const allBuilds = [
         },
         include: ['dist/lite/*.js']
       }),
-      sourcemaps(),
       json(),
+      sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
     external: util.resolveNodeExterns,
