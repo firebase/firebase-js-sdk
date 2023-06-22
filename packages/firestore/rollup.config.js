@@ -75,7 +75,7 @@ const allBuilds = [
   {
     input: './src/index.node.ts',
     output: {
-      file: "dist/index.node.intermediate.mjs",
+      file: 'dist/index.node.intermediate.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -88,7 +88,7 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: "dist/index.node.intermediate.mjs",
+    input: 'dist/index.node.intermediate.mjs',
     output: {
       file: pkg.main,
       format: 'cjs',
@@ -105,7 +105,7 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: "dist/index.node.intermediate.mjs",
+    input: 'dist/index.node.intermediate.mjs',
     output: {
       file: pkg['main-esm'],
       format: 'es',
@@ -123,7 +123,7 @@ const allBuilds = [
   {
     input: './src/index.ts',
     output: {
-      file: "dist/index.esm2017.intermediate.js",
+      file: 'dist/index.esm2017.intermediate.js',
       format: 'es',
       sourcemap: true
     },
@@ -135,7 +135,7 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: "dist/index.esm2017.intermediate.js",
+    input: 'dist/index.esm2017.intermediate.js',
     output: [
       {
         file: pkg['esm5'],
@@ -154,7 +154,7 @@ const allBuilds = [
   },
   // Convert es2017 build to cjs
   {
-    input: "dist/index.esm2017.intermediate.js",
+    input: 'dist/index.esm2017.intermediate.js',
     output: [
       {
         file: './dist/index.cjs.js',
@@ -170,7 +170,7 @@ const allBuilds = [
   },
   // es2017 build with build target reporting
   {
-    input: "dist/index.esm2017.intermediate.js",
+    input: 'dist/index.esm2017.intermediate.js',
     output: [
       {
         file: pkg['browser'],
