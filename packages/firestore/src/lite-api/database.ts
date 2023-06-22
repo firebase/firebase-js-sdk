@@ -310,20 +310,11 @@ export function connectFirestoreEmulator(
     );
   }
 
-  const newSettings = {
+  firestore._setSettings({
     ...settings,
     host: newHostSetting,
     ssl: false
-  };
-  logWarn(`before set settings ${JSON.stringify(newSettings, undefined, 2)}`);
-  firestore._setSettings(newSettings);
-  logWarn(
-    `after set settings, _getSettings is ${JSON.stringify(
-      firestore._getSettings(),
-      undefined,
-      2
-    )}`
-  );
+  });
 
   if (options.mockUserToken) {
     let token: string;
