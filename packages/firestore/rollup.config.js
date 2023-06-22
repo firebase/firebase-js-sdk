@@ -20,6 +20,7 @@ import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
+import dts from 'rollup-plugin-dts';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import tmp from 'tmp';
 import typescript from 'typescript';
@@ -201,6 +202,18 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
+  },
+  {
+    input: 'dist/firestore/src/index.d.ts',
+    output: {
+      file: 'dist/firestore/src/global_index.d.ts',
+      format: 'es'
+    },
+    plugins: [
+      dts({
+        respectExternal: true
+      })
+    ]
   }
 ];
 
