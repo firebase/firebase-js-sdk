@@ -1,5 +1,19 @@
 # firebase
 
+## 9.23.0
+
+### Minor Changes
+
+- [`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8) [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356) - Expose the MultiDB API for Public Preview. [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356)
+
+### Patch Changes
+
+- Updated dependencies [[`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8)]:
+  - @firebase/app@0.9.13
+  - @firebase/firestore@3.13.0
+  - @firebase/app-compat@0.2.13
+  - @firebase/firestore-compat@0.3.12
+
 ## 9.22.2
 
 ### Patch Changes
