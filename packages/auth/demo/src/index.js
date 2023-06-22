@@ -122,7 +122,11 @@ function activeUser() {
   if (type === 'lastUser') {
     return lastUser;
   } else {
-    return auth.authStateReady().then(auth.currentUser);
+    auth.authStateReady().then( () => {
+      return auth.currentUser;
+    }).catch(error => {
+      throw new Error(error);
+    });
   }
 }
 
@@ -172,14 +176,17 @@ function refreshUserData() {
     // Show enrolled second factors if available for the active user.
     showMultiFactorStatus(user);
     // Change color.
-    let myUser = auth.authStateReady().then(auth.currentUser);
-    if (user === myUser) {
-      $('#user-info').removeClass('last-user');
-      $('#user-info').addClass('current-user');
-    } else {
-      $('#user-info').removeClass('current-user');
-      $('#user-info').addClass('last-user');
-    }
+    auth.authStateReady().then(() => {
+      if (user === auth.currentUser) {
+        $('#user-info').removeClass('last-user');
+        $('#user-info').addClass('current-user');
+      } else {
+        $('#user-info').removeClass('current-user');
+        $('#user-info').addClass('last-user');
+      }
+    }).catch(error => {
+      throw new Error(error);
+    });
   } else {
     $('.profile').slideUp();
     $('body').removeClass('user-info-displayed');
@@ -1121,8 +1128,13 @@ function onRefreshToken() {
  * Signs out the user.
  */
 function onSignOut() {
-  setLastUser(auth.authStateReady().then(auth.currentUser));
-  auth.signOut().then(signOut, onAuthError);
+  auth.authStateReady().then(() => {
+    setLastUser(auth.currentUser);
+    auth.signOut().then(signOut, onAuthError);
+  })
+  .catch(error => {
+    throw new Error(error);
+  });
 }
 
 /**
@@ -1655,91 +1667,94 @@ function checkDatabaseAuthAccess() {
   let dbRef;
   let dbPath;
   let errMessage;
-  let myCurUser = auth.authStateReady().then(auth.currentUser);
-  // Run this check only when Database module is available.
-  if (
-    typeof firebase !== 'undefined' &&
-    typeof firebase.database !== 'undefined'
-  ) {
-    //Angel: subject to race conditions where the user was in the process of logging out when auth.currentUser is checked;
-    //       However, if we use authStateReady here, the promise might never be resolved if the log out process has been completed earlier
-    if (lastUser && !myCurUser) {
-      dbPath = 'users/' + lastUser.uid;
-      // After sign out, confirm read/write access to users/$user_id blocked.
-      dbRef = firebase.database().ref(dbPath);
-      dbRef
-        .set({
-          'test': randomString
-        })
-        .then(() => {
-          alertError(
-            'Error: Unauthenticated write to Database node ' +
-              dbPath +
-              ' unexpectedly succeeded!'
-          );
-        })
-        .catch(error => {
-          errMessage = error.message.toLowerCase();
-          // Permission denied error should be thrown.
-          if (errMessage.indexOf('permission_denied') === -1) {
-            alertError('Error: ' + error.code);
-            return;
-          }
-          dbRef
-            .once('value')
-            .then(() => {
-              alertError(
-                'Error: Unauthenticated read to Database node ' +
-                  dbPath +
-                  ' unexpectedly succeeded!'
-              );
-            })
-            .catch(error => {
-              errMessage = error.message.toLowerCase();
-              // Permission denied error should be thrown.
-              if (errMessage.indexOf('permission_denied') === -1) {
-                alertError('Error: ' + error.code);
-                return;
-              }
-              log(
-                'Unauthenticated read/write to Database node ' +
-                  dbPath +
-                  ' failed as expected!'
-              );
-            });
-        });
-    } else if (myCurUser) {
-      dbPath = 'users/' + myCurUser.uid;
-      // Confirm read/write access to users/$user_id allowed.
-      dbRef = firebase.database().ref(dbPath);
-      dbRef
-        .set({
-          'test': randomString
-        })
-        .then(() => {
-          return dbRef.once('value');
-        })
-        .then(snapshot => {
-          if (snapshot.val().test === randomString) {
-            // read/write successful.
-            log(
-              'Authenticated read/write to Database node ' +
+  auth.authStateReady().then(() => {
+    // Run this check only when Database module is available.
+    let myCurUser = auth.currentUser;
+    if (
+      typeof firebase !== 'undefined' &&
+      typeof firebase.database !== 'undefined'
+    ) {
+      if (lastUser && !myCurUser) {
+        dbPath = 'users/' + lastUser.uid;
+        // After sign out, confirm read/write access to users/$user_id blocked.
+        dbRef = firebase.database().ref(dbPath);
+        dbRef
+          .set({
+            'test': randomString
+          })
+          .then(() => {
+            alertError(
+              'Error: Unauthenticated write to Database node ' +
                 dbPath +
-                ' succeeded!'
+                ' unexpectedly succeeded!'
             );
-          } else {
-            throw new Error(
-              'Authenticated read/write to Database node ' + dbPath + ' failed!'
-            );
-          }
-          // Clean up: clear that node's content.
-          return dbRef.remove();
-        })
-        .catch(error => {
-          alertError('Error: ' + error.code);
-        });
+          })
+          .catch(error => {
+            errMessage = error.message.toLowerCase();
+            // Permission denied error should be thrown.
+            if (errMessage.indexOf('permission_denied') === -1) {
+              alertError('Error: ' + error.code);
+              return;
+            }
+            dbRef
+              .once('value')
+              .then(() => {
+                alertError(
+                  'Error: Unauthenticated read to Database node ' +
+                    dbPath +
+                    ' unexpectedly succeeded!'
+                );
+              })
+              .catch(error => {
+                errMessage = error.message.toLowerCase();
+                // Permission denied error should be thrown.
+                if (errMessage.indexOf('permission_denied') === -1) {
+                  alertError('Error: ' + error.code);
+                  return;
+                }
+                log(
+                  'Unauthenticated read/write to Database node ' +
+                    dbPath +
+                    ' failed as expected!'
+                );
+              });
+          });
+      } else if (myCurUser) {
+        dbPath = 'users/' + myCurUser.uid;
+        // Confirm read/write access to users/$user_id allowed.
+        dbRef = firebase.database().ref(dbPath);
+        dbRef
+          .set({
+            'test': randomString
+          })
+          .then(() => {
+            return dbRef.once('value');
+          })
+          .then(snapshot => {
+            if (snapshot.val().test === randomString) {
+              // read/write successful.
+              log(
+                'Authenticated read/write to Database node ' +
+                  dbPath +
+                  ' succeeded!'
+              );
+            } else {
+              throw new Error(
+                'Authenticated read/write to Database node ' + dbPath + ' failed!'
+              );
+            }
+            // Clean up: clear that node's content.
+            return dbRef.remove();
+          })
+          .catch(error => {
+            alertError('Error: ' + error.code);
+          });
+      }
     }
-  }
+  })
+  .catch(error => {
+    throw new Error(error);
+  });
 }
 
 /**
