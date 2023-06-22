@@ -315,8 +315,15 @@ export function connectFirestoreEmulator(
     host: newHostSetting,
     ssl: false
   };
-  logWarn(`after connect emulator, settings is ${JSON.stringify(newSettings)}`);
+  logWarn(`before set settings ${JSON.stringify(newSettings, undefined, 2)}`);
   firestore._setSettings(newSettings);
+  logWarn(
+    `after set settings, _getSettings is ${JSON.stringify(
+      firestore._getSettings(),
+      undefined,
+      2
+    )}`
+  );
 
   if (options.mockUserToken) {
     let token: string;

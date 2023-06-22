@@ -437,7 +437,7 @@ If the final path has an odd number of segments and does not point to a document
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable persistent storage, if possible.
@@ -475,7 +475,7 @@ A `Promise` that represents successfully enabling persistent storage.
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
