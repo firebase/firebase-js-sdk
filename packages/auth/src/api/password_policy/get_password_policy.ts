@@ -23,10 +23,16 @@ import {
 } from '../index';
 import { Auth } from '../../model/public_types';
 
+/**
+ * Request object for fetching the password policy.
+ */
 export interface GetPasswordPolicyRequest {
   tenantId?: string;
 }
 
+/**
+ * Response object for fetching the password policy.
+ */
 export interface GetPasswordPolicyResponse {
   customStrengthOptions: {
     minPasswordLength?: number;
@@ -40,6 +46,13 @@ export interface GetPasswordPolicyResponse {
   schemaVersion: number;
 }
 
+/**
+ * Fetches the password policy for the currently set tenant or the project if no tenant is set.
+ *
+ * @param auth Auth object.
+ * @param request Password policy request.
+ * @returns Password policy response.
+ */
 export async function _getPasswordPolicy(
   auth: Auth,
   request: GetPasswordPolicyRequest = {}
