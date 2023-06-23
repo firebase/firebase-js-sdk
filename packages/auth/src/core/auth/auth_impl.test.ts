@@ -845,7 +845,7 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
     });
 
-    it('password policy should be set for tenant if tenant ID is not nul', async () => {
+    it('password policy should be set for tenant if tenant ID is not null', async () => {
       auth = await testAuth();
       auth.tenantId = 'tenant-id';
       mockEndpointWithParams(
@@ -887,6 +887,8 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicy()).to.eql(
         cachedPasswordPolicyRequireNumeric
       );
+      auth.tenantId = 'other-tenant-id';
+      expect(auth._getPasswordPolicy()).to.be.undefined;
     });
 
     it('password policy should not be set when the schema version is not supported', async () => {
