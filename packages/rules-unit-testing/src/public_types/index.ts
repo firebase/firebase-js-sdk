@@ -180,7 +180,7 @@ export interface RulesTestEnvironment {
    * @example
    * ```javascript
    * const alice = testEnv.authenticatedContext('alice');
-   * await assertSucceeds(get(doc(alice.firestore(), '/doc/readable/by/alice'), { ... });
+   * await assertSucceeds(getDoc(doc(alice.firestore(), '/doc/readable/by/alice'), { ... });
    * ```
    */
   authenticatedContext(
@@ -197,7 +197,7 @@ export interface RulesTestEnvironment {
    * @example
    * ```javascript
    * const unauthed = testEnv.unauthenticatedContext();
-   * await assertFails(get(doc(unauthed.firestore(), '/private/doc'), { ... });
+   * await assertFails(getDoc(doc(unauthed.firestore(), '/private/doc'), { ... });
    * ```
    */
   unauthenticatedContext(): RulesTestContext;
