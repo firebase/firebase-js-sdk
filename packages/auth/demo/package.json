@@ -21,7 +21,8 @@
     "@firebase/auth": "file:..",
     "@firebase/logger": "0.3.2",
     "@firebase/util": "1.6.0",
-    "tslib": "^2.1.0"
+    "tslib": "^2.1.0",
+    "@types/webappsec-credential-management": "^0.5.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {

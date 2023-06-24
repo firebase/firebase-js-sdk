@@ -1271,11 +1271,19 @@ function onStartSignInWithPhoneMultiFactor(event) {
     multiFactorHint: selectedMultiFactorHint,
     session: multiFactorErrorResolver.session
   };
+  // write code here
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
     verificationId => {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
+      try {
+        let confirmed = new ConfirmationResultImpl(verificationId, cred =>
+          signInWithCredential(authInternal, cred));
+          confirmed.confirmWithWebOTP();
+      } catch(error) {
+        console.log(error);
+      }
     },
     error => {
       clearApplicationVerifier();

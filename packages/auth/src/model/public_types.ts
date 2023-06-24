@@ -581,6 +581,8 @@ export interface ConfirmationResult {
    * @param verificationCode - The code that was sent to the user's mobile device.
    */
   confirm(verificationCode: string): Promise<UserCredential>;
+
+  confirmWithWebOTP(): Promise<UserCredential>;
 }
 
 /**
