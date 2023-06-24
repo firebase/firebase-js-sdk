@@ -2,4 +2,4 @@
 "@firebase/rules-unit-testing": patch
 ---
 
-Fix typo in index.ts
+This change fixes two typos in the documentation of the functions RulesTestEnvironment.authenticatedContext and RulesTestEnvironment.unauthenticatedContext of the @firebase/rules-unit-testing package.
