@@ -291,13 +291,13 @@ export function configureFirestore(firestore: Firestore): void {
     databaseInfo
   );
   if (
-    settings.cache?._offlineComponentProvider &&
-    settings.cache?._onlineComponentProvider
+    settings.localCache?._offlineComponentProvider &&
+    settings.localCache?._onlineComponentProvider
   ) {
     firestore._firestoreClient._uninitializedComponentsProvider = {
-      _offlineKind: settings.cache.kind,
-      _offline: settings.cache._offlineComponentProvider,
-      _online: settings.cache._onlineComponentProvider
+      _offlineKind: settings.localCache.kind,
+      _offline: settings.localCache._offlineComponentProvider,
+      _online: settings.localCache._onlineComponentProvider
     };
   }
 }
@@ -327,8 +327,8 @@ export function configureFirestore(firestore: Firestore): void {
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
 export function enableIndexedDbPersistence(
@@ -387,8 +387,8 @@ export function enableIndexedDbPersistence(
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
 export function enableMultiTabIndexedDbPersistence(
