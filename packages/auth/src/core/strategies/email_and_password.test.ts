@@ -747,33 +747,36 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   });
 
   context('#passwordPolicy', () => {
+    const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+    const TEST_MIN_PASSWORD_LENGTH = 6;
+
     const passwordPolicyResponse = {
       customStrengthOptions: {
-        minPasswordLength: 6
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
-      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 1
     };
     const passwordPolicyResponseRequireNumeric = {
       customStrengthOptions: {
-        minPasswordLength: 6,
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         containsNumericCharacter: true
       },
-      allowedNonAlphanumericCharacters: ['!', '(', ')'],
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 1
     };
     const cachedPasswordPolicy = {
       customStrengthOptions: {
-        minPasswordLength: 6
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
-      allowedNonAlphanumericCharacters: ['!', '(', ')']
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     };
     const cachedPasswordPolicyRequireNumeric = {
       customStrengthOptions: {
-        minPasswordLength: 6,
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         containsNumericCharacter: true
       },
-      allowedNonAlphanumericCharacters: ['!', '(', ')']
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     };
     let policyEndpointMock: mockFetch.Route;
 
