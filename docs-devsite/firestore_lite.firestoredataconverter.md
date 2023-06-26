@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirestoreDataConverter interface
-Converter used by `withConverter()` to transform user objects of type `T` into Firestore data.
+Converter used by `withConverter()` to transform user objects of type `AppModelType` into Firestore data of type `DbModelType`<!-- -->.
 
 Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.
 
@@ -24,13 +24,15 @@ export declare interface FirestoreDataConverter<AppModelType, DbModelType extend
 
 |  Method | Description |
 |  --- | --- |
-|  [fromFirestore(snapshot)](./firestore_lite.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type T. You can access your data by calling: <code>snapshot.data()</code>. |
-|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
-|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>T</code> into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
+|  [fromFirestore(snapshot)](./firestore_lite.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type <code>AppModelType</code>. You can access your data by calling: <code>snapshot.data()</code>.<!-- -->Generally, the data returned from <code>snapshot.data()</code> can be cast to <code>DbModelType</code>; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout. |
+|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
+|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
 
 ## FirestoreDataConverter.fromFirestore()
 
-Called by the Firestore SDK to convert Firestore data into an object of type T. You can access your data by calling: `snapshot.data()`<!-- -->.
+Called by the Firestore SDK to convert Firestore data into an object of type `AppModelType`<!-- -->. You can access your data by calling: `snapshot.data()`<!-- -->.
+
+Generally, the data returned from `snapshot.data()` can be cast to `DbModelType`<!-- -->; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout.
 
 <b>Signature:</b>
 
@@ -50,7 +52,7 @@ AppModelType
 
 ## FirestoreDataConverter.toFirestore()
 
-Called by the Firestore SDK to convert a custom model object of type `T` into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .
+Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .
 
 The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values.
 
@@ -72,7 +74,7 @@ toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelTy
 
 ## FirestoreDataConverter.toFirestore()
 
-Called by the Firestore SDK to convert a custom model object of type `T` into a plain Javascript object (suitable for writing directly to the Firestore database). Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
+Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
 
 The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested `Partial` by allowing nested fields to be omitted.
 
@@ -105,12 +107,17 @@ class Post {
   }
 }
 
+interface PostDbModel {
+  title: string;
+  author: string;
+}
+
 const postConverter = {
-  toFirestore(post: WithFieldValue<Post>): DocumentData {
+  toFirestore(post: WithFieldValue<Post>): PostDbModel {
     return {title: post.title, author: post.author};
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): Post {
-    const data = snapshot.data(options)!;
+    const data = snapshot.data(options) as PostDbModel;
     return new Post(data.title, data.author);
   }
 };

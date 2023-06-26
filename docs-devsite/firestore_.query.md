@@ -37,7 +37,7 @@ export declare class Query<AppModelType = DocumentData, DbModelType extends Docu
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Removes the current converter. |
-|  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs) with the returned query, the provided converter will convert between Firestore data and your custom type <code>U</code>. |
+|  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs) with the returned query, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 
 ## Query.(constructor)
 
@@ -99,11 +99,11 @@ withConverter(converter: null): Query<DocumentData, DocumentData>;
 
 [Query](./firestore_.query.md#query_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
-A `Query<DocumentData>` that does not use a converter.
+A `Query<DocumentData, DocumentData>` that does not use a converter.
 
 ## Query.withConverter()
 
-Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs) with the returned query, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
+Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs) with the returned query, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 
@@ -121,5 +121,5 @@ withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: F
 
 [Query](./firestore_.query.md#query_class)<!-- -->&lt;NewAppModelType, NewDbModelType&gt;
 
-A `Query<U>` that uses the provided converter.
+A `Query` that uses the provided converter.
 

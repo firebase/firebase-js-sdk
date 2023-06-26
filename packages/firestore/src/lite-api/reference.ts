@@ -146,17 +146,18 @@ export class Query<
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `Query<DocumentData>` that does not use a converter.
+   * @returns A `Query<DocumentData, DocumentData>` that does not use a
+   * converter.
    */
   withConverter(converter: null): Query<DocumentData, DocumentData>;
   /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs} with
    * the returned query, the provided converter will convert between Firestore
-   * data and your custom type `U`.
+   * data of type `NewDbModelType` and your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `Query<U>` that uses the provided converter.
+   * @returns A `Query` that uses the provided converter.
    */
   withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
@@ -239,11 +240,11 @@ export class DocumentReference<
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
-   * instance, the provided converter will convert between Firestore data and
-   * your custom type `U`.
+   * instance, the provided converter will convert between Firestore data of
+   * type `NewDbModelType` and your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `DocumentReference<U>` that uses the provided converter.
+   * @returns A `DocumentReference` that uses the provided converter.
    */
   withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
@@ -252,7 +253,8 @@ export class DocumentReference<
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `DocumentReference<DocumentData>` that does not use a converter.
+   * @returns A `DocumentReference<DocumentData, DocumentData>` that does not
+   * use a converter.
    */
   withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
   withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
@@ -320,10 +322,11 @@ export class CollectionReference<
    * Applies a custom data converter to this `CollectionReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * addDoc} with the returned `CollectionReference` instance, the provided
-   * converter will convert between Firestore data and your custom type `U`.
+   * converter will convert between Firestore data of type `NewDbModelType` and
+   * your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `CollectionReference<U>` that uses the provided converter.
+   * @returns A `CollectionReference` that uses the provided converter.
    */
   withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
@@ -332,8 +335,8 @@ export class CollectionReference<
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `CollectionReference<DocumentData>` that does not use a
-   * converter.
+   * @returns A `CollectionReference<DocumentData, DocumentData>` that does not
+   * use a converter.
    */
   withConverter(
     converter: null

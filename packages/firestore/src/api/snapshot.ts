@@ -42,8 +42,8 @@ import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `AppModelType` into Firestore data of type `DbModelType`.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
@@ -58,15 +58,20 @@ import { SnapshotListenOptions } from './reference_impl';
  *   }
  * }
  *
+ * interface PostDbModel {
+ *   title: string;
+ *   author: string;
+ * }
+ *
  * const postConverter = {
- *   toFirestore(post: WithFieldValue<Post>): DocumentData {
+ *   toFirestore(post: WithFieldValue<Post>): PostDbModel {
  *     return {title: post.title, author: post.author};
  *   },
  *   fromFirestore(
  *     snapshot: QueryDocumentSnapshot,
  *     options: SnapshotOptions
  *   ): Post {
- *     const data = snapshot.data(options)!;
+ *     const data = snapshot.data(options) as PostDbModel;
  *     return new Post(data.title, data.author);
  *   }
  * };
@@ -88,10 +93,11 @@ export interface FirestoreDataConverter<
   DbModelType extends DocumentData = DocumentData
 > extends LiteFirestoreDataConverter<AppModelType, DbModelType> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. To use `set()`
+   * with `merge` and `mergeFields`, `toFirestore()` must be defined with
+   * `PartialWithFieldValue<AppModelType>`.
    *
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
@@ -101,10 +107,11 @@ export interface FirestoreDataConverter<
   ): WithFieldValue<DbModelType>;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
-   * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. Used with
+   * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
+   * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
@@ -118,7 +125,12 @@ export interface FirestoreDataConverter<
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type `AppModelType`. You can access your data by calling:
+   * `snapshot.data(options)`.
+   *
+   * Generally, the data returned from `snapshot.data()` can be cast to
+   * `DbModelType`; however, this is not guaranteed as writes to the database
+   * may have occurred without a type converter enforcing this specific layout.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
