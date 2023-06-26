@@ -124,6 +124,17 @@ export interface ListResult {
 }
 
 /**
+ * Options for expressing signed URL expiry date/time.
+ * @public
+ */
+export interface SignedURLOptions {
+  /**
+   * Number of milliseconds after creation date/time that URL should expire.
+   */
+  ttlInMillis: number;
+}
+
+/**
  * Object metadata that can be set at any time.
  * @public
  */

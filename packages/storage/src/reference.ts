@@ -34,7 +34,7 @@ import {
   multipartUpload,
   updateMetadata as requestsUpdateMetadata
 } from './implementation/requests';
-import { ListOptions, UploadResult } from './public-types';
+import { ListOptions, SignedURLOptions, UploadResult } from './public-types';
 import { dataFromString, StringFormat } from './implementation/string';
 import { Metadata } from './metadata';
 import { FirebaseStorageImpl } from './service';
@@ -462,6 +462,32 @@ export function updateMetadata(
  *     URL for this object.
  */
 export function getDownloadURL(ref: Reference): Promise<string> {
+  ref._throwIfRoot('getDownloadURL');
+  const requestInfo = requestsGetDownloadUrl(
+    ref.storage,
+    ref._location,
+    getMappings()
+  );
+  return ref.storage
+    .makeRequestWithTokens(requestInfo, newTextConnection)
+    .then(url => {
+      if (url === null) {
+        throw noDownloadURL();
+      }
+      return url;
+    });
+}
+
+/**
+ * Returns the signed URL for the given Reference and expiration.
+ * @public
+ * @returns A `Promise` that resolves with the signed
+ *     URL for this object.
+ */
+export function getSignedURL(ref: Reference, expiration?: SignedURLOptions): Promise<string> {
+  if (expiration !== undefined) {
+    console.log(expiration.ttlInMillis);
+  } 
   ref._throwIfRoot('getDownloadURL');
   const requestInfo = requestsGetDownloadUrl(
     ref.storage,

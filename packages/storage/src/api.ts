@@ -29,6 +29,7 @@ import {
   UploadResult,
   ListOptions,
   ListResult,
+  SignedURLOptions,
   UploadTask,
   SettableMetadata,
   UploadMetadata,
@@ -44,6 +45,7 @@ import {
   list as listInternal,
   listAll as listAllInternal,
   getDownloadURL as getDownloadURLInternal,
+  getSignedURL as getSignedURLInternal,
   deleteObject as deleteObjectInternal,
   Reference,
   _getChild as _getChildInternal,
@@ -269,6 +271,19 @@ export function listAll(ref: StorageReference): Promise<ListResult> {
 export function getDownloadURL(ref: StorageReference): Promise<string> {
   ref = getModularInstance(ref);
   return getDownloadURLInternal(ref as Reference);
+}
+
+/**
+ * Returns the signed URL for the given {@link StorageReference}.
+ * @public
+ * @param ref - {@link StorageReference} to get the signed URL for.
+ * @param expiration - when the URL will expire.
+ * @returns A `Promise` that resolves with the signed
+ *     URL for this object.
+ */
+export function getSignedURL(ref: StorageReference, expiration?: SignedURLOptions): Promise<string> {
+  ref = getModularInstance(ref);
+  return getSignedURLInternal(ref as Reference, expiration);
 }
 
 /**
