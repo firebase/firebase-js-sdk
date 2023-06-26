@@ -29,6 +29,10 @@ import { FirebaseError } from '@firebase/util';
 use(chaiAsPromised);
 
 describe('api/password_policy/getPasswordPolicy', () => {
+  const TEST_MIN_PASSWORD_LENGTH = 6;
+  const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!'];
+  const TEST_SCHEMA_VERSION = 1;
+
   let auth: TestAuth;
 
   beforeEach(async () => {
@@ -41,16 +45,20 @@ describe('api/password_policy/getPasswordPolicy', () => {
   it('should GET to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.GET_PASSWORD_POLICY, {
       customStrengthOptions: {
-        minPasswordLength: 6
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
-      allowedNonAlphanumericCharacters: ['!'],
-      schemaVersion: 1
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      schemaVersion: TEST_SCHEMA_VERSION
     });
 
     const response = await _getPasswordPolicy(auth);
-    expect(response.customStrengthOptions.minPasswordLength).to.eql(6);
-    expect(response.allowedNonAlphanumericCharacters).to.eql(['!']);
-    expect(response.schemaVersion).to.eql(1);
+    expect(response.customStrengthOptions.minPasswordLength).to.eql(
+      TEST_MIN_PASSWORD_LENGTH
+    );
+    expect(response.allowedNonAlphanumericCharacters).to.eql(
+      TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
+    );
+    expect(response.schemaVersion).to.eql(TEST_SCHEMA_VERSION);
     expect(mock.calls[0].method).to.eq('GET');
     expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
       'testSDK/0.0.0'
