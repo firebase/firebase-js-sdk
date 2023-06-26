@@ -133,7 +133,7 @@ export const enum AuthErrorCode {
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
-  PASSWORD_POLICY_VERSION_MISMATCH = 'password-policy-version-mismatch'
+  UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION = 'unsupported-password-policy-schema-version'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -383,8 +383,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
       'The reCAPTCHA version is invalid when sending request to the backend.',
-    [AuthErrorCode.PASSWORD_POLICY_VERSION_MISMATCH]:
-      'The password policy received from the backend has a schema version that is not supported by this version of the Firebase SDK.'
+    [AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION]:
+      'The password policy received from the backend uses a schema version that is not supported by this version of the Firebase SDK.'
   };
 }
 

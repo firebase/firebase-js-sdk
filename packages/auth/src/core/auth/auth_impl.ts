@@ -444,7 +444,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     ) {
       return Promise.reject(
         this._errorFactory.create(
-          AuthErrorCode.PASSWORD_POLICY_VERSION_MISMATCH,
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
           {}
         )
       );
