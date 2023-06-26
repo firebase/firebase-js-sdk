@@ -746,7 +746,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     });
   });
 
-  context.only("#passwordPolicy", () => {
+  context('#passwordPolicy', () => {
     const passwordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: 6
@@ -778,15 +778,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     let policyEndpointMock: mockFetch.Route;
 
     beforeEach(() => {
-      policyEndpointMock = mockEndpoint(Endpoint.GET_PASSWORD_POLICY, passwordPolicyResponse);
+      policyEndpointMock = mockEndpoint(
+        Endpoint.GET_PASSWORD_POLICY,
+        passwordPolicyResponse
+      );
     });
 
     it('does not update the password policy upon successful sign up when there is no existing policy cache', async () => {
-      await expect(createUserWithEmailAndPassword(
-        auth,
-        'some-email',
-        'some-password'
-      )).to.be.fulfilled;
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.fulfilled;
 
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicy()).to.be.null;
@@ -795,11 +796,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     it('does not update the password policy upon successful sign up when there is an existing policy cache', async () => {
       await auth._updatePasswordPolicy();
 
-      await expect(createUserWithEmailAndPassword(
-        auth,
-        'some-email',
-        'some-password'
-      )).to.be.fulfilled;
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.fulfilled;
 
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
@@ -810,7 +809,10 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
 
-      policyEndpointMock = mockEndpoint(Endpoint.GET_PASSWORD_POLICY, passwordPolicyResponseRequireNumeric);
+      policyEndpointMock = mockEndpoint(
+        Endpoint.GET_PASSWORD_POLICY,
+        passwordPolicyResponseRequireNumeric
+      );
       mockEndpoint(
         Endpoint.SIGN_UP,
         {
@@ -821,13 +823,17 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         },
         400
       );
-      await expect(createUserWithEmailAndPassword(auth,
-        'some-email',
-        'some-password'
-      )).to.be.rejectedWith(FirebaseError, "Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).");
-      
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
+      );
+
       expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicyRequireNumeric);
+      expect(auth._getPasswordPolicy()).to.eql(
+        cachedPasswordPolicyRequireNumeric
+      );
     });
 
     it('does not update the password policy upon error if policy has not previously been fetched', async () => {
@@ -841,11 +847,13 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         },
         400
       );
-      await expect(createUserWithEmailAndPassword(auth,
-        'some-email',
-        'some-password'
-      )).to.be.rejectedWith(FirebaseError, "Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).");
-      
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
+      );
+
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicy()).to.be.null;
     });
