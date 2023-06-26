@@ -60,7 +60,7 @@ export interface FirestoreSettings extends LiteSettings {
 
   /**
    * Specifies the cache used by the SDK. Available options are `MemoryLocalCache`
-   * and `IndexedDbLocalCache`, each with different configuration options.
+   * and `PersistentLocalCache`, each with different configuration options.
    *
    * When unspecified, `MemoryLocalCache` will be used by default.
    *
