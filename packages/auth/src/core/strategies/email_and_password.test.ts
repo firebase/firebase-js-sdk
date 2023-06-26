@@ -779,11 +779,28 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     };
     let policyEndpointMock: mockFetch.Route;
+    let policyEndpointMockWithTenant: mockFetch.Route;
+    let policyEndpointMockWithOtherTenant: mockFetch.Route;
 
     beforeEach(() => {
-      policyEndpointMock = mockEndpoint(
+      policyEndpointMock = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
+        {},
         passwordPolicyResponse
+      );
+      policyEndpointMockWithTenant = mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: 'tenant-id'
+        },
+        passwordPolicyResponse
+      );
+      policyEndpointMockWithOtherTenant = mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: 'other-tenant-id'
+        },
+        passwordPolicyResponseRequireNumeric
       );
     });
 
@@ -807,58 +824,67 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
     });
 
-    it('updates the password policy when password does not meet backend requirements', async () => {
-      await auth._updatePasswordPolicy();
-      expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+    context('handles password validation errors', () => {
+      beforeEach(() => {
+        mockEndpoint(
+          Endpoint.SIGN_UP,
+          {
+            error: {
+              code: 400,
+              message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
+            }
+          },
+          400
+        );
+      });
 
-      policyEndpointMock = mockEndpoint(
-        Endpoint.GET_PASSWORD_POLICY,
-        passwordPolicyResponseRequireNumeric
-      );
-      mockEndpoint(
-        Endpoint.SIGN_UP,
-        {
-          error: {
-            code: 400,
-            message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
-          }
-        },
-        400
-      );
-      await expect(
-        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
-      );
+      it('updates the password policy when password does not meet backend requirements', async () => {
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMock.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
 
-      expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicy()).to.eql(
-        cachedPasswordPolicyRequireNumeric
-      );
-    });
+        policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
+        );
 
-    it('does not update the password policy upon error if policy has not previously been fetched', async () => {
-      mockEndpoint(
-        Endpoint.SIGN_UP,
-        {
-          error: {
-            code: 400,
-            message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
-          }
-        },
-        400
-      );
-      await expect(
-        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
-      );
+        expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicy()).to.eql(
+          cachedPasswordPolicyRequireNumeric
+        );
+      });
 
-      expect(policyEndpointMock.calls.length).to.eq(0);
-      expect(auth._getPasswordPolicy()).to.be.null;
+      it('does not update the password policy upon error if policy has not previously been fetched', async () => {
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
+        );
+
+        expect(policyEndpointMock.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.null;
+      });
+
+      it('does not update the password policy upon error if tenant changes and policy has not previously been fetched', async () => {
+        auth.tenantId = 'tenant-id';
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+        auth.tenantId = 'other-tenant-id';
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(
+          FirebaseError,
+          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
+        );
+        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.undefined;
+      });
     });
   });
 });
