@@ -129,6 +129,9 @@ export function getDownloadURL(ref: StorageReference): Promise<string>;
 export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 
 // @public
+export function getSignedURL(ref: StorageReference, expiration?: SignedURLOptions): Promise<string>;
+
+// @public
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 
 // @public
@@ -212,6 +215,11 @@ export interface SettableMetadata {
     customMetadata?: {
         [key: string]: string;
     } | undefined;
+}
+
+// @public
+export interface SignedURLOptions {
+    ttlInMillis: number;
 }
 
 // @public
