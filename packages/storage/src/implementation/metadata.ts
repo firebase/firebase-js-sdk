@@ -153,7 +153,7 @@ export function fromResourceString(
   return fromResource(service, resource, mappings);
 }
 
-export function downloadUrlFromResourceString(
+export function downloadUrlFromResourceString( //grabbing download tokens
   metadata: Metadata,
   resourceString: string,
   host: string,
@@ -163,6 +163,7 @@ export function downloadUrlFromResourceString(
   if (obj === null) {
     return null;
   }
+  //Access tokens on firebase storage are the download tokens. You can have multiple access tokens
   if (!isString(obj['downloadTokens'])) {
     // This can happen if objects are uploaded through GCS and retrieved
     // through list, so we don't want to throw an Error.
@@ -172,9 +173,15 @@ export function downloadUrlFromResourceString(
   if (tokens.length === 0) {
     return null;
   }
-  const encode = encodeURIComponent;
-  const tokensList = tokens.split(',');
-  const urls = tokensList.map((token: string): string => {
+  const encode = encodeURIComponent; //function on the window object. lets you url encode certain strings
+  const tokensList = tokens.split(','); //splits tokens using comma (array of tokens)
+
+  /**
+   * Makes the url from given information
+   * @date 6/21/2023 - 10:49:20 AM
+   * @type {*}
+   */
+  	const urls : string[] = tokensList.map((token: string): string => {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);

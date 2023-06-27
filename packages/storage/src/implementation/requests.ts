@@ -80,15 +80,15 @@ export function listHandler(
   return handler;
 }
 
-export function downloadUrlHandler(
+export function downloadUrlHandler( //gets called when a response comes back
   service: FirebaseStorageImpl,
   mappings: Mappings
 ): (p1: Connection<string>, p2: string) => string | null {
   function handler(xhr: Connection<string>, text: string): string | null {
     const metadata = fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
-    return downloadUrlFromResourceString(
-      metadata as Metadata,
+    return downloadUrlFromResourceString( 
+      metadata as Metadata, //metadata will have download tokens and ect
       text,
       service.host,
       service._protocol
@@ -243,7 +243,7 @@ export function getDownloadUrl(
   const requestInfo = new RequestInfo(
     url,
     method,
-    downloadUrlHandler(service, mappings),
+    downloadUrlHandler(service, mappings), //what gets called with response information
     timeout
   );
   requestInfo.errorHandler = objectErrorHandler(location);

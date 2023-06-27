@@ -462,12 +462,16 @@ export function updateMetadata(
  *     URL for this object.
  */
 export function getDownloadURL(ref: Reference): Promise<string> {
-  ref._throwIfRoot('getDownloadURL');
+  ref._throwIfRoot('getDownloadURL'); //makes sure path isnt root ('/')
   console.log("downloaded a url");
-  const requestInfo = requestsGetDownloadUrl(
+  /**
+   * Build endpoint from storage reference instance and location
+   * @type {*}
+   */
+  const requestInfo = requestsGetDownloadUrl( 
     ref.storage,
     ref._location,
-    getMappings()
+    getMappings() //holds request metedata 
   );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newTextConnection)
