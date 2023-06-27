@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from 'firebase/compat';
+import firebase from 'firebase/compat/app';
 import * as namespaceDefinition from './namespaceDefinition.json';
 import validateNamespace from './validator';
 
