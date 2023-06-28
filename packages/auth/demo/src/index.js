@@ -135,10 +135,10 @@ async function getActiveUserAfterSignIn() {
   if (type === 'lastUser') {
     return lastUser;
   } else {
-    try{
+    try {
       await auth.authStateReady();
       return auth.currentUser;
-    }catch (e) {
+    } catch (e) {
       log(e);
     }
   }
@@ -149,7 +149,7 @@ async function getActiveUserAfterSignIn() {
  * a user is signed in, or removing it.
  */
 async function refreshUserData() {
-  try{
+  try {
     let user = await getActiveUserAfterSignIn();
     if (user) {
       $('.profile').show();
@@ -159,7 +159,9 @@ async function refreshUserData() {
         user.phoneNumber || 'No Phone'
       );
       $('div.profile-uid,span.profile-uid').text(user.uid);
-      $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
+      $('div.profile-name,span.profile-name').text(
+        user.displayName || 'No Name'
+      );
       $('input.profile-name').val(user.displayName);
       $('input.photo-url').val(user.photoURL);
       if (user.photoURL != null) {
@@ -296,7 +298,6 @@ function onAuthSuccess(user) {
   console.log(user);
   alertSuccess('User authenticated, id: ' + user.uid);
   refreshUserData();
-  
 }
 
 /**
@@ -322,7 +323,7 @@ function onAuthError(error) {
 function signOut() {
   log('User successfully signed out.');
   alertSuccess('User successfully signed out.');
-  refreshUserData()
+  refreshUserData();
 }
 
 /**
@@ -1756,9 +1757,7 @@ async function checkDatabaseAuthAccess() {
             );
           } else {
             throw new Error(
-              'Authenticated read/write to Database node ' +
-                dbPath +
-                ' failed!'
+              'Authenticated read/write to Database node ' + dbPath + ' failed!'
             );
           }
           // Clean up: clear that node's content.
@@ -1886,7 +1885,7 @@ function initApp() {
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
-    auth.onIdTokenChanged(async (user) => {
+    auth.onIdTokenChanged(async user => {
       refreshUserData();
       if (user) {
         user.getIdTokenResult(false).then(
@@ -1904,7 +1903,7 @@ function initApp() {
   }
 
   if (auth.onAuthStateChanged) {
-    auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(async user => {
       if (user) {
         log('user state change detected: ' + user.uid);
       } else {
