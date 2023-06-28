@@ -218,11 +218,20 @@ export function getFirestore(): Firestore;
 // @public
 export function getFirestore(app: FirebaseApp): Firestore;
 
+// @beta
+export function getFirestore(databaseId: string): Firestore;
+
+// @beta
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+
 // @public
 export function increment(n: number): FieldValue;
 
 // @public
 export function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
+
+// @beta
+export function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 
 // @public
 export function limit(limit: number): QueryLimitConstraint;

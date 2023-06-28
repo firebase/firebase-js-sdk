@@ -17,7 +17,9 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function(app...)</b> |
 |  [getFirestore(app)](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [getFirestore(app, databaseId)](./firestore_lite.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [initializeFirestore(app, settings)](./firestore_lite.md#initializefirestore) | Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
+|  [initializeFirestore(app, settings, databaseId)](./firestore_lite.md#initializefirestore) | <b><i>(BETA)</i></b> Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  <b>function(firestore...)</b> |
 |  [collection(firestore, path, pathSegments)](./firestore_lite.md#collection) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
 |  [collectionGroup(firestore, collectionId)](./firestore_lite.md#collectiongroup) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
@@ -31,6 +33,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [documentId()](./firestore_lite.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
+|  <b>function(databaseId...)</b> |
+|  [getFirestore(databaseId)](./firestore_lite.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_lite.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_lite.md#arrayunion) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
@@ -163,6 +167,32 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_lite.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
 ## initializeFirestore()
 
 Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->.
@@ -179,6 +209,33 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
 |  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_lite.firestore.md#firestore_class)
+
+A newly initialized `Firestore` instance.
+
+## initializeFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the <code>Firestore</code> instance will be associated. |
+|  settings | [Settings](./firestore_lite.settings.md#settings_interface) | A settings object to configure the <code>Firestore</code> instance. |
+|  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
 
@@ -423,6 +480,31 @@ export declare function serverTimestamp(): FieldValue;
 <b>Returns:</b>
 
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
+
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_lite.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
 ## arrayRemove()
 

@@ -277,8 +277,14 @@ export function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>
 // @public
 export function getFirestore(app: FirebaseApp): Firestore;
 
+// @beta
+export function getFirestore(databaseId: string): Firestore;
+
 // @public
 export function getFirestore(): Firestore;
+
+// @beta
+export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 
 // @public
 export function increment(n: number): FieldValue;
