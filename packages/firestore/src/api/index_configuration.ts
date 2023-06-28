@@ -206,6 +206,26 @@ export function parseIndexes(
   return parsedIndexes;
 }
 
+export interface CacheIndexConfiguration {
+  // Index object will be changed from old implementation, probably a different name
+  readonly automaticIndexingEnabled?: boolean;
+  readonly addIndexes?: Index[];
+  readonly deleteIndexes?: Index[];
+}
+
+export class PersistentCacheIndexManager {}
+
+export function getPersistentCacheIndexManager(
+  firestore: Firestore
+): PersistentCacheIndexManager | undefined {
+  return new PersistentCacheIndexManager();
+}
+
+export function setPersistentCacheIndexConfiguration(
+  indexManager: PersistentCacheIndexManager,
+  config: CacheIndexConfiguration
+): void {}
+
 function tryParseJson(json: string): Record<string, unknown> {
   try {
     return JSON.parse(json);
