@@ -52,7 +52,8 @@ import {
   toMutation,
   toName,
   toQueryTarget,
-  toRunAggregationQueryRequest
+  toRunAggregationQueryRequest,
+  toQueryTargetPath
 } from './serializer';
 
 /**
@@ -225,11 +226,13 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toQueryTarget(datastoreImpl.serializer, queryToTarget(query));
+  const target = queryToTarget(query);
+  const request = toQueryTarget(datastoreImpl.serializer, target);
+  const encodedPath = toQueryTargetPath(datastoreImpl.serializer, target, true);
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunQueryRequest,
     ProtoRunQueryResponse
-  >('RunQuery', request.parent!, { structuredQuery: request.structuredQuery });
+  >('RunQuery', encodedPath, { structuredQuery: request.structuredQuery });
   return (
     response
       // Omit RunQueryResponses that only contain readTimes.
@@ -246,20 +249,21 @@ export async function invokeRunAggregationQueryRpc(
   aggregates: Aggregate[]
 ): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const target = queryToTarget(query);
   const { request, aliasMap } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query),
+    target,
     aggregates
   );
+  const encodedPath = toQueryTargetPath(datastoreImpl.serializer, target, true);
 
-  const parent = request.parent;
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
     delete request.parent;
   }
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
+  >('RunAggregationQuery', encodedPath, request, /*expectedResponseCount=*/ 1);
 
   // Omit RunAggregationQueryResponse that only contain readTimes.
   const filteredResult = response.filter(proto => !!proto.result);

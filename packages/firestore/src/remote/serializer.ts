@@ -283,12 +283,21 @@ export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
 
 export function toResourceName(
   databaseId: DatabaseId,
-  path: ResourcePath
+  path: ResourcePath,
+  uriEncoded: boolean = false
 ): string {
-  return fullyQualifiedPrefixPath(databaseId)
+  const resourcePath = fullyQualifiedPrefixPath(databaseId)
     .child('documents')
-    .child(path)
-    .canonicalString();
+    .child(path);
+
+  if (uriEncoded) {
+    return resourcePath
+      .toArray()
+      .map(segment => encodeURIComponent(segment))
+      .join('/');
+  } else {
+    return resourcePath.toArray().join('/');
+  }
 }
 
 function fromResourceName(name: string): ResourcePath {
@@ -337,9 +346,10 @@ export function fromName(
 
 function toQueryPath(
   serializer: JsonProtoSerializer,
-  path: ResourcePath
+  path: ResourcePath,
+  urlEncoded: boolean = false
 ): string {
-  return toResourceName(serializer.databaseId, path);
+  return toResourceName(serializer.databaseId, path, urlEncoded);
 }
 
 function fromQueryPath(name: string): ResourcePath {
@@ -841,12 +851,9 @@ export function toQueryTarget(
   // Dissect the path into parent, collectionId, and optional key filter.
   const result: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
+  result.parent = toQueryTargetPath(serializer, target, false);
+
   if (target.collectionGroup !== null) {
-    debugAssert(
-      path.length % 2 === 0,
-      'Collection Group queries should be within a document path or root.'
-    );
-    result.parent = toQueryPath(serializer, path);
     result.structuredQuery!.from = [
       {
         collectionId: target.collectionGroup,
@@ -854,11 +861,6 @@ export function toQueryTarget(
       }
     ];
   } else {
-    debugAssert(
-      path.length % 2 !== 0,
-      'Document queries with filters are not supported.'
-    );
-    result.parent = toQueryPath(serializer, path.popLast());
     result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
 
@@ -885,6 +887,36 @@ export function toQueryTarget(
   }
 
   return result;
+}
+
+function getQueryParentResourcePath(
+  serializer: JsonProtoSerializer,
+  target: Target
+): ResourcePath {
+  const path = target.path;
+
+  if (target.collectionGroup !== null) {
+    debugAssert(
+      path.length % 2 === 0,
+      'Collection Group queries should be within a document path or root.'
+    );
+    return path;
+  } else {
+    debugAssert(
+      path.length % 2 !== 0,
+      'Document queries with filters are not supported.'
+    );
+    return path.popLast();
+  }
+}
+
+export function toQueryTargetPath(
+  serializer: JsonProtoSerializer,
+  target: Target,
+  urlEncoded: boolean
+): string {
+  const parentResourcePath = getQueryParentResourcePath(serializer, target);
+  return toQueryPath(serializer, parentResourcePath, urlEncoded);
 }
 
 export function toRunAggregationQueryRequest(
