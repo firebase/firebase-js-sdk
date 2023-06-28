@@ -25,10 +25,12 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
+  MemoryLocalCache,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
   newTestFirestore,
+  PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
   QuerySnapshot,
@@ -137,7 +139,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -160,7 +162,7 @@ export function withEnsuredEagerGcTestDb(
 }
 
 export function withEnsuredLruGcTestDb(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   const newSettings = { ...DEFAULT_SETTINGS };
@@ -188,7 +190,7 @@ export function withEnsuredLruGcTestDb(
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
@@ -203,7 +205,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -216,7 +218,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -250,7 +252,7 @@ export async function withTestDbsSettings<T>(
 }
 
 export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   dbNames: string[],
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -265,8 +267,12 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
     const newSettings = { ...DEFAULT_SETTINGS };
-    if (persistence) {
-      newSettings.localCache = persistentLocalCache();
+    if (typeof persistence === 'boolean') {
+      if (persistence) {
+        newSettings.localCache = persistentLocalCache();
+      }
+    } else {
+      newSettings.localCache = persistence;
     }
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
@@ -285,7 +291,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 }
 
 export function withTestDoc(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
@@ -294,7 +300,7 @@ export function withTestDoc(
 }
 
 export function withTestDocAndSettings(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   settings: PrivateSettings,
   fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
@@ -315,7 +321,7 @@ export function withTestDocAndSettings(
 // `withTestDoc(..., docRef => { setDoc(docRef, initialData) ...});` that
 // otherwise is quite common.
 export function withTestDocAndInitialData(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   initialData: DocumentData | null,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
@@ -330,7 +336,7 @@ export function withTestDocAndInitialData(
 }
 
 export function withTestCollection<T>(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
@@ -338,7 +344,7 @@ export function withTestCollection<T>(
 }
 
 export function withEmptyTestCollection(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestCollection(persistence, {}, fn);
@@ -347,7 +353,7 @@ export function withEmptyTestCollection(
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
-  persistence: boolean,
+  persistence: boolean | PersistentLocalCache | MemoryLocalCache,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>

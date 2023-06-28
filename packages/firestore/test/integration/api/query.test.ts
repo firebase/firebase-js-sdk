@@ -36,6 +36,8 @@ import {
   enableNetwork,
   endAt,
   endBefore,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
   Firestore,
   GeoPoint,
   getDocs,
@@ -46,6 +48,7 @@ import {
   onSnapshot,
   or,
   orderBy,
+  persistentLocalCache,
   Query,
   query,
   QuerySnapshot,
@@ -2128,16 +2131,6 @@ apiDescribe('Queries', (persistence: boolean) => {
         );
       }
 
-      // Skip the verification of the existence filter mismatch when persistence
-      // is disabled because without persistence there is no resume token
-      // specified in the subsequent call to getDocs(), and, therefore, Watch
-      // will _not_ send an existence filter.
-      // TODO(b/272754156) Re-write this test using a snapshot listener instead
-      // of calls to getDocs() and remove this check for disabled persistence.
-      if (!persistence) {
-        return 'passed';
-      }
-
       // Skip the verification of the existence filter mismatch when testing
       // against the Firestore emulator because the Firestore emulator fails to
       // to send an existence filter at all.
@@ -2193,12 +2186,18 @@ apiDescribe('Queries', (persistence: boolean) => {
       return 'passed';
     };
 
+    // Use LRU memory cache so that the resume token will not be deleted between
+    // calls to `getDocs()`.
+    const localCache = persistence
+      ? persistentLocalCache()
+      : memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
+
     // Run the test
     let attemptNumber = 0;
     while (true) {
       attemptNumber++;
       const iterationResult = await withTestCollection(
-        persistence,
+        localCache,
         testDocs,
         runTestIteration
       );
