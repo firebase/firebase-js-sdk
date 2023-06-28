@@ -114,7 +114,7 @@ const providersIcons = {
 };
 
 /**
- * Returns the active user (i.e. currentUser or lastUser).
+ * Returns the promise that waits for user to sign in.
  * @return {!firebase.User}
  */
 function activeUser() {
@@ -122,14 +122,25 @@ function activeUser() {
   if (type === 'lastUser') {
     return lastUser;
   } else {
-    auth
-      .authStateReady()
-      .then(() => {
-        return auth.currentUser;
-      })
-      .catch(error => {
-        throw new Error(error);
-      });
+    return auth.currentUser;
+  }
+}
+
+/**
+ * Returns the active user after sign in (i.e. currentUser or lastUser).
+ * @return {!firebase.User}
+ */
+async function getActiveUserAfterSignIn() {
+  const type = $('input[name=toggle-user-selection]:checked').val();
+  if (type === 'lastUser') {
+    return lastUser;
+  } else {
+    try{
+      await auth.authStateReady();
+      return auth.currentUser;
+    }catch (e) {
+      log(e);
+    }
   }
 }
 
@@ -137,66 +148,63 @@ function activeUser() {
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
  */
-function refreshUserData() {
-  if (activeUser()) {
-    const user = activeUser();
-    $('.profile').show();
-    $('body').addClass('user-info-displayed');
-    $('div.profile-email,span.profile-email').text(user.email || 'No Email');
-    $('div.profile-phone,span.profile-phone').text(
-      user.phoneNumber || 'No Phone'
-    );
-    $('div.profile-uid,span.profile-uid').text(user.uid);
-    $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
-    $('input.profile-name').val(user.displayName);
-    $('input.photo-url').val(user.photoURL);
-    if (user.photoURL != null) {
-      let photoURL = user.photoURL;
-      // Append size to the photo URL for Google hosted images to avoid requesting
-      // the image with its original resolution (using more bandwidth than needed)
-      // when it is going to be presented in smaller size.
-      if (
-        photoURL.indexOf('googleusercontent.com') !== -1 ||
-        photoURL.indexOf('ggpht.com') !== -1
-      ) {
-        photoURL = photoURL + '?sz=' + $('img.profile-image').height();
-      }
-      $('img.profile-image').attr('src', photoURL).show();
-    } else {
-      $('img.profile-image').hide();
-    }
-    $('.profile-email-verified').toggle(user.emailVerified);
-    $('.profile-email-not-verified').toggle(!user.emailVerified);
-    $('.profile-anonymous').toggle(user.isAnonymous);
-    // Display/Hide providers icons.
-    $('.profile-providers').empty();
-    if (user['providerData'] && user['providerData'].length) {
-      const providersCount = user['providerData'].length;
-      for (let i = 0; i < providersCount; i++) {
-        addProviderIcon(user['providerData'][i]['providerId']);
-      }
-    }
-    // Show enrolled second factors if available for the active user.
-    showMultiFactorStatus(user);
-    // Change color.
-    auth
-      .authStateReady()
-      .then(() => {
-        if (user === auth.currentUser) {
-          $('#user-info').removeClass('last-user');
-          $('#user-info').addClass('current-user');
-        } else {
-          $('#user-info').removeClass('current-user');
-          $('#user-info').addClass('last-user');
+async function refreshUserData() {
+  try{
+    let user = await getActiveUserAfterSignIn();
+    if (user) {
+      $('.profile').show();
+      $('body').addClass('user-info-displayed');
+      $('div.profile-email,span.profile-email').text(user.email || 'No Email');
+      $('div.profile-phone,span.profile-phone').text(
+        user.phoneNumber || 'No Phone'
+      );
+      $('div.profile-uid,span.profile-uid').text(user.uid);
+      $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
+      $('input.profile-name').val(user.displayName);
+      $('input.photo-url').val(user.photoURL);
+      if (user.photoURL != null) {
+        let photoURL = user.photoURL;
+        // Append size to the photo URL for Google hosted images to avoid requesting
+        // the image with its original resolution (using more bandwidth than needed)
+        // when it is going to be presented in smaller size.
+        if (
+          photoURL.indexOf('googleusercontent.com') !== -1 ||
+          photoURL.indexOf('ggpht.com') !== -1
+        ) {
+          photoURL = photoURL + '?sz=' + $('img.profile-image').height();
         }
-      })
-      .catch(error => {
-        throw new Error(error);
-      });
-  } else {
-    $('.profile').slideUp();
-    $('body').removeClass('user-info-displayed');
-    $('input.profile-data').val('');
+        $('img.profile-image').attr('src', photoURL).show();
+      } else {
+        $('img.profile-image').hide();
+      }
+      $('.profile-email-verified').toggle(user.emailVerified);
+      $('.profile-email-not-verified').toggle(!user.emailVerified);
+      $('.profile-anonymous').toggle(user.isAnonymous);
+      // Display/Hide providers icons.
+      $('.profile-providers').empty();
+      if (user['providerData'] && user['providerData'].length) {
+        const providersCount = user['providerData'].length;
+        for (let i = 0; i < providersCount; i++) {
+          addProviderIcon(user['providerData'][i]['providerId']);
+        }
+      }
+      // Show enrolled second factors if available for the active user.
+      showMultiFactorStatus(user);
+      // Change color.
+      if (user === auth.currentUser) {
+        $('#user-info').removeClass('last-user');
+        $('#user-info').addClass('current-user');
+      } else {
+        $('#user-info').removeClass('current-user');
+        $('#user-info').addClass('last-user');
+      }
+    } else {
+      $('.profile').slideUp();
+      $('body').removeClass('user-info-displayed');
+      $('input.profile-data').val('');
+    }
+  } catch (error) {
+    log(error);
   }
 }
 
@@ -288,6 +296,7 @@ function onAuthSuccess(user) {
   console.log(user);
   alertSuccess('User authenticated, id: ' + user.uid);
   refreshUserData();
+  
 }
 
 /**
@@ -313,7 +322,7 @@ function onAuthError(error) {
 function signOut() {
   log('User successfully signed out.');
   alertSuccess('User successfully signed out.');
-  refreshUserData();
+  refreshUserData()
 }
 
 /**
@@ -422,7 +431,7 @@ function onSignInWithEmailLink() {
 /**
  * Links a user with an email link.
  */
-function onLinkWithEmailLink() {
+async function onLinkWithEmailLink() {
   const email = $('#link-with-email-link-email').val();
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
@@ -435,7 +444,7 @@ function onLinkWithEmailLink() {
 /**
  * Re-authenticate a user with email link credential.
  */
-function onReauthenticateWithEmailLink() {
+async function onReauthenticateWithEmailLink() {
   if (!activeUser()) {
     alertError(
       'No user logged in. Select the "Last User" tab to reauth the previous user.'
@@ -446,6 +455,7 @@ function onReauthenticateWithEmailLink() {
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
   // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
+
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
@@ -456,7 +466,7 @@ function onReauthenticateWithEmailLink() {
 /**
  * Re-authenticate a user with email and password.
  */
-function onReauthenticateWithEmailAndPassword() {
+async function onReauthenticateWithEmailAndPassword() {
   if (!activeUser()) {
     alertError(
       'No user logged in. Select the "Last User" tab to reauth the previous user.'
@@ -470,7 +480,7 @@ function onReauthenticateWithEmailAndPassword() {
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated with email/password!');
+    alertSuccess('User reauthenticated with email link!');
   }, onAuthError);
 }
 
@@ -1066,7 +1076,7 @@ function onApplyActionCode() {
  *     or not.
  */
 function getIdToken(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -1091,7 +1101,7 @@ function getIdToken(forceRefresh) {
  *     or not
  */
 function getIdTokenResult(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -1670,31 +1680,43 @@ function populateActionCodes() {
  * }
  * This applies when Real-time database service is available.
  */
-function checkDatabaseAuthAccess() {
+async function checkDatabaseAuthAccess() {
   const randomString = Math.floor(Math.random() * 10000000).toString();
   let dbRef;
   let dbPath;
   let errMessage;
-  auth
-    .authStateReady()
-    .then(() => {
-      // Run this check only when Database module is available.
-      let myCurUser = auth.currentUser;
-      if (
-        typeof firebase !== 'undefined' &&
-        typeof firebase.database !== 'undefined'
-      ) {
-        if (lastUser && !myCurUser) {
-          dbPath = 'users/' + lastUser.uid;
-          // After sign out, confirm read/write access to users/$user_id blocked.
-          dbRef = firebase.database().ref(dbPath);
+  // Run this check only when Database module is available.
+  if (
+    typeof firebase !== 'undefined' &&
+    typeof firebase.database !== 'undefined'
+  ) {
+    if (lastUser && !auth.currentUser) {
+      dbPath = 'users/' + lastUser.uid;
+      // After sign out, confirm read/write access to users/$user_id blocked.
+      dbRef = firebase.database().ref(dbPath);
+      dbRef
+        .set({
+          'test': randomString
+        })
+        .then(() => {
+          alertError(
+            'Error: Unauthenticated write to Database node ' +
+              dbPath +
+              ' unexpectedly succeeded!'
+          );
+        })
+        .catch(error => {
+          errMessage = error.message.toLowerCase();
+          // Permission denied error should be thrown.
+          if (errMessage.indexOf('permission_denied') === -1) {
+            alertError('Error: ' + error.code);
+            return;
+          }
           dbRef
-            .set({
-              'test': randomString
-            })
+            .once('value')
             .then(() => {
               alertError(
-                'Error: Unauthenticated write to Database node ' +
+                'Error: Unauthenticated read to Database node ' +
                   dbPath +
                   ' unexpectedly succeeded!'
               );
@@ -1706,67 +1728,47 @@ function checkDatabaseAuthAccess() {
                 alertError('Error: ' + error.code);
                 return;
               }
-              dbRef
-                .once('value')
-                .then(() => {
-                  alertError(
-                    'Error: Unauthenticated read to Database node ' +
-                      dbPath +
-                      ' unexpectedly succeeded!'
-                  );
-                })
-                .catch(error => {
-                  errMessage = error.message.toLowerCase();
-                  // Permission denied error should be thrown.
-                  if (errMessage.indexOf('permission_denied') === -1) {
-                    alertError('Error: ' + error.code);
-                    return;
-                  }
-                  log(
-                    'Unauthenticated read/write to Database node ' +
-                      dbPath +
-                      ' failed as expected!'
-                  );
-                });
+              log(
+                'Unauthenticated read/write to Database node ' +
+                  dbPath +
+                  ' failed as expected!'
+              );
             });
-        } else if (myCurUser) {
-          dbPath = 'users/' + myCurUser.uid;
-          // Confirm read/write access to users/$user_id allowed.
-          dbRef = firebase.database().ref(dbPath);
-          dbRef
-            .set({
-              'test': randomString
-            })
-            .then(() => {
-              return dbRef.once('value');
-            })
-            .then(snapshot => {
-              if (snapshot.val().test === randomString) {
-                // read/write successful.
-                log(
-                  'Authenticated read/write to Database node ' +
-                    dbPath +
-                    ' succeeded!'
-                );
-              } else {
-                throw new Error(
-                  'Authenticated read/write to Database node ' +
-                    dbPath +
-                    ' failed!'
-                );
-              }
-              // Clean up: clear that node's content.
-              return dbRef.remove();
-            })
-            .catch(error => {
-              alertError('Error: ' + error.code);
-            });
-        }
-      }
-    })
-    .catch(error => {
-      throw new Error(error);
-    });
+        });
+    } else if (auth.currentUser) {
+      dbPath = 'users/' + auth.currentUser.uid;
+      // Confirm read/write access to users/$user_id allowed.
+      dbRef = firebase.database().ref(dbPath);
+      dbRef
+        .set({
+          'test': randomString
+        })
+        .then(() => {
+          return dbRef.once('value');
+        })
+        .then(snapshot => {
+          if (snapshot.val().test === randomString) {
+            // read/write successful.
+            log(
+              'Authenticated read/write to Database node ' +
+                dbPath +
+                ' succeeded!'
+            );
+          } else {
+            throw new Error(
+              'Authenticated read/write to Database node ' +
+                dbPath +
+                ' failed!'
+            );
+          }
+          // Clean up: clear that node's content.
+          return dbRef.remove();
+        })
+        .catch(error => {
+          alertError('Error: ' + error.code);
+        });
+    }
+  }
 }
 
 /**
@@ -1884,7 +1886,7 @@ function initApp() {
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
-    auth.onIdTokenChanged(user => {
+    auth.onIdTokenChanged(async (user) => {
       refreshUserData();
       if (user) {
         user.getIdTokenResult(false).then(
@@ -1902,14 +1904,14 @@ function initApp() {
   }
 
   if (auth.onAuthStateChanged) {
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         log('user state change detected: ' + user.uid);
       } else {
         log('user state change detected: no user');
       }
       // Check Database Auth access.
-      checkDatabaseAuthAccess();
+      await checkDatabaseAuthAccess();
     });
   }
 
