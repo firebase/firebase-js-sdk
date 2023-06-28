@@ -151,29 +151,32 @@ apiDescribe('Database', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)('can update an unknown document', () => {
-    return withTestDbs(persistence, 2, async ([reader, writer]) => {
-      const writerRef = doc(collection(writer, 'collection'));
-      const readerRef = doc(collection(reader, 'collection'), writerRef.id);
-      await setDoc(writerRef, { a: 'a' });
-      await updateDoc(readerRef, { b: 'b' });
-      await getDocFromCache(writerRef).then(
-        doc => expect(doc.exists()).to.be.true
-      );
-      await getDocFromCache(readerRef).then(
-        () => {
-          expect.fail('Expected cache miss');
-        },
-        err => expect(err.code).to.be.equal('unavailable')
-      );
-      await getDoc(writerRef).then(doc =>
-        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
-      );
-      await getDoc(readerRef).then(doc =>
-        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
-      );
-    });
-  });
+  (persistence.gc === 'lru' ? it : it.skip)(
+    'can update an unknown document',
+    () => {
+      return withTestDbs(persistence, 2, async ([reader, writer]) => {
+        const writerRef = doc(collection(writer, 'collection'));
+        const readerRef = doc(collection(reader, 'collection'), writerRef.id);
+        await setDoc(writerRef, { a: 'a' });
+        await updateDoc(readerRef, { b: 'b' });
+        await getDocFromCache(writerRef).then(
+          doc => expect(doc.exists()).to.be.true
+        );
+        await getDocFromCache(readerRef).then(
+          () => {
+            expect.fail('Expected cache miss');
+          },
+          err => expect(err.code).to.be.equal('unavailable')
+        );
+        await getDoc(writerRef).then(doc =>
+          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+        );
+        await getDoc(readerRef).then(doc =>
+          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+        );
+      });
+    }
+  );
 
   it('can merge data with an existing document using set', () => {
     return withTestDoc(persistence, doc => {
@@ -1093,32 +1096,35 @@ apiDescribe('Database', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)('offline writes are sent after restart', () => {
-    return withTestDoc(persistence, async (docRef, firestore) => {
-      const app = firestore.app;
-      const name = app.name;
-      const options = app.options;
+  (persistence.gc === 'lru' ? it : it.skip)(
+    'offline writes are sent after restart',
+    () => {
+      return withTestDoc(persistence, async (docRef, firestore) => {
+        const app = firestore.app;
+        const name = app.name;
+        const options = app.options;
 
-      await disableNetwork(firestore);
+        await disableNetwork(firestore);
 
-      // We are merely adding to the cache.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setDoc(docRef, { foo: 'bar' });
+        // We are merely adding to the cache.
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        setDoc(docRef, { foo: 'bar' });
 
-      await deleteApp(app);
+        await deleteApp(app);
 
-      const firestore2 = newTestFirestore(
-        newTestApp(options.projectId!, name),
-        DEFAULT_SETTINGS
-      );
-      await enableIndexedDbPersistence(firestore2);
-      await waitForPendingWrites(firestore2);
-      const doc2 = await getDoc(doc(firestore2, docRef.path));
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name),
+          DEFAULT_SETTINGS
+        );
+        await enableIndexedDbPersistence(firestore2);
+        await waitForPendingWrites(firestore2);
+        const doc2 = await getDoc(doc(firestore2, docRef.path));
 
-      expect(doc2.exists()).to.be.true;
-      expect(doc2.metadata.hasPendingWrites).to.be.false;
-    });
-  });
+        expect(doc2.exists()).to.be.true;
+        expect(doc2.metadata.hasPendingWrites).to.be.false;
+      });
+    }
+  );
 
   it('rejects subsequent method calls after terminate() is called', async () => {
     return withTestDb(persistence, db => {

@@ -24,7 +24,12 @@ import {
   FirestoreError,
   setDoc
 } from '../util/firebase_export';
-import { IndexedDbPersistenceMode, MemoryEagerPersistenceMode, isPersistenceAvailable, withTestDb } from '../util/helpers';
+import {
+  IndexedDbPersistenceMode,
+  MemoryEagerPersistenceMode,
+  isPersistenceAvailable,
+  withTestDb
+} from '../util/helpers';
 
 describe('where indexeddb is not available: ', () => {
   // Only test on platforms where persistence is *not* available (e.g. Edge,

@@ -28,10 +28,7 @@ import {
   setDoc,
   waitForPendingWrites
 } from '../util/firebase_export';
-import {
-  apiDescribe,
-  withTestDoc
-} from '../util/helpers';
+import { apiDescribe, withTestDoc } from '../util/helpers';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
 
 use(chaiAsPromised);

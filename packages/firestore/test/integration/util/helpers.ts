@@ -88,9 +88,10 @@ export class MemoryEagerPersistenceMode implements PersistenceMode {
   }
 
   toLocalCache(): MemoryLocalCache {
-    return memoryLocalCache({garbageCollector: memoryEagerGarbageCollector()});
+    return memoryLocalCache({
+      garbageCollector: memoryEagerGarbageCollector()
+    });
   }
-
 }
 
 export class MemoryLruPersistenceMode implements PersistenceMode {
@@ -107,14 +108,13 @@ export class MemoryLruPersistenceMode implements PersistenceMode {
   }
 
   toLocalCache(): MemoryLocalCache {
-    return memoryLocalCache({garbageCollector: memoryLruGarbageCollector()});
+    return memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
   }
-
 }
 
 export class IndexedDbPersistenceMode implements PersistenceMode {
   readonly name = 'indexeddb';
-  readonly storage = 'indexeddb'
+  readonly storage = 'indexeddb';
   readonly gc = 'lru';
 
   toEagerGc(): MemoryEagerPersistenceMode {
@@ -131,7 +131,6 @@ export class IndexedDbPersistenceMode implements PersistenceMode {
     }
     return persistentLocalCache();
   }
-
 }
 
 function isIeOrEdge(): boolean {
@@ -166,7 +165,9 @@ function apiDescribeInternal(
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes: PersistenceMode[] = [new MemoryEagerPersistenceMode()];
+  const persistenceModes: PersistenceMode[] = [
+    new MemoryEagerPersistenceMode()
+  ];
   if (isPersistenceAvailable()) {
     persistenceModes.push(new IndexedDbPersistenceMode());
   }
@@ -175,7 +176,9 @@ function apiDescribeInternal(
     // Freeze the persistence mode so that tests don't modify the persistence
     // mode, which is shared between tests.
     const frozenPersistenceMode = Object.freeze(persistenceMode);
-    describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () => testSuite(frozenPersistenceMode));
+    describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () =>
+      testSuite(frozenPersistenceMode)
+    );
   }
 }
 
@@ -310,7 +313,10 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
-    const newSettings = { ...DEFAULT_SETTINGS, localCache: persistence.toLocalCache() };
+    const newSettings = {
+      ...DEFAULT_SETTINGS,
+      localCache: persistence.toLocalCache()
+    };
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
