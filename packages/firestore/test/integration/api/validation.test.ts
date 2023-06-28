@@ -237,7 +237,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         // Calling `enablePersistence()` itself counts as use, so we should only
         // need this method when persistence is not enabled.
-        if (!persistence) {
+        if (persistence.storage === 'memory') {
           doc(db, 'foo/bar');
         }
         expect(() => enableIndexedDbPersistence(db)).to.throw(

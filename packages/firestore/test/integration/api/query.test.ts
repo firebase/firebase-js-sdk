@@ -2134,7 +2134,7 @@ apiDescribe('Queries', persistence => {
       // will _not_ send an existence filter.
       // TODO(b/272754156) Re-write this test using a snapshot listener instead
       // of calls to getDocs() and remove this check for disabled persistence.
-      if (!persistence) {
+      if (persistence.gc === 'eager') {
         return 'passed';
       }
 

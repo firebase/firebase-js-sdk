@@ -288,7 +288,7 @@ export async function withTestDbsSettings<T>(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -320,7 +320,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
