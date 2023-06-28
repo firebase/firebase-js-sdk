@@ -284,13 +284,13 @@ export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
 export function toResourceName(
   databaseId: DatabaseId,
   path: ResourcePath,
-  uriEncoded: boolean = false
+  urlEncoded: boolean = false
 ): string {
   const resourcePath = fullyQualifiedPrefixPath(databaseId)
     .child('documents')
     .child(path);
 
-  if (uriEncoded) {
+  if (urlEncoded) {
     return resourcePath
       .toArray()
       .map(segment => encodeURIComponent(segment))

@@ -2152,7 +2152,7 @@ describe('Count queries', () => {
     });
   });
 
-  it('can run count query getCountFromServer with + in document name', () => {
+  it('can run count query getCount with + in document name', () => {
     return withTestCollection(async coll => {
       await setDoc(doc(coll, 'a+1'), {});
       await setDoc(doc(coll, 'b1'), {});
