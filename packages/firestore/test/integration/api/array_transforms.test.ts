@@ -32,7 +32,11 @@ import {
   arrayUnion,
   FirestoreError
 } from '../util/firebase_export';
-import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
+import {
+  apiDescribe,
+  withTestDb,
+  withTestDoc
+} from '../util/helpers';
 
 addEqualityMatcher();
 
@@ -42,7 +46,7 @@ addEqualityMatcher();
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-apiDescribe('Array Transforms:', (persistence: boolean) => {
+apiDescribe('Array Transforms:', persistence => {
   // A document reference to read and write to.
   let docRef: DocumentReference;
 
@@ -164,7 +168,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
    * being enabled so documents remain in the cache after the write.
    */
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Server Application: ', () => {
+  (persistence.gc === 'lru' ? describe : describe.skip)('Server Application: ', () => {
     it('set() with no cached base doc', async () => {
       await withTestDoc(persistence, async docRef => {
         await setDoc(docRef, { array: arrayUnion(1, 2) });

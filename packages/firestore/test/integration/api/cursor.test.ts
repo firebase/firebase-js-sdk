@@ -44,7 +44,7 @@ import {
   withTestDbs
 } from '../util/helpers';
 
-apiDescribe('Cursors', (persistence: boolean) => {
+apiDescribe('Cursors', persistence => {
   it('can page through items', () => {
     const testDocs = {
       a: { v: 'a' },

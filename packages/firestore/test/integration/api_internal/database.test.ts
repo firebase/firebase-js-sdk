@@ -28,14 +28,17 @@ import {
   setDoc,
   waitForPendingWrites
 } from '../util/firebase_export';
-import { apiDescribe, withTestDoc } from '../util/helpers';
+import {
+  apiDescribe,
+  withTestDoc
+} from '../util/helpers';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
 
 use(chaiAsPromised);
 
-apiDescribe('Database (with internal API)', (persistence: boolean) => {
+apiDescribe('Database (with internal API)', persistence => {
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {

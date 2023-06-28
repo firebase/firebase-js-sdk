@@ -67,21 +67,19 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
-  withEnsuredLruGcTestDb,
   withTestCollection,
   withTestDbsSettings,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  withNamedTestDbsOrSkipUnlessUsingEmulator,
-  withEnsuredEagerGcTestDb
+  withNamedTestDbsOrSkipUnlessUsingEmulator
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
-apiDescribe('Database', (persistence: boolean) => {
+apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return setDoc(docRef, {
@@ -153,7 +151,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)('can update an unknown document', () => {
+  (persistence.gc === 'lru' ? it : it.skip)('can update an unknown document', () => {
     return withTestDbs(persistence, 2, async ([reader, writer]) => {
       const writerRef = doc(collection(writer, 'collection'));
       const readerRef = doc(collection(reader, 'collection'), writerRef.id);
@@ -638,7 +636,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  apiDescribe('Queries are validated client-side', (persistence: boolean) => {
+  apiDescribe('Queries are validated client-side', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
@@ -1095,7 +1093,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)('offline writes are sent after restart', () => {
+  (persistence.gc === 'lru' ? it : it.skip)('offline writes are sent after restart', () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const app = firestore.app;
       const name = app.name;
@@ -1141,7 +1139,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1164,7 +1162,7 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
@@ -1188,7 +1186,7 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1212,7 +1210,7 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'cannot clear persistence if the client has been initialized',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
@@ -1340,7 +1338,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
   // only to web.
-  apiDescribe('withConverter() support', (persistence: boolean) => {
+  apiDescribe('withConverter() support', persistence => {
     class Post {
       constructor(
         readonly title: string,
@@ -1757,7 +1755,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('Cannot get document from cache with eager GC enabled.', () => {
     const initialData = { key: 'value' };
-    return withEnsuredEagerGcTestDb(async db => {
+    return withTestDb(persistence.toEagerGc(), async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       await expect(getDocFromCache(docRef)).to.be.rejectedWith('Failed to get');
@@ -1766,7 +1764,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('Can get document from cache with Lru GC enabled.', () => {
     const initialData = { key: 'value' };
-    return withEnsuredLruGcTestDb(persistence, async db => {
+    return withTestDb(persistence.toLruGc(), async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       return getDocFromCache(docRef).then(doc => {

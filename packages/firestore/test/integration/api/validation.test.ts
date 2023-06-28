@@ -58,7 +58,8 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  PersistenceMode
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -67,17 +68,17 @@ import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 interface ValidationIt {
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ): void;
   skip: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
   only: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
@@ -87,7 +88,7 @@ interface ValidationIt {
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
 const validationIt: ValidationIt = Object.assign(
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => {
@@ -102,7 +103,7 @@ const validationIt: ValidationIt = Object.assign(
   },
   {
     skip(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       _: (db: Firestore) => void | Promise<any>
     ): void {
@@ -110,7 +111,7 @@ const validationIt: ValidationIt = Object.assign(
       it.skip(message, () => {});
     },
     only(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       testFunction: (db: Firestore) => void | Promise<any>
     ): void {
@@ -132,13 +133,13 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-apiDescribe('Validation:', (persistence: boolean) => {
+apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
     // that it will be impossible to verify that a set of settings don't throw,
     // and additionally that some exceptions happen for specific reasons, rather
     // than persistence having already been enabled.
-    if (persistence) {
+    if (persistence.gc === 'lru') {
       return;
     }
 
@@ -230,7 +231,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
   });
 
   describe('Firestore', () => {
-    (persistence ? validationIt : validationIt.skip)(
+    (persistence.gc === 'lru' ? validationIt : validationIt.skip)(
       persistence,
       'disallows calling enablePersistence after use',
       db => {

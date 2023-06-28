@@ -70,7 +70,7 @@ import {
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-apiDescribe('Queries', (persistence: boolean) => {
+apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
   it('can issue limit queries', () => {
@@ -1336,7 +1336,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // OR Query tests only run when the SDK is configured for persistence
   // because they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('OR Queries', () => {
+  (persistence.gc === 'lru' ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
@@ -1652,7 +1652,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   // because it results in a 'missing index' error. The Firestore Emulator,
   // however, does serve these queries.
   // eslint-disable-next-line no-restricted-properties
-  (persistence && USE_EMULATOR ? describe : describe.skip)('OR Queries', () => {
+  (persistence.gc === 'lru' && USE_EMULATOR ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
@@ -2027,7 +2027,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Caching empty results', () => {
+  (persistence.gc === 'lru' ? describe : describe.skip)('Caching empty results', () => {
     it('can raise initial snapshot from cache, even if it is empty', () => {
       return withTestCollection(persistence, {}, async coll => {
         const snapshot1 = await getDocs(coll); // Populate the cache.

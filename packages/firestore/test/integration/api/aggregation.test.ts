@@ -42,7 +42,7 @@ import {
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 
-apiDescribe('Count queries', (persistence: boolean) => {
+apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
@@ -147,7 +147,7 @@ apiDescribe('Count queries', (persistence: boolean) => {
   );
 });
 
-apiDescribe('Aggregation queries', (persistence: boolean) => {
+apiDescribe('Aggregation queries', persistence => {
   it('can run count query getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
@@ -356,7 +356,7 @@ apiDescribe('Aggregation queries', (persistence: boolean) => {
 // TODO (sum/avg) enable these tests when sum/avg is supported by the backend
 apiDescribe.skip(
   'Aggregation queries - sum / average',
-  (persistence: boolean) => {
+  persistence => {
     it('can run sum query getAggregationFromServer', () => {
       const testDocs = {
         a: { author: 'authorA', title: 'titleA', pages: 100 },

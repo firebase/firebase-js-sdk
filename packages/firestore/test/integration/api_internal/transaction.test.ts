@@ -34,7 +34,7 @@ import { asyncQueue } from '../util/internal_helpers';
 
 apiDescribe(
   'Database transactions (with internal API)',
-  (persistence: boolean) => {
+  persistence => {
     it('should increment transactionally', async () => {
       // A set of concurrent transactions.
       const transactionPromises: Array<Promise<void>> = [];
