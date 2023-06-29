@@ -432,7 +432,7 @@ function onSignInWithEmailLink() {
 /**
  * Links a user with an email link.
  */
-async function onLinkWithEmailLink() {
+function onLinkWithEmailLink() {
   const email = $('#link-with-email-link-email').val();
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
@@ -445,7 +445,7 @@ async function onLinkWithEmailLink() {
 /**
  * Re-authenticate a user with email link credential.
  */
-async function onReauthenticateWithEmailLink() {
+function onReauthenticateWithEmailLink() {
   if (!activeUser()) {
     alertError(
       'No user logged in. Select the "Last User" tab to reauth the previous user.'
@@ -467,7 +467,7 @@ async function onReauthenticateWithEmailLink() {
 /**
  * Re-authenticate a user with email and password.
  */
-async function onReauthenticateWithEmailAndPassword() {
+function onReauthenticateWithEmailAndPassword() {
   if (!activeUser()) {
     alertError(
       'No user logged in. Select the "Last User" tab to reauth the previous user.'
@@ -1681,7 +1681,7 @@ function populateActionCodes() {
  * }
  * This applies when Real-time database service is available.
  */
-async function checkDatabaseAuthAccess() {
+function checkDatabaseAuthAccess() {
   const randomString = Math.floor(Math.random() * 10000000).toString();
   let dbRef;
   let dbPath;
@@ -1885,7 +1885,7 @@ function initApp() {
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
-    auth.onIdTokenChanged(async user => {
+    auth.onIdTokenChanged(user => {
       refreshUserData();
       if (user) {
         user.getIdTokenResult(false).then(
@@ -1903,14 +1903,14 @@ function initApp() {
   }
 
   if (auth.onAuthStateChanged) {
-    auth.onAuthStateChanged(async user => {
+    auth.onAuthStateChanged(user => {
       if (user) {
         log('user state change detected: ' + user.uid);
       } else {
         log('user state change detected: no user');
       }
       // Check Database Auth access.
-      await checkDatabaseAuthAccess();
+      checkDatabaseAuthAccess();
     });
   }
 
