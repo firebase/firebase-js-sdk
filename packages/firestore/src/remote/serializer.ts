@@ -283,21 +283,17 @@ export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
 
 export function toResourceName(
   databaseId: DatabaseId,
-  path: ResourcePath,
-  urlEncoded: boolean = false
+  path: ResourcePath
 ): string {
-  const resourcePath = fullyQualifiedPrefixPath(databaseId)
-    .child('documents')
-    .child(path);
+  return toResourcePath(databaseId, path).canonicalString();
+}
 
-  if (urlEncoded) {
-    return resourcePath
-      .toArray()
-      .map(segment => encodeURIComponent(segment))
-      .join('/');
-  } else {
-    return resourcePath.toArray().join('/');
-  }
+export function toResourcePath(
+  databaseId: DatabaseId,
+  path?: ResourcePath
+): ResourcePath {
+  const resourcePath = fullyQualifiedPrefixPath(databaseId).child('documents');
+  return path === undefined ? resourcePath : resourcePath.child(path);
 }
 
 function fromResourceName(name: string): ResourcePath {
@@ -346,10 +342,9 @@ export function fromName(
 
 function toQueryPath(
   serializer: JsonProtoSerializer,
-  path: ResourcePath,
-  urlEncoded: boolean = false
+  path: ResourcePath
 ): string {
-  return toResourceName(serializer.databaseId, path, urlEncoded);
+  return toResourceName(serializer.databaseId, path);
 }
 
 function fromQueryPath(name: string): ResourcePath {
@@ -847,76 +842,56 @@ export function fromDocumentsTarget(
 export function toQueryTarget(
   serializer: JsonProtoSerializer,
   target: Target
-): ProtoQueryTarget {
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
   // Dissect the path into parent, collectionId, and optional key filter.
-  const result: ProtoQueryTarget = { structuredQuery: {} };
+  const queryTarget: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
-  result.parent = toQueryTargetPath(serializer, target, false);
-
+  let parent: ResourcePath;
   if (target.collectionGroup !== null) {
-    result.structuredQuery!.from = [
+    debugAssert(
+      path.length % 2 === 0,
+      'Collection Group queries should be within a document path or root.'
+    );
+    parent = path;
+    queryTarget.structuredQuery!.from = [
       {
         collectionId: target.collectionGroup,
         allDescendants: true
       }
     ];
   } else {
-    result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
-  }
-
-  const where = toFilters(target.filters);
-  if (where) {
-    result.structuredQuery!.where = where;
-  }
-
-  const orderBy = toOrder(target.orderBy);
-  if (orderBy) {
-    result.structuredQuery!.orderBy = orderBy;
-  }
-
-  const limit = toInt32Proto(serializer, target.limit);
-  if (limit !== null) {
-    result.structuredQuery!.limit = limit;
-  }
-
-  if (target.startAt) {
-    result.structuredQuery!.startAt = toStartAtCursor(target.startAt);
-  }
-  if (target.endAt) {
-    result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
-  }
-
-  return result;
-}
-
-function getQueryParentResourcePath(
-  serializer: JsonProtoSerializer,
-  target: Target
-): ResourcePath {
-  const path = target.path;
-
-  if (target.collectionGroup !== null) {
-    debugAssert(
-      path.length % 2 === 0,
-      'Collection Group queries should be within a document path or root.'
-    );
-    return path;
-  } else {
     debugAssert(
       path.length % 2 !== 0,
       'Document queries with filters are not supported.'
     );
-    return path.popLast();
+    parent = path.popLast();
+    queryTarget.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
-}
+  queryTarget.parent = toQueryPath(serializer, parent);
 
-export function toQueryTargetPath(
-  serializer: JsonProtoSerializer,
-  target: Target,
-  urlEncoded: boolean
-): string {
-  const parentResourcePath = getQueryParentResourcePath(serializer, target);
-  return toQueryPath(serializer, parentResourcePath, urlEncoded);
+  const where = toFilters(target.filters);
+  if (where) {
+    queryTarget.structuredQuery!.where = where;
+  }
+
+  const orderBy = toOrder(target.orderBy);
+  if (orderBy) {
+    queryTarget.structuredQuery!.orderBy = orderBy;
+  }
+
+  const limit = toInt32Proto(serializer, target.limit);
+  if (limit !== null) {
+    queryTarget.structuredQuery!.limit = limit;
+  }
+
+  if (target.startAt) {
+    queryTarget.structuredQuery!.startAt = toStartAtCursor(target.startAt);
+  }
+  if (target.endAt) {
+    queryTarget.structuredQuery!.endAt = toEndAtCursor(target.endAt);
+  }
+
+  return { queryTarget, parent };
 }
 
 export function toRunAggregationQueryRequest(
@@ -926,8 +901,9 @@ export function toRunAggregationQueryRequest(
 ): {
   request: ProtoRunAggregationQueryRequest;
   aliasMap: Record<string, string>;
+  parent: ResourcePath;
 } {
-  const queryTarget = toQueryTarget(serializer, target);
+  const { queryTarget, parent } = toQueryTarget(serializer, target);
   const aliasMap: Record<string, string> = {};
 
   const aggregations: ProtoAggregation[] = [];
@@ -970,7 +946,8 @@ export function toRunAggregationQueryRequest(
       },
       parent: queryTarget.parent
     },
-    aliasMap
+    aliasMap,
+    parent
   };
 }
 
@@ -1073,7 +1050,7 @@ export function toTarget(
   if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
-    result = { query: toQueryTarget(serializer, target) };
+    result = { query: toQueryTarget(serializer, target).queryTarget };
   }
 
   result.targetId = targetData.targetId;

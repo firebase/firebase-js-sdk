@@ -52,9 +52,11 @@ import {
   toMutation,
   toName,
   toQueryTarget,
-  toRunAggregationQueryRequest,
-  toQueryTargetPath
+  toResourcePath,
+  toRunAggregationQueryRequest
 } from './serializer';
+import { DatabaseId } from '../core/database_info';
+import { ResourcePath } from '../model/path';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -95,7 +97,8 @@ class DatastoreImpl extends Datastore {
   /** Invokes the provided RPC with auth and AppCheck tokens. */
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    databaseId: DatabaseId,
+    resourcePath: ResourcePath,
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
@@ -104,6 +107,10 @@ class DatastoreImpl extends Datastore {
       this.appCheckCredentials.getToken()
     ])
       .then(([authToken, appCheckToken]) => {
+        const path = toResourcePath(databaseId, resourcePath)
+          .toArray()
+          .map(encodeURIComponent)
+          .join('/');
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
           path,
@@ -128,7 +135,8 @@ class DatastoreImpl extends Datastore {
   /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    databaseId: DatabaseId,
+    resourcePath: ResourcePath,
     request: Req,
     expectedResponseCount?: number
   ): Promise<Resp[]> {
@@ -138,6 +146,10 @@ class DatastoreImpl extends Datastore {
       this.appCheckCredentials.getToken()
     ])
       .then(([authToken, appCheckToken]) => {
+        const path = toResourcePath(databaseId, resourcePath)
+          .toArray()
+          .map(encodeURIComponent)
+          .join('/');
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,
           path,
@@ -186,11 +198,15 @@ export async function invokeCommitRpc(
   mutations: Mutation[]
 ): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const path = getEncodedDatabaseId(datastoreImpl.serializer) + '/documents';
   const request = {
     writes: mutations.map(m => toMutation(datastoreImpl.serializer, m))
   };
-  await datastoreImpl.invokeRPC('Commit', path, request);
+  await datastoreImpl.invokeRPC(
+    'Commit',
+    datastoreImpl.serializer.databaseId,
+    ResourcePath.emptyPath(),
+    request
+  );
 }
 
 export async function invokeBatchGetDocumentsRpc(
@@ -198,14 +214,19 @@ export async function invokeBatchGetDocumentsRpc(
   keys: DocumentKey[]
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const path = getEncodedDatabaseId(datastoreImpl.serializer) + '/documents';
   const request = {
     documents: keys.map(k => toName(datastoreImpl.serializer, k))
   };
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoBatchGetDocumentsRequest,
     ProtoBatchGetDocumentsResponse
-  >('BatchGetDocuments', path, request, keys.length);
+  >(
+    'BatchGetDocuments',
+    datastoreImpl.serializer.databaseId,
+    ResourcePath.emptyPath(),
+    request,
+    keys.length
+  );
 
   const docs = new Map<string, Document>();
   response.forEach(proto => {
@@ -226,13 +247,16 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const target = queryToTarget(query);
-  const request = toQueryTarget(datastoreImpl.serializer, target);
-  const encodedPath = toQueryTargetPath(datastoreImpl.serializer, target, true);
+  const { queryTarget: request, parent } = toQueryTarget(
+    datastoreImpl.serializer,
+    queryToTarget(query)
+  );
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunQueryRequest,
     ProtoRunQueryResponse
-  >('RunQuery', encodedPath, { structuredQuery: request.structuredQuery });
+  >('RunQuery', datastoreImpl.serializer.databaseId, parent, {
+    structuredQuery: request.structuredQuery
+  });
   return (
     response
       // Omit RunQueryResponses that only contain readTimes.
@@ -249,13 +273,11 @@ export async function invokeRunAggregationQueryRpc(
   aggregates: Aggregate[]
 ): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const target = queryToTarget(query);
-  const { request, aliasMap } = toRunAggregationQueryRequest(
+  const { request, aliasMap, parent } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    target,
+    queryToTarget(query),
     aggregates
   );
-  const encodedPath = toQueryTargetPath(datastoreImpl.serializer, target, true);
 
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
     delete request.parent;
@@ -263,7 +285,13 @@ export async function invokeRunAggregationQueryRpc(
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
-  >('RunAggregationQuery', encodedPath, request, /*expectedResponseCount=*/ 1);
+  >(
+    'RunAggregationQuery',
+    datastoreImpl.serializer.databaseId,
+    parent,
+    request,
+    /*expectedResponseCount=*/ 1
+  );
 
   // Omit RunAggregationQueryResponse that only contain readTimes.
   const filteredResult = response.filter(proto => !!proto.result);

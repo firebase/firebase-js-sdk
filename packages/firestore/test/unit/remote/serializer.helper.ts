@@ -1311,7 +1311,9 @@ export function serializerTest(
           },
           targetId: 1
         });
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts nested ancestor queries', () => {
@@ -1333,7 +1335,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts single filters at first-level collections', () => {
@@ -1366,7 +1370,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts multiple filters at first-level collections', () => {
@@ -1441,7 +1447,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts single filters on deeper collections', () => {
@@ -1476,7 +1484,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts multi-layer composite filters with OR at the first layer', () => {
@@ -1562,7 +1572,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts multi-layer composite filters with AND at the first layer', () => {
@@ -1648,7 +1660,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts order bys', () => {
@@ -1674,7 +1688,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts limits', () => {
@@ -1699,7 +1715,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts startAt/endAt', () => {
@@ -1747,7 +1765,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts resume tokens', () => {

@@ -285,7 +285,7 @@ export function toDbTarget(
     queryProto = toQueryTarget(
       localSerializer.remoteSerializer,
       targetData.target
-    );
+    ).queryTarget;
   }
 
   // We can't store the resumeToken as a ByteString in IndexedDb, so we

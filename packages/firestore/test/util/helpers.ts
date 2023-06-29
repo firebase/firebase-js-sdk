@@ -576,10 +576,11 @@ export function namedQuery(
       name,
       readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
       bundledQuery: {
-        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).queryTarget
+          .parent,
         limitType,
         structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
-          .structuredQuery
+          .queryTarget.structuredQuery
       }
     },
     matchingDocuments
