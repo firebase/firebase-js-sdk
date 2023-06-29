@@ -481,7 +481,7 @@ function onReauthenticateWithEmailAndPassword() {
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated with email link!');
+    alertSuccess('User reauthenticated with email/password');
   }, onAuthError);
 }
 
