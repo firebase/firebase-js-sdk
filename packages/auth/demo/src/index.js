@@ -1145,15 +1145,8 @@ function onRefreshToken() {
  * Signs out the user.
  */
 function onSignOut() {
-  auth
-    .authStateReady()
-    .then(() => {
-      setLastUser(auth.currentUser);
-      auth.signOut().then(signOut, onAuthError);
-    })
-    .catch(error => {
-      throw new Error(error);
-    });
+  setLastUser(auth.currentUser);
+  auth.signOut().then(signOut, onAuthError);
 }
 
 /**
