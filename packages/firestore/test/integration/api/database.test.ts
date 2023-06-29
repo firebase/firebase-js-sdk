@@ -81,7 +81,7 @@ import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
-apiDescribe('Database', (persistence: boolean) => {
+apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return setDoc(docRef, {
@@ -638,7 +638,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  apiDescribe('Queries are validated client-side', (persistence: boolean) => {
+  apiDescribe('Queries are validated client-side', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
@@ -1340,7 +1340,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
   // only to web.
-  apiDescribe('withConverter() support', (persistence: boolean) => {
+  apiDescribe('withConverter() support', persistence => {
     class Post {
       constructor(
         readonly title: string,
