@@ -37,7 +37,7 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-apiDescribe('Firestore', (persistence: boolean) => {
+apiDescribe('Firestore', persistence => {
   addEqualityMatcher();
 
   async function expectRoundtrip(

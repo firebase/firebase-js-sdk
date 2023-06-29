@@ -39,7 +39,7 @@ import {
   withEnsuredLruGcTestDb
 } from '../util/helpers';
 
-apiDescribe('GetOptions', (persistence: boolean) => {
+apiDescribe('GetOptions', persistence => {
   it('get document while online with default get options', () => {
     const initialData = { key: 'value' };
     return withTestDocAndInitialData(persistence, initialData, docRef => {

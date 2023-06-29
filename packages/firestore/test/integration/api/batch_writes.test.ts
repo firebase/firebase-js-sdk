@@ -41,7 +41,7 @@ import {
   withTestDoc
 } from '../util/helpers';
 
-apiDescribe('Database batch writes', (persistence: boolean) => {
+apiDescribe('Database batch writes', persistence => {
   it('supports empty batches', () => {
     return withTestDb(persistence, db => {
       return writeBatch(db).commit();
@@ -329,7 +329,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
 
   // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
   // only to web.
-  apiDescribe('withConverter() support', (persistence: boolean) => {
+  apiDescribe('withConverter() support', persistence => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
