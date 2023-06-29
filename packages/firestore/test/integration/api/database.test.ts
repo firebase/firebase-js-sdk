@@ -1096,7 +1096,7 @@ apiDescribe('Database', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'offline writes are sent after restart',
     () => {
       return withTestDoc(persistence, async (docRef, firestore) => {
@@ -1145,7 +1145,7 @@ apiDescribe('Database', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1168,7 +1168,7 @@ apiDescribe('Database', persistence => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
@@ -1192,7 +1192,7 @@ apiDescribe('Database', persistence => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1216,7 +1216,7 @@ apiDescribe('Database', persistence => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'cannot clear persistence if the client has been initialized',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {

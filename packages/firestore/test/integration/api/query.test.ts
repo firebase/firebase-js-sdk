@@ -1333,8 +1333,9 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match.
+  // OR Query tests only run when the SDK is configured with persistence that
+  // uses LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
@@ -1646,11 +1647,12 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match
-  // Additionally these tests must be skipped if running against production
-  // because it results in a 'missing index' error. The Firestore Emulator,
-  // however, does serve these queries.
+  // OR Query tests only run when the SDK is configured with persistence that
+  // uses LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match. Additionally,
+  // these tests must be skipped if running against production because it
+  // results in a 'missing index' error. The Firestore Emulator, however, does
+  // serve these queries.
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' && USE_EMULATOR ? describe : describe.skip)(
     'OR Queries',
@@ -2032,12 +2034,13 @@ apiDescribe('Queries', persistence => {
   );
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-  // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' ? describe : describe.skip)(
+  describe(
     'Caching empty results',
     () => {
       it('can raise initial snapshot from cache, even if it is empty', () => {
-        return withTestCollection(persistence, {}, async coll => {
+        // Use persistence with LRU garbage collection so that the cached resume
+        // token and document data do not get cleared.
+        return withTestCollection(persistence.toLruGc(), {}, async coll => {
           const snapshot1 = await getDocs(coll); // Populate the cache.
           expect(snapshot1.metadata.fromCache).to.be.false;
           expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
@@ -2055,7 +2058,9 @@ apiDescribe('Queries', persistence => {
         const testDocs = {
           a: { key: 'a' }
         };
-        return withTestCollection(persistence, testDocs, async coll => {
+        // Use persistence with LRU garbage collection so that the cached resume
+        // token and document data do not get cleared.
+        return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
           // Populate the cache.
           const snapshot1 = await getDocs(coll);
           expect(snapshot1.metadata.fromCache).to.be.false;
@@ -2138,9 +2143,9 @@ apiDescribe('Queries', persistence => {
       }
 
       // Skip the verification of the existence filter mismatch when persistence
-      // is disabled because without persistence there is no resume token
-      // specified in the subsequent call to getDocs(), and, therefore, Watch
-      // will _not_ send an existence filter.
+      // uses eager garbage collection because with eager GC there is no resume
+      // token specified in the subsequent call to getDocs(), and, therefore,
+      // Watch will _not_ send an existence filter.
       // TODO(b/272754156) Re-write this test using a snapshot listener instead
       // of calls to getDocs() and remove this check for disabled persistence.
       if (persistence.gc === 'eager') {

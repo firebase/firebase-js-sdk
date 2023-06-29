@@ -160,8 +160,9 @@ apiDescribe('Array Transforms:', persistence => {
    * Unlike the withTestSetup() tests above, these tests intentionally avoid
    * having any ongoing listeners so that we can test what gets stored in the
    * offline cache based purely on the write acknowledgement (without receiving
-   * an updated document via watch). As such they also rely on persistence
-   * being enabled so documents remain in the cache after the write.
+   * an updated document via watch). As such they also rely on persistence with
+   * LRU garbage collection (rather than eager garbage collection) so documents
+   * remain in the cache after the write.
    */
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(

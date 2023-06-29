@@ -230,7 +230,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | null,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -255,7 +255,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | null,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -268,7 +268,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | null,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -281,7 +281,10 @@ export async function withTestDbsSettings<T>(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const newSettings = { ...settings, localCache: persistence.toLocalCache() };
+    const newSettings = { ...settings };
+    if (persistence !== null) {
+      newSettings.localCache = persistence.toLocalCache();
+    }
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }

@@ -133,15 +133,19 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-apiDescribe('Validation:', persistence => {
+apiDescribe.only('Validation:', persistence => {
   describe('FirestoreSettings', () => {
-    // Enabling persistence counts as a use of the firestore instance, meaning
-    // that it will be impossible to verify that a set of settings don't throw,
-    // and additionally that some exceptions happen for specific reasons, rather
-    // than persistence having already been enabled.
-    if (persistence.gc === 'lru') {
-      return;
-    }
+    validationIt(
+      persistence,
+      'precondition check: verify the Firestore settings are not frozen',
+      async db => {
+        // This should not throw an exception. This test just verifies that the
+        // Firestore instance's initial state does not have its settings frozen,
+        // because if it did then the following tests would not be testing the
+        // behavior they intend to test.
+        connectFirestoreEmulator(db, 'something-else.example.com', 8080)
+      }
+    );
 
     validationIt(
       persistence,
@@ -231,15 +235,19 @@ apiDescribe('Validation:', persistence => {
   });
 
   describe('Firestore', () => {
-    (persistence.gc === 'lru' ? validationIt : validationIt.skip)(
+    validationIt(
       persistence,
-      'disallows calling enablePersistence after use',
+      'allows calling enableIndexedDbPersistence() when persistence configured in the settings',
+      async db => {
+        await enableIndexedDbPersistence(db);
+      }
+    );
+
+    validationIt(
+      persistence,
+      'disallows calling enableIndexedDbPersistence() after use',
       db => {
-        // Calling `enablePersistence()` itself counts as use, so we should only
-        // need this method when persistence is not enabled.
-        if (persistence.storage === 'memory') {
-          doc(db, 'foo/bar');
-        }
+        doc(db, 'foo/bar');
         expect(() => enableIndexedDbPersistence(db)).to.throw(
           'SDK cache is already specified.'
         );

@@ -496,7 +496,8 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  // We need the deleted doc to stay in cache, so only run this with persistence.
+  // We need the deleted doc to stay in cache, so only run this test with
+  // persistence with LRU garbage collection (rather than eager GC).
   // eslint-disable-next-line no-restricted-properties,
   (persistence.gc === 'lru' ? it : it.skip)(
     'get deleted doc while offline with source=cache',
