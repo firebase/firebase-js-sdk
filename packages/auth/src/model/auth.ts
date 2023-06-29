@@ -21,6 +21,7 @@ import {
   Config,
   EmulatorConfig,
   PasswordPolicy,
+  PasswordValidationStatus,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -103,4 +104,5 @@ export interface AuthInternal extends Auth {
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
   initializeRecaptchaConfig(): Promise<void>;
+  validatePassword(password: string): Promise<PasswordValidationStatus>;
 }
