@@ -114,7 +114,7 @@ const providersIcons = {
 };
 
 /**
- * Returns the promise that waits for user to sign in.
+ * Returns active user (i.e. currentUser or lastUser).
  * @return {!firebase.User}
  */
 function activeUser() {
