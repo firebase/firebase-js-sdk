@@ -51,6 +51,18 @@ import { ProviderId } from '../../model/enums';
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
+interface OTPCredentialRequestOptions extends CredentialRequestOptions{
+  otp: OTPOptions;
+}
+  
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential{
+  code?: string;
+}
+
 
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
@@ -65,7 +77,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
     );
     return this.onConfirmation(authCredential);
   }
-  confirmWithWebOTP (): Promise<UserCredential> {
+
+   async confirmWithWebOTP (): Promise<UserCredential> {
     if ('OTPCredential' in window) {
       const abortController = new AbortController();
       let timer = setTimeout(() => {
@@ -75,15 +88,19 @@ class ConfirmationResultImpl implements ConfirmationResult {
       }, 10 * 1000);
 
         // @ts-ignore - ignore types for testing
-      let o: CredentialRequestOptions = {
+      let o: OTPCredentialRequestOptions = {
         otp: { transport: ['sms'] },
         signal: abortController.signal
       };
 
-      const content: OTPCredential =  window.navigator['credentials'].get(o);
-      
-      return this.confirm(content.code);
+      const content: OTPCredential|null =  await window.navigator['credentials'].get(o);
+      if(content === undefined || content === null || content.code === undefined) {
+        //fix
+        throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
 
+      } else {
+        return await this.confirm(content.code);
+      }
     } else {
       // throws error if Web OTP not supported
       throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");

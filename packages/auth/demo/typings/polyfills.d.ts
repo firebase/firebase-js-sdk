@@ -7,5 +7,5 @@ interface OTPOptions {
 }
 
 interface OTPCredential extends Credential{
-  code: String;
+  code?: String;
 }

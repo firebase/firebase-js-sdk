@@ -21,7 +21,6 @@
  * @fileoverview This code is for the most part copied over from the packages/auth/demo
  *   package.
  */
-
 import { initializeApp } from '@firebase/app';
 import {
   applyActionCode,
@@ -84,6 +83,9 @@ import {
   log,
   logAtLevel_
 } from './logging';
+import {
+  ConfirmationResultImpl
+} from 'packages/auth/src/platform_browser/strategies/phone.ts';
 
 /**
  * Constants that are used when connecting to the Auth Emulator.
@@ -1272,6 +1274,7 @@ function onStartSignInWithPhoneMultiFactor(event) {
     session: multiFactorErrorResolver.session
   };
   // write code here
+  console.log("hello");
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
     verificationId => {
       clearApplicationVerifier();
