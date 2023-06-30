@@ -2209,7 +2209,7 @@ Returns a new map where every key is prefixed with the outer key appended to a d
 
 ```typescript
 export declare type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
-    [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
 ```
 
