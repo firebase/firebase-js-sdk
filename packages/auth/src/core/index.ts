@@ -105,7 +105,7 @@ export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
  * policy configured for the project. Otherwise, this method will use the policy configured
  * for the tenant. If a password policy has not been configured, then the default policy
  * configured for all projects will be used.
- * 
+ *
  * If an auth flow fails because a submitted password does not meet the password policy
  * requirements and this method has previously been called, then this method will use the
  * most recent policy available when called again.
