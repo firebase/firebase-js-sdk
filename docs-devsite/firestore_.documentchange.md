@@ -15,14 +15,14 @@ A `DocumentChange` represents a change to the documents matching a query. It con
 <b>Signature:</b>
 
 ```typescript
-export declare interface DocumentChange<T = DocumentData> 
+export declare interface DocumentChange<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [doc](./firestore_.documentchange.md#documentchangedoc) | [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt; | The document affected by this change. |
+|  [doc](./firestore_.documentchange.md#documentchangedoc) | [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The document affected by this change. |
 |  [newIndex](./firestore_.documentchange.md#documentchangenewindex) | number | The index of the changed document in the result set immediately after this <code>DocumentChange</code> (i.e. supposing that all prior <code>DocumentChange</code> objects and the current <code>DocumentChange</code> object have been applied). Is -1 for 'removed' events. |
 |  [oldIndex](./firestore_.documentchange.md#documentchangeoldindex) | number | The index of the changed document in the result set immediately prior to this <code>DocumentChange</code> (i.e. supposing that all prior <code>DocumentChange</code> objects have been applied). Is <code>-1</code> for 'added' events. |
 |  [type](./firestore_.documentchange.md#documentchangetype) | [DocumentChangeType](./firestore_.md#documentchangetype) | The type of change ('added', 'modified', or 'removed'). |
@@ -34,7 +34,7 @@ The document affected by this change.
 <b>Signature:</b>
 
 ```typescript
-readonly doc: QueryDocumentSnapshot<T>;
+readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
 ```
 
 ## DocumentChange.newIndex

@@ -31,7 +31,7 @@ import {
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
-import { Query, queryEqual } from './reference';
+import { DocumentData, Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { fieldPathFromArgument } from './user_data_reader';
 
@@ -49,9 +49,15 @@ import { fieldPathFromArgument } from './user_data_reader';
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCount(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCount<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >
+> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
@@ -86,10 +92,16 @@ export function getCount(
  * ```
  * @internal TODO (sum/avg) remove when public
  */
-export function getAggregate<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T
-): Promise<AggregateQuerySnapshot<T>> {
+export function getAggregate<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType
+): Promise<
+  AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
+> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
 
@@ -111,17 +123,21 @@ export function getAggregate<T extends AggregateSpec>(
   );
 }
 
-function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
+function convertToAggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
   firestore: Firestore,
-  query: Query<unknown>,
+  query: Query<AppModelType, DbModelType>,
   aggregateResult: ApiClientObjectMap<Value>
-): AggregateQuerySnapshot<T> {
+): AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
   const userDataWriter = new LiteUserDataWriter(firestore);
-  const querySnapshot = new AggregateQuerySnapshot<T>(
-    query,
-    userDataWriter,
-    aggregateResult
-  );
+  const querySnapshot = new AggregateQuerySnapshot<
+    AggregateSpecType,
+    AppModelType,
+    DbModelType
+  >(query, userDataWriter, aggregateResult);
   return querySnapshot;
 }
 
@@ -188,9 +204,13 @@ export function aggregateFieldEqual(
  * @returns `true` if the objects are "equal", as defined above, or `false`
  * otherwise.
  */
-export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
-  left: AggregateQuerySnapshot<T>,
-  right: AggregateQuerySnapshot<T>
+export function aggregateQuerySnapshotEqual<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>,
+  right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 ): boolean {
   return (
     queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())

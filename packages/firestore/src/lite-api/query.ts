@@ -53,7 +53,7 @@ import {
 } from '../util/input_validation';
 
 import { FieldPath } from './field_path';
-import { DocumentReference, Query } from './reference';
+import { DocumentData, DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 import {
   newUserDataReader,
@@ -95,7 +95,9 @@ export abstract class AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -114,7 +116,9 @@ export abstract class QueryConstraint extends AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -131,11 +135,11 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   compositeFilter: QueryCompositeFilterConstraint,
   ...queryConstraints: QueryNonFilterConstraint[]
-): Query<T>;
+): Query<AppModelType, DbModelType>;
 
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
@@ -147,18 +151,18 @@ export function query<T>(
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   ...queryConstraints: QueryConstraint[]
-): Query<T>;
+): Query<AppModelType, DbModelType>;
 
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   queryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
   ...additionalQueryConstraints: Array<
     QueryConstraint | QueryNonFilterConstraint
   >
-): Query<T> {
+): Query<AppModelType, DbModelType> {
   let queryConstraints: AppliableConstraint[] = [];
 
   if (queryConstraint instanceof AppliableConstraint) {
@@ -205,7 +209,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     return new QueryFieldFilterConstraint(_field, _op, _value);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const filter = this._parse(query);
     validateNewFieldFilter(query._query, filter);
     return new Query(
@@ -215,7 +221,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     );
   }
 
-  _parse<T>(query: Query<T>): FieldFilter {
+  _parse<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): FieldFilter {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -295,7 +303,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return new QueryCompositeFilterConstraint(type, _queryConstraints);
   }
 
-  _parse<T>(query: Query<T>): Filter {
+  _parse<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Filter {
     const parsedFilters = this._queryConstraints
       .map(queryConstraint => {
         return queryConstraint._parse(query);
@@ -309,7 +319,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return CompositeFilter.create(parsedFilters, this._getOperator());
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const parsedFilter = this._parse(query);
     if (parsedFilter.getFilters().length === 0) {
       // Return the existing query if not adding any more filters (e.g. an empty
@@ -435,7 +447,9 @@ export class QueryOrderByConstraint extends QueryConstraint {
     return new QueryOrderByConstraint(_field, _direction);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
@@ -500,7 +514,9 @@ export class QueryLimitConstraint extends QueryConstraint {
     return new QueryLimitConstraint(type, _limit, _limitType);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     return new Query(
       query.firestore,
       query.converter,
@@ -564,14 +580,16 @@ export class QueryStartAtConstraint extends QueryConstraint {
     return new QueryStartAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
       this._docOrFields,
       this._inclusive
     );
-    return new Query(
+    return new Query<AppModelType, DbModelType>(
       query.firestore,
       query.converter,
       queryWithStartAt(query._query, bound)
@@ -588,8 +606,8 @@ export class QueryStartAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to start at.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export function startAt(
-  snapshot: DocumentSnapshot<unknown>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -601,8 +619,8 @@ export function startAt(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
@@ -620,8 +638,8 @@ export function startAt(
  * @param snapshot - The snapshot of the document to start after.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export function startAfter(
-  snapshot: DocumentSnapshot<unknown>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -633,8 +651,8 @@ export function startAfter(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAfter(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
@@ -671,7 +689,9 @@ export class QueryEndAtConstraint extends QueryConstraint {
     return new QueryEndAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -695,8 +715,8 @@ export class QueryEndAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to end before.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endBefore(
-  snapshot: DocumentSnapshot<unknown>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
@@ -708,8 +728,8 @@ export function endBefore(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endBefore(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
@@ -727,8 +747,8 @@ export function endBefore(
  * @param snapshot - The snapshot of the document to end at.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endAt(
-  snapshot: DocumentSnapshot<unknown>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
@@ -740,8 +760,8 @@ export function endAt(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endAt',
@@ -751,10 +771,13 @@ export function endAt(
 }
 
 /** Helper function to create a bound from a document or fields */
-function newQueryBoundFromDocOrFields<T>(
-  query: Query,
+function newQueryBoundFromDocOrFields<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
   methodName: string,
-  docOrFields: Array<unknown | DocumentSnapshot<T>>,
+  docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>,
   inclusive: boolean
 ): Bound {
   docOrFields[0] = getModularInstance(docOrFields[0]);

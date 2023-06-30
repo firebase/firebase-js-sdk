@@ -16,7 +16,23 @@
  */
 import { expect } from 'chai';
 
-import { UpdateData } from '../../../src/lite-api/reference';
+import {
+  DocumentData,
+  DocumentReference,
+  WithFieldValue,
+  PartialWithFieldValue,
+  SetOptions,
+  UpdateData
+} from '../../../src/lite-api/reference';
+import {
+  getDoc,
+  setDoc,
+  updateDoc
+} from '../../../src/lite-api/reference_impl';
+import {
+  FirestoreDataConverter,
+  QueryDocumentSnapshot
+} from '../../../src/lite-api/snapshot';
 
 // A union type for testing
 type MyUnionType = string | number;
@@ -443,5 +459,162 @@ describe('UpdateData - v9', () => {
 
       expect(true).to.be.true;
     });
+  });
+});
+
+describe('FirestoreTypeConverter', () => {
+  it('converter has the minimal typing information', () => {
+    interface MyModelType {
+      stringProperty: string;
+      numberProperty: number;
+    }
+    const converter = {
+      toFirestore(obj: MyModelType) {
+        return { a: obj.stringProperty, b: obj.numberProperty };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot) {
+        return {
+          stringProperty: snapshot.data().a,
+          numberProperty: snapshot.data().b
+        };
+      }
+    };
+    async function _(docRef: DocumentReference): Promise<void> {
+      const newDocRef = docRef.withConverter(converter);
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
+      const snapshot = await getDoc(newDocRef);
+      const data: MyModelType = snapshot.data()!;
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
+    }
+  });
+
+  it('converter has the minimal typing information plus return types', () => {
+    interface MyModelType {
+      stringProperty: string;
+      numberProperty: number;
+    }
+    const converter = {
+      toFirestore(obj: WithFieldValue<MyModelType>): DocumentData {
+        return { a: obj.stringProperty, b: obj.numberProperty };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): MyModelType {
+        return {
+          stringProperty: snapshot.data().a,
+          numberProperty: snapshot.data().b
+        };
+      }
+    };
+    async function _(docRef: DocumentReference): Promise<void> {
+      const newDocRef = docRef.withConverter(converter);
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
+      const snapshot = await getDoc(newDocRef);
+      const data: MyModelType = snapshot.data()!;
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
+    }
+  });
+
+  it("has the additional 'merge' version of toFirestore()", () => {
+    interface MyModelType {
+      stringProperty: string;
+      numberProperty: number;
+    }
+    const converter = {
+      toFirestore(
+        modelObject: PartialWithFieldValue<MyModelType>,
+        options?: SetOptions
+      ): DocumentData {
+        if (options === undefined) {
+          return {
+            a: modelObject.stringProperty,
+            b: modelObject.numberProperty
+          };
+        }
+        const result: DocumentData = {};
+        if ('stringProperty' in modelObject) {
+          result.a = modelObject.stringProperty;
+        }
+        if ('numberProperty' in modelObject) {
+          result.b = modelObject.numberProperty;
+        }
+        return result;
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot): MyModelType {
+        return {
+          stringProperty: snapshot.data().a,
+          numberProperty: snapshot.data().b
+        };
+      }
+    };
+    async function _(docRef: DocumentReference): Promise<void> {
+      const newDocRef = docRef.withConverter(converter);
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
+      const snapshot = await getDoc(newDocRef);
+      const data: MyModelType = snapshot.data()!;
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
+    }
+  });
+
+  it('converter is explicitly typed as FirestoreDataConverter<T>', () => {
+    interface MyModelType {
+      stringProperty: string;
+      numberProperty: number;
+    }
+    const converter: FirestoreDataConverter<MyModelType> = {
+      toFirestore(obj: WithFieldValue<MyModelType>) {
+        return { a: obj.stringProperty, b: obj.numberProperty };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot) {
+        return {
+          stringProperty: snapshot.data().a,
+          numberProperty: snapshot.data().b
+        };
+      }
+    };
+    async function _(docRef: DocumentReference): Promise<void> {
+      const newDocRef = docRef.withConverter(converter);
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
+      const snapshot = await getDoc(newDocRef);
+      const data: MyModelType = snapshot.data()!;
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
+    }
+  });
+
+  it('converter is explicitly typed as FirestoreDataConverter<T, U>', () => {
+    interface MyModelType {
+      stringProperty: string;
+      numberProperty: number;
+    }
+    interface MyDbType {
+      a: string;
+      b: number;
+    }
+    const converter: FirestoreDataConverter<MyModelType, MyDbType> = {
+      toFirestore(obj: WithFieldValue<MyModelType>) {
+        return { a: obj.stringProperty, b: obj.numberProperty };
+      },
+      fromFirestore(snapshot: QueryDocumentSnapshot) {
+        return {
+          stringProperty: snapshot.data().a,
+          numberProperty: snapshot.data().b
+        };
+      }
+    };
+    async function _(docRef: DocumentReference): Promise<void> {
+      const newDocRef = docRef.withConverter(converter);
+      await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
+      await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
+      const snapshot = await getDoc(newDocRef);
+      const data: MyModelType = snapshot.data()!;
+      expect(data.stringProperty).to.equal('newFoo');
+      expect(data.numberProperty).to.equal(43);
+    }
   });
 });
