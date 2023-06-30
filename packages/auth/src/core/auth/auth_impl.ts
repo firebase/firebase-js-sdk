@@ -428,7 +428,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   _getPasswordPolicy(): PasswordPolicy | null {
-    if (this.tenantId == null) {
+    if (this.tenantId === null) {
       return this._projectPasswordPolicy;
     } else {
       return this._tenantPasswordPolicies[this.tenantId];
@@ -438,24 +438,26 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _updatePasswordPolicy(): Promise<void> {
     const response = await _getPasswordPolicy(this);
 
+    // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
     if (
       response.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
     ) {
       return Promise.reject(
         this._errorFactory.create(
-          AuthErrorCode.PASSWORD_POLICY_VERSION_MISMATCH,
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
           {}
         )
       );
     }
 
-    const passwordPolicy = {
+    const passwordPolicy: PasswordPolicy = {
       customStrengthOptions: response.customStrengthOptions,
       allowedNonAlphanumericCharacters:
         response.allowedNonAlphanumericCharacters
     };
 
-    if (this.tenantId == null) {
+    if (this.tenantId === null) {
       this._projectPasswordPolicy = passwordPolicy;
     } else {
       this._tenantPasswordPolicies[this.tenantId] = passwordPolicy;
