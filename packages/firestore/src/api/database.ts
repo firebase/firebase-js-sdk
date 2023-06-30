@@ -134,7 +134,7 @@ export class Firestore extends LiteFirestore {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
@@ -210,9 +210,9 @@ export function getFirestore(app: FirebaseApp): Firestore;
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -230,9 +230,9 @@ export function getFirestore(): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
@@ -291,13 +291,13 @@ export function configureFirestore(firestore: Firestore): void {
     databaseInfo
   );
   if (
-    settings.cache?._offlineComponentProvider &&
-    settings.cache?._onlineComponentProvider
+    settings.localCache?._offlineComponentProvider &&
+    settings.localCache?._onlineComponentProvider
   ) {
     firestore._firestoreClient._uninitializedComponentsProvider = {
-      _offlineKind: settings.cache.kind,
-      _offline: settings.cache._offlineComponentProvider,
-      _online: settings.cache._onlineComponentProvider
+      _offlineKind: settings.localCache.kind,
+      _offline: settings.localCache._offlineComponentProvider,
+      _online: settings.localCache._onlineComponentProvider
     };
   }
 }
@@ -320,13 +320,15 @@ export function configureFirestore(firestore: Firestore): void {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
+ * Persistence cannot be used in a Node.js environment.
+ *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache`
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
 export function enableIndexedDbPersistence(
@@ -385,8 +387,8 @@ export function enableIndexedDbPersistence(
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
  * @deprecated This function will be removed in a future major release. Instead, set
- * `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to
- * turn on indexeddb cache. Calling this function when `FirestoreSettings.cache`
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
 export function enableMultiTabIndexedDbPersistence(

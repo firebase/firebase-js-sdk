@@ -17,6 +17,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function(app...)</b> |
 |  [getFirestore(app)](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [getFirestore(app, databaseId)](./firestore_.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [initializeFirestore(app, settings, databaseId)](./firestore_.md#initializefirestore) | Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  <b>function(firestore...)</b> |
 |  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
@@ -25,7 +26,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
 |  [disableNetwork(firestore)](./firestore_.md#disablenetwork) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
 |  [doc(firestore, path, pathSegments)](./firestore_.md#doc) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
-|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
+|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Persistence cannot be used in a Node.js environment. |
 |  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
 |  [enableNetwork(firestore)](./firestore_.md#enablenetwork) | Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork)<!-- -->. |
 |  [loadBundle(firestore, bundleData)](./firestore_.md#loadbundle) | Loads a Firestore bundle into the local cache. |
@@ -45,6 +46,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [memoryEagerGarbageCollector()](./firestore_.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. This is also the default garbage collector unless it is explicitly specified otherwise. |
 |  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
+|  <b>function(databaseId...)</b> |
+|  [getFirestore(databaseId)](./firestore_.md#getfirestore) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_.md#arrayunion) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
@@ -103,7 +106,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(settings...)</b> |
 |  [memoryLocalCache(settings)](./firestore_.md#memorylocalcache) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
 |  [memoryLruGarbageCollector(settings)](./firestore_.md#memorylrugarbagecollector) | Creates an instance of <code>MemoryLruGarbageCollector</code>.<!-- -->A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
-|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use.<!-- -->Persistent cache cannot be used in a Node.js environment. |
 |  [persistentSingleTabManager(settings)](./firestore_.md#persistentsingletabmanager) | Creates an instance of <code>PersistentSingleTabManager</code>. |
 |  <b>function(snapshot...)</b> |
 |  [endAt(snapshot)](./firestore_.md#endat) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
@@ -160,8 +163,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [MemoryEagerGarbageCollector](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollector_interface) | A garbage collector deletes documents whenever they are not part of any active queries, and have no local mutations attached to them.<!-- -->This collector tries to ensure lowest memory footprints from the SDK, at the risk of documents not being cached for offline queries or for direct queries to the cache.<!-- -->Use factory function  to create an instance of this collector. |
 |  [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface) | Provides an in-memory cache to the SDK. This is the default cache unless explicitly configured otherwise.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [MemoryLruGarbageCollector](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollector_interface) | A garbage collector deletes Least-Recently-Used documents in multiple batches.<!-- -->This collector is configured with a target size, and will only perform collection when the cached documents exceed the target size. It avoids querying backend repeated for the same query or document, at the risk of having a larger memory footprint.<!-- -->Use factory function  to create a instance of this collector. |
-|  [PersistenceSettings](./firestore_.persistencesettings.md#persistencesettings_interface) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence. |
-|  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance. |
+|  [PersistenceSettings](./firestore_.persistencesettings.md#persistencesettings_interface) | Settings that can be passed to <code>enableIndexedDbPersistence()</code> to configure Firestore persistence.<!-- -->Persistence cannot be used in a Node.js environment. |
+|  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance.<!-- -->Persistent cache cannot be used in a Node.js environment. |
 |  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
 |  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
@@ -226,6 +229,32 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
 ## initializeFirestore()
 
 Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->.
@@ -242,7 +271,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Firestor
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
 |  settings | [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | A settings object to configure the [Firestore](./firestore_.firestore.md#firestore_class) instance. |
-|  databaseId | string | The name of database. |
+|  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
 
@@ -408,7 +437,7 @@ If the final path has an odd number of segments and does not point to a document
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable persistent storage, if possible.
@@ -420,6 +449,8 @@ If this fails, `enableIndexedDbPersistence()` will reject the promise it returns
 There are several reasons why this can fail, which can be identified by the `code` on the error.
 
 \* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.
+
+Persistence cannot be used in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -444,7 +475,7 @@ A `Promise` that represents successfully enabling persistent storage.
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
@@ -852,6 +883,31 @@ export declare function serverTimestamp(): FieldValue;
 <b>Returns:</b>
 
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
+
+## getFirestore()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(databaseId: string): Firestore;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
 ## arrayRemove()
 
@@ -2008,6 +2064,8 @@ export declare function memoryLruGarbageCollector(settings?: {
 ## persistentLocalCache()
 
 Creates an instance of `PersistentLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+
+Persistent cache cannot be used in a Node.js environment.
 
 <b>Signature:</b>
 

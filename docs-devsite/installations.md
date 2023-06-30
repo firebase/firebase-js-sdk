@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # installations package
-Firebase Installations
+The Firebase Installations Web SDK. This SDK does not work in a Node.js environment.
 
 ## Functions
 

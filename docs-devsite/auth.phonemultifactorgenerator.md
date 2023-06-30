@@ -44,6 +44,8 @@ static FACTOR_ID: string;
 
 Provides a [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) to confirm ownership of the phone second factor.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript

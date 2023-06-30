@@ -442,6 +442,8 @@ Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) fr
 
 If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an error. If no redirect operation was called, returns `null`<!-- -->.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
@@ -496,6 +498,8 @@ This will load the reCAPTCHA config, which indicates whether the reCAPTCHA verif
 If initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
 
 Thus, by calling this optional method, you will reduce the latency of future auth flows. Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -694,6 +698,8 @@ Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) ins
 
 This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the `Auth` state for applications that are shared by other users or have sensitive data.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
@@ -877,6 +883,8 @@ This method sends a code via SMS to the given phone number, and returns a [Confi
 
 For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
@@ -912,6 +920,8 @@ const credential = await confirmationResult.confirm(verificationCode);
 Authenticates a Firebase client using a popup-based OAuth authentication flow.
 
 If succeeds, returns the signed in user along with the provider's credential. If sign in was unsuccessful, returns an error object containing additional information about the error.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -952,6 +962,8 @@ const token = credential.accessToken;
 Authenticates a Firebase client using a full-page redirect flow.
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1204,6 +1216,8 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Links the user account with the given phone number.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1227,6 +1241,8 @@ Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_
 Links the authenticated provider to the user account using a pop-up based OAuth flow.
 
 If the linking is successful, the returned result will contain the user and the provider's credential.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1263,6 +1279,8 @@ await linkWithPopup(result.user, provider);
 Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow.
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [linkWithRedirect()](./auth.md#linkwithredirect)<!-- -->.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1349,6 +1367,8 @@ Re-authenticates a user using a fresh phone credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword) that require tokens from recent sign-in attempts.
 
+This method does not work in a Node.js environment.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1372,6 +1392,8 @@ Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a pop-up based OAuth flow.
 
 If the reauthentication is successful, the returned result will contain the user and the provider's credential.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1408,6 +1430,8 @@ await reauthenticateWithPopup(result.user, provider);
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow.
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [reauthenticateWithRedirect()](./auth.md#reauthenticatewithredirect)<!-- -->.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1584,6 +1608,8 @@ Promise&lt;void&gt;
 ## updatePhoneNumber()
 
 Updates the user's phone number.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 
@@ -1854,6 +1880,8 @@ browserLocalPersistence: Persistence
 ## browserPopupRedirectResolver
 
 An implementation of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) suitable for browser based applications.
+
+This method does not work in a Node.js environment.
 
 <b>Signature:</b>
 

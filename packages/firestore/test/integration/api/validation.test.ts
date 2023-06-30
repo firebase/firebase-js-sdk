@@ -132,7 +132,7 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-apiDescribe('Validation:', (persistence: boolean) => {
+apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
     // that it will be impossible to verify that a set of settings don't throw,

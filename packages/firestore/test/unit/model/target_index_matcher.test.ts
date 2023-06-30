@@ -639,6 +639,80 @@ describe('Target Bounds', () => {
     validateServesTarget(q, 'a', IndexKind.ASCENDING);
   });
 
+  it('with equality and inequality on the same field', () => {
+    let q = queryWithAddedFilter(
+      queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+      filter('a', '==', 0)
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+        filter('a', '==', 0)
+      ),
+      orderBy('a')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedOrderBy(
+          queryWithAddedFilter(
+            queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+            filter('a', '==', 0)
+          ),
+          orderBy('a')
+        ),
+        orderBy('b')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(
+      q,
+      'a',
+      IndexKind.ASCENDING,
+      'b',
+      IndexKind.DESCENDING
+    );
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+  });
+
   function validateServesTarget(
     query: Query,
     field: string,

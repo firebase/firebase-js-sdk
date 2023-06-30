@@ -16,6 +16,10 @@ on:
         options:
         - master
         - v8
+      verbose:
+        description: 'Enable verbose logging'
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -28,6 +32,8 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
+    - name: Bump Node memory limit
+      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Merge master into release
       uses: actions/github-script@v6
       with:
@@ -107,6 +113,7 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+        VERBOSE_NPM_LOGGING: ${{github.event.inputs.verbose}}
     - name: Get release version
       id: get-version
       # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523

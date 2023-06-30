@@ -1,5 +1,24 @@
 # @firebase/firestore
 
+## 3.13.0
+
+### Minor Changes
+
+- [`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8) [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356) - Expose the MultiDB API for Public Preview. [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356)
+
+## 3.12.2
+
+### Patch Changes
+
+- [`fe7da7ec3`](https://github.com/firebase/firebase-js-sdk/commit/fe7da7ec3c83c200d7a0c7b90bb6bd27654309ee) [#7339](https://github.com/firebase/firebase-js-sdk/pull/7339) (fixes [#7331](https://github.com/firebase/firebase-js-sdk/issues/7331)) - Fix potentially false warning message.
+
+## 3.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`23581c540`](https://github.com/firebase/firebase-js-sdk/commit/23581c54065f6b14a150ef579b71410842ac8518)]:
+  - @firebase/webchannel-wrapper@0.10.1
+
 ## 3.12.0
 
 ### Minor Changes
