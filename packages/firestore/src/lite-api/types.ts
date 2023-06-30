@@ -76,7 +76,11 @@ export type AddPrefixToKeys<
   // for `UpdateData<T>`.
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  { [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K] };
+  {
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
+      ? any
+      : T[K];
+  };
 
 /**
  * Given a union type `U = T1 | T2 | ...`, returns an intersected type
