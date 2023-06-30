@@ -439,6 +439,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const response = await _getPasswordPolicy(this);
 
     // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
     if (
       response.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
     ) {
