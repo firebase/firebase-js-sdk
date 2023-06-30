@@ -153,7 +153,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [DocumentChange](./firestore_.documentchange.md#documentchange_interface) | A <code>DocumentChange</code> represents a change to the documents matching a query. It contains the document affected and the type of change that occurred. |
 |  [DocumentData](./firestore_.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc)<!-- -->) consists of fields mapped to values. |
 |  [ExperimentalLongPollingOptions](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptions_interface) | Options that configure the SDK’s underlying network transport (WebChannel) when long-polling is used.<!-- -->Note: This interface is "experimental" and is subject to change.<!-- -->See <code>FirestoreSettings.experimentalAutoDetectLongPolling</code>, <code>FirestoreSettings.experimentalForceLongPolling</code>, and <code>FirestoreSettings.experimentalLongPollingOptions</code>. |
-|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
+|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
 |  [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [Index](./firestore_.index.md#index_interface) | <b><i>(BETA)</i></b> The SDK definition of a Firestore index. |
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(BETA)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
@@ -312,7 +312,7 @@ Gets a `CollectionReference` instance that refers to the collection at the speci
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
@@ -325,7 +325,7 @@ export declare function collection(firestore: Firestore, path: string, ...pathSe
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
@@ -340,7 +340,7 @@ Creates and returns a new `Query` instance that includes all documents in the da
 <b>Signature:</b>
 
 ```typescript
-export declare function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
+export declare function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData, DocumentData>;
 ```
 
 ### Parameters
@@ -352,7 +352,7 @@ export declare function collectionGroup(firestore: Firestore, collectionId: stri
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The created `Query`<!-- -->.
 
@@ -412,7 +412,7 @@ Gets a `DocumentReference` instance that refers to the document at the specified
 <b>Signature:</b>
 
 ```typescript
-export declare function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export declare function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
@@ -425,7 +425,7 @@ export declare function doc(firestore: Firestore, path: string, ...pathSegments:
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `DocumentReference` instance.
 
@@ -1099,15 +1099,15 @@ Two `AggregateQuerySnapshot` instances are considered "equal" if they have under
 <b>Signature:</b>
 
 ```typescript
-export declare function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+export declare function aggregateQuerySnapshotEqual<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>, right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>): boolean;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;T&gt; | The first <code>AggregateQuerySnapshot</code> to compare. |
-|  right | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;T&gt; | The second <code>AggregateQuerySnapshot</code> to compare. |
+|  left | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt; | The first <code>AggregateQuerySnapshot</code> to compare. |
+|  right | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt; | The second <code>AggregateQuerySnapshot</code> to compare. |
 
 <b>Returns:</b>
 
@@ -1122,15 +1122,15 @@ Returns true if the provided queries point to the same collection and apply the 
 <b>Signature:</b>
 
 ```typescript
-export declare function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export declare function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType>): boolean;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
-|  right | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
+|  left | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A <code>Query</code> to compare. |
+|  right | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A <code>Query</code> to compare. |
 
 <b>Returns:</b>
 
@@ -1145,15 +1145,15 @@ Returns true if the provided references are equal.
 <b>Signature:</b>
 
 ```typescript
-export declare function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
+export declare function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to compare. |
-|  right | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to compare. |
+|  left | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to compare. |
+|  right | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to compare. |
 
 <b>Returns:</b>
 
@@ -1168,15 +1168,15 @@ Returns true if the provided snapshots are equal.
 <b>Signature:</b>
 
 ```typescript
-export declare function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+export declare function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt; | A snapshot to compare. |
-|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt; | A snapshot to compare. |
+|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A snapshot to compare. |
+|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A snapshot to compare. |
 
 <b>Returns:</b>
 
@@ -1287,20 +1287,20 @@ The result received from the server is presented, unaltered, without considering
 <b>Signature:</b>
 
 ```typescript
-export declare function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
+export declare function getCountFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<AggregateQuerySnapshot<{
     count: AggregateField<number>;
-}>>;
+}, AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;unknown&gt; | The query whose result set size to calculate. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size to calculate. |
 
 <b>Returns:</b>
 
-Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;{ count: [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;; }&gt;&gt;
+Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;{ count: [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;; }, AppModelType, DbModelType&gt;&gt;
 
 A Promise that will be resolved with the count; the count can be retrieved from `snapshot.data().count`<!-- -->, where `snapshot` is the `AggregateQuerySnapshot` to which the returned Promise resolves.
 
@@ -1313,18 +1313,18 @@ Note: `getDocs()` attempts to provide up-to-date data when possible by waiting f
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocs<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
@@ -1335,18 +1335,18 @@ Executes the query and returns the results as a `QuerySnapshot` from cache. Retu
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromCache<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
@@ -1357,18 +1357,18 @@ Executes the query and returns the results as a `QuerySnapshot` from the server.
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
@@ -1381,8 +1381,8 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, observer: {
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
@@ -1392,8 +1392,8 @@ export declare function onSnapshot<T>(query: Query<T>, observer: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
-|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
+|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1410,8 +1410,8 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
@@ -1421,9 +1421,9 @@ export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOp
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1440,15 +1440,15 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
-|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
+|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1467,16 +1467,16 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
+|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1493,20 +1493,20 @@ Creates a new immutable instance of [Query](./firestore_.query.md#query_class) t
 <b>Signature:</b>
 
 ```typescript
-export declare function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
 |  compositeFilter | [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using [and()](./firestore_.md#and) or [or()](./firestore_.md#or)<!-- -->. |
 |  queryConstraints | [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->\[\] | Additional [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->s to apply (e.g. [orderBy()](./firestore_.md#orderby)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->). |
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 ## Exceptions
 
@@ -1519,19 +1519,19 @@ Creates a new immutable instance of [Query](./firestore_.query.md#query_class) t
 <b>Signature:</b>
 
 ```typescript
-export declare function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, ...queryConstraints: QueryConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
 |  queryConstraints | [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class)<!-- -->\[\] | The list of [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class)<!-- -->s to apply. |
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 ## Exceptions
 
@@ -1588,19 +1588,19 @@ Add a new document to specified `CollectionReference` with the given data, assig
 <b>Signature:</b>
 
 ```typescript
-export declare function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
+export declare function addDoc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<DocumentReference<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to the collection to add this document to. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | An Object containing the data for the new document. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the collection to add this document to. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An Object containing the data for the new document. |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentReference` pointing to the newly created document after it has been written to the backend (Note that it won't resolve while you're offline).
 
@@ -1611,20 +1611,20 @@ Gets a `CollectionReference` instance that refers to a subcollection of `referen
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;unknown&gt; | A reference to a collection. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
 |  path | string | A slash-separated path to a collection. |
 |  pathSegments | string\[\] | Additional path segments to apply relative to the first argument. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
@@ -1639,20 +1639,20 @@ Gets a `CollectionReference` instance that refers to a subcollection of `referen
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class) | A reference to a Firestore document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a Firestore document. |
 |  path | string | A slash-separated path to a collection. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
@@ -1667,14 +1667,14 @@ Deletes the document referred to by the specified `DocumentReference`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-export declare function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
+export declare function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to delete. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to delete. |
 
 <b>Returns:</b>
 
@@ -1689,20 +1689,20 @@ Gets a `DocumentReference` instance that refers to a document within `reference`
 <b>Signature:</b>
 
 ```typescript
-export declare function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path?: string, ...pathSegments: string[]): DocumentReference<AppModelType, DbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to a collection. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
 |  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 The `DocumentReference` instance.
 
@@ -1717,20 +1717,20 @@ Gets a `DocumentReference` instance that refers to a document within `reference`
 <b>Signature:</b>
 
 ```typescript
-export declare function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to a Firestore document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a Firestore document. |
 |  path | string | A slash-separated path to a document. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `DocumentReference` instance.
 
@@ -1747,18 +1747,18 @@ Note: `getDoc()` attempts to provide up-to-date data when possible by waiting fo
 <b>Signature:</b>
 
 ```typescript
-export declare function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | The reference of the document to fetch. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The reference of the document to fetch. |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 
@@ -1769,18 +1769,18 @@ Reads the document referred to by this `DocumentReference` from cache. Returns a
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocFromCache<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromCache<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
 
@@ -1791,18 +1791,18 @@ Reads the document referred to by this `DocumentReference` from the server. Retu
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocFromServer<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromServer<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
 
@@ -1815,8 +1815,8 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, observer: {
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
@@ -1826,8 +1826,8 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, observer:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
-|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
+|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1844,8 +1844,8 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
@@ -1855,9 +1855,9 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, options: 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1874,15 +1874,15 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
-|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
+|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1901,16 +1901,16 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
+|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1927,15 +1927,15 @@ Writes to the document referred to by this `DocumentReference`<!-- -->. If the d
 <b>Signature:</b>
 
 ```typescript
-export declare function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<void>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to write. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | A map of the fields and values for the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to write. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | A map of the fields and values for the document. |
 
 <b>Returns:</b>
 
@@ -1950,15 +1950,15 @@ Writes to the document referred to by the specified `DocumentReference`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-export declare function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to write. |
-|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;T&gt; | A map of the fields and values for the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to write. |
+|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | A map of the fields and values for the document. |
 |  options | [SetOptions](./firestore_.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
@@ -1974,15 +1974,15 @@ Updates fields in the document referred to by the specified `DocumentReference`<
 <b>Signature:</b>
 
 ```typescript
-export declare function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T>): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): Promise<void>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to update. |
-|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;T&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to update. |
+|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
@@ -1999,14 +1999,14 @@ Nested fields can be updated by providing dot-separated field path strings or by
 <b>Signature:</b>
 
 ```typescript
-export declare function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to update. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to update. |
 |  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
@@ -2110,14 +2110,14 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 <b>Signature:</b>
 
 ```typescript
-export declare function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end at. |
 
 <b>Returns:</b>
 
@@ -2132,14 +2132,14 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 <b>Signature:</b>
 
 ```typescript
-export declare function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end before. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end before. |
 
 <b>Returns:</b>
 
@@ -2154,14 +2154,14 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 <b>Signature:</b>
 
 ```typescript
-export declare function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start after. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start after. |
 
 <b>Returns:</b>
 
@@ -2176,14 +2176,14 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 <b>Signature:</b>
 
 ```typescript
-export declare function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start at. |
 
 <b>Returns:</b>
 
