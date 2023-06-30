@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 
-apiDescribe('Index Configuration:', (persistence: boolean) => {
+apiDescribe('Index Configuration:', persistence => {
   it('supports JSON', () => {
     return withTestDb(persistence, async db => {
       return setIndexConfiguration(

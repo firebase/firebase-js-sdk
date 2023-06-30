@@ -42,7 +42,7 @@ addEqualityMatcher();
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-apiDescribe('Array Transforms:', (persistence: boolean) => {
+apiDescribe('Array Transforms:', persistence => {
   // A document reference to read and write to.
   let docRef: DocumentReference;
 
