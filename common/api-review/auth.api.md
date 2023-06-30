@@ -894,6 +894,9 @@ export interface UserMetadata {
 export type UserProfile = Record<string, unknown>;
 
 // @public
+export function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
+
+// @public
 export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 
 // @public
