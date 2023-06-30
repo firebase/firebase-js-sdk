@@ -38,7 +38,8 @@ import {
   Mappings,
   fromResourceString,
   downloadUrlFromResourceString,
-  toResourceString
+  toResourceString,
+  signedURLFromResourceString
 } from './metadata';
 import { fromResponseString } from './list';
 import { RequestInfo, UrlParams } from './requestinfo';
@@ -99,9 +100,9 @@ export function downloadUrlHandler(
   return handler;
 }
 
-export function signedURLHandler(): (p1: Connection<string>, p2: string) => string{
-  function handler(xhr: Connection<string>, text: string): string{
-    return "no-signed-url";
+export function signedURLHandler(): (p1: Connection<string>, p2: string) => string | null{
+  function handler(xhr: Connection<string>, text: string): string | null{
+    return signedURLFromResourceString(text);
   }
   return handler;
 }
@@ -259,7 +260,7 @@ export function getDownloadUrl(
   return requestInfo;
 }
 
-export function getSignedURL(
+export function generateSignedURL(
   service: FirebaseStorageImpl,
   location: Location,
   options?: SignedURLOptions

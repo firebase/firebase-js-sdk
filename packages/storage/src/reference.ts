@@ -29,7 +29,7 @@ import {
   deleteObject as requestsDeleteObject,
   getBytes,
   getDownloadUrl as requestsGetDownloadUrl,
-  getSignedURL as requestsGetSignedURL,
+  generateSignedURL as requestsGenerateSignedURL,
   getMetadata as requestsGetMetadata,
   list as requestsList,
   multipartUpload,
@@ -41,7 +41,7 @@ import { Metadata } from './metadata';
 import { FirebaseStorageImpl } from './service';
 import { ListResult } from './list';
 import { UploadTask } from './task';
-import { invalidRootOperation, noDownloadURL } from './implementation/error';
+import { invalidRootOperation, noDownloadURL, noSignedURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import {
   newBlobConnection,
@@ -485,9 +485,9 @@ export function getDownloadURL(ref: Reference): Promise<string> {
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function getSignedURL(ref: Reference, options?: SignedURLOptions): Promise<string> {
-  ref._throwIfRoot('getSignedURL');
-  const requestInfo = requestsGetSignedURL(
+export function generateSignedURL(ref: Reference, options?: SignedURLOptions): Promise<string> {
+  ref._throwIfRoot('generateSignedURL');
+  const requestInfo = requestsGenerateSignedURL(
     ref.storage,
     ref._location,
     options
@@ -496,12 +496,10 @@ export function getSignedURL(ref: Reference, options?: SignedURLOptions): Promis
     .makeRequestWithTokens(requestInfo, newTextConnection)
     .then(url => {
       if (url === null) {
-        throw noDownloadURL();
+        throw noSignedURL();
       }
       return url;
     });
-  // TODO: when requestsGetSignedURL is done (make sure return type doesnt have string | null) change use this return statement:
-  // return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
