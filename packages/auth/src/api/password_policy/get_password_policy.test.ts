@@ -71,10 +71,10 @@ describe('api/password_policy/getPasswordPolicy', () => {
       {
         error: {
           code: 400,
-          message: ServerError.INVALID_PROVIDER_ID,
+          message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER,
           errors: [
             {
-              message: ServerError.INVALID_PROVIDER_ID
+              message: ServerError.TOO_MANY_ATTEMPTS_TRY_LATER
             }
           ]
         }
@@ -84,7 +84,7 @@ describe('api/password_policy/getPasswordPolicy', () => {
 
     await expect(_getPasswordPolicy(auth)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The specified provider ID is invalid. (auth/invalid-provider-id).'
+      'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
   });
 });
