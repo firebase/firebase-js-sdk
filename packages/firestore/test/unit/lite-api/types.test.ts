@@ -441,23 +441,101 @@ describe('UpdateData - v9', () => {
         }
       };
 
-      // preserves type - failure
-      _ = {
-        // @ts-expect-error
-        'indexed.bar': false,
-        // @ts-expect-error
-        'indexed.baz': 'string'
-      };
-
-      // preserves properties of nested objects - failure
-      _ = {
-        'indexed.bar': {
-          // @ts-expect-error
-          booleanProperty: 'string'
-        }
-      };
-
       expect(true).to.be.true;
+    });
+  });
+
+  // v10 tests cover new scenarios that are fixed for v10
+  describe('UpdateData - v10', () => {
+    interface MyV10ServerType {
+      booleanProperty: boolean;
+
+      // index signatures nested 1 layer deep
+      indexed: {
+        [name: string]: {
+          booleanProperty: boolean;
+          numberProperty: number;
+        };
+      };
+
+      // index signatures nested 2 layers deep
+      layer: {
+        indexed: {
+          [name: string]: {
+            booleanProperty: boolean;
+            numberProperty: number;
+          };
+        };
+      };
+    }
+
+    describe('given nested objects with index properties', () => {
+      it('supports object replacement at each layer (with partial)', () => {
+        // This unexpectidly fails in v9 when the object has index signature nested
+        // two layers deep (e.g. layer.indexed.[name]).
+        const _: UpdateData<MyV10ServerType> = {
+          indexed: {
+            bar: {},
+            baz: {}
+          }
+        };
+
+        expect(true).to.be.true;
+      });
+
+      it('allows dot notation for nested index types', () => {
+        let _: UpdateData<MyV10ServerType>;
+
+        // v10 allows 3 layers of dot notation
+
+        // allows the property
+        _ = {
+          'indexed.bar.booleanProperty': true
+        };
+
+        _ = {
+          'indexed.bar.numberProperty': 1
+        };
+
+        // does not enforce type
+        _ = {
+          'indexed.bar.booleanProperty': 'string value is not rejected'
+        };
+
+        _ = {
+          'indexed.bar.numberProperty': 'string value is not rejected'
+        };
+
+        // rejects properties that don't exist
+        _ = {
+          'indexed.bar.unknown': 'string value is not rejected'
+        };
+
+        expect(true).to.be.true;
+      });
+
+      it('allows dot notation for nested index types that are 2 layers deep', () => {
+        let _: UpdateData<MyV10ServerType>;
+
+        // v10 3 layers with dot notation
+
+        // allows the property
+        _ = {
+          'layer.indexed.bar.booleanProperty': true
+        };
+
+        // allows the property, but does not enforce type
+        _ = {
+          'layer.indexed.bar.booleanProperty': 'string value is not rejected'
+        };
+
+        // Allows unknown properties in sub types
+        _ = {
+          'layer.indexed.bar.unknownProperty': 'This just allows anything'
+        };
+
+        expect(true).to.be.true;
+      });
     });
   });
 });
