@@ -131,7 +131,7 @@ export interface SignedURLOptions {
   /**
    * Number of milliseconds after creation date/time that URL should expire.
    */
-  ttl: number;
+  ttlInMillis: number;
 }
 
 /**

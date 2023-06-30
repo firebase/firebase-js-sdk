@@ -43,7 +43,7 @@ import {
 } from './metadata';
 import { fromResponseString } from './list';
 import { RequestInfo, UrlParams } from './requestinfo';
-import { isString } from './type';
+import { isString, validateSignedURLOptions } from './type';
 import { makeUrl } from './url';
 import { Connection, ConnectionType } from './connection';
 import { FirebaseStorageImpl } from '../service';
@@ -265,22 +265,20 @@ export function generateSignedURL(
   location: Location,
   options?: SignedURLOptions
 ): RequestInfo<string, string | null> {
+  const expiration = { ttl:validateSignedURLOptions(options) }
+  const body = JSON.stringify(expiration);
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
-  console.log("request endpoint: ", url);
   const method = 'POST';
-  if (options === undefined) { // TODO - preprocess to keep interface options, and convert to ttl 
-    options = { ttl: DEFAULT_TIME_TO_LIVE_MILLIS };
-  }
-  const body = JSON.stringify(options);
-  console.log("request body: ", body);
   const timeout = service.maxOperationRetryTime;
+  console.log("request endpoint: ", url);
+  console.log("request body: ", body);
   const requestInfo = new RequestInfo(
     url,
     method,
     signedURLHandler(),
     timeout
-  );
+    );
   requestInfo.body = body;
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;

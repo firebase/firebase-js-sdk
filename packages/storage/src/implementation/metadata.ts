@@ -188,7 +188,7 @@ export function downloadUrlFromResourceString(
   return urls[0];
 }
 
-//TODO - move to new file
+//TODO - move to new file?
 export function signedURLFromResourceString(resourceString: string): string | null {
   console.log("response text: ", resourceString);
   const obj = jsonObjectOrNull(resourceString);
