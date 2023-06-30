@@ -248,6 +248,8 @@ export function memoryLocalCache(
 
 /**
  * An settings object to configure an `PersistentLocalCache` instance.
+ *
+ * Persistent cache cannot be used in a Node.js environment.
  */
 export type PersistentCacheSettings = {
   /**
@@ -271,6 +273,8 @@ export type PersistentCacheSettings = {
 /**
  * Creates an instance of `PersistentLocalCache`. The instance can be set to
  * `FirestoreSettings.cache` to tell the SDK which cache layer to use.
+ *
+ * Persistent cache cannot be used in a Node.js environment.
  */
 export function persistentLocalCache(
   settings?: PersistentCacheSettings

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # messaging package
-Firebase Cloud Messaging
+The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js environment.
 
 |  Entry Point | Description |
 |  --- | --- |

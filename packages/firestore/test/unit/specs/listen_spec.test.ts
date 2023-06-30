@@ -1812,8 +1812,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Resuming a query should specify expectedCount when adding the target',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -1847,8 +1846,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Resuming a query should specify expectedCount that does not include pending mutations',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -1877,8 +1875,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'ExpectedCount in listen request should work after coming back online',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });

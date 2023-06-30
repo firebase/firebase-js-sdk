@@ -25,6 +25,8 @@ export { DEFAULT_HOST } from '../lite-api/settings';
 /**
  * Settings that can be passed to `enableIndexedDbPersistence()` to configure
  * Firestore persistence.
+ *
+ * Persistence cannot be used in a Node.js environment.
  */
 export interface PersistenceSettings {
   /**
@@ -58,7 +60,7 @@ export interface FirestoreSettings extends LiteSettings {
 
   /**
    * Specifies the cache used by the SDK. Available options are `MemoryLocalCache`
-   * and `IndexedDbLocalCache`, each with different configuration options.
+   * and `PersistentLocalCache`, each with different configuration options.
    *
    * When unspecified, `MemoryLocalCache` will be used by default.
    *
@@ -81,6 +83,8 @@ export interface FirestoreSettings extends LiteSettings {
    * may be removed in a future release. If you find yourself using it to
    * work around a specific network reliability issue, please tell us about
    * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   *
+   * This setting cannot be used in a Node.js environment.
    */
   experimentalForceLongPolling?: boolean;
 
@@ -90,10 +94,13 @@ export interface FirestoreSettings extends LiteSettings {
    * `experimentalForceLongPolling`, but only uses long-polling if required.
    *
    * After having had a default value of `false` since its inception in 2019,
-   * the default value of this setting was changed in mid-2023 to `true`. That
-   * is, auto-detection of long polling is now enabled by default. To disable
-   * it, set this setting to `false`, and please open a GitHub issue to share
-   * the problems that motivated you disabling long-polling auto-detection.
+   * the default value of this setting was changed in May 2023 to `true` in
+   * v9.22.0 of the Firebase JavaScript SDK. That is, auto-detection of long
+   * polling is now enabled by default. To disable it, set this setting to
+   * `false`, and please open a GitHub issue to share the problems that
+   * motivated you disabling long-polling auto-detection.
+   *
+   * This setting cannot be used in a Node.js environment.
    */
   experimentalAutoDetectLongPolling?: boolean;
 

@@ -15,16 +15,16 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Package | Description |
 |  --- | --- |
-|  [@firebase/analytics](./analytics.md#analytics_package) | Firebase Analytics |
+|  [@firebase/analytics](./analytics.md#analytics_package) | The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/app](./app.md#app_package) | Firebase App |
-|  [@firebase/app-check](./app-check.md#app-check_package) | Firebase App Check |
+|  [@firebase/app-check](./app-check.md#app-check_package) | The Firebase App Check Web SDK. |
 |  [@firebase/auth](./auth.md#auth_package) | Firebase Authentication |
 |  [@firebase/database](./database.md#database_package) | Firebase Realtime Database |
 |  [@firebase/firestore](./firestore.md#firestore_package) | Cloud Firestore |
 |  [@firebase/functions](./functions.md#functions_package) | Cloud Functions for Firebase |
-|  [@firebase/installations](./installations.md#installations_package) | Firebase Installations |
-|  [@firebase/messaging](./messaging.md#messaging_package) | Firebase Cloud Messaging |
-|  [@firebase/performance](./performance.md#performance_package) | Firebase Performance Monitoring |
-|  [@firebase/remote-config](./remote-config.md#remote-config_package) | Firebase Remote Config |
+|  [@firebase/installations](./installations.md#installations_package) | The Firebase Installations Web SDK. This SDK does not work in a Node.js environment. |
+|  [@firebase/messaging](./messaging.md#messaging_package) | The Firebase Cloud Messaging Web SDK. This SDK does not work in a Node.js environment. |
+|  [@firebase/performance](./performance.md#performance_package) | The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js environment. |
+|  [@firebase/remote-config](./remote-config.md#remote-config_package) | The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environment. |
 |  [@firebase/storage](./storage.md#storage_package) | Cloud Storage for Firebase |
 

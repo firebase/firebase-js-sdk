@@ -20,6 +20,7 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import { FirebaseAppCheckInternal, ListenerType } from './types';
 import {
   getToken,
+  getLimitedUseToken,
   addTokenListener,
   removeTokenListener
 } from './internal-api';
@@ -55,6 +56,7 @@ export function internalFactory(
 ): FirebaseAppCheckInternal {
   return {
     getToken: forceRefresh => getToken(appCheck, forceRefresh),
+    getLimitedUseToken: () => getLimitedUseToken(appCheck),
     addTokenListener: listener =>
       addTokenListener(appCheck, ListenerType.INTERNAL, listener),
     removeTokenListener: listener => removeTokenListener(appCheck.app, listener)
