@@ -46,6 +46,8 @@ import { isString } from './type';
 import { makeUrl } from './url';
 import { Connection, ConnectionType } from './connection';
 import { FirebaseStorageImpl } from '../service';
+import { SignedURLOptions } from '../public-types';
+import { DEFAULT_TIME_TO_LIVE_MILLIS } from './constants';
 
 /**
  * Throws the UNKNOWN StorageError if cndn is false.
@@ -93,6 +95,13 @@ export function downloadUrlHandler(
       service.host,
       service._protocol
     );
+  }
+  return handler;
+}
+
+export function signedURLHandler(): (p1: Connection<string>, p2: string) => string{
+  function handler(xhr: Connection<string>, text: string): string{
+    return "no-signed-url";
   }
   return handler;
 }
@@ -246,6 +255,32 @@ export function getDownloadUrl(
     downloadUrlHandler(service, mappings),
     timeout
   );
+  requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function getSignedURL(
+  service: FirebaseStorageImpl,
+  location: Location,
+  options?: SignedURLOptions
+): RequestInfo<string, string | null> {
+  const urlPart = location.fullServerUrl();
+  const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
+  console.log("request endpoint: ", url);
+  const method = 'POST';
+  if (options === undefined) { // TODO - preprocess to keep interface options, and convert to ttl 
+    options = { ttl: DEFAULT_TIME_TO_LIVE_MILLIS };
+  }
+  const body = JSON.stringify(options);
+  console.log("request body: ", body);
+  const timeout = service.maxOperationRetryTime;
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    signedURLHandler(),
+    timeout
+  );
+  requestInfo.body = body;
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }

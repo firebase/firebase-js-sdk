@@ -29,6 +29,7 @@ import {
   deleteObject as requestsDeleteObject,
   getBytes,
   getDownloadUrl as requestsGetDownloadUrl,
+  getSignedURL as requestsGetSignedURL,
   getMetadata as requestsGetMetadata,
   list as requestsList,
   multipartUpload,
@@ -479,20 +480,17 @@ export function getDownloadURL(ref: Reference): Promise<string> {
 }
 
 /**
- * Returns the signed URL for the given Reference and expiration.
+ * Returns the signed URL for the given Reference and options.
  * @public
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function getSignedURL(ref: Reference, expiration?: SignedURLOptions): Promise<string> {
-  if (expiration !== undefined) {
-    console.log(expiration.ttlInMillis);
-  } 
-  ref._throwIfRoot('getDownloadURL');
-  const requestInfo = requestsGetDownloadUrl(
+export function getSignedURL(ref: Reference, options?: SignedURLOptions): Promise<string> {
+  ref._throwIfRoot('getSignedURL');
+  const requestInfo = requestsGetSignedURL(
     ref.storage,
     ref._location,
-    getMappings()
+    options
   );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newTextConnection)
@@ -502,6 +500,8 @@ export function getSignedURL(ref: Reference, expiration?: SignedURLOptions): Pro
       }
       return url;
     });
+  // TODO: when requestsGetSignedURL is done (make sure return type doesnt have string | null) change use this return statement:
+  // return ref.storage.makeRequestWithTokens(requestInfo, newTextConnection);
 }
 
 /**
