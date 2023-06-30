@@ -15,14 +15,14 @@ The results of executing an aggregation query.
 <b>Signature:</b>
 
 ```typescript
-export declare class AggregateQuerySnapshot<T extends AggregateSpec> 
+export declare class AggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [query](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;unknown&gt; | The underlying query over which the aggregations recorded in this <code>AggregateQuerySnapshot</code> were performed. |
+|  [query](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The underlying query over which the aggregations recorded in this <code>AggregateQuerySnapshot</code> were performed. |
 |  [type](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshottype) |  | (not declared) | A type string to uniquely identify instances of this class. |
 
 ## Methods
@@ -38,7 +38,7 @@ The underlying query over which the aggregations recorded in this `AggregateQuer
 <b>Signature:</b>
 
 ```typescript
-readonly query: Query<unknown>;
+readonly query: Query<AppModelType, DbModelType>;
 ```
 
 ## AggregateQuerySnapshot.type
@@ -60,11 +60,11 @@ The keys of the returned object will be the same as those of the `AggregateSpec`
 <b>Signature:</b>
 
 ```typescript
-data(): AggregateSpecData<T>;
+data(): AggregateSpecData<AggregateSpecType>;
 ```
 <b>Returns:</b>
 
-[AggregateSpecData](./firestore_lite.md#aggregatespecdata)<!-- -->&lt;T&gt;
+[AggregateSpecData](./firestore_lite.md#aggregatespecdata)<!-- -->&lt;AggregateSpecType&gt;
 
 The results of the aggregations performed over the underlying query.
 
