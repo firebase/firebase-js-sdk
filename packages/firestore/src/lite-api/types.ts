@@ -66,7 +66,7 @@ export type AddPrefixToKeys<
   T extends Record<string, unknown>
 > =
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
-  { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
+  { [K in keyof T as K extends string ? `${Prefix}.${K}`: K]+?: T[K] };
 
 /**
  * Given a union type `U = T1 | T2 | ...`, returns an intersected type
