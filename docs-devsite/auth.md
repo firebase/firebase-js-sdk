@@ -124,6 +124,8 @@ Firebase Authentication
 |  [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth.user.md#user_interface)<!-- -->. |
 |  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md#oauthcredentialoptions_interface) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [ParsedToken](./auth.parsedtoken.md#parsedtoken_interface) | Interface representing a parsed ID token. |
+|  [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | A structure specifying password policy requirements. |
+|  [PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface) | A structure indicating which password policy requirements were met or violated and what the requirements are. |
 |  [Persistence](./auth.persistence.md#persistence_interface) | An interface covering the possible persistence mechanism types. |
 |  [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion)<!-- -->. |
 |  [PhoneMultiFactorEnrollInfoOptions](./auth.phonemultifactorenrollinfooptions.md#phonemultifactorenrollinfooptions_interface) | Options used for enrolling a second factor. |

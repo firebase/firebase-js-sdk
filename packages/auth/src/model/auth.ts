@@ -20,6 +20,7 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
+  PasswordPolicy,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -63,6 +64,8 @@ export interface AuthInternal extends Auth {
   emulatorConfig: EmulatorConfig | null;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
+  _projectPasswordPolicy: PasswordPolicy | null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicy>;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
@@ -83,6 +86,8 @@ export interface AuthInternal extends Auth {
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
   _getRecaptchaConfig(): RecaptchaConfig | null;
+  _getPasswordPolicy(): PasswordPolicy | null;
+  _updatePasswordPolicy(): Promise<void>;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
   _getAdditionalHeaders(): Promise<Record<string, string>>;

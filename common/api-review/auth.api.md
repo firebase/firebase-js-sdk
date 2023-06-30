@@ -563,6 +563,31 @@ export interface ParsedToken {
 }
 
 // @public
+export interface PasswordPolicy {
+    readonly allowedNonAlphanumericCharacters: string[];
+    readonly customStrengthOptions: {
+        readonly minPasswordLength?: number;
+        readonly maxPasswordLength?: number;
+        readonly containsLowercaseLetter?: boolean;
+        readonly containsUppercaseLetter?: boolean;
+        readonly containsNumericCharacter?: boolean;
+        readonly containsNonAlphanumericCharacter?: boolean;
+    };
+}
+
+// @public
+export interface PasswordValidationStatus {
+    readonly containsLowercaseLetter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
+    readonly isValid: boolean;
+    readonly meetsMaxPasswordLength?: boolean;
+    readonly meetsMinPasswordLength?: boolean;
+    readonly passwordPolicy: PasswordPolicy;
+}
+
+// @public
 export interface Persistence {
     readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
