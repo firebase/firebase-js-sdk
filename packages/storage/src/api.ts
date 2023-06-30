@@ -45,7 +45,7 @@ import {
   list as listInternal,
   listAll as listAllInternal,
   getDownloadURL as getDownloadURLInternal,
-  getSignedURL as getSignedURLInternal,
+  generateSignedURL as generateSignedURLInternal,
   deleteObject as deleteObjectInternal,
   Reference,
   _getChild as _getChildInternal,
@@ -277,13 +277,13 @@ export function getDownloadURL(ref: StorageReference): Promise<string> {
  * Returns the signed URL for the given {@link StorageReference}.
  * @public
  * @param ref - {@link StorageReference} to get the signed URL for.
- * @param expiration - when the URL will expire.
+ * @param options - specifies when the URL will expire.
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function getSignedURL(ref: StorageReference, expiration?: SignedURLOptions): Promise<string> {
+export function generateSignedURL(ref: StorageReference, options?: SignedURLOptions): Promise<string> {
   ref = getModularInstance(ref);
-  return getSignedURLInternal(ref as Reference, expiration);
+  return generateSignedURLInternal(ref as Reference, options);
 }
 
 /**

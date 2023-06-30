@@ -48,6 +48,21 @@ export const DEFAULT_MAX_UPLOAD_RETRY_TIME = 10 * 60 * 1000;
 export const DEFAULT_MIN_SLEEP_TIME_MILLIS = 1000;
 
 /**
+ * 1 hour
+ */
+export const DEFAULT_TIME_TO_LIVE_MILLIS = 1000 * 60 * 60;
+
+/**
+ * 0 seconds
+ */
+export const DEFAULT_MIN_TIME_TO_LIVE_MILLIS = 0;
+
+/**
+ * 1 week
+ */
+export const DEFAULT_MAX_TIME_TO_LIVE_MILLIS = 1000 * 60 * 60 * 24 * 7;
+
+/**
  * This is the value of Number.MIN_SAFE_INTEGER, which is not well supported
  * enough for us to use it directly.
  */

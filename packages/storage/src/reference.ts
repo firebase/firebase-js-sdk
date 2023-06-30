@@ -29,6 +29,7 @@ import {
   deleteObject as requestsDeleteObject,
   getBytes,
   getDownloadUrl as requestsGetDownloadUrl,
+  generateSignedURL as requestsGenerateSignedURL,
   getMetadata as requestsGetMetadata,
   list as requestsList,
   multipartUpload,
@@ -40,7 +41,7 @@ import { Metadata } from './metadata';
 import { FirebaseStorageImpl } from './service';
 import { ListResult } from './list';
 import { UploadTask } from './task';
-import { invalidRootOperation, noDownloadURL } from './implementation/error';
+import { invalidRootOperation, noDownloadURL, noSignedURL } from './implementation/error';
 import { validateNumber } from './implementation/type';
 import {
   newBlobConnection,
@@ -479,26 +480,23 @@ export function getDownloadURL(ref: Reference): Promise<string> {
 }
 
 /**
- * Returns the signed URL for the given Reference and expiration.
+ * Returns the signed URL for the given Reference and options.
  * @public
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function getSignedURL(ref: Reference, expiration?: SignedURLOptions): Promise<string> {
-  if (expiration !== undefined) {
-    console.log(expiration.ttlInMillis);
-  } 
-  ref._throwIfRoot('getDownloadURL');
-  const requestInfo = requestsGetDownloadUrl(
+export function generateSignedURL(ref: Reference, options?: SignedURLOptions): Promise<string> {
+  ref._throwIfRoot('generateSignedURL');
+  const requestInfo = requestsGenerateSignedURL(
     ref.storage,
     ref._location,
-    getMappings()
+    options
   );
   return ref.storage
     .makeRequestWithTokens(requestInfo, newTextConnection)
     .then(url => {
       if (url === null) {
-        throw noDownloadURL();
+        throw noSignedURL();
       }
       return url;
     });

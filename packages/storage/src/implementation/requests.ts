@@ -38,14 +38,17 @@ import {
   Mappings,
   fromResourceString,
   downloadUrlFromResourceString,
-  toResourceString
+  toResourceString,
+  signedURLFromResourceString
 } from './metadata';
 import { fromResponseString } from './list';
 import { RequestInfo, UrlParams } from './requestinfo';
-import { isString } from './type';
+import { isString, validateSignedURLOptions } from './type';
 import { makeUrl } from './url';
 import { Connection, ConnectionType } from './connection';
 import { FirebaseStorageImpl } from '../service';
+import { SignedURLOptions } from '../public-types';
+import { DEFAULT_TIME_TO_LIVE_MILLIS } from './constants';
 
 /**
  * Throws the UNKNOWN StorageError if cndn is false.
@@ -93,6 +96,13 @@ export function downloadUrlHandler(
       service.host,
       service._protocol
     );
+  }
+  return handler;
+}
+
+export function signedURLHandler(): (p1: Connection<string>, p2: string) => string | null{
+  function handler(xhr: Connection<string>, text: string): string | null{
+    return signedURLFromResourceString(text);
   }
   return handler;
 }
@@ -246,6 +256,30 @@ export function getDownloadUrl(
     downloadUrlHandler(service, mappings),
     timeout
   );
+  requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function generateSignedURL(
+  service: FirebaseStorageImpl,
+  location: Location,
+  options?: SignedURLOptions
+): RequestInfo<string, string | null> {
+  const expiration = { ttl:validateSignedURLOptions(options) }
+  const body = JSON.stringify(expiration);
+  const urlPart = location.fullServerUrl();
+  const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
+  const method = 'POST';
+  const timeout = service.maxOperationRetryTime;
+  console.log("request endpoint: ", url);
+  console.log("request body: ", body);
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    signedURLHandler(),
+    timeout
+    );
+  requestInfo.body = body;
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }

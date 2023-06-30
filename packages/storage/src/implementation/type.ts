@@ -17,6 +17,8 @@
 
 import { isNode } from '@firebase/util';
 import { invalidArgument } from './error';
+import { DEFAULT_MAX_TIME_TO_LIVE_MILLIS, DEFAULT_MIN_TIME_TO_LIVE_MILLIS, DEFAULT_TIME_TO_LIVE_MILLIS } from './constants';
+import { SignedURLOptions } from '../public-types';
 
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
   return p !== void 0;
@@ -61,4 +63,13 @@ export function validateNumber(
       `Invalid value for '${argument}'. Expected ${maxValue} or less.`
     );
   }
+}
+
+// TODO - move to new file?
+export function validateSignedURLOptions(options?: SignedURLOptions): number {
+  if (options === undefined) {
+    return DEFAULT_TIME_TO_LIVE_MILLIS;
+  }
+  validateNumber("SignedURLOptions", DEFAULT_MIN_TIME_TO_LIVE_MILLIS, DEFAULT_MAX_TIME_TO_LIVE_MILLIS, options.ttlInMillis);
+  return options.ttlInMillis;
 }
