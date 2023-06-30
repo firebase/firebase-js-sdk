@@ -130,7 +130,7 @@ function activeUser() {
  * Returns the active user after sign in (i.e. currentUser or lastUser).
  * @return {!firebase.User}
  */
-async function getActiveUserAfterSignIn() {
+async function getActiveUserBlocking() {
   const type = $('input[name=toggle-user-selection]:checked').val();
   if (type === 'lastUser') {
     return lastUser;
@@ -150,7 +150,7 @@ async function getActiveUserAfterSignIn() {
  */
 async function refreshUserData() {
   try {
-    let user = await getActiveUserAfterSignIn();
+    let user = await getActiveUserBlocking();
     if (user) {
       $('.profile').show();
       $('body').addClass('user-info-displayed');
@@ -456,7 +456,6 @@ function onReauthenticateWithEmailLink() {
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
   // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
-
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();

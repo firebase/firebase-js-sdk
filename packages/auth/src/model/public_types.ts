@@ -293,7 +293,8 @@ export interface Auth {
   ): Unsubscribe;
   /**
    * return a promise that resolves immediately when the initial
-   * auth state is settled and currentUser is available
+   * auth state is settled. The current user might be a valid user,
+   * or null if there is no user signed in currently.
    */
   authStateReady(): Promise<void>;
   /** The currently signed-in user (or null). */
