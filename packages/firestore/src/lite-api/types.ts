@@ -75,11 +75,12 @@ export type AddPrefixToKeys<
   // This is a significant downside to using index signatures in types for `T`
   // for `UpdateData<T>`.
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
       ? any
       : T[K];
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   };
 
 /**

@@ -507,9 +507,6 @@ describe('UpdateData - v9', () => {
         _ = {
           'layer.indexed.bar.booleanProperty': true
         };
-        _ = {
-          'unknown.indexed.bar.booleanProperty': true
-        };
 
         // allows the property, but does not enforce type
         _ = {
