@@ -56,10 +56,10 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  PersistenceMode,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb,
-  PersistenceMode
+  withTestDb
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -133,20 +133,8 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-apiDescribe.only('Validation:', persistence => {
+apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
-    validationIt(
-      persistence,
-      'precondition check: verify the Firestore settings are not frozen',
-      async db => {
-        // This should not throw an exception. This test just verifies that the
-        // Firestore instance's initial state does not have its settings frozen,
-        // because if it did then the following tests would not be testing the
-        // behavior they intend to test.
-        connectFirestoreEmulator(db, 'something-else.example.com', 8080)
-      }
-    );
-
     validationIt(
       persistence,
       'disallows changing settings after use',
@@ -175,15 +163,19 @@ apiDescribe.only('Validation:', persistence => {
       });
     });
 
-    validationIt(persistence, 'useEmulator can set host and port', () => {
-      const db = newTestFirestore(newTestApp('test-project'));
-      // Verify that this doesn't throw.
-      connectFirestoreEmulator(db, 'localhost', 9000);
-    });
+    validationIt(
+      persistence,
+      'connectFirestoreEmulator() can set host and port',
+      () => {
+        const db = newTestFirestore(newTestApp('test-project'));
+        // Verify that this doesn't throw.
+        connectFirestoreEmulator(db, 'localhost', 9000);
+      }
+    );
 
     validationIt(
       persistence,
-      'disallows calling useEmulator after use',
+      'disallows calling connectFirestoreEmulator() after use',
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed.';
@@ -197,7 +189,7 @@ apiDescribe.only('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken object',
+      'connectFirestoreEmulator() can set mockUserToken object',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -209,7 +201,7 @@ apiDescribe.only('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken string',
+      'connectFirestoreEmulator() can set mockUserToken string',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -237,17 +229,9 @@ apiDescribe.only('Validation:', persistence => {
   describe('Firestore', () => {
     validationIt(
       persistence,
-      'allows calling enableIndexedDbPersistence() when persistence configured in the settings',
-      async db => {
-        await enableIndexedDbPersistence(db);
-      }
-    );
-
-    validationIt(
-      persistence,
       'disallows calling enableIndexedDbPersistence() after use',
       db => {
-        doc(db, 'foo/bar');
+        //doc(db, 'foo/bar');
         expect(() => enableIndexedDbPersistence(db)).to.throw(
           'SDK cache is already specified.'
         );

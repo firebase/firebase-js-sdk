@@ -71,7 +71,7 @@ export interface PersistenceMode {
    * Creates and returns a new "local cache" object corresponding to this
    * persistence type.
    */
-  toLocalCache(): MemoryLocalCache | PersistentLocalCache;
+  asLocalCacheFirestoreSettings(): MemoryLocalCache | PersistentLocalCache;
 }
 
 export class MemoryEagerPersistenceMode implements PersistenceMode {
@@ -87,7 +87,7 @@ export class MemoryEagerPersistenceMode implements PersistenceMode {
     return new MemoryLruPersistenceMode();
   }
 
-  toLocalCache(): MemoryLocalCache {
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
     return memoryLocalCache({
       garbageCollector: memoryEagerGarbageCollector()
     });
@@ -107,7 +107,7 @@ export class MemoryLruPersistenceMode implements PersistenceMode {
     return new MemoryLruPersistenceMode();
   }
 
-  toLocalCache(): MemoryLocalCache {
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
     return memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
   }
 }
@@ -125,9 +125,12 @@ export class IndexedDbPersistenceMode implements PersistenceMode {
     return new IndexedDbPersistenceMode();
   }
 
-  toLocalCache(): PersistentLocalCache {
-    if (this.gc != 'lru') {
-      throw new Error(`unsupported gc: ${this.gc}`);
+  asLocalCacheFirestoreSettings(): PersistentLocalCache {
+    if (this.gc !== 'lru') {
+      throw new Error(
+        `PersistentLocalCache does not support the given ` +
+          `garbage collector: ${this.gc}`
+      );
     }
     return persistentLocalCache();
   }
@@ -173,11 +176,11 @@ function apiDescribeInternal(
   }
 
   for (const persistenceMode of persistenceModes) {
-    // Freeze the persistence mode so that tests don't modify the persistence
-    // mode, which is shared between tests.
-    const frozenPersistenceMode = Object.freeze(persistenceMode);
     describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () =>
-      testSuite(frozenPersistenceMode)
+      // Freeze the properties of the `PersistenceMode` object specified to the
+      // test suite so that it cannot (accidentally or intentionally) change
+      // its properties, and affect all subsequent test suites.
+      testSuite(Object.freeze(persistenceMode))
     );
   }
 }
@@ -230,7 +233,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: PersistenceMode | null,
+  persistence: PersistenceMode,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -255,7 +258,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: PersistenceMode | null,
+  persistence: PersistenceMode,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -268,7 +271,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: PersistenceMode | null,
+  persistence: PersistenceMode,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -281,10 +284,10 @@ export async function withTestDbsSettings<T>(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const newSettings = { ...settings };
-    if (persistence !== null) {
-      newSettings.localCache = persistence.toLocalCache();
-    }
+    const newSettings = {
+      ...settings,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }
@@ -318,7 +321,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   for (const dbName of dbNames) {
     const newSettings = {
       ...DEFAULT_SETTINGS,
-      localCache: persistence.toLocalCache()
+      localCache: persistence.asLocalCacheFirestoreSettings()
     };
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);

@@ -1333,8 +1333,8 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured with persistence that
-  // uses LRU garbage collection (rather than eager garbage collection) because
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
   // they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)('OR Queries', () => {
@@ -1647,8 +1647,8 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured with persistence that
-  // uses LRU garbage collection (rather than eager garbage collection) because
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
   // they validate that the result from server and cache match. Additionally,
   // these tests must be skipped if running against production because it
   // results in a 'missing index' error. The Firestore Emulator, however, does
@@ -2034,49 +2034,46 @@ apiDescribe('Queries', persistence => {
   );
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-  describe(
-    'Caching empty results',
-    () => {
-      it('can raise initial snapshot from cache, even if it is empty', () => {
-        // Use persistence with LRU garbage collection so that the cached resume
-        // token and document data do not get cleared.
-        return withTestCollection(persistence.toLruGc(), {}, async coll => {
-          const snapshot1 = await getDocs(coll); // Populate the cache.
-          expect(snapshot1.metadata.fromCache).to.be.false;
-          expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
+  describe('Caching empty results', () => {
+    it('can raise initial snapshot from cache, even if it is empty', () => {
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), {}, async coll => {
+        const snapshot1 = await getDocs(coll); // Populate the cache.
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
 
-          // Add a snapshot listener whose first event should be raised from cache.
-          const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          onSnapshot(coll, storeEvent.storeEvent);
-          const snapshot2 = await storeEvent.awaitEvent();
-          expect(snapshot2.metadata.fromCache).to.be.true;
-          expect(toDataArray(snapshot2)).to.deep.equal([]);
-        });
+        // Add a snapshot listener whose first event should be raised from cache.
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
       });
+    });
 
-      it('can raise initial snapshot from cache, even if it has become empty', () => {
-        const testDocs = {
-          a: { key: 'a' }
-        };
-        // Use persistence with LRU garbage collection so that the cached resume
-        // token and document data do not get cleared.
-        return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
-          // Populate the cache.
-          const snapshot1 = await getDocs(coll);
-          expect(snapshot1.metadata.fromCache).to.be.false;
-          expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
-          // Empty the collection.
-          void deleteDoc(doc(coll, 'a'));
+    it('can raise initial snapshot from cache, even if it has become empty', () => {
+      const testDocs = {
+        a: { key: 'a' }
+      };
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
+        // Populate the cache.
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.metadata.fromCache).to.be.false;
+        expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
+        // Empty the collection.
+        void deleteDoc(doc(coll, 'a'));
 
-          const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          onSnapshot(coll, storeEvent.storeEvent);
-          const snapshot2 = await storeEvent.awaitEvent();
-          expect(snapshot2.metadata.fromCache).to.be.true;
-          expect(toDataArray(snapshot2)).to.deep.equal([]);
-        });
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        onSnapshot(coll, storeEvent.storeEvent);
+        const snapshot2 = await storeEvent.awaitEvent();
+        expect(snapshot2.metadata.fromCache).to.be.true;
+        expect(toDataArray(snapshot2)).to.deep.equal([]);
       });
-    }
-  );
+    });
+  });
 
   it('resuming a query should use bloom filter to avoid full requery', async () => {
     // Prepare the names and contents of the 100 documents to create.
@@ -2142,10 +2139,10 @@ apiDescribe('Queries', persistence => {
         );
       }
 
-      // Skip the verification of the existence filter mismatch when persistence
-      // uses eager garbage collection because with eager GC there is no resume
-      // token specified in the subsequent call to getDocs(), and, therefore,
-      // Watch will _not_ send an existence filter.
+      // Skip the verification of the existence filter mismatch when the local
+      // cache is configured to use eager garbage collection because with eager
+      // GC there is no resume token specified in the subsequent call to
+      // getDocs(), and, therefore, Watch will _not_ send an existence filter.
       // TODO(b/272754156) Re-write this test using a snapshot listener instead
       // of calls to getDocs() and remove this check for disabled persistence.
       if (persistence.gc === 'eager') {
