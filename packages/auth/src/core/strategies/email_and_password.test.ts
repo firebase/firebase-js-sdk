@@ -747,15 +747,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   });
 
   context('#passwordPolicy', () => {
-    const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+    const TEST_SCHEMA_VERSION = 1;
 
     const passwordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
     const passwordPolicyResponseRequireNumeric = {
       customStrengthOptions: {
@@ -763,7 +764,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         containsNumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
     const cachedPasswordPolicy = {
       customStrengthOptions: {
