@@ -507,7 +507,7 @@ describe('Database@exp Tests', () => {
 
     async function incrementViaTransaction() {
       deferred = new Deferred<void>();
-      await runTransaction(counterRef, currentData => {
+      await runTransaction(counterRef, (currentData: number) => {
         return currentData + 1;
       });
       // Wait for the snapshot listener to fire. They are not invoked inline

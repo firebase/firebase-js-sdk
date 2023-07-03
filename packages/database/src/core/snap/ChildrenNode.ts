@@ -30,7 +30,7 @@ import {
 } from './indexes/PriorityIndex';
 import { IndexMap } from './IndexMap';
 import { LeafNode } from './LeafNode';
-import { NamedNode, Node } from './Node';
+import { JSONValue, NamedNode, Node } from './Node';
 import { priorityHashText, setMaxNode, validatePriorityNode } from './snap';
 
 export interface ChildrenNodeConstructor {
@@ -194,12 +194,12 @@ export class ChildrenNode implements Node {
   private static INTEGER_REGEXP_ = /^(0|[1-9]\d*)$/;
 
   /** @inheritDoc */
-  val(exportFormat?: boolean): object {
+  val(exportFormat?: boolean): JSONValue {
     if (this.isEmpty()) {
       return null;
     }
 
-    const obj: { [k: string]: unknown } = {};
+    const obj: { [k: string]: JSONValue } = {};
     let numKeys = 0,
       maxKey = 0,
       allIntegerKeys = true;
@@ -216,10 +216,11 @@ export class ChildrenNode implements Node {
 
     if (!exportFormat && allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.
-      const array: unknown[] = [];
+      const array: JSONValue[] = [];
       // eslint-disable-next-line guard-for-in
       for (const key in obj) {
-        array[key as unknown as number] = obj[key];
+        // TODO(mtewani): Check the typings for this.
+        array[key] = obj[key];
       }
 
       return array;

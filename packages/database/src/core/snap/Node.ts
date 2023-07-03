@@ -19,6 +19,15 @@ import { Path } from '../util/Path';
 
 import { Index } from './indexes/Index';
 
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | undefined
+  | null
+  | JSONValue[]
+  | { [x: string]: JSONValue };
+
 /**
  * Node is an interface defining the common functionality for nodes in
  * a DataSnapshot.
@@ -111,13 +120,13 @@ export interface Node {
    * each child.  It's passed the child name and the child node.
    * @returns The first truthy value return by action, or the last falsey one
    */
-  forEachChild(index: Index, action: (a: string, b: Node) => void): unknown;
+  forEachChild(index: Index, action: (a: string, b: Node) => void): JSONValue;
 
   /**
    * @param exportFormat - True for export format (also wire protocol format).
    * @returns Value of this node as JSON.
    */
-  val(exportFormat?: boolean): unknown;
+  val(exportFormat?: boolean): JSONValue;
 
   /**
    * @returns hash representing the node contents.

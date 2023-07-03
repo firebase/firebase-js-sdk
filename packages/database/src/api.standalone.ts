@@ -69,6 +69,7 @@ export {
   update,
   child
 } from './api/Reference_impl';
+export { JSONValue } from './core/snap/Node';
 export { increment, serverTimestamp } from './api/ServerValue';
 export {
   runTransaction,

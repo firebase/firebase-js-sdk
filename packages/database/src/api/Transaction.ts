@@ -19,7 +19,7 @@ import { getModularInstance, Deferred } from '@firebase/util';
 
 import { repoStartTransaction } from '../core/Repo';
 import { PRIORITY_INDEX } from '../core/snap/indexes/PriorityIndex';
-import { Node } from '../core/snap/Node';
+import { JSONValue, Node } from '../core/snap/Node';
 import { validateWritablePath } from '../core/util/validation';
 
 import { DatabaseReference } from './Reference';
@@ -93,8 +93,7 @@ export class TransactionResult {
  */
 export function runTransaction(
   ref: DatabaseReference,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionUpdate: (currentData: any) => unknown,
+  transactionUpdate: (currentData: JSONValue) => JSONValue | void,
   options?: TransactionOptions
 ): Promise<TransactionResult> {
   ref = getModularInstance(ref);
