@@ -2200,7 +2200,7 @@ apiDescribe('Queries', persistence => {
   // TODO(b/270731363): Re-enable this test once the Firestore emulator is fixed
   //  to send an existence filter.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it.only)(
+  (USE_EMULATOR ? it.skip : it)(
     'bloom filter should correctly encode special unicode characters',
     async () => {
       const testDocIds = [
