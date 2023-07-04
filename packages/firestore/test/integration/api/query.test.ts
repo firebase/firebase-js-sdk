@@ -1333,10 +1333,11 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match.
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('OR Queries', () => {
+  (persistence.gc === 'lru' ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
@@ -1646,390 +1647,398 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match
-  // Additionally these tests must be skipped if running against production
-  // because it results in a 'missing index' error. The Firestore Emulator,
-  // however, does serve these queries.
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match. Additionally,
+  // these tests must be skipped if running against production because it
+  // results in a 'missing index' error. The Firestore Emulator, however, does
+  // serve these queries.
   // eslint-disable-next-line no-restricted-properties
-  (persistence && USE_EMULATOR ? describe : describe.skip)('OR Queries', () => {
-    it('can use query overloads', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { a: 2, b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1, b: 1 }
-      };
+  (persistence.gc === 'lru' && USE_EMULATOR ? describe : describe.skip)(
+    'OR Queries',
+    () => {
+      it('can use query overloads', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // a == 1, limit 2, b - desc
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // a == 1, limit 2, b - desc
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
+            'doc4',
+            'doc5'
+          );
+        });
       });
-    });
 
-    it('can use or queries', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { a: 2, b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1, b: 1 }
-      };
+      it('can use or queries', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // with one inequality: a>2 || b==1.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '>', 2), where('b', '==', 1))),
-          'doc5',
-          'doc2',
-          'doc3'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // with one inequality: a>2 || b==1.
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '>', 2), where('b', '==', 1))),
+            'doc5',
+            'doc2',
+            'doc3'
+          );
 
-        // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
-          'doc1',
-          'doc2'
-        );
+          // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
+            'doc1',
+            'doc2'
+          );
 
-        // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
-        // Note: The public query API does not allow implicit ordering when limitToLast is used.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 1), where('b', '>', 0)),
-            limitToLast(2),
-            orderBy('b')
-          ),
-          'doc3',
-          'doc4'
-        );
+          // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+          // Note: The public query API does not allow implicit ordering when limitToLast is used.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 1), where('b', '>', 0)),
+              limitToLast(2),
+              orderBy('b')
+            ),
+            'doc3',
+            'doc4'
+          );
 
-        // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limit(1),
-            orderBy('a')
-          ),
-          'doc5'
-        );
+          // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limit(1),
+              orderBy('a')
+            ),
+            'doc5'
+          );
 
-        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limitToLast(1),
-            orderBy('a')
-          ),
-          'doc2'
-        );
+          // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limitToLast(1),
+              orderBy('a')
+            ),
+            'doc2'
+          );
+        });
       });
-    });
 
-    it('can use or queries with not-in', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      it('can use or queries with not-in', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // a==2 || b not-in [2,3]
-        // Has implicit orderBy b.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
-          'doc1',
-          'doc2'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // a==2 || b not-in [2,3]
+          // Has implicit orderBy b.
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
+            'doc1',
+            'doc2'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports order by equality', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports order by equality', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), orderBy('a')),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), orderBy('a')),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', 'in', [2, 3]), orderBy('a')),
-          'doc6',
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', 'in', [2, 3]), orderBy('a')),
+            'doc6',
+            'doc3'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports multiple in ops', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports multiple in ops', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // Two IN operations on different fields with disjunction.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
-          'doc1',
-          'doc6',
-          'doc3'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // Two IN operations on different fields with disjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc1',
+            'doc6',
+            'doc3'
+          );
 
-        // Two IN operations on different fields with conjunction.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
-          'doc3'
-        );
+          // Two IN operations on different fields with conjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc3'
+          );
 
-        // Two IN operations on the same field.
-        // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
-          ),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+          // Two IN operations on the same field.
+          // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
+            ),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
-        // empty set.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
-          )
-        );
+          // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
+          // empty set.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
+            )
+          );
 
-        // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
-          'doc3',
-          'doc6'
-        );
+          // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
+            'doc3',
+            'doc6'
+          );
 
-        // Nested composite filter on the same field.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [1, 3]),
-              or(
-                where('a', 'in', [0, 2]),
-                and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+          // Nested composite filter on the same field.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [1, 3]),
+                or(
+                  where('a', 'in', [0, 2]),
+                  and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+                )
               )
-            )
-          ),
-          'doc3',
-          'doc4'
-        );
+            ),
+            'doc3',
+            'doc4'
+          );
 
-        // Nested composite filter on the different fields.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('b', 'in', [0, 3]),
-              or(
-                where('b', 'in', [1]),
-                and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
+          // Nested composite filter on the different fields.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('b', 'in', [0, 3]),
+                or(
+                  where('b', 'in', [1]),
+                  and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
+                )
               )
-            )
-          ),
-          'doc4'
-        );
+            ),
+            'doc4'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports using in with array contains any', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports using in with array contains any', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              where('a', 'in', [2, 3]),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc1',
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                where('a', 'in', [2, 3]),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc1',
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc3'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              and(where('a', 'in', [2, 3]), where('c', '==', 10)),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc1',
-          'doc3',
-          'doc4'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                and(where('a', 'in', [2, 3]), where('c', '==', 10)),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc1',
+            'doc3',
+            'doc4'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 20))
-            )
-          ),
-          'doc3',
-          'doc6'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                or(
+                  where('b', 'array-contains-any', [0, 7]),
+                  where('c', '==', 20)
+                )
+              )
+            ),
+            'doc3',
+            'doc6'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports using in with array contains', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7] },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports using in with array contains', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7] },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
-          ),
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
+            ),
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
+            ),
+            'doc3'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              where('a', 'in', [2, 3]),
-              and(where('b', 'array-contains', 3), where('a', '==', 1))
-            )
-          ),
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                where('a', 'in', [2, 3]),
+                and(where('b', 'array-contains', 3), where('a', '==', 1))
+              )
+            ),
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              or(where('b', 'array-contains', 7), where('a', '==', 1))
-            )
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                or(where('b', 'array-contains', 7), where('a', '==', 1))
+              )
+            ),
+            'doc3'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports order by equality', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports order by equality', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), orderBy('a')),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), orderBy('a')),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', 'in', [2, 3]), orderBy('a')),
-          'doc6',
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', 'in', [2, 3]), orderBy('a')),
+            'doc6',
+            'doc3'
+          );
+        });
       });
-    });
-  });
+    }
+  );
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-  // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Caching empty results', () => {
+  describe('Caching empty results', () => {
     it('can raise initial snapshot from cache, even if it is empty', () => {
-      return withTestCollection(persistence, {}, async coll => {
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), {}, async coll => {
         const snapshot1 = await getDocs(coll); // Populate the cache.
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
@@ -2047,7 +2056,9 @@ apiDescribe('Queries', persistence => {
       const testDocs = {
         a: { key: 'a' }
       };
-      return withTestCollection(persistence, testDocs, async coll => {
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
         // Populate the cache.
         const snapshot1 = await getDocs(coll);
         expect(snapshot1.metadata.fromCache).to.be.false;
@@ -2128,13 +2139,13 @@ apiDescribe('Queries', persistence => {
         );
       }
 
-      // Skip the verification of the existence filter mismatch when persistence
-      // is disabled because without persistence there is no resume token
-      // specified in the subsequent call to getDocs(), and, therefore, Watch
-      // will _not_ send an existence filter.
+      // Skip the verification of the existence filter mismatch when the local
+      // cache is configured to use eager garbage collection because with eager
+      // GC there is no resume token specified in the subsequent call to
+      // getDocs(), and, therefore, Watch will _not_ send an existence filter.
       // TODO(b/272754156) Re-write this test using a snapshot listener instead
       // of calls to getDocs() and remove this check for disabled persistence.
-      if (!persistence) {
+      if (persistence.gc === 'eager') {
         return 'passed';
       }
 

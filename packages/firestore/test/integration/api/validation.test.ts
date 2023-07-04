@@ -56,6 +56,7 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  PersistenceMode,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -67,17 +68,17 @@ import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 interface ValidationIt {
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ): void;
   skip: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
   only: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
@@ -87,7 +88,7 @@ interface ValidationIt {
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
 const validationIt: ValidationIt = Object.assign(
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => {
@@ -102,7 +103,7 @@ const validationIt: ValidationIt = Object.assign(
   },
   {
     skip(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       _: (db: Firestore) => void | Promise<any>
     ): void {
@@ -110,7 +111,7 @@ const validationIt: ValidationIt = Object.assign(
       it.skip(message, () => {});
     },
     only(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       testFunction: (db: Firestore) => void | Promise<any>
     ): void {
@@ -134,14 +135,6 @@ class TestClass {
 
 apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
-    // Enabling persistence counts as a use of the firestore instance, meaning
-    // that it will be impossible to verify that a set of settings don't throw,
-    // and additionally that some exceptions happen for specific reasons, rather
-    // than persistence having already been enabled.
-    if (persistence) {
-      return;
-    }
-
     validationIt(
       persistence,
       'disallows changing settings after use',
@@ -170,15 +163,19 @@ apiDescribe('Validation:', persistence => {
       });
     });
 
-    validationIt(persistence, 'useEmulator can set host and port', () => {
-      const db = newTestFirestore(newTestApp('test-project'));
-      // Verify that this doesn't throw.
-      connectFirestoreEmulator(db, 'localhost', 9000);
-    });
+    validationIt(
+      persistence,
+      'connectFirestoreEmulator() can set host and port',
+      () => {
+        const db = newTestFirestore(newTestApp('test-project'));
+        // Verify that this doesn't throw.
+        connectFirestoreEmulator(db, 'localhost', 9000);
+      }
+    );
 
     validationIt(
       persistence,
-      'disallows calling useEmulator after use',
+      'disallows calling connectFirestoreEmulator() after use',
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed.';
@@ -192,7 +189,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken object',
+      'connectFirestoreEmulator() can set mockUserToken object',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -204,7 +201,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken string',
+      'connectFirestoreEmulator() can set mockUserToken string',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -230,15 +227,11 @@ apiDescribe('Validation:', persistence => {
   });
 
   describe('Firestore', () => {
-    (persistence ? validationIt : validationIt.skip)(
+    validationIt(
       persistence,
-      'disallows calling enablePersistence after use',
+      'disallows calling enableIndexedDbPersistence() after use',
       db => {
-        // Calling `enablePersistence()` itself counts as use, so we should only
-        // need this method when persistence is not enabled.
-        if (!persistence) {
-          doc(db, 'foo/bar');
-        }
+        //doc(db, 'foo/bar');
         expect(() => enableIndexedDbPersistence(db)).to.throw(
           'SDK cache is already specified.'
         );

@@ -25,10 +25,13 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
+  MemoryLocalCache,
+  memoryEagerGarbageCollector,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
   newTestFirestore,
+  PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
   QuerySnapshot,
@@ -46,6 +49,92 @@ import {
 } from './settings';
 
 /* eslint-disable no-restricted-globals */
+
+export interface PersistenceMode {
+  readonly name: string;
+  readonly storage: 'memory' | 'indexeddb';
+  readonly gc: 'eager' | 'lru';
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses eager garbage collection.
+   */
+  toEagerGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses LRU garbage collection.
+   */
+  toLruGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new "local cache" object corresponding to this
+   * persistence type.
+   */
+  asLocalCacheFirestoreSettings(): MemoryLocalCache | PersistentLocalCache;
+}
+
+export class MemoryEagerPersistenceMode implements PersistenceMode {
+  readonly name = 'memory';
+  readonly storage = 'memory';
+  readonly gc = 'eager';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({
+      garbageCollector: memoryEagerGarbageCollector()
+    });
+  }
+}
+
+export class MemoryLruPersistenceMode implements PersistenceMode {
+  readonly name = 'memory_lru_gc';
+  readonly storage = 'memory';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
+  }
+}
+
+export class IndexedDbPersistenceMode implements PersistenceMode {
+  readonly name = 'indexeddb';
+  readonly storage = 'indexeddb';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): IndexedDbPersistenceMode {
+    return new IndexedDbPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): PersistentLocalCache {
+    if (this.gc !== 'lru') {
+      throw new Error(
+        `PersistentLocalCache does not support the given ` +
+          `garbage collector: ${this.gc}`
+      );
+    }
+    return persistentLocalCache();
+  }
+}
 
 function isIeOrEdge(): boolean {
   if (!window.navigator) {
@@ -77,24 +166,31 @@ export function isPersistenceAvailable(): boolean {
 function apiDescribeInternal(
   describeFn: Mocha.PendingSuiteFunction,
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes = [false];
+  const persistenceModes: PersistenceMode[] = [
+    new MemoryEagerPersistenceMode()
+  ];
   if (isPersistenceAvailable()) {
-    persistenceModes.push(true);
+    persistenceModes.push(new IndexedDbPersistenceMode());
   }
 
-  for (const enabled of persistenceModes) {
-    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+  for (const persistenceMode of persistenceModes) {
+    describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () =>
+      // Freeze the properties of the `PersistenceMode` object specified to the
+      // test suite so that it cannot (accidentally or intentionally) change
+      // its properties, and affect all subsequent test suites.
+      testSuite(Object.freeze(persistenceMode))
+    );
   }
 }
 
 type ApiSuiteFunction = (
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ) => void;
 interface ApiDescribe {
-  (message: string, testSuite: (persistence: boolean) => void): void;
+  (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
 }
@@ -137,7 +233,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -145,50 +241,9 @@ export function withTestDb(
   });
 }
 
-export function withEnsuredEagerGcTestDb(
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  return withTestDbsSettings(
-    false,
-    DEFAULT_PROJECT_ID,
-    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
-export function withEnsuredLruGcTestDb(
-  persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  const newSettings = { ...DEFAULT_SETTINGS };
-  if (persistence) {
-    newSettings.localCache = persistentLocalCache({
-      cacheSizeBytes: 1 * 1024 * 1024
-    });
-  } else {
-    newSettings.localCache = memoryLocalCache({
-      garbageCollector: memoryLruGarbageCollector({
-        cacheSizeBytes: 1 * 1024 * 1024
-      })
-    });
-  }
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    newSettings,
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
@@ -203,7 +258,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: boolean,
+  persistence: PersistenceMode,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -216,7 +271,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: boolean,
+  persistence: PersistenceMode,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -229,10 +284,10 @@ export async function withTestDbsSettings<T>(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const newSettings = { ...settings };
-    if (persistence) {
-      newSettings.localCache = persistentLocalCache();
-    }
+    const newSettings = {
+      ...settings,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }
@@ -242,7 +297,7 @@ export async function withTestDbsSettings<T>(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -250,7 +305,7 @@ export async function withTestDbsSettings<T>(
 }
 
 export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
-  persistence: boolean,
+  persistence: PersistenceMode,
   dbNames: string[],
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -264,10 +319,10 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
-    const newSettings = { ...DEFAULT_SETTINGS };
-    if (persistence) {
-      newSettings.localCache = persistentLocalCache();
-    }
+    const newSettings = {
+      ...DEFAULT_SETTINGS,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
@@ -277,7 +332,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -285,7 +340,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 }
 
 export function withTestDoc(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
@@ -294,7 +349,7 @@ export function withTestDoc(
 }
 
 export function withTestDocAndSettings(
-  persistence: boolean,
+  persistence: PersistenceMode,
   settings: PrivateSettings,
   fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
@@ -315,7 +370,7 @@ export function withTestDocAndSettings(
 // `withTestDoc(..., docRef => { setDoc(docRef, initialData) ...});` that
 // otherwise is quite common.
 export function withTestDocAndInitialData(
-  persistence: boolean,
+  persistence: PersistenceMode,
   initialData: DocumentData | null,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
@@ -330,7 +385,7 @@ export function withTestDocAndInitialData(
 }
 
 export function withTestCollection<T>(
-  persistence: boolean,
+  persistence: PersistenceMode,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
@@ -338,7 +393,7 @@ export function withTestCollection<T>(
 }
 
 export function withEmptyTestCollection(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestCollection(persistence, {}, fn);
@@ -347,7 +402,7 @@ export function withEmptyTestCollection(
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
-  persistence: boolean,
+  persistence: PersistenceMode,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
