@@ -26,7 +26,6 @@ import {
   Bytes,
   collection,
   collectionGroup,
-  CollectionReference,
   deleteDoc,
   disableNetwork,
   doc,
@@ -36,7 +35,6 @@ import {
   enableNetwork,
   endAt,
   endBefore,
-  Firestore,
   GeoPoint,
   getDocs,
   getDocsFromCache,
@@ -60,10 +58,12 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  RetryError,
   toChangesArray,
   toDataArray,
   toIds,
   withEmptyTestCollection,
+  withRetry,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
@@ -2082,134 +2082,118 @@ apiDescribe('Queries', persistence => {
       testDocs['doc' + (1000 + i)] = { key: 42 };
     }
 
-    // The function that runs a single iteration of the test.
-    // Below this definition, there is a "while" loop that calls this function
-    // potentially multiple times.
-    const runTestIteration = async (
-      coll: CollectionReference,
-      db: Firestore
-    ): Promise<'retry' | 'passed'> => {
-      // Run a query to populate the local cache with the 100 documents and a
-      // resume token.
-      const snapshot1 = await getDocs(coll);
-      expect(snapshot1.size, 'snapshot1.size').to.equal(100);
-      const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+    // Ensure that the local cache is configured to use LRU garbage
+    // collection (rather than eager garbage collection) so that the resume
+    // token and document data does not get prematurely evicted.
+    const lruPersistence = persistence.toLruGc();
 
-      // Delete 50 of the 100 documents. Do this in a transaction, rather than
-      // deleteDoc(), to avoid affecting the local cache.
-      const deletedDocumentIds = new Set<string>();
-      await runTransaction(db, async txn => {
-        for (let i = 0; i < createdDocuments.length; i += 2) {
-          const documentToDelete = createdDocuments[i];
-          txn.delete(documentToDelete);
-          deletedDocumentIds.add(documentToDelete.id);
+    return withRetry(async attemptNumber => {
+      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with the 100 documents and a
+        // resume token.
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.size, 'snapshot1.size').to.equal(100);
+        const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+
+        // Delete 50 of the 100 documents. Do this in a transaction, rather than
+        // deleteDoc(), to avoid affecting the local cache.
+        const deletedDocumentIds = new Set<string>();
+        await runTransaction(db, async txn => {
+          for (let i = 0; i < createdDocuments.length; i += 2) {
+            const documentToDelete = createdDocuments[i];
+            txn.delete(documentToDelete);
+            deletedDocumentIds.add(documentToDelete.id);
+          }
+        });
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        // Resume the query and save the resulting snapshot for verification.
+        // Use some internal testing hooks to "capture" the existence filter
+        // mismatches to verify that Watch sent a bloom filter, and it was used
+        // to avert a full requery.
+        const [existenceFilterMismatches, snapshot2] =
+          await captureExistenceFilterMismatches(() => getDocs(coll));
+
+        // Verify that the snapshot from the resumed query contains the expected
+        // documents; that is, that it contains the 50 documents that were _not_
+        // deleted.
+        // TODO(b/270731363): Remove the "if" condition below once the
+        // Firestore Emulator is fixed to send an existence filter. At the time
+        // of writing, the Firestore emulator fails to send an existence filter,
+        // resulting in the client including the deleted documents in the
+        // snapshot of the resumed query.
+        if (!(USE_EMULATOR && snapshot2.size === 100)) {
+          const actualDocumentIds = snapshot2.docs
+            .map(documentSnapshot => documentSnapshot.ref.id)
+            .sort();
+          const expectedDocumentIds = createdDocuments
+            .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
+            .map(documentRef => documentRef.id)
+            .sort();
+          expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+            expectedDocumentIds
+          );
         }
+
+        // Skip the verification of the existence filter mismatch when testing
+        // against the Firestore emulator because the Firestore emulator fails
+        // to to send an existence filter at all.
+        // TODO(b/270731363): Enable the verification of the existence filter
+        // mismatch once the Firestore emulator is fixed to send an existence
+        // filter.
+        if (USE_EMULATOR) {
+          return;
+        }
+
+        // Verify that Watch sent an existence filter with the correct counts
+        // when the query was resumed.
+        expect(
+          existenceFilterMismatches,
+          'existenceFilterMismatches'
+        ).to.have.length(1);
+        const { localCacheCount, existenceFilterCount, bloomFilter } =
+          existenceFilterMismatches[0];
+        expect(localCacheCount, 'localCacheCount').to.equal(100);
+        expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
+
+        // Verify that Watch sent a valid bloom filter.
+        if (!bloomFilter) {
+          expect.fail(
+            'The existence filter should have specified a bloom filter in its ' +
+              '`unchanged_names` field.'
+          );
+          throw new Error('should never get here');
+        }
+
+        expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
+        expect(
+          bloomFilter.bitmapLength,
+          'bloomFilter.bitmapLength'
+        ).to.be.above(0);
+        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+
+        // Verify that the bloom filter was successfully used to avert a full
+        // requery. If a false positive occurred then retry the entire test.
+        // Although statistically rare, false positives are expected to happen
+        // occasionally. When a false positive _does_ happen, just retry the
+        // test with a different set of documents. If that retry _also_
+        // experiences a false positive, then fail the test because that is so
+        // improbable that something must have gone wrong.
+        if (attemptNumber === 1 && !bloomFilter.applied) {
+          throw new RetryError();
+        }
+
+        expect(
+          bloomFilter.applied,
+          `bloomFilter.applied with attemptNumber=${attemptNumber}`
+        ).to.be.true;
       });
-
-      // Wait for 10 seconds, during which Watch will stop tracking the query
-      // and will send an existence filter rather than "delete" events when the
-      // query is resumed.
-      await new Promise(resolve => setTimeout(resolve, 10000));
-
-      // Resume the query and save the resulting snapshot for verification.
-      // Use some internal testing hooks to "capture" the existence filter
-      // mismatches to verify that Watch sent a bloom filter, and it was used to
-      // avert a full requery.
-      const [existenceFilterMismatches, snapshot2] =
-        await captureExistenceFilterMismatches(() => getDocs(coll));
-
-      // Verify that the snapshot from the resumed query contains the expected
-      // documents; that is, that it contains the 50 documents that were _not_
-      // deleted.
-      // TODO(b/270731363): Remove the "if" condition below once the
-      // Firestore Emulator is fixed to send an existence filter. At the time of
-      // writing, the Firestore emulator fails to send an existence filter,
-      // resulting in the client including the deleted documents in the snapshot
-      // of the resumed query.
-      if (!(USE_EMULATOR && snapshot2.size === 100)) {
-        const actualDocumentIds = snapshot2.docs
-          .map(documentSnapshot => documentSnapshot.ref.id)
-          .sort();
-        const expectedDocumentIds = createdDocuments
-          .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
-          .map(documentRef => documentRef.id)
-          .sort();
-        expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
-          expectedDocumentIds
-        );
-      }
-
-      // Skip the verification of the existence filter mismatch when testing
-      // against the Firestore emulator because the Firestore emulator fails to
-      // to send an existence filter at all.
-      // TODO(b/270731363): Enable the verification of the existence filter
-      // mismatch once the Firestore emulator is fixed to send an existence
-      // filter.
-      if (USE_EMULATOR) {
-        return 'passed';
-      }
-
-      // Verify that Watch sent an existence filter with the correct counts when
-      // the query was resumed.
-      expect(
-        existenceFilterMismatches,
-        'existenceFilterMismatches'
-      ).to.have.length(1);
-      const { localCacheCount, existenceFilterCount, bloomFilter } =
-        existenceFilterMismatches[0];
-      expect(localCacheCount, 'localCacheCount').to.equal(100);
-      expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-
-      // Verify that Watch sent a valid bloom filter.
-      if (!bloomFilter) {
-        expect.fail(
-          'The existence filter should have specified a bloom filter in its ' +
-            '`unchanged_names` field.'
-        );
-        throw new Error('should never get here');
-      }
-
-      expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
-      expect(bloomFilter.bitmapLength, 'bloomFilter.bitmapLength').to.be.above(
-        0
-      );
-      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
-
-      // Verify that the bloom filter was successfully used to avert a full
-      // requery. If a false positive occurred then retry the entire test.
-      // Although statistically rare, false positives are expected to happen
-      // occasionally. When a false positive _does_ happen, just retry the test
-      // with a different set of documents. If that retry _also_ experiences a
-      // false positive, then fail the test because that is so improbable that
-      // something must have gone wrong.
-      if (attemptNumber === 1 && !bloomFilter.applied) {
-        return 'retry';
-      }
-      expect(
-        bloomFilter.applied,
-        `bloomFilter.applied with attemptNumber=${attemptNumber}`
-      ).to.be.true;
-
-      return 'passed';
-    };
-
-    // Run the test
-    let attemptNumber = 0;
-    while (true) {
-      attemptNumber++;
-      const iterationResult = await withTestCollection(
-        // Ensure that the local cache is configured to use LRU garbage
-        // collection (rather than eager garbage collection) so that the resume
-        // token and document data does not get prematurely evicted.
-        persistence.toLruGc(),
-        testDocs,
-        runTestIteration
-      );
-      if (iterationResult === 'passed') {
-        break;
-      }
-    }
+    });
   }).timeout('90s');
 });
 
