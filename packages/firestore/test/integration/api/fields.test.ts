@@ -179,6 +179,30 @@ apiDescribe('Nested Fields', (persistence: boolean) => {
     });
   });
 
+    
+//   it.only('can be used with query.where(<string>).', () => {
+//     const testDocs = {
+//       '1': testData(100),
+//        '2': testData(200),
+//   '3': testData(500),
+// '4': testData(300),
+    
+    
+// };
+// return withTestCollection(persistence, testDocs, coll => {
+//  return getDocs(query(coll, where('metadata.createdAt', '>=', 200), where('name','!=','room 200'), orderBy('name'))).then(
+//      results => {
+//      // inequality adds implicit sort on field
+//      expect(toDataArray(results)).to.deep.equal([
+//      testData(300),
+//      testData(500)
+    
+//      ]);
+//      }
+//     );
+//     });
+//     });
+
   it('can be used with query.where(<FieldPath>).', () => {
     const testDocs = {
       '1': testData(300),
@@ -314,6 +338,26 @@ apiDescribe('Fields with special characters', (persistence: boolean) => {
           expect(toDataArray(results)).to.deep.equal(expected);
         })
         .then(() => getDocs(query(coll, where('field\\slash', '>=', 200))))
+        .then(results => {
+          expect(toDataArray(results)).to.deep.equal(expected);
+        });
+    });
+  });
+
+  it('can be used in multiple inequality query filters.', () => {
+    const testDocs = {
+      '1': testData(300),
+      '2': testData(100),
+      '3': testData(200)
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      // inequality adds implicit sort on field
+      const expected = [testData(200)];
+      return getDocs(query(coll, where('field', '>=', 'field 200'),  where(new FieldPath('field.dot'), '!=', 300)))
+        .then(results => {
+          expect(toDataArray(results)).to.deep.equal(expected);
+        })
+        .then(() => getDocs(query(coll, where('field', '<=', 'field 200'), where('field\\slash', '>=', 200))))
         .then(results => {
           expect(toDataArray(results)).to.deep.equal(expected);
         });

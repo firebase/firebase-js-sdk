@@ -820,7 +820,7 @@ describe('Query', () => {
       orFilter(filter('a', '>', 2), filter('b', '==', 1))
     );
     assertQueryMatches(query2, [doc2, doc3, doc5], [doc1, doc4]);
-
+    
     // (a==1 && b==0) || (a==3 && b==2)
     const query3 = query(
       'collection',
@@ -850,6 +850,51 @@ describe('Query', () => {
       )
     );
     assertQueryMatches(query5, [doc3], [doc1, doc2, doc4, doc5]);
+  });
+
+  it('matches composite queries with multiple inequality', () => {
+    const doc1 = doc('collection/1', 0, { a: 1, b: 0 });
+    const doc2 = doc('collection/2', 0, { a: 2, b: 1 });
+    const doc3 = doc('collection/3', 0, { a: 3, b: 2 });
+    const doc4 = doc('collection/4', 0, { a: 1, b: 3 });
+    const doc5 = doc('collection/5', 0, { a: 1, b: 1 });
+
+    // a>1 || b!=1.
+    const query1 = query(
+      'collection',
+      orFilter(filter('a', '>', 1), filter('b', '!=', 1))
+    );
+    assertQueryMatches(query1, [doc1, doc2, doc3, doc4], [doc5]);
+
+    // (a>=1 && b==0) || (a==1 && b!=1)
+    const query2 = query(
+      'collection',
+      orFilter(
+        andFilter(filter('a', '>=', 1), filter('b', '==', 0)),
+        andFilter(filter('a', '==', 1), filter('b', '!=', 1))
+      )
+    );
+    assertQueryMatches(query2, [doc1, doc4], [doc2, doc3, doc5]);
+
+    // a<=2 && (a!=1 || b<3).
+    const query3 = query(
+      'collection',
+      andFilter(
+        filter('a', '<=', 2),
+        orFilter(filter('a', '!=', 1), filter('b', '<', 3))
+      )
+    );
+    assertQueryMatches(query3, [doc1, doc2, doc5], [doc3, doc4]);
+
+    // (a!=1 || b!=1) && (a>=3 || b<3)
+    const query5 = query(
+      'collection',
+      andFilter(
+        orFilter(filter('a', '!=', 1), filter('b', '!=', 1)),
+        orFilter(filter('a', '>=', 3), filter('b', '<', 3))
+      )
+    );
+    assertQueryMatches(query5, [doc1, doc2, doc3 ], [ doc4, doc5]);
   });
 
   function assertQueryMatches(

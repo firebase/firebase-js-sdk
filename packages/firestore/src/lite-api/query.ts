@@ -845,7 +845,8 @@ export function newQueryOrderBy(
     );
   }
   const orderBy = new OrderBy(fieldPath, direction);
-  validateNewOrderBy(query, orderBy);
+  // Mila
+  // validateNewOrderBy(query, orderBy);
   return orderBy;
 }
 
@@ -1056,8 +1057,9 @@ function validateDisjunctiveFilterElements(
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
+     // Note: Mila
     case Operator.NOT_EQUAL:
-      return [Operator.NOT_EQUAL, Operator.NOT_IN];
+      return [ /* Operator.NOT_EQUAL, */ Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
     case Operator.IN:
       return [Operator.NOT_IN];
@@ -1065,7 +1067,7 @@ function conflictingOps(op: Operator): Operator[] {
       return [
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
-        Operator.NOT_IN,
+        // /* Operator.NOT_IN, */
         Operator.NOT_EQUAL
       ];
     default:
@@ -1077,33 +1079,35 @@ function validateNewFieldFilter(
   query: InternalQuery,
   fieldFilter: FieldFilter
 ): void {
-  if (fieldFilter.isInequality()) {
-    const existingInequality = getInequalityFilterField(query);
-    const newInequality = fieldFilter.field;
+ // Note: Mila
+  // if (fieldFilter.isInequality()) {
+  //   const existingInequality = getInequalityFilterField(query);
+  //   const newInequality = fieldFilter.field;
 
-    if (
-      existingInequality !== null &&
-      !existingInequality.isEqual(newInequality)
-    ) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. All where filters with an inequality' +
-          ' (<, <=, !=, not-in, >, or >=) must be on the same field. But you have' +
-          ` inequality filters on '${existingInequality.toString()}'` +
-          ` and '${newInequality.toString()}'`
-      );
-    }
+    // if (
+    //   existingInequality !== null &&
+    //   !existingInequality.isEqual(newInequality)
+    // ) {
+    //   throw new FirestoreError(
+    //     Code.INVALID_ARGUMENT,
+    //     'Invalid query. All where filters with an inequality' +
+    //       ' (<, <=, !=, not-in, >, or >=) must be on the same field. But you have' +
+    //       ` inequality filters on '${existingInequality.toString()}'` +
+    //       ` and '${newInequality.toString()}'`
+    //   );
+    // }
 
-    const firstOrderByField = getFirstOrderByField(query);
-    if (firstOrderByField !== null) {
-      validateOrderByAndInequalityMatch(
-        query,
-        newInequality,
-        firstOrderByField
-      );
-    }
-  }
+    // const firstOrderByField = getFirstOrderByField(query);
+    // if (firstOrderByField !== null) {
+    //   validateOrderByAndInequalityMatch(
+    //     query,
+    //     newInequality,
+    //     firstOrderByField
+    //   );
+    // }
+  // }
 
+    // Note:Mila
   const conflictingOp = findOpInsideFilters(
     query.filters,
     conflictingOps(fieldFilter.op)
@@ -1151,32 +1155,33 @@ function findOpInsideFilters(
   return null;
 }
 
-function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
-  if (getFirstOrderByField(query) === null) {
-    // This is the first order by. It must match any inequality.
-    const inequalityField = getInequalityFilterField(query);
-    if (inequalityField !== null) {
-      validateOrderByAndInequalityMatch(query, inequalityField, orderBy.field);
-    }
-  }
-}
+// function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
+//   if (getFirstOrderByField(query) === null) {
+//     // This is the first order by. It must match any inequality.
+//     const inequalityField = getInequalityFilterField(query);
+//     if (inequalityField !== null) {
+//       validateOrderByAndInequalityMatch(query, inequalityField, orderBy.field);
+//     }
+//   }
+// }
 
-function validateOrderByAndInequalityMatch(
-  baseQuery: InternalQuery,
-  inequality: InternalFieldPath,
-  orderBy: InternalFieldPath
-): void {
-  if (!orderBy.isEqual(inequality)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid query. You have a where filter with an inequality ` +
-        `(<, <=, !=, not-in, >, or >=) on field '${inequality.toString()}' ` +
-        `and so you must also use '${inequality.toString()}' ` +
-        `as your first argument to orderBy(), but your first orderBy() ` +
-        `is on field '${orderBy.toString()}' instead.`
-    );
-  }
-}
+// function validateOrderByAndInequalityMatch(
+//   baseQuery: InternalQuery,
+//   inequality: InternalFieldPath,
+//   orderBy: InternalFieldPath
+// ): void {
+//   if (!orderBy.isEqual(inequality)) {
+//     // Note:Mila
+//     throw new FirestoreError(
+//       Code.INVALID_ARGUMENT,
+//       `Invalid query. You have a where filter with an inequality ` +
+//         `(<, <=, !=, not-in, >, or >=) on field '${inequality.toString()}' ` +
+//         `and so you must also use '${inequality.toString()}' ` +
+//         `as your first argument to orderBy(), but your first orderBy() ` +
+//         `is on field '${orderBy.toString()}' instead.`
+//     );
+//   }
+// }
 
 export function validateQueryFilterConstraint(
   functionName: string,

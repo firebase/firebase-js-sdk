@@ -171,6 +171,7 @@ export function getFirstOrderByField(query: Query): FieldPath | null {
     : null;
 }
 
+//Mila
 export function getInequalityFilterField(query: Query): FieldPath | null {
   for (const filter of query.filters) {
     const result = filter.getFirstInequalityField();
@@ -180,6 +181,18 @@ export function getInequalityFilterField(query: Query): FieldPath | null {
   }
 
   return null;
+}
+
+export function getInequalityFilterFields(query: Query): FieldPath[] | null {
+  const result: FieldPath[] = [];
+  for (const filter of query.filters) {
+    const field = filter.getFirstInequalityField();
+    if (field !== null) {
+      result.push(field);
+    }
+  }
+  
+  return result.length === 0 ? null : result;
 }
 
 /**
@@ -216,29 +229,56 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * the SDK and backend always orders by `__name__`).
  */
 export function queryOrderBy(query: Query): OrderBy[] {
+  console.log("")
   const queryImpl = debugCast(query, QueryImpl);
+
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
+    console.log("before: ",JSON.stringify(queryImpl.memoizedOrderBy));
+
+    // //Note: Mila
+    // const inequalityFields = getInequalityFilterFields(queryImpl);
+    // const firstOrderByField = getFirstOrderByField(queryImpl);
+    // console.log("inequalityFields: ",JSON.stringify(inequalityFields));
+    // console.log("firstOrderByField: ",JSON.stringify(firstOrderByField));
+
+    // if (inequalityFields !== null && firstOrderByField === null) {
+    //   for (let inequalityField of inequalityFields) { 
+    //     // In order to implicitly add key ordering, we must also add the
+    //     // inequality filter field for it to be a valid query.
+    //     // Note that the default inequality field and key ordering is ascending.
+    //     if (!inequalityField.isKeyField()) {
+    //       queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
+    //     } else {
+    //       queryImpl.memoizedOrderBy.push(
+    //       new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+    //     ); }
+
+    //   }
+    // console.log("after: ",JSON.stringify(queryImpl.memoizedOrderBy));
 
     const inequalityField = getInequalityFilterField(queryImpl);
     const firstOrderByField = getFirstOrderByField(queryImpl);
     if (inequalityField !== null && firstOrderByField === null) {
-      // In order to implicitly add key ordering, we must also add the
-      // inequality filter field for it to be a valid query.
-      // Note that the default inequality field and key ordering is ascending.
-      if (!inequalityField.isKeyField()) {
-        queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
-      }
-      queryImpl.memoizedOrderBy.push(
-        new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-      );
+        // In order to implicitly add key ordering, we must also add the
+        // inequality filter field for it to be a valid query.
+        // Note that the default inequality field and key ordering is ascending.
+        if (!inequalityField.isKeyField()) {
+          queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
+        }
+        queryImpl.memoizedOrderBy.push(
+          new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+        );
+      console.log(JSON.stringify(queryImpl.memoizedOrderBy));
+
     } else {
-      debugAssert(
-        inequalityField === null ||
-          (firstOrderByField !== null &&
-            inequalityField.isEqual(firstOrderByField)),
-        'First orderBy should match inequality field.'
-      );
+      //Note: Mila
+      // debugAssert(
+      //   inequalityField === null ||
+      //     (firstOrderByField !== null &&
+      //       inequalityField.isEqual(firstOrderByField)),
+      //   'First orderBy should match inequality field.'
+      // );
       let foundKeyOrdering = false;
       for (const orderBy of queryImpl.explicitOrderBy) {
         queryImpl.memoizedOrderBy.push(orderBy);
@@ -314,15 +354,15 @@ export function queryToTarget(query: Query): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
-  const newInequalityField = filter.getFirstInequalityField();
-  const queryInequalityField = getInequalityFilterField(query);
-
-  debugAssert(
-    queryInequalityField == null ||
-      newInequalityField == null ||
-      newInequalityField.isEqual(queryInequalityField),
-    'Query must only have one inequality field.'
-  );
+  // Note:Mila
+  // const newInequalityField = filter.getFirstInequalityField();
+  // const queryInequalityField = getInequalityFilterField(query);
+  // debugAssert(
+  //   queryInequalityField == null ||
+  //     newInequalityField == null ||
+  //     newInequalityField.isEqual(queryInequalityField),
+  //   'Query must only have one inequality field.'
+  // );
 
   debugAssert(
     !isDocumentQuery(query),

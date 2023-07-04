@@ -78,6 +78,7 @@ import {
   withEnsuredEagerGcTestDb
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
+import { ref } from '../../util/helpers';
 
 use(chaiAsPromised);
 
@@ -641,18 +642,34 @@ apiDescribe('Database', (persistence: boolean) => {
   apiDescribe('Queries are validated client-side', (persistence: boolean) => {
     // NOTE: Failure cases are validated in validation_test.ts
 
-    it('same inequality fields works', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '>=', 32), where('x', '<=', 'cat'))
-        ).not.to.throw();
-      });
-    });
-
     it('inequality and equality on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', '==', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality on same field works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('x', '<', '42'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality on multiple fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('y', '<=', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality with key fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where(documentId(), ">=", ref('collection/id')), where('x', '>=', 32))
         ).not.to.throw();
       });
     });
@@ -665,14 +682,6 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
-    it('inequality and IN on different fields works', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '>=', 32), where('y', 'in', [1, 2]))
-        ).not.to.throw();
-      });
-    });
-
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -681,6 +690,22 @@ apiDescribe('Database', (persistence: boolean) => {
             where('x', '>=', 32),
             where('y', 'array-contains-any', [1, 2])
           )
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('y', 'in', [1, 2]))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and NOT IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('y', 'not-in', [1, 2]))
         ).not.to.throw();
       });
     });
