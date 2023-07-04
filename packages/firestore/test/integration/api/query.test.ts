@@ -2201,16 +2201,43 @@ apiDescribe('Queries', persistence => {
   //  to send an existence filter.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'bloom filter should correctly encode special unicode characters',
+    'bloom filter should correctly encode complex Unicode characters',
     async () => {
+      // Firestore does not do any Unicode normalization on the document IDs.
+      // Therefore, two document IDs that are canonically-equivalent (i.e. they
+      // visually appear identical) but are represented by a different sequence
+      // of Unicode code points are treated as distinct document IDs.
       const testDocIds = [
         'DocumentToDelete',
+        // The next two strings both end with "e" with an accent: the first uses
+        // the dedicated Unicode code point for this character, while the second
+        // uses the standard lowercase "e" followed by the accent combining
+        // character.
         'LowercaseEWithAcuteAccent_\u00E9',
         'LowercaseEWithAcuteAccent_\u0065\u0301',
+        // The next two strings both end with an "e" with two different accents
+        // applied via the following two combining characters. The combining
+        // characters are specified in a different order and Firestore treats
+        // these document IDs as unique, despite the order of the combining
+        // characters being irrelevant.
         'LowercaseEWithMultipleAccents_\u0065\u0301\u0327',
         'LowercaseEWithMultipleAccents_\u0065\u0327\u0301',
+        // The next string contains a character outside the BMP (the "basic
+        // multilingual plane"); that is, its code point is greater than 0xFFFF.
+        // In UTF-16 (which JavaScript uses to store Unicode strings) this
+        // requires a surrogate pair, two 16-bit code units, to represent this
+        // character. Make sure that its presence is correctly tested in the
+        // bloom filter, which uses UTF-8 encoding.
         'Smiley_\u{1F600}'
       ];
+
+      // Verify assumptions about the equivalence of strings in `testDocIds`.
+      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
+      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
+      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
+
+      // Create the mapping from document ID to document data for the document
+      // IDs specified in `testDocIds`.
       const testDocs = testDocIds.reduce((map, docId) => {
         map[docId] = { foo: 42 };
         return map;
