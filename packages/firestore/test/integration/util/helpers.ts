@@ -384,6 +384,26 @@ export function withTestDocAndInitialData(
   });
 }
 
+export class RetryError extends Error {
+  readonly name = 'FirestoreIntegrationTestRetryError';
+}
+
+export async function withRetry<T>(
+  fn: (attemptNumber: number) => Promise<T>
+): Promise<T> {
+  let attemptNumber = 0;
+  while (true) {
+    attemptNumber++;
+    try {
+      return await fn(attemptNumber);
+    } catch (error) {
+      if (!(error instanceof RetryError)) {
+        throw error;
+      }
+    }
+  }
+}
+
 export function withTestCollection<T>(
   persistence: PersistenceMode,
   docs: { [key: string]: DocumentData },
