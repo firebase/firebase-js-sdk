@@ -80,7 +80,7 @@ apiDescribe('Index Configuration:', persistence => {
   it('bad JSON does not crash client', () => {
     return withTestDb(persistence, async db => {
       const action = (): Promise<void> => setIndexConfiguration(db, '{,}');
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         expect(action).to.throw(/Failed to parse JSON/);
       } else {
         // Silently do nothing. Parsing is not done and therefore no error is thrown.
