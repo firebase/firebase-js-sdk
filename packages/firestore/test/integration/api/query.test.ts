@@ -31,6 +31,7 @@ import {
   doc,
   DocumentChange,
   DocumentChangeType,
+  DocumentData,
   documentId,
   enableNetwork,
   endAt,
@@ -2195,6 +2196,149 @@ apiDescribe('Queries', persistence => {
       });
     });
   }).timeout('90s');
+
+  // TODO(b/270731363): Re-enable this test once the Firestore emulator is fixed
+  //  to send an existence filter.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'bloom filter should correctly encode complex Unicode characters',
+    async () => {
+      // Firestore does not do any Unicode normalization on the document IDs.
+      // Therefore, two document IDs that are canonically-equivalent (i.e. they
+      // visually appear identical) but are represented by a different sequence
+      // of Unicode code points are treated as distinct document IDs.
+      const testDocIds = [
+        'DocumentToDelete',
+        // The next two strings both end with "e" with an accent: the first uses
+        // the dedicated Unicode code point for this character, while the second
+        // uses the standard lowercase "e" followed by the accent combining
+        // character.
+        'LowercaseEWithAcuteAccent_\u00E9',
+        'LowercaseEWithAcuteAccent_\u0065\u0301',
+        // The next two strings both end with an "e" with two different accents
+        // applied via the following two combining characters. The combining
+        // characters are specified in a different order and Firestore treats
+        // these document IDs as unique, despite the order of the combining
+        // characters being irrelevant.
+        'LowercaseEWithMultipleAccents_\u0065\u0301\u0327',
+        'LowercaseEWithMultipleAccents_\u0065\u0327\u0301',
+        // The next string contains a character outside the BMP (the "basic
+        // multilingual plane"); that is, its code point is greater than 0xFFFF.
+        // In UTF-16 (which JavaScript uses to store Unicode strings) this
+        // requires a surrogate pair, two 16-bit code units, to represent this
+        // character. Make sure that its presence is correctly tested in the
+        // bloom filter, which uses UTF-8 encoding.
+        'Smiley_\u{1F600}'
+      ];
+
+      // Verify assumptions about the equivalence of strings in `testDocIds`.
+      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
+      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
+      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
+
+      // Create the mapping from document ID to document data for the document
+      // IDs specified in `testDocIds`.
+      const testDocs = testDocIds.reduce((map, docId) => {
+        map[docId] = { foo: 42 };
+        return map;
+      }, {} as { [key: string]: DocumentData });
+
+      // Ensure that the local cache is configured to use LRU garbage
+      // collection (rather than eager garbage collection) so that the resume
+      // token and document data does not get prematurely evicted.
+      const lruPersistence = persistence.toLruGc();
+
+      return withRetry(async attemptNumber => {
+        return withTestCollection(
+          lruPersistence,
+          testDocs,
+          async (coll, db) => {
+            // Run a query to populate the local cache with documents that have
+            // names with complex Unicode characters.
+            const snapshot1 = await getDocs(coll);
+            const snapshot1DocumentIds = snapshot1.docs.map(
+              documentSnapshot => documentSnapshot.id
+            );
+            expect(
+              snapshot1DocumentIds,
+              'snapshot1DocumentIds'
+            ).to.have.members(testDocIds);
+
+            // Delete one of the documents so that the next call to getDocs() will
+            // experience an existence filter mismatch. Do this deletion in a
+            // transaction, rather than using deleteDoc(), to avoid affecting the
+            // local cache.
+            await runTransaction(db, async txn => {
+              const snapshotOfDocumentToDelete = await txn.get(
+                doc(coll, 'DocumentToDelete')
+              );
+              expect(
+                snapshotOfDocumentToDelete.exists(),
+                'snapshotOfDocumentToDelete.exists()'
+              ).to.be.true;
+              txn.delete(snapshotOfDocumentToDelete.ref);
+            });
+
+            // Wait for 10 seconds, during which Watch will stop tracking the
+            // query and will send an existence filter rather than "delete" events
+            // when the query is resumed.
+            await new Promise(resolve => setTimeout(resolve, 10000));
+
+            // Resume the query and save the resulting snapshot for verification.
+            // Use some internal testing hooks to "capture" the existence filter
+            // mismatches.
+            const [existenceFilterMismatches, snapshot2] =
+              await captureExistenceFilterMismatches(() => getDocs(coll));
+            const snapshot2DocumentIds = snapshot2.docs.map(
+              documentSnapshot => documentSnapshot.id
+            );
+            const testDocIdsMinusDeletedDocId = testDocIds.filter(
+              documentId => documentId !== 'DocumentToDelete'
+            );
+            expect(
+              snapshot2DocumentIds,
+              'snapshot2DocumentIds'
+            ).to.have.members(testDocIdsMinusDeletedDocId);
+
+            // Verify that Watch sent an existence filter with the correct counts.
+            expect(
+              existenceFilterMismatches,
+              'existenceFilterMismatches'
+            ).to.have.length(1);
+            const { localCacheCount, existenceFilterCount, bloomFilter } =
+              existenceFilterMismatches[0];
+            expect(localCacheCount, 'localCacheCount').to.equal(
+              testDocIds.length
+            );
+            expect(existenceFilterCount, 'existenceFilterCount').to.equal(
+              testDocIds.length - 1
+            );
+
+            // Verify that Watch sent a valid bloom filter.
+            if (!bloomFilter) {
+              expect.fail(
+                'The existence filter should have specified a bloom filter ' +
+                  'in its `unchanged_names` field.'
+              );
+              throw new Error('should never get here');
+            }
+
+            // Verify that the bloom filter was successfully used to avert a full
+            // requery. If a false positive occurred, which is statistically rare,
+            // but technically possible, then retry the entire test.
+            if (attemptNumber === 1 && !bloomFilter.applied) {
+              throw new RetryError();
+            }
+
+            expect(
+              bloomFilter.applied,
+              `bloomFilter.applied with attemptNumber=${attemptNumber}`
+            ).to.be.true;
+          }
+        );
+      });
+    }
+  ).timeout('90s');
 });
 
 function verifyDocumentChange<T>(
