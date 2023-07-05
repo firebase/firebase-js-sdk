@@ -60,7 +60,7 @@ describe('platform_browser/strategies/phone', () => {
       sessionInfo: 'session-info'
     });
 
-    verifier = new RecaptchaVerifier(document.createElement('div'), {}, auth);
+    verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
     sinon.stub(verifier, 'verify').returns(Promise.resolve('recaptcha-token'));
   });
 
