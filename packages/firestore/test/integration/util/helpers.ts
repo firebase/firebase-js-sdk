@@ -136,6 +136,13 @@ export class IndexedDbPersistenceMode implements PersistenceMode {
   }
 }
 
+// An alternative to a `PersistenceMode` object that indicates that no
+// persistence mode should be specified, and instead the implicit default
+// should be used.
+export const PERSISTENCE_MODE_UNSPECIFIED = Symbol(
+  'PERSISTENCE_MODE_UNSPECIFIED'
+);
+
 function isIeOrEdge(): boolean {
   if (!window.navigator) {
     return false;
@@ -233,7 +240,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -243,7 +250,7 @@ export function withTestDb(
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
@@ -258,7 +265,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -271,7 +278,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -284,10 +291,10 @@ export async function withTestDbsSettings<T>(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const newSettings = {
-      ...settings,
-      localCache: persistence.asLocalCacheFirestoreSettings()
-    };
+    const newSettings = { ...settings };
+    if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
+      newSettings.localCache = persistence.asLocalCacheFirestoreSettings();
+    }
     const db = newTestFirestore(newTestApp(projectId), newSettings);
     dbs.push(db);
   }
@@ -297,7 +304,10 @@ export async function withTestDbsSettings<T>(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence.storage === 'indexeddb') {
+      if (
+        persistence !== PERSISTENCE_MODE_UNSPECIFIED &&
+        persistence.storage === 'indexeddb'
+      ) {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -340,7 +350,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 }
 
 export function withTestDoc(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
@@ -349,7 +359,7 @@ export function withTestDoc(
 }
 
 export function withTestDocAndSettings(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   settings: PrivateSettings,
   fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
@@ -370,7 +380,7 @@ export function withTestDocAndSettings(
 // `withTestDoc(..., docRef => { setDoc(docRef, initialData) ...});` that
 // otherwise is quite common.
 export function withTestDocAndInitialData(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   initialData: DocumentData | null,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
@@ -405,7 +415,7 @@ export async function withRetry<T>(
 }
 
 export function withTestCollection<T>(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
@@ -413,7 +423,7 @@ export function withTestCollection<T>(
 }
 
 export function withEmptyTestCollection(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestCollection(persistence, {}, fn);
@@ -422,7 +432,7 @@ export function withEmptyTestCollection(
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
-  persistence: PersistenceMode,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
