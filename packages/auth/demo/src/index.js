@@ -127,7 +127,8 @@ function activeUser() {
 }
 
 /**
- * Returns the active user after sign in (i.e. currentUser or lastUser).
+ * Blocks until there is a valid user
+ * then return the valid user (i.e. currentUser or lastUser).
  * @return {!firebase.User}
  */
 async function getActiveUserBlocking() {

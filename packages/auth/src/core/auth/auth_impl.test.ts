@@ -802,6 +802,7 @@ describe('core/auth/auth_impl', () => {
     it('immediately returns resolved promise if the user is previously logged in', async () => {
       await auth._updateCurrentUser(user);
 
+      // authStateReady calls onAuthStateChanged, if there is no currentUser available
       await auth
         .authStateReady()
         .then(() => {
@@ -849,7 +850,7 @@ describe('core/auth/auth_impl', () => {
       expect(authStateChangedSpy).to.be.calledOnce;
     });
 
-    it('resolves the promise with currentUser remain null during log in failure', async () => {
+    it('resolves the promise with currentUser being null during log in failure', async () => {
       expect(authStateChangedSpy).to.not.have.been.called;
       const promiseVar = auth.authStateReady();
       expect(authStateChangedSpy).to.be.calledOnce;
