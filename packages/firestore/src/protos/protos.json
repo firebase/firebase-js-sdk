@@ -919,6 +919,39 @@
                 "ruby_package": "Google::Cloud::Firestore::V1"
               },
               "nested": {
+                "AggregationResult": {
+                  "fields": {
+                    "aggregateFields": {
+                      "keyType": "string",
+                      "type": "Value",
+                      "id": 2
+                    }
+                  }
+                },
+                "BitSequence": {
+                  "fields": {
+                    "bitmap": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "padding": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
+                "BloomFilter": {
+                  "fields": {
+                    "bits": {
+                      "type": "BitSequence",
+                      "id": 1
+                    },
+                    "hashCount": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
                 "DocumentMask": {
                   "fields": {
                     "fieldPaths": {
@@ -1263,6 +1296,29 @@
                             "body": "*",
                             "additional_bindings": {
                               "post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runQuery",
+                              "body": "*"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "RunAggregationQuery": {
+                      "requestType": "RunAggregationQueryRequest",
+                      "responseType": "RunAggregationQueryResponse",
+                      "responseStream": true,
+                      "options": {
+                        "(google.api.http).post": "/v1/{parent=projects/*/databases/*/documents}:runAggregationQuery",
+                        "(google.api.http).body": "*",
+                        "(google.api.http).additional_bindings.post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runAggregationQuery",
+                        "(google.api.http).additional_bindings.body": "*"
+                      },
+                      "parsedOptions": [
+                        {
+                          "(google.api.http)": {
+                            "post": "/v1/{parent=projects/*/databases/*/documents}:runAggregationQuery",
+                            "body": "*",
+                            "additional_bindings": {
+                              "post": "/v1/{parent=projects/*/databases/*/documents/*/**}:runAggregationQuery",
                               "body": "*"
                             }
                           }
@@ -1760,6 +1816,63 @@
                     }
                   }
                 },
+                "RunAggregationQueryRequest": {
+                  "oneofs": {
+                    "queryType": {
+                      "oneof": [
+                        "structuredAggregationQuery"
+                      ]
+                    },
+                    "consistencySelector": {
+                      "oneof": [
+                        "transaction",
+                        "newTransaction",
+                        "readTime"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "parent": {
+                      "type": "string",
+                      "id": 1,
+                      "options": {
+                        "(google.api.field_behavior)": "REQUIRED"
+                      }
+                    },
+                    "structuredAggregationQuery": {
+                      "type": "StructuredAggregationQuery",
+                      "id": 2
+                    },
+                    "transaction": {
+                      "type": "bytes",
+                      "id": 4
+                    },
+                    "newTransaction": {
+                      "type": "TransactionOptions",
+                      "id": 5
+                    },
+                    "readTime": {
+                      "type": "google.protobuf.Timestamp",
+                      "id": 6
+                    }
+                  }
+                },
+                "RunAggregationQueryResponse": {
+                  "fields": {
+                    "result": {
+                      "type": "AggregationResult",
+                      "id": 1
+                    },
+                    "transaction": {
+                      "type": "bytes",
+                      "id": 2
+                    },
+                    "readTime": {
+                      "type": "google.protobuf.Timestamp",
+                      "id": 3
+                    }
+                  }
+                },
                 "PartitionQueryRequest": {
                   "oneofs": {
                     "queryType": {
@@ -1963,6 +2076,10 @@
                     "once": {
                       "type": "bool",
                       "id": 6
+                    },
+                    "expectedCount": {
+                      "type": "google.protobuf.Int32Value",
+                      "id": 12
                     }
                   },
                   "nested": {
@@ -2190,7 +2307,8 @@
                         "Operator": {
                           "values": {
                             "OPERATOR_UNSPECIFIED": 0,
-                            "AND": 1
+                            "AND": 1,
+                            "OR": 2
                           }
                         }
                       }
@@ -2292,6 +2410,83 @@
                         "DIRECTION_UNSPECIFIED": 0,
                         "ASCENDING": 1,
                         "DESCENDING": 2
+                      }
+                    }
+                  }
+                },
+                "StructuredAggregationQuery": {
+                  "oneofs": {
+                    "queryType": {
+                      "oneof": [
+                        "structuredQuery"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "structuredQuery": {
+                      "type": "StructuredQuery",
+                      "id": 1
+                    },
+                    "aggregations": {
+                      "rule": "repeated",
+                      "type": "Aggregation",
+                      "id": 3
+                    }
+                  },
+                  "nested": {
+                    "Aggregation": {
+                      "oneofs": {
+                        "operator": {
+                          "oneof": [
+                            "count",
+                            "sum",
+                            "avg"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "count": {
+                          "type": "Count",
+                          "id": 1
+                        },
+                        "sum": {
+                          "type": "Sum",
+                          "id": 2
+                        },
+                        "avg": {
+                          "type": "Avg",
+                          "id": 3
+                        },
+                        "alias": {
+                          "type": "string",
+                          "id": 7
+                        }
+                      },
+                      "nested": {
+                        "Count": {
+                          "fields": {
+                            "upTo": {
+                              "type": "google.protobuf.Int64Value",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Sum": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Avg": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
+                              "id": 1
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -2493,6 +2688,10 @@
                     "count": {
                       "type": "int32",
                       "id": 2
+                    },
+                    "unchangedNames": {
+                      "type": "BloomFilter",
+                      "id": 3
                     }
                   }
                 }

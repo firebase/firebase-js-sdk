@@ -37,6 +37,9 @@ function getTestFiles(argv) {
   if (argv.unit) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
+    if (argv.prodbackend) {
+      return ['test/integration/flows/totp.test.ts'];
+    }
     return argv.local
       ? ['test/integration/flows/*.test.ts']
       : ['test/integration/flows/*!(local).test.ts'];
@@ -54,10 +57,10 @@ function getTestFiles(argv) {
 }
 
 function getTestBrowsers(argv) {
-  let browsers = ["ChromeHeadless"]; 
+  let browsers = ['ChromeHeadless'];
   if (process.env?.BROWSERS && argv.unit) {
     browsers = process.env?.BROWSERS?.split(',');
-  } 
+  }
   return browsers;
 }
 

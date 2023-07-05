@@ -46,10 +46,13 @@ import { FederatedAuthProvider } from '../../core/providers/federated';
 import { getModularInstance } from '@firebase/util';
 
 /*
- * The event timeout is the same on mobile and desktop, no need for Delay.
+ * The event timeout is the same on mobile and desktop, no need for Delay. Set this to 8s since
+ * blocking functions can take upto 7s to complete sign in, as documented in:
+ * https://cloud.google.com/identity-platform/docs/blocking-functions#understanding_blocking_functions
+ * https://firebase.google.com/docs/auth/extend-with-blocking-functions#understanding_blocking_functions
  */
 export const enum _Timeout {
-  AUTH_EVENT = 2000
+  AUTH_EVENT = 8000
 }
 export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
@@ -59,6 +62,8 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * @remarks
  * If succeeds, returns the signed in user along with the provider's credential. If sign in was
  * unsuccessful, returns an error object containing additional information about the error.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -78,7 +83,6 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- *
  *
  * @public
  */
@@ -106,6 +110,8 @@ export async function signInWithPopup(
  * @remarks
  * If the reauthentication is successful, the returned result will contain the user and the
  * provider's credential.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -148,6 +154,7 @@ export async function reauthenticateWithPopup(
  * @remarks
  * If the linking is successful, the returned result will contain the user and the provider's credential.
  *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -282,7 +289,9 @@ class PopupOperation extends AbstractPopupRedirectOperation {
       if (this.authWindow?.window?.closed) {
         // Make sure that there is sufficient time for whatever action to
         // complete. The window could have closed but the sign in network
-        // call could still be in flight.
+        // call could still be in flight. This is specifically true for
+        // Firefox or if the opener is in an iframe, in which case the oauth
+        // helper closes the popup.
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
           this.reject(

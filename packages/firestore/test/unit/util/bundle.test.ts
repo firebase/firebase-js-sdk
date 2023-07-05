@@ -18,7 +18,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleReader,
   SizedBundleElement
@@ -241,7 +241,7 @@ function genericBundleReadingTests(bytesPerRead: number): void {
 
       await expect(
         generateBundleAndParse('{metadata: "no length prefix"}', bytesPerRead)
-      ).to.be.rejectedWith('Unexpected end of JSON input');
+      ).to.be.rejectedWith(/(Unexpected end of )(?=.*JSON\b).*/gi);
 
       await expect(
         generateBundleAndParse(

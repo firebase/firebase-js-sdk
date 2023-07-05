@@ -199,6 +199,7 @@ describe('Firebase Performance > trace', () => {
     });
 
     it('replaces undefined metrics with 0', () => {
+      // @ts-ignore A non-TS user could provide undefined.
       trace.putMetric('cacheHits', undefined);
 
       expect(trace.getMetric('cacheHits')).to.eql(0);

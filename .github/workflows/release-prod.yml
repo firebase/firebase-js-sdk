@@ -18,10 +18,10 @@ jobs:
       contents: write
 
     steps:
-    - name: Set up Node (14)
-      uses: actions/setup-node@v2
+    - name: Set up node (16)
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Checkout release branch (with history)
       uses: actions/checkout@master
       with:
@@ -95,7 +95,7 @@ jobs:
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=BASE_VERSION::$VERSION"
+        echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
         echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"

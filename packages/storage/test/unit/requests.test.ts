@@ -632,6 +632,71 @@ describe('Firebase Storage > Requests', () => {
 
     return assertBodyEquals(requestInfo.body, smallBlobString);
   });
+  it('populates requestInfo with the upload command when more chunks are left', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+    const requestInfo = continueResumableUpload(
+      locationNormal,
+      storageService,
+      url,
+      bigBlob,
+      RESUMABLE_UPLOAD_CHUNK_SIZE,
+      mappings
+    );
+    assertObjectIncludes(
+      {
+        url,
+        method: 'POST',
+        urlParams: {},
+        headers: {
+          'X-Goog-Upload-Command': 'upload',
+          'X-Goog-Upload-Offset': '0'
+        }
+      },
+      requestInfo
+    );
+
+    assert.deepEqual(
+      requestInfo.body,
+      bigBlob.slice(0, RESUMABLE_UPLOAD_CHUNK_SIZE)!.uploadData()
+    );
+  });
+  it('populates requestInfo with just the finalize command command when no more data needs to be uploaded', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+    const blobSize = bigBlob.size();
+    const requestInfo = continueResumableUpload(
+      locationNormal,
+      storageService,
+      url,
+      bigBlob,
+      RESUMABLE_UPLOAD_CHUNK_SIZE,
+      mappings,
+      {
+        current: blobSize,
+        total: blobSize,
+        finalized: false,
+        metadata: null
+      }
+    );
+    assertObjectIncludes(
+      {
+        url,
+        method: 'POST',
+        urlParams: {},
+        headers: {
+          'X-Goog-Upload-Command': 'finalize',
+          'X-Goog-Upload-Offset': blobSize.toString()
+        }
+      },
+      requestInfo
+    );
+
+    assert.deepEqual(
+      requestInfo.body,
+      bigBlob.slice(blobSize, blobSize)!.uploadData()
+    );
+  });
   it('continueResumableUpload handler', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';

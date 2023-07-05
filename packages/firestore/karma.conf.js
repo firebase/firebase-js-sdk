@@ -19,7 +19,9 @@ const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
 module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
+  const karmaConfig = {
+    ...karmaBase,
+    browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
 
@@ -29,12 +31,20 @@ module.exports = function (config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
+    frameworks: ['mocha']
+  };
 
-    client: Object.assign({}, karmaBase.client, {
-      firestoreSettings: getFirestoreSettings(argv)
-    })
-  });
+  if (argv.targetBackend) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: argv.targetBackend
+    };
+  } else if (argv.local) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: 'emulator'
+    };
+  }
 
   config.set(karmaConfig);
 };
@@ -59,22 +69,12 @@ function getTestFiles(argv) {
   }
 }
 
-/**
- * If the --local argument is passed, returns a {host, ssl} FirestoreSettings
- * object that point to localhost instead of production.
- */
-function getFirestoreSettings(argv) {
-  if (argv.local) {
-    return {
-      host: 'localhost:8080',
-      ssl: false
-    };
-  } else {
-    return {
-      host: 'firestore.googleapis.com',
-      ssl: true
-    };
+function getTestBrowsers(argv) {
+  let browsers = ['ChromeHeadless'];
+  if (process.env?.BROWSERS && argv.unit) {
+    browsers = process.env?.BROWSERS?.split(',');
   }
+  return browsers;
 }
 
 module.exports.files = getTestFiles(argv);

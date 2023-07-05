@@ -37,7 +37,7 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-apiDescribe('Firestore', (persistence: boolean) => {
+apiDescribe('Firestore', persistence => {
   addEqualityMatcher();
 
   async function expectRoundtrip(
@@ -96,7 +96,7 @@ apiDescribe('Firestore', (persistence: boolean) => {
       const validateSnapshots = !persistence;
       await expectRoundtrip(
         db,
-        { a: 1, b: NaN, c: Infinity, d: persistence ? 0.0 : -0.0 },
+        { a: 1, b: NaN, c: Infinity, d: persistence ? 0.0 : 0.0 },
         validateSnapshots
       );
     });

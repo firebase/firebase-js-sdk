@@ -73,6 +73,17 @@ export function serverTimestamp(
     }
   };
 
+  // We should avoid storing deeply nested server timestamp map values
+  // because we never use the intermediate "previous values".
+  // For example:
+  // previous: 42L, add: t1, result: t1 -> 42L
+  // previous: t1,  add: t2, result: t2 -> 42L (NOT t2 -> t1 -> 42L)
+  // previous: t2,  add: t3, result: t3 -> 42L (NOT t3 -> t2 -> t1 -> 42L)
+  // `getPreviousValue` recursively traverses server timestamps to find the
+  // least recent Value.
+  if (previousValue && isServerTimestamp(previousValue)) {
+    previousValue = getPreviousValue(previousValue);
+  }
   if (previousValue) {
     mapValue.fields![PREVIOUS_VALUE_KEY] = previousValue;
   }

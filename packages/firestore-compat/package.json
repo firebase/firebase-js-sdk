@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-compat",
-  "version": "0.1.23",
+  "version": "0.3.12",
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -17,6 +17,10 @@
       },
       "react-native": "./dist/index.rn.js",
       "esm5": "./dist/index.esm5.js",
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm2017.js"
+      },
       "default": "./dist/index.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -43,22 +47,22 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.5.17",
-    "@firebase/firestore": "3.4.14",
-    "@firebase/util": "1.6.3",
-    "@firebase/firestore-types": "2.5.0",
+    "@firebase/component": "0.6.4",
+    "@firebase/firestore": "3.13.0",
+    "@firebase/util": "1.9.3",
+    "@firebase/firestore-types": "2.5.1",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.31",
+    "@firebase/app-compat": "0.2.13",
     "@types/eslint": "7.29.0",
-    "rollup": "2.72.1",
+    "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-node-resolve": "13.3.0",
-    "ts-node": "10.7.0",
-    "typescript": "4.2.2"
+    "ts-node": "10.9.1",
+    "typescript": "4.7.4"
   },
   "license": "Apache-2.0",
   "typings": "dist/src/index.d.ts",

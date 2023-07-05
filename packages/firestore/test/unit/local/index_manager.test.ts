@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
+import { FieldFilter } from '../../../src/core/filter';
 import {
   LimitType,
   newQueryForCollectionGroup,
@@ -29,7 +30,6 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { FieldFilter } from '../../../src/core/target';
 import { IndexType } from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
@@ -636,6 +636,20 @@ describe('IndexedDbIndexManager', async () => {
       .be.null;
   });
 
+  it('handles when no matching filter exists', async () => {
+    await setUpSingleValueFilter();
+    const q = queryWithAddedFilter(
+      query('coll'),
+      filter('unknown', '==', true)
+    );
+
+    expect(await indexManager.getIndexType(queryToTarget(q))).to.equal(
+      IndexType.NONE
+    );
+    expect(await indexManager.getDocumentsMatchingTarget(queryToTarget(q))).to
+      .be.null;
+  });
+
   it('returns empty results when no matching documents exists', async () => {
     await setUpSingleValueFilter();
     const q = queryWithAddedFilter(query('coll'), filter('count', '==', -1));
@@ -753,6 +767,19 @@ describe('IndexedDbIndexManager', async () => {
 
     q = queryWithAddedOrderBy(query('coll'), orderBy('count', 'desc'));
     await verifyResults(q, 'coll/val2', 'coll/val1b', 'coll/val1a');
+  });
+
+  it('supports order by filter', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['count', IndexKind.ASCENDING]] })
+    );
+
+    await addDoc('coll/val1a', { 'count': 1 });
+    await addDoc('coll/val1b', { 'count': 1 });
+    await addDoc('coll/val2', { 'count': 2 });
+
+    const q = queryWithAddedOrderBy(query('coll'), orderBy('count'));
+    await verifyResults(q, 'coll/val1a', 'coll/val1b', 'coll/val2');
   });
 
   it('supports ascending order with greater than filter', async () => {
@@ -910,6 +937,69 @@ describe('IndexedDbIndexManager', async () => {
       bound([3], /* inclusive= */ true)
     );
     await verifyResults(testingQuery, 'coll/val2');
+  });
+
+  it('can have filters on the same field', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+    );
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', {
+        fields: [
+          ['a', IndexKind.ASCENDING],
+          ['b', IndexKind.ASCENDING]
+        ]
+      })
+    );
+    await addDoc('coll/val1', { 'a': 1, 'b': 1 });
+    await addDoc('coll/val2', { 'a': 2, 'b': 2 });
+    await addDoc('coll/val3', { 'a': 3, 'b': 3 });
+    await addDoc('coll/val4', { 'a': 4, 'b': 4 });
+
+    let testingQuery = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+      filter('a', '==', 2)
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '<=', 1)),
+      filter('a', '==', 2)
+    );
+    await verifyResults(testingQuery);
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+        filter('a', '==', 2)
+      ),
+      orderBy('a')
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+          filter('a', '==', 2)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    await verifyResults(testingQuery, 'coll/val2');
+
+    testingQuery = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '>', 1)),
+          filter('a', '==', 3)
+        ),
+        orderBy('a')
+      ),
+      orderBy('b', 'desc')
+    );
+    await verifyResults(testingQuery, 'coll/val3');
   });
 
   it('support advances queries', async () => {

@@ -58,9 +58,9 @@ export function firestore(): Firestore {
 
 export function newTestFirestore(projectId = 'new-project'): Firestore {
   return new Firestore(
-    new DatabaseId(projectId),
     new EmptyAuthCredentialsProvider(),
-    new EmptyAppCheckTokenProvider()
+    new EmptyAppCheckTokenProvider(),
+    new DatabaseId(projectId)
   );
 }
 
@@ -130,7 +130,8 @@ export function querySnapshot(
   docsToAdd: { [key: string]: JsonObject<unknown> },
   mutatedKeys: DocumentKeySet,
   fromCache: boolean,
-  syncStateChanged: boolean
+  syncStateChanged: boolean,
+  hasCachedResults?: boolean
 ): QuerySnapshot {
   const query: InternalQuery = newQueryForPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
@@ -152,7 +153,8 @@ export function querySnapshot(
     mutatedKeys,
     fromCache,
     syncStateChanged,
-    false
+    false,
+    hasCachedResults ?? false
   );
   const db = firestore();
   return new QuerySnapshot(

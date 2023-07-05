@@ -51,8 +51,8 @@ goog.net.WebChannel.Options.sendRawJson;
 /** @type {string|undefined} */
 goog.net.WebChannel.Options.httpSessionIdParam;
 
-/** @type {string|undefined} */
-goog.net.WebChannel.Options.httpHeadersOverwriteParam;
+/** @type {boolean|undefined} */
+goog.net.WebChannel.Options.encodeInitMessageHeaders;
 
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.fastHandshake;
@@ -68,6 +68,9 @@ goog.net.WebChannel.Options.detectBufferingProxy;
 
 /** @type {unknown} */
 goog.net.WebChannel.Options.xmlHttpFactory;
+
+/** @type {number|undefined} */
+goog.net.WebChannel.Options.longPollingTimeout;
 
 goog.labs.net.webChannel.requestStats.Event = {};
 goog.labs.net.webChannel.requestStats.Event.STAT_EVENT;

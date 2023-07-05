@@ -426,7 +426,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -651,7 +651,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -701,7 +701,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -1237,7 +1237,7 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
-   * @webonly
+   * The Messaging SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1296,7 +1296,7 @@ declare namespace firebase {
    * The {@link firebase.performance.Performance `Performance`} service does not work with
    * any other app.
    *
-   * @webonly
+   * The Performance SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1315,7 +1315,7 @@ declare namespace firebase {
   /**
    * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
    *
-   * @webonly
+   * The Remote Config SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1335,7 +1335,7 @@ declare namespace firebase {
    * `firebase.analytics()` can be called with no arguments to access the default
    * app's {@link firebase.analytics.Analytics `Analytics`} service.
    *
-   * @webonly
+   * The Analytics SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1404,7 +1404,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.installations.Installations `Installations`} service for the
      * current app.
      *
-     * @webonly
+     * The Installations SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1418,7 +1418,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
-     * @webonly
+     * The Messaging SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1490,7 +1490,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * The Performance SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1503,7 +1503,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
      *
-     * @webonly
+     * The Remote Config SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1517,7 +1517,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * The Analytics SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1532,7 +1532,9 @@ declare namespace firebase.app {
 }
 
 /**
- * @webonly
+ * Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Provider` or
+ * `ReCaptchaEnterpriseProvider`, but can be used in Node.js if you use
+ * `CustomProvider` and write your own attestation method.
  */
 declare namespace firebase.appCheck {
   /**
@@ -1696,7 +1698,7 @@ declare namespace firebase.appCheck {
 }
 
 /**
- * @webonly
+ * The Installations SDK does not work in a Node.js environment.
  */
 declare namespace firebase.installations {
   /**
@@ -1745,7 +1747,7 @@ declare namespace firebase.installations {
 }
 
 /**
- * @webonly
+ * The Performance SDK does not work in a Node.js environment.
  */
 declare namespace firebase.performance {
   /**
@@ -1868,7 +1870,7 @@ declare namespace firebase.performance {
 }
 
 /**
- * @webonly
+ * The Remote Config SDK does not work in a Node.js environment.
  */
 declare namespace firebase.remoteConfig {
   /**
@@ -2613,8 +2615,7 @@ declare namespace firebase.auth {
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
-     * unsuccessful, fails with an error. If no redirect operation was called,
-     * returns a UserCredential with a null User.
+     * unsuccessful, fails with an error. If no redirect operation was called, returns `null`.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -2671,7 +2672,7 @@ declare namespace firebase.auth {
      *     Firebase console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3351,7 +3352,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3414,7 +3415,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -4003,8 +4004,8 @@ declare namespace firebase.auth {
     /**
      * @example
      * ```javascript
-     * var cred = firebase.auth.FacebookAuthProvider.credential(
-     *     // `event` from the Facebook auth.authResponseChange callback.
+     * var cred = firebase.auth.GithubAuthProvider.credential(
+     *     // `event` from the Github auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
@@ -4629,7 +4630,7 @@ declare namespace firebase.auth {
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
    *
-   * @webonly
+   * This class does not work in a Node.js environment.
    *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
@@ -4648,7 +4649,6 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
-   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -4777,7 +4777,7 @@ declare namespace firebase.auth {
 }
 
 /**
- * @webonly
+ * The Analytics SDK does not work in a Node.js environment.
  */
 declare namespace firebase.analytics {
   /**
@@ -7437,7 +7437,7 @@ declare namespace firebase.database.ServerValue {
 }
 
 /**
- * @webonly
+ * The Messaging SDK does not work in a Node.js environment.
  */
 declare namespace firebase.messaging {
   /**
@@ -8019,10 +8019,34 @@ declare namespace firebase.storage {
   }
 
   /**
-   * An error returned by the Firebase Storage SDK.
+   * Error codes that can be attached to `StorageError` objects.
    */
-  interface FirebaseStorageError extends FirebaseError {
-    serverResponse: string | null;
+  export enum StorageErrorCode {
+    UNKNOWN = 'unknown',
+    OBJECT_NOT_FOUND = 'object-not-found',
+    BUCKET_NOT_FOUND = 'bucket-not-found',
+    PROJECT_NOT_FOUND = 'project-not-found',
+    QUOTA_EXCEEDED = 'quota-exceeded',
+    UNAUTHENTICATED = 'unauthenticated',
+    UNAUTHORIZED = 'unauthorized',
+    UNAUTHORIZED_APP = 'unauthorized-app',
+    RETRY_LIMIT_EXCEEDED = 'retry-limit-exceeded',
+    INVALID_CHECKSUM = 'invalid-checksum',
+    CANCELED = 'canceled',
+    INVALID_EVENT_NAME = 'invalid-event-name',
+    INVALID_URL = 'invalid-url',
+    INVALID_DEFAULT_BUCKET = 'invalid-default-bucket',
+    NO_DEFAULT_BUCKET = 'no-default-bucket',
+    CANNOT_SLICE_BLOB = 'cannot-slice-blob',
+    SERVER_FILE_WRONG_SIZE = 'server-file-wrong-size',
+    NO_DOWNLOAD_URL = 'no-download-url',
+    INVALID_ARGUMENT = 'invalid-argument',
+    INVALID_ARGUMENT_COUNT = 'invalid-argument-count',
+    APP_DELETED = 'app-deleted',
+    INVALID_ROOT_OPERATION = 'invalid-root-operation',
+    INVALID_FORMAT = 'invalid-format',
+    INTERNAL_ERROR = 'internal-error',
+    UNSUPPORTED_ENVIRONMENT = 'unsupported-environment'
   }
 
   interface StorageObserver<T> {
@@ -8222,6 +8246,30 @@ declare namespace firebase.storage {
      */
     totalBytes: number;
   }
+
+  /**
+   * An error returned by the Firebase Storage SDK.
+   */
+  export interface FirebaseStorageError extends FirebaseError {
+    /**
+     * Stores custom error data unique to the `StorageError`.
+     */
+    customData: {
+      serverResponse: string | null;
+    };
+
+    get status(): number;
+    set status(status: number);
+    /**
+     * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
+     */
+    _codeEquals(code: StorageErrorCode): boolean;
+    /**
+     * Optional response message that was added by the server.
+     */
+    get serverResponse(): null | string;
+    set serverResponse(serverResponse: string | null);
+  }
 }
 
 declare namespace firebase.firestore {
@@ -8280,7 +8328,7 @@ declare namespace firebase.firestore {
      * work around a specific network reliability issue, please tell us about
      * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
-     * @webonly
+     * This setting does not work in a Node.js environment.
      */
     experimentalForceLongPolling?: boolean;
 
@@ -8292,7 +8340,7 @@ declare namespace firebase.firestore {
      * This setting will likely be enabled by default in future releases and cannot be
      * combined with `experimentalForceLongPolling`.
      *
-     * @webonly
+     * This setting does not work in a Node.js environment.
      */
     experimentalAutoDetectLongPolling?: boolean;
 

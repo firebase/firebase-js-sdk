@@ -19,6 +19,7 @@ import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { debugAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { StringMap } from '../util/types';
@@ -37,6 +38,7 @@ const RPC_NAME_URL_MAPPING: StringMap = {};
 RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
+RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
 
 const RPC_URL_VERSION = 'v1';
 
@@ -53,6 +55,12 @@ export abstract class RestConnection implements Connection {
   protected readonly databaseId: DatabaseId;
   protected readonly baseUrl: string;
   private readonly databaseRoot: string;
+
+  get shouldResourcePathBeIncludedInRequest(): boolean {
+    // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
+    // where to run the query, and expect the `request` to NOT specify the "path".
+    return false;
+  }
 
   constructor(private readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
@@ -73,21 +81,22 @@ export abstract class RestConnection implements Connection {
     authToken: Token | null,
     appCheckToken: Token | null
   ): Promise<Resp> {
+    const streamId = generateUniqueDebugId();
     const url = this.makeUrl(rpcName, path);
-    logDebug(LOG_TAG, 'Sending: ', url, req);
+    logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers = {};
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
-        logDebug(LOG_TAG, 'Received: ', response);
+        logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
       },
       (err: FirestoreError) => {
         logWarn(
           LOG_TAG,
-          `${rpcName} failed with error: `,
+          `RPC '${rpcName}' ${streamId} failed with error: `,
           err,
           'url: ',
           url,

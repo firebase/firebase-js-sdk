@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { FirebaseApp } from '@firebase/app';
 import {
   CompleteFn,
@@ -104,7 +106,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: string | object | undefined;
+  [key: string]: unknown;
 }
 
 /**
@@ -191,6 +193,8 @@ export interface Auth {
    * This makes it easy for a user signing in to specify whether their session should be
    * remembered or not. It also makes it easier to never persist the Auth state for applications
    * that are shared by other users or have sensitive data.
+   *
+   * This method does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -311,7 +315,7 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Signs out the current user.
+   * Signs out the current user. This does not automatically revoke the user's ID token.
    */
   signOut(): Promise<void>;
 }
@@ -414,7 +418,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
+  operation: (typeof ActionCodeOperationMap)[keyof typeof ActionCodeOperationMap];
 }
 
 /**
@@ -539,11 +543,15 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
+ * Internally we use an enum type for FactorId, ActionCodeOperation, but there is a copy in https://github.com/firebase/firebase-js-sdk/blob/48a2096aec53a7eaa9ffcc2625016ecb9f90d113/packages/auth/src/model/enum_maps.ts#L23 that uses maps.
+ * const enums are better for tree-shaking, however can cause runtime errors if exposed in public APIs, example - https://github.com/microsoft/rushstack/issues/3058
+ * So, we expose enum maps publicly, but use const enums internally to get some tree-shaking benefit.
  * @internal
  */
 export const enum FactorId {
   /** Phone as second factor */
-  PHONE = 'phone'
+  PHONE = 'phone',
+  TOTP = 'totp'
 }
 
 /**
@@ -586,7 +594,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -626,7 +634,7 @@ export interface MultiFactorError extends AuthError {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
-    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+    readonly operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
   };
 }
 
@@ -643,7 +651,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -655,6 +663,13 @@ export interface PhoneMultiFactorInfo extends MultiFactorInfo {
   /** The phone number associated with the current second factor. */
   readonly phoneNumber: string;
 }
+
+/**
+ * The subclass of the {@link MultiFactorInfo} interface for TOTP
+ * second factors. The `factorId` of this second factor is {@link FactorId}.TOTP.
+ * @public
+ */
+export interface TotpMultiFactorInfo extends MultiFactorInfo {}
 
 /**
  * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
@@ -996,7 +1011,7 @@ export interface User extends UserInfo {
    */
   getIdToken(forceRefresh?: boolean): Promise<string>;
   /**
-   * Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+   * Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
    *
    * @remarks
    * Returns the current token if it has not expired or if it will not expire in the next five
@@ -1039,7 +1054,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
 }
 
 /**
@@ -1227,3 +1242,13 @@ export interface Dependencies {
    */
   errorMap?: AuthErrorMap;
 }
+
+/**
+ * The class for asserting ownership of a TOTP second factor. Provided by
+ * {@link TotpMultiFactorGenerator.assertionForEnrollment} and
+ * {@link TotpMultiFactorGenerator.assertionForSignIn}.
+ *
+ * @public
+ */
+
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {}

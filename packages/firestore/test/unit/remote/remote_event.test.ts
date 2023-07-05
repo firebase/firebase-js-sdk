@@ -43,6 +43,7 @@ import {
   key,
   forEachNumber
 } from '../../util/helpers';
+import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
 interface TargetMap {
   [targetId: string]: TargetData;
@@ -110,11 +111,11 @@ describe('RemoteEvent', () => {
         targetIds.push(targetId);
       });
     }
-
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
       getTargetDataForTarget: targetId =>
-        options.targets ? options.targets[targetId] : null
+        options.targets ? options.targets[targetId] : null,
+      getDatabaseId: () => TEST_DATABASE_ID
     });
 
     if (options.outstandingResponses) {
@@ -155,6 +156,7 @@ describe('RemoteEvent', () => {
       version(options.snapshotVersion)
     );
   }
+
   it('will accumulate document added and removed events', () => {
     const targets = listens(1, 2, 3, 4, 5, 6);
 
@@ -429,6 +431,9 @@ describe('RemoteEvent', () => {
     expectTargetChangeEquals(event.targetChanges.get(1)!, expected);
   });
 
+  // TODO(b/272564458): Add test cases for existence filter with bloom filter,
+  // one will skip the re-query, one will yield false positive result and clears
+  // target mapping.
   it('existence filters clears target mapping', () => {
     const targets = listens(1, 2);
 
@@ -457,6 +462,9 @@ describe('RemoteEvent', () => {
     event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(0);
     expect(event.targetMismatches.size).to.equal(1);
+    expect(event.targetMismatches.get(1)).to.equal(
+      TargetPurpose.ExistenceFilterMismatch
+    );
     expect(event.targetChanges.size).to.equal(1);
 
     const expected = updateMapping(
@@ -497,6 +505,9 @@ describe('RemoteEvent', () => {
     const event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(1);
     expect(event.targetMismatches.size).to.equal(1);
+    expect(event.targetMismatches.get(1)).to.equal(
+      TargetPurpose.ExistenceFilterMismatch
+    );
     expect(event.targetChanges.get(1)!.current).to.be.false;
   });
 

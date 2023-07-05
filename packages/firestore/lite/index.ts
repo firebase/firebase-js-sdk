@@ -27,6 +27,25 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
+export {
+  aggregateQuerySnapshotEqual,
+  getCount,
+  getAggregate,
+  count,
+  sum,
+  average,
+  aggregateFieldEqual
+} from '../src/lite-api/aggregate';
+
+export {
+  AggregateField,
+  AggregateFieldType,
+  AggregateSpec,
+  AggregateSpecData,
+  AggregateQuerySnapshot,
+  AggregateType
+} from '../src/lite-api/aggregate_types';
+
 export { FirestoreSettings as Settings } from '../src/lite-api/settings';
 
 export {
@@ -55,19 +74,29 @@ export {
 } from '../src/lite-api/reference';
 
 export {
+  and,
   endAt,
   endBefore,
   startAt,
   startAfter,
   limit,
   limitToLast,
-  orderBy,
-  OrderByDirection,
   where,
-  WhereFilterOp,
+  or,
+  orderBy,
   query,
   QueryConstraint,
-  QueryConstraintType
+  QueryConstraintType,
+  QueryCompositeFilterConstraint,
+  QueryFilterConstraint,
+  QueryFieldFilterConstraint,
+  QueryOrderByConstraint,
+  QueryLimitConstraint,
+  QueryNonFilterConstraint,
+  QueryStartAtConstraint,
+  QueryEndAtConstraint,
+  OrderByDirection,
+  WhereFilterOp
 } from '../src/lite-api/query';
 
 export {

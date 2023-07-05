@@ -57,7 +57,7 @@ describeSpec('OrderBy:', [], () => {
     const docB = doc('collection/b', 1001, { key: 'b', sort: 1 });
 
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1002, docA, docB)
       .expectEvents(query1, { added: [docB, docA] })

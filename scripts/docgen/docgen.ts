@@ -39,6 +39,24 @@ https://github.com/firebase/firebase-js-sdk
 const tmpDir = `${projectRoot}/temp`;
 const EXCLUDED_PACKAGES = ['app-compat', 'util', 'rules-unit-testing'];
 
+/**
+ * When ordering functions, will prioritize these first params at
+ * the top, in order.
+ */
+const PREFERRED_PARAMS = [
+  'app',
+  'analyticsInstance',
+  'appCheckInstance',
+  'db',
+  'firestore',
+  'functionsInstance',
+  'installations',
+  'messaging',
+  'performance',
+  'remoteConfig',
+  'storage'
+];
+
 yargs
   .command(
     '$0',
@@ -81,26 +99,29 @@ async function generateToc() {
       );
     }
   }
-  await spawn(
-    'yarn',
-    [
-      'api-documenter-devsite',
-      'toc',
-      '--input',
-      'temp',
-      '-p',
-      'docs/reference/js',
-      '-j'
-    ],
-    { stdio: 'inherit' }
-  );
-  console.log(`Restoring excluded packages' json files.`);
-  for (const excludedPackage of EXCLUDED_PACKAGES) {
-    if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
-      fs.renameSync(
-        `${projectRoot}/temp/${excludedPackage}.skip`,
-        `${projectRoot}/temp/${excludedPackage}.api.json`
-      );
+  try {
+    await spawn(
+      'yarn',
+      [
+        'api-documenter-devsite',
+        'toc',
+        '--input',
+        'temp',
+        '-p',
+        '/docs/reference/js',
+        '-j'
+      ],
+      { stdio: 'inherit' }
+    );
+  } finally {
+    console.log(`Restoring excluded packages' json files.`);
+    for (const excludedPackage of EXCLUDED_PACKAGES) {
+      if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
+        fs.renameSync(
+          `${projectRoot}/temp/${excludedPackage}.skip`,
+          `${projectRoot}/temp/${excludedPackage}.api.json`
+        );
+      }
     }
   }
 }
@@ -113,35 +134,63 @@ async function generateDocs(
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
+  console.log(`Temporarily modifying auth api-extractor.json for docgen.`);
   // Use a special d.ts file for auth for doc gen only.
   const authApiConfigOriginal = fs.readFileSync(
     `${projectRoot}/packages/auth/api-extractor.json`,
+    'utf8'
+  );
+  // Save original auth.md as well.
+  const authApiReportOriginal = fs.readFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
     'utf8'
   );
   const authApiConfigModified = authApiConfigOriginal.replace(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
   );
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigModified
-  );
 
-  if (!skipBuild) {
-    await spawn('yarn', ['build'], {
-      stdio: 'inherit'
-    });
+  try {
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigModified
+    );
 
-    await spawn('yarn', ['api-report'], {
-      stdio: 'inherit'
-    });
+    if (skipBuild) {
+      await spawn('yarn', ['api-report'], {
+        stdio: 'inherit'
+      });
+    } else {
+      // api-report is run as part of every build
+      await spawn(
+        'yarn',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/*',
+          '--ignore',
+          '@firebase/*-compat',
+          'build'
+        ],
+        {
+          stdio: 'inherit'
+        }
+      );
+    }
+  } finally {
+    console.log(`Restoring original auth api-extractor.json contents.`);
+    // Restore original auth api-extractor.json contents.
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigOriginal
+    );
+    // Restore original auth.api.md
+    fs.writeFileSync(
+      `${projectRoot}/common/api-review/auth.api.md`,
+      authApiReportOriginal
+    );
   }
-
-  // Restore original auth api-extractor.json contents.
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigOriginal
-  );
 
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir);
@@ -181,7 +230,9 @@ async function generateDocs(
       '--output',
       outputFolder,
       '--project',
-      'js'
+      'js',
+      '--sort-functions',
+      PREFERRED_PARAMS.join(',')
     ],
     { stdio: 'inherit' }
   );
@@ -200,8 +251,12 @@ async function generateDocs(
 
   await moveRulesUnitTestingDocs(outputFolder, command);
   await removeExcludedDocs(outputFolder);
+  await removeExcludedPackageEntries(outputFolder);
 }
 
+/**
+ * Remove markdown files generated for excluded packages.
+ */
 async function removeExcludedDocs(mainDocsFolder: string) {
   console.log('Removing excluded docs from', EXCLUDED_PACKAGES.join(', '));
   for (const excludedPackage of EXCLUDED_PACKAGES) {
@@ -211,11 +266,32 @@ async function removeExcludedDocs(mainDocsFolder: string) {
         resolve(paths);
       })
     );
-    console.log('glob pattern', `${mainDocsFolder}/${excludedPackage}.*`);
     for (const excludedMdFile of excludedMdFiles) {
       fs.unlinkSync(excludedMdFile);
     }
   }
+}
+
+/**
+ * Remove lines from index.md that link to excluded packages.
+ */
+async function removeExcludedPackageEntries(mainDocsFolder: string) {
+  console.log(`Removing ${EXCLUDED_PACKAGES.join(', ')} from index page.`);
+  const indexText = fs.readFileSync(`${mainDocsFolder}/index.md`, 'utf-8');
+  const indexTextLines = indexText.split('\n');
+  const newIndexTextLines = indexTextLines.filter(line => {
+    for (const excludedPackage of EXCLUDED_PACKAGES) {
+      if (line.includes(`[@firebase/${excludedPackage}]`)) {
+        return false;
+      }
+    }
+    return true;
+  });
+  fs.writeFileSync(
+    `${mainDocsFolder}/index.md`,
+    newIndexTextLines.join('\n'),
+    'utf-8'
+  );
 }
 
 // Create a docs-rut folder and move rules-unit-testing docs into it.

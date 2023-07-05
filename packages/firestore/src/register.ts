@@ -30,7 +30,7 @@ import {
 import { setSDKVersion } from '../src/core/version';
 
 import { Firestore } from './api/database';
-import { PrivateSettings } from './lite-api/settings';
+import { databaseIdFromApp } from './core/database_info';
 
 export function registerFirestore(
   variant?: string,
@@ -40,23 +40,24 @@ export function registerFirestore(
   _registerComponent(
     new Component(
       'firestore',
-      (container, { options: settings }: { options?: PrivateSettings }) => {
+      (container, { instanceIdentifier: databaseId, options: settings }) => {
         const app = container.getProvider('app').getImmediate()!;
         const firestoreInstance = new Firestore(
-          app,
           new FirebaseAuthCredentialsProvider(
             container.getProvider('auth-internal')
           ),
           new FirebaseAppCheckTokenProvider(
             container.getProvider('app-check-internal')
-          )
+          ),
+          databaseIdFromApp(app, databaseId),
+          app
         );
         settings = { useFetchStreams, ...settings };
         firestoreInstance._setSettings(settings);
         return firestoreInstance;
       },
       'PUBLIC' as ComponentType.PUBLIC
-    )
+    ).setMultipleInstances(true)
   );
   registerVersion(name, version, variant);
   // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation

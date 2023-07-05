@@ -134,6 +134,9 @@ export interface EventParams {
 export function getAnalytics(app?: FirebaseApp): Analytics;
 
 // @public
+export function getGoogleAnalyticsClientId(analyticsInstance: Analytics): Promise<string>;
+
+// @public
 export interface GtagConfigParams {
     // (undocumented)
     [key: string]: unknown;
@@ -421,7 +424,7 @@ export interface SettingsOptions {
 }
 
 // @public
-export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;
+export function setUserId(analyticsInstance: Analytics, id: string | null, options?: AnalyticsCallOptions): void;
 
 // @public
 export function setUserProperties(analyticsInstance: Analytics, properties: CustomParams, options?: AnalyticsCallOptions): void;

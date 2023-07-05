@@ -1,5 +1,555 @@
 # firebase
 
+## 9.23.0
+
+### Minor Changes
+
+- [`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8) [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356) - Expose the MultiDB API for Public Preview. [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356)
+
+### Patch Changes
+
+- Updated dependencies [[`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8)]:
+  - @firebase/app@0.9.13
+  - @firebase/firestore@3.13.0
+  - @firebase/app-compat@0.2.13
+  - @firebase/firestore-compat@0.3.12
+
+## 9.22.2
+
+### Patch Changes
+
+- [`4a86f4eb0`](https://github.com/firebase/firebase-js-sdk/commit/4a86f4eb0c606443ac01d99a9169e4074d5d21dc) [#7294](https://github.com/firebase/firebase-js-sdk/pull/7294) (fixes [#7279](https://github.com/firebase/firebase-js-sdk/issues/7279)) - Fixed the types path for `compat/app`.
+
+- Updated dependencies [[`fe7da7ec3`](https://github.com/firebase/firebase-js-sdk/commit/fe7da7ec3c83c200d7a0c7b90bb6bd27654309ee)]:
+  - @firebase/app@0.9.12
+  - @firebase/firestore@3.12.2
+  - @firebase/app-compat@0.2.12
+  - @firebase/firestore-compat@0.3.11
+
+## 9.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`e12e7f535`](https://github.com/firebase/firebase-js-sdk/commit/e12e7f53516b77f73e3781ffb64385d52982f653)]:
+  - @firebase/app@0.9.11
+  - @firebase/app-check@0.8.0
+  - @firebase/functions@0.10.0
+  - @firebase/app-compat@0.2.11
+  - @firebase/firestore@3.12.1
+  - @firebase/app-check-compat@0.3.7
+  - @firebase/functions-compat@0.3.5
+  - @firebase/firestore-compat@0.3.10
+
+## 9.22.0
+
+### Minor Changes
+
+- [`e45fea9b8`](https://github.com/firebase/firebase-js-sdk/commit/e45fea9b8ce2c284c5e147fd3ac2174087fbba09) [#7236](https://github.com/firebase/firebase-js-sdk/pull/7236) - Enabled long-polling networking mode auto detection by default. It can be explicitly disabled by setting `FirestoreSettings.experimentalForceLongPolling` to `false`.
+
+- [`8051e4a99`](https://github.com/firebase/firebase-js-sdk/commit/8051e4a99e199e5cc8e6ff51a1a1116e4a56337b) [#7176](https://github.com/firebase/firebase-js-sdk/pull/7176) - Added the ability to configure the long-polling hanging get request timeout using the new `experimentalLongPollingOptions.timeoutSeconds` setting
+
+### Patch Changes
+
+- Updated dependencies [[`466d3670a`](https://github.com/firebase/firebase-js-sdk/commit/466d3670ae32b61e3e0319bb73407bcd7ac90290), [`e45fea9b8`](https://github.com/firebase/firebase-js-sdk/commit/e45fea9b8ce2c284c5e147fd3ac2174087fbba09), [`e0551fa13`](https://github.com/firebase/firebase-js-sdk/commit/e0551fa13c9ae1556edf0ffb967f2f9e661f18a0), [`afdccd57a`](https://github.com/firebase/firebase-js-sdk/commit/afdccd57a93cedc3cff052dfb19c2863660ba592), [`8051e4a99`](https://github.com/firebase/firebase-js-sdk/commit/8051e4a99e199e5cc8e6ff51a1a1116e4a56337b)]:
+  - @firebase/app@0.9.10
+  - @firebase/firestore@3.12.0
+  - @firebase/auth@0.23.2
+  - @firebase/app-compat@0.2.10
+  - @firebase/firestore-compat@0.3.9
+  - @firebase/auth-compat@0.4.2
+
+## 9.21.0
+
+### Minor Changes
+
+- [`253b998fc`](https://github.com/firebase/firebase-js-sdk/commit/253b998fcfcd79327c2f7940d5435e36622215fc) [#6943](https://github.com/firebase/firebase-js-sdk/pull/6943) - Introduces a new LRU garbage document collector for memory cache.
+
+- [`0a27d2fbf`](https://github.com/firebase/firebase-js-sdk/commit/0a27d2fbf268f07099d4fa5ecab7fbf35a579780) [#7158](https://github.com/firebase/firebase-js-sdk/pull/7158) - Add method `getGoogleAnalyticsClientId()` to retrieve an unique identifier for a web client. This allows users to log purchase and other events from their backends using Google Analytics 4 Measurement Protocol and to have those events be connected to actions taken on the client within their Firebase web app. `getGoogleAnalyticsClientId()` will simplify this event recording process.
+
+- [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564) [#7229](https://github.com/firebase/firebase-js-sdk/pull/7229) - Implemented an optimization in the local cache synchronization logic that reduces the number of billed document reads when documents were deleted on the server while the client was not actively listening to the query (e.g. while the client was offline).
+
+- [`195e82ebb`](https://github.com/firebase/firebase-js-sdk/commit/195e82ebba29d501892cf9269ecee74eec9df220) [#7169](https://github.com/firebase/firebase-js-sdk/pull/7169) - Add new limited use token method to App Check
+
+### Patch Changes
+
+- Updated dependencies [[`1d6771eb3`](https://github.com/firebase/firebase-js-sdk/commit/1d6771eb358fd5cb9a6b53b7a0141b08f83f0b47), [`a57a2b5d4`](https://github.com/firebase/firebase-js-sdk/commit/a57a2b5d4512ecd65e634958a3ede60c15f27e0c), [`253b998fc`](https://github.com/firebase/firebase-js-sdk/commit/253b998fcfcd79327c2f7940d5435e36622215fc), [`510c9b520`](https://github.com/firebase/firebase-js-sdk/commit/510c9b520e6fe158a4db169e005bd173a4563b6e), [`0a27d2fbf`](https://github.com/firebase/firebase-js-sdk/commit/0a27d2fbf268f07099d4fa5ecab7fbf35a579780), [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564), [`195e82ebb`](https://github.com/firebase/firebase-js-sdk/commit/195e82ebba29d501892cf9269ecee74eec9df220)]:
+  - @firebase/app@0.9.9
+  - @firebase/auth@0.23.1
+  - @firebase/firestore@3.11.0
+  - @firebase/analytics@0.10.0
+  - @firebase/app-check@0.7.0
+  - @firebase/app-compat@0.2.9
+  - @firebase/auth-compat@0.4.1
+  - @firebase/firestore-compat@0.3.8
+  - @firebase/analytics-compat@0.2.6
+  - @firebase/app-check-compat@0.3.6
+
+## 9.20.0
+
+### Minor Changes
+
+- [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828) [#7193](https://github.com/firebase/firebase-js-sdk/pull/7193) - [feature] Add reCAPTCHA enterprise support.
+
+### Patch Changes
+
+- Updated dependencies [[`b04f04081`](https://github.com/firebase/firebase-js-sdk/commit/b04f0408139f75c69b6f6eea396f3e961f658bd1), [`8c44d5863`](https://github.com/firebase/firebase-js-sdk/commit/8c44d586355ffd2d58b6841730ebdac89229954c), [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828), [`b66908df6`](https://github.com/firebase/firebase-js-sdk/commit/b66908df6f280b4f7bfce984e07c169d426c990b)]:
+  - @firebase/auth@0.23.0
+  - @firebase/auth-compat@0.4.0
+  - @firebase/app@0.9.8
+  - @firebase/app-check@0.6.5
+  - @firebase/firestore@3.10.1
+  - @firebase/app-compat@0.2.8
+  - @firebase/app-check-compat@0.3.5
+  - @firebase/firestore-compat@0.3.7
+
+## 9.19.1
+
+### Patch Changes
+
+- Updated dependencies [[`965396d52`](https://github.com/firebase/firebase-js-sdk/commit/965396d522243fcc17b63558823ad761c87ae1ba), [`bd51cecba`](https://github.com/firebase/firebase-js-sdk/commit/bd51cecba5cfc1b1c1ca46bf94e65320da3da609)]:
+  - @firebase/app@0.9.7
+  - @firebase/auth@0.22.0
+  - @firebase/app-compat@0.2.7
+  - @firebase/auth-compat@0.3.7
+
+## 9.19.0
+
+### Minor Changes
+
+- [`60a730e37`](https://github.com/firebase/firebase-js-sdk/commit/60a730e37cb9b8f2260cfe4d8e3875018639a4b0) [#7015](https://github.com/firebase/firebase-js-sdk/pull/7015) - Introduces a new way to config Firestore SDK Cache.
+
+### Patch Changes
+
+- [`7d23aa4bd`](https://github.com/firebase/firebase-js-sdk/commit/7d23aa4bd1e29d2c10c771c0ab7919b6c5dd2d9b) [#7130](https://github.com/firebase/firebase-js-sdk/pull/7130) - Check that DOMException exists before referencing it, to fix react-native, which was broken by https://github.com/firebase/firebase-js-sdk/pull/7019 in v9.17.2.
+
+- [`ce79f7fe2`](https://github.com/firebase/firebase-js-sdk/commit/ce79f7fe21c27d88621cecce99bb8b14b4117b36) [#7100](https://github.com/firebase/firebase-js-sdk/pull/7100) - Remove the deprecated gapi.auth from FirstPartyToken.
+
+- Updated dependencies [[`60a730e37`](https://github.com/firebase/firebase-js-sdk/commit/60a730e37cb9b8f2260cfe4d8e3875018639a4b0), [`7d23aa4bd`](https://github.com/firebase/firebase-js-sdk/commit/7d23aa4bd1e29d2c10c771c0ab7919b6c5dd2d9b), [`58bae8757`](https://github.com/firebase/firebase-js-sdk/commit/58bae875799ed2ace8232f5d9e7aaaaa7a84d064), [`ce79f7fe2`](https://github.com/firebase/firebase-js-sdk/commit/ce79f7fe21c27d88621cecce99bb8b14b4117b36), [`00737a1ab`](https://github.com/firebase/firebase-js-sdk/commit/00737a1abd469f3deb041d8ff482165cc16bc34e), [`3435ba945`](https://github.com/firebase/firebase-js-sdk/commit/3435ba945a9febf5a0aece05517a5656f58b246f)]:
+  - @firebase/firestore@3.10.0
+  - @firebase/app@0.9.6
+  - @firebase/auth@0.21.6
+  - @firebase/analytics@0.9.5
+  - @firebase/firestore-compat@0.3.6
+  - @firebase/app-compat@0.2.6
+  - @firebase/auth-compat@0.3.6
+  - @firebase/analytics-compat@0.2.5
+
+## 9.18.0
+
+### Minor Changes
+
+- [`5ba524313`](https://github.com/firebase/firebase-js-sdk/commit/5ba524313bdeddb012c44b1b1161c9229396b195) [#7053](https://github.com/firebase/firebase-js-sdk/pull/7053) - Add support for disjunctions in queries (OR queries).
+
+### Patch Changes
+
+- [`e2bf2eca2`](https://github.com/firebase/firebase-js-sdk/commit/e2bf2eca21308670c73d6c642a88c06f0b87d44a) [#7076](https://github.com/firebase/firebase-js-sdk/pull/7076) - Improved debug logging of networking abstractions
+
+- [`5099f0f60`](https://github.com/firebase/firebase-js-sdk/commit/5099f0f60a5198b48942e8b2a574505432bdc213) [#6899](https://github.com/firebase/firebase-js-sdk/pull/6899) (fixes [#6509](https://github.com/firebase/firebase-js-sdk/issues/6509)) - Check navigator.userAgent, in addition to navigator.appVersion, when determining whether to work around an IndexedDb bug in Safari.
+
+- Updated dependencies [[`e2bf2eca2`](https://github.com/firebase/firebase-js-sdk/commit/e2bf2eca21308670c73d6c642a88c06f0b87d44a), [`5099f0f60`](https://github.com/firebase/firebase-js-sdk/commit/5099f0f60a5198b48942e8b2a574505432bdc213), [`e0b677e70`](https://github.com/firebase/firebase-js-sdk/commit/e0b677e70ed2fd9e488737c77ebe2fc65d3a0822), [`5ba524313`](https://github.com/firebase/firebase-js-sdk/commit/5ba524313bdeddb012c44b1b1161c9229396b195)]:
+  - @firebase/firestore@3.9.0
+  - @firebase/app@0.9.5
+  - @firebase/auth@0.21.5
+  - @firebase/firestore-compat@0.3.5
+  - @firebase/app-compat@0.2.5
+  - @firebase/auth-compat@0.3.5
+
+## 9.17.2
+
+### Patch Changes
+
+- [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef) [#7018](https://github.com/firebase/firebase-js-sdk/pull/7018) - Internal refactor of platform-specific logic to create TextEncoder and TextDecoder objects.
+
+- [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6) [#7019](https://github.com/firebase/firebase-js-sdk/pull/7019) - Modify base64 decoding logic to throw on invalid input, rather than silently truncating it.
+
+- Updated dependencies [[`36558bd2e`](https://github.com/firebase/firebase-js-sdk/commit/36558bd2e68e1ba3fb31d85ef997ab9ddf692d50), [`b5f86b1a3`](https://github.com/firebase/firebase-js-sdk/commit/b5f86b1a305b3067fed12b024938f0c3f47de2ef), [`b970dc522`](https://github.com/firebase/firebase-js-sdk/commit/b970dc52282e35d4d3fac947e330d830063caa5e), [`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6), [`67c5a0dc5`](https://github.com/firebase/firebase-js-sdk/commit/67c5a0dc55237391afceb956280cb04cfeaac66f), [`b30186ffc`](https://github.com/firebase/firebase-js-sdk/commit/b30186ffc15cd441521c8f43d3f9a7a4e9ce8820), [`c8a6e08b0`](https://github.com/firebase/firebase-js-sdk/commit/c8a6e08b01a52b3eca77ca9da8989dac2e77a972)]:
+  - @firebase/firestore-compat@0.3.4
+  - @firebase/firestore@3.8.4
+  - @firebase/database-compat@0.3.4
+  - @firebase/util@1.9.3
+  - @firebase/auth@0.21.4
+  - @firebase/analytics@0.9.4
+  - @firebase/analytics-compat@0.2.4
+  - @firebase/app@0.9.4
+  - @firebase/app-check@0.6.4
+  - @firebase/app-check-compat@0.3.4
+  - @firebase/app-compat@0.2.4
+  - @firebase/auth-compat@0.3.4
+  - @firebase/database@0.14.4
+  - @firebase/functions@0.9.4
+  - @firebase/functions-compat@0.3.4
+  - @firebase/installations@0.6.4
+  - @firebase/installations-compat@0.2.4
+  - @firebase/messaging@0.12.4
+  - @firebase/messaging-compat@0.2.4
+  - @firebase/performance@0.6.4
+  - @firebase/performance-compat@0.2.4
+  - @firebase/remote-config@0.4.4
+  - @firebase/remote-config-compat@0.2.4
+  - @firebase/storage@0.11.2
+  - @firebase/storage-compat@0.3.2
+
+## 9.17.1
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/auth@0.21.3
+  - @firebase/auth-compat@0.3.3
+  - @firebase/database@0.14.3
+  - @firebase/database-compat@0.3.3
+  - @firebase/firestore@3.8.3
+  - @firebase/firestore-compat@0.3.3
+  - @firebase/functions@0.9.3
+  - @firebase/functions-compat@0.3.3
+  - @firebase/storage@0.11.1
+  - @firebase/util@1.9.2
+  - @firebase/storage-compat@0.3.1
+  - @firebase/analytics@0.9.3
+  - @firebase/analytics-compat@0.2.3
+  - @firebase/app@0.9.3
+  - @firebase/app-check@0.6.3
+  - @firebase/app-check-compat@0.3.3
+  - @firebase/app-compat@0.2.3
+  - @firebase/installations@0.6.3
+  - @firebase/installations-compat@0.2.3
+  - @firebase/messaging@0.12.3
+  - @firebase/messaging-compat@0.2.3
+  - @firebase/performance@0.6.3
+  - @firebase/performance-compat@0.2.3
+  - @firebase/remote-config@0.4.3
+  - @firebase/remote-config-compat@0.2.3
+
+## 9.17.0
+
+### Minor Changes
+
+- [`825e648b8`](https://github.com/firebase/firebase-js-sdk/commit/825e648b81ca63c7bc64f8700f7a46eb320b2106) [#6974](https://github.com/firebase/firebase-js-sdk/pull/6974) (fixes [#6944](https://github.com/firebase/firebase-js-sdk/issues/6944)) - Fixed issue where users were unable to check if an Error was an instance of `StorageError`.
+
+### Patch Changes
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- Updated dependencies [[`6439f1173`](https://github.com/firebase/firebase-js-sdk/commit/6439f1173353f3857ab820675d572ea676340924), [`49ee786f2`](https://github.com/firebase/firebase-js-sdk/commit/49ee786f2b022e65aef45693e1a8b546d889ec10), [`825e648b8`](https://github.com/firebase/firebase-js-sdk/commit/825e648b81ca63c7bc64f8700f7a46eb320b2106), [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5), [`27b5e7d70`](https://github.com/firebase/firebase-js-sdk/commit/27b5e7d7081688599fc518b329a43db4319cdd1f)]:
+  - @firebase/auth@0.21.2
+  - @firebase/database-compat@0.3.2
+  - @firebase/database@0.14.2
+  - @firebase/storage@0.11.0
+  - @firebase/storage-compat@0.3.0
+  - @firebase/auth-compat@0.3.2
+  - @firebase/firestore@3.8.2
+  - @firebase/firestore-compat@0.3.2
+  - @firebase/functions@0.9.2
+  - @firebase/functions-compat@0.3.2
+  - @firebase/messaging@0.12.2
+  - @firebase/messaging-compat@0.2.2
+  - @firebase/util@1.9.1
+  - @firebase/analytics@0.9.2
+  - @firebase/analytics-compat@0.2.2
+  - @firebase/app@0.9.2
+  - @firebase/app-check@0.6.2
+  - @firebase/app-check-compat@0.3.2
+  - @firebase/app-compat@0.2.2
+  - @firebase/installations@0.6.2
+  - @firebase/installations-compat@0.2.2
+  - @firebase/performance@0.6.2
+  - @firebase/performance-compat@0.2.2
+  - @firebase/remote-config@0.4.2
+  - @firebase/remote-config-compat@0.2.2
+
+## 9.16.0
+
+### Minor Changes
+
+- [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8) [#6901](https://github.com/firebase/firebase-js-sdk/pull/6901) - Allow users to specify their environment as `node` or `browser` to override Firebase's runtime environment detection and force the SDK to act as if it were in the respective environment.
+
+### Patch Changes
+
+- Updated dependencies [[`a67eb5d04`](https://github.com/firebase/firebase-js-sdk/commit/a67eb5d04405b8133e81aad15f3fc9441eb66091), [`d8af08feb`](https://github.com/firebase/firebase-js-sdk/commit/d8af08febfd4507a28bcda38d475b8010ef20f92), [`a4056634a`](https://github.com/firebase/firebase-js-sdk/commit/a4056634a5119dd3f2ca935cae23b90fc99d84ee), [`a7622d49f`](https://github.com/firebase/firebase-js-sdk/commit/a7622d49f8a69bcdfb95b89dd1609a5c495fd529), [`1455bfa43`](https://github.com/firebase/firebase-js-sdk/commit/1455bfa4393383ab461de35ccbc2b171f92169df), [`50b8191f6`](https://github.com/firebase/firebase-js-sdk/commit/50b8191f6c51a936bd92a1a6a68af1cf201fc127), [`37f31c57b`](https://github.com/firebase/firebase-js-sdk/commit/37f31c57b62bc6486bc08d9e5c64e2c32d25cb0a), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/storage@0.10.1
+  - @firebase/database@0.14.1
+  - @firebase/firestore@3.8.1
+  - @firebase/auth@0.21.1
+  - @firebase/util@1.9.0
+  - @firebase/storage-compat@0.2.1
+  - @firebase/functions@0.9.1
+  - @firebase/database-compat@0.3.1
+  - @firebase/firestore-compat@0.3.1
+  - @firebase/auth-compat@0.3.1
+  - @firebase/analytics@0.9.1
+  - @firebase/analytics-compat@0.2.1
+  - @firebase/app@0.9.1
+  - @firebase/app-check@0.6.1
+  - @firebase/app-check-compat@0.3.1
+  - @firebase/app-compat@0.2.1
+  - @firebase/functions-compat@0.3.1
+  - @firebase/installations@0.6.1
+  - @firebase/installations-compat@0.2.1
+  - @firebase/messaging@0.12.1
+  - @firebase/messaging-compat@0.2.1
+  - @firebase/performance@0.6.1
+  - @firebase/performance-compat@0.2.1
+  - @firebase/remote-config@0.4.1
+  - @firebase/remote-config-compat@0.2.1
+
+## 9.15.0
+
+### Minor Changes
+
+- [`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24) [#6796](https://github.com/firebase/firebase-js-sdk/pull/6796) - Upgrade TypeScript to 4.7.4 (was 4.2.2)
+
+- [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e) [#6694](https://github.com/firebase/firebase-js-sdk/pull/6694) - Functions in the Firestore package that return QueryConstraints (for example: `where(...)`, `limit(...)`, and `orderBy(...)`)
+  now return a more specific type, which extends QueryConstraint. Refactoring and code that supports future features is also
+  included in this release.
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`7e237cd47`](https://github.com/firebase/firebase-js-sdk/commit/7e237cd47d7ab923eec62e648e857a1e36d60520) [#6826](https://github.com/firebase/firebase-js-sdk/pull/6826) - Modify entry point ESM bundles to conform to Node ESM specs.
+
+- Updated dependencies [[`ab3f16cba`](https://github.com/firebase/firebase-js-sdk/commit/ab3f16cbabc420fab0a322a21c9e28d3cbed4f24), [`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10), [`fde5adf63`](https://github.com/firebase/firebase-js-sdk/commit/fde5adf638dae4714ff7f25c75e475344907e05e), [`e650f6498`](https://github.com/firebase/firebase-js-sdk/commit/e650f649854f3c39737fe4bade43f9eedc3e611f), [`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/firestore@3.8.0
+  - @firebase/firestore-compat@0.3.0
+  - @firebase/database@0.14.0
+  - @firebase/database-compat@0.3.0
+  - @firebase/auth@0.21.0
+  - @firebase/util@1.8.0
+  - @firebase/analytics@0.9.0
+  - @firebase/analytics-compat@0.2.0
+  - @firebase/app@0.9.0
+  - @firebase/app-check@0.6.0
+  - @firebase/app-check-compat@0.3.0
+  - @firebase/app-compat@0.2.0
+  - @firebase/app-types@0.9.0
+  - @firebase/auth-compat@0.3.0
+  - @firebase/functions@0.9.0
+  - @firebase/functions-compat@0.3.0
+  - @firebase/installations@0.6.0
+  - @firebase/installations-compat@0.2.0
+  - @firebase/messaging@0.12.0
+  - @firebase/messaging-compat@0.2.0
+  - @firebase/performance@0.6.0
+  - @firebase/performance-compat@0.2.0
+  - @firebase/remote-config@0.4.0
+  - @firebase/remote-config-compat@0.2.0
+  - @firebase/storage@0.10.0
+  - @firebase/storage-compat@0.2.0
+
+## 9.14.0
+
+### Minor Changes
+
+- [`0c0c58f47`](https://github.com/firebase/firebase-js-sdk/commit/0c0c58f474024a628ac0b43aacb086af8f2e794c) [#6773](https://github.com/firebase/firebase-js-sdk/pull/6773) - Add missing package that should have been included in https://github.com/firebase/firebase-js-sdk/pull/6728
+
+### Patch Changes
+
+- [`bf7cc8f69`](https://github.com/firebase/firebase-js-sdk/commit/bf7cc8f691f7a17730b071d3d9c27bd28a6e3980) [#6712](https://github.com/firebase/firebase-js-sdk/pull/6712) (fixes [#6613](https://github.com/firebase/firebase-js-sdk/issues/6613)) - Fix "missing index" error message to include the link to create the composite index.
+
+- [`e2a90bf67`](https://github.com/firebase/firebase-js-sdk/commit/e2a90bf678eb6fa505f8b2f627e03cff622607b5) [#6729](https://github.com/firebase/firebase-js-sdk/pull/6729) - Fix transaction.set() failure without retry on "already-exists" error.
+
+- Updated dependencies [[`3f1354f1f`](https://github.com/firebase/firebase-js-sdk/commit/3f1354f1f120f1fe4bcc11122a6e0b12fe3c6ac4), [`bf7cc8f69`](https://github.com/firebase/firebase-js-sdk/commit/bf7cc8f691f7a17730b071d3d9c27bd28a6e3980), [`8876b783f`](https://github.com/firebase/firebase-js-sdk/commit/8876b783f27ba8ba0ad0305db4812432efa17461), [`9e9ee7ba3`](https://github.com/firebase/firebase-js-sdk/commit/9e9ee7ba3383237e0b92ad8183dd0f12640f4f3a), [`457fc2eeb`](https://github.com/firebase/firebase-js-sdk/commit/457fc2eeb6922fd4eaa5e305cd10ee05e86293be), [`e2a90bf67`](https://github.com/firebase/firebase-js-sdk/commit/e2a90bf678eb6fa505f8b2f627e03cff622607b5)]:
+  - @firebase/app@0.8.4
+  - @firebase/performance@0.5.17
+  - @firebase/firestore@3.7.3
+  - @firebase/storage@0.9.14
+  - @firebase/messaging@0.11.0
+  - @firebase/app-check@0.5.17
+  - @firebase/app-compat@0.1.39
+  - @firebase/performance-compat@0.1.17
+  - @firebase/firestore-compat@0.2.3
+  - @firebase/storage-compat@0.1.22
+  - @firebase/messaging-compat@0.1.21
+  - @firebase/app-check-compat@0.2.17
+
+## 9.13.0
+
+### Minor Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+### Patch Changes
+
+- Updated dependencies [[`de1c717c2`](https://github.com/firebase/firebase-js-sdk/commit/de1c717c2f69e9f21744135b74f92829927b200b), [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5), [`4b9da74db`](https://github.com/firebase/firebase-js-sdk/commit/4b9da74dbca7ebca3a870275364df7129ed016fe)]:
+  - @firebase/storage@0.9.13
+  - @firebase/analytics@0.8.4
+  - @firebase/analytics-compat@0.1.17
+  - @firebase/app@0.8.3
+  - @firebase/app-check@0.5.16
+  - @firebase/app-check-compat@0.2.16
+  - @firebase/app-compat@0.1.38
+  - @firebase/app-types@0.8.1
+  - @firebase/auth@0.20.11
+  - @firebase/auth-compat@0.2.24
+  - @firebase/database@0.13.10
+  - @firebase/database-compat@0.2.10
+  - @firebase/firestore@3.7.2
+  - @firebase/firestore-compat@0.2.2
+  - @firebase/functions@0.8.8
+  - @firebase/functions-compat@0.2.8
+  - @firebase/installations@0.5.16
+  - @firebase/installations-compat@0.1.16
+  - @firebase/messaging@0.10.0
+  - @firebase/messaging-compat@0.1.20
+  - @firebase/performance@0.5.16
+  - @firebase/performance-compat@0.1.16
+  - @firebase/remote-config@0.3.15
+  - @firebase/remote-config-compat@0.1.16
+  - @firebase/storage-compat@0.1.21
+  - @firebase/util@1.7.3
+
+## 9.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`5f55ed828`](https://github.com/firebase/firebase-js-sdk/commit/5f55ed828e7e7d3084590ff04d8c3e75fc718a51), [`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d), [`03d1fabcb`](https://github.com/firebase/firebase-js-sdk/commit/03d1fabcb652b3af61631d1e1100ed13efa6fc87)]:
+  - @firebase/storage@0.9.12
+  - @firebase/util@1.7.2
+  - @firebase/analytics@0.8.3
+  - @firebase/storage-compat@0.1.20
+  - @firebase/analytics-compat@0.1.16
+  - @firebase/app@0.8.2
+  - @firebase/app-check@0.5.15
+  - @firebase/app-check-compat@0.2.15
+  - @firebase/app-compat@0.1.37
+  - @firebase/auth@0.20.10
+  - @firebase/auth-compat@0.2.23
+  - @firebase/database@0.13.9
+  - @firebase/database-compat@0.2.9
+  - @firebase/firestore@3.7.1
+  - @firebase/firestore-compat@0.2.1
+  - @firebase/functions@0.8.7
+  - @firebase/functions-compat@0.2.7
+  - @firebase/installations@0.5.15
+  - @firebase/installations-compat@0.1.15
+  - @firebase/messaging@0.9.19
+  - @firebase/messaging-compat@0.1.19
+  - @firebase/performance@0.5.15
+  - @firebase/performance-compat@0.1.15
+  - @firebase/remote-config@0.3.14
+  - @firebase/remote-config-compat@0.1.15
+
+## 9.12.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
+### Patch Changes
+
+- [`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f) [#6624](https://github.com/firebase/firebase-js-sdk/pull/6624) (fixes [#5873](https://github.com/firebase/firebase-js-sdk/issues/5873)) - Fix Firestore failing to raise initial snapshot from empty local cache result
+
+- Updated dependencies [[`0a112bd2a`](https://github.com/firebase/firebase-js-sdk/commit/0a112bd2aee2e709d6733b1a36876e6fae1e347f), [`5aa48d0ab`](https://github.com/firebase/firebase-js-sdk/commit/5aa48d0ab432002ccf49d65bf2ff637e82a2b402), [`4eb8145fb`](https://github.com/firebase/firebase-js-sdk/commit/4eb8145fb3b503884ea610e813be359127d1a705), [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`1fbc4c4b7`](https://github.com/firebase/firebase-js-sdk/commit/1fbc4c4b7f893ac1f973ccc29205771adec536ca), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/firestore@3.7.0
+  - @firebase/database@0.13.8
+  - @firebase/storage@0.9.11
+  - @firebase/firestore-compat@0.2.0
+  - @firebase/functions@0.8.6
+  - @firebase/util@1.7.1
+  - @firebase/analytics@0.8.2
+  - @firebase/database-compat@0.2.8
+  - @firebase/storage-compat@0.1.19
+  - @firebase/functions-compat@0.2.6
+  - @firebase/analytics-compat@0.1.15
+  - @firebase/app@0.8.1
+  - @firebase/app-check@0.5.14
+  - @firebase/app-check-compat@0.2.14
+  - @firebase/app-compat@0.1.36
+  - @firebase/auth@0.20.9
+  - @firebase/auth-compat@0.2.22
+  - @firebase/installations@0.5.14
+  - @firebase/installations-compat@0.1.14
+  - @firebase/messaging@0.9.18
+  - @firebase/messaging-compat@0.1.18
+  - @firebase/performance@0.5.14
+  - @firebase/performance-compat@0.1.14
+  - @firebase/remote-config@0.3.13
+  - @firebase/remote-config-compat@0.1.14
+
+## 9.11.0
+
+### Minor Changes
+
+- [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4) [#6526](https://github.com/firebase/firebase-js-sdk/pull/6526) - Add functionality to auto-initialize project config and emulator settings from global defaults provided by framework tooling.
+
+* [`ee871fc0b`](https://github.com/firebase/firebase-js-sdk/commit/ee871fc0b157e1a186c2895b4290d70c8d1b986f) [#6608](https://github.com/firebase/firebase-js-sdk/pull/6608) - Added `getCountFromServer()` (`getCount()` in the Lite SDK), which fetches the number of documents in the result set without actually downloading the documents.
+
+### Patch Changes
+
+- Updated dependencies [[`e35db6f95`](https://github.com/firebase/firebase-js-sdk/commit/e35db6f955f1b712ff67a991d8291352f28708e2), [`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4), [`c6ba6fc0f`](https://github.com/firebase/firebase-js-sdk/commit/c6ba6fc0f44178d56fe165f71a798663516a2904), [`b3951c6e4`](https://github.com/firebase/firebase-js-sdk/commit/b3951c6e42559d8aa82711b71440f4adcdae3b56), [`ee871fc0b`](https://github.com/firebase/firebase-js-sdk/commit/ee871fc0b157e1a186c2895b4290d70c8d1b986f)]:
+  - @firebase/firestore@3.6.0
+  - @firebase/app@0.8.0
+  - @firebase/app-types@0.8.0
+  - @firebase/util@1.7.0
+  - @firebase/auth@0.20.8
+  - @firebase/database@0.13.7
+  - @firebase/functions@0.8.5
+  - @firebase/storage@0.9.10
+  - @firebase/app-check@0.5.13
+  - @firebase/firestore-compat@0.1.26
+  - @firebase/analytics@0.8.1
+  - @firebase/app-compat@0.1.35
+  - @firebase/installations@0.5.13
+  - @firebase/messaging@0.9.17
+  - @firebase/performance@0.5.13
+  - @firebase/remote-config@0.3.12
+  - @firebase/analytics-compat@0.1.14
+  - @firebase/app-check-compat@0.2.13
+  - @firebase/auth-compat@0.2.21
+  - @firebase/database-compat@0.2.7
+  - @firebase/functions-compat@0.2.5
+  - @firebase/installations-compat@0.1.13
+  - @firebase/messaging-compat@0.1.17
+  - @firebase/performance-compat@0.1.13
+  - @firebase/remote-config-compat@0.1.13
+  - @firebase/storage-compat@0.1.18
+
+## 9.10.0
+
+### Minor Changes
+
+- [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db) [#6107](https://github.com/firebase/firebase-js-sdk/pull/6107) - Enable encodeInitMessageHeaders. This transitions the Firestore client from encoding HTTP Headers via the Query Param to the request's POST payload.
+
+  Requires Cloud Firestore Emulator v1.14.4 or newer.
+
+### Patch Changes
+
+- Updated dependencies [[`e06d9069c`](https://github.com/firebase/firebase-js-sdk/commit/e06d9069ca07429df248d9134aebdea1118e9427), [`7c0c640a4`](https://github.com/firebase/firebase-js-sdk/commit/7c0c640a446c729ac66fec27dfd77d6398a468db), [`666c8ec1f`](https://github.com/firebase/firebase-js-sdk/commit/666c8ec1ff5cb5b8947a142e26c0a2ecb18f8bb4)]:
+  - @firebase/app@0.7.33
+  - @firebase/auth@0.20.7
+  - @firebase/firestore@3.5.0
+  - @firebase/app-compat@0.1.34
+  - @firebase/auth-compat@0.2.20
+  - @firebase/firestore-compat@0.1.25
+
+## 9.9.4
+
+### Patch Changes
+
+- Updated dependencies [[`f35533594`](https://github.com/firebase/firebase-js-sdk/commit/f355335942b874ba390bcbf3be6de44a3d33dce8), [`bea604ea3`](https://github.com/firebase/firebase-js-sdk/commit/bea604ea33c529e755cc3fcdc0a2ea75d04b9f19), [`b993aeec4`](https://github.com/firebase/firebase-js-sdk/commit/b993aeec4a8f5188d1f53d07808da079f3ade846)]:
+  - @firebase/app@0.7.32
+  - @firebase/database@0.13.6
+  - @firebase/auth@0.20.6
+  - @firebase/firestore@3.4.15
+  - @firebase/app-compat@0.1.33
+  - @firebase/database-compat@0.2.6
+  - @firebase/auth-compat@0.2.19
+  - @firebase/firestore-compat@0.1.24
+
+## 9.9.3
+
+### Patch Changes
+
+- [`dcfebe8dc`](https://github.com/firebase/firebase-js-sdk/commit/dcfebe8dc801bb4dad23c48d9a379510ac86011e) [#6543](https://github.com/firebase/firebase-js-sdk/pull/6543) (fixes [#6503](https://github.com/firebase/firebase-js-sdk/issues/6503)) - Removed all references to `@firebase/polyfill`.
+
+- Updated dependencies [[`9f1e3c667`](https://github.com/firebase/firebase-js-sdk/commit/9f1e3c66747126c8e24894d73f7fa27480bec08d), [`a5d9e1083`](https://github.com/firebase/firebase-js-sdk/commit/a5d9e10831c2877e9d15c8a33b15557e4251c4de), [`fcd4b8ac3`](https://github.com/firebase/firebase-js-sdk/commit/fcd4b8ac36636a60d83cd3370969ff9192f9e6ad)]:
+  - @firebase/app@0.7.31
+  - @firebase/database-compat@0.2.5
+  - @firebase/database@0.13.5
+  - @firebase/app-compat@0.1.32
+
 ## 9.9.2
 
 ### Patch Changes

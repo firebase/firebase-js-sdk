@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-import {
-  Direction,
-  FieldFilter,
-  Operator,
-  OrderBy,
-  Target
-} from '../core/target';
-import { debugAssert } from '../util/assert';
+import { FieldFilter, Operator } from '../core/filter';
+import { Direction, OrderBy } from '../core/order_by';
+import { Target } from '../core/target';
+import { debugAssert, hardAssert } from '../util/assert';
 
 import {
   FieldIndex,
@@ -107,7 +103,7 @@ export class TargetIndexMatcher {
    *   omitted.
    */
   servedByIndex(index: FieldIndex): boolean {
-    debugAssert(
+    hardAssert(
       index.collectionGroup === this.collectionId,
       'Collection IDs do not match'
     );
@@ -122,6 +118,7 @@ export class TargetIndexMatcher {
     }
 
     const segments = fieldIndexGetDirectionalSegments(index);
+    let equalitySegments = new Set<string>();
     let segmentIndex = 0;
     let orderBysIndex = 0;
 
@@ -129,11 +126,11 @@ export class TargetIndexMatcher {
     for (; segmentIndex < segments.length; ++segmentIndex) {
       // We attempt to greedily match all segments to equality filters. If a
       // filter matches an index segment, we can mark the segment as used.
-      // Since it is not possible to use the same field path in both an equality
-      // and inequality/oderBy clause, we do not have to consider the possibility
-      // that a matching equality segment should instead be used to map to an
-      // inequality filter or orderBy clause.
-      if (!this.hasMatchingEqualityFilter(segments[segmentIndex])) {
+      if (this.hasMatchingEqualityFilter(segments[segmentIndex])) {
+        equalitySegments = equalitySegments.add(
+          segments[segmentIndex].fieldPath.canonicalString()
+        );
+      } else {
         // If we cannot find a matching filter, we need to verify whether the
         // remaining segments map to the target's inequality and its orderBy
         // clauses.
@@ -148,16 +145,22 @@ export class TargetIndexMatcher {
       return true;
     }
 
-    // If there is an inequality filter, the next segment must match both the
-    // filter and the first orderBy clause.
     if (this.inequalityFilter !== undefined) {
-      const segment = segments[segmentIndex];
+      // If there is an inequality filter and the field was not in one of the
+      // equality filters above, the next segment must match both the filter
+      // and the first orderBy clause.
       if (
-        !this.matchesFilter(this.inequalityFilter, segment) ||
-        !this.matchesOrderBy(this.orderBys[orderBysIndex++], segment)
+        !equalitySegments.has(this.inequalityFilter.field.canonicalString())
       ) {
-        return false;
+        const segment = segments[segmentIndex];
+        if (
+          !this.matchesFilter(this.inequalityFilter, segment) ||
+          !this.matchesOrderBy(this.orderBys[orderBysIndex++], segment)
+        ) {
+          return false;
+        }
       }
+
       ++segmentIndex;
     }
 

@@ -62,7 +62,8 @@ import {
   Timestamp,
   FieldPath,
   newTestFirestore,
-  SnapshotOptions
+  SnapshotOptions,
+  newTestApp
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -71,13 +72,14 @@ import {
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  withNamedTestDbsOrSkipUnlessUsingEmulator
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
-apiDescribe('Database', (persistence: boolean) => {
+apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return setDoc(docRef, {
@@ -149,29 +151,32 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)('can update an unknown document', () => {
-    return withTestDbs(persistence, 2, async ([reader, writer]) => {
-      const writerRef = doc(collection(writer, 'collection'));
-      const readerRef = doc(collection(reader, 'collection'), writerRef.id);
-      await setDoc(writerRef, { a: 'a' });
-      await updateDoc(readerRef, { b: 'b' });
-      await getDocFromCache(writerRef).then(
-        doc => expect(doc.exists()).to.be.true
-      );
-      await getDocFromCache(readerRef).then(
-        () => {
-          expect.fail('Expected cache miss');
-        },
-        err => expect(err.code).to.be.equal('unavailable')
-      );
-      await getDoc(writerRef).then(doc =>
-        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
-      );
-      await getDoc(readerRef).then(doc =>
-        expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
-      );
-    });
-  });
+  (persistence.gc === 'lru' ? it : it.skip)(
+    'can update an unknown document',
+    () => {
+      return withTestDbs(persistence, 2, async ([reader, writer]) => {
+        const writerRef = doc(collection(writer, 'collection'));
+        const readerRef = doc(collection(reader, 'collection'), writerRef.id);
+        await setDoc(writerRef, { a: 'a' });
+        await updateDoc(readerRef, { b: 'b' });
+        await getDocFromCache(writerRef).then(
+          doc => expect(doc.exists()).to.be.true
+        );
+        await getDocFromCache(readerRef).then(
+          () => {
+            expect.fail('Expected cache miss');
+          },
+          err => expect(err.code).to.be.equal('unavailable')
+        );
+        await getDoc(writerRef).then(doc =>
+          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+        );
+        await getDoc(readerRef).then(doc =>
+          expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' })
+        );
+      });
+    }
+  );
 
   it('can merge data with an existing document using set', () => {
     return withTestDoc(persistence, doc => {
@@ -634,7 +639,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  apiDescribe('Queries are validated client-side', (persistence: boolean) => {
+  apiDescribe('Queries are validated client-side', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
@@ -1091,33 +1096,35 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)('offline writes are sent after restart', () => {
-    return withTestDoc(persistence, async (docRef, firestore) => {
-      const app = firestore.app;
-      const name = app.name;
-      const options = app.options;
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
+    'offline writes are sent after restart',
+    () => {
+      return withTestDoc(persistence, async (docRef, firestore) => {
+        const app = firestore.app;
+        const name = app.name;
+        const options = app.options;
 
-      await disableNetwork(firestore);
+        await disableNetwork(firestore);
 
-      // We are merely adding to the cache.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      setDoc(docRef, { foo: 'bar' });
+        // We are merely adding to the cache.
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        setDoc(docRef, { foo: 'bar' });
 
-      await deleteApp(app);
+        await deleteApp(app);
 
-      const firestore2 = newTestFirestore(
-        options.projectId!,
-        name,
-        DEFAULT_SETTINGS
-      );
-      await enableIndexedDbPersistence(firestore2);
-      await waitForPendingWrites(firestore2);
-      const doc2 = await getDoc(doc(firestore2, docRef.path));
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name),
+          DEFAULT_SETTINGS
+        );
+        await enableIndexedDbPersistence(firestore2);
+        await waitForPendingWrites(firestore2);
+        const doc2 = await getDoc(doc(firestore2, docRef.path));
 
-      expect(doc2.exists()).to.be.true;
-      expect(doc2.metadata.hasPendingWrites).to.be.false;
-    });
-  });
+        expect(doc2.exists()).to.be.true;
+        expect(doc2.metadata.hasPendingWrites).to.be.false;
+      });
+    }
+  );
 
   it('rejects subsequent method calls after terminate() is called', async () => {
     return withTestDb(persistence, db => {
@@ -1138,7 +1145,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1149,7 +1156,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await deleteApp(app);
 
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         const docSnap2 = await getDocFromCache(docRef2);
@@ -1159,7 +1168,7 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'can clear persistence if the client has been terminated',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
@@ -1170,7 +1179,9 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await deleteApp(app);
         await clearIndexedDbPersistence(firestore);
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
         await expect(getDocFromCache(docRef2)).to.eventually.be.rejectedWith(
@@ -1181,7 +1192,7 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1191,7 +1202,9 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await deleteApp(app);
-        const firestore2 = newTestFirestore(options.projectId!, name);
+        const firestore2 = newTestFirestore(
+          newTestApp(options.projectId!, name)
+        );
         await clearIndexedDbPersistence(firestore2);
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
@@ -1203,10 +1216,11 @@ apiDescribe('Database', (persistence: boolean) => {
   );
 
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'cannot clear persistence if the client has been initialized',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {
+        await setDoc(docRef, {});
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
@@ -1330,7 +1344,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
   // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
   // only to web.
-  apiDescribe('withConverter() support', (persistence: boolean) => {
+  apiDescribe('withConverter() support', persistence => {
     class Post {
       constructor(
         readonly title: string,
@@ -1700,5 +1714,70 @@ apiDescribe('Database', (persistence: boolean) => {
           });
       }
     );
+  });
+
+  it('can keep docs separate with multi-db when online', () => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+
+        const ref1 = await doc(collection(db1, 'users'), 'doc1');
+        await setDoc(ref1, data);
+        const snapshot1 = await getDoc(ref1);
+        expect(snapshot1.exists()).to.be.ok;
+        expect(snapshot1.data()).to.be.deep.equals(data);
+
+        const ref2 = await doc(collection(db2, 'users'), 'doc1');
+        const snapshot2 = await getDocFromServer(ref2);
+        expect(snapshot2.exists()).to.not.be.ok;
+      }
+    );
+  });
+
+  it('can keep docs separate with multi-db when offline', () => {
+    return withNamedTestDbsOrSkipUnlessUsingEmulator(
+      persistence,
+      ['db1', 'db2'],
+      async ([db1, db2]) => {
+        await disableNetwork(db1);
+        await disableNetwork(db2);
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+
+        const ref1 = await doc(collection(db1, 'users'));
+        void setDoc(ref1, data);
+        const snapshot = await getDocFromCache(ref1);
+        expect(snapshot.exists()).to.be.ok;
+        expect(snapshot.data()).to.be.deep.equals(data);
+
+        const ref2 = await doc(collection(db2, 'users'));
+        await expect(getDocFromCache(ref2)).to.eventually.rejectedWith(
+          'Failed to get document from cache.'
+        );
+      }
+    );
+  });
+
+  it('Cannot get document from cache with eager GC enabled.', () => {
+    const initialData = { key: 'value' };
+    return withTestDb(persistence.toEagerGc(), async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      await expect(getDocFromCache(docRef)).to.be.rejectedWith('Failed to get');
+    });
+  });
+
+  it('Can get document from cache with Lru GC enabled.', () => {
+    const initialData = { key: 'value' };
+    return withTestDb(persistence.toLruGc(), async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDocFromCache(docRef).then(doc => {
+        expect(doc.exists()).to.be.true;
+        expect(doc.metadata.fromCache).to.be.true;
+        expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
   });
 });

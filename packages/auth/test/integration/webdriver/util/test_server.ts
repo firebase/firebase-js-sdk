@@ -16,7 +16,7 @@
  */
 
 import * as path from 'path';
-import express from 'express';
+import * as express from 'express';
 import { Server } from 'http';
 
 const PORT_NUMBER = '4100';
@@ -31,7 +31,7 @@ const INTEGRATION_TEST_ASSETS = express.static(
 
 /** Simple express server for serving up the static files for testing */
 class AuthTestServer {
-  private app = express();
+  private app = express.default();
   private server: Server | null = null;
 
   constructor() {

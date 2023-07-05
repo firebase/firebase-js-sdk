@@ -73,8 +73,10 @@ describe('platform_cordova/popup_redirect/events', () => {
       const spy = sinon.spy(Storage.prototype, 'setItem');
       const event = _generateNewEvent(auth, AuthEventType.REAUTH_VIA_REDIRECT);
       await _savePartialEvent(auth, event);
-      expect(spy).to.have.been.calledWith('firebase:authEvent:test-api-key:test-app',
-      JSON.stringify(event));
+      expect(spy).to.have.been.calledWith(
+        'firebase:authEvent:test-api-key:test-app',
+        JSON.stringify(event)
+      );
     });
   });
 

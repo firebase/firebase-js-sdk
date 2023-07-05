@@ -1,3 +1,8 @@
+import { FirebaseApp } from '@firebase/app';
+
+import { ExperimentalLongPollingOptions } from '../api/long_polling_options';
+import { Code, FirestoreError } from '../util/error';
+
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -30,6 +35,7 @@ export class DatabaseInfo {
    * when using WebChannel as the network transport.
    * @param autoDetectLongPolling - Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
+   * @param longPollingOptions Options that configure long-polling.
    * @param useFetchStreams Whether to use the Fetch API instead of
    * XMLHTTPRequest
    */
@@ -41,12 +47,13 @@ export class DatabaseInfo {
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
     readonly autoDetectLongPolling: boolean,
+    readonly longPollingOptions: ExperimentalLongPollingOptions,
     readonly useFetchStreams: boolean
   ) {}
 }
 
 /** The default database name for a project. */
-const DEFAULT_DATABASE_NAME = '(default)';
+export const DEFAULT_DATABASE_NAME = '(default)';
 
 /**
  * Represents the database ID a Firestore client is associated with.
@@ -73,4 +80,18 @@ export class DatabaseId {
       other.database === this.database
     );
   }
+}
+
+export function databaseIdFromApp(
+  app: FirebaseApp,
+  database?: string
+): DatabaseId {
+  if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      '"projectId" not provided in firebase.initializeApp.'
+    );
+  }
+
+  return new DatabaseId(app.options.projectId!, database);
 }

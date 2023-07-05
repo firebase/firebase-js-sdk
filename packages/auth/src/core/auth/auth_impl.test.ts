@@ -24,6 +24,8 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseError } from '@firebase/util';
 
 import {
+  FAKE_APP_CHECK_CONTROLLER,
+  FAKE_APP_CHECK_CONTROLLER_PROVIDER,
   FAKE_HEARTBEAT_CONTROLLER,
   FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
   testAuth,
@@ -39,6 +41,9 @@ import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 import { ClientPlatform } from '../util/version';
+import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 
 use(sinonChai);
@@ -62,6 +67,7 @@ describe('core/auth/auth_impl', () => {
     const authImpl = new AuthImpl(
       FAKE_APP,
       FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+      FAKE_APP_CHECK_CONTROLLER_PROVIDER,
       {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DefaultConfig.API_HOST,
@@ -306,6 +312,65 @@ describe('core/auth/auth_impl', () => {
         });
       });
 
+      context('with Proactive Refresh', () => {
+        let oldUser: UserInternal;
+
+        beforeEach(() => {
+          oldUser = testUser(auth, 'old-user-uid');
+
+          for (const u of [user, oldUser]) {
+            sinon.spy(u, '_startProactiveRefresh');
+            sinon.spy(u, '_stopProactiveRefresh');
+          }
+        });
+
+        it('null -> user: does not turn on if not enabled', async () => {
+          await auth._updateCurrentUser(null);
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).not.to.have.been.called;
+        });
+
+        it('null -> user: turns on if enabled', async () => {
+          await auth._updateCurrentUser(null);
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).to.have.been.called;
+        });
+
+        it('user -> user: does not turn on if not enabled', async () => {
+          await auth._updateCurrentUser(oldUser);
+          await auth._updateCurrentUser(user);
+
+          expect(user._startProactiveRefresh).not.to.have.been.called;
+        });
+
+        it('user -> user: turns on if enabled', async () => {
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(oldUser);
+          await auth._updateCurrentUser(user);
+
+          expect(oldUser._stopProactiveRefresh).to.have.been.called;
+          expect(user._startProactiveRefresh).to.have.been.called;
+        });
+
+        it('calling start on auth triggers user to start', async () => {
+          await auth._updateCurrentUser(user);
+          auth._startProactiveRefresh();
+
+          expect(user._startProactiveRefresh).to.have.been.calledOnce;
+        });
+
+        it('calling stop stops the refresh on the current user', async () => {
+          auth._startProactiveRefresh();
+          await auth._updateCurrentUser(user);
+          auth._stopProactiveRefresh();
+
+          expect(user._stopProactiveRefresh).to.have.been.called;
+        });
+      });
+
       it('onAuthStateChange works for multiple listeners', async () => {
         const cb1 = sinon.spy();
         const cb2 = sinon.spy();
@@ -523,6 +588,7 @@ describe('core/auth/auth_impl', () => {
       const authImpl = new AuthImpl(
         FAKE_APP,
         FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
         {
           apiKey: FAKE_APP.options.apiKey!,
           apiHost: DefaultConfig.API_HOST,
@@ -596,6 +662,128 @@ describe('core/auth/auth_impl', () => {
       expect(await auth._getAdditionalHeaders()).to.eql({
         'X-Client-Version': 'v'
       });
+    });
+
+    it('adds the App Check token if available', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
+        .returns(Promise.resolve({ token: 'fake-token' }));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v',
+        'X-Firebase-AppCheck': 'fake-token'
+      });
+    });
+
+    it('does not add the App Check token if none returned', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
+        .returns(Promise.resolve({ token: '' }));
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v'
+      });
+    });
+
+    it('does not add the App Check token if controller unavailable', async () => {
+      sinon
+        .stub(FAKE_APP_CHECK_CONTROLLER, 'getToken')
+        .returns(undefined as any);
+      expect(await auth._getAdditionalHeaders()).to.eql({
+        'X-Client-Version': 'v'
+      });
+    });
+  });
+
+  context('recaptchaEnforcementState', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
+    const cachedRecaptchaConfigEnforce = {
+      emailPasswordEnabled: true,
+      siteKey: 'site-key'
+    };
+    const cachedRecaptchaConfigOFF = {
+      emailPasswordEnabled: false,
+      siteKey: 'site-key'
+    };
+
+    beforeEach(async () => {
+      mockFetch.setUp();
+    });
+
+    afterEach(() => {
+      mockFetch.tearDown();
+    });
+
+    it('recaptcha config should be set for agent if tenant id is null.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
+    });
+
+    it('recaptcha config should be set for tenant if tenant id is not null.', async () => {
+      auth = await testAuth();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE,
+          tenantId: 'tenant-id'
+        },
+        recaptchaConfigResponseOff
+      );
+      await auth.initializeRecaptchaConfig();
+
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
+    });
+
+    it('recaptcha config should dynamically switch if tenant id switches.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await auth.initializeRecaptchaConfig();
+      auth.tenantId = 'tenant-id';
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE,
+          tenantId: 'tenant-id'
+        },
+        recaptchaConfigResponseOff
+      );
+      await auth.initializeRecaptchaConfig();
+
+      auth.tenantId = null;
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
+      auth.tenantId = 'tenant-id';
+      expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
   });
 });

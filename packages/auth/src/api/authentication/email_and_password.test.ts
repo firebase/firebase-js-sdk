@@ -21,7 +21,12 @@ import chaiAsPromised from 'chai-as-promised';
 import { ActionCodeOperation } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
+import {
+  Endpoint,
+  HttpHeader,
+  RecaptchaClientType,
+  RecaptchaVersion
+} from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
@@ -44,7 +49,10 @@ describe('api/authentication/signInWithPassword', () => {
   const request = {
     returnSecureToken: true,
     email: 'test@foo.com',
-    password: 'my-password'
+    password: 'my-password',
+    captchaResponse: 'recaptcha-token',
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
   };
 
   let auth: TestAuth;
@@ -76,7 +84,7 @@ describe('api/authentication/signInWithPassword', () => {
     );
   });
 
-  it('should handle errors', async () => {
+  it('should handle errors for invalid password', async () => {
     const mock = mockEndpoint(
       Endpoint.SIGN_IN_WITH_PASSWORD,
       {
@@ -96,6 +104,31 @@ describe('api/authentication/signInWithPassword', () => {
     await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The password is invalid or the user does not have a password. (auth/wrong-password).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  });
+
+  it('should handle errors for missing password', async () => {
+    request.password = '';
+    const mock = mockEndpoint(
+      Endpoint.SIGN_IN_WITH_PASSWORD,
+      {
+        error: {
+          code: 400,
+          message: ServerError.MISSING_PASSWORD,
+          errors: [
+            {
+              message: ServerError.MISSING_PASSWORD
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(signInWithPassword(auth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: A non-empty password must be provided (auth/missing-password).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
@@ -162,7 +195,10 @@ describe('api/authentication/sendEmailVerification', () => {
 describe('api/authentication/sendPasswordResetEmail', () => {
   const request: PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
-    email: 'test@foo.com'
+    email: 'test@foo.com',
+    captchaResp: 'recaptcha-token',
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
   };
 
   let auth: TestAuth;
@@ -220,7 +256,10 @@ describe('api/authentication/sendPasswordResetEmail', () => {
 describe('api/authentication/sendSignInLinkToEmail', () => {
   const request: EmailSignInRequest = {
     requestType: ActionCodeOperation.EMAIL_SIGNIN,
-    email: 'test@foo.com'
+    email: 'test@foo.com',
+    captchaResp: 'recaptcha-token',
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
   };
 
   let auth: TestAuth;

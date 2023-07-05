@@ -93,6 +93,7 @@ export interface IMarkdownDocumenterOptions {
   outputFolder: string;
   addFileNameSuffix: boolean;
   projectName: string;
+  sortFunctions: string;
 }
 
 /**
@@ -108,6 +109,7 @@ export class MarkdownDocumenter {
   private readonly _pluginLoader: PluginLoader;
   private readonly _addFileNameSuffix: boolean;
   private readonly _projectName: string;
+  private readonly _sortFunctions: string;
 
   public constructor(options: IMarkdownDocumenterOptions) {
     this._apiModel = options.apiModel;
@@ -115,6 +117,7 @@ export class MarkdownDocumenter {
     this._outputFolder = options.outputFolder;
     this._addFileNameSuffix = options.addFileNameSuffix;
     this._projectName = options.projectName;
+    this._sortFunctions = options.sortFunctions;
     this._tsdocConfiguration = CustomDocNodes.configuration;
     this._markdownEmitter = new CustomMarkdownEmitter(this._apiModel);
 
@@ -834,10 +837,12 @@ page_type: reference
       headerTitles: ['Enumeration', 'Description']
     });
 
-    const functionsTable: DocTable = new DocTable({
+    const finalFunctionsTable: DocTable = new DocTable({
       configuration,
       headerTitles: ['Function', 'Description']
     });
+
+    const functionsRowGroup: Record<string, DocTableRow[]> = {};
 
     const interfacesTable: DocTable = new DocTable({
       configuration,
@@ -859,7 +864,8 @@ page_type: reference
       headerTitles: ['Type Alias', 'Description']
     });
 
-    const functionsDefinitions: DocNode[] = [];
+    const functionsDefinitionsGroup: Record<string, DocNode[]> = {};
+    const finalFunctionsDefinitions: DocNode[] = [];
     const variablesDefinitions: DocNode[] = [];
     const typeAliasDefinitions: DocNode[] = [];
     const enumsDefinitions: DocNode[] = [];
@@ -899,10 +905,29 @@ page_type: reference
           break;
 
         case ApiItemKind.Function:
-          functionsTable.addRow(row);
-          functionsDefinitions.push(
-            ...this._createCompleteOutputForApiItem(apiMember)
-          );
+          /**
+           * If this option is set, group functions by first param.
+           * Organize using a map where the key is the first param.
+           */
+          if (this._sortFunctions) {
+            const firstParam = (apiMember as ApiParameterListMixin)
+              .parameters[0] || { name: '' };
+            if (!functionsRowGroup[firstParam.name]) {
+              functionsRowGroup[firstParam.name] = [];
+            }
+            if (!functionsDefinitionsGroup[firstParam.name]) {
+              functionsDefinitionsGroup[firstParam.name] = [];
+            }
+            functionsRowGroup[firstParam.name].push(row);
+            functionsDefinitionsGroup[firstParam.name].push(
+              ...this._createCompleteOutputForApiItem(apiMember)
+            );
+          } else {
+            finalFunctionsTable.addRow(row);
+            finalFunctionsDefinitions.push(
+              ...this._createCompleteOutputForApiItem(apiMember)
+            );
+          }
           break;
 
         case ApiItemKind.TypeAlias:
@@ -921,9 +946,60 @@ page_type: reference
       }
     }
 
-    if (functionsTable.rows.length > 0) {
+    /**
+     * Sort the functions groups by first param. If priority params were
+     * provided to --sort-functions, will put them first in the order
+     * given.
+     */
+    if (this._sortFunctions) {
+      let priorityParams: string[] = [];
+      if (this._sortFunctions.includes(',')) {
+        priorityParams = this._sortFunctions.split(',');
+      } else {
+        priorityParams = [this._sortFunctions];
+      }
+      const sortedFunctionsFirstParamKeys = Object.keys(functionsRowGroup).sort(
+        (a, b) => {
+          if (priorityParams.includes(a) && priorityParams.includes(b)) {
+            return priorityParams.indexOf(a) - priorityParams.indexOf(b);
+          } else if (priorityParams.includes(a)) {
+            return -1;
+          } else if (priorityParams.includes(b)) {
+            return 1;
+          }
+          return a.localeCompare(b);
+        }
+      );
+
+      for (const paramKey of sortedFunctionsFirstParamKeys) {
+        // Header for each group of functions grouped by first param.
+        // Doesn't make sense if there's only one group.
+        const headerText = paramKey ? `function(${paramKey}...)` : 'function()';
+        if (sortedFunctionsFirstParamKeys.length > 1) {
+          finalFunctionsTable.addRow(
+            new DocTableRow({ configuration }, [
+              new DocTableCell({ configuration }, [
+                new DocParagraph({ configuration }, [
+                  new DocEmphasisSpan({ configuration, bold: true }, [
+                    new DocPlainText({ configuration, text: headerText })
+                  ])
+                ])
+              ])
+            ])
+          );
+        }
+        for (const functionsRow of functionsRowGroup[paramKey]) {
+          finalFunctionsTable.addRow(functionsRow);
+        }
+        for (const functionDefinition of functionsDefinitionsGroup[paramKey]) {
+          finalFunctionsDefinitions.push(functionDefinition);
+        }
+      }
+    }
+
+    if (finalFunctionsTable.rows.length > 0) {
       output.push(new DocHeading({ configuration, title: 'Functions' }));
-      output.push(functionsTable);
+      output.push(finalFunctionsTable);
     }
 
     if (classesTable.rows.length > 0) {
@@ -956,8 +1032,8 @@ page_type: reference
       output.push(typeAliasesTable);
     }
 
-    if (functionsDefinitions.length > 0) {
-      output.push(...functionsDefinitions);
+    if (finalFunctionsDefinitions.length > 0) {
+      output.push(...finalFunctionsDefinitions);
     }
 
     if (variablesDefinitions.length > 0) {

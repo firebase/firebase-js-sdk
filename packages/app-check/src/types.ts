@@ -24,6 +24,10 @@ export interface FirebaseAppCheckInternal {
   // is present. Returns null if no token is present and no token requests are in-flight.
   getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
 
+  // Get a Limited use Firebase App Check token. This method should be used
+  // only if you need to authorize requests to a non-Firebase backend. Returns null if no token is present and no token requests are in-flight.
+  getLimitedUseToken(): Promise<AppCheckTokenResult>;
+
   // Registers a listener to changes in the token state. There can be more than one listener
   // registered at the same time for one or more FirebaseAppAttestation instances. The
   // listeners call back on the UI thread whenever the current token associated with this
@@ -52,6 +56,10 @@ export const enum ListenerType {
 export interface AppCheckTokenResult {
   readonly token: string;
   readonly error?: Error;
+  // Error that should not be propagated to 3P listeners, e.g. exchange
+  // request errors during proactive refresh period, while the token
+  // is still valid.
+  readonly internalError?: Error;
 }
 
 export interface AppCheckTokenInternal extends AppCheckToken {

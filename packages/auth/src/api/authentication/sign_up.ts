@@ -18,6 +18,8 @@
 import {
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary,
   _performSignInRequest
 } from '../index';
@@ -29,6 +31,9 @@ export interface SignUpRequest {
   email?: string;
   password?: string;
   tenantId?: string;
+  captchaResponse?: string;
+  clientType?: RecaptchaClientType;
+  recaptchaVersion?: RecaptchaVersion;
 }
 
 export interface SignUpResponse extends IdTokenResponse {

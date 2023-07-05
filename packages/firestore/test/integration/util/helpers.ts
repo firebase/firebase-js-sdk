@@ -18,28 +18,123 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import {
+  clearIndexedDbPersistence,
   collection,
+  CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   Firestore,
-  terminate,
-  clearIndexedDbPersistence,
-  enableIndexedDbPersistence,
-  CollectionReference,
-  DocumentData,
+  MemoryLocalCache,
+  memoryEagerGarbageCollector,
+  memoryLocalCache,
+  memoryLruGarbageCollector,
+  newTestApp,
+  newTestFirestore,
+  PersistentLocalCache,
+  persistentLocalCache,
+  PrivateSettings,
   QuerySnapshot,
   setDoc,
-  PrivateSettings,
   SnapshotListenOptions,
-  newTestFirestore
+  terminate,
+  WriteBatch,
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from './settings';
 
 /* eslint-disable no-restricted-globals */
+
+export interface PersistenceMode {
+  readonly name: string;
+  readonly storage: 'memory' | 'indexeddb';
+  readonly gc: 'eager' | 'lru';
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses eager garbage collection.
+   */
+  toEagerGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses LRU garbage collection.
+   */
+  toLruGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new "local cache" object corresponding to this
+   * persistence type.
+   */
+  asLocalCacheFirestoreSettings(): MemoryLocalCache | PersistentLocalCache;
+}
+
+export class MemoryEagerPersistenceMode implements PersistenceMode {
+  readonly name = 'memory';
+  readonly storage = 'memory';
+  readonly gc = 'eager';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({
+      garbageCollector: memoryEagerGarbageCollector()
+    });
+  }
+}
+
+export class MemoryLruPersistenceMode implements PersistenceMode {
+  readonly name = 'memory_lru_gc';
+  readonly storage = 'memory';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
+  }
+}
+
+export class IndexedDbPersistenceMode implements PersistenceMode {
+  readonly name = 'indexeddb';
+  readonly storage = 'indexeddb';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): IndexedDbPersistenceMode {
+    return new IndexedDbPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): PersistentLocalCache {
+    if (this.gc !== 'lru') {
+      throw new Error(
+        `PersistentLocalCache does not support the given ` +
+          `garbage collector: ${this.gc}`
+      );
+    }
+    return persistentLocalCache();
+  }
+}
 
 function isIeOrEdge(): boolean {
   if (!window.navigator) {
@@ -71,24 +166,31 @@ export function isPersistenceAvailable(): boolean {
 function apiDescribeInternal(
   describeFn: Mocha.PendingSuiteFunction,
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes = [false];
+  const persistenceModes: PersistenceMode[] = [
+    new MemoryEagerPersistenceMode()
+  ];
   if (isPersistenceAvailable()) {
-    persistenceModes.push(true);
+    persistenceModes.push(new IndexedDbPersistenceMode());
   }
 
-  for (const enabled of persistenceModes) {
-    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+  for (const persistenceMode of persistenceModes) {
+    describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () =>
+      // Freeze the properties of the `PersistenceMode` object specified to the
+      // test suite so that it cannot (accidentally or intentionally) change
+      // its properties, and affect all subsequent test suites.
+      testSuite(Object.freeze(persistenceMode))
+    );
   }
 }
 
 type ApiSuiteFunction = (
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ) => void;
 interface ApiDescribe {
-  (message: string, testSuite: (persistence: boolean) => void): void;
+  (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
 }
@@ -131,7 +233,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -141,7 +243,7 @@ export function withTestDb(
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
@@ -156,7 +258,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: boolean,
+  persistence: PersistenceMode,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -168,13 +270,13 @@ export function withTestDbs(
     fn
   );
 }
-export async function withTestDbsSettings(
-  persistence: boolean,
+export async function withTestDbsSettings<T>(
+  persistence: PersistenceMode,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
-  fn: (db: Firestore[]) => Promise<void>
-): Promise<void> {
+  fn: (db: Firestore[]) => Promise<T>
+): Promise<T> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
   }
@@ -182,10 +284,46 @@ export async function withTestDbsSettings(
   const dbs: Firestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const db = newTestFirestore(projectId, /* name =*/ undefined, settings);
-    if (persistence) {
-      await enableIndexedDbPersistence(db);
+    const newSettings = {
+      ...settings,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
+    const db = newTestFirestore(newTestApp(projectId), newSettings);
+    dbs.push(db);
+  }
+
+  try {
+    return await fn(dbs);
+  } finally {
+    for (const db of dbs) {
+      await terminate(db);
+      if (persistence.storage === 'indexeddb') {
+        await clearIndexedDbPersistence(db);
+      }
     }
+  }
+}
+
+export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
+  persistence: PersistenceMode,
+  dbNames: string[],
+  fn: (db: Firestore[]) => Promise<void>
+): Promise<void> {
+  // Tests with named DBs can only run on emulator for now. This is because the
+  // emulator does not require DB to be created before use.
+  // TODO: Design ability to run named DB tests on backend. Maybe create DBs
+  // TODO: beforehand, or create DBs as part of test setup.
+  if (!USE_EMULATOR) {
+    return Promise.resolve();
+  }
+  const app = newTestApp(DEFAULT_PROJECT_ID);
+  const dbs: Firestore[] = [];
+  for (const dbName of dbNames) {
+    const newSettings = {
+      ...DEFAULT_SETTINGS,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
+    const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
 
@@ -194,7 +332,7 @@ export async function withTestDbsSettings(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -202,7 +340,7 @@ export async function withTestDbsSettings(
 }
 
 export function withTestDoc(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
@@ -211,7 +349,7 @@ export function withTestDoc(
 }
 
 export function withTestDocAndSettings(
-  persistence: boolean,
+  persistence: PersistenceMode,
   settings: PrivateSettings,
   fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
@@ -232,7 +370,7 @@ export function withTestDocAndSettings(
 // `withTestDoc(..., docRef => { setDoc(docRef, initialData) ...});` that
 // otherwise is quite common.
 export function withTestDocAndInitialData(
-  persistence: boolean,
+  persistence: PersistenceMode,
   initialData: DocumentData | null,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
@@ -246,22 +384,49 @@ export function withTestDocAndInitialData(
   });
 }
 
-export function withTestCollection(
-  persistence: boolean,
+export class RetryError extends Error {
+  readonly name = 'FirestoreIntegrationTestRetryError';
+}
+
+export async function withRetry<T>(
+  fn: (attemptNumber: number) => Promise<T>
+): Promise<T> {
+  let attemptNumber = 0;
+  while (true) {
+    attemptNumber++;
+    try {
+      return await fn(attemptNumber);
+    } catch (error) {
+      if (!(error instanceof RetryError)) {
+        throw error;
+      }
+    }
+  }
+}
+
+export function withTestCollection<T>(
+  persistence: PersistenceMode,
   docs: { [key: string]: DocumentData },
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
+}
+
+export function withEmptyTestCollection(
+  persistence: PersistenceMode,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
-  return withTestCollectionSettings(persistence, DEFAULT_SETTINGS, docs, fn);
+  return withTestCollection(persistence, {}, fn);
 }
 
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
-export function withTestCollectionSettings(
-  persistence: boolean,
+export function withTestCollectionSettings<T>(
+  persistence: PersistenceMode,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
-  fn: (collection: CollectionReference, db: Firestore) => Promise<void>
-): Promise<void> {
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
@@ -272,11 +437,34 @@ export function withTestCollectionSettings(
       const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
-      const sets: Array<Promise<void>> = [];
-      Object.keys(docs).forEach(key => {
-        sets.push(setDoc(doc(setupCollection, key), docs[key]));
-      });
-      return Promise.all(sets).then(() => fn(testCollection, testDb));
+
+      const writeBatchCommits: Array<Promise<void>> = [];
+      let writeBatch_: WriteBatch | null = null;
+      let writeBatchSize = 0;
+
+      for (const key of Object.keys(docs)) {
+        if (writeBatch_ === null) {
+          writeBatch_ = writeBatch(setupDb);
+        }
+
+        writeBatch_.set(doc(setupCollection, key), docs[key]);
+        writeBatchSize++;
+
+        // Write batches are capped at 500 writes. Use 400 just to be safe.
+        if (writeBatchSize === 400) {
+          writeBatchCommits.push(writeBatch_.commit());
+          writeBatch_ = null;
+          writeBatchSize = 0;
+        }
+      }
+
+      if (writeBatch_ !== null) {
+        writeBatchCommits.push(writeBatch_.commit());
+      }
+
+      return Promise.all(writeBatchCommits).then(() =>
+        fn(testCollection, testDb)
+      );
     }
   );
 }
