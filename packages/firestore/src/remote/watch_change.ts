@@ -514,10 +514,11 @@ export class WatchChangeAggregator {
       return { status: BloomFilterApplicationStatus.Skipped };
     }
 
-    const bloomFilterMightContain = (documentPath: string) => {
+    const bloomFilterMightContain = (documentPath: string): boolean => {
       const databaseId = this.metadataProvider.getDatabaseId();
       return bloomFilter.mightContain(
-        `projects/${databaseId.projectId}/databases/${databaseId.database}/documents/${documentPath}`
+        `projects/${databaseId.projectId}/databases/${databaseId.database}` +
+          `/documents/${documentPath}`
       );
     };
 
