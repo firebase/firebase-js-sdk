@@ -523,10 +523,7 @@ export class WatchChangeAggregator {
     };
 
     if (bloomFilter.bitCount === 0) {
-      return {
-        status: BloomFilterApplicationStatus.Skipped,
-        bloomFilterMightContain
-      };
+      return { status: BloomFilterApplicationStatus.Skipped };
     }
 
     const removedDocumentCount = this.filterRemovedDocuments(
@@ -534,17 +531,11 @@ export class WatchChangeAggregator {
       bloomFilterMightContain
     );
 
-    if (expectedCount !== currentCount - removedDocumentCount) {
-      return {
-        status: BloomFilterApplicationStatus.FalsePositive,
-        bloomFilterMightContain
-      };
-    }
-
-    return {
-      status: BloomFilterApplicationStatus.Success,
-      bloomFilterMightContain
-    };
+    const status =
+      expectedCount === currentCount - removedDocumentCount
+        ? BloomFilterApplicationStatus.Success
+        : BloomFilterApplicationStatus.FalsePositive;
+    return { status, bloomFilterMightContain };
   }
 
   /**
