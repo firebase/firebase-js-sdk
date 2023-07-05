@@ -50,7 +50,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
     auth.languageCode = 'fr';
     container = document.createElement('div');
     parameters = {};
-    verifier = new RecaptchaVerifier(container, parameters, auth);
+    verifier = new RecaptchaVerifier(auth, container, parameters);
     // The verifier will have set the parameters.callback field to be the wrapped callback
 
     mockEndpoint(Endpoint.GET_RECAPTCHA_PARAM, {
@@ -134,7 +134,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
         }
       };
 
-      verifier = new RecaptchaVerifier(container, parameters, auth);
+      verifier = new RecaptchaVerifier(auth, container, parameters);
       const expected = await verifier.verify();
       expect(token).to.eq(expected);
     });
@@ -149,7 +149,7 @@ describe('platform_browser/recaptcha/recaptcha_verifier', () => {
         callback: 'callbackOnWindowObject'
       };
 
-      verifier = new RecaptchaVerifier(container, parameters, auth);
+      verifier = new RecaptchaVerifier(auth, container, parameters);
       const expected = await verifier.verify();
       expect(token).to.eq(expected);
 

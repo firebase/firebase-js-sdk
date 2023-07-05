@@ -70,6 +70,7 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
   private recaptcha: Recaptcha | null = null;
 
   /**
+   * @param authExtern - The corresponding Firebase {@link Auth} instance.
    *
    * @param containerOrId - The reCAPTCHA container parameter.
    *
@@ -86,15 +87,13 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
    * the sitekey. Firebase Auth backend provisions a reCAPTCHA for each project and will
    * configure this upon rendering. For an invisible reCAPTCHA, a size key must have the value
    * 'invisible'.
-   *
-   * @param authExtern - The corresponding Firebase {@link Auth} instance.
    */
   constructor(
+    authExtern: Auth,
     containerOrId: HTMLElement | string,
     private readonly parameters: RecaptchaParameters = {
       ...DEFAULT_PARAMS
-    },
-    authExtern: Auth
+    }
   ) {
     this.auth = _castAuth(authExtern);
     this.isInvisible = this.parameters.size === 'invisible';

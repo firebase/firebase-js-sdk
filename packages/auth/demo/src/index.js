@@ -521,11 +521,9 @@ function onSignInWithGenericIdPCredential() {
 function makeApplicationVerifier(submitButtonId) {
   const container =
     recaptchaSize === 'invisible' ? submitButtonId : 'recaptcha-container';
-  applicationVerifier = new RecaptchaVerifier(
-    container,
-    { 'size': recaptchaSize },
-    auth
-  );
+  applicationVerifier = new RecaptchaVerifier(auth, container, {
+    'size': recaptchaSize
+  });
 }
 
 /**
