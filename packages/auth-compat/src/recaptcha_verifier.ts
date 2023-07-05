@@ -37,13 +37,12 @@ export class RecaptchaVerifier
       appName: app.name
     });
     this._delegate = new exp.RecaptchaVerifier(
-      container,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      parameters as any,
-
       // TODO: remove ts-ignore when moving types from auth-types to auth-compat
       // @ts-ignore
-      app.auth!()
+      app.auth!(),
+      container,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parameters as any
     );
     this.type = this._delegate.type;
   }
