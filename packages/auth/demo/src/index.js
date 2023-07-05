@@ -21,7 +21,6 @@
  * @fileoverview This code is for the most part copied over from the packages/auth/demo
  *   package.
  */
-
 import { initializeApp } from '@firebase/app';
 import {
   applyActionCode,
@@ -72,7 +71,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  signInWithPhoneNumber
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -1269,11 +1269,20 @@ function onStartSignInWithPhoneMultiFactor(event) {
     multiFactorHint: selectedMultiFactorHint,
     session: multiFactorErrorResolver.session
   };
+  // write code here
+  console.log("hello");
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
     verificationId => {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
+      try {
+         const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+         // Obtain verificationCode from the user.
+         const userCredential = confirmationResult.confirmWithWebOTP(verificationCode);
+      } catch(error) {
+        console.log(error);
+      }
     },
     error => {
       clearApplicationVerifier();
@@ -1804,9 +1813,7 @@ function onCopyLastUser() {
 /** Applies selected auth settings change. */
 function onApplyAuthSettingsChange() {
   try {
-    auth.settings.appVerificationDisabledForTesting =
-      $('input[name=enable-app-verification]:checked').val() === 'No';
-    alertSuccess('Auth settings changed');
+    auth.settings.appVerificationDisabledForTesting = true;
   } catch (error) {
     alertError('Error: ' + error.code);
   }

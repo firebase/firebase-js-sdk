@@ -45,12 +45,24 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
-import { getModularInstance } from '@firebase/util';
+import { FirebaseError, getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
+interface OTPCredentialRequestOptions extends CredentialRequestOptions{
+  otp: OTPOptions;
+}
+  
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential{
+  code?: string;
+}
+
 
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
@@ -65,6 +77,35 @@ class ConfirmationResultImpl implements ConfirmationResult {
     );
     return this.onConfirmation(authCredential);
   }
+
+   async confirmWithWebOTP (): Promise<UserCredential> {
+    if ('OTPCredential' in window) {
+      const abortController = new AbortController();
+      let timer = setTimeout(() => {
+        abortController.abort();
+        throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
+        // throws error on timeout
+      }, 10 * 1000);
+
+        // @ts-ignore - ignore types for testing
+      let o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+
+      const content: OTPCredential|null =  await window.navigator['credentials'].get(o);
+      if(content === undefined || content === null || content.code === undefined) {
+        //fix
+        throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
+
+      } else {
+        return await this.confirm(content.code);
+      }
+    } else {
+      // throws error if Web OTP not supported
+      throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");
+    }
+  } 
 }
 
 /**

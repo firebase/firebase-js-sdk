@@ -106,7 +106,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -581,6 +581,8 @@ export interface ConfirmationResult {
    * @param verificationCode - The code that was sent to the user's mobile device.
    */
   confirm(verificationCode: string): Promise<UserCredential>;
+
+  confirmWithWebOTP(): Promise<UserCredential>;
 }
 
 /**

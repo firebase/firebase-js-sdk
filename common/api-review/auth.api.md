@@ -280,6 +280,8 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    // (undocumented)
+    confirmWithWebOTP(): Promise<UserCredential>;
     readonly verificationId: string;
 }
 
@@ -550,7 +552,7 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
 export interface ParsedToken {
-    [key: string]: any;
+    [key: string]: unknown;
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {

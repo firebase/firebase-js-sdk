@@ -20,6 +20,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { ProviderId } from '../../model/enums';
+import {ParsedToken} from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/helpers/jwt';
