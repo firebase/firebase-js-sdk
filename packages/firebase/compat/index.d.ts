@@ -5819,7 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (a: firebase.database.DataSnapshot) => boolean | void
+      action: (a: firebase.database.IteratorDataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.
