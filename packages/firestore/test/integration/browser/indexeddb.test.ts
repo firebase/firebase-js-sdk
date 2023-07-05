@@ -31,7 +31,7 @@ import {
   PERSISTENCE_MODE_UNSPECIFIED
 } from '../util/helpers';
 
-describe.only('where indexeddb is not available: ', () => {
+describe('where indexeddb is not available: ', () => {
   // Only test on platforms where persistence is *not* available (e.g. Edge,
   // Node.JS).
   if (isPersistenceAvailable()) {
