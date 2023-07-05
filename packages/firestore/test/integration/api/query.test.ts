@@ -2243,99 +2243,98 @@ apiDescribe('Queries', persistence => {
         return map;
       }, {} as { [key: string]: DocumentData });
 
-      // Ensure that the local cache is configured to use LRU garbage
-      // collection (rather than eager garbage collection) so that the resume
-      // token and document data does not get prematurely evicted.
+      // Ensure that the local cache is configured to use LRU garbage collection
+      // (rather than eager garbage collection) so that the resume token and
+      // document data does not get prematurely evicted.
       const lruPersistence = persistence.toLruGc();
 
-      return withRetry(async attemptNumber => {
-        return withTestCollection(
-          lruPersistence,
-          testDocs,
-          async (coll, db) => {
-            // Run a query to populate the local cache with documents that have
-            // names with complex Unicode characters.
-            const snapshot1 = await getDocs(coll);
-            const snapshot1DocumentIds = snapshot1.docs.map(
-              documentSnapshot => documentSnapshot.id
-            );
-            expect(
-              snapshot1DocumentIds,
-              'snapshot1DocumentIds'
-            ).to.have.members(testDocIds);
-
-            // Delete one of the documents so that the next call to getDocs() will
-            // experience an existence filter mismatch. Do this deletion in a
-            // transaction, rather than using deleteDoc(), to avoid affecting the
-            // local cache.
-            await runTransaction(db, async txn => {
-              const snapshotOfDocumentToDelete = await txn.get(
-                doc(coll, 'DocumentToDelete')
-              );
-              expect(
-                snapshotOfDocumentToDelete.exists(),
-                'snapshotOfDocumentToDelete.exists()'
-              ).to.be.true;
-              txn.delete(snapshotOfDocumentToDelete.ref);
-            });
-
-            // Wait for 10 seconds, during which Watch will stop tracking the
-            // query and will send an existence filter rather than "delete" events
-            // when the query is resumed.
-            await new Promise(resolve => setTimeout(resolve, 10000));
-
-            // Resume the query and save the resulting snapshot for verification.
-            // Use some internal testing hooks to "capture" the existence filter
-            // mismatches.
-            const [existenceFilterMismatches, snapshot2] =
-              await captureExistenceFilterMismatches(() => getDocs(coll));
-            const snapshot2DocumentIds = snapshot2.docs.map(
-              documentSnapshot => documentSnapshot.id
-            );
-            const testDocIdsMinusDeletedDocId = testDocIds.filter(
-              documentId => documentId !== 'DocumentToDelete'
-            );
-            expect(
-              snapshot2DocumentIds,
-              'snapshot2DocumentIds'
-            ).to.have.members(testDocIdsMinusDeletedDocId);
-
-            // Verify that Watch sent an existence filter with the correct counts.
-            expect(
-              existenceFilterMismatches,
-              'existenceFilterMismatches'
-            ).to.have.length(1);
-            const { localCacheCount, existenceFilterCount, bloomFilter } =
-              existenceFilterMismatches[0];
-            expect(localCacheCount, 'localCacheCount').to.equal(
-              testDocIds.length
-            );
-            expect(existenceFilterCount, 'existenceFilterCount').to.equal(
-              testDocIds.length - 1
-            );
-
-            // Verify that Watch sent a valid bloom filter.
-            if (!bloomFilter) {
-              expect.fail(
-                'The existence filter should have specified a bloom filter ' +
-                  'in its `unchanged_names` field.'
-              );
-              throw new Error('should never get here');
-            }
-
-            // Verify that the bloom filter was successfully used to avert a full
-            // requery. If a false positive occurred, which is statistically rare,
-            // but technically possible, then retry the entire test.
-            if (attemptNumber === 1 && !bloomFilter.applied) {
-              throw new RetryError();
-            }
-
-            expect(
-              bloomFilter.applied,
-              `bloomFilter.applied with attemptNumber=${attemptNumber}`
-            ).to.be.true;
-          }
+      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with documents that have
+        // names with complex Unicode characters.
+        const snapshot1 = await getDocs(coll);
+        const snapshot1DocumentIds = snapshot1.docs.map(
+          documentSnapshot => documentSnapshot.id
         );
+        expect(snapshot1DocumentIds, 'snapshot1DocumentIds').to.have.members(
+          testDocIds
+        );
+
+        // Delete one of the documents so that the next call to getDocs() will
+        // experience an existence filter mismatch. Do this deletion in a
+        // transaction, rather than using deleteDoc(), to avoid affecting the
+        // local cache.
+        await runTransaction(db, async txn => {
+          const snapshotOfDocumentToDelete = await txn.get(
+            doc(coll, 'DocumentToDelete')
+          );
+          expect(
+            snapshotOfDocumentToDelete.exists(),
+            'snapshotOfDocumentToDelete.exists()'
+          ).to.be.true;
+          txn.delete(snapshotOfDocumentToDelete.ref);
+        });
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        // Resume the query and save the resulting snapshot for verification.
+        // Use some internal testing hooks to "capture" the existence filter
+        // mismatches.
+        const [existenceFilterMismatches, snapshot2] =
+          await captureExistenceFilterMismatches(() => getDocs(coll));
+        const snapshot2DocumentIds = snapshot2.docs.map(
+          documentSnapshot => documentSnapshot.id
+        );
+        const testDocIdsMinusDeletedDocId = testDocIds.filter(
+          documentId => documentId !== 'DocumentToDelete'
+        );
+        expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
+          testDocIdsMinusDeletedDocId
+        );
+
+        // Verify that Watch sent an existence filter with the correct counts.
+        expect(
+          existenceFilterMismatches,
+          'existenceFilterMismatches'
+        ).to.have.length(1);
+        const existenceFilterMismatch = existenceFilterMismatches[0];
+        expect(
+          existenceFilterMismatch.localCacheCount,
+          'localCacheCount'
+        ).to.equal(testDocIds.length);
+        expect(
+          existenceFilterMismatch.existenceFilterCount,
+          'existenceFilterCount'
+        ).to.equal(testDocIds.length - 1);
+
+        // Verify that we got a bloom filter from Watch.
+        const bloomFilter = existenceFilterMismatch.bloomFilter!;
+        expect(bloomFilter?.mightContain, 'bloomFilter.mightContain').to.not.be
+          .undefined;
+
+        // The bloom filter application should statistically be successful
+        // almost every time; the _only_ time when it would _not_ be successful
+        // is if there is a false positive when testing for 'DocumentToDelete'
+        // in the bloom filter. So verify that the bloom filter application is
+        // successful, unless there was a false positive.
+        const isFalsePositive = bloomFilter.mightContain!(
+          `${coll.path}/DocumentToDelete`
+        );
+        expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
+          !isFalsePositive
+        );
+
+        // Verify that the bloom filter contains the document paths with complex
+        // Unicode characters.
+        for (const testDocId of testDocIdsMinusDeletedDocId) {
+          const testDocPath = `${coll.path}/${testDocId}`;
+          expect(
+            bloomFilter.mightContain!(testDocPath),
+            `bloomFilter.mightContain('${testDocPath}')`
+          ).to.be.true;
+        }
       });
     }
   ).timeout('90s');
