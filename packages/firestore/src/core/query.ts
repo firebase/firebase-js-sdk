@@ -229,34 +229,11 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * the SDK and backend always orders by `__name__`).
  */
 export function queryOrderBy(query: Query): OrderBy[] {
-  console.log("")
   const queryImpl = debugCast(query, QueryImpl);
 
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
-    console.log("before: ",JSON.stringify(queryImpl.memoizedOrderBy));
-
     // //Note: Mila
-    // const inequalityFields = getInequalityFilterFields(queryImpl);
-    // const firstOrderByField = getFirstOrderByField(queryImpl);
-    // console.log("inequalityFields: ",JSON.stringify(inequalityFields));
-    // console.log("firstOrderByField: ",JSON.stringify(firstOrderByField));
-
-    // if (inequalityFields !== null && firstOrderByField === null) {
-    //   for (let inequalityField of inequalityFields) { 
-    //     // In order to implicitly add key ordering, we must also add the
-    //     // inequality filter field for it to be a valid query.
-    //     // Note that the default inequality field and key ordering is ascending.
-    //     if (!inequalityField.isKeyField()) {
-    //       queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
-    //     } else {
-    //       queryImpl.memoizedOrderBy.push(
-    //       new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-    //     ); }
-
-    //   }
-    // console.log("after: ",JSON.stringify(queryImpl.memoizedOrderBy));
-
     const inequalityField = getInequalityFilterField(queryImpl);
     const firstOrderByField = getFirstOrderByField(queryImpl);
     if (inequalityField !== null && firstOrderByField === null) {
@@ -269,8 +246,6 @@ export function queryOrderBy(query: Query): OrderBy[] {
         queryImpl.memoizedOrderBy.push(
           new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
         );
-      console.log(JSON.stringify(queryImpl.memoizedOrderBy));
-
     } else {
       //Note: Mila
       // debugAssert(

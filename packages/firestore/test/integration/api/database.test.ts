@@ -654,7 +654,7 @@ apiDescribe('Database', persistence => {
     it('inequality on same field works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(coll, where('x', '>=', 32), where('x', '<', '42'))
+          query(coll, where('x', '>=', 32), where('x', '<', 42))
         ).not.to.throw();
       });
     });
@@ -662,7 +662,7 @@ apiDescribe('Database', persistence => {
     it('inequality on multiple fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(coll, where('x', '>=', 32), where('y', '<=', 'cat'))
+          query(coll, where('x', '>=', 32), where('y', '!=', 'cat'))
         ).not.to.throw();
       });
     });
@@ -759,6 +759,28 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', '==', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality different from orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('y'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('y'), where('x', '>', 32))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality different from first orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('y'), orderBy('z'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('y'), where('x', '>', 32), orderBy('x'))
         ).not.to.throw();
       });
     });

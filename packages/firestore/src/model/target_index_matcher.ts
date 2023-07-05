@@ -27,6 +27,7 @@ import {
   IndexKind,
   IndexSegment
 } from './field_index';
+import { FieldPath } from './path';
 
 /**
  * A light query planner for Firestore.
@@ -51,8 +52,8 @@ import {
 export class TargetIndexMatcher {
   // The collection ID (or collection group) of the query target.
   private readonly collectionId: string;
-  // The single inequality filter of the target (if it exists).
-  private readonly inequalityFilter?: FieldFilter;
+  // The inequality filters of the target (if it exists).
+  private readonly inequalityFilters = new Map<String,FieldFilter>();
   // The list of equality filters of the target.
   private readonly equalityFilters: FieldFilter[];
   // The list of orderBys of the target.
@@ -69,12 +70,7 @@ export class TargetIndexMatcher {
     for (const filter of target.filters) {
       const fieldFilter = filter as FieldFilter;
       if (fieldFilter.isInequality()) {
-        debugAssert(
-          !this.inequalityFilter ||
-            this.inequalityFilter.field.isEqual(fieldFilter.field),
-          'Only a single inequality is supported'
-        );
-        this.inequalityFilter = fieldFilter;
+        this.inequalityFilters.set(fieldFilter.field.canonicalString(), fieldFilter);
       } else {
         this.equalityFilters.push(fieldFilter);
       }
@@ -145,16 +141,23 @@ export class TargetIndexMatcher {
       return true;
     }
 
-    if (this.inequalityFilter !== undefined) {
+    if (this.inequalityFilters.size > 0) {
+      if (this.inequalityFilters.size > 1) { 
+        // Only single inequality is supported now.
+        return false;
+      }
+
+      const inequalityFilter = this.inequalityFilters.values().next().value;
       // If there is an inequality filter and the field was not in one of the
       // equality filters above, the next segment must match both the filter
       // and the first orderBy clause.
       if (
-        !equalitySegments.has(this.inequalityFilter.field.canonicalString())
+        !equalitySegments.has(inequalityFilter.field.canonicalString())
       ) {
         const segment = segments[segmentIndex];
+
         if (
-          !this.matchesFilter(this.inequalityFilter, segment) ||
+          !this.matchesFilter(inequalityFilter, segment) ||
           !this.matchesOrderBy(this.orderBys[orderBysIndex++], segment)
         ) {
           return false;

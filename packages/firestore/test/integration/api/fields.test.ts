@@ -37,7 +37,7 @@ import {
   withTestDoc,
   withTestDocAndSettings
 } from '../util/helpers';
-import { DEFAULT_SETTINGS } from '../util/settings';
+import { DEFAULT_SETTINGS, USE_EMULATOR } from '../util/settings';
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,30 +178,6 @@ apiDescribe('Nested Fields', persistence => {
       );
     });
   });
-
-    
-//   it.only('can be used with query.where(<string>).', () => {
-//     const testDocs = {
-//       '1': testData(100),
-//        '2': testData(200),
-//   '3': testData(500),
-// '4': testData(300),
-    
-    
-// };
-// return withTestCollection(persistence, testDocs, coll => {
-//  return getDocs(query(coll, where('metadata.createdAt', '>=', 200), where('name','!=','room 200'), orderBy('name'))).then(
-//      results => {
-//      // inequality adds implicit sort on field
-//      expect(toDataArray(results)).to.deep.equal([
-//      testData(300),
-//      testData(500)
-    
-//      ]);
-//      }
-//     );
-//     });
-//     });
 
   it('can be used with query.where(<FieldPath>).', () => {
     const testDocs = {
@@ -344,25 +320,7 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  it('can be used in multiple inequality query filters.', () => {
-    const testDocs = {
-      '1': testData(300),
-      '2': testData(100),
-      '3': testData(200)
-    };
-    return withTestCollection(persistence, testDocs, coll => {
-      // inequality adds implicit sort on field
-      const expected = [testData(200)];
-      return getDocs(query(coll, where('field', '>=', 'field 200'),  where(new FieldPath('field.dot'), '!=', 300)))
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        })
-        .then(() => getDocs(query(coll, where('field', '<=', 'field 200'), where('field\\slash', '>=', 200))))
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        });
-    });
-  });
+
 
   it('can be used in a query orderBy.', () => {
     const testDocs = {
@@ -383,6 +341,61 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 });
+
+ // eslint-disable-next-line no-restricted-properties
+(USE_EMULATOR ? apiDescribe : apiDescribe.skip)('Multiple Inequality', persistence => {
+  const testData = (n?: number): AnyTestData => {
+    n = n || 1;
+    return {
+      name: 'room ' + n,
+      metadata: {
+        createdAt: n,
+      }, 
+      field: 'field ' + n,
+      'field.dot': n,
+      'field\\slash': n
+    };
+  };
+  it('can be used with query.where(<string>).', () => {
+    const testDocs = {
+      '1': testData(100),
+      '2': testData(200),
+      '3': testData(500),
+      '4': testData(300),
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return getDocs(query(coll, where('metadata.createdAt', '<=', 500), where('metadata.createdAt', '>', 100), where('name', '!=', 'room 200'), orderBy('name'))).then(
+        results => {
+          // inequality adds implicit sort on field
+          expect(toDataArray(results)).to.deep.equal([
+            testData(300),
+            testData(500),
+          ]);
+        }
+      );
+    });
+  });
+
+ it('can be used in multiple inequality query filters.', () => {
+    const testDocs = {
+      '1': testData(400),
+      '2': testData(100),
+      '3': testData(200),
+      '4': testData(300),
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return getDocs(query(coll, where('field', '>=', 'field 200'), where(new FieldPath('field.dot'), '!=', 300)))
+        .then(results => {
+          expect(toDataArray(results)).to.deep.equal([testData(200), testData(400)]);
+        })
+        .then(() => getDocs(query(coll, where('field', '<=', 'field 200'), where('field\\slash', '>=', 200))))
+        .then(results => {
+          expect(toDataArray(results)).to.deep.equal([testData(200)]);
+        });
+    });
+  });
+ })
+
 
 apiDescribe('Timestamp Fields in snapshots', persistence => {
   // Figure out how to pass in the Timestamp type

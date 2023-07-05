@@ -1080,9 +1080,8 @@ function validateDisjunctiveFilterElements(
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
-     // Note: Mila
     case Operator.NOT_EQUAL:
-      return [ /* Operator.NOT_EQUAL, */ Operator.NOT_IN];
+      return [ Operator.NOT_EQUAL, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
     case Operator.IN:
       return [Operator.NOT_IN];
@@ -1090,7 +1089,7 @@ function conflictingOps(op: Operator): Operator[] {
       return [
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
-        // /* Operator.NOT_IN, */
+        Operator.NOT_IN,
         Operator.NOT_EQUAL
       ];
     default:

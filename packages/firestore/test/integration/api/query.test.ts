@@ -724,7 +724,6 @@ apiDescribe('Queries', persistence => {
       return getDocs(query(coll, where(documentId(), '==', 'ab')))
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
-          console.log("===========1")
           return getDocs(
             query(
               coll,
@@ -734,8 +733,6 @@ apiDescribe('Queries', persistence => {
           );
         })
         .then(docs => {
-          console.log("===========2")
-
           expect(toDataArray(docs)).to.deep.equal([
             testDocs['ab'],
             testDocs['ba']
@@ -1336,6 +1333,55 @@ apiDescribe('Queries', persistence => {
       expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  ( USE_EMULATOR ? describe : describe.skip)(
+    'OR Queries',
+    () => {
+      it('key order is descending for descending multiple inequality', () => {
+        const testDocs = {
+          a: {
+            foo: 42,
+            bar: 'ab'
+          },
+          b: {
+            foo: 42.0,
+            bar: 'aa'
+          },
+          c: {
+            foo: 42,
+            bar: 'ba'
+          },
+          d: {
+            foo: 21,
+            bar: 'b'
+          },
+          e: {
+            foo: 21,
+            bar: 'a'
+          },
+          f: {
+            foo: 66,
+            bar: 'ac'
+          },
+          g: {
+            foo: 66,
+            bar: 'c'
+          }
+        };
+        return withTestCollection(persistence, testDocs, coll => {
+          return getDocs(
+            query(coll, where('foo', '>', 21.0),where('bar', 'not-in', ['a','ac','ba']), orderBy('foo', 'desc') )
+          ).then(docs => {
+            expect(docs.docs.map(d => d.id)).to.deep.equal([
+              'g', 'b', 'a'
+            ]);
+          });
+        });
+      });
+
+    }
+  );
 
   // OR Query tests only run when the SDK's local cache is configured to use
   // LRU garbage collection (rather than eager garbage collection) because

@@ -809,6 +809,13 @@ apiDescribe('Validation:', persistence => {
       }
     );
 
+    validationIt(persistence, 'with more than one != query fail', db => {
+      const coll = collection(db, 'test');
+      expect(() =>
+        query(coll, where('x', '!=', 32), where('x', '!=', 33))
+      ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
+    });
+
     validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
         query(
@@ -832,16 +839,15 @@ apiDescribe('Validation:', persistence => {
     });
 
     validationIt(persistence, 'with multiple disjunctive filters fail', db => {
-      // Mila: is this multiple inequality?
-      // expect(() =>
-      //   query(
-      //     collection(db, 'test'),
-      //     where('foo', 'not-in', [1, 2]),
-      //     where('foo', 'not-in', [2, 3])
-      //   )
-      // ).to.throw(
-      //   "Invalid query. You cannot use more than one 'not-in' filter."
-      // );
+      expect(() =>
+        query(
+          collection(db, 'test'),
+          where('foo', 'not-in', [1, 2]),
+          where('foo', 'not-in', [2, 3])
+        )
+      ).to.throw(
+        "Invalid query. You cannot use more than one 'not-in' filter."
+      );
 
       expect(() =>
         query(
@@ -1153,20 +1159,6 @@ apiDescribe('Validation:', persistence => {
       ).not.to.throw();
     });
 
-    validationIt(persistence, 'can have more than one !=', db => {
-      const coll = collection(db, 'test');
-      expect(() =>
-        query(coll, where('x', '!=', 32), where('y', '!=', 42))
-      ).not.to.throw();
-    });
-
-    validationIt(persistence, 'can have more than one not-in', db => {
-      const coll = collection(db, 'test');
-      expect(() =>
-        query(coll, where('x', 'not-in', [32]), where('y', 'not-in', [42]))
-      ).not.to.throw();
-    });
-
     validationIt(
       persistence,
       'can have != and inequality queries on different fields',
@@ -1267,7 +1259,7 @@ apiDescribe('Validation:', persistence => {
               and(where('e', '==', 'f'), where('g', '!=', 'h'))
             ),
             or(
-              and(where('i', '==', 'j'), where('k', '!=', 'l')),
+              and(where('i', '==', 'j'), where('k', '>', 'l')),
               and(where('m', '==', 'n'), where('o', '<', 'p'))
             )
           )
