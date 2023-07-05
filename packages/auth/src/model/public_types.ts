@@ -106,7 +106,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
