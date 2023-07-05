@@ -280,6 +280,8 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    // (undocumented)
+    confirmWithWebOTP(): Promise<UserCredential>;
     readonly verificationId: string;
 }
 
