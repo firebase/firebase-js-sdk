@@ -157,7 +157,6 @@ Firebase Authentication
 |  [OperationType](./auth.md#operationtype) | Enumeration of supported operation types. |
 |  [prodErrorMap](./auth.md#proderrormap) | A minimal error map with all verbose error messages stripped.<!-- -->See discussion at [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) |
 |  [ProviderId](./auth.md#providerid) | Enumeration of supported providers. |
-|  [reactNativeLocalPersistence](./auth.md#reactnativelocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'LOCAL' for use in React Native environments. |
 |  [SignInMethod](./auth.md#signinmethod) | Enumeration of supported sign-in methods. |
 
 ## Type Aliases
@@ -1995,16 +1994,6 @@ ProviderId: {
     readonly PHONE: "phone";
     readonly TWITTER: "twitter.com";
 }
-```
-
-## reactNativeLocalPersistence
-
-An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'LOCAL' for use in React Native environments.
-
-<b>Signature:</b>
-
-```typescript
-reactNativeLocalPersistence: Persistence
 ```
 
 ## SignInMethod

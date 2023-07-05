@@ -114,6 +114,7 @@
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
+    "@react-native-async-storage/async-storage": "1.17.12",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
