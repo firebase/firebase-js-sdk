@@ -32,7 +32,8 @@ import {
   ErrorFn,
   NextFn,
   Unsubscribe,
-  PasswordPolicy
+  PasswordPolicy,
+  PasswordValidationStatus
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -425,6 +426,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     } else {
       return this._tenantRecaptchaConfigs[this.tenantId];
     }
+  }
+
+  async validatePassword(password: string): Promise<PasswordValidationStatus> {
+    // TODO(chazzy): Implement.
+    return Promise.reject(password);
   }
 
   _getPasswordPolicy(): PasswordPolicy | null {

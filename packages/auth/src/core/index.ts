@@ -23,7 +23,8 @@ import {
   User,
   CompleteFn,
   ErrorFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordValidationStatus
 } from '../model/public_types';
 import { _castAuth } from '../core/auth/auth_impl';
 
@@ -94,6 +95,37 @@ export function setPersistence(
 export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
   const authInternal = _castAuth(auth);
   return authInternal.initializeRecaptchaConfig();
+}
+
+/**
+ * Validates the password against the password policy configured for the project or tenant.
+ *
+ * @remarks
+ * If no tenant ID is set on the `Auth` instance, then this method will use the password
+ * policy configured for the project. Otherwise, this method will use the policy configured
+ * for the tenant. If a password policy has not been configured, then the default policy
+ * configured for all projects will be used.
+ *
+ * If an auth flow fails because a submitted password does not meet the password policy
+ * requirements and this method has previously been called, then this method will use the
+ * most recent policy available when called again.
+ *
+ * @example
+ * ```javascript
+ * validatePassword(auth, 'some-password');
+ * ```
+ *
+ * @param auth The {@link Auth} instance.
+ * @param password The password to validate.
+ *
+ * @public
+ */
+export async function validatePassword(
+  auth: Auth,
+  password: string
+): Promise<PasswordValidationStatus> {
+  const authInternal = _castAuth(auth);
+  return authInternal.validatePassword(password);
 }
 
 /**
