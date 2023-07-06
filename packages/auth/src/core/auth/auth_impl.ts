@@ -429,8 +429,93 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async validatePassword(password: string): Promise<PasswordValidationStatus> {
-    // TODO(chazzy): Implement.
-    return Promise.reject(password);
+    // Fetch the password policy if one is not cached.
+    if (!this._getPasswordPolicy()) {
+      await this._updatePasswordPolicy().catch(async error => {
+        return Promise.reject(error);
+      });
+    }
+
+    // Password policy will be defined after fetching.
+    const policy: PasswordPolicy = this._getPasswordPolicy()!;
+    let validFlag = true;
+
+    // Check length options.
+    let minLengthFlag = false;
+    let maxLengthFlag = false;
+    if (policy.customStrengthOptions.minPasswordLength) {
+      if (password.length >= policy.customStrengthOptions.minPasswordLength) {
+        minLengthFlag = true;
+      } else {
+        validFlag = false;
+      }
+    }
+    if (policy.customStrengthOptions.maxPasswordLength) {
+      if (password.length <= policy.customStrengthOptions.maxPasswordLength) {
+        maxLengthFlag = true;
+      } else {
+        validFlag = false;
+      }
+    }
+
+    // Check character options.
+    let char;
+    let lowerCaseFlag = false;
+    let upperCaseFlag = false;
+    let numberFlag = false;
+    let nonAlphaNumericFlag = false;
+    for (let i = 0; i < password.length; i++) {
+      char = password.charAt(i);
+      if (/^\d$/.test(char)) {
+        numberFlag = true;
+      } else if (/^[A-Z]$/.test(char)) {
+        upperCaseFlag = true;
+      } else if (/^[a-z]$/.test(char)) {
+        lowerCaseFlag = true;
+      } else if (policy.allowedNonAlphanumericCharacters.includes(char)) {
+        nonAlphaNumericFlag = true;
+      }
+    }
+
+    // Combine status into single isValid flag.
+    if (policy.customStrengthOptions.containsLowercaseLetter) {
+      validFlag &&= lowerCaseFlag;
+    }
+    if (policy.customStrengthOptions.containsUppercaseLetter) {
+      validFlag &&= upperCaseFlag;
+    }
+    if (policy.customStrengthOptions.containsNumericCharacter) {
+      validFlag &&= numberFlag;
+    }
+    if (policy.customStrengthOptions.containsNonAlphanumericCharacter) {
+      validFlag &&= nonAlphaNumericFlag;
+    }
+
+    // Only include properties that are required by the password policy.
+    const status: PasswordValidationStatus = {
+      isValid: validFlag,
+      ...(policy.customStrengthOptions.minPasswordLength && {
+        meetsMinPasswordLength: minLengthFlag
+      }),
+      ...(policy.customStrengthOptions.maxPasswordLength && {
+        meetsMaxPasswordLength: maxLengthFlag
+      }),
+      ...(policy.customStrengthOptions.containsLowercaseLetter && {
+        containsLowercaseLetter: lowerCaseFlag
+      }),
+      ...(policy.customStrengthOptions.containsUppercaseLetter && {
+        containsUppercaseLetter: upperCaseFlag
+      }),
+      ...(policy.customStrengthOptions.containsNumericCharacter && {
+        containsNumericCharacter: numberFlag
+      }),
+      ...(policy.customStrengthOptions.containsNonAlphanumericCharacter && {
+        containsNonAlphanumericCharacter: nonAlphaNumericFlag
+      }),
+      passwordPolicy: policy
+    };
+
+    return status;
   }
 
   _getPasswordPolicy(): PasswordPolicy | null {
