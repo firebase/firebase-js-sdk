@@ -5819,7 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (a: firebase.database.IteratorDataSnapshot) => boolean | void
+      action: (a: firebase.database.IteratedDataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.
@@ -5996,6 +5996,10 @@ declare namespace firebase.database {
      * Returns a JSON-serializable representation of this object.
      */
     toJSON(): Object | null;
+  }
+
+  interface IteratedDataSnapshot extends DataSnapshot {
+    key: string; // key of the location of this snapshot.
   }
 
   /**
