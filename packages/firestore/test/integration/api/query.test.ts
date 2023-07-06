@@ -26,17 +26,16 @@ import {
   Bytes,
   collection,
   collectionGroup,
-  CollectionReference,
   deleteDoc,
   disableNetwork,
   doc,
   DocumentChange,
   DocumentChangeType,
+  DocumentData,
   documentId,
   enableNetwork,
   endAt,
   endBefore,
-  Firestore,
   GeoPoint,
   getDocs,
   getDocsFromCache,
@@ -60,17 +59,19 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  RetryError,
   toChangesArray,
   toDataArray,
   toIds,
   withEmptyTestCollection,
+  withRetry,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-apiDescribe('Queries', (persistence: boolean) => {
+apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
   it('can issue limit queries', () => {
@@ -1333,10 +1334,11 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match.
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match.
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('OR Queries', () => {
+  (persistence.gc === 'lru' ? describe : describe.skip)('OR Queries', () => {
     it('can use query overloads', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
@@ -1646,390 +1648,398 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // OR Query tests only run when the SDK is configured for persistence
-  // because they validate that the result from server and cache match
-  // Additionally these tests must be skipped if running against production
-  // because it results in a 'missing index' error. The Firestore Emulator,
-  // however, does serve these queries.
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match. Additionally,
+  // these tests must be skipped if running against production because it
+  // results in a 'missing index' error. The Firestore Emulator, however, does
+  // serve these queries.
   // eslint-disable-next-line no-restricted-properties
-  (persistence && USE_EMULATOR ? describe : describe.skip)('OR Queries', () => {
-    it('can use query overloads', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { a: 2, b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1, b: 1 }
-      };
+  (persistence.gc === 'lru' && USE_EMULATOR ? describe : describe.skip)(
+    'OR Queries',
+    () => {
+      it('can use query overloads', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // a == 1, limit 2, b - desc
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // a == 1, limit 2, b - desc
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
+            'doc4',
+            'doc5'
+          );
+        });
       });
-    });
 
-    it('can use or queries', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { a: 2, b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1, b: 1 }
-      };
+      it('can use or queries', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // with one inequality: a>2 || b==1.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '>', 2), where('b', '==', 1))),
-          'doc5',
-          'doc2',
-          'doc3'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // with one inequality: a>2 || b==1.
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '>', 2), where('b', '==', 1))),
+            'doc5',
+            'doc2',
+            'doc3'
+          );
 
-        // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
-          'doc1',
-          'doc2'
-        );
+          // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
+            'doc1',
+            'doc2'
+          );
 
-        // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
-        // Note: The public query API does not allow implicit ordering when limitToLast is used.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 1), where('b', '>', 0)),
-            limitToLast(2),
-            orderBy('b')
-          ),
-          'doc3',
-          'doc4'
-        );
+          // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+          // Note: The public query API does not allow implicit ordering when limitToLast is used.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 1), where('b', '>', 0)),
+              limitToLast(2),
+              orderBy('b')
+            ),
+            'doc3',
+            'doc4'
+          );
 
-        // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limit(1),
-            orderBy('a')
-          ),
-          'doc5'
-        );
+          // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limit(1),
+              orderBy('a')
+            ),
+            'doc5'
+          );
 
-        // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', '==', 2), where('b', '==', 1)),
-            limitToLast(1),
-            orderBy('a')
-          ),
-          'doc2'
-        );
+          // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limitToLast(1),
+              orderBy('a')
+            ),
+            'doc2'
+          );
+        });
       });
-    });
 
-    it('can use or queries with not-in', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      it('can use or queries with not-in', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // a==2 || b not-in [2,3]
-        // Has implicit orderBy b.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
-          'doc1',
-          'doc2'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // a==2 || b not-in [2,3]
+          // Has implicit orderBy b.
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
+            'doc1',
+            'doc2'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports order by equality', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports order by equality', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), orderBy('a')),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), orderBy('a')),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', 'in', [2, 3]), orderBy('a')),
-          'doc6',
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', 'in', [2, 3]), orderBy('a')),
+            'doc6',
+            'doc3'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports multiple in ops', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports multiple in ops', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        // Two IN operations on different fields with disjunction.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
-          'doc1',
-          'doc6',
-          'doc3'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          // Two IN operations on different fields with disjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc1',
+            'doc6',
+            'doc3'
+          );
 
-        // Two IN operations on different fields with conjunction.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-            orderBy('a')
-          ),
-          'doc3'
-        );
+          // Two IN operations on different fields with conjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc3'
+          );
 
-        // Two IN operations on the same field.
-        // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
-          ),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+          // Two IN operations on the same field.
+          // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
+            ),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
-        // empty set.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
-          )
-        );
+          // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
+          // empty set.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
+            )
+          );
 
-        // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
-          'doc3',
-          'doc6'
-        );
+          // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
+            'doc3',
+            'doc6'
+          );
 
-        // Nested composite filter on the same field.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [1, 3]),
-              or(
-                where('a', 'in', [0, 2]),
-                and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+          // Nested composite filter on the same field.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [1, 3]),
+                or(
+                  where('a', 'in', [0, 2]),
+                  and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+                )
               )
-            )
-          ),
-          'doc3',
-          'doc4'
-        );
+            ),
+            'doc3',
+            'doc4'
+          );
 
-        // Nested composite filter on the different fields.
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('b', 'in', [0, 3]),
-              or(
-                where('b', 'in', [1]),
-                and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
+          // Nested composite filter on the different fields.
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('b', 'in', [0, 3]),
+                or(
+                  where('b', 'in', [1]),
+                  and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
+                )
               )
-            )
-          ),
-          'doc4'
-        );
+            ),
+            'doc4'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports using in with array contains any', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports using in with array contains any', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              where('a', 'in', [2, 3]),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc1',
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                where('a', 'in', [2, 3]),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc1',
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc3'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              and(where('a', 'in', [2, 3]), where('c', '==', 10)),
-              where('b', 'array-contains-any', [0, 7])
-            )
-          ),
-          'doc1',
-          'doc3',
-          'doc4'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                and(where('a', 'in', [2, 3]), where('c', '==', 10)),
+                where('b', 'array-contains-any', [0, 7])
+              )
+            ),
+            'doc1',
+            'doc3',
+            'doc4'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 20))
-            )
-          ),
-          'doc3',
-          'doc6'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                or(
+                  where('b', 'array-contains-any', [0, 7]),
+                  where('c', '==', 20)
+                )
+              )
+            ),
+            'doc3',
+            'doc6'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports using in with array contains', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7] },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports using in with array contains', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7] },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
-          ),
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
+            ),
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
+            ),
+            'doc3'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(
-              where('a', 'in', [2, 3]),
-              and(where('b', 'array-contains', 3), where('a', '==', 1))
-            )
-          ),
-          'doc3',
-          'doc4',
-          'doc6'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              or(
+                where('a', 'in', [2, 3]),
+                and(where('b', 'array-contains', 3), where('a', '==', 1))
+              )
+            ),
+            'doc3',
+            'doc4',
+            'doc6'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(
-              where('a', 'in', [2, 3]),
-              or(where('b', 'array-contains', 7), where('a', '==', 1))
-            )
-          ),
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              and(
+                where('a', 'in', [2, 3]),
+                or(where('b', 'array-contains', 7), where('a', '==', 1))
+              )
+            ),
+            'doc3'
+          );
+        });
       });
-    });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports order by equality', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports order by equality', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
-      return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', '==', 1), orderBy('a')),
-          'doc1',
-          'doc4',
-          'doc5'
-        );
+        return withTestCollection(persistence, testDocs, async coll => {
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '==', 1), orderBy('a')),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
 
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, where('a', 'in', [2, 3]), orderBy('a')),
-          'doc6',
-          'doc3'
-        );
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', 'in', [2, 3]), orderBy('a')),
+            'doc6',
+            'doc3'
+          );
+        });
       });
-    });
-  });
+    }
+  );
 
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
-  // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Caching empty results', () => {
+  describe('Caching empty results', () => {
     it('can raise initial snapshot from cache, even if it is empty', () => {
-      return withTestCollection(persistence, {}, async coll => {
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), {}, async coll => {
         const snapshot1 = await getDocs(coll); // Populate the cache.
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
@@ -2047,7 +2057,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       const testDocs = {
         a: { key: 'a' }
       };
-      return withTestCollection(persistence, testDocs, async coll => {
+      // Use persistence with LRU garbage collection so the resume token and
+      // document data do not get prematurely deleted from the local cache.
+      return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
         // Populate the cache.
         const snapshot1 = await getDocs(coll);
         expect(snapshot1.metadata.fromCache).to.be.false;
@@ -2071,142 +2083,261 @@ apiDescribe('Queries', (persistence: boolean) => {
       testDocs['doc' + (1000 + i)] = { key: 42 };
     }
 
-    // The function that runs a single iteration of the test.
-    // Below this definition, there is a "while" loop that calls this function
-    // potentially multiple times.
-    const runTestIteration = async (
-      coll: CollectionReference,
-      db: Firestore
-    ): Promise<'retry' | 'passed'> => {
-      // Run a query to populate the local cache with the 100 documents and a
-      // resume token.
-      const snapshot1 = await getDocs(coll);
-      expect(snapshot1.size, 'snapshot1.size').to.equal(100);
-      const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+    // Ensure that the local cache is configured to use LRU garbage
+    // collection (rather than eager garbage collection) so that the resume
+    // token and document data does not get prematurely evicted.
+    const lruPersistence = persistence.toLruGc();
 
-      // Delete 50 of the 100 documents. Do this in a transaction, rather than
-      // deleteDoc(), to avoid affecting the local cache.
-      const deletedDocumentIds = new Set<string>();
-      await runTransaction(db, async txn => {
-        for (let i = 0; i < createdDocuments.length; i += 2) {
-          const documentToDelete = createdDocuments[i];
-          txn.delete(documentToDelete);
-          deletedDocumentIds.add(documentToDelete.id);
+    return withRetry(async attemptNumber => {
+      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with the 100 documents and a
+        // resume token.
+        const snapshot1 = await getDocs(coll);
+        expect(snapshot1.size, 'snapshot1.size').to.equal(100);
+        const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
+
+        // Delete 50 of the 100 documents. Do this in a transaction, rather than
+        // deleteDoc(), to avoid affecting the local cache.
+        const deletedDocumentIds = new Set<string>();
+        await runTransaction(db, async txn => {
+          for (let i = 0; i < createdDocuments.length; i += 2) {
+            const documentToDelete = createdDocuments[i];
+            txn.delete(documentToDelete);
+            deletedDocumentIds.add(documentToDelete.id);
+          }
+        });
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        // Resume the query and save the resulting snapshot for verification.
+        // Use some internal testing hooks to "capture" the existence filter
+        // mismatches to verify that Watch sent a bloom filter, and it was used
+        // to avert a full requery.
+        const [existenceFilterMismatches, snapshot2] =
+          await captureExistenceFilterMismatches(() => getDocs(coll));
+
+        // Verify that the snapshot from the resumed query contains the expected
+        // documents; that is, that it contains the 50 documents that were _not_
+        // deleted.
+        // TODO(b/270731363): Remove the "if" condition below once the
+        // Firestore Emulator is fixed to send an existence filter. At the time
+        // of writing, the Firestore emulator fails to send an existence filter,
+        // resulting in the client including the deleted documents in the
+        // snapshot of the resumed query.
+        if (!(USE_EMULATOR && snapshot2.size === 100)) {
+          const actualDocumentIds = snapshot2.docs
+            .map(documentSnapshot => documentSnapshot.ref.id)
+            .sort();
+          const expectedDocumentIds = createdDocuments
+            .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
+            .map(documentRef => documentRef.id)
+            .sort();
+          expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+            expectedDocumentIds
+          );
+        }
+
+        // Skip the verification of the existence filter mismatch when testing
+        // against the Firestore emulator because the Firestore emulator fails
+        // to to send an existence filter at all.
+        // TODO(b/270731363): Enable the verification of the existence filter
+        // mismatch once the Firestore emulator is fixed to send an existence
+        // filter.
+        if (USE_EMULATOR) {
+          return;
+        }
+
+        // Verify that Watch sent an existence filter with the correct counts
+        // when the query was resumed.
+        expect(
+          existenceFilterMismatches,
+          'existenceFilterMismatches'
+        ).to.have.length(1);
+        const { localCacheCount, existenceFilterCount, bloomFilter } =
+          existenceFilterMismatches[0];
+        expect(localCacheCount, 'localCacheCount').to.equal(100);
+        expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
+
+        // Verify that Watch sent a valid bloom filter.
+        if (!bloomFilter) {
+          expect.fail(
+            'The existence filter should have specified a bloom filter in its ' +
+              '`unchanged_names` field.'
+          );
+          throw new Error('should never get here');
+        }
+
+        expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
+        expect(
+          bloomFilter.bitmapLength,
+          'bloomFilter.bitmapLength'
+        ).to.be.above(0);
+        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+        expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+
+        // Verify that the bloom filter was successfully used to avert a full
+        // requery. If a false positive occurred then retry the entire test.
+        // Although statistically rare, false positives are expected to happen
+        // occasionally. When a false positive _does_ happen, just retry the
+        // test with a different set of documents. If that retry _also_
+        // experiences a false positive, then fail the test because that is so
+        // improbable that something must have gone wrong.
+        if (attemptNumber === 1 && !bloomFilter.applied) {
+          throw new RetryError();
+        }
+
+        expect(
+          bloomFilter.applied,
+          `bloomFilter.applied with attemptNumber=${attemptNumber}`
+        ).to.be.true;
+      });
+    });
+  }).timeout('90s');
+
+  // TODO(b/270731363): Re-enable this test once the Firestore emulator is fixed
+  //  to send an existence filter.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'bloom filter should correctly encode complex Unicode characters',
+    async () => {
+      // Firestore does not do any Unicode normalization on the document IDs.
+      // Therefore, two document IDs that are canonically-equivalent (i.e. they
+      // visually appear identical) but are represented by a different sequence
+      // of Unicode code points are treated as distinct document IDs.
+      const testDocIds = [
+        'DocumentToDelete',
+        // The next two strings both end with "e" with an accent: the first uses
+        // the dedicated Unicode code point for this character, while the second
+        // uses the standard lowercase "e" followed by the accent combining
+        // character.
+        'LowercaseEWithAcuteAccent_\u00E9',
+        'LowercaseEWithAcuteAccent_\u0065\u0301',
+        // The next two strings both end with an "e" with two different accents
+        // applied via the following two combining characters. The combining
+        // characters are specified in a different order and Firestore treats
+        // these document IDs as unique, despite the order of the combining
+        // characters being irrelevant.
+        'LowercaseEWithMultipleAccents_\u0065\u0301\u0327',
+        'LowercaseEWithMultipleAccents_\u0065\u0327\u0301',
+        // The next string contains a character outside the BMP (the "basic
+        // multilingual plane"); that is, its code point is greater than 0xFFFF.
+        // In UTF-16 (which JavaScript uses to store Unicode strings) this
+        // requires a surrogate pair, two 16-bit code units, to represent this
+        // character. Make sure that its presence is correctly tested in the
+        // bloom filter, which uses UTF-8 encoding.
+        'Smiley_\u{1F600}'
+      ];
+
+      // Verify assumptions about the equivalence of strings in `testDocIds`.
+      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
+      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
+      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
+
+      // Create the mapping from document ID to document data for the document
+      // IDs specified in `testDocIds`.
+      const testDocs = testDocIds.reduce((map, docId) => {
+        map[docId] = { foo: 42 };
+        return map;
+      }, {} as { [key: string]: DocumentData });
+
+      // Ensure that the local cache is configured to use LRU garbage collection
+      // (rather than eager garbage collection) so that the resume token and
+      // document data does not get prematurely evicted.
+      const lruPersistence = persistence.toLruGc();
+
+      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with documents that have
+        // names with complex Unicode characters.
+        const snapshot1 = await getDocs(coll);
+        const snapshot1DocumentIds = snapshot1.docs.map(
+          documentSnapshot => documentSnapshot.id
+        );
+        expect(snapshot1DocumentIds, 'snapshot1DocumentIds').to.have.members(
+          testDocIds
+        );
+
+        // Delete one of the documents so that the next call to getDocs() will
+        // experience an existence filter mismatch. Do this deletion in a
+        // transaction, rather than using deleteDoc(), to avoid affecting the
+        // local cache.
+        await runTransaction(db, async txn => {
+          const snapshotOfDocumentToDelete = await txn.get(
+            doc(coll, 'DocumentToDelete')
+          );
+          expect(
+            snapshotOfDocumentToDelete.exists(),
+            'snapshotOfDocumentToDelete.exists()'
+          ).to.be.true;
+          txn.delete(snapshotOfDocumentToDelete.ref);
+        });
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        // Resume the query and save the resulting snapshot for verification.
+        // Use some internal testing hooks to "capture" the existence filter
+        // mismatches.
+        const [existenceFilterMismatches, snapshot2] =
+          await captureExistenceFilterMismatches(() => getDocs(coll));
+        const snapshot2DocumentIds = snapshot2.docs.map(
+          documentSnapshot => documentSnapshot.id
+        );
+        const testDocIdsMinusDeletedDocId = testDocIds.filter(
+          documentId => documentId !== 'DocumentToDelete'
+        );
+        expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
+          testDocIdsMinusDeletedDocId
+        );
+
+        // Verify that Watch sent an existence filter with the correct counts.
+        expect(
+          existenceFilterMismatches,
+          'existenceFilterMismatches'
+        ).to.have.length(1);
+        const existenceFilterMismatch = existenceFilterMismatches[0];
+        expect(
+          existenceFilterMismatch.localCacheCount,
+          'localCacheCount'
+        ).to.equal(testDocIds.length);
+        expect(
+          existenceFilterMismatch.existenceFilterCount,
+          'existenceFilterCount'
+        ).to.equal(testDocIds.length - 1);
+
+        // Verify that we got a bloom filter from Watch.
+        const bloomFilter = existenceFilterMismatch.bloomFilter!;
+        expect(bloomFilter?.mightContain, 'bloomFilter.mightContain').to.not.be
+          .undefined;
+
+        // The bloom filter application should statistically be successful
+        // almost every time; the _only_ time when it would _not_ be successful
+        // is if there is a false positive when testing for 'DocumentToDelete'
+        // in the bloom filter. So verify that the bloom filter application is
+        // successful, unless there was a false positive.
+        const isFalsePositive = bloomFilter.mightContain!(
+          `${coll.path}/DocumentToDelete`
+        );
+        expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
+          !isFalsePositive
+        );
+
+        // Verify that the bloom filter contains the document paths with complex
+        // Unicode characters.
+        for (const testDocId of testDocIdsMinusDeletedDocId) {
+          const testDocPath = `${coll.path}/${testDocId}`;
+          expect(
+            bloomFilter.mightContain!(testDocPath),
+            `bloomFilter.mightContain('${testDocPath}')`
+          ).to.be.true;
         }
       });
-
-      // Wait for 10 seconds, during which Watch will stop tracking the query
-      // and will send an existence filter rather than "delete" events when the
-      // query is resumed.
-      await new Promise(resolve => setTimeout(resolve, 10000));
-
-      // Resume the query and save the resulting snapshot for verification.
-      // Use some internal testing hooks to "capture" the existence filter
-      // mismatches to verify that Watch sent a bloom filter, and it was used to
-      // avert a full requery.
-      const [existenceFilterMismatches, snapshot2] =
-        await captureExistenceFilterMismatches(() => getDocs(coll));
-
-      // Verify that the snapshot from the resumed query contains the expected
-      // documents; that is, that it contains the 50 documents that were _not_
-      // deleted.
-      // TODO(b/270731363): Remove the "if" condition below once the
-      // Firestore Emulator is fixed to send an existence filter. At the time of
-      // writing, the Firestore emulator fails to send an existence filter,
-      // resulting in the client including the deleted documents in the snapshot
-      // of the resumed query.
-      if (!(USE_EMULATOR && snapshot2.size === 100)) {
-        const actualDocumentIds = snapshot2.docs
-          .map(documentSnapshot => documentSnapshot.ref.id)
-          .sort();
-        const expectedDocumentIds = createdDocuments
-          .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
-          .map(documentRef => documentRef.id)
-          .sort();
-        expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
-          expectedDocumentIds
-        );
-      }
-
-      // Skip the verification of the existence filter mismatch when persistence
-      // is disabled because without persistence there is no resume token
-      // specified in the subsequent call to getDocs(), and, therefore, Watch
-      // will _not_ send an existence filter.
-      // TODO(b/272754156) Re-write this test using a snapshot listener instead
-      // of calls to getDocs() and remove this check for disabled persistence.
-      if (!persistence) {
-        return 'passed';
-      }
-
-      // Skip the verification of the existence filter mismatch when testing
-      // against the Firestore emulator because the Firestore emulator fails to
-      // to send an existence filter at all.
-      // TODO(b/270731363): Enable the verification of the existence filter
-      // mismatch once the Firestore emulator is fixed to send an existence
-      // filter.
-      if (USE_EMULATOR) {
-        return 'passed';
-      }
-
-      // Verify that Watch sent an existence filter with the correct counts when
-      // the query was resumed.
-      expect(
-        existenceFilterMismatches,
-        'existenceFilterMismatches'
-      ).to.have.length(1);
-      const { localCacheCount, existenceFilterCount, bloomFilter } =
-        existenceFilterMismatches[0];
-      expect(localCacheCount, 'localCacheCount').to.equal(100);
-      expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-
-      // Verify that Watch sent a valid bloom filter.
-      if (!bloomFilter) {
-        expect.fail(
-          'The existence filter should have specified a bloom filter in its ' +
-            '`unchanged_names` field.'
-        );
-        throw new Error('should never get here');
-      }
-
-      expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
-      expect(bloomFilter.bitmapLength, 'bloomFilter.bitmapLength').to.be.above(
-        0
-      );
-      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-      expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
-
-      // Verify that the bloom filter was successfully used to avert a full
-      // requery. If a false positive occurred then retry the entire test.
-      // Although statistically rare, false positives are expected to happen
-      // occasionally. When a false positive _does_ happen, just retry the test
-      // with a different set of documents. If that retry _also_ experiences a
-      // false positive, then fail the test because that is so improbable that
-      // something must have gone wrong.
-      if (attemptNumber === 1 && !bloomFilter.applied) {
-        return 'retry';
-      }
-      expect(
-        bloomFilter.applied,
-        `bloomFilter.applied with attemptNumber=${attemptNumber}`
-      ).to.be.true;
-
-      return 'passed';
-    };
-
-    // Run the test
-    let attemptNumber = 0;
-    while (true) {
-      attemptNumber++;
-      const iterationResult = await withTestCollection(
-        persistence,
-        testDocs,
-        runTestIteration
-      );
-      if (iterationResult === 'passed') {
-        break;
-      }
     }
-  }).timeout('90s');
+  ).timeout('90s');
 });
 
 function verifyDocumentChange<T>(
