@@ -772,19 +772,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: TEST_SCHEMA_VERSION
     };
-    const cachedPasswordPolicy = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
-    const cachedPasswordPolicyRequireNumeric = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        containsNumericCharacter: true
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
+    const cachedPasswordPolicy = passwordPolicyResponse;
+    const cachedPasswordPolicyRequireNumeric =
+      passwordPolicyResponseRequireNumeric;
     let policyEndpointMock: mockFetch.Route;
     let policyEndpointMockWithTenant: mockFetch.Route;
     let policyEndpointMockWithOtherTenant: mockFetch.Route;
