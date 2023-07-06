@@ -45,6 +45,11 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
+import {
+  PasswordPolicy,
+  PasswordValidationStatus
+} from '../../model/public_types';
+import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -790,40 +795,55 @@ describe('core/auth/auth_impl', () => {
   context('passwordPolicy', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_MAX_PASSWORD_LENGTH = 12;
 
-    const passwordPolicyResponse = {
+    const passwordPolicyResponse: GetPasswordPolicyResponse = {
       customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+        containsLowercaseLetter: true,
+        containsNumericCharacter: false,
+        containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 1
     };
-    const passwordPolicyResponseRequireNumeric = {
+    const passwordPolicyResponseRequireNumeric: GetPasswordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        containsNumericCharacter: true
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+        containsLowercaseLetter: true,
+        containsNumericCharacter: true,
+        containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 1
     };
     const passwordPolicyResponseUnsupportedVersion = {
       customStrengthOptions: {
-        maxPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
         unsupportedPasswordPolicyProperty: 10
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 0
     };
-    const cachedPasswordPolicy = {
+    const cachedPasswordPolicy: PasswordPolicy = {
       customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+        containsLowercaseLetter: true,
+        containsNumericCharacter: false,
+        containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     };
-    const cachedPasswordPolicyRequireNumeric = {
+    const cachedPasswordPolicyRequireNumeric: PasswordPolicy = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        containsNumericCharacter: true
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+        containsLowercaseLetter: true,
+        containsNumericCharacter: true,
+        containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
     };
@@ -899,6 +919,110 @@ describe('core/auth/auth_impl', () => {
       );
 
       expect(auth._getPasswordPolicy()).to.be.undefined;
+    });
+
+    context.only('#validatePassword', () => {
+      it('password meeting the policy for the project should be considered valid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicy
+        };
+
+        auth = await testAuth();
+        const status = await auth.validatePassword('password!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password not meeting the policy for the project should be considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: cachedPasswordPolicy
+        };
+
+        auth = await testAuth();
+        const status = await auth.validatePassword('pass');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password meeting the policy for the tenant should be considered valid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireNumeric
+        };
+
+        auth = await testAuth();
+        auth.tenantId = 'tenant-id';
+        const status = await auth.validatePassword('passw0rd!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password not meeting the policy for the tenant should be considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: false,
+          containsLowercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: cachedPasswordPolicyRequireNumeric
+        };
+
+        auth = await testAuth();
+        auth.tenantId = 'tenant-id';
+        const status = await auth.validatePassword('password01234');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('should use the password policy associated with the tenant ID when the tenant ID switches', async () => {
+        let expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicy
+        };
+
+        auth = await testAuth();
+
+        let status = await auth.validatePassword('password!');
+        expect(status).to.eql(expectedValidationStatus);
+
+        expectedValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsNumericCharacter: false,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireNumeric
+        };
+
+        auth.tenantId = 'tenant-id';
+        status = await auth.validatePassword('password!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('should throw an error when an unsupported password policy schema version is received', async () => {
+        auth = await testAuth();
+        auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+        await expect(auth.validatePassword('password')).to.be.rejectedWith(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
+        );
+      });
     });
   });
 });
