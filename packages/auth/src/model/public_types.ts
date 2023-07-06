@@ -292,9 +292,9 @@ export interface Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   /**
-   * return a promise that resolves immediately when the initial
-   * auth state is settled. The current user might be a valid user,
-   * or null if there is no user signed in currently.
+   * returns a promise that resolves immediately when the initial
+   * auth state is settled. When the promise resolves, the current user might be a valid user
+   * or `null` if the user signed out.
    */
   authStateReady(): Promise<void>;
   /** The currently signed-in user (or null). */

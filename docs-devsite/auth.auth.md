@@ -37,7 +37,7 @@ export interface Auth
 
 |  Method | Description |
 |  --- | --- |
-|  [authStateReady()](./auth.auth.md#authauthstateready) | return a promise that resolves immediately when the initial auth state is settled. The current user might be a valid user, or null if there is no user signed in currently. |
+|  [authStateReady()](./auth.auth.md#authauthstateready) | returns a promise that resolves immediately when the initial auth state is settled. When the promise is resolved, the current user might be a valid user or `null` if users signed out. |
 |  [beforeAuthStateChanged(callback, onAbort)](./auth.auth.md#authbeforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
@@ -147,7 +147,7 @@ const result = await signInWithEmailAndPassword(auth, email, password);
 
 ## Auth.authStateReady()
 
-return a promise that resolves immediately when the initial auth state is settled. The current user might be a valid user, or null if there is no user signed in currently.
+returns a promise that resolves immediately when the initial auth state is settled. When the promise is resolved, the current user might be a valid user or `null` if users signed out. 
 
 <b>Signature:</b>
 

@@ -114,7 +114,7 @@ const providersIcons = {
 };
 
 /**
- * Returns active user (i.e. currentUser or lastUser).
+ * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
 function activeUser() {
@@ -128,7 +128,7 @@ function activeUser() {
 
 /**
  * Blocks until there is a valid user
- * then return the valid user (i.e. currentUser or lastUser).
+ * then returns the valid user (currentUser or lastUser).
  * @return {!firebase.User}
  */
 async function getActiveUserBlocking() {
