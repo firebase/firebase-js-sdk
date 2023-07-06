@@ -37,7 +37,6 @@ export { OnDisconnect } from './api/OnDisconnect';
 export {
   DataSnapshot,
   EventType,
-  IteratedDataSnapshot,
   QueryConstraint,
   QueryConstraintType,
   endAt,
