@@ -72,7 +72,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  validatePassword
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -491,6 +492,87 @@ function onSetTenantID(_event) {
 
 function onInitializeRecaptchaConfig() {
   initializeRecaptchaConfig(auth);
+}
+
+/**
+ * Updates the displayed validation status for the inputted password.
+ */
+function onValidatePassword() {
+  /**
+   * Updates the displayed status for a requirement.
+   * @param {string} id The ID of the DOM element displaying the requirement status.
+   * @param {boolean} status Whether the requirement is met.
+   */
+  function setRequirementStatus(id, status) {
+    if (status) {
+      $(id).removeClass('list-group-item-danger');
+      $(id).addClass('list-group-item-success');
+    } else {
+      $(id).removeClass('list-group-item-success');
+      $(id).addClass('list-group-item-danger');
+    }
+    $(id).show();
+  }
+
+  const password = $('#password-validation-password').val();
+  validatePassword(auth, password).then(
+    status => {
+      const customStrengthOptions = status.passwordPolicy.customStrengthOptions;
+
+      // Only show options required by the password policy.
+      if (customStrengthOptions.minPasswordLength) {
+        $('#password-validation-min-length').text(
+          customStrengthOptions.minPasswordLength
+        );
+        setRequirementStatus(
+          '#password-validation-meets-min-length',
+          status.meetsMinPasswordLength
+        );
+      }
+      if (customStrengthOptions.maxPasswordLength) {
+        $('#password-validation-max-length').text(
+          customStrengthOptions.maxPasswordLength
+        );
+        setRequirementStatus(
+          '#password-validation-meets-max-length',
+          status.meetsMaxPasswordLength
+        );
+      }
+      if (customStrengthOptions.containsLowercaseLetter) {
+        setRequirementStatus(
+          '#password-validation-contains-lowercase',
+          status.containsLowercaseLetter
+        );
+      }
+      if (customStrengthOptions.containsUppercaseLetter) {
+        setRequirementStatus(
+          '#password-validation-contains-uppercase',
+          status.containsUppercaseLetter
+        );
+      }
+      if (customStrengthOptions.containsNumericCharacter) {
+        setRequirementStatus(
+          '#password-validation-contains-numeric',
+          status.containsNumericCharacter
+        );
+      }
+      if (customStrengthOptions.containsNonAlphanumericCharacter) {
+        setRequirementStatus(
+          '#password-validation-contains-non-alphanumeric',
+          status.containsNonAlphanumericCharacter
+        );
+      }
+
+      $('#password-validation-password').prop('disabled', false);
+      $('#password-validation-requirements').show();
+    },
+    error => {
+      // Disable the password input and hide the requirements since validation cannot be performed.
+      $('#password-validation-password').prop('disabled', true);
+      $('#password-validation-requirements').hide();
+      onAuthError(error);
+    }
+  );
 }
 
 /**
@@ -2033,6 +2115,7 @@ function initApp() {
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
+  $('#password-validation-password').keyup(onValidatePassword);
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );

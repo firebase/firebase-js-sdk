@@ -76,6 +76,17 @@ body.user-info-displayed {
   border: none;
 }
 
+#password-validation-requirements {
+  margin-top: 20px;
+  margin-bottom: 0;
+  display: none;
+}
+
+#password-validation-requirements .list-group-item {
+  display: none;
+  list-style-type: none;
+}
+
 .logs {
   color: #555;
   font-family: 'Courier New', Courier;
