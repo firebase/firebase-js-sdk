@@ -49,20 +49,11 @@ export type LogLevel =
 
 export function setLogLevel(logLevel: LogLevel): void;
 
-export interface FirestoreDataConverter<
-  AppModelType,
-  DbModelType extends DocumentData = DocumentData
-> {
-  toFirestore(modelObject: AppModelType): DocumentData;
-  toFirestore(
-    modelObject: Partial<AppModelType>,
-    options: SetOptions
-  ): DocumentData;
+export interface FirestoreDataConverter<T> {
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<AppModelType, DbModelType>,
-    options: SnapshotOptions
-  ): AppModelType;
+  fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
 }
 
 export class FirebaseFirestore {
@@ -82,7 +73,7 @@ export class FirebaseFirestore {
 
   collection(collectionPath: string): CollectionReference<DocumentData>;
 
-  doc(documentPath: string): DocumentReference<DocumentData, DocumentData>;
+  doc(documentPath: string): DocumentReference<DocumentData>;
 
   collectionGroup(collectionId: string): Query<DocumentData>;
 
@@ -194,63 +185,45 @@ export class Blob {
 export class Transaction {
   private constructor();
 
-  get<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: Partial<AppModelType>,
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
     options: SetOptions
   ): Transaction;
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: Partial<AppModelType>
-  ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: Partial<AppModelType>
-  ): Transaction;
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
+  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
+  update(
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
   ): Transaction;
 
-  delete<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): Transaction;
+  delete(documentRef: DocumentReference<any>): Transaction;
 }
 
 export class WriteBatch {
   private constructor();
 
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: Partial<AppModelType>,
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
     options: SetOptions
   ): WriteBatch;
-  set<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: UpdateData
-  ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
-    data: UpdateData
-  ): WriteBatch;
-  update<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>,
+  update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
+  update(
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
   ): WriteBatch;
 
-  delete<AppModelType, DbModelType extends DocumentData>(
-    documentRef: DocumentReference<AppModelType, DbModelType>
-  ): WriteBatch;
+  delete(documentRef: DocumentReference<any>): WriteBatch;
 
   commit(): Promise<void>;
 }
@@ -268,20 +241,20 @@ export interface GetOptions {
   readonly source?: 'default' | 'server' | 'cache';
 }
 
-export class DocumentReference<AppModelType, DbModelType> {
+export class DocumentReference<T = DocumentData> {
   private constructor();
 
   readonly id: string;
   readonly firestore: FirebaseFirestore;
-  readonly parent: CollectionReference<AppModelType, DbModelType>;
+  readonly parent: CollectionReference<T>;
   readonly path: string;
 
   collection(collectionPath: string): CollectionReference<DocumentData>;
 
-  isEqual(other: DocumentReference<AppModelType, DbModelType>): boolean;
+  isEqual(other: DocumentReference<T>): boolean;
 
-  set(data: Partial<AppModelType>, options: SetOptions): Promise<void>;
-  set(data: Partial<AppModelType>): Promise<void>;
+  set(data: Partial<T>, options: SetOptions): Promise<void>;
+  set(data: T): Promise<void>;
 
   update(data: UpdateData): Promise<void>;
   update(
@@ -292,39 +265,35 @@ export class DocumentReference<AppModelType, DbModelType> {
 
   delete(): Promise<void>;
 
-  get(
-    options?: GetOptions
-  ): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+  get(options?: GetOptions): Promise<DocumentSnapshot<T>>;
 
   onSnapshot(observer: {
-    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+    next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
-      next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
+      next?: (snapshot: DocumentSnapshot<T>) => void;
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
-    onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
+    onNext: (snapshot: DocumentSnapshot<T>) => void,
     onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
-    onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
+    onNext: (snapshot: DocumentSnapshot<T>) => void,
     onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
 
-  withConverter(converter: null): DocumentReference<AppModelType, DbModelType>;
-  withConverter<AppModelType, DbModelType>(
-    converter: FirestoreDataConverter<AppModelType, DbModelType>
-  ): DocumentReference<AppModelType, DbModelType>;
+  withConverter(converter: null): DocumentReference<DocumentData>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
 export interface SnapshotOptions {
@@ -338,28 +307,27 @@ export interface SnapshotMetadata {
   isEqual(other: SnapshotMetadata): boolean;
 }
 
-export class DocumentSnapshot<AppModelType, DbModelType> {
+export class DocumentSnapshot<T = DocumentData> {
   protected constructor();
 
   readonly exists: boolean;
-  readonly ref: DocumentReference<AppModelType, DbModelType>;
+  readonly ref: DocumentReference<T>;
   readonly id: string;
   readonly metadata: SnapshotMetadata;
 
-  data(options?: SnapshotOptions): AppModelType | undefined;
+  data(options?: SnapshotOptions): T | undefined;
 
   get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
 
-  isEqual(other: DocumentSnapshot<AppModelType, DbModelType>): boolean;
+  isEqual(other: DocumentSnapshot<T>): boolean;
 }
 
 export class QueryDocumentSnapshot<
-  AppModelType,
-  DbModelType
-> extends DocumentSnapshot<AppModelType, DbModelType> {
+  T = DocumentData
+> extends DocumentSnapshot<T> {
   private constructor();
 
-  data(options?: SnapshotOptions): AppModelType;
+  data(options?: SnapshotOptions): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
@@ -376,10 +344,7 @@ export type WhereFilterOp =
   | 'array-contains-any'
   | 'not-in';
 
-export class Query<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> {
+export class Query<T = DocumentData> {
   protected constructor();
 
   readonly firestore: FirebaseFirestore;
@@ -388,62 +353,54 @@ export class Query<
     fieldPath: string | FieldPath,
     opStr: WhereFilterOp,
     value: any
-  ): Query<AppModelType, DbModelType>;
+  ): Query<T>;
 
   orderBy(
     fieldPath: string | FieldPath,
     directionStr?: OrderByDirection
-  ): Query<AppModelType, DbModelType>;
+  ): Query<T>;
 
-  limit(limit: number): Query<AppModelType, DbModelType>;
+  limit(limit: number): Query<T>;
 
-  limitToLast(limit: number): Query<AppModelType, DbModelType>;
+  limitToLast(limit: number): Query<T>;
 
-  startAt(
-    snapshot: DocumentSnapshot<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  startAt(...fieldValues: any[]): Query<AppModelType, DbModelType>;
+  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  startAt(...fieldValues: any[]): Query<T>;
 
-  startAfter(
-    snapshot: DocumentSnapshot<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  startAfter(...fieldValues: any[]): Query<AppModelType, DbModelType>;
+  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
+  startAfter(...fieldValues: any[]): Query<T>;
 
-  endBefore(
-    snapshot: DocumentSnapshot<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  endBefore(...fieldValues: any[]): Query<AppModelType, DbModelType>;
+  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
+  endBefore(...fieldValues: any[]): Query<T>;
 
-  endAt(
-    snapshot: DocumentSnapshot<AppModelType, DbModelType>
-  ): Query<AppModelType, DbModelType>;
-  endAt(...fieldValues: any[]): Query<AppModelType, DbModelType>;
+  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
+  endAt(...fieldValues: any[]): Query<T>;
 
-  isEqual(other: Query<AppModelType, DbModelType>): boolean;
+  isEqual(other: Query<T>): boolean;
 
-  get(options?: GetOptions): Promise<QuerySnapshot<AppModelType, DbModelType>>;
+  get(options?: GetOptions): Promise<QuerySnapshot<T>>;
 
   onSnapshot(observer: {
-    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
-      next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
+      next?: (snapshot: QuerySnapshot<T>) => void;
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
-    onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+    onNext: (snapshot: QuerySnapshot<T>) => void,
     onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
-    onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
+    onNext: (snapshot: QuerySnapshot<T>) => void,
     onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
@@ -452,55 +409,46 @@ export class Query<
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
-export class QuerySnapshot<AppModelType, DbModelType> {
+export class QuerySnapshot<T = DocumentData> {
   private constructor();
 
-  readonly query: Query<AppModelType, DbModelType>;
+  readonly query: Query<T>;
   readonly metadata: SnapshotMetadata;
-  readonly docs: Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
+  readonly docs: Array<QueryDocumentSnapshot<T>>;
   readonly size: number;
   readonly empty: boolean;
 
-  docChanges(
-    options?: SnapshotListenOptions
-  ): Array<DocumentChange<AppModelType, DbModelType>>;
+  docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
 
   forEach(
-    callback: (
-      result: QueryDocumentSnapshot<AppModelType, DbModelType>
-    ) => void,
+    callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: any
   ): void;
 
-  isEqual(other: QuerySnapshot<AppModelType, DbModelType>): boolean;
+  isEqual(other: QuerySnapshot<T>): boolean;
 }
 
 export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
-export interface DocumentChange<AppModelType, DbModelType> {
+export interface DocumentChange<T = DocumentData> {
   readonly type: DocumentChangeType;
-  readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
+  readonly doc: QueryDocumentSnapshot<T>;
   readonly oldIndex: number;
   readonly newIndex: number;
 }
 
-export class CollectionReference<
-  AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData
-> extends Query<AppModelType, DbModelType> {
+export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
 
   readonly id: string;
-  readonly parent: DocumentReference<AppModelType, DbModelType> | null;
+  readonly parent: DocumentReference<DocumentData> | null;
   readonly path: string;
 
-  doc(documentPath?: string): DocumentReference<AppModelType, DbModelType>;
+  doc(documentPath?: string): DocumentReference<T>;
 
-  add(
-    data: AppModelType
-  ): Promise<DocumentReference<AppModelType, DbModelType>>;
+  add(data: T): Promise<DocumentReference<T>>;
 
-  isEqual(other: CollectionReference<AppModelType, DbModelType>): boolean;
+  isEqual(other: CollectionReference<T>): boolean;
 
   withConverter(converter: null): CollectionReference<DocumentData>;
   withConverter<U>(

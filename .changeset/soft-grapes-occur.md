@@ -1,5 +1,4 @@
 ---
-'@firebase/firestore-types': patch
 'firebase': patch
 ---
 
