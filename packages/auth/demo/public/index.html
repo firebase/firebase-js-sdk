@@ -367,6 +367,34 @@
                   Confirm Password Change
                 </button>
               </form>
+
+              <!-- Password Validation -->
+              <div class="group">Password Validation</div>
+              <form class="form form-bordered no-submit">
+                <input type="password" name="password" id="password-validation-password"
+                       class="form-control" placeholder="Password" />
+                <ul class="list-group" id="password-validation-requirements">
+                  <li class="list-group-item" id="password-validation-meets-min-length">
+                    Password must be at least <span id="password-validation-min-length">6</span> characters.
+                  </li>
+                  <li class="list-group-item" id="password-validation-meets-max-length">
+                    Password must be at most <span id="password-validation-max-length">4096</span> characters.
+                  </li>
+                  <li class="list-group-item" id="password-validation-contains-lowercase">
+                    Password must contain a lowercase letter.
+                  </li>
+                  <li class="list-group-item" id="password-validation-contains-uppercase">
+                    Password must contain an uppercase letter.
+                  </li>
+                  <li class="list-group-item" id="password-validation-contains-numeric">
+                    Password must contain a numeric character.
+                  </li>
+                  <li class="list-group-item" id="password-validation-contains-non-alphanumeric">
+                    Password must contain a non-alphanumeric character.
+                  </li>
+                </ul>
+              </form>
+
               <!-- Fetch Sign In Methods -->
               <div class="group">Fetch Sign In Methods</div>
               <form class="form form-bordered no-submit">

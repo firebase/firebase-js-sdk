@@ -789,7 +789,7 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context.only('passwordPolicy', () => {
+  context('passwordPolicy', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_MIN_PASSWORD_LENGTH = 6;
     const TEST_MAX_PASSWORD_LENGTH = 12;
