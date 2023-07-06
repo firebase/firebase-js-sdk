@@ -745,6 +745,149 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(user.isAnonymous).to.be.false;
     });
   });
+
+  context('#passwordPolicy', () => {
+    const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+    const TEST_SCHEMA_VERSION = 1;
+
+    const TEST_TENANT_ID = 'tenant-id';
+    const TEST_REQUIRE_NUMERIC_TENANT_ID = 'other-tenant-id';
+
+    const PASSWORD_ERROR_MSG =
+      'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).';
+
+    const passwordPolicyResponse = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const passwordPolicyResponseRequireNumeric = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const cachedPasswordPolicy = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
+    };
+    const cachedPasswordPolicyRequireNumeric = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
+    };
+    let policyEndpointMock: mockFetch.Route;
+    let policyEndpointMockWithTenant: mockFetch.Route;
+    let policyEndpointMockWithOtherTenant: mockFetch.Route;
+
+    beforeEach(() => {
+      policyEndpointMock = mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {},
+        passwordPolicyResponse
+      );
+      policyEndpointMockWithTenant = mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: TEST_TENANT_ID
+        },
+        passwordPolicyResponse
+      );
+      policyEndpointMockWithOtherTenant = mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: TEST_REQUIRE_NUMERIC_TENANT_ID
+        },
+        passwordPolicyResponseRequireNumeric
+      );
+    });
+
+    it('does not update the cached password policy upon successful sign up when there is no existing policy cache', async () => {
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(0);
+      expect(auth._getPasswordPolicy()).to.be.null;
+    });
+
+    it('does not update the cached password policy upon successful sign up when there is an existing policy cache', async () => {
+      await auth._updatePasswordPolicy();
+
+      await expect(
+        createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+      ).to.be.fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(1);
+      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+    });
+
+    context('handles password validation errors', () => {
+      beforeEach(() => {
+        mockEndpoint(
+          Endpoint.SIGN_UP,
+          {
+            error: {
+              code: 400,
+              message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
+            }
+          },
+          400
+        );
+      });
+
+      it('updates the cached password policy when password does not meet backend requirements', async () => {
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMock.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+        // Password policy changed after previous fetch.
+        policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicy()).to.eql(
+          cachedPasswordPolicyRequireNumeric
+        );
+      });
+
+      it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
+        expect(auth._getPasswordPolicy()).to.be.null;
+
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMock.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.null;
+      });
+
+      it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
+        auth.tenantId = TEST_TENANT_ID;
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+        auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
+        await expect(
+          createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.undefined;
+      });
+    });
+  });
 });
 
 describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => {
