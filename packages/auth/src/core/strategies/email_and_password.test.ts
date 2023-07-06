@@ -751,6 +751,12 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_SCHEMA_VERSION = 1;
 
+    const TEST_TENANT_ID = 'tenant-id';
+    const TEST_REQUIRE_NUMERIC_TENANT_ID = 'other-tenant-id';
+
+    const PASSWORD_ERROR_MSG =
+      'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).';
+
     const passwordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
@@ -792,20 +798,20 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       policyEndpointMockWithTenant = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'tenant-id'
+          tenantId: TEST_TENANT_ID
         },
         passwordPolicyResponse
       );
       policyEndpointMockWithOtherTenant = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'other-tenant-id'
+          tenantId: TEST_REQUIRE_NUMERIC_TENANT_ID
         },
         passwordPolicyResponseRequireNumeric
       );
     });
 
-    it('does not update the password policy upon successful sign up when there is no existing policy cache', async () => {
+    it('does not update the cached password policy upon successful sign up when there is no existing policy cache', async () => {
       await expect(
         createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
       ).to.be.fulfilled;
@@ -814,7 +820,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(auth._getPasswordPolicy()).to.be.null;
     });
 
-    it('does not update the password policy upon successful sign up when there is an existing policy cache', async () => {
+    it('does not update the cached password policy upon successful sign up when there is an existing policy cache', async () => {
       await auth._updatePasswordPolicy();
 
       await expect(
@@ -839,18 +845,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         );
       });
 
-      it('updates the password policy when password does not meet backend requirements', async () => {
+      it('updates the cached password policy when password does not meet backend requirements', async () => {
         await auth._updatePasswordPolicy();
         expect(policyEndpointMock.calls.length).to.eq(1);
         expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
 
+        // Password policy changed after previous fetch.
         policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
         await expect(
           createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
-        ).to.be.rejectedWith(
-          FirebaseError,
-          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
-        );
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(2);
         expect(auth._getPasswordPolicy()).to.eql(
@@ -858,31 +862,27 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         );
       });
 
-      it('does not update the password policy upon error if policy has not previously been fetched', async () => {
+      it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
+        expect(auth._getPasswordPolicy()).to.be.null;
+
         await expect(
           createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
-        ).to.be.rejectedWith(
-          FirebaseError,
-          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
-        );
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(0);
         expect(auth._getPasswordPolicy()).to.be.null;
       });
 
-      it('does not update the password policy upon error if tenant changes and policy has not previously been fetched', async () => {
-        auth.tenantId = 'tenant-id';
+      it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
+        auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
         expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
         expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
 
-        auth.tenantId = 'other-tenant-id';
+        auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
         await expect(
           createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
-        ).to.be.rejectedWith(
-          FirebaseError,
-          'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).'
-        );
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicy()).to.be.undefined;
       });
