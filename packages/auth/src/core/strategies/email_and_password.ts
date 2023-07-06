@@ -308,6 +308,16 @@ export async function createUserWithEmailAndPassword(
         );
         return signUp(authInternal, requestWithRecaptcha);
       } else {
+        // Only fetch the password policy if the password did not meet policy requirements and there is an existing policy cached.
+        // A developer must call validatePassword at least once for the cache to be automatically updated.
+        if (
+          error.code ===
+            `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}` &&
+          authInternal._getPasswordPolicy()
+        ) {
+          await authInternal._updatePasswordPolicy();
+        }
+
         return Promise.reject(error);
       }
     });
