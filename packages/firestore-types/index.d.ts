@@ -243,7 +243,7 @@ export interface GetOptions {
 
 export class DocumentReference<
   T = DocumentData,
-  U extends DocumentData = DocumentData
+  T2 extends DocumentData = DocumentData
 > {
   private constructor();
 
@@ -312,7 +312,7 @@ export interface SnapshotMetadata {
 
 export class DocumentSnapshot<
   T = DocumentData,
-  U extends DocumentData = DocumentData
+  T2 extends DocumentData = DocumentData
 > {
   protected constructor();
 
@@ -330,8 +330,8 @@ export class DocumentSnapshot<
 
 export class QueryDocumentSnapshot<
   T = DocumentData,
-  U extends DocumentData = DocumentData
-> extends DocumentSnapshot<T, U> {
+  T2 extends DocumentData = DocumentData
+> extends DocumentSnapshot<T, T2> {
   private constructor();
 
   data(options?: SnapshotOptions): T;
@@ -351,7 +351,7 @@ export type WhereFilterOp =
   | 'array-contains-any'
   | 'not-in';
 
-export class Query<T = DocumentData, U extends DocumentData = DocumentData> {
+export class Query<T = DocumentData, T2 extends DocumentData = DocumentData> {
   protected constructor();
 
   readonly firestore: FirebaseFirestore;
@@ -418,7 +418,7 @@ export class Query<T = DocumentData, U extends DocumentData = DocumentData> {
 
 export class QuerySnapshot<
   T = DocumentData,
-  U extends DocumentData = DocumentData
+  T2 extends DocumentData = DocumentData
 > {
   private constructor();
 
@@ -442,7 +442,7 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
 export interface DocumentChange<
   T = DocumentData,
-  U extends DocumentData = DocumentData
+  T2 extends DocumentData = DocumentData
 > {
   readonly type: DocumentChangeType;
   readonly doc: QueryDocumentSnapshot<T>;
@@ -452,8 +452,8 @@ export interface DocumentChange<
 
 export class CollectionReference<
   T = DocumentData,
-  U extends DocumentData = DocumentData
-> extends Query<T, U> {
+  T2 extends DocumentData = DocumentData
+> extends Query<T, T2> {
   private constructor();
 
   readonly id: string;
