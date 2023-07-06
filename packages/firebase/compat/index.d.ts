@@ -5997,7 +5997,7 @@ declare namespace firebase.database {
      */
     toJSON(): Object | null;
   }
-  
+
   interface IteratedDataSnapshot extends DataSnapshot {
     key: string; // key of the location of this snapshot.
   }
