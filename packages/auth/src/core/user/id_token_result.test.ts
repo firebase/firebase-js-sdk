@@ -20,6 +20,7 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
 import { ProviderId } from '../../model/enums';
+import { ParsedToken } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
 
 import { makeJWT } from '../../../test/helpers/jwt';
@@ -138,5 +139,16 @@ describe('core/user/id_token_result', () => {
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+  });
+
+  it('Parses custom claims with multiple types', () => {
+    const token: ParsedToken = {
+      'string_claim': 'foo',
+      'object_claim': { key1: 'value1' },
+      'boolean_claim': true
+    };
+    expect(token.boolean_claim as boolean).to.equal(true);
+    expect(token.string_claim as string).to.equal('foo');
+    expect((token.object_claim as { key1: string }).key1).to.equal('value1');
   });
 });
