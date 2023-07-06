@@ -124,6 +124,21 @@ export interface ExistenceFilterMismatchInfo {
 
     /** The number of bits of padding in the last byte of the bloom filter. */
     padding: number;
+
+    /**
+     * Check if the given document path is contained in the bloom filter.
+     *
+     * The "path" of a document can be retrieved from the
+     * `DocumentReference.path` property.
+     *
+     * Note that due to the probabilistic nature of a bloom filter, it is
+     * possible that false positives may occur; that is, this function may
+     * return `true` even though the given string is not in the bloom filter.
+     *
+     * This property is "optional"; if it is undefined then parsing the bloom
+     * filter failed.
+     */
+    mightContain?(documentPath: string): boolean;
   };
 }
 
