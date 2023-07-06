@@ -55,6 +55,19 @@ export interface ConfigInternal extends Config {
 }
 
 /**
+ * Internal typing of password policy that includes the schema version. The developer does
+ * not need access to this property, so it is excluded from the public typing.
+ *
+ * @internal
+ */
+export interface PasswordPolicyInternal extends PasswordPolicy {
+  /**
+   * Schema version of the password policy.
+   */
+  readonly schemaVersion: number;
+}
+
+/**
  * UserInternal and AuthInternal reference each other, so both of them are included in the public typings.
  * In order to exclude them, we mark them as internal explicitly.
  *
@@ -65,8 +78,8 @@ export interface AuthInternal extends Auth {
   emulatorConfig: EmulatorConfig | null;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
-  _projectPasswordPolicy: PasswordPolicy | null;
-  _tenantPasswordPolicies: Record<string, PasswordPolicy>;
+  _projectPasswordPolicy: PasswordPolicyInternal | null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicyInternal>;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
@@ -87,7 +100,7 @@ export interface AuthInternal extends Auth {
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
   _getRecaptchaConfig(): RecaptchaConfig | null;
-  _getPasswordPolicy(): PasswordPolicy | null;
+  _getPasswordPolicy(): PasswordPolicyInternal | null;
   _updatePasswordPolicy(): Promise<void>;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];

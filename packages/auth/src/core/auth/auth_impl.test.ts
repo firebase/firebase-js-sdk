@@ -31,7 +31,7 @@ import {
   testAuth,
   testUser
 } from '../../../test/helpers/mock_auth';
-import { AuthInternal } from '../../model/auth';
+import { AuthInternal, PasswordPolicyInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { PersistenceInternal } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
@@ -45,10 +45,7 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
-import {
-  PasswordPolicy,
-  PasswordValidationStatus
-} from '../../model/public_types';
+import { PasswordValidationStatus } from '../../model/public_types';
 import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
 
 use(sinonChai);
@@ -792,10 +789,12 @@ describe('core/auth/auth_impl', () => {
     });
   });
 
-  context('passwordPolicy', () => {
+  context.only('passwordPolicy', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_MIN_PASSWORD_LENGTH = 6;
     const TEST_MAX_PASSWORD_LENGTH = 12;
+    const TEST_SCHEMA_VERSION = 1;
+    const TEST_UNSUPPORTED_SCHEMA_VERSION = 0;
 
     const passwordPolicyResponse: GetPasswordPolicyResponse = {
       customStrengthOptions: {
@@ -806,7 +805,7 @@ describe('core/auth/auth_impl', () => {
         containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
     const passwordPolicyResponseRequireNumeric: GetPasswordPolicyResponse = {
       customStrengthOptions: {
@@ -817,7 +816,7 @@ describe('core/auth/auth_impl', () => {
         containsNonAlphanumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
     const passwordPolicyResponseUnsupportedVersion = {
       customStrengthOptions: {
@@ -825,28 +824,13 @@ describe('core/auth/auth_impl', () => {
         unsupportedPasswordPolicyProperty: 10
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 0
+      schemaVersion: TEST_UNSUPPORTED_SCHEMA_VERSION
     };
-    const cachedPasswordPolicy: PasswordPolicy = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
-        containsLowercaseLetter: true,
-        containsNumericCharacter: false,
-        containsNonAlphanumericCharacter: true
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
-    const cachedPasswordPolicyRequireNumeric: PasswordPolicy = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
-        containsLowercaseLetter: true,
-        containsNumericCharacter: true,
-        containsNonAlphanumericCharacter: true
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
+    const cachedPasswordPolicy: PasswordPolicyInternal = passwordPolicyResponse;
+    const cachedPasswordPolicyRequireNumeric: PasswordPolicyInternal =
+      passwordPolicyResponseRequireNumeric;
+    const cachedPasswordPolicyUnsupportedVersion: PasswordPolicyInternal =
+      passwordPolicyResponseUnsupportedVersion;
 
     beforeEach(async () => {
       mockFetch.setUp();
@@ -911,17 +895,17 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicy()).to.be.undefined;
     });
 
-    it('password policy should not be set when the schema version is not supported', async () => {
+    it('password policy should still be set when the schema version is not supported', async () => {
       auth = await testAuth();
       auth.tenantId = 'tenant-id-with-unsupported-policy-version';
-      await expect(auth._updatePasswordPolicy()).to.be.rejectedWith(
-        AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
-      );
+      await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicy()).to.be.undefined;
+      expect(auth._getPasswordPolicy()).to.eql(
+        cachedPasswordPolicyUnsupportedVersion
+      );
     });
 
-    context.only('#validatePassword', () => {
+    context('#validatePassword', () => {
       it('password meeting the policy for the project should be considered valid', async () => {
         const expectedValidationStatus: PasswordValidationStatus = {
           isValid: true,
@@ -1016,9 +1000,18 @@ describe('core/auth/auth_impl', () => {
         expect(status).to.eql(expectedValidationStatus);
       });
 
-      it('should throw an error when an unsupported password policy schema version is received', async () => {
+      it('should throw an error when a password policy with an unsupported schema version is received', async () => {
         auth = await testAuth();
         auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+        await expect(auth.validatePassword('password')).to.be.rejectedWith(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
+        );
+      });
+
+      it('should throw an error when a password policy with an unsupported schema version is already cached', async () => {
+        auth = await testAuth();
+        auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+        await auth._updatePasswordPolicy();
         await expect(auth.validatePassword('password')).to.be.rejectedWith(
           AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
         );

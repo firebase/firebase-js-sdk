@@ -32,7 +32,6 @@ import {
   ErrorFn,
   NextFn,
   Unsubscribe,
-  PasswordPolicy,
   PasswordValidationStatus
 } from '../../model/public_types';
 import {
@@ -44,7 +43,11 @@ import {
   Subscribe
 } from '@firebase/util';
 
-import { AuthInternal, ConfigInternal } from '../../model/auth';
+import {
+  AuthInternal,
+  ConfigInternal,
+  PasswordPolicyInternal
+} from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
 import {
@@ -105,8 +108,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _DEFAULT_AUTH_ERROR_FACTORY;
   _agentRecaptchaConfig: RecaptchaConfig | null = null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
-  _projectPasswordPolicy: PasswordPolicy | null = null;
-  _tenantPasswordPolicies: Record<string, PasswordPolicy> = {};
+  _projectPasswordPolicy: PasswordPolicyInternal | null = null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -437,7 +440,19 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // Password policy will be defined after fetching.
-    const policy: PasswordPolicy = this._getPasswordPolicy()!;
+    const policy: PasswordPolicyInternal = this._getPasswordPolicy()!;
+
+    // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
+    if (policy.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION) {
+      return Promise.reject(
+        this._errorFactory.create(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
+          {}
+        )
+      );
+    }
+
     let validFlag = true;
 
     // Check length options.
@@ -518,7 +533,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return status;
   }
 
-  _getPasswordPolicy(): PasswordPolicy | null {
+  _getPasswordPolicy(): PasswordPolicyInternal | null {
     if (this.tenantId === null) {
       return this._projectPasswordPolicy;
     } else {
@@ -529,23 +544,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   async _updatePasswordPolicy(): Promise<void> {
     const response = await _getPasswordPolicy(this);
 
-    // Check that the policy schema version is supported by the SDK.
-    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
-    if (
-      response.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
-    ) {
-      return Promise.reject(
-        this._errorFactory.create(
-          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
-          {}
-        )
-      );
-    }
-
-    const passwordPolicy: PasswordPolicy = {
+    const passwordPolicy: PasswordPolicyInternal = {
       customStrengthOptions: response.customStrengthOptions,
       allowedNonAlphanumericCharacters:
-        response.allowedNonAlphanumericCharacters
+        response.allowedNonAlphanumericCharacters,
+      schemaVersion: response.schemaVersion
     };
 
     if (this.tenantId === null) {
