@@ -863,7 +863,7 @@ describe('core/auth/auth_impl', () => {
       mockFetch.tearDown();
     });
 
-    it('password policy should be set for project if tenant ID is null', async () => {
+    it('password policy should be cached for project if tenant ID is null', async () => {
       auth = await testAuth();
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
@@ -871,7 +871,7 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
     });
 
-    it('password policy should be set for tenant if tenant ID is not null', async () => {
+    it('password policy should be cached for tenant if tenant ID is not null', async () => {
       auth = await testAuth();
       auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
@@ -899,7 +899,7 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicy()).to.be.undefined;
     });
 
-    it('password policy should still be set when the schema version is not supported', async () => {
+    it('password policy should still be cached when the schema version is not supported', async () => {
       auth = await testAuth();
       auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
       await auth._updatePasswordPolicy();
