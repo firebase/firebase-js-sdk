@@ -796,6 +796,10 @@ describe('core/auth/auth_impl', () => {
     const TEST_SCHEMA_VERSION = 1;
     const TEST_UNSUPPORTED_SCHEMA_VERSION = 0;
 
+    const TEST_TENANT_ID = 'tenant-id';
+    const TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION =
+      'tenant-id-with-unsupported-policy-version';
+
     const passwordPolicyResponse: GetPasswordPolicyResponse = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -842,14 +846,14 @@ describe('core/auth/auth_impl', () => {
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'tenant-id'
+          tenantId: TEST_TENANT_ID
         },
         passwordPolicyResponseRequireNumeric
       );
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'tenant-id-with-unsupported-policy-version'
+          tenantId: TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION
         },
         passwordPolicyResponseUnsupportedVersion
       );
@@ -869,7 +873,7 @@ describe('core/auth/auth_impl', () => {
 
     it('password policy should be set for tenant if tenant ID is not null', async () => {
       auth = await testAuth();
-      auth.tenantId = 'tenant-id';
+      auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
       expect(auth._getPasswordPolicy()).to.eql(
@@ -882,12 +886,12 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
 
-      auth.tenantId = 'tenant-id';
+      auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
       auth.tenantId = null;
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
-      auth.tenantId = 'tenant-id';
+      auth.tenantId = TEST_TENANT_ID;
       expect(auth._getPasswordPolicy()).to.eql(
         cachedPasswordPolicyRequireNumeric
       );
@@ -897,7 +901,7 @@ describe('core/auth/auth_impl', () => {
 
     it('password policy should still be set when the schema version is not supported', async () => {
       auth = await testAuth();
-      auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+      auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
       await auth._updatePasswordPolicy();
 
       expect(auth._getPasswordPolicy()).to.eql(
@@ -948,7 +952,7 @@ describe('core/auth/auth_impl', () => {
         };
 
         auth = await testAuth();
-        auth.tenantId = 'tenant-id';
+        auth.tenantId = TEST_TENANT_ID;
         const status = await auth.validatePassword('passw0rd!');
         expect(status).to.eql(expectedValidationStatus);
       });
@@ -965,7 +969,7 @@ describe('core/auth/auth_impl', () => {
         };
 
         auth = await testAuth();
-        auth.tenantId = 'tenant-id';
+        auth.tenantId = TEST_TENANT_ID;
         const status = await auth.validatePassword('password01234');
         expect(status).to.eql(expectedValidationStatus);
       });
@@ -995,14 +999,14 @@ describe('core/auth/auth_impl', () => {
           passwordPolicy: cachedPasswordPolicyRequireNumeric
         };
 
-        auth.tenantId = 'tenant-id';
+        auth.tenantId = TEST_TENANT_ID;
         status = await auth.validatePassword('password!');
         expect(status).to.eql(expectedValidationStatus);
       });
 
       it('should throw an error when a password policy with an unsupported schema version is received', async () => {
         auth = await testAuth();
-        auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+        auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
         await expect(auth.validatePassword('password')).to.be.rejectedWith(
           AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
         );
@@ -1010,7 +1014,7 @@ describe('core/auth/auth_impl', () => {
 
       it('should throw an error when a password policy with an unsupported schema version is already cached', async () => {
         auth = await testAuth();
-        auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+        auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
         await auth._updatePasswordPolicy();
         await expect(auth.validatePassword('password')).to.be.rejectedWith(
           AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
