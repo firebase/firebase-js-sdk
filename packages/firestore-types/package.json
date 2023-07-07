@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-types",
-  "version": "2.5.1",
+  "version": "3.0.0",
   "description": "@firebase/firestore Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
