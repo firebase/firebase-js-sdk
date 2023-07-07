@@ -79,6 +79,7 @@ export interface PrivateSettings extends FirestoreSettings {
   useFetchStreams?: boolean;
 
   localCache?: FirestoreLocalCache;
+  merge?: boolean;
 }
 
 /**
