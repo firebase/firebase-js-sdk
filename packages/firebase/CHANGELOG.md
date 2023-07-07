@@ -1,5 +1,37 @@
 # firebase
 
+## 10.0.0
+
+### Major Changes
+
+- [`47860fe6e`](https://github.com/firebase/firebase-js-sdk/commit/47860fe6e702e224d4ea4052dc42029673b9f7f1) [#7423](https://github.com/firebase/firebase-js-sdk/pull/7423) - Update to be consistent with the FirestoreDataConverter changes from #7310
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- [`f2fb56fc0`](https://github.com/firebase/firebase-js-sdk/commit/f2fb56fc0f5d1573fe7700f019c58ec2755a3478) [#7310](https://github.com/firebase/firebase-js-sdk/pull/7310) - Fixed updateDoc() typing issue by adding a 2nd type parameter to FirestoreDataConverter
+
+- [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651) [#7138](https://github.com/firebase/firebase-js-sdk/pull/7138) - Remove `firebase/auth/react-native` entry point. The React Native bundle should be automatically picked up by React Native build tools which recognize the `react-native` fields in `package.json` (at the top level and in `exports`).
+
+- [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6) [#7128](https://github.com/firebase/firebase-js-sdk/pull/7128) (fixes [#6493](https://github.com/firebase/firebase-js-sdk/issues/6493)) - Change `getAuth()` in the React Native bundle to default to importing `AsyncStorage` from `@react-native-async-storage/async-storage` instead of from the `react-native` core package (which has recently removed it).
+
+### Patch Changes
+
+- [`aaf3fa396`](https://github.com/firebase/firebase-js-sdk/commit/aaf3fa3969521c540c4a4583648536348033e1c6) [#7385](https://github.com/firebase/firebase-js-sdk/pull/7385) - Fix an issue where localCache is not copied as part of Settings.
+
+- [`f3067f72d`](https://github.com/firebase/firebase-js-sdk/commit/f3067f72d37eb838554be5a3a14d10a019631e6f) [#7422](https://github.com/firebase/firebase-js-sdk/pull/7422) - Fix typings for v10
+
+- [`d86c89f9c`](https://github.com/firebase/firebase-js-sdk/commit/d86c89f9c65203842eed39699c729f841d902cc0) [#7382](https://github.com/firebase/firebase-js-sdk/pull/7382) - Fix source maps that incorrectly referenced yet another minified and mangled bundle, rendering them useless. The fixed bundles' source maps are: index.esm2017.js, index.cjs.js, index.node.mjs, and index.browser.esm2017.js (lite sdk only).
+
+- Updated dependencies [[`57f2a863f`](https://github.com/firebase/firebase-js-sdk/commit/57f2a863f188ca11b6167656fc7a7d7c9affc1d6), [`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183), [`aaf3fa396`](https://github.com/firebase/firebase-js-sdk/commit/aaf3fa3969521c540c4a4583648536348033e1c6), [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65), [`f2fb56fc0`](https://github.com/firebase/firebase-js-sdk/commit/f2fb56fc0f5d1573fe7700f019c58ec2755a3478), [`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956), [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651), [`d86c89f9c`](https://github.com/firebase/firebase-js-sdk/commit/d86c89f9c65203842eed39699c729f841d902cc0), [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6)]:
+  - @firebase/firestore@4.0.0
+  - @firebase/auth@1.0.0
+  - @firebase/app@0.9.14
+  - @firebase/auth-compat@0.4.3
+  - @firebase/database-compat@1.0.0
+  - @firebase/database@1.0.0
+  - @firebase/firestore-compat@0.3.13
+  - @firebase/app-compat@0.2.14
+
 ## 9.23.0
 
 ### Minor Changes

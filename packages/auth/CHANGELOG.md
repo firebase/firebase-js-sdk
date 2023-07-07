@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 1.0.0
+
+### Major Changes
+
+- [`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183) [#7351](https://github.com/firebase/firebase-js-sdk/pull/7351) - Changed the type of ParsedToken value from any to unknown
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651) [#7138](https://github.com/firebase/firebase-js-sdk/pull/7138) - Remove `firebase/auth/react-native` entry point. The React Native bundle should be automatically picked up by React Native build tools which recognize the `react-native` fields in `package.json` (at the top level and in `exports`).
+
+- [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6) [#7128](https://github.com/firebase/firebase-js-sdk/pull/7128) (fixes [#6493](https://github.com/firebase/firebase-js-sdk/issues/6493)) - Change `getAuth()` in the React Native bundle to default to importing `AsyncStorage` from `@react-native-async-storage/async-storage` instead of from the `react-native` core package (which has recently removed it).
+
 ## 0.23.2
 
 ### Patch Changes

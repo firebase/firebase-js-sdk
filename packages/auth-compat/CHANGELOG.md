@@ -1,5 +1,14 @@
 # @firebase/auth-compat
 
+## 0.4.3
+
+### Patch Changes
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- Updated dependencies [[`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183), [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65), [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651), [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6)]:
+  - @firebase/auth@1.0.0
+
 ## 0.4.2
 
 ### Patch Changes
