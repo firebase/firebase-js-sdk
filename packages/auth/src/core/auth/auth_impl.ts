@@ -493,10 +493,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
 
     // Combine status into single isValid flag.
-    if (policy.customStrengthOptions.containsLowercaseLetter) {
+    if (policy.customStrengthOptions.containsLowercaseCharacter) {
       validFlag &&= lowerCaseFlag;
     }
-    if (policy.customStrengthOptions.containsUppercaseLetter) {
+    if (policy.customStrengthOptions.containsUppercaseCharacter) {
       validFlag &&= upperCaseFlag;
     }
     if (policy.customStrengthOptions.containsNumericCharacter) {
@@ -515,11 +515,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       ...(policy.customStrengthOptions.maxPasswordLength && {
         meetsMaxPasswordLength: maxLengthFlag
       }),
-      ...(policy.customStrengthOptions.containsLowercaseLetter && {
-        containsLowercaseLetter: lowerCaseFlag
+      ...(policy.customStrengthOptions.containsLowercaseCharacter && {
+        containsLowercaseCharacter: lowerCaseFlag
       }),
-      ...(policy.customStrengthOptions.containsUppercaseLetter && {
-        containsUppercaseLetter: upperCaseFlag
+      ...(policy.customStrengthOptions.containsUppercaseCharacter && {
+        containsUppercaseCharacter: upperCaseFlag
       }),
       ...(policy.customStrengthOptions.containsNumericCharacter && {
         containsNumericCharacter: numberFlag

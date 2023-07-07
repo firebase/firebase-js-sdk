@@ -1274,11 +1274,11 @@ export interface PasswordPolicy {
     /**
      * Whether the password should contain a lowercase letter.
      */
-    readonly containsLowercaseLetter?: boolean;
+    readonly containsLowercaseCharacter?: boolean;
     /**
      * Whether the password should contain an uppercase letter.
      */
-    readonly containsUppercaseLetter?: boolean;
+    readonly containsUppercaseCharacter?: boolean;
     /**
      * Whether the password should contain a numeric character.
      */
@@ -1314,13 +1314,13 @@ export interface PasswordValidationStatus {
    */
   readonly meetsMaxPasswordLength?: boolean;
   /**
-   * Whether the password contains a lowercase letter, if required.
+   * Whether the password contains a lowercase character, if required.
    */
-  readonly containsLowercaseLetter?: boolean;
+  readonly containsLowercaseCharacter?: boolean;
   /**
-   * Whether the password contains an uppercase letter, if required.
+   * Whether the password contains an uppercase character, if required.
    */
-  readonly containsUppercaseLetter?: boolean;
+  readonly containsUppercaseCharacter?: boolean;
   /**
    * Whether the password contains a numeric character, if required.
    */

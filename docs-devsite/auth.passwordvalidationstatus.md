@@ -22,23 +22,23 @@ export interface PasswordValidationStatus
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [containsLowercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainslowercaseletter) | boolean | Whether the password contains a lowercase letter, if required. |
+|  [containsLowercaseCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainslowercasecharacter) | boolean | Whether the password contains a lowercase character, if required. |
 |  [containsNonAlphanumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnonalphanumericcharacter) | boolean | Whether the password contains a non-alphanumeric character, if required. |
 |  [containsNumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnumericcharacter) | boolean | Whether the password contains a numeric character, if required. |
-|  [containsUppercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsuppercaseletter) | boolean | Whether the password contains an uppercase letter, if required. |
+|  [containsUppercaseCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsuppercasecharacter) | boolean | Whether the password contains an uppercase character, if required. |
 |  [isValid](./auth.passwordvalidationstatus.md#passwordvalidationstatusisvalid) | boolean | Whether the password meets all requirements. |
 |  [meetsMaxPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsmaxpasswordlength) | boolean | Whether the password meets the maximum password length. |
 |  [meetsMinPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsminpasswordlength) | boolean | Whether the password meets the minimum password length. |
 |  [passwordPolicy](./auth.passwordvalidationstatus.md#passwordvalidationstatuspasswordpolicy) | [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | The policy used to validate the password. |
 
-## PasswordValidationStatus.containsLowercaseLetter
+## PasswordValidationStatus.containsLowercaseCharacter
 
-Whether the password contains a lowercase letter, if required.
+Whether the password contains a lowercase character, if required.
 
 <b>Signature:</b>
 
 ```typescript
-readonly containsLowercaseLetter?: boolean;
+readonly containsLowercaseCharacter?: boolean;
 ```
 
 ## PasswordValidationStatus.containsNonAlphanumericCharacter
@@ -61,14 +61,14 @@ Whether the password contains a numeric character, if required.
 readonly containsNumericCharacter?: boolean;
 ```
 
-## PasswordValidationStatus.containsUppercaseLetter
+## PasswordValidationStatus.containsUppercaseCharacter
 
-Whether the password contains an uppercase letter, if required.
+Whether the password contains an uppercase character, if required.
 
 <b>Signature:</b>
 
 ```typescript
-readonly containsUppercaseLetter?: boolean;
+readonly containsUppercaseCharacter?: boolean;
 ```
 
 ## PasswordValidationStatus.isValid

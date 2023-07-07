@@ -805,7 +805,7 @@ describe('core/auth/auth_impl', () => {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
-        containsLowercaseLetter: true,
+        containsLowercaseCharacter: true,
         containsNumericCharacter: false,
         containsNonAlphanumericCharacter: true
       },
@@ -816,7 +816,7 @@ describe('core/auth/auth_impl', () => {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
-        containsLowercaseLetter: true,
+        containsLowercaseCharacter: true,
         containsNumericCharacter: true,
         containsNonAlphanumericCharacter: true
       },
@@ -827,8 +827,8 @@ describe('core/auth/auth_impl', () => {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
-        containsLowercaseLetter: true,
-        containsUppercaseLetter: true,
+        containsLowercaseCharacter: true,
+        containsUppercaseCharacter: true,
         containsNumericCharacter: true,
         containsNonAlphanumericCharacter: true
       },
@@ -937,7 +937,7 @@ describe('core/auth/auth_impl', () => {
           isValid: true,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicy
         };
@@ -952,7 +952,7 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: false,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNonAlphanumericCharacter: false,
           passwordPolicy: cachedPasswordPolicy
         };
@@ -967,7 +967,7 @@ describe('core/auth/auth_impl', () => {
           isValid: true,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireNumeric
@@ -984,7 +984,7 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: false,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: false,
           passwordPolicy: cachedPasswordPolicyRequireNumeric
@@ -1001,8 +1001,8 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: false,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
-          containsUppercaseLetter: true,
+          containsLowercaseCharacter: true,
+          containsUppercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1019,8 +1019,8 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: false,
-          containsLowercaseLetter: true,
-          containsUppercaseLetter: true,
+          containsLowercaseCharacter: true,
+          containsUppercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1032,13 +1032,13 @@ describe('core/auth/auth_impl', () => {
         expect(status).to.eql(expectedValidationStatus);
       });
 
-      it('password that does not contain a lowercase letter is considered invalid', async () => {
+      it('password that does not contain a lowercase character is considered invalid', async () => {
         const expectedValidationStatus: PasswordValidationStatus = {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: false,
-          containsUppercaseLetter: true,
+          containsLowercaseCharacter: false,
+          containsUppercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1050,13 +1050,13 @@ describe('core/auth/auth_impl', () => {
         expect(status).to.eql(expectedValidationStatus);
       });
 
-      it('password that does not contain an uppercase letter is considered invalid', async () => {
+      it('password that does not contain an uppercase character is considered invalid', async () => {
         const expectedValidationStatus: PasswordValidationStatus = {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
-          containsUppercaseLetter: false,
+          containsLowercaseCharacter: true,
+          containsUppercaseCharacter: false,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1073,8 +1073,8 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
-          containsUppercaseLetter: true,
+          containsLowercaseCharacter: true,
+          containsUppercaseCharacter: true,
           containsNumericCharacter: false,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1091,8 +1091,8 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
-          containsUppercaseLetter: true,
+          containsLowercaseCharacter: true,
+          containsUppercaseCharacter: true,
           containsNumericCharacter: true,
           containsNonAlphanumericCharacter: false,
           passwordPolicy: cachedPasswordPolicyRequireAll
@@ -1109,7 +1109,7 @@ describe('core/auth/auth_impl', () => {
           isValid: true,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicy
         };
@@ -1123,7 +1123,7 @@ describe('core/auth/auth_impl', () => {
           isValid: false,
           meetsMinPasswordLength: true,
           meetsMaxPasswordLength: true,
-          containsLowercaseLetter: true,
+          containsLowercaseCharacter: true,
           containsNumericCharacter: false,
           containsNonAlphanumericCharacter: true,
           passwordPolicy: cachedPasswordPolicyRequireNumeric
