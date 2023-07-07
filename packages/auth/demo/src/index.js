@@ -568,7 +568,9 @@ function onValidatePassword() {
     },
     error => {
       // Disable the password input and hide the requirements since validation cannot be performed.
-      $('#password-validation-password').prop('disabled', true);
+      if (error.code === `auth/unsupported-password-policy-schema-version`) {
+        $('#password-validation-password').prop('disabled', true);
+      }
       $('#password-validation-requirements').hide();
       onAuthError(error);
     }
