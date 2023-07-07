@@ -568,8 +568,8 @@ export interface PasswordPolicy {
     readonly customStrengthOptions: {
         readonly minPasswordLength?: number;
         readonly maxPasswordLength?: number;
-        readonly containsLowercaseLetter?: boolean;
-        readonly containsUppercaseLetter?: boolean;
+        readonly containsLowercaseCharacter?: boolean;
+        readonly containsUppercaseCharacter?: boolean;
         readonly containsNumericCharacter?: boolean;
         readonly containsNonAlphanumericCharacter?: boolean;
     };
@@ -577,10 +577,10 @@ export interface PasswordPolicy {
 
 // @public
 export interface PasswordValidationStatus {
-    readonly containsLowercaseLetter?: boolean;
+    readonly containsLowercaseCharacter?: boolean;
     readonly containsNonAlphanumericCharacter?: boolean;
     readonly containsNumericCharacter?: boolean;
-    readonly containsUppercaseLetter?: boolean;
+    readonly containsUppercaseCharacter?: boolean;
     readonly isValid: boolean;
     readonly meetsMaxPasswordLength?: boolean;
     readonly meetsMinPasswordLength?: boolean;
