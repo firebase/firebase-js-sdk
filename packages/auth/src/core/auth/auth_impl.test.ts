@@ -797,6 +797,7 @@ describe('core/auth/auth_impl', () => {
     const TEST_UNSUPPORTED_SCHEMA_VERSION = 0;
 
     const TEST_TENANT_ID = 'tenant-id';
+    const TEST_TENANT_ID_REQUIRE_ALL = 'tenant-id-require-all';
     const TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION =
       'tenant-id-with-unsupported-policy-version';
 
@@ -822,6 +823,18 @@ describe('core/auth/auth_impl', () => {
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: TEST_SCHEMA_VERSION
     };
+    const passwordPolicyResponseRequireAll: GetPasswordPolicyResponse = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+        containsLowercaseLetter: true,
+        containsUppercaseLetter: true,
+        containsNumericCharacter: true,
+        containsNonAlphanumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
     const passwordPolicyResponseUnsupportedVersion = {
       customStrengthOptions: {
         maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
@@ -833,6 +846,8 @@ describe('core/auth/auth_impl', () => {
     const cachedPasswordPolicy: PasswordPolicyInternal = passwordPolicyResponse;
     const cachedPasswordPolicyRequireNumeric: PasswordPolicyInternal =
       passwordPolicyResponseRequireNumeric;
+    const cachedPasswordPolicyRequireAll: PasswordPolicyInternal =
+      passwordPolicyResponseRequireAll;
     const cachedPasswordPolicyUnsupportedVersion: PasswordPolicyInternal =
       passwordPolicyResponseUnsupportedVersion;
 
@@ -849,6 +864,13 @@ describe('core/auth/auth_impl', () => {
           tenantId: TEST_TENANT_ID
         },
         passwordPolicyResponseRequireNumeric
+      );
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: TEST_TENANT_ID_REQUIRE_ALL
+        },
+        passwordPolicyResponseRequireAll
       );
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
@@ -971,6 +993,114 @@ describe('core/auth/auth_impl', () => {
         auth = await testAuth();
         auth.tenantId = TEST_TENANT_ID;
         const status = await auth.validatePassword('password01234');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that is too short is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('P4ss!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that is too long is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: false,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('Password01234!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a lowercase letter is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: false,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('P4SSWORD!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain an uppercase letter is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: false,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('p4ssword!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a numeric character is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: false,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('Password!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a non-alphanumeric character is considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: cachedPasswordPolicyRequireAll
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_REQUIRE_ALL;
+        const status = await auth.validatePassword('P4ssword');
         expect(status).to.eql(expectedValidationStatus);
       });
 
