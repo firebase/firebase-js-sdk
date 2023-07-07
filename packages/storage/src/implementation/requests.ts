@@ -265,7 +265,8 @@ export function generateSignedURL(
   location: Location,
   options?: SignedURLOptions
 ): RequestInfo<string, string | null> {
-  const expiration = { ttl:validateSignedURLOptions(options) }
+  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+  const expiration = { ttlInMillis: validateSignedURLOptions(options) }
   const body = JSON.stringify(expiration);
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
@@ -279,6 +280,7 @@ export function generateSignedURL(
     signedURLHandler(),
     timeout
     );
+  requestInfo.headers = headers;
   requestInfo.body = body;
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
