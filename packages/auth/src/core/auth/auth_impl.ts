@@ -481,11 +481,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     let nonAlphaNumericFlag = false;
     for (let i = 0; i < password.length; i++) {
       char = password.charAt(i);
-      if (/^\d$/.test(char)) {
+      if (char >= '0' && char <= '9') {
         numberFlag = true;
-      } else if (/^[A-Z]$/.test(char)) {
+      } else if (char >= 'A' && char <= 'Z') {
         upperCaseFlag = true;
-      } else if (/^[a-z]$/.test(char)) {
+      } else if (char >= 'a' && char <= 'z') {
         lowerCaseFlag = true;
       } else if (policy.allowedNonAlphanumericCharacters.includes(char)) {
         nonAlphaNumericFlag = true;
