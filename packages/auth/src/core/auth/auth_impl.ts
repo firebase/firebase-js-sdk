@@ -39,7 +39,10 @@ import {
   FirebaseError,
   getModularInstance,
   Observer,
-  Subscribe
+  Subscribe,
+  Observable,
+  PartialObserver,
+  createObserver
 } from '@firebase/util';
 
 import { AuthInternal, ConfigInternal } from '../../model/auth';
@@ -84,8 +87,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
-  private authStateSubscription = new Subscription<User>(this);
-  private idTokenSubscription = new Subscription<User>(this);
+  private authStateEmitter = new EmitterStream<User | null>();
+  private idTokenEmitter = new EmitterStream<User | null>();
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
@@ -439,12 +442,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    return this.registerStateListener(
-      this.authStateSubscription,
-      nextOrObserver,
-      error,
-      completed
-    );
+    const stream = this.createUserStateStream(this.authStateEmitter);
+    const observer: Observer<User | null> = createObserver(nextOrObserver, error, completed);
+    return stream.subscribe(observer);
   }
 
   beforeAuthStateChanged(
@@ -459,12 +459,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    return this.registerStateListener(
-      this.idTokenSubscription,
-      nextOrObserver,
-      error,
-      completed
-    );
+    const stream = this.createUserStateStream(this.idTokenEmitter);
+    const observer: Observer<User | null> = createObserver(nextOrObserver, error, completed);
+    return stream.subscribe(observer);
   }
 
   toJSON(): object {
@@ -567,43 +564,35 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       return;
     }
 
-    this.idTokenSubscription.next(this.currentUser);
+    this.idTokenEmitter.emit(this.currentUser);
 
     const currentUid = this.currentUser?.uid ?? null;
     if (this.lastNotifiedUid !== currentUid) {
       this.lastNotifiedUid = currentUid;
-      this.authStateSubscription.next(this.currentUser);
+      this.authStateEmitter.emit(this.currentUser);
     }
   }
 
-  private registerStateListener(
-    subscription: Subscription<User>,
-    nextOrObserver: NextOrObserver<User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
+  private createUserStateStream(
+    emitter: EmitterStream<User | null>
+  ): Observable<User | null> {
     if (this._deleted) {
-      return () => {};
+      return new NeverStream();
     }
-
-    const cb =
-      typeof nextOrObserver === 'function'
-        ? nextOrObserver
-        : nextOrObserver.next.bind(nextOrObserver);
 
     const promise = this._isInitialized
       ? Promise.resolve()
       : this._initializationPromise;
     _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
-    // The callback needs to be called asynchronously per the spec.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => cb(this.currentUser));
 
-    if (typeof nextOrObserver === 'function') {
-      return subscription.addObserver(nextOrObserver, error, completed);
-    } else {
-      return subscription.addObserver(nextOrObserver);
-    }
+    const user = new PromiseStream(
+      promise.then(() => this.currentUser)
+    );
+
+    return new ConcatStream(
+      user,
+      emitter
+    );
   }
 
   /**
@@ -717,17 +706,101 @@ export function _castAuth(auth: Auth): AuthInternal {
   return getModularInstance(auth) as AuthInternal;
 }
 
-/** Helper class to wrap subscriber logic */
-class Subscription<T> {
-  private observer: Observer<T | null> | null = null;
-  readonly addObserver: Subscribe<T | null> = createSubscribe(
-    observer => (this.observer = observer)
-  );
+class NeverStream<T> implements Observable<T> {
+  constructor() {}
 
-  constructor(readonly auth: AuthInternal) {}
+  subscribe(
+    nextOrObserver?: NextFn<T> | PartialObserver<T>,
+    error?: ErrorFn,
+    complete?: CompleteFn
+  ): Unsubscribe {
+    return () => {};
+  }
+}
 
-  get next(): NextFn<T | null> {
-    _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);
-    return this.observer.next.bind(this.observer);
+class EmitterStream<T> implements Observable<T> {
+  constructor() {
+    this.subscribe = createSubscribe(
+      (o) => { this.observer = o; }
+    );
+  }
+
+  subscribe: Subscribe<T>;
+  observer?: Observer<T>;
+
+  emit(value: T) {
+    this.observer!.next(value);
+  }
+}
+
+class PromiseStream<T> implements Observable<T> {
+  constructor(promise: Promise<T>) {
+    this.promise = promise;
+  }
+
+  promise: Promise<T>;
+
+  subscribe(
+    nextOrObserver?: NextFn<T> | PartialObserver<T>,
+    error?: ErrorFn,
+    complete?: CompleteFn
+  ): Unsubscribe {
+    const observer = createObserver(nextOrObserver, error, complete);
+
+    let isUnsubscribed = false;
+
+    this.promise.then(
+      (value) => { 
+        if (isUnsubscribed) { return; }
+        observer.next(value);
+        observer.complete();
+      },
+      (error) => { 
+        if (isUnsubscribed) { return; }
+        observer.error(error); 
+      }
+    )
+
+    return () => {
+      isUnsubscribed = true;
+    }
+  }
+}
+
+class ConcatStream<T> implements Observable<T> {
+  constructor(s0: Observable<T>, s1: Observable<T>) {
+    this.s0 = s0;
+    this.s1 = s1;
+  }
+
+  s0: Observable<T>;
+  s1: Observable<T>;
+
+  subscribe(
+    nextOrObserver?: NextFn<T> | PartialObserver<T>,
+    error?: ErrorFn,
+    complete?: CompleteFn
+  ): Unsubscribe {
+    const observer = createObserver(nextOrObserver, error, complete);
+
+    let unsubscribe0: Unsubscribe;
+    let unsubscribe1: Unsubscribe | null;
+
+    unsubscribe0 = this.s0.subscribe(
+      (value: T) => { observer.next(value); },
+      (error: Error) => { observer.error(error); },
+      () => { 
+        unsubscribe1 = this.s1.subscribe(
+          (value: T) => { observer.next(value); },
+          (error: Error) => { observer.error(error); },
+          () => { observer.complete(); }
+        );
+      }
+    )
+
+    return () => {
+      unsubscribe1?.call(undefined);
+      unsubscribe0();
+    }
   }
 }

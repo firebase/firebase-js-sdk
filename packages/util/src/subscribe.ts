@@ -66,6 +66,51 @@ export function createSubscribe<T>(
   return proxy.subscribe.bind(proxy);
 }
 
+export function createObserver<T>(
+  nextOrObserver?: NextFn<T> | PartialObserver<T>,
+  error?: ErrorFn,
+  complete?: CompleteFn
+): Observer<T> {
+  let observer: Observer<T>;
+
+  if (
+    nextOrObserver === undefined &&
+    error === undefined &&
+    complete === undefined
+  ) {
+    throw new Error('Missing Observer.');
+  }
+
+  // Assemble an Observer object when passed as callback functions.
+  if (
+    implementsAnyMethods(nextOrObserver as { [key: string]: unknown }, [
+      'next',
+      'error',
+      'complete'
+    ])
+  ) {
+    observer = nextOrObserver as Observer<T>;
+  } else {
+    observer = {
+      next: nextOrObserver as NextFn<T>,
+      error,
+      complete
+    } as Observer<T>;
+  }
+
+  if (observer.next === undefined) {
+    observer.next = noop as NextFn<T>;
+  }
+  if (observer.error === undefined) {
+    observer.error = noop as ErrorFn;
+  }
+  if (observer.complete === undefined) {
+    observer.complete = noop as CompleteFn;
+  }
+
+  return observer;
+}
+
 /**
  * Implement fan-out for any number of Observers attached via a subscribe
  * function.
@@ -130,42 +175,9 @@ class ObserverProxy<T> implements Observer<T> {
     error?: ErrorFn,
     complete?: CompleteFn
   ): Unsubscribe {
-    let observer: Observer<T>;
-
-    if (
-      nextOrObserver === undefined &&
-      error === undefined &&
-      complete === undefined
-    ) {
-      throw new Error('Missing Observer.');
-    }
-
-    // Assemble an Observer object when passed as callback functions.
-    if (
-      implementsAnyMethods(nextOrObserver as { [key: string]: unknown }, [
-        'next',
-        'error',
-        'complete'
-      ])
-    ) {
-      observer = nextOrObserver as Observer<T>;
-    } else {
-      observer = {
-        next: nextOrObserver as NextFn<T>,
-        error,
-        complete
-      } as Observer<T>;
-    }
-
-    if (observer.next === undefined) {
-      observer.next = noop as NextFn<T>;
-    }
-    if (observer.error === undefined) {
-      observer.error = noop as ErrorFn;
-    }
-    if (observer.complete === undefined) {
-      observer.complete = noop as CompleteFn;
-    }
+    const observer = createObserver(
+      nextOrObserver, error, complete
+    );
 
     const unsub = this.unsubscribeOne.bind(this, this.observers!.length);
 

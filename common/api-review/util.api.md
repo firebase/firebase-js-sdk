@@ -82,6 +82,11 @@ export function contains<T extends object>(obj: T, key: string): boolean;
 // @public (undocumented)
 export function createMockUserToken(token: EmulatorMockTokenOptions, projectId?: string): string;
 
+// Warning: (ae-missing-release-tag) "createObserver" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function createObserver<T>(nextOrObserver?: NextFn<T> | PartialObserver<T>, error?: ErrorFn, complete?: CompleteFn): Observer<T>;
+
 // Warning: (ae-missing-release-tag) "createSubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
