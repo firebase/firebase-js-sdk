@@ -17,7 +17,7 @@ For a `DocumentSnapshot` that points to a non-existing document, any data access
 <b>Signature:</b>
 
 ```typescript
-export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
+export declare class DocumentSnapshot<T = DocumentData> 
 ```
 
 ## Constructors
@@ -31,7 +31,7 @@ export declare class DocumentSnapshot<AppModelType = DocumentData, DbModelType e
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [id](./firestore_lite.documentsnapshot.md#documentsnapshotid) |  | string | Property of the <code>DocumentSnapshot</code> that provides the document's ID. |
-|  [ref](./firestore_lite.documentsnapshot.md#documentsnapshotref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
+|  [ref](./firestore_lite.documentsnapshot.md#documentsnapshotref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | The <code>DocumentReference</code> for the document included in the <code>DocumentSnapshot</code>. |
 
 ## Methods
 
@@ -68,7 +68,7 @@ The `DocumentReference` for the document included in the `DocumentSnapshot`<!-- 
 <b>Signature:</b>
 
 ```typescript
-get ref(): DocumentReference<AppModelType, DbModelType>;
+get ref(): DocumentReference<T>;
 ```
 
 ## DocumentSnapshot.data()
@@ -78,11 +78,11 @@ Retrieves all fields in the document as an `Object`<!-- -->. Returns `undefined`
 <b>Signature:</b>
 
 ```typescript
-data(): AppModelType | undefined;
+data(): T | undefined;
 ```
 <b>Returns:</b>
 
-AppModelType \| undefined
+T \| undefined
 
 An `Object` containing all fields in the document or `undefined` if the document doesn't exist.
 
@@ -93,11 +93,11 @@ Signals whether or not the document at the snapshot's location exists.
 <b>Signature:</b>
 
 ```typescript
-exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType>;
+exists(): this is QueryDocumentSnapshot<T>;
 ```
 <b>Returns:</b>
 
-this is [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+this is [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt;
 
 true if the document exists.
 

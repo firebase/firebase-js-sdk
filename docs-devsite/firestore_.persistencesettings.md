@@ -12,8 +12,6 @@ https://github.com/firebase/firebase-js-sdk
 # PersistenceSettings interface
 Settings that can be passed to `enableIndexedDbPersistence()` to configure Firestore persistence.
 
-Persistence cannot be used in a Node.js environment.
-
 <b>Signature:</b>
 
 ```typescript

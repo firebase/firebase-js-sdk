@@ -17,9 +17,9 @@ A `QueryDocumentSnapshot` offers the same API surface as a `DocumentSnapshot`<!-
 <b>Signature:</b>
 
 ```typescript
-export declare class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot<AppModelType, DbModelType> 
+export declare class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> 
 ```
-<b>Extends:</b> [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
+<b>Extends:</b> [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;
 
 ## Methods
 
@@ -37,7 +37,7 @@ By default, `serverTimestamp()` values that have not yet been set to their final
 
 ```typescript
 /** @override */
-data(options?: SnapshotOptions): AppModelType;
+data(options?: SnapshotOptions): T;
 ```
 
 ### Parameters
@@ -48,7 +48,7 @@ data(options?: SnapshotOptions): AppModelType;
 
 <b>Returns:</b>
 
-AppModelType
+T
 
 An `Object` containing all fields in the document.
 
