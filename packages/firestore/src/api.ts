@@ -193,7 +193,7 @@ export {
   Primitive,
   UnionToIntersection
 } from '../src/lite-api/types';
-// comment
+
 export {
   Index,
   IndexConfiguration,
