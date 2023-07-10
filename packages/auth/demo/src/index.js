@@ -578,6 +578,18 @@ function onValidatePassword() {
 }
 
 /**
+ * Toggles text visibility for the password validation input field.
+ */
+function onToggleViewPasswordForValidation() {
+  const id = '#password-validation-password';
+  if ($(id).prop('type') === 'password') {
+    $(id).prop('type', 'text');
+  } else {
+    $(id).prop('type', 'password');
+  }
+}
+
+/**
  * Signs in with a generic IdP credential.
  */
 function onSignInWithGenericIdPCredential() {
@@ -2118,6 +2130,9 @@ function initApp() {
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
   $('#password-validation-password').keyup(onValidatePassword);
+  $('#password-validation-view-password').click(
+    onToggleViewPasswordForValidation
+  );
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
