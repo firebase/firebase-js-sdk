@@ -217,6 +217,7 @@ export type { ResourcePath as _ResourcePath } from './model/path';
 export { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
 export type { FirstPartyCredentialsSettings } from './api/credentials';
+export type { AuthTokenFactory } from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
 export { TestingHooks as _TestingHooks } from './util/testing_hooks';
