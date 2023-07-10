@@ -389,5 +389,13 @@ export function signInWithEmailAndPassword(
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
-  );
+  ).catch(async error => {
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      await updatePasswordPolicyIfCached(auth);
+    }
+
+    return Promise.reject(error);
+  });
 }
