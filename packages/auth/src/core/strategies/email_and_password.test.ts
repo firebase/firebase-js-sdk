@@ -832,6 +832,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
   let policyEndpointMockWithTenant: mockFetch.Route;
   let policyEndpointMockWithOtherTenant: mockFetch.Route;
 
+  const email = 'some-email';
+  const newPassword = 'some-password';
+  const serverUser: APIUserInfo = {
+    localId: 'local-id'
+  };
+
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
@@ -858,13 +864,6 @@ describe('password policy cache is updated in auth flows upon error', () => {
   afterEach(mockFetch.tearDown);
 
   context('#createUserWithEmailAndPassword', () => {
-    const serverUser: APIUserInfo = {
-      localId: 'local-id'
-    };
-
-    const email = 'some-email';
-    const password = 'some-password';
-
     beforeEach(() => {
       mockEndpoint(Endpoint.SIGN_UP, {
         idToken: 'id-token',
@@ -878,8 +877,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
     });
 
     it('does not update the cached password policy upon successful sign up when there is no existing policy cache', async () => {
-      await expect(createUserWithEmailAndPassword(auth, email, password)).to.be
-        .fulfilled;
+      await expect(createUserWithEmailAndPassword(auth, email, newPassword)).to
+        .be.fulfilled;
 
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicy()).to.be.null;
@@ -888,8 +887,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
     it('does not update the cached password policy upon successful sign up when there is an existing policy cache', async () => {
       await auth._updatePasswordPolicy();
 
-      await expect(createUserWithEmailAndPassword(auth, email, password)).to.be
-        .fulfilled;
+      await expect(createUserWithEmailAndPassword(auth, email, newPassword)).to
+        .be.fulfilled;
 
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
@@ -917,7 +916,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Password policy changed after previous fetch.
         policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
         await expect(
-          createUserWithEmailAndPassword(auth, email, password)
+          createUserWithEmailAndPassword(auth, email, newPassword)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(2);
@@ -930,7 +929,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
         expect(auth._getPasswordPolicy()).to.be.null;
 
         await expect(
-          createUserWithEmailAndPassword(auth, email, password)
+          createUserWithEmailAndPassword(auth, email, newPassword)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(0);
@@ -945,7 +944,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
         await expect(
-          createUserWithEmailAndPassword(auth, email, password)
+          createUserWithEmailAndPassword(auth, email, newPassword)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicy()).to.be.undefined;
@@ -955,7 +954,6 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
   context('#confirmPasswordReset', () => {
     const oobCode = 'oob-code';
-    const newPassword = 'new-password';
 
     beforeEach(() => {
       mockEndpoint(Endpoint.RESET_PASSWORD, {
@@ -1032,6 +1030,95 @@ describe('password policy cache is updated in auth flows upon error', () => {
         auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
         await expect(
           confirmPasswordReset(auth, oobCode, newPassword)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+        expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.undefined;
+      });
+    });
+  });
+
+  context('#signInWithEmailAndPassword', () => {
+    beforeEach(() => {
+      mockEndpoint(Endpoint.SIGN_IN_WITH_PASSWORD, {
+        idToken: 'id-token',
+        refreshToken: 'refresh-token',
+        expiresIn: '1234',
+        localId: serverUser.localId!
+      });
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [serverUser]
+      });
+    });
+
+    it('does not update the cached password policy upon successful sign-in when there is no existing policy cache', async () => {
+      await expect(signInWithEmailAndPassword(auth, email, newPassword)).to.be
+        .fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(0);
+      expect(auth._getPasswordPolicy()).to.be.null;
+    });
+
+    it('does not update the cached password policy upon successful sign-in when there is an existing policy cache', async () => {
+      await auth._updatePasswordPolicy();
+
+      await expect(signInWithEmailAndPassword(auth, email, newPassword)).to.be
+        .fulfilled;
+
+      expect(policyEndpointMock.calls.length).to.eq(1);
+      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+    });
+
+    context('handles password validation errors', () => {
+      beforeEach(() => {
+        mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PASSWORD,
+          {
+            error: {
+              code: 400,
+              message: ServerError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS
+            }
+          },
+          400
+        );
+      });
+
+      it('updates the cached password policy when password does not meet backend requirements', async () => {
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMock.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+        // Password policy changed after previous fetch.
+        policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
+        await expect(
+          signInWithEmailAndPassword(auth, email, newPassword)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicy()).to.eql(
+          cachedPasswordPolicyRequireNumeric
+        );
+      });
+
+      it('does not update the cached password policy upon error if policy has not previously been fetched', async () => {
+        expect(auth._getPasswordPolicy()).to.be.null;
+
+        await expect(
+          signInWithEmailAndPassword(auth, email, newPassword)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMock.calls.length).to.eq(0);
+        expect(auth._getPasswordPolicy()).to.be.null;
+      });
+
+      it('does not update the cached password policy upon error if tenant changes and policy has not previously been fetched', async () => {
+        auth.tenantId = TEST_TENANT_ID;
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+
+        auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
+        await expect(
+          signInWithEmailAndPassword(auth, email, newPassword)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicy()).to.be.undefined;
