@@ -371,8 +371,15 @@
               <!-- Password Validation -->
               <div class="group">Password Validation</div>
               <form class="form form-bordered no-submit">
-                <input type="password" name="password" id="password-validation-password"
-                       class="form-control" placeholder="Password" />
+                <div class="input-group">
+                  <input type="password" name="password" id="password-validation-password"
+                        class="form-control" placeholder="Password" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="password-validation-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
                 <ul class="list-group" id="password-validation-requirements">
                   <li class="list-group-item" id="password-validation-meets-min-length">
                     Password must be at least <span id="password-validation-min-length">6</span> characters.
