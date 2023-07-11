@@ -90,10 +90,7 @@ export abstract class RestConnection implements Connection {
     logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers: StringMap = {
-      'x-goog-request-params':
-        this.databaseId.database === DEFAULT_DATABASE_NAME
-          ? `project_id=${this.databaseId.projectId}`
-          : `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`
+      'x-goog-request-params': `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
