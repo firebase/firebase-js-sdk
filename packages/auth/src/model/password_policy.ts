@@ -18,36 +18,6 @@
 import { PasswordPolicy, PasswordValidationStatus } from './public_types';
 
 /**
- * Custom strength options supported in the password policy.
- */
-export interface PasswordPolicyCustomStrengthOptions {
-  /**
-   * Minimum password length.
-   */
-  readonly minPasswordLength?: number;
-  /**
-   * Maximum password length.
-   */
-  readonly maxPasswordLength?: number;
-  /**
-   * Whether the password should contain a lowercase letter.
-   */
-  readonly containsLowercaseLetter?: boolean;
-  /**
-   * Whether the password should contain an uppercase letter.
-   */
-  readonly containsUppercaseLetter?: boolean;
-  /**
-   * Whether the password should contain a numeric character.
-   */
-  readonly containsNumericCharacter?: boolean;
-  /**
-   * Whether the password should contain a non-alphanumeric character.
-   */
-  readonly containsNonAlphanumericCharacter?: boolean;
-}
-
-/**
  * Internal typing of password policy that includes the schema version and methods for
  * validating that a password meets the policy. The developer does not need access to
  * these properties and methods, so they are excluded from the public typing.

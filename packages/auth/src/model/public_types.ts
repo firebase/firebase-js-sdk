@@ -32,7 +32,6 @@ import {
   OperationType as OperationTypeMap,
   ActionCodeOperation as ActionCodeOperationMap
 } from './enum_maps';
-import { PasswordPolicyCustomStrengthOptions } from './password_policy';
 
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 
@@ -1263,7 +1262,32 @@ export interface PasswordPolicy {
   /**
    * Requirements enforced by this password policy.
    */
-  readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
+  readonly customStrengthOptions: {
+    /**
+     * Minimum password length.
+     */
+    readonly minPasswordLength?: number;
+    /**
+     * Maximum password length.
+     */
+    readonly maxPasswordLength?: number;
+    /**
+     * Whether the password should contain a lowercase letter.
+     */
+    readonly containsLowercaseLetter?: boolean;
+    /**
+     * Whether the password should contain an uppercase letter.
+     */
+    readonly containsUppercaseLetter?: boolean;
+    /**
+     * Whether the password should contain a numeric character.
+     */
+    readonly containsNumericCharacter?: boolean;
+    /**
+     * Whether the password should contain a non-alphanumeric character.
+     */
+    readonly containsNonAlphanumericCharacter?: boolean;
+  };
   /**
    * List of characters that are considered non-alphanumeric during validation.
    */
