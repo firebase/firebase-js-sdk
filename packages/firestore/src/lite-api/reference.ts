@@ -159,10 +159,10 @@ export class Query<
    * @param converter - Converts objects to and from Firestore.
    * @returns A `Query` that uses the provided converter.
    */
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): Query<NewAppModelType, NewDbModelType>;
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
   ): Query<NewAppModelType, NewDbModelType> {
     return new Query<NewAppModelType, NewDbModelType>(
