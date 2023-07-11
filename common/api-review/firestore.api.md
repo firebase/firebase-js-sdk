@@ -55,9 +55,6 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
-export type AuthTokenFactory = () => string;
-
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
@@ -240,18 +237,6 @@ export interface FirestoreSettings {
     ignoreUndefinedProperties?: boolean;
     localCache?: FirestoreLocalCache;
     ssl?: boolean;
-}
-
-// @public (undocumented)
-export interface FirstPartyCredentialsSettings {
-    // (undocumented)
-    ['authTokenFactory']: AuthTokenFactory | null;
-    // (undocumented)
-    ['iamToken']: string | null;
-    // (undocumented)
-    ['sessionIndex']: string;
-    // (undocumented)
-    ['type']: 'firstParty';
 }
 
 // @public

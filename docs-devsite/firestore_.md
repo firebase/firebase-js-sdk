@@ -155,7 +155,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [ExperimentalLongPollingOptions](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptions_interface) | Options that configure the SDK’s underlying network transport (WebChannel) when long-polling is used.<!-- -->Note: This interface is "experimental" and is subject to change.<!-- -->See <code>FirestoreSettings.experimentalAutoDetectLongPolling</code>, <code>FirestoreSettings.experimentalForceLongPolling</code>, and <code>FirestoreSettings.experimentalLongPollingOptions</code>. |
 |  [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
 |  [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
-|  [FirstPartyCredentialsSettings](./firestore_.firstpartycredentialssettings.md#firstpartycredentialssettings_interface) |  |
 |  [Index](./firestore_.index.md#index_interface) | <b><i>(BETA)</i></b> The SDK definition of a Firestore index. |
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(BETA)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
 |  [IndexField](./firestore_.indexfield.md#indexfield_interface) | <b><i>(BETA)</i></b> A single field element in an index configuration. |
@@ -188,7 +187,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [AddPrefixToKeys](./firestore_.md#addprefixtokeys) | Returns a new map where every key is prefixed with the outer key appended to a dot. |
 |  [AggregateFieldType](./firestore_.md#aggregatefieldtype) | The union of all <code>AggregateField</code> types that are supported by Firestore. |
 |  [AggregateSpecData](./firestore_.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
-|  [AuthTokenFactory](./firestore_.md#authtokenfactory) |  |
 |  [ChildUpdateFields](./firestore_.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
@@ -2235,14 +2233,6 @@ A type whose keys are taken from an `AggregateSpec`<!-- -->, and whose values ar
 export declare type AggregateSpecData<T extends AggregateSpec> = {
     [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
-```
-
-## AuthTokenFactory
-
-<b>Signature:</b>
-
-```typescript
-export declare type AuthTokenFactory = () => string;
 ```
 
 ## ChildUpdateFields
