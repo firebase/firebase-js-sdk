@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PasswordPolicy, PasswordValidationStatus } from "./public_types";
+import { PasswordPolicy, PasswordValidationStatus } from './public_types';
 
 /**
  * Custom strength options supported in the password policy.
@@ -68,11 +68,12 @@ export interface PasswordPolicyInternal extends PasswordPolicy {
 
 /**
  * Internal typing of password validation status that is modifiable. This allows us to
- * construct the validation status before returning it
- * 
+ * construct the validation status before returning it.
+ *
  * @internal
  */
-export interface PasswordValidationStatusInternal extends PasswordValidationStatus {
+export interface PasswordValidationStatusInternal
+  extends PasswordValidationStatus {
   /**
    * Whether the password meets all requirements.
    */
