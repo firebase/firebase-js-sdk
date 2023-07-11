@@ -564,15 +564,9 @@ export interface ParsedToken {
 
 // @public
 export interface PasswordPolicy {
-    readonly allowedNonAlphanumericCharacters: string[];
-    readonly customStrengthOptions: {
-        readonly minPasswordLength?: number;
-        readonly maxPasswordLength?: number;
-        readonly containsLowercaseLetter?: boolean;
-        readonly containsUppercaseLetter?: boolean;
-        readonly containsNumericCharacter?: boolean;
-        readonly containsNonAlphanumericCharacter?: boolean;
-    };
+    readonly allowedNonAlphanumericCharacters?: string[];
+    // Warning: (ae-forgotten-export) The symbol "PasswordPolicyCustomStrengthOptions" needs to be exported by the entry point index.d.ts
+    readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
 }
 
 // @public
