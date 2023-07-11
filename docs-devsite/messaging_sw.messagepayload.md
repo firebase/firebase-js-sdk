@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # MessagePayload interface
-Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)
+Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->.
 
 <b>Signature:</b>
 
@@ -24,10 +24,10 @@ export interface MessagePayload
 |  --- | --- | --- |
 |  [collapseKey](./messaging_sw.messagepayload.md#messagepayloadcollapsekey) | string | The collapse key of the message. See [Non-collapsible and collapsible messages](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages) |
 |  [data](./messaging_sw.messagepayload.md#messagepayloaddata) | { \[key: string\]: string; } | Arbitrary key/value payload. |
-|  [fcmOptions](./messaging_sw.messagepayload.md#messagepayloadfcmoptions) | [FcmOptions](./messaging_.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions) |
+|  [fcmOptions](./messaging_sw.messagepayload.md#messagepayloadfcmoptions) | [FcmOptions](./messaging_.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
 |  [from](./messaging_sw.messagepayload.md#messagepayloadfrom) | string | The sender of this message. |
-|  [messageId](./messaging_sw.messagepayload.md#messagepayloadmessageid) | string | The message id of a message. |
-|  [notification](./messaging_sw.messagepayload.md#messagepayloadnotification) | [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
+|  [messageId](./messaging_sw.messagepayload.md#messagepayloadmessageid) | string | The message ID of a message. |
+|  [notification](./messaging_sw.messagepayload.md#messagepayloadnotification) | [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 
 ## MessagePayload.collapseKey
 
@@ -53,7 +53,7 @@ data?: {
 
 ## MessagePayload.fcmOptions
 
-Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)
+Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->.
 
 <b>Signature:</b>
 
@@ -73,7 +73,7 @@ from: string;
 
 ## MessagePayload.messageId
 
-The message id of a message.
+The message ID of a message.
 
 <b>Signature:</b>
 
@@ -83,7 +83,7 @@ messageId: string;
 
 ## MessagePayload.notification
 
-Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)
+Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->.
 
 <b>Signature:</b>
 
