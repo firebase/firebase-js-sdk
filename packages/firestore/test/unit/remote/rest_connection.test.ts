@@ -96,7 +96,8 @@ describe('RestConnection', () => {
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
-      'x-firebase-appcheck': 'some-app-check-token'
+      'x-firebase-appcheck': 'some-app-check-token',
+      'x-goog-request-params': 'project_id=testproject&database_id=(default)'
     });
   });
 
@@ -111,7 +112,8 @@ describe('RestConnection', () => {
     expect(connection.lastHeaders).to.deep.equal({
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
-      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
+      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
+      'x-goog-request-params': 'project_id=testproject&database_id=(default)'
       // Note: AppCheck token should not exist here.
     });
   });
