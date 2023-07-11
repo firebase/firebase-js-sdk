@@ -17,7 +17,7 @@
 
 import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
-import {DatabaseId, DatabaseInfo, DEFAULT_DATABASE_NAME} from '../core/database_info';
+import { DatabaseId, DatabaseInfo, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import { debugAssert } from '../util/assert';
 import { generateUniqueDebugId } from '../util/debug_uid';
 import { FirestoreError } from '../util/error';
