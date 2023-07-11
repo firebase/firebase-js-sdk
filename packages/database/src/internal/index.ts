@@ -31,10 +31,7 @@ import {
 import { Database } from '../api.standalone';
 import { repoManagerDatabaseFromApp } from '../api/Database';
 import { setSDKVersion } from '../core/version';
-import {
-  FirebaseAuthInternal,
-  FirebaseAuthInternalName
-} from '@firebase/auth-interop-types';
+import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
 /**
  * Used by console to create a database based on the app,
