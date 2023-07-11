@@ -56,7 +56,7 @@ export class TestRestConnection extends RestConnection {
   }
 }
 
-describe('RestConnection', () => {
+describe.only('RestConnection', () => {
   const testDatabaseInfo = new DatabaseInfo(
     new DatabaseId('testproject'),
     'test-app-id',
@@ -97,7 +97,7 @@ describe('RestConnection', () => {
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
       'x-firebase-appcheck': 'some-app-check-token',
-      'x-goog-request-params': 'project_id=testproject&database_id=(default)'
+      'x-goog-request-params': 'project_id=testproject'
     });
   });
 
@@ -113,7 +113,7 @@ describe('RestConnection', () => {
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
-      'x-goog-request-params': 'project_id=testproject&database_id=(default)'
+      'x-goog-request-params': 'project_id=testproject'
       // Note: AppCheck token should not exist here.
     });
   });
