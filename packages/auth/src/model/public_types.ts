@@ -1291,7 +1291,7 @@ export interface PasswordPolicy {
   /**
    * List of characters that are considered non-alphanumeric during validation.
    */
-  readonly allowedNonAlphanumericCharacters?: string[];
+  readonly allowedNonAlphanumericCharacters: string[];
 }
 
 /**
