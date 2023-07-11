@@ -19,8 +19,11 @@ import {
   FirebaseAppCheckInternal,
   AppCheckInternalComponentName
 } from '@firebase/app-check-interop-types';
-import { FirebaseApp } from '@firebase/app';
-
+import { FirebaseApp } from '@firebase/app-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import {
   Component,
   ComponentContainer,
@@ -31,7 +34,6 @@ import {
 import { Database } from '../api.standalone';
 import { repoManagerDatabaseFromApp } from '../api/Database';
 import { setSDKVersion } from '../core/version';
-import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
 /**
  * Used by console to create a database based on the app,
