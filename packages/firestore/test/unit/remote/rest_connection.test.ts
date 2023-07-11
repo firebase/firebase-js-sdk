@@ -56,7 +56,7 @@ export class TestRestConnection extends RestConnection {
   }
 }
 
-describe.only('RestConnection', () => {
+describe('RestConnection', () => {
   const testDatabaseInfo = new DatabaseInfo(
     new DatabaseId('testproject'),
     'test-app-id',
