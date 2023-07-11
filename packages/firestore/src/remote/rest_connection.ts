@@ -85,7 +85,9 @@ export abstract class RestConnection implements Connection {
     const url = this.makeUrl(rpcName, path);
     logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
-    const headers = {};
+    const headers = {
+      "x-goog-request-params": `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`
+    };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
