@@ -541,7 +541,7 @@ function clearApplicationVerifier() {
 /**
  * Sends a phone number verification code for sign-in.
  */
-function onSignInVerifyPhoneNumber() {
+async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
   const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
@@ -549,17 +549,33 @@ function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    verificationId => {
-      clearApplicationVerifier();
-      $('#signin-phone-verification-id').val(verificationId);
-      alertSuccess('Phone verification sent!');
-    },
-    error => {
-      clearApplicationVerifier();
-      onAuthError(error);
-    }
-  );
+  console.log(phoneNumber);
+  alertSuccess('Code sent');
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
+  .then(confirmationResult => {  
+    confirmationResult
+    .confirmWithWebOTP()
+    .then(result => {
+      console.log('confirm success');
+      alertSuccess('You got a code' + user.uid);
+      // User signed in successfully.
+      const user = result.user;
+      // ...
+    })
+    .catch(error => {
+      // User couldn't sign in (bad verification code?)
+      // ...
+      alertError(error);
+      console.log(error);
+    });
+
+})
+.catch(error => {
+  console.log("you have made no progress");
+  // Error; SMS not sent
+  // ...
+  console.log(error);
+});
 }
 
 /**
@@ -1259,7 +1275,7 @@ function onSelectMultiFactorHint(index) {
  * Start sign-in with the 2nd factor phone number.
  * @param {!jQuery.Event} event The jQuery event object.
  */
-function onStartSignInWithPhoneMultiFactor(event) {
+async function onStartSignInWithPhoneMultiFactor(event) {
   event.preventDefault();
   // Make sure a second factor is selected.
   if (!selectedMultiFactorHint || !multiFactorErrorResolver) {
@@ -1271,26 +1287,58 @@ function onStartSignInWithPhoneMultiFactor(event) {
     multiFactorHint: selectedMultiFactorHint,
     session: multiFactorErrorResolver.session
   };
+  const phoneNumber = signInRequest.multiFactorHint.phoneNumber;
+  console.log(phoneNumber);
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
+  .then(confirmationResult => {  
+    console.log('you didnt break');
+    confirmationResult
+    .confirmWithWebOTP()
+    .then(result => {
+      console.log('confirm success');
+      // User signed in successfully.
+      const user = result.user;
+      // ...
+    })
+    .catch(error => {
+      // User couldn't sign in (bad verification code?)
+      // ...
+      console.log(error);
+    });
+
+})
+.catch(error => {
+  console.log("you have made no progress");
+  // Error; SMS not sent
+  // ...
+  console.log(error);
+});
+/*
   // write code here
-  console.log("hello");
+console.log("hello");
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
     verificationId => {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
       try {
-         const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+        console.log(signInRequest.multiFactorHint);
+        const confirmationResult =  (async () => await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
+        );
          // Obtain verificationCode from the user.
-         const userCredential = confirmationResult.confirmWithWebOTP(verificationCode);
+         // test confirm method to see if the existing methodit works then
+         const userCredential = confirmationResult.confirmWithWebOTP();
       } catch(error) {
         console.log(error);
       }
     },
+
     error => {
       clearApplicationVerifier();
       onAuthError(error);
     }
   );
+*/
 }
 
 /**
@@ -1825,7 +1873,9 @@ function onApplyAuthSettingsChange() {
  * Initiates the application by setting event listeners on the various buttons.
  */
 function initApp() {
-  log('Initializing app...');
+  log('Initializing app... 123');
+  console.log("Version 3");
+
   app = initializeApp(config);
   auth = getAuth(app);
   if (USE_AUTH_EMULATOR) {
