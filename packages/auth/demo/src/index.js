@@ -71,7 +71,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  signInWithPhoneNumber
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -83,9 +84,6 @@ import {
   log,
   logAtLevel_
 } from './logging';
-import {
-  ConfirmationResultImpl
-} from 'packages/auth/src/platform_browser/strategies/phone.ts';
 
 /**
  * Constants that are used when connecting to the Auth Emulator.
@@ -1281,9 +1279,9 @@ function onStartSignInWithPhoneMultiFactor(event) {
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
       try {
-        let confirmed = new ConfirmationResultImpl(verificationId, cred =>
-          signInWithCredential(authInternal, cred));
-          confirmed.confirmWithWebOTP();
+         const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+         // Obtain verificationCode from the user.
+         const userCredential = confirmationResult.confirmWithWebOTP(verificationCode);
       } catch(error) {
         console.log(error);
       }
@@ -1817,9 +1815,7 @@ function onCopyLastUser() {
 /** Applies selected auth settings change. */
 function onApplyAuthSettingsChange() {
   try {
-    auth.settings.appVerificationDisabledForTesting =
-      $('input[name=enable-app-verification]:checked').val() === 'No';
-    alertSuccess('Auth settings changed');
+    auth.settings.appVerificationDisabledForTesting = true;
   } catch (error) {
     alertError('Error: ' + error.code);
   }
