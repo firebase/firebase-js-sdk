@@ -18,15 +18,8 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import {
-  PasswordPolicy,
-  PasswordValidationStatus
-} from '../../model/public_types';
-import {
-  PasswordPolicyImpl,
-  PasswordValidationStatusImpl
-} from './password_policy_impl';
-import { PasswordValidationStatusInternal } from '../../model/password_policy';
+import { PasswordPolicy } from '../../model/public_types';
+import { PasswordPolicyImpl } from './password_policy_impl';
 import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
 
 use(sinonChai);
@@ -77,42 +70,6 @@ describe('core/auth/password_policy_impl', () => {
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
     }
   };
-
-  context('#PasswordValidationStatusImpl', () => {
-    it('can construct the public typing from the internal typing', () => {
-      const statusInternal: PasswordValidationStatusInternal = {
-        isValid: false,
-        meetsMinPasswordLength: false,
-        meetsMaxPasswordLength: true,
-        containsLowercaseLetter: true,
-        containsUppercaseLetter: false,
-        containsNumericCharacter: true,
-        containsNonAlphanumericCharacter: false,
-        passwordPolicy: passwordPolicyRequireAll
-      };
-      const status: PasswordValidationStatus = new PasswordValidationStatusImpl(
-        statusInternal
-      );
-      const expectedStatus: PasswordValidationStatus = statusInternal;
-
-      expect(status).to.eql(expectedStatus);
-    });
-
-    it('only includes fields defined in the internal status', () => {
-      const statusInternal: PasswordValidationStatusInternal = {
-        isValid: false,
-        meetsMinPasswordLength: false,
-        meetsMaxPasswordLength: true,
-        passwordPolicy: passwordPolicyRequireLength
-      };
-      const status: PasswordValidationStatus = new PasswordValidationStatusImpl(
-        statusInternal
-      );
-      const expectedStatus: PasswordValidationStatus = statusInternal;
-
-      expect(status).to.eql(expectedStatus);
-    });
-  });
 
   context('#PasswordPolicyImpl', () => {
     it('can construct the password policy from the backend response', () => {

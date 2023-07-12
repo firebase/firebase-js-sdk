@@ -20,52 +20,7 @@ import {
   PasswordPolicyInternal,
   PasswordValidationStatusInternal
 } from '../../model/password_policy';
-import {
-  PasswordPolicy,
-  PasswordValidationStatus
-} from '../../model/public_types';
-
-/**
- * Constructs a PasswordValidationStatus from the mirrored internal typing.
- *
- * @internal
- */
-export class PasswordValidationStatusImpl implements PasswordValidationStatus {
-  readonly isValid: boolean;
-  readonly meetsMinPasswordLength?: boolean;
-  readonly meetsMaxPasswordLength?: boolean;
-  readonly containsLowercaseLetter?: boolean;
-  readonly containsUppercaseLetter?: boolean;
-  readonly containsNumericCharacter?: boolean;
-  readonly containsNonAlphanumericCharacter?: boolean;
-  readonly passwordPolicy: PasswordPolicy;
-
-  constructor(statusInternal: PasswordValidationStatusInternal) {
-    this.isValid = statusInternal.isValid;
-    this.passwordPolicy = statusInternal.passwordPolicy;
-
-    // Only include requirements with defined statuses.
-    if (statusInternal.meetsMinPasswordLength !== undefined) {
-      this.meetsMinPasswordLength = statusInternal.meetsMinPasswordLength;
-    }
-    if (statusInternal.meetsMaxPasswordLength !== undefined) {
-      this.meetsMaxPasswordLength = statusInternal.meetsMaxPasswordLength;
-    }
-    if (statusInternal.containsLowercaseLetter !== undefined) {
-      this.containsLowercaseLetter = statusInternal.containsLowercaseLetter;
-    }
-    if (statusInternal.containsUppercaseLetter !== undefined) {
-      this.containsUppercaseLetter = statusInternal.containsUppercaseLetter;
-    }
-    if (statusInternal.containsNumericCharacter !== undefined) {
-      this.containsNumericCharacter = statusInternal.containsNumericCharacter;
-    }
-    if (statusInternal.containsNonAlphanumericCharacter !== undefined) {
-      this.containsNonAlphanumericCharacter =
-        statusInternal.containsNonAlphanumericCharacter;
-    }
-  }
-}
+import { PasswordValidationStatus } from '../../model/public_types';
 
 /**
  * Stores password policy requirements and provides password validation against the policy.
@@ -117,7 +72,7 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
   }
 
   validatePassword(password: string): PasswordValidationStatus {
-    const statusInternal: PasswordValidationStatusInternal = {
+    const status: PasswordValidationStatusInternal = {
       isValid: false,
       passwordPolicy: this
     };
@@ -125,9 +80,9 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     // TODO: Implement _checkLengthOptions and _checkCharacterOptions as helper methods.
     // Call these here to populate the status object.
     if (password) {
-      statusInternal.isValid = true;
+      status.isValid = true;
     }
 
-    return new PasswordValidationStatusImpl(statusInternal);
+    return status;
   }
 }
