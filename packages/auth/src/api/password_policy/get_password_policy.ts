@@ -37,8 +37,8 @@ export interface GetPasswordPolicyResponse {
   customStrengthOptions: {
     minPasswordLength?: number;
     maxPasswordLength?: number;
-    containsLowercaseLetter?: boolean;
-    containsUppercaseLetter?: boolean;
+    containsLowercaseCharacter?: boolean;
+    containsUppercaseCharacter?: boolean;
     containsNumericCharacter?: boolean;
     containsNonAlphanumericCharacter?: boolean;
   };

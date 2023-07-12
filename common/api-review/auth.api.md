@@ -564,7 +564,7 @@ export interface ParsedToken {
 
 // @public
 export interface PasswordPolicy {
-    readonly allowedNonAlphanumericCharacters: string[];
+    readonly allowedNonAlphanumericCharacters?: string[];
     readonly customStrengthOptions: {
         readonly minPasswordLength?: number;
         readonly maxPasswordLength?: number;
