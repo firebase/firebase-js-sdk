@@ -17,6 +17,7 @@
 
 import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
 import {
+  PasswordPolicyCustomStrengthOptions,
   PasswordPolicyInternal,
   PasswordValidationStatusInternal
 } from '../../model/password_policy';
@@ -28,41 +29,38 @@ import { PasswordValidationStatus } from '../../model/public_types';
  * @internal
  */
 export class PasswordPolicyImpl implements PasswordPolicyInternal {
-  readonly customStrengthOptions: {
-    readonly minPasswordLength?: number;
-    readonly maxPasswordLength?: number;
-    readonly containsLowercaseLetter?: boolean;
-    readonly containsUppercaseLetter?: boolean;
-    readonly containsNumericCharacter?: boolean;
-    readonly containsNonAlphanumericCharacter?: boolean;
-  };
+  readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
   readonly allowedNonAlphanumericCharacters?: string[];
   readonly schemaVersion: number;
 
   constructor(response: GetPasswordPolicyResponse) {
     // Only include custom strength options defined in the response.
     const responseOptions = response.customStrengthOptions;
-    this.customStrengthOptions = {
-      ...(responseOptions.minPasswordLength && {
-        minPasswordLength: responseOptions.minPasswordLength
-      }),
-      ...(responseOptions.maxPasswordLength && {
-        maxPasswordLength: responseOptions.maxPasswordLength
-      }),
-      ...(responseOptions.containsLowercaseCharacter && {
-        containsLowercaseLetter: responseOptions.containsLowercaseCharacter
-      }),
-      ...(responseOptions.containsUppercaseCharacter && {
-        containsUppercaseLetter: responseOptions.containsUppercaseCharacter
-      }),
-      ...(responseOptions.containsNumericCharacter && {
-        containsNumericCharacter: responseOptions.containsNumericCharacter
-      }),
-      ...(responseOptions.containsNonAlphanumericCharacter && {
-        containsNonAlphanumericCharacter:
-          responseOptions.containsNonAlphanumericCharacter
-      })
-    };
+    this.customStrengthOptions = {};
+    if (responseOptions.minPasswordLength) {
+      this.customStrengthOptions.minPasswordLength =
+        responseOptions.minPasswordLength;
+    }
+    if (responseOptions.maxPasswordLength) {
+      this.customStrengthOptions.maxPasswordLength =
+        responseOptions.maxPasswordLength;
+    }
+    if (responseOptions.containsLowercaseCharacter) {
+      this.customStrengthOptions.containsLowercaseLetter =
+        responseOptions.containsLowercaseCharacter;
+    }
+    if (responseOptions.containsUppercaseCharacter) {
+      this.customStrengthOptions.containsUppercaseLetter =
+        responseOptions.containsUppercaseCharacter;
+    }
+    if (responseOptions.containsNumericCharacter) {
+      this.customStrengthOptions.containsNumericCharacter =
+        responseOptions.containsNumericCharacter;
+    }
+    if (responseOptions.containsNonAlphanumericCharacter) {
+      this.customStrengthOptions.containsNonAlphanumericCharacter =
+        responseOptions.containsNonAlphanumericCharacter;
+    }
 
     if (response.allowedNonAlphanumericCharacters) {
       this.allowedNonAlphanumericCharacters =
