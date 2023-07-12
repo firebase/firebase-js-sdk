@@ -184,9 +184,9 @@ export function initializeFirestore(
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized `Firestore` instance.
- * @internal
+ * @beta
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -239,9 +239,9 @@ export function getFirestore(app: FirebaseApp): Firestore;
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -251,9 +251,9 @@ export function getFirestore(databaseId: string): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
@@ -301,17 +301,18 @@ export function connectFirestoreEmulator(
 ): void {
   firestore = cast(firestore, Firestore);
   const settings = firestore._getSettings();
+  const newHostSetting = `${host}:${port}`;
 
-  if (settings.host !== DEFAULT_HOST && settings.host !== host) {
+  if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
-      'Host has been set in both settings() and useEmulator(), emulator host ' +
-        'will be used'
+      'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
+        'will be used.'
     );
   }
 
   firestore._setSettings({
     ...settings,
-    host: `${host}:${port}`,
+    host: newHostSetting,
     ssl: false
   });
 

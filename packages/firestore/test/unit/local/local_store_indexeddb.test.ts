@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
 import { serverTimestamp, Timestamp } from '../../../src';
@@ -56,7 +57,7 @@ import {
   IndexKind,
   IndexOffset
 } from '../../../src/model/field_index';
-import { Mutation } from '../../../src/model/mutation';
+import { Mutation, MutationType } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
 import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
@@ -180,7 +181,11 @@ class AsyncLocalStoreTester {
     );
   }
 
-  assertOverlaysRead(byKey: number, byCollection: number): void {
+  assertOverlaysRead(
+    byKey: number,
+    byCollection: number,
+    overlayTypes: { [k: string]: MutationType }
+  ): void {
     expect(this.queryEngine.overlaysReadByCollection).to.equal(
       byCollection,
       'Overlays read (by collection)'
@@ -188,6 +193,10 @@ class AsyncLocalStoreTester {
     expect(this.queryEngine.overlaysReadByKey).to.equal(
       byKey,
       'Overlays read (by key)'
+    );
+    expect(this.queryEngine.overlayTypes).to.deep.equal(
+      overlayTypes,
+      'Overlay types read'
     );
   }
 
@@ -204,6 +213,10 @@ class AsyncLocalStoreTester {
 }
 
 describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+  if (!isIndexedDBAvailable()) {
+    return;
+  }
+
   let persistence: Persistence;
   let test: AsyncLocalStoreTester;
 
@@ -378,7 +391,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     const queryMatches = query('coll', filter('matches', '==', true));
     await test.executeQuery(queryMatches);
-    test.assertOverlaysRead(1, 1);
+    test.assertOverlaysRead(1, 1, {
+      [key('coll/a').toString()]: MutationType.Set,
+      [key('coll/b').toString()]: MutationType.Set
+    });
     test.assertQueryReturned('coll/a', 'coll/b');
   });
 
@@ -414,7 +430,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     // The query engine first reads the documents by key and then re-runs the query without limit.
     await test.executeQuery(queryCount);
     test.assertRemoteDocumentsRead(5, 0);
-    test.assertOverlaysRead(5, 1);
+    test.assertOverlaysRead(5, 1, {
+      [key('coll/b').toString()]: MutationType.Delete
+    });
     test.assertQueryReturned('coll/a', 'coll/c');
   });
 
@@ -447,7 +465,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.executeQuery(queryCount);
     test.assertRemoteDocumentsRead(2, 0);
-    test.assertOverlaysRead(2, 0);
+    test.assertOverlaysRead(2, 0, {});
     test.assertQueryReturned('coll/a', 'coll/c');
   });
 
@@ -465,7 +483,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     const queryTime = query('coll', orderBy('time', 'asc'));
     await test.executeQuery(queryTime);
-    test.assertOverlaysRead(1, 0);
+    test.assertOverlaysRead(1, 0, {
+      [key('coll/a').toString()]: MutationType.Set
+    });
     test.assertQueryReturned('coll/a');
   });
 

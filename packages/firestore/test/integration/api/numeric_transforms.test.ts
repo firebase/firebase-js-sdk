@@ -37,7 +37,7 @@ import { apiDescribe, withTestDoc } from '../util/helpers';
 
 const DOUBLE_EPSILON = 0.000001;
 
-apiDescribe('Numeric Transforms:', (persistence: boolean) => {
+apiDescribe('Numeric Transforms:', persistence => {
   // A document reference to read and write to.
   let docRef: DocumentReference;
 

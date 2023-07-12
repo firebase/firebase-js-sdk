@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+import { Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   MutableDocumentMap,
-  mutableDocumentMap
+  mutableDocumentMap,
+  OverlayMap
 } from '../model/collections';
 import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -162,16 +164,18 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getAllFromCollection(
+  getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    collectionPath: ResourcePath,
+    query: Query,
     offset: IndexOffset,
+    mutatedDocs: OverlayMap,
     context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
+    const collectionPath = query.path;
     const prefix = new DocumentKey(collectionPath.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
@@ -192,6 +196,11 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
         // The document sorts before the offset.
         continue;
       }
+      if (!mutatedDocs.has(document.key) && !queryMatches(query, document)) {
+        // The document cannot possibly match the query.
+        continue;
+      }
+
       results = results.insert(document.key, document.mutableCopy());
     }
     return PersistencePromise.resolve(results);

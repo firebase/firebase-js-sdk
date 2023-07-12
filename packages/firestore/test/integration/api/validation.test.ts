@@ -50,10 +50,13 @@ import {
   setDoc,
   updateDoc,
   where,
+  or,
+  and,
   newTestApp
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  PersistenceMode,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -65,17 +68,17 @@ import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
 interface ValidationIt {
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ): void;
   skip: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
   only: (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => void;
@@ -85,7 +88,7 @@ interface ValidationIt {
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
 const validationIt: ValidationIt = Object.assign(
   (
-    persistence: boolean,
+    persistence: PersistenceMode,
     message: string,
     testFunction: (db: Firestore) => void | Promise<any>
   ) => {
@@ -100,7 +103,7 @@ const validationIt: ValidationIt = Object.assign(
   },
   {
     skip(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       _: (db: Firestore) => void | Promise<any>
     ): void {
@@ -108,7 +111,7 @@ const validationIt: ValidationIt = Object.assign(
       it.skip(message, () => {});
     },
     only(
-      persistence: boolean,
+      persistence: PersistenceMode,
       message: string,
       testFunction: (db: Firestore) => void | Promise<any>
     ): void {
@@ -130,16 +133,8 @@ class TestClass {
   constructor(readonly property: string) {}
 }
 
-apiDescribe('Validation:', (persistence: boolean) => {
+apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
-    // Enabling persistence counts as a use of the firestore instance, meaning
-    // that it will be impossible to verify that a set of settings don't throw,
-    // and additionally that some exceptions happen for specific reasons, rather
-    // than persistence having already been enabled.
-    if (persistence) {
-      return;
-    }
-
     validationIt(
       persistence,
       'disallows changing settings after use',
@@ -168,15 +163,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
       });
     });
 
-    validationIt(persistence, 'useEmulator can set host and port', () => {
-      const db = newTestFirestore(newTestApp('test-project'));
-      // Verify that this doesn't throw.
-      connectFirestoreEmulator(db, 'localhost', 9000);
-    });
+    validationIt(
+      persistence,
+      'connectFirestoreEmulator() can set host and port',
+      () => {
+        const db = newTestFirestore(newTestApp('test-project'));
+        // Verify that this doesn't throw.
+        connectFirestoreEmulator(db, 'localhost', 9000);
+      }
+    );
 
     validationIt(
       persistence,
-      'disallows calling useEmulator after use',
+      'disallows calling connectFirestoreEmulator() after use',
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed.';
@@ -190,7 +189,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken object',
+      'connectFirestoreEmulator() can set mockUserToken object',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -202,7 +201,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'useEmulator can set mockUserToken string',
+      'connectFirestoreEmulator() can set mockUserToken string',
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
@@ -228,19 +227,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
   });
 
   describe('Firestore', () => {
-    (persistence ? validationIt : validationIt.skip)(
+    validationIt(
       persistence,
-      'disallows calling enablePersistence after use',
+      'disallows calling enableIndexedDbPersistence() after use',
       db => {
-        // Calling `enablePersistence()` itself counts as use, so we should only
-        // need this method when persistence is not enabled.
-        if (!persistence) {
-          doc(db, 'foo/bar');
-        }
+        //doc(db, 'foo/bar');
         expect(() => enableIndexedDbPersistence(db)).to.throw(
-          'Firestore has already been started and persistence can no ' +
-            'longer be enabled. You can only enable persistence before ' +
-            'calling any other methods on a Firestore object.'
+          'SDK cache is already specified.'
         );
       }
     );
@@ -892,51 +885,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'with multiple array filters fail', db => {
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains', 1),
-          where('foo', 'array-contains', 2)
-        )
-      ).to.throw(
-        "Invalid query. You cannot use more than one 'array-contains' filter."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains', 1),
-          where('foo', 'array-contains-any', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'array-contains' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains-any', [2, 3]),
-          where('foo', 'array-contains', 1)
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'array-contains-any' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'not-in', [2, 3]),
-          where('foo', 'array-contains', 1)
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'not-in' filters."
-      );
-    });
-
     validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
         query(
@@ -963,52 +911,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         query(
           collection(db, 'test'),
-          where('foo', 'in', [1, 2]),
-          where('foo', 'in', [2, 3])
-        )
-      ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
           where('foo', 'not-in', [1, 2]),
           where('foo', 'not-in', [2, 3])
         )
       ).to.throw(
         "Invalid query. You cannot use more than one 'not-in' filter."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains-any', [1, 2]),
-          where('foo', 'array-contains-any', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use more than one 'array-contains-any'" +
-          ' filter.'
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains-any', [2, 3]),
-          where('foo', 'in', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'in' filters with " +
-          "'array-contains-any' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'in', [2, 3]),
-          where('foo', 'array-contains-any', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
       );
 
       expect(() =>
@@ -1052,55 +959,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
-
-      // This is redundant with the above tests, but makes sure our validation
-      // doesn't get confused.
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'in', [2, 3]),
-          where('foo', 'array-contains', 1),
-          where('foo', 'array-contains-any', [2])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with 'in' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains', 1),
-          where('foo', 'in', [2, 3]),
-          where('foo', 'array-contains-any', [2])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'array-contains' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'not-in', [2, 3]),
-          where('foo', 'array-contains', 2),
-          where('foo', 'array-contains-any', [2])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'not-in' filters."
-      );
-
-      expect(() =>
-        query(
-          collection(db, 'test'),
-          where('foo', 'array-contains', 2),
-          where('foo', 'in', [2]),
-          where('foo', 'not-in', [2, 3])
-        )
-      ).to.throw(
-        "Invalid query. You cannot use 'not-in' filters with " +
-          "'array-contains' filters."
-      );
     });
 
     validationIt(
@@ -1122,26 +980,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
             where('foo', 'array-contains', 1)
           )
         ).not.to.throw();
-
-        expect(() =>
-          query(
-            collection(db, 'test'),
-            where('foo', 'in', [2, 3]),
-            where('foo', 'array-contains', 1),
-            where('foo', 'array-contains', 2)
-          )
-        ).to.throw(
-          "Invalid query. You cannot use more than one 'array-contains' filter."
-        );
-
-        expect(() =>
-          query(
-            collection(db, 'test'),
-            where('foo', 'array-contains', 1),
-            where('foo', 'in', [2, 3]),
-            where('foo', 'in', [2, 3])
-          )
-        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
       }
     );
 
@@ -1160,31 +998,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
-        );
-
-        expect(() =>
-          query(
-            collection(db, 'test'),
-            // The 10 element max includes duplicates.
-            where('foo', 'in', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
-          )
-        ).to.throw(
-          "Invalid Query. 'in' filters support a maximum of 10 elements in " +
-            'the value array.'
-        );
-
-        expect(() =>
-          query(
-            collection(db, 'test'),
-            where(
-              'foo',
-              'array-contains-any',
-              [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9]
-            )
-          )
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters support a maximum of " +
-            '10 elements in the value array.'
         );
 
         expect(() =>
@@ -1317,6 +1130,148 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'Function startAt() called with invalid data. Unsupported field value: undefined'
       );
     });
+
+    validationIt(persistence, 'invalid query filters fail', db => {
+      // Multiple inequalities, one of which is inside a nested composite filter.
+      const coll = collection(db, 'test');
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('r', '>', 's')
+          )
+        )
+      ).to.throw(
+        "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
+      );
+
+      // OrderBy and inequality on different fields. Inequality inside a nested composite filter.
+      expect(() =>
+        query(
+          coll,
+          or(
+            and(where('a', '==', 'b'), where('c', '>', 'd')),
+            and(where('e', '==', 'f'), where('g', '==', 'h'))
+          ),
+          orderBy('r')
+        )
+      ).to.throw(
+        "Invalid query. You have a where filter with an inequality (<, <=, !=, not-in, >, or >=) on field 'c' and so you must also use 'c' as your first argument to orderBy(), but your first orderBy() is on field 'r' instead."
+      );
+
+      // Conflicting operations within a composite filter.
+      expect(() =>
+        query(
+          coll,
+          or(
+            and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+            and(where('e', '==', 'f'), where('c', 'not-in', ['f', 'g']))
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Conflicting operations between a field filter and a composite filter.
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            where('i', 'not-in', ['j', 'k'])
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Conflicting operations between two composite filters.
+      expect(() =>
+        query(
+          coll,
+          and(
+            or(
+              and(where('a', '==', 'b'), where('c', 'in', ['d', 'e'])),
+              and(where('e', '==', 'f'), where('g', '==', 'h'))
+            ),
+            or(
+              and(where('i', '==', 'j'), where('l', 'not-in', ['m', 'n'])),
+              and(where('o', '==', 'p'), where('q', '==', 'r'))
+            )
+          )
+        )
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
+      // Multiple top level composite filters
+      expect(() =>
+        // @ts-ignore
+        query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
+      );
+
+      // Once top level composite filter and one top level field filter
+      expect(() =>
+        // @ts-ignore
+        query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
+      ).to.throw(
+        'InvalidQuery. When using composite filters, you cannot use ' +
+          'more than one filter at the top level. Consider nesting the multiple ' +
+          'filters within an `and(...)` statement. For example: ' +
+          'change `query(query, where(...), or(...))` to ' +
+          '`query(query, and(where(...), or(...)))`.'
+      );
+    });
+
+    validationIt(
+      persistence,
+      'passing non-filters to composite operators fails',
+      db => {
+        const compositeOperators = [
+          { name: 'or', func: or },
+          { name: 'and', func: and }
+        ];
+        const nonFilterOps = [
+          limit(1),
+          limitToLast(2),
+          startAt(1),
+          startAfter(1),
+          endAt(1),
+          endBefore(1),
+          orderBy('a')
+        ];
+
+        for (const compositeOp of compositeOperators) {
+          for (const nonFilterOp of nonFilterOps) {
+            const coll = collection(db, 'test');
+            expect(() =>
+              query(
+                coll,
+                compositeOp.func(
+                  // @ts-ignore
+                  nonFilterOp
+                )
+              )
+            ).to.throw(
+              `Function ${compositeOp.name}() requires AppliableConstraints created with a call to 'where(...)', 'or(...)', or 'and(...)'.`
+            );
+          }
+        }
+      }
+    );
   });
 });
 

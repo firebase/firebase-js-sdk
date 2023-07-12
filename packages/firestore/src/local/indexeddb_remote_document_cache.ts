@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
+import { Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentSizeEntries,
   MutableDocumentMap,
-  mutableDocumentMap
+  mutableDocumentMap,
+  OverlayMap
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -276,12 +278,14 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       });
   }
 
-  getAllFromCollection(
+  getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    collection: ResourcePath,
+    query: Query,
     offset: IndexOffset,
+    mutatedDocs: OverlayMap,
     context: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
+    const collection = query.path;
     const startKey = [
       collection.popLast().toArray(),
       collection.lastSegment(),
@@ -301,15 +305,24 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .iterate(
         { range: IDBKeyRange.bound(startKey, endKey, true) },
-        (_, value) => {
+        (_, dbRemoteDoc) => {
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
-              value.prefixPath.concat(value.collectionGroup, value.documentId)
+              dbRemoteDoc.prefixPath.concat(
+                dbRemoteDoc.collectionGroup,
+                dbRemoteDoc.documentId
+              )
             ),
-            value,
+            dbRemoteDoc,
             context?.processingMask
           );
-          results = results.insert(document.key, document);
+          if (
+            document.isFoundDocument() &&
+            (queryMatches(query, document) || mutatedDocs.has(document.key))
+          ) {
+            // Either the document matches the given query, or it is mutated.
+            results = results.insert(document.key, document);
+          }
         }
       )
       .next(() => results);

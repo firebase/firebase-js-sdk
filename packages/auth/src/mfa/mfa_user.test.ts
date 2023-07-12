@@ -88,7 +88,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       const mfaSession = (await mfaUser.getSession()) as MultiFactorSessionImpl;
       expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
       expect(mfaSession.credential).to.eq('access-token');
-      expect(mfaSession.auth).to.eq(auth);
+      expect(mfaSession.user?.auth).to.eq(auth);
     });
   });
 
@@ -235,8 +235,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
         );
       });
 
-      it('should swallow the error', async () => {
-        await mfaUser.unenroll(mfaInfo);
+      it('should throw TOKEN_EXPIRED error', async () => {
+        await expect(mfaUser.unenroll(mfaInfo)).to.be.rejectedWith(
+          'auth/user-token-expired'
+        );
       });
     });
   });

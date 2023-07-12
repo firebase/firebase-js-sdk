@@ -16,6 +16,7 @@
  */
 
 import { CONSTANTS } from './constants';
+import { getDefaults } from './defaults';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
@@ -52,10 +53,17 @@ export function isMobileCordova(): boolean {
 /**
  * Detect Node.js.
  *
- * @return true if Node.js environment is detected.
+ * @return true if Node.js environment is detected or specified.
  */
 // Node detection logic from: https://github.com/iliakan/detect-node/
 export function isNode(): boolean {
+  const forceEnvironment = getDefaults()?.forceEnvironment;
+  if (forceEnvironment === 'node') {
+    return true;
+  } else if (forceEnvironment === 'browser') {
+    return false;
+  }
+
   try {
     return (
       Object.prototype.toString.call(global.process) === '[object process]'
@@ -140,7 +148,11 @@ export function isSafari(): boolean {
  * @return true if indexedDB is supported by current browser/service worker context
  */
 export function isIndexedDBAvailable(): boolean {
-  return typeof indexedDB === 'object';
+  try {
+    return typeof indexedDB === 'object';
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
@@ -188,21 +200,4 @@ export function areCookiesEnabled(): boolean {
     return false;
   }
   return true;
-}
-
-/**
- * Polyfill for `globalThis` object.
- * @returns the `globalThis` object for the given environment.
- */
-export function getGlobal(): typeof globalThis {
-  if (typeof self !== 'undefined') {
-    return self;
-  }
-  if (typeof window !== 'undefined') {
-    return window;
-  }
-  if (typeof global !== 'undefined') {
-    return global;
-  }
-  throw new Error('Unable to locate global object.');
 }

@@ -43,10 +43,10 @@ async function logChangesets() {
     return;
   }
 
-  const data = JSON.stringify({
+  const data = {
     version,
     pr: prPayload.pull_request.number
-  });
+  };
 
   const options = {
     method: 'POST',
@@ -70,9 +70,9 @@ async function logChangesets() {
 
     req.on('error', error => reject(error));
 
-    req.write(data, err => reject(err));
+    req.write(JSON.stringify(data), err => reject(err));
     req.end();
   });
 }
 
-logChangesets();
+logChangesets().catch(e => console.error(e));

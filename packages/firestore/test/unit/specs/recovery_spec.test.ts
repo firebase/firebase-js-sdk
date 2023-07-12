@@ -16,6 +16,7 @@
  */
 
 import { newQueryForPath } from '../../../src/core/query';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, query } from '../../util/helpers';
@@ -137,7 +138,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           // The primary client 0 receives a notification that the query can
           // be released, but it can only process the change after we recover
           // the database.
-          .expectActiveTargets({ query: query1 })
+          .expectActiveTargets({
+            query: query1
+          })
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
           .expectActiveTargets()
@@ -473,7 +476,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const deletedDoc1 = deletedDoc('collection/key1', 2000);
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, doc1)
           .expectEvents(query1, {
@@ -533,7 +536,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc2 = doc('collection/key2', 2000, { foo: 'b' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, doc1)
         .expectEvents(query1, {
@@ -569,7 +572,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc2 = doc('collection/key2', 2000, { foo: 'b' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(doc1Query)
         .watchAcksFull(doc1Query, 1000, doc1a)
         .expectEvents(doc1Query, {
@@ -617,7 +620,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const doc1b = doc('collection/key1', 1500, { included: false });
       const limboQuery = newQueryForPath(doc1a.key.path);
       return spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(fullQuery)
         .watchAcksFull(fullQuery, 1000, doc1a)
         .expectEvents(fullQuery, {
@@ -641,7 +644,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
             query: filteredQuery,
             resumeToken: 'resume-token-2000'
           },
-          { query: limboQuery }
+          {
+            query: limboQuery,
+            targetPurpose: TargetPurpose.LimboResolution
+          }
         )
         .watchAcksFull(filteredQuery, 4000)
         .watchAcksFull(limboQuery, 4000, doc1b)
@@ -658,7 +664,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc1 = doc('collection/key1', 1, { included: true });
     const limboQuery = newQueryForPath(doc1.key.path);
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(fullQuery)
       .watchAcksFull(fullQuery, 1000, doc1)
       .expectEvents(fullQuery, {
@@ -682,7 +688,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       .runTimer(TimerId.AsyncQueueRetry)
       .expectActiveTargets(
         { query: filteredQuery, resumeToken: 'resume-token-2000' },
-        { query: limboQuery }
+        { query: limboQuery, targetPurpose: TargetPurpose.LimboResolution }
       )
       .watchAcksFull(filteredQuery, 3000)
       .watchRemoves(
@@ -719,7 +725,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectActiveTargets()
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
-          .expectActiveTargets({ query: query1 })
+          .expectActiveTargets({
+            query: query1
+          })
           .expectEvents(query1, { removed: [doc1], fromCache: true })
           .failDatabaseTransactions('Handle user change')
           .changeUser('user1')
@@ -727,7 +735,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .expectActiveTargets()
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
-          .expectActiveTargets({ query: query1 })
+          .expectActiveTargets({
+            query: query1
+          })
           .expectEvents(query1, {
             added: [doc1],
             fromCache: true,
@@ -763,7 +773,9 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           .changeUser('user1')
           .recoverDatabase()
           .runTimer(TimerId.AsyncQueueRetry)
-          .expectActiveTargets({ query: query1 })
+          .expectActiveTargets({
+            query: query1
+          })
           // We are now user 2
           .expectEvents(query1, { removed: [doc1], fromCache: true })
           .runTimer(TimerId.AsyncQueueRetry)
@@ -796,7 +808,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const doc1 = doc('collection/key1', 1, { foo: 'a' });
     const doc2 = doc('collection/key2', 2, { foo: 'b' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, doc1)
       .expectEvents(query1, {

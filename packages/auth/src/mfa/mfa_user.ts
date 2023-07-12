@@ -23,13 +23,12 @@ import {
 } from '../model/public_types';
 
 import { withdrawMfa } from '../api/account_management/mfa';
-import { AuthErrorCode } from '../core/errors';
 import { _logoutIfInvalidated } from '../core/user/invalidation';
 import { UserInternal } from '../model/user';
 import { MultiFactorAssertionImpl } from './mfa_assertion';
 import { MultiFactorInfoImpl } from './mfa_info';
 import { MultiFactorSessionImpl } from './mfa_session';
-import { FirebaseError, getModularInstance } from '@firebase/util';
+import { getModularInstance } from '@firebase/util';
 
 export class MultiFactorUserImpl implements MultiFactorUser {
   enrolledFactors: MultiFactorInfo[] = [];
@@ -51,7 +50,7 @@ export class MultiFactorUserImpl implements MultiFactorUser {
   async getSession(): Promise<MultiFactorSession> {
     return MultiFactorSessionImpl._fromIdtoken(
       await this.user.getIdToken(),
-      this.user.auth
+      this.user
     );
   }
 
@@ -78,30 +77,26 @@ export class MultiFactorUserImpl implements MultiFactorUser {
     const mfaEnrollmentId =
       typeof infoOrUid === 'string' ? infoOrUid : infoOrUid.uid;
     const idToken = await this.user.getIdToken();
-    const idTokenResponse = await _logoutIfInvalidated(
-      this.user,
-      withdrawMfa(this.user.auth, {
-        idToken,
-        mfaEnrollmentId
-      })
-    );
-    // Remove the second factor from the user's list.
-    this.enrolledFactors = this.enrolledFactors.filter(
-      ({ uid }) => uid !== mfaEnrollmentId
-    );
-    // Depending on whether the backend decided to revoke the user's session,
-    // the tokenResponse may be empty. If the tokens were not updated (and they
-    // are now invalid), reloading the user will discover this and invalidate
-    // the user's state accordingly.
-    await this.user._updateTokensIfNecessary(idTokenResponse);
     try {
+      const idTokenResponse = await _logoutIfInvalidated(
+        this.user,
+        withdrawMfa(this.user.auth, {
+          idToken,
+          mfaEnrollmentId
+        })
+      );
+      // Remove the second factor from the user's list.
+      this.enrolledFactors = this.enrolledFactors.filter(
+        ({ uid }) => uid !== mfaEnrollmentId
+      );
+      // Depending on whether the backend decided to revoke the user's session,
+      // the tokenResponse may be empty. If the tokens were not updated (and they
+      // are now invalid), reloading the user will discover this and invalidate
+      // the user's state accordingly.
+      await this.user._updateTokensIfNecessary(idTokenResponse);
       await this.user.reload();
     } catch (e) {
-      if (
-        (e as FirebaseError)?.code !== `auth/${AuthErrorCode.TOKEN_EXPIRED}`
-      ) {
-        throw e;
-      }
+      throw e;
     }
   }
 }

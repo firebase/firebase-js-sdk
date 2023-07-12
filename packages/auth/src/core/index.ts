@@ -25,6 +25,7 @@ import {
   ErrorFn,
   Unsubscribe
 } from '../model/public_types';
+import { _castAuth } from '../core/auth/auth_impl';
 
 export {
   debugErrorMap,
@@ -43,6 +44,8 @@ export {
  * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
+ * This method does not work in a Node.js environment.
+ *
  * @example
  * ```javascript
  * setPersistence(auth, browserSessionPersistence);
@@ -60,11 +63,45 @@ export function setPersistence(
 ): Promise<void> {
   return getModularInstance(auth).setPersistence(persistence);
 }
+
+/**
+ * Loads the reCAPTCHA configuration into the `Auth` instance.
+ *
+ * @remarks
+ * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
+ * verification flow should be triggered for each auth provider, into the
+ * current Auth session.
+ *
+ * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
+ * verification, the SDK will transparently load the reCAPTCHA config and restart the
+ * auth flows.
+ *
+ * Thus, by calling this optional method, you will reduce the latency of future auth flows.
+ * Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+ *
+ * This method does not work in a Node.js environment.
+ *
+ * @example
+ * ```javascript
+ * initializeRecaptchaConfig(auth);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @public
+ */
+export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  return authInternal.initializeRecaptchaConfig();
+}
+
 /**
  * Adds an observer for changes to the signed-in user's ID token.
  *
  * @remarks
  * This includes sign-in, sign-out, and token refresh events.
+ * This will not be triggered automatically upon ID token expiration. Use {@link User.getIdToken} to refresh the ID token.
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.

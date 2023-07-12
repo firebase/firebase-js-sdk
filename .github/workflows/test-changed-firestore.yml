@@ -14,7 +14,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: install Chrome stable
@@ -34,7 +34,10 @@ jobs:
 
   test-firefox:
     name: Test Firestore on Firefox If Changed
-    runs-on: ubuntu-latest
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: ubuntu-20.04
 
     steps:
       - name: install Firefox stable
@@ -47,7 +50,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: Bump Node memory limit

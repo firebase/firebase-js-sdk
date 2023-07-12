@@ -20,12 +20,20 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import {
+  Endpoint,
+  HttpHeader,
+  RecaptchaClientType,
+  RecaptchaVersion
+} from '../';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { getRecaptchaParams } from './recaptcha';
+import { getRecaptchaParams, getRecaptchaConfig } from './recaptcha';
 
 use(chaiAsPromised);
 
@@ -78,5 +86,60 @@ describe('api/authentication/getRecaptchaParams', () => {
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
     expect(mock.calls[0].request).to.be.undefined;
+  });
+});
+
+describe('api/authentication/getRecaptchaConfig', () => {
+  const request = {
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
+  };
+
+  let auth: TestAuth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
+  afterEach(mockFetch.tearDown);
+
+  it('should GET to the correct endpoint', async () => {
+    const mock = mockEndpointWithParams(
+      Endpoint.GET_RECAPTCHA_CONFIG,
+      request,
+      {
+        recaptchaKey: 'site-key'
+      }
+    );
+
+    const response = await getRecaptchaConfig(auth, request);
+    expect(response.recaptchaKey).to.eq('site-key');
+    expect(mock.calls[0].method).to.eq('GET');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
+  });
+
+  it('should handle errors', async () => {
+    mockEndpointWithParams(
+      Endpoint.GET_RECAPTCHA_CONFIG,
+      request,
+      {
+        error: {
+          code: 400,
+          message: ServerError.UNAUTHORIZED_DOMAIN
+        }
+      },
+      400
+    );
+
+    await expect(getRecaptchaConfig(auth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'auth/unauthorized-continue-uri'
+    );
   });
 });

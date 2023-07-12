@@ -24,7 +24,7 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData, TargetPurpose } from '../local/target_data';
+import { TargetData } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
@@ -335,6 +335,17 @@ function sendWatchRequest(
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
+
+  if (
+    targetData.resumeToken.approximateByteSize() > 0 ||
+    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
+  ) {
+    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
+      targetData.targetId
+    ).size;
+    targetData = targetData.withExpectedCount(expectedCount);
+  }
+
   ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 
@@ -365,7 +376,8 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
     getRemoteKeysForTarget: targetId =>
       remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
     getTargetDataForTarget: targetId =>
-      remoteStoreImpl.listenTargets.get(targetId) || null
+      remoteStoreImpl.listenTargets.get(targetId) || null,
+    getDatabaseId: () => remoteStoreImpl.datastore.serializer.databaseId
   });
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
@@ -578,7 +590,7 @@ function raiseWatchSnapshot(
 
   // Re-establish listens for the targets that have been invalidated by
   // existence filter mismatches.
-  remoteEvent.targetMismatches.forEach(targetId => {
+  remoteEvent.targetMismatches.forEach((targetId, targetPurpose) => {
     const targetData = remoteStoreImpl.listenTargets.get(targetId);
     if (!targetData) {
       // A watched target might have been removed already.
@@ -606,7 +618,7 @@ function raiseWatchSnapshot(
     const requestTargetData = new TargetData(
       targetData.target,
       targetId,
-      TargetPurpose.ExistenceFilterMismatch,
+      targetPurpose,
       targetData.sequenceNumber
     );
     sendWatchRequest(remoteStoreImpl, requestTargetData);

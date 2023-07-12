@@ -35,7 +35,7 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 
-apiDescribe('Database transactions', (persistence: boolean) => {
+apiDescribe('Database transactions', persistence => {
   type TransactionStage = (
     transaction: Transaction,
     docRef: DocumentReference
@@ -275,7 +275,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   it('runs transactions after getting non-existent document', async () => {
     return withTestDb(persistence, async db => {
@@ -314,7 +314,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   // This test is identical to the test above, except that withNonexistentDoc()
   // is replaced by withDeletedDoc(), to guard against regression of
@@ -355,7 +355,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .expectDoc({ foo: 'bar2' });
       await tt.withDeletedDoc().run(get, set1, set2).expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   it('runs transactions on existing document', async () => {
     return withTestDb(persistence, async db => {
@@ -704,7 +704,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
   // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
   // only to web.
-  apiDescribe('withConverter() support', (persistence: boolean) => {
+  apiDescribe('withConverter() support', persistence => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {

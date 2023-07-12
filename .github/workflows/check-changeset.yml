@@ -2,8 +2,8 @@ name: Check Changeset
 
 on:
   pull_request:
-    branches-ignore:
-      - release
+    branches:
+      - master
 
 env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -20,10 +20,10 @@ jobs:
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
-    - name: Set up Node (14)
-      uses: actions/setup-node@v2
+    - name: Set up Node (16)
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Yarn install
       run: yarn
     - name: Run changeset script

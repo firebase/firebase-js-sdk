@@ -26,12 +26,12 @@ import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 export class StorageError extends FirebaseError {
   private readonly _baseMessage: string;
   /**
-   * Stores custom error data unque to StorageError.
+   * Stores custom error data unique to the `StorageError`.
    */
   customData: { serverResponse: string | null } = { serverResponse: null };
 
   /**
-   * @param code - A StorageErrorCode string to be prefixed with 'storage/' and
+   * @param code - A `StorageErrorCode` string to be prefixed with 'storage/' and
    *  added to the end of the message.
    * @param message  - Error message.
    * @param status_ - Corresponding HTTP Status Code
@@ -56,7 +56,7 @@ export class StorageError extends FirebaseError {
   }
 
   /**
-   * Compares a StorageErrorCode against this error's code, filtering out the prefix.
+   * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
    */
   _codeEquals(code: StorageErrorCode): boolean {
     return prependCode(code) === this.code;
@@ -83,9 +83,9 @@ export const errors = {};
 
 /**
  * @public
- * Error codes that can be attached to `StorageError`s.
+ * Error codes that can be attached to `StorageError` objects.
  */
-export const enum StorageErrorCode {
+export enum StorageErrorCode {
   // Shared between all platforms
   UNKNOWN = 'unknown',
   OBJECT_NOT_FOUND = 'object-not-found',

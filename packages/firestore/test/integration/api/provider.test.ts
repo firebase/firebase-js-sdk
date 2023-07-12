@@ -25,7 +25,11 @@ import {
   initializeFirestore,
   Firestore,
   terminate,
-  getDoc
+  getDoc,
+  enableIndexedDbPersistence,
+  setDoc,
+  memoryLocalCache,
+  getDocFromCache
 } from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
@@ -118,6 +122,37 @@ describe('Firestore Provider', () => {
     const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
     const fs2 = initializeFirestore(app, DEFAULT_SETTINGS);
     expect(fs1).to.be.equal(fs2);
+  });
+
+  it('can still use enableIndexedDbPersistence()', async () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-use-enablePersistence'
+    );
+    const db = initializeFirestore(app, DEFAULT_SETTINGS);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    expect(enableIndexedDbPersistence(db)).to.be.rejected;
+
+    // SDK still functions.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    setDoc(doc(db, 'coll/doc'), { field: 'foo' });
+    expect((await getDocFromCache(doc(db, 'coll/doc'))).data()).to.deep.equal({
+      field: 'foo'
+    });
+  });
+
+  it('cannot mix enableIndexedDbPersistence() and settings.cache', async () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-cannot-mix'
+    );
+    const db = initializeFirestore(app, {
+      ...DEFAULT_SETTINGS,
+      localCache: memoryLocalCache()
+    });
+    expect(() => enableIndexedDbPersistence(db)).to.throw(
+      'SDK cache is already specified.'
+    );
   });
 
   it('cannot use once terminated', () => {

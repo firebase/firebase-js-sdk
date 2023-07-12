@@ -21,6 +21,7 @@ import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../../src/api/credentials';
+import { cloneLongPollingOptions } from '../../../src/api/long_polling_options';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
@@ -41,7 +42,7 @@ import {
   limit,
   limitToLast
 } from './firebase_export';
-import { withTestDbsSettings } from './helpers';
+import { withTestDbsSettings, PersistenceMode } from './helpers';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
 
 export function asyncQueue(db: Firestore): AsyncQueueImpl {
@@ -57,6 +58,9 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     !!DEFAULT_SETTINGS.ssl,
     !!DEFAULT_SETTINGS.experimentalForceLongPolling,
     !!DEFAULT_SETTINGS.experimentalAutoDetectLongPolling,
+    cloneLongPollingOptions(
+      DEFAULT_SETTINGS.experimentalLongPollingOptions ?? {}
+    ),
     /*use FetchStreams= */ false
   );
 }
@@ -97,7 +101,7 @@ export class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {
 }
 
 export function withMockCredentialProviderTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (
     db: Firestore,
     mockCredential: MockAuthCredentialsProvider

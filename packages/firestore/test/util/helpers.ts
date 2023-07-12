@@ -18,8 +18,17 @@
 import { expect } from 'chai';
 
 import { Bytes, DocumentReference, Timestamp } from '../../src';
+import { Bound } from '../../src/core/bound';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
+import {
+  FieldFilter,
+  CompositeFilter,
+  Filter,
+  Operator,
+  CompositeOperator
+} from '../../src/core/filter';
+import { Direction, OrderBy } from '../../src/core/order_by';
 import {
   newQueryForPath,
   Query,
@@ -28,14 +37,6 @@ import {
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  Operator,
-  OrderBy
-} from '../../src/core/target';
 import { TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
@@ -84,6 +85,7 @@ import {
   SetMutation,
   FieldTransform
 } from '../../src/model/mutation';
+import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
@@ -93,6 +95,7 @@ import {
   LimitType as ProtoLimitType
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
+import { BloomFilter } from '../../src/remote/bloom_filter';
 import { ExistenceFilter } from '../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
@@ -264,6 +267,14 @@ export function filter(path: string, op: string, value: unknown): FieldFilter {
   return FieldFilter.create(field(path), operator, dataValue);
 }
 
+export function andFilter(...filters: Filter[]): CompositeFilter {
+  return CompositeFilter.create(filters, CompositeOperator.AND);
+}
+
+export function orFilter(...filters: Filter[]): CompositeFilter {
+  return CompositeFilter.create(filters, CompositeOperator.OR);
+}
+
 export function setMutation(
   keyStr: string,
   json: JsonObject<unknown>
@@ -406,7 +417,8 @@ export function noChangeEvent(
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getTargetDataForTarget: targetId =>
-      targetData(targetId, TargetPurpose.Listen, 'foo')
+      targetData(targetId, TargetPurpose.Listen, 'foo'),
+    getDatabaseId: () => TEST_DATABASE_ID
   });
   aggregator.handleTargetChange(
     new WatchTargetChange(
@@ -422,15 +434,20 @@ export function existenceFilterEvent(
   targetId: number,
   syncedKeys: DocumentKeySet,
   remoteCount: number,
-  snapshotVersion: number
+  snapshotVersion: number,
+  bloomFilter?: api.BloomFilter
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => syncedKeys,
     getTargetDataForTarget: targetId =>
-      targetData(targetId, TargetPurpose.Listen, 'foo')
+      targetData(targetId, TargetPurpose.Listen, 'foo'),
+    getDatabaseId: () => TEST_DATABASE_ID
   });
   aggregator.handleExistenceFilter(
-    new ExistenceFilterChange(targetId, new ExistenceFilter(remoteCount))
+    new ExistenceFilterChange(
+      targetId,
+      new ExistenceFilter(remoteCount, bloomFilter)
+    )
   );
   return aggregator.createRemoteEvent(version(snapshotVersion));
 }
@@ -461,7 +478,8 @@ export function docAddedRemoteEvent(
       } else {
         return null;
       }
-    }
+    },
+    getDatabaseId: () => TEST_DATABASE_ID
   });
 
   let version = SnapshotVersion.min();
@@ -508,7 +526,8 @@ export function docUpdateRemoteEvent(
           ? TargetPurpose.LimboResolution
           : TargetPurpose.Listen;
       return targetData(targetId, purpose, doc.key.toString());
-    }
+    },
+    getDatabaseId: () => TEST_DATABASE_ID
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
@@ -1059,4 +1078,45 @@ export function computeCombinations<T>(input: T[]): T[][] {
     }
   };
   return computeNonEmptyCombinations(input).concat([[]]);
+}
+
+/**
+ * Helper method to generate bloom filter proto value for mocking watch
+ * existence filter response.
+ */
+export function generateBloomFilterProto(config: {
+  contains: MutableDocument[];
+  notContains: MutableDocument[];
+  hashCount?: number;
+  bitCount?: number;
+}): api.BloomFilter {
+  const DOCUMENT_PREFIX =
+    'projects/test-project/databases/(default)/documents/';
+
+  const { contains, notContains, hashCount = 10, bitCount = 100 } = config;
+
+  if (bitCount === 0 && contains.length !== 0) {
+    throw new Error('To contain strings, number of bits cannot be 0.');
+  }
+  const bloomFilter = BloomFilter.create(
+    bitCount,
+    hashCount,
+    contains.map(item => DOCUMENT_PREFIX + item.key)
+  );
+
+  notContains.forEach(item => {
+    if (bloomFilter.mightContain(DOCUMENT_PREFIX + item.key)) {
+      throw new Error(
+        'Cannot generate desired bloom filter. Please adjust the hashCount ' +
+          'and/or number of bits.'
+      );
+    }
+  });
+  return {
+    bits: {
+      bitmap: normalizeByteString(bloomFilter.bitmap).toBase64(),
+      padding: bloomFilter.padding
+    },
+    hashCount: bloomFilter.hashCount
+  };
 }

@@ -14,16 +14,20 @@ jobs:
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
       - name: install Chrome stable
+        # Install Chrome version 110.0.5481.177-1 as test starts to fail on version 111.
+        # Temporary: Auth team will explore what's going wrong with the auth tests.
         run: |
           sudo apt-get update
-          sudo apt-get install google-chrome-stable
+          sudo apt-get install wget
+          sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
+          sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: Bump Node memory limit
@@ -38,7 +42,10 @@ jobs:
         run: xvfb-run yarn test:changed auth
   test-firefox:
     name: Test Auth on Firefox If Changed
-    runs-on: ubuntu-latest
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: ubuntu-20.04
 
     steps:
       - name: install Firefox stable
@@ -51,7 +58,7 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (14)
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
       - name: Bump Node memory limit

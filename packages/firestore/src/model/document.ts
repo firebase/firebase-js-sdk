@@ -257,8 +257,13 @@ export class MutableDocument implements Document {
     version: SnapshotVersion,
     value: ObjectValue
   ): MutableDocument {
+    // If a document is switching state from being an invalid or deleted
+    // document to a valid (FOUND_DOCUMENT) document, either due to receiving an
+    // update from Watch or due to applying a local set mutation on top
+    // of a deleted document, our best guess about its createTime would be the
+    // version at which the document transitioned to a FOUND_DOCUMENT.
     if (
-      SnapshotVersion.min().isEqual(this.createTime) &&
+      this.createTime.isEqual(SnapshotVersion.min()) &&
       (this.documentType === DocumentType.NO_DOCUMENT ||
         this.documentType === DocumentType.INVALID)
     ) {

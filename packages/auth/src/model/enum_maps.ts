@@ -22,7 +22,8 @@
  */
 export const FactorId = {
   /** Phone as second factor */
-  PHONE: 'phone'
+  PHONE: 'phone',
+  TOTP: 'totp'
 } as const;
 
 /**

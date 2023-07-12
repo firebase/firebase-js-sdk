@@ -73,8 +73,7 @@
         "--exit"
       ],
       "env": {
-        "FIRESTORE_EMULATOR_PORT" : "8080",
-        "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
+        "FIRESTORE_TARGET_BACKEND" : "emulator",
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -95,8 +94,7 @@
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
-        "FIRESTORE_EMULATOR_PORT" : "8080",
-        "FIRESTORE_EMULATOR_PROJECT_ID" :  "test-emulator"
+        "FIRESTORE_TARGET_BACKEND" : "emulator",
       },
       "sourceMaps": true,
       "protocol": "inspector"

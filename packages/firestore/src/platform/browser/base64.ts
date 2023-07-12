@@ -15,9 +15,22 @@
  * limitations under the License.
  */
 
+import { Base64DecodeError } from '../../util/base64_decode_error';
+
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  return atob(encoded);
+  try {
+    return atob(encoded);
+  } catch (e) {
+    // Check that `DOMException` is defined before using it to avoid
+    // "ReferenceError: Property 'DOMException' doesn't exist" in react-native.
+    // (https://github.com/firebase/firebase-js-sdk/issues/7115)
+    if (typeof DOMException !== 'undefined' && e instanceof DOMException) {
+      throw new Base64DecodeError('Invalid base64 string: ' + e);
+    } else {
+      throw e;
+    }
+  }
 }
 
 /** Converts a binary string to a Base64 encoded string. */

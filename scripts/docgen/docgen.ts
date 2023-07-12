@@ -99,26 +99,29 @@ async function generateToc() {
       );
     }
   }
-  await spawn(
-    'yarn',
-    [
-      'api-documenter-devsite',
-      'toc',
-      '--input',
-      'temp',
-      '-p',
-      '/docs/reference/js',
-      '-j'
-    ],
-    { stdio: 'inherit' }
-  );
-  console.log(`Restoring excluded packages' json files.`);
-  for (const excludedPackage of EXCLUDED_PACKAGES) {
-    if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
-      fs.renameSync(
-        `${projectRoot}/temp/${excludedPackage}.skip`,
-        `${projectRoot}/temp/${excludedPackage}.api.json`
-      );
+  try {
+    await spawn(
+      'yarn',
+      [
+        'api-documenter-devsite',
+        'toc',
+        '--input',
+        'temp',
+        '-p',
+        '/docs/reference/js',
+        '-j'
+      ],
+      { stdio: 'inherit' }
+    );
+  } finally {
+    console.log(`Restoring excluded packages' json files.`);
+    for (const excludedPackage of EXCLUDED_PACKAGES) {
+      if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
+        fs.renameSync(
+          `${projectRoot}/temp/${excludedPackage}.skip`,
+          `${projectRoot}/temp/${excludedPackage}.api.json`
+        );
+      }
     }
   }
 }
@@ -131,35 +134,63 @@ async function generateDocs(
   const outputFolder = forDevsite ? 'docs-devsite' : 'docs';
   const command = forDevsite ? 'api-documenter-devsite' : 'api-documenter';
 
+  console.log(`Temporarily modifying auth api-extractor.json for docgen.`);
   // Use a special d.ts file for auth for doc gen only.
   const authApiConfigOriginal = fs.readFileSync(
     `${projectRoot}/packages/auth/api-extractor.json`,
+    'utf8'
+  );
+  // Save original auth.md as well.
+  const authApiReportOriginal = fs.readFileSync(
+    `${projectRoot}/common/api-review/auth.api.md`,
     'utf8'
   );
   const authApiConfigModified = authApiConfigOriginal.replace(
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
     `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
   );
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigModified
-  );
 
-  if (!skipBuild) {
-    await spawn('yarn', ['build'], {
-      stdio: 'inherit'
-    });
+  try {
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigModified
+    );
 
-    await spawn('yarn', ['api-report'], {
-      stdio: 'inherit'
-    });
+    if (skipBuild) {
+      await spawn('yarn', ['api-report'], {
+        stdio: 'inherit'
+      });
+    } else {
+      // api-report is run as part of every build
+      await spawn(
+        'yarn',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/*',
+          '--ignore',
+          '@firebase/*-compat',
+          'build'
+        ],
+        {
+          stdio: 'inherit'
+        }
+      );
+    }
+  } finally {
+    console.log(`Restoring original auth api-extractor.json contents.`);
+    // Restore original auth api-extractor.json contents.
+    fs.writeFileSync(
+      `${projectRoot}/packages/auth/api-extractor.json`,
+      authApiConfigOriginal
+    );
+    // Restore original auth.api.md
+    fs.writeFileSync(
+      `${projectRoot}/common/api-review/auth.api.md`,
+      authApiReportOriginal
+    );
   }
-
-  // Restore original auth api-extractor.json contents.
-  fs.writeFileSync(
-    `${projectRoot}/packages/auth/api-extractor.json`,
-    authApiConfigOriginal
-  );
 
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir);

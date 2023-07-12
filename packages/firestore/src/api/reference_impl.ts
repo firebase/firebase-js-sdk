@@ -47,6 +47,7 @@ import {
   AggregateQuery,
   CollectionReference,
   doc,
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   Query,
@@ -97,10 +98,13 @@ export interface SnapshotListenOptions {
  * @returns A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDoc<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
+export function getDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
+  reference = cast<DocumentReference<AppModelType, DbModelType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -132,17 +136,20 @@ export class ExpUserDataWriter extends AbstractUserDataWriter {
  * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDocFromCache<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
+export function getDocFromCache<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
+  reference = cast<DocumentReference<AppModelType, DbModelType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
   return firestoreClientGetDocumentFromLocalCache(client, reference._key).then(
     doc =>
-      new DocumentSnapshot(
+      new DocumentSnapshot<AppModelType, DbModelType>(
         firestore,
         userDataWriter,
         reference._key,
@@ -163,10 +170,16 @@ export function getDocFromCache<T>(
  * @returns A `Promise` resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
-export function getDocFromServer<T>(
-  reference: DocumentReference<T>
-): Promise<DocumentSnapshot<T>> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
+export function getDocFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  reference: DocumentReference<AppModelType, DbModelType>
+): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
+  reference = cast<DocumentReference<AppModelType, DbModelType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
@@ -185,8 +198,10 @@ export function getDocFromServer<T>(
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-  query = cast<Query<T>>(query, Query);
+export function getDocs<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>> {
+  query = cast<Query<AppModelType, DbModelType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -196,26 +211,42 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
     client,
     query._query
   ).then(
-    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
+    snapshot =>
+      new QuerySnapshot<AppModelType, DbModelType>(
+        firestore,
+        userDataWriter,
+        query,
+        snapshot
+      )
   );
 }
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
- * Returns an error if the document is not currently cached.
+ * Returns an empty result set if no documents matching the query are currently
+ * cached.
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocsFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>> {
-  query = cast<Query<T>>(query, Query);
+export function getDocsFromCache<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>> {
+  query = cast<Query<AppModelType, DbModelType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
   return firestoreClientGetDocumentsFromLocalCache(client, query._query).then(
-    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
+    snapshot =>
+      new QuerySnapshot<AppModelType, DbModelType>(
+        firestore,
+        userDataWriter,
+        query,
+        snapshot
+      )
   );
 }
 
@@ -225,10 +256,13 @@ export function getDocsFromCache<T>(
  *
  * @returns A `Promise` that will be resolved with the results of the query.
  */
-export function getDocsFromServer<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>> {
-  query = cast<Query<T>>(query, Query);
+export function getDocsFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<QuerySnapshot<AppModelType, DbModelType>> {
+  query = cast<Query<AppModelType, DbModelType>>(query, Query);
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
@@ -249,9 +283,9 @@ export function getDocsFromServer<T>(
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: WithFieldValue<T>
+export function setDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
 ): Promise<void>;
 /**
  * Writes to the document referred to by the specified `DocumentReference`. If
@@ -264,22 +298,25 @@ export function setDoc<T>(
  * @returns A Promise resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: PartialWithFieldValue<T>,
+export function setDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: PartialWithFieldValue<AppModelType>,
   options: SetOptions
 ): Promise<void>;
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: PartialWithFieldValue<T>,
+export function setDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: PartialWithFieldValue<AppModelType>,
   options?: SetOptions
 ): Promise<void> {
-  reference = cast<DocumentReference<T>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppModelType, DbModelType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const convertedValue = applyFirestoreDataConverter(
     reference.converter,
-    data as WithFieldValue<T>,
+    data as WithFieldValue<AppModelType>,
     options
   );
   const dataReader = newUserDataReader(firestore);
@@ -308,9 +345,9 @@ export function setDoc<T>(
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function updateDoc<T>(
-  reference: DocumentReference<T>,
-  data: UpdateData<T>
+export function updateDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  data: UpdateData<DbModelType>
 ): Promise<void>;
 /**
  * Updates fields in the document referred to by the specified
@@ -327,19 +364,22 @@ export function updateDoc<T>(
  * @returns A `Promise` resolved once the data has been successfully written
  * to the backend (note that it won't resolve while you're offline).
  */
-export function updateDoc(
-  reference: DocumentReference<unknown>,
+export function updateDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
-export function updateDoc<T>(
+export function updateDoc<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | UpdateData<T>,
+  fieldOrUpdateData: string | FieldPath | UpdateData<DbModelType>,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  reference = cast<DocumentReference<unknown>>(reference, DocumentReference);
+  reference = cast<DocumentReference<AppModelType, DbModelType>>(
+    reference,
+    DocumentReference
+  );
   const firestore = cast(reference.firestore, Firestore);
 
   const dataReader = newUserDataReader(firestore);
@@ -381,8 +421,8 @@ export function updateDoc<T>(
  * @returns A Promise resolved once the document has been successfully
  * deleted from the backend (note that it won't resolve while you're offline).
  */
-export function deleteDoc(
-  reference: DocumentReference<unknown>
+export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>
 ): Promise<void> {
   const firestore = cast(reference.firestore, Firestore);
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
@@ -399,10 +439,10 @@ export function deleteDoc(
  * newly created document after it has been written to the backend (Note that it
  * won't resolve while you're offline).
  */
-export function addDoc<T>(
-  reference: CollectionReference<T>,
-  data: WithFieldValue<T>
-): Promise<DocumentReference<T>> {
+export function addDoc<AppModelType, DbModelType extends DocumentData>(
+  reference: CollectionReference<AppModelType, DbModelType>,
+  data: WithFieldValue<AppModelType>
+): Promise<DocumentReference<AppModelType, DbModelType>> {
   const firestore = cast(reference.firestore, Firestore);
 
   const docRef = doc(reference);
@@ -446,10 +486,10 @@ export interface Unsubscribe {
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -468,11 +508,11 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -495,9 +535,9 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -520,10 +560,10 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  reference: DocumentReference<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
-  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -541,10 +581,10 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  query: Query<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -564,11 +604,11 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  query: Query<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -592,9 +632,9 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  query: Query<T>,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -618,15 +658,17 @@ export function onSnapshot<T>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onSnapshot<T>(
-  query: Query<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
-  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
-export function onSnapshot<T>(
-  reference: Query<T> | DocumentReference<T>,
+export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
+  reference:
+    | Query<AppModelType, DbModelType>
+    | DocumentReference<AppModelType, DbModelType>,
   ...args: unknown[]
 ): Unsubscribe {
   reference = getModularInstance(reference);
@@ -645,7 +687,9 @@ export function onSnapshot<T>(
   };
 
   if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<QuerySnapshot<T>>;
+    const userObserver = args[currArg] as PartialObserver<
+      QuerySnapshot<AppModelType, DbModelType>
+    >;
     args[currArg] = userObserver.next?.bind(userObserver);
     args[currArg + 1] = userObserver.error?.bind(userObserver);
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
@@ -662,10 +706,12 @@ export function onSnapshot<T>(
     observer = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<DocumentSnapshot<T>>)(
+          (
+            args[currArg] as NextFn<DocumentSnapshot<AppModelType, DbModelType>>
+          )(
             convertToDocSnapshot(
               firestore,
-              reference as DocumentReference<T>,
+              reference as DocumentReference<AppModelType, DbModelType>,
               snapshot
             )
           );
@@ -675,7 +721,7 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
-    const query = cast<Query<T>>(reference, Query);
+    const query = cast<Query<AppModelType, DbModelType>>(reference, Query);
     firestore = cast(query.firestore, Firestore);
     internalQuery = query._query;
     const userDataWriter = new ExpUserDataWriter(firestore);
@@ -683,7 +729,7 @@ export function onSnapshot<T>(
     observer = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<QuerySnapshot<T>>)(
+          (args[currArg] as NextFn<QuerySnapshot<AppModelType, DbModelType>>)(
             new QuerySnapshot(firestore, userDataWriter, query, snapshot)
           );
         }
@@ -799,11 +845,11 @@ export function executeWrite(
  * Converts a {@link ViewSnapshot} that contains the single document specified by `ref`
  * to a {@link DocumentSnapshot}.
  */
-function convertToDocSnapshot<T>(
+function convertToDocSnapshot<AppModelType, DbModelType extends DocumentData>(
   firestore: Firestore,
-  ref: DocumentReference<T>,
+  ref: DocumentReference<AppModelType, DbModelType>,
   snapshot: ViewSnapshot
-): DocumentSnapshot<T> {
+): DocumentSnapshot<AppModelType, DbModelType> {
   debugAssert(
     snapshot.docs.size <= 1,
     'Expected zero or a single result on a document-only query'
@@ -811,7 +857,7 @@ function convertToDocSnapshot<T>(
   const doc = snapshot.docs.get(ref._key);
 
   const userDataWriter = new ExpUserDataWriter(firestore);
-  return new DocumentSnapshot(
+  return new DocumentSnapshot<AppModelType, DbModelType>(
     firestore,
     userDataWriter,
     ref._key,

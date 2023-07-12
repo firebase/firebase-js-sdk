@@ -713,7 +713,7 @@ export function localStoreApplyRemoteEventToLocalCache(
         let newTargetData = oldTargetData.withSequenceNumber(
           txn.currentSequenceNumber
         );
-        if (remoteEvent.targetMismatches.has(targetId)) {
+        if (remoteEvent.targetMismatches.get(targetId) !== null) {
           newTargetData = newTargetData
             .withResumeToken(
               ByteString.EMPTY_BYTE_STRING,
@@ -1039,6 +1039,10 @@ export async function localStoreNotifyLocalViewChanges(
       );
       localStoreImpl.targetDataByTarget =
         localStoreImpl.targetDataByTarget.insert(targetId, updatedTargetData);
+
+      // TODO(b/272564316): Apply the optimization done on other platforms.
+      // This is a problem for web because saving the updated targetData from
+      // non-primary client conflicts with what primary client saved.
     }
   }
 }

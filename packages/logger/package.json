@@ -1,6 +1,6 @@
 {
   "name": "@firebase/logger",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -38,7 +38,7 @@
   "devDependencies": {
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/logger",

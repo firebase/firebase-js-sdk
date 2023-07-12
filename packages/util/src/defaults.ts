@@ -16,7 +16,7 @@
  */
 
 import { base64Decode } from './crypt';
-import { getGlobal } from './environment';
+import { getGlobal } from './global';
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.
@@ -39,6 +39,11 @@ export interface FirebaseDefaults {
   emulatorHosts?: Record<string, string>;
   _authTokenSyncURL?: string;
   _authIdTokenMaxAge?: number;
+  /**
+   * Override Firebase's runtime environment detection and
+   * force the SDK to act as if it were in the specified environment.
+   */
+  forceEnvironment?: 'browser' | 'node';
   [key: string]: unknown;
 }
 
@@ -53,8 +58,11 @@ const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
 
 /**
  * Attempt to read defaults from a JSON string provided to
- * process.env.__FIREBASE_DEFAULTS__ or a JSON file whose path is in
- * process.env.__FIREBASE_DEFAULTS_PATH__
+ * process(.)env(.)__FIREBASE_DEFAULTS__ or a JSON file whose path is in
+ * process(.)env(.)__FIREBASE_DEFAULTS_PATH__
+ * The dots are in parens because certain compilers (Vite?) cannot
+ * handle seeing that variable in comments.
+ * See https://github.com/firebase/firebase-js-sdk/issues/6838
  */
 const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   if (typeof process === 'undefined' || typeof process.env === 'undefined') {
@@ -87,8 +95,9 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
  * (1) if such an object exists as a property of `globalThis`
  * (2) if such an object was provided on a shell environment variable
  * (3) if such an object exists in a cookie
+ * @public
  */
-const getDefaults = (): FirebaseDefaults | undefined => {
+export const getDefaults = (): FirebaseDefaults | undefined => {
   try {
     return (
       getDefaultsFromGlobal() ||

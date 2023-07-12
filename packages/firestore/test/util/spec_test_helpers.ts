@@ -45,8 +45,9 @@ export function encodeWatchChange(
   if (watchChange instanceof ExistenceFilterChange) {
     return {
       filter: {
+        targetId: watchChange.targetId,
         count: watchChange.existenceFilter.count,
-        targetId: watchChange.targetId
+        unchangedNames: watchChange.existenceFilter.unchangedNames
       }
     };
   }
@@ -59,7 +60,7 @@ export function encodeWatchChange(
             name: toName(serializer, doc.key),
             fields: doc?.data.value.mapValue.fields,
             updateTime: toVersion(serializer, doc.version),
-            createTime: toVersion(serializer, doc.createTime || doc.version)
+            createTime: toVersion(serializer, doc?.createTime)
           },
           targetIds: watchChange.updatedTargetIds,
           removedTargetIds: watchChange.removedTargetIds

@@ -34,7 +34,7 @@ export const enum AppError {
 const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
     "No Firebase App '{$appName}' has been created - " +
-    'call Firebase App.initializeApp()',
+    'call initializeApp() first',
   [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}",
   [AppError.DUPLICATE_APP]:
     "Firebase App named '{$appName}' already exists with different options or config",

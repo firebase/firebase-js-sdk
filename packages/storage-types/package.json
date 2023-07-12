@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-types",
-  "version": "0.6.1",
+  "version": "0.8.0",
   "description": "@firebase/storage Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -24,6 +24,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   }
 }

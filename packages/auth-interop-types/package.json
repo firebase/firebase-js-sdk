@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-interop-types",
-  "version": "0.1.7",
+  "version": "0.2.1",
   "description": "@firebase/auth interop Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -11,10 +11,6 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
-    "@firebase/app-types": "0.x",
-    "@firebase/util": "1.x"
-  },
   "repository": {
     "directory": "packages/auth-types",
     "type": "git",
@@ -24,6 +20,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "4.7.4"
   }
 }

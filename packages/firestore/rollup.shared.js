@@ -144,14 +144,18 @@ const manglePrivatePropertiesOptions = {
     comments: 'all',
     beautify: true
   },
+  keep_fnames: true,
+  keep_classnames: true,
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
     // This can be removed if the problem in the downstream library is fixed
     // or if terser's mangler provides an option to avoid mangling everything
     // that isn't a property.
+    // `lastReasonableEscapeIndex` was causing problems in a switch statement
+    // due to a Closure bug.
     // See issue: https://github.com/firebase/firebase-js-sdk/issues/5384
-    reserved: ['_getProvider'],
+    reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex'],
     properties: {
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by

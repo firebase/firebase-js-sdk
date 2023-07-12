@@ -46,7 +46,6 @@ import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
-  MutationType,
   PatchMutation
 } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -93,7 +92,7 @@ export class LocalDocumentsView {
       .getOverlay(transaction, key)
       .next(value => {
         overlay = value;
-        return this.getBaseDocument(transaction, key, overlay);
+        return this.remoteDocumentCache.getEntry(transaction, key);
       })
       .next(document => {
         if (overlay !== null) {
@@ -255,6 +254,10 @@ export class LocalDocumentsView {
           overlay.mutation.getFieldMask(),
           Timestamp.now()
         );
+      } else {
+        // no overlay exists
+        // Using EMPTY to indicate there is no overlay for the document.
+        mutatedFields.set(doc.key, FieldMask.empty());
       }
     });
 
@@ -443,11 +446,11 @@ export class LocalDocumentsView {
               if (originalDocs.get(key)) {
                 return PersistencePromise.resolve();
               }
-              return this.getBaseDocument(transaction, key, overlay).next(
-                doc => {
+              return this.remoteDocumentCache
+                .getEntry(transaction, key)
+                .next(doc => {
                   modifiedDocs = modifiedDocs.insert(key, doc);
-                }
-              );
+                });
             }
           )
             .next(() =>
@@ -538,27 +541,30 @@ export class LocalDocumentsView {
     context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
-    let remoteDocuments: MutableDocumentMap;
-    return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset, context)
-      .next(queryResults => {
-        remoteDocuments = queryResults;
+    let overlays: OverlayMap;
+    return this.documentOverlayCache
+      .getOverlaysForCollection(transaction, query.path, offset.largestBatchId /* TODO(COUNT): add mask */ )
+      .next(result => {
+        overlays = result;
+        return this.remoteDocumentCache.getDocumentsMatchingQuery(
+          transaction,
+          query,
+          offset,
+          overlays,
+          context
+        );
+      })
+      .next(remoteDocuments => {
         if (!!context) {
           remoteDocuments.forEach((k, doc) => {
+            // TODO (streaming-count) why does this next line match on `context.query` and not the `query` argument?
+            // TODO (streaming-count) do we still need to call queryMatches(...) here, or does `remoteDocumentCache.getDocumentsMatchingQuery(...)` already do the same thing?
             if (queryMatches(context.query, doc)) {
               context.remoteMatches = context.remoteMatches.concat(k);
             }
           });
         }
 
-        return this.documentOverlayCache.getOverlaysForCollection(
-          transaction,
-          query.path,
-          offset.largestBatchId
-          // TODO(COUNT): add mask
-        );
-      })
-      .next(overlays => {
         // As documents might match the query because of their overlay we need to
         // include documents for all overlays in the initial document set.
         overlays.forEach((_, overlay) => {
@@ -590,16 +596,5 @@ export class LocalDocumentsView {
         });
         return results;
       });
-  }
-
-  /** Returns a base document that can be used to apply `overlay`. */
-  private getBaseDocument(
-    transaction: PersistenceTransaction,
-    key: DocumentKey,
-    overlay: Overlay | null
-  ): PersistencePromise<MutableDocument> {
-    return overlay === null || overlay.mutation.type === MutationType.Patch
-      ? this.remoteDocumentCache.getEntry(transaction, key)
-      : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }

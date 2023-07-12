@@ -145,8 +145,17 @@ function renderInvisibleWidget(
 ): void {
   const widgetId = grecaptcha.render(container, {
     sitekey: siteKey,
-    size: 'invisible'
+    size: 'invisible',
+    // Success callback - set state
+    callback: () => {
+      getStateReference(app).reCAPTCHAState!.succeeded = true;
+    },
+    // Failure callback - set state
+    'error-callback': () => {
+      getStateReference(app).reCAPTCHAState!.succeeded = false;
+    }
   });
+
   const state = getStateReference(app);
 
   state.reCAPTCHAState = {
@@ -191,4 +200,6 @@ export interface GreCAPTCHA {
 export interface GreCAPTCHARenderOption {
   sitekey: string;
   size: 'invisible';
+  callback: () => void;
+  'error-callback': () => void;
 }

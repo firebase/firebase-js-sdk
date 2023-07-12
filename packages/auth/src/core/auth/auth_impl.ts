@@ -17,6 +17,7 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   Auth,
   AuthErrorMap,
@@ -60,8 +61,12 @@ import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
-import { HttpHeader } from '../../api';
+import { HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
+import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { AuthMiddlewareQueue } from './middleware';
+import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
+import { _logWarn } from '../util/log';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -94,6 +99,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
+  _agentRecaptchaConfig: RecaptchaConfig | null = null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -108,6 +115,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   constructor(
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
+    private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -387,6 +395,33 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
+  async initializeRecaptchaConfig(): Promise<void> {
+    const response = await getRecaptchaConfig(this, {
+      clientType: RecaptchaClientType.WEB,
+      version: RecaptchaVersion.ENTERPRISE
+    });
+
+    const config = new RecaptchaConfig(response);
+    if (this.tenantId == null) {
+      this._agentRecaptchaConfig = config;
+    } else {
+      this._tenantRecaptchaConfigs[this.tenantId] = config;
+    }
+
+    if (config.emailPasswordEnabled) {
+      const verifier = new RecaptchaEnterpriseVerifier(this);
+      void verifier.verify();
+    }
+  }
+
+  _getRecaptchaConfig(): RecaptchaConfig | null {
+    if (this.tenantId == null) {
+      return this._agentRecaptchaConfig;
+    } else {
+      return this._tenantRecaptchaConfigs[this.tenantId];
+    }
+  }
+
   _getPersistence(): string {
     return this.assertedPersistence.persistence.type;
   }
@@ -645,7 +680,30 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (heartbeatsHeader) {
       headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
+
+    // If the App Check service exists, add the App Check token in the headers
+    const appCheckToken = await this._getAppCheckToken();
+    if (appCheckToken) {
+      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckToken;
+    }
+
     return headers;
+  }
+
+  async _getAppCheckToken(): Promise<string | undefined> {
+    const appCheckTokenResult = await this.appCheckServiceProvider
+      .getImmediate({ optional: true })
+      ?.getToken();
+    if (appCheckTokenResult?.error) {
+      // Context: appCheck.getToken() will never throw even if an error happened.
+      // In the error case, a dummy token will be returned along with an error field describing
+      // the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      _logWarn(
+        `Error while retrieving App Check token: ${appCheckTokenResult.error}`
+      );
+    }
+    return appCheckTokenResult?.token;
   }
 }
 
