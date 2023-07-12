@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
-  AppCheckInternalComponentName,
-  FirebaseAppCheckInternal
+  FirebaseAppCheckInternal,
+  AppCheckInternalComponentName
 } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
 import {
@@ -29,30 +30,27 @@ import {
   ComponentType,
   Provider
 } from '@firebase/component';
-import {
-  _repoManagerDatabaseFromApp,
-  _setSDKVersion
-} from '@firebase/database';
-import * as types from '@firebase/database-types';
 
-import { Database } from './Database';
+import { Database } from '../api.standalone';
+import { repoManagerDatabaseFromApp } from '../api/Database';
+import { setSDKVersion } from '../core/version';
 
 /**
  * Used by console to create a database based on the app,
  * passed database URL and a custom auth implementation.
- *
+ * @internal
  * @param app - A valid FirebaseApp-like object
  * @param url - A valid Firebase databaseURL
  * @param version - custom version e.g. firebase-admin version
+ * @param customAppCheckImpl - custom app check implementation
  * @param customAuthImpl - custom auth implementation
  */
-export function initStandalone<T>({
+export function _initStandalone({
   app,
   url,
   version,
   customAuthImpl,
   customAppCheckImpl,
-  namespace,
   nodeAdmin = false
 }: {
   app: FirebaseApp;
@@ -60,32 +58,24 @@ export function initStandalone<T>({
   version: string;
   customAuthImpl: FirebaseAuthInternal;
   customAppCheckImpl?: FirebaseAppCheckInternal;
-  namespace: T;
   nodeAdmin?: boolean;
-}): {
-  instance: types.Database;
-  namespace: T;
-} {
-  _setSDKVersion(version);
+}): Database {
+  setSDKVersion(version);
 
-  const container = new ComponentContainer('database-standalone');
   /**
    * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
    * any actual function.
    */
+  const componentContainer = new ComponentContainer('database-standalone');
   const authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
-    container
+    componentContainer
   );
-  authProvider.setComponent(
-    new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
-  );
-
-  let appCheckProvider: Provider<AppCheckInternalComponentName> = undefined;
+  let appCheckProvider: Provider<AppCheckInternalComponentName>;
   if (customAppCheckImpl) {
     appCheckProvider = new Provider<AppCheckInternalComponentName>(
       'app-check-internal',
-      container
+      componentContainer
     );
     appCheckProvider.setComponent(
       new Component(
@@ -95,18 +85,15 @@ export function initStandalone<T>({
       )
     );
   }
+  authProvider.setComponent(
+    new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
+  );
 
-  return {
-    instance: new Database(
-      _repoManagerDatabaseFromApp(
-        app,
-        authProvider,
-        appCheckProvider,
-        url,
-        nodeAdmin
-      ),
-      app
-    ) as types.Database,
-    namespace
-  };
+  return repoManagerDatabaseFromApp(
+    app,
+    authProvider,
+    appCheckProvider,
+    url,
+    nodeAdmin
+  );
 }
