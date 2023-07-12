@@ -26,6 +26,10 @@ import { PasswordPolicy, PasswordValidationStatus } from './public_types';
  */
 export interface PasswordPolicyInternal extends PasswordPolicy {
   /**
+   * Requirements enforced by the password policy.
+   */
+  readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
+  /**
    * Schema version of the password policy.
    */
   readonly schemaVersion: number;
@@ -34,6 +38,39 @@ export interface PasswordPolicyInternal extends PasswordPolicy {
    * @param password Password to validate.
    */
   validatePassword(password: string): PasswordValidationStatus;
+}
+
+/**
+ * Internal typing of the password policy custom strength options that is modifiable. This
+ * allows us to construct the strength options before storing them in the policy.
+ *
+ * @internal
+ */
+export interface PasswordPolicyCustomStrengthOptions {
+  /**
+   * Minimum password length.
+   */
+  minPasswordLength?: number;
+  /**
+   * Maximum password length.
+   */
+  maxPasswordLength?: number;
+  /**
+   * Whether the password should contain a lowercase letter.
+   */
+  containsLowercaseLetter?: boolean;
+  /**
+   * Whether the password should contain an uppercase letter.
+   */
+  containsUppercaseLetter?: boolean;
+  /**
+   * Whether the password should contain a numeric character.
+   */
+  containsNumericCharacter?: boolean;
+  /**
+   * Whether the password should contain a non-alphanumeric character.
+   */
+  containsNonAlphanumericCharacter?: boolean;
 }
 
 /**
