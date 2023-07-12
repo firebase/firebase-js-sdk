@@ -45,19 +45,19 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
       this.customStrengthOptions.maxPasswordLength =
         responseOptions.maxPasswordLength;
     }
-    if (responseOptions.containsLowercaseCharacter) {
+    if (responseOptions.containsLowercaseCharacter !== undefined) {
       this.customStrengthOptions.containsLowercaseLetter =
         responseOptions.containsLowercaseCharacter;
     }
-    if (responseOptions.containsUppercaseCharacter) {
+    if (responseOptions.containsUppercaseCharacter !== undefined) {
       this.customStrengthOptions.containsUppercaseLetter =
         responseOptions.containsUppercaseCharacter;
     }
-    if (responseOptions.containsNumericCharacter) {
+    if (responseOptions.containsNumericCharacter !== undefined) {
       this.customStrengthOptions.containsNumericCharacter =
         responseOptions.containsNumericCharacter;
     }
-    if (responseOptions.containsNonAlphanumericCharacter) {
+    if (responseOptions.containsNonAlphanumericCharacter !== undefined) {
       this.customStrengthOptions.containsNonAlphanumericCharacter =
         responseOptions.containsNonAlphanumericCharacter;
     }
