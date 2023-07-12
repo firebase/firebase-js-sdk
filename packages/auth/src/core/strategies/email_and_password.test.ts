@@ -757,14 +757,14 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     const PASSWORD_ERROR_MSG =
       'Firebase: The password does not meet the requirements. (auth/password-does-not-meet-requirements).';
 
-    const passwordPolicyResponse = {
+    const PASSWORD_POLICY_RESPONSE = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: TEST_SCHEMA_VERSION
     };
-    const passwordPolicyResponseRequireNumeric = {
+    const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         containsNumericCharacter: true
@@ -772,19 +772,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: TEST_SCHEMA_VERSION
     };
-    const cachedPasswordPolicy = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
-    const cachedPasswordPolicyRequireNumeric = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        containsNumericCharacter: true
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
+    const CACHED_PASSWORD_POLICY = PASSWORD_POLICY_RESPONSE;
+    const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC =
+      PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
     let policyEndpointMock: mockFetch.Route;
     let policyEndpointMockWithTenant: mockFetch.Route;
     let policyEndpointMockWithOtherTenant: mockFetch.Route;
@@ -793,21 +783,21 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       policyEndpointMock = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {},
-        passwordPolicyResponse
+        PASSWORD_POLICY_RESPONSE
       );
       policyEndpointMockWithTenant = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
           tenantId: TEST_TENANT_ID
         },
-        passwordPolicyResponse
+        PASSWORD_POLICY_RESPONSE
       );
       policyEndpointMockWithOtherTenant = mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
           tenantId: TEST_REQUIRE_NUMERIC_TENANT_ID
         },
-        passwordPolicyResponseRequireNumeric
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
       );
     });
 
@@ -828,7 +818,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       ).to.be.fulfilled;
 
       expect(policyEndpointMock.calls.length).to.eq(1);
-      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+      expect(auth._getPasswordPolicy()).to.eql(CACHED_PASSWORD_POLICY);
     });
 
     context('handles password validation errors', () => {
@@ -848,17 +838,17 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       it('updates the cached password policy when password does not meet backend requirements', async () => {
         await auth._updatePasswordPolicy();
         expect(policyEndpointMock.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+        expect(auth._getPasswordPolicy()).to.eql(CACHED_PASSWORD_POLICY);
 
         // Password policy changed after previous fetch.
-        policyEndpointMock.response = passwordPolicyResponseRequireNumeric;
+        policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
         await expect(
           createUserWithEmailAndPassword(auth, 'some-email', 'some-password')
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(2);
         expect(auth._getPasswordPolicy()).to.eql(
-          cachedPasswordPolicyRequireNumeric
+          CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
       });
 
@@ -877,7 +867,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         auth.tenantId = TEST_TENANT_ID;
         await auth._updatePasswordPolicy();
         expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
-        expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+        expect(auth._getPasswordPolicy()).to.eql(CACHED_PASSWORD_POLICY);
 
         auth.tenantId = TEST_REQUIRE_NUMERIC_TENANT_ID;
         await expect(
