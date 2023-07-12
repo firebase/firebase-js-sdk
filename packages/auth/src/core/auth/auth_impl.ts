@@ -430,14 +430,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async validatePassword(password: string): Promise<PasswordValidationStatus> {
-    if (!this._getPasswordPolicy()) {
+    if (!this._getPasswordPolicyInternal()) {
       await this._updatePasswordPolicy();
     }
 
-    return this._getPasswordPolicy()!.validatePassword(password);
+    return this._getPasswordPolicyInternal()!.validatePassword(password);
   }
 
-  _getPasswordPolicy(): PasswordPolicyInternal | null {
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null {
     if (this.tenantId === null) {
       return this._projectPasswordPolicy;
     } else {

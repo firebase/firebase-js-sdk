@@ -313,7 +313,7 @@ export async function createUserWithEmailAndPassword(
         if (
           error.code ===
             `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}` &&
-          authInternal._getPasswordPolicy()
+          authInternal._getPasswordPolicyInternal()
         ) {
           await authInternal._updatePasswordPolicy();
         }

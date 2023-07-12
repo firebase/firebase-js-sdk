@@ -854,7 +854,7 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicy()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
     });
 
     it('password policy should be set for tenant if tenant ID is not null', async () => {
@@ -862,7 +862,7 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicy()).to.eql(
+      expect(auth._getPasswordPolicyInternal()).to.eql(
         CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
     });
@@ -876,13 +876,13 @@ describe('core/auth/auth_impl', () => {
       await auth._updatePasswordPolicy();
 
       auth.tenantId = null;
-      expect(auth._getPasswordPolicy()).to.eql(CACHED_PASSWORD_POLICY);
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
       auth.tenantId = TEST_TENANT_ID;
-      expect(auth._getPasswordPolicy()).to.eql(
+      expect(auth._getPasswordPolicyInternal()).to.eql(
         CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
       auth.tenantId = 'other-tenant-id';
-      expect(auth._getPasswordPolicy()).to.be.undefined;
+      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
     });
 
     it('password policy should not be set when the schema version is not supported', async () => {
@@ -892,7 +892,7 @@ describe('core/auth/auth_impl', () => {
         AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
       );
 
-      expect(auth._getPasswordPolicy()).to.be.undefined;
+      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
     });
   });
 });
