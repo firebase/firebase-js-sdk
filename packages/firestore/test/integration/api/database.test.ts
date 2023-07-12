@@ -667,7 +667,7 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('multiple inequality with key fields works', () => {
+    it('inequality with key fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(
@@ -785,6 +785,26 @@ apiDescribe('Database', persistence => {
         ).not.to.throw();
         expect(() =>
           query(coll, orderBy('y'), where('x', '>', 32), orderBy('x'))
+        ).not.to.throw();
+      });
+    });
+    it('multiple inequality different from orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>', 32),
+            where('y', '!=', 'cat'),
+            orderBy('z')
+          )
+        ).not.to.throw();
+        expect(() =>
+          query(
+            coll,
+            orderBy('z'),
+            where('x', '>', 32),
+            where('y', '!=', 'cat')
+          )
         ).not.to.throw();
       });
     });

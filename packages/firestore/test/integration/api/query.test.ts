@@ -36,6 +36,7 @@ import {
   enableNetwork,
   endAt,
   endBefore,
+  FieldPath,
   GeoPoint,
   getDocs,
   getDocsFromCache,
@@ -1336,48 +1337,305 @@ apiDescribe('Queries', persistence => {
 
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? describe : describe.skip)('Multiple Inequality', () => {
-    it('key order is descending for descending multiple inequality', () => {
+    it('can use multiple inequality filters', async () => {
       const testDocs = {
-        a: {
-          foo: 42,
-          bar: 'ab'
-        },
-        b: {
-          foo: 42.0,
-          bar: 'aa'
-        },
-        c: {
-          foo: 42,
-          bar: 'ba'
-        },
-        d: {
-          foo: 21,
-          bar: 'b'
-        },
-        e: {
-          foo: 21,
-          bar: 'a'
-        },
-        f: {
-          foo: 66,
-          bar: 'ac'
-        },
-        g: {
-          foo: 66,
-          bar: 'c'
-        }
+        doc1: { key: 'a', sort: 0, v: 0 },
+        doc2: { key: 'b', sort: 3, v: 1 },
+        doc3: { key: 'c', sort: 1, v: 2 },
+        doc4: { key: 'd', sort: 2, v: 3 }
       };
-      return withTestCollection(persistence, testDocs, coll => {
-        return getDocs(
+      await withTestCollection(persistence, testDocs, async coll => {
+        // multiple inequality fields
+        const snapshot1 = await getDocs(
+          query(coll, where('key', '!=', 'a'), where('sort', '<=', 2))
+        );
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'c', sort: 1, v: 2 },
+          { key: 'd', sort: 2, v: 3 }
+        ]);
+
+        const snapshot2 = await getDocs(
           query(
             coll,
-            where('foo', '>', 21.0),
-            where('bar', 'not-in', ['a', 'ac', 'ba']),
-            orderBy('foo', 'desc')
+            where('key', '!=', 'a'),
+            where('sort', '<=', 2),
+            where('v', '>', 2)
           )
-        ).then(docs => {
-          expect(docs.docs.map(d => d.id)).to.deep.equal(['g', 'a', 'b']);
-        });
+        );
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'd', sort: 2, v: 3 }
+        ]);
+
+        // duplicate inequality fields
+        const snapshot3 = await getDocs(
+          query(
+            coll,
+            where('key', '!=', 'a'),
+            where('sort', '<=', 2),
+            where('sort', '>', 1)
+          )
+        );
+        expect(toDataArray(snapshot3)).to.deep.equal([
+          { key: 'd', sort: 2, v: 3 }
+        ]);
+
+        // With NOT-IN operator
+        const snapshot4 = await getDocs(
+          query(
+            coll,
+            where('key', '>=', 'a'),
+            where('sort', '<=', 2),
+            where('v', 'not-in', [2, 4, 5])
+          )
+        );
+        expect(toDataArray(snapshot4)).to.deep.equal([
+          { key: 'a', sort: 0, v: 0 },
+          { key: 'd', sort: 2, v: 3 }
+        ]);
+      });
+    });
+
+    it('can use multiple inequality with nested field', () => {
+      const testData = (n?: number): any => {
+        n = n || 1;
+        return {
+          name: 'room ' + n,
+          metadata: {
+            createdAt: n
+          },
+          field: 'field ' + n,
+          'field.dot': n,
+          'field\\slash': n
+        };
+      };
+
+      const testDocs = {
+        '1': testData(400),
+        '2': testData(200),
+        '3': testData(100),
+        '4': testData(300)
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        const snapshot1 = await getDocs(
+          query(
+            coll,
+            where('metadata.createdAt', '<=', 500),
+            where('metadata.createdAt', '>', 100),
+            where('name', '!=', 'room 200'),
+            orderBy('name')
+          )
+        );
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          testData(300),
+          testData(400)
+        ]);
+
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            where('field', '>=', 'field 100'),
+            where(new FieldPath('field.dot'), '!=', 300),
+            where('field\\slash', '<', 400),
+            orderBy('name','desc')
+          )
+        );
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          testData(200),
+          testData(100)
+        ]);
+      });
+    });
+    
+
+    it.only('can use with nested composite filters', async () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 0, v: 5 },
+        doc2: { key: 'aa', sort: 4, v: 4 },
+        doc3: { key: 'b', sort: 3, v: 3 },
+        doc4: { key: 'b', sort: 2, v: 2 },
+        doc5: { key: 'b', sort: 2, v: 1 },
+        doc6: { key: 'b', sort: 0, v: 0 }
+      };
+      await withTestCollection(persistence, testDocs, async coll => {
+        const snapshot1 = await getDocs(
+          query(coll,
+            or(
+            and(where('key', '==', 'b'), where('sort', '<=',2)),
+            and(where('key', '!=', 'b'), where('v',">",4))
+          ))
+        );
+        // Implicitly ordered by: 'sort' asc, 'v' asc, __name__ asc
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'a', sort: 0, v: 5 },
+          { key: 'b', sort: 0, v: 0 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 2, v: 2 },
+        ]);
+
+        // const snapshot2 = await getDocs(
+        //   query(
+        //     coll,
+        //     or(
+        //       and(where('key', '==', 'b'), where('sort', '<=',2)),
+        //       and(where('v', 'in', [2,3,4]), where('sort',">",3))
+        //     ),
+        //     orderBy('sort', 'desc'),
+        //     orderBy('key')
+        //   )
+        // );
+        // expect(toDataArray(snapshot2)).to.deep.equal([
+        //   { key: 'aa', sort: 4, v: 4 },
+        //   { key: 'b', sort: 2, v: 2 },
+        //   { key: 'b', sort: 2, v: 1 },
+        //   { key: 'b', sort: 0, v: 0 },
+        // ]);
+
+
+        // const snapshot3 = await getDocs(
+        //   query(
+        //     coll,
+        //     and(
+        //       or(
+        //         and(where('a', '==', 'b'), where('c', '>=', 'd')),
+        //         and(where('e', '==', 'f'), where('g', '!=', 'h'))
+        //       ),
+        //       or(
+        //         and(where('i', '==', 'j'), where('k', '>', 'l')),
+        //         and(where('m', '==', 'n'), where('o', '<', 'p'))
+        //       )
+        //   )
+        // ));
+        // expect(toDataArray(snapshot3)).to.deep.equal([
+        //   { key: 'aa', sort: 4, v: 4 },
+        //   { key: 'b', sort: 2, v: 2 },
+        //   { key: 'b', sort: 2, v: 1 },
+        //   { key: 'b', sort: 3, v: 3 }
+        // ]);
+      });
+    });
+
+    it('inequality fields will be implicitly ordered lexicographically', async () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 0, v: 5 },
+        doc2: { key: 'aa', sort: 4, v: 4 },
+        doc3: { key: 'b', sort: 3, v: 3 },
+        doc4: { key: 'b', sort: 2, v: 2 },
+        doc5: { key: 'b', sort: 2, v: 1 },
+        doc6: { key: 'b', sort: 0, v: 0 }
+      };
+      await withTestCollection(persistence, testDocs, async coll => {
+        // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
+        const snapshot1 = await getDocs(
+          query(
+            coll,
+            where('key', '!=', 'a'),
+            where('sort', '>', 1),
+            where('v', 'in', [1, 2, 3, 4])
+          )
+        );
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'aa', sort: 4, v: 4 },
+          { key: 'b', sort: 2, v: 2 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 3, v: 3 }
+        ]);
+
+        // Implicitly ordered by:  'key' asc, 'sort' asc,__name__ asc
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            where('sort', '>', 1),
+            where('key', '!=', 'a'),
+            where('v', 'in', [1, 2, 3, 4])
+          )
+        );
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'aa', sort: 4, v: 4 },
+          { key: 'b', sort: 2, v: 2 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 3, v: 3 }
+        ]);
+      });
+    });
+
+    it('can use multiple explicit order by field', async () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 5, v: 0 },
+        doc2: { key: 'aa', sort: 4, v: 0 },
+        doc3: { key: 'b', sort: 3, v: 1 },
+        doc4: { key: 'b', sort: 2, v: 1 },
+        doc5: { key: 'bb', sort: 1, v: 1 },
+        doc6: { key: 'c', sort: 0, v: 2 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        // Ordered by: 'v' asc, 'key' asc, 'sort' asc, __name__ asc
+        const snapshot1 = await getDocs(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v')
+          )
+        );
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'aa', sort: 4, v: 0 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 3, v: 1 },
+          { key: 'bb', sort: 1, v: 1 }
+        ]);
+
+        // Ordered by: 'v asc, 'sort' asc, 'key' asc,  __name__ asc
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v'),
+            orderBy('sort')
+          )
+        );
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'aa', sort: 4, v: 0 },
+          { key: 'bb', sort: 1, v: 1 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 3, v: 1 }
+        ]);
+
+        // Implicit order by matches the direction of last explicit order by.
+        // Ordered by: 'v' desc, 'key' desc, 'sort' desc, __name__ desc
+        const snapshot3 = await getDocs(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v', 'desc')
+          )
+        );
+        expect(toDataArray(snapshot3)).to.deep.equal([
+          { key: 'bb', sort: 1, v: 1 },
+          { key: 'b', sort: 3, v: 1 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'aa', sort: 4, v: 0 }
+        ]);
+
+        // Ordered by: 'v desc, 'sort' asc, 'key' asc,  __name__ asc
+        const snapshot4 = await getDocs(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v', 'desc'),
+            orderBy('sort')
+          )
+        );
+        expect(toDataArray(snapshot4)).to.deep.equal([
+          { key: 'bb', sort: 1, v: 1 },
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 3, v: 1 },
+          { key: 'aa', sort: 4, v: 0 }
+        ]);
       });
     });
   });
