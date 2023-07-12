@@ -51,6 +51,7 @@ describe('core/auth/password_policy_impl', () => {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
     },
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const passwordPolicyRequireAll: PasswordPolicy = {
@@ -68,7 +69,8 @@ describe('core/auth/password_policy_impl', () => {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
-    }
+    },
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
   };
 
   context('#PasswordPolicyImpl', () => {

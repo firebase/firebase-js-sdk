@@ -30,7 +30,7 @@ import { PasswordValidationStatus } from '../../model/public_types';
  */
 export class PasswordPolicyImpl implements PasswordPolicyInternal {
   readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
-  readonly allowedNonAlphanumericCharacters?: string[];
+  readonly allowedNonAlphanumericCharacters: string[];
   readonly schemaVersion: number;
 
   constructor(response: GetPasswordPolicyResponse) {
@@ -62,10 +62,8 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
         responseOptions.containsNonAlphanumericCharacter;
     }
 
-    if (response.allowedNonAlphanumericCharacters) {
-      this.allowedNonAlphanumericCharacters =
-        response.allowedNonAlphanumericCharacters;
-    }
+    this.allowedNonAlphanumericCharacters =
+      response.allowedNonAlphanumericCharacters;
     this.schemaVersion = response.schemaVersion;
   }
 
@@ -75,7 +73,7 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
       passwordPolicy: this
     };
 
-    // TODO: Implement _checkLengthOptions and _checkCharacterOptions as helper methods.
+    // TODO: Implement private helper methods for checking length and character options.
     // Call these here to populate the status object.
     if (password) {
       status.isValid = true;
