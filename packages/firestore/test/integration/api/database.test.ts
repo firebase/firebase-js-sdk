@@ -670,7 +670,11 @@ apiDescribe('Database', persistence => {
     it('multiple inequality with key fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(coll, where(documentId(), ">=", ref('collection/id')), where('x', '>=', 32))
+          query(
+            coll,
+            where(documentId(), '>=', ref('collection/id')),
+            where('x', '>=', 32)
+          )
         ).not.to.throw();
       });
     });

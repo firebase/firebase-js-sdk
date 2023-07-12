@@ -1335,53 +1335,52 @@ apiDescribe('Queries', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  ( USE_EMULATOR ? describe : describe.skip)(
-    'OR Queries',
-    () => {
-      it('key order is descending for descending multiple inequality', () => {
-        const testDocs = {
-          a: {
-            foo: 42,
-            bar: 'ab'
-          },
-          b: {
-            foo: 42.0,
-            bar: 'aa'
-          },
-          c: {
-            foo: 42,
-            bar: 'ba'
-          },
-          d: {
-            foo: 21,
-            bar: 'b'
-          },
-          e: {
-            foo: 21,
-            bar: 'a'
-          },
-          f: {
-            foo: 66,
-            bar: 'ac'
-          },
-          g: {
-            foo: 66,
-            bar: 'c'
-          }
-        };
-        return withTestCollection(persistence, testDocs, coll => {
-          return getDocs(
-            query(coll, where('foo', '>', 21.0),where('bar', 'not-in', ['a','ac','ba']), orderBy('foo', 'desc') )
-          ).then(docs => {
-            expect(docs.docs.map(d => d.id)).to.deep.equal([
-              'g', 'b', 'a'
-            ]);
-          });
+  (USE_EMULATOR ? describe : describe.skip)('Multiple Inequality', () => {
+    it('key order is descending for descending multiple inequality', () => {
+      const testDocs = {
+        a: {
+          foo: 42,
+          bar: 'ab'
+        },
+        b: {
+          foo: 42.0,
+          bar: 'aa'
+        },
+        c: {
+          foo: 42,
+          bar: 'ba'
+        },
+        d: {
+          foo: 21,
+          bar: 'b'
+        },
+        e: {
+          foo: 21,
+          bar: 'a'
+        },
+        f: {
+          foo: 66,
+          bar: 'ac'
+        },
+        g: {
+          foo: 66,
+          bar: 'c'
+        }
+      };
+      return withTestCollection(persistence, testDocs, coll => {
+        return getDocs(
+          query(
+            coll,
+            where('foo', '>', 21.0),
+            where('bar', 'not-in', ['a', 'ac', 'ba']),
+            orderBy('foo', 'desc')
+          )
+        ).then(docs => {
+          expect(docs.docs.map(d => d.id)).to.deep.equal(['g', 'a', 'b']);
         });
       });
-
-    }
-  );
+    });
+  });
 
   // OR Query tests only run when the SDK's local cache is configured to use
   // LRU garbage collection (rather than eager garbage collection) because
@@ -1748,7 +1747,7 @@ apiDescribe('Queries', persistence => {
           await checkOnlineAndOfflineResultsMatch(
             query(coll, or(where('a', '>', 2), where('b', '<', 1))),
             'doc1',
-            'doc3',
+            'doc3'
           );
 
           // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2

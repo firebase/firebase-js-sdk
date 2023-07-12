@@ -53,7 +53,7 @@ export class TargetIndexMatcher {
   // The collection ID (or collection group) of the query target.
   private readonly collectionId: string;
   // The inequality filters of the target (if it exists).
-  private readonly inequalityFilters = new Map<String,FieldFilter>();
+  private readonly inequalityFilters = new Map<String, FieldFilter>();
   // The list of equality filters of the target.
   private readonly equalityFilters: FieldFilter[];
   // The list of orderBys of the target.
@@ -66,11 +66,13 @@ export class TargetIndexMatcher {
         : target.path.lastSegment();
     this.orderBys = target.orderBy;
     this.equalityFilters = [];
-    // Note:Mila
     for (const filter of target.filters) {
       const fieldFilter = filter as FieldFilter;
       if (fieldFilter.isInequality()) {
-        this.inequalityFilters.set(fieldFilter.field.canonicalString(), fieldFilter);
+        this.inequalityFilters.set(
+          fieldFilter.field.canonicalString(),
+          fieldFilter
+        );
       } else {
         this.equalityFilters.push(fieldFilter);
       }
@@ -142,8 +144,8 @@ export class TargetIndexMatcher {
     }
 
     if (this.inequalityFilters.size > 0) {
-      if (this.inequalityFilters.size > 1) { 
-        // Only single inequality is supported now.
+      if (this.inequalityFilters.size > 1) {
+        // Only single inequality is supported for now.
         return false;
       }
 
@@ -151,9 +153,7 @@ export class TargetIndexMatcher {
       // If there is an inequality filter and the field was not in one of the
       // equality filters above, the next segment must match both the filter
       // and the first orderBy clause.
-      if (
-        !equalitySegments.has(inequalityFilter.field.canonicalString())
-      ) {
+      if (!equalitySegments.has(inequalityFilter.field.canonicalString())) {
         const segment = segments[segmentIndex];
 
         if (

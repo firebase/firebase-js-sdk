@@ -820,7 +820,7 @@ describe('Query', () => {
       orFilter(filter('a', '>', 2), filter('b', '==', 1))
     );
     assertQueryMatches(query2, [doc2, doc3, doc5], [doc1, doc4]);
-    
+
     // (a==1 && b==0) || (a==3 && b==2)
     const query3 = query(
       'collection',
@@ -894,7 +894,7 @@ describe('Query', () => {
         orFilter(filter('a', '>=', 3), filter('b', '<', 3))
       )
     );
-    assertQueryMatches(query5, [doc1, doc2, doc3 ], [ doc4, doc5]);
+    assertQueryMatches(query5, [doc1, doc2, doc3], [doc4, doc5]);
   });
 
   function assertQueryMatches(

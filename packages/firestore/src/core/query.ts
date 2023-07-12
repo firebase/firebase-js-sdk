@@ -165,24 +165,6 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
-export function getFirstOrderByField(query: Query): FieldPath | null {
-  return query.explicitOrderBy.length > 0
-    ? query.explicitOrderBy[0].field
-    : null;
-}
-
-//Mila
-export function getInequalityFilterField(query: Query): FieldPath | null {
-  for (const filter of query.filters) {
-    const result = filter.getFirstInequalityField();
-    if (result !== null) {
-      return result;
-    }
-  }
-
-  return null;
-}
-
 export function getInequalityFilterFields(query: Query): FieldPath[] | null {
   const result: FieldPath[] = [];
   for (const filter of query.filters) {
@@ -191,8 +173,44 @@ export function getInequalityFilterFields(query: Query): FieldPath[] | null {
       result.push(field);
     }
   }
-  
+
   return result.length === 0 ? null : result;
+}
+
+function FiledPathLexicographicComparator(
+  fieldPathA: FieldPath,
+  fieldPathB: FieldPath
+) {
+  // Document key field should be ordered to the last.
+  if (fieldPathA.isKeyField() && fieldPathB.isKeyField()) {
+    return 0;
+  } else if (fieldPathA.isKeyField() || fieldPathB.isKeyField()) {
+    return fieldPathA.isKeyField() ? 1 : -1;
+  }
+
+  const segmentsA = fieldPathA.toArray();
+  const segmentsB = fieldPathB.toArray();
+  const minLength = Math.min(segmentsA.length, segmentsB.length);
+
+  for (let i = 0; i < minLength; i++) {
+    const segmentA = segmentsA[i];
+    const segmentB = segmentsB[i];
+
+    if (segmentA < segmentB) {
+      return -1;
+    } else if (segmentA > segmentB) {
+      return 1;
+    }
+  }
+
+  // If the common segments are the same, compare the lengths
+  if (segmentsA.length < segmentsB.length) {
+    return -1;
+  } else if (segmentsA.length > segmentsB.length) {
+    return 1;
+  }
+
+  return 0;
 }
 
 /**
@@ -233,48 +251,44 @@ export function queryOrderBy(query: Query): OrderBy[] {
 
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
-    // //Note: Mila
-    const inequalityField = getInequalityFilterField(queryImpl);
-    const firstOrderByField = getFirstOrderByField(queryImpl);
-    if (inequalityField !== null && firstOrderByField === null) {
-        // In order to implicitly add key ordering, we must also add the
-        // inequality filter field for it to be a valid query.
-        // Note that the default inequality field and key ordering is ascending.
-        if (!inequalityField.isKeyField()) {
-          queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
+    const fieldsIncluded = new Set<String>();
+
+    // Add the explicit order by.
+    for (const orderBy of queryImpl.explicitOrderBy) {
+      queryImpl.memoizedOrderBy.push(orderBy);
+      fieldsIncluded.add(orderBy.field.canonicalString());
+    }
+
+    // The order of the implicit key ordering always matches the last
+    // explicit order by.
+    const lastDirection =
+      queryImpl.explicitOrderBy.length > 0
+        ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1].dir
+        : Direction.ASCENDING;
+
+    const inequalityFields = getInequalityFilterFields(queryImpl);
+
+    // Any inequality field not explicitly ordered should be implicitly ordered in a lexicographical order.
+    if (inequalityFields !== null) {
+      inequalityFields.sort(FiledPathLexicographicComparator);
+      for (const inequalityField of inequalityFields) {
+        if (!fieldsIncluded.has(inequalityField.canonicalString())) {
+          queryImpl.memoizedOrderBy.push(
+            new OrderBy(inequalityField, lastDirection)
+          );
+          fieldsIncluded.add(inequalityField.canonicalString());
         }
-        queryImpl.memoizedOrderBy.push(
-          new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-        );
-    } else {
-      //Note: Mila
-      // debugAssert(
-      //   inequalityField === null ||
-      //     (firstOrderByField !== null &&
-      //       inequalityField.isEqual(firstOrderByField)),
-      //   'First orderBy should match inequality field.'
-      // );
-      let foundKeyOrdering = false;
-      for (const orderBy of queryImpl.explicitOrderBy) {
-        queryImpl.memoizedOrderBy.push(orderBy);
-        if (orderBy.field.isKeyField()) {
-          foundKeyOrdering = true;
-        }
-      }
-      if (!foundKeyOrdering) {
-        // The order of the implicit key ordering always matches the last
-        // explicit order by
-        const lastDirection =
-          queryImpl.explicitOrderBy.length > 0
-            ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1]
-                .dir
-            : Direction.ASCENDING;
-        queryImpl.memoizedOrderBy.push(
-          new OrderBy(FieldPath.keyField(), lastDirection)
-        );
       }
     }
+
+    // Add the document key to the last if it is not included.
+    if (!fieldsIncluded.has(FieldPath.keyField().canonicalString())) {
+      queryImpl.memoizedOrderBy.push(
+        new OrderBy(FieldPath.keyField(), lastDirection)
+      );
+    }
   }
+
   return queryImpl.memoizedOrderBy;
 }
 
@@ -329,16 +343,6 @@ export function queryToTarget(query: Query): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
-  // Note:Mila
-  // const newInequalityField = filter.getFirstInequalityField();
-  // const queryInequalityField = getInequalityFilterField(query);
-  // debugAssert(
-  //   queryInequalityField == null ||
-  //     newInequalityField == null ||
-  //     newInequalityField.isEqual(queryInequalityField),
-  //   'Query must only have one inequality field.'
-  // );
-
   debugAssert(
     !isDocumentQuery(query),
     'No filtering allowed for document query'

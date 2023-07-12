@@ -1187,134 +1187,159 @@ apiDescribe('Validation:', persistence => {
       db => {
         const coll = collection(db, 'test');
         // single inequality
-        expect(() => query(coll, where('x', '>', 32), orderBy('y'))).not.to.throw();
-        expect(() => query(coll, orderBy('y'), where('x', '>', 32))).not.to.throw();
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('y'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('y'), where('x', '>', 32))
+        ).not.to.throw();
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('y'), orderBy('x'))
         ).not.to.throw();
         expect(() =>
           query(coll, orderBy('y'), orderBy('x'), where('x', '>', 32))
         ).not.to.throw();
-        expect(() => query(coll, where('x', '!=', 32), orderBy('y'))).not.to.throw();
+        expect(() =>
+          query(coll, where('x', '!=', 32), orderBy('y'))
+        ).not.to.throw();
 
         // multiple inequality
-        expect(() => query(coll, where('x', '>', 32), where('y', '!=', 42), orderBy('z'))).not.to.throw();
-        expect(() => query(coll, orderBy('y'), where('x', '>', 32), where('y', '<=', 42))).not.to.throw();
         expect(() =>
-          query(coll, where('x', '>', 32), where('y', '!=', 42), orderBy('y'), orderBy('x'))
+          query(coll, where('x', '>', 32), where('y', '!=', 42), orderBy('z'))
         ).not.to.throw();
         expect(() =>
-          query(coll, orderBy('y'), orderBy('z'), where('x', '>', 32), where('y', '!=', 42))
+          query(coll, orderBy('y'), where('x', '>', 32), where('y', '<=', 42))
+        ).not.to.throw();
+        expect(() =>
+          query(
+            coll,
+            where('x', '>', 32),
+            where('y', '!=', 42),
+            orderBy('y'),
+            orderBy('x')
+          )
+        ).not.to.throw();
+        expect(() =>
+          query(
+            coll,
+            orderBy('y'),
+            orderBy('z'),
+            where('x', '>', 32),
+            where('y', '!=', 42)
+          )
         ).not.to.throw();
       }
     );
 
-    validationIt(persistence, 'multiple inequalities inside a nested composite filter', db => {
-      // Multiple inequality on different fields inside a nested composite filter.
-      const coll = collection(db, 'test');
-      expect(() =>
-        query(
-          coll,
-          or(
-            and(where('a', '==', 'b'), where('c', '>', 'd')),
-            and(where('e', '<=', 'f'), where('g', '==', 'h'))
-          )
-        )
-      ).not.to.throw();
-
-      // Multiple inequality on different fields between a field filter and a composite filter.
-      expect(() =>
-        query(
-          coll,
-          and(
+    validationIt(
+      persistence,
+      'multiple inequalities inside a nested composite filter',
+      db => {
+        // Multiple inequality on different fields inside a nested composite filter.
+        const coll = collection(db, 'test');
+        expect(() =>
+          query(
+            coll,
             or(
-              and(where('a', '==', 'b'), where('c', '>=', 'd')),
-              and(where('e', '==', 'f'), where('g', '!=', 'h'))
-            ),
-            where('r', '<', 's')
-          )
-        )
-      ).not.to.throw();
-
-      // OrderBy and multiple inequality on different fields.
-      expect(() =>
-        query(
-          coll,
-          or(
-            and(where('a', '==', 'b'), where('c', '>', 'd')),
-            and(where('e', '==', 'f'), where('g', '!=', 'h'))
-          ),
-          orderBy('r'),
-          orderBy('a')
-        )
-      ).not.to.throw();
-
-      // Multiple inequality inside two composite filters.
-      expect(() =>
-        query(
-          coll,
-          and(
-            or(
-              and(where('a', '==', 'b'), where('c', '>=', 'd')),
-              and(where('e', '==', 'f'), where('g', '!=', 'h'))
-            ),
-            or(
-              and(where('i', '==', 'j'), where('k', '>', 'l')),
-              and(where('m', '==', 'n'), where('o', '<', 'p'))
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '<=', 'f'), where('g', '==', 'h'))
             )
           )
-        )
-      ).not.to.throw();
+        ).not.to.throw();
 
-      // Multiple top level composite filters
-      expect(() =>
-        // @ts-ignore
-        query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
-      ).to.throw(
-        'InvalidQuery. When using composite filters, you cannot use ' +
-          'more than one filter at the top level. Consider nesting the multiple ' +
-          'filters within an `and(...)` statement. For example: ' +
-          'change `query(query, where(...), or(...))` to ' +
-          '`query(query, and(where(...), or(...)))`.'
-      );
+        // Multiple inequality on different fields between a field filter and a composite filter.
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              where('r', '<', 's')
+            )
+          )
+        ).not.to.throw();
 
-      // Once top level composite filter and one top level field filter
-      expect(() =>
-        // @ts-ignore
-        query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
-      ).to.throw(
-        'InvalidQuery. When using composite filters, you cannot use ' +
-          'more than one filter at the top level. Consider nesting the multiple ' +
-          'filters within an `and(...)` statement. For example: ' +
-          'change `query(query, where(...), or(...))` to ' +
-          '`query(query, and(where(...), or(...)))`.'
-      );
+        // OrderBy and multiple inequality on different fields.
+        expect(() =>
+          query(
+            coll,
+            or(
+              and(where('a', '==', 'b'), where('c', '>', 'd')),
+              and(where('e', '==', 'f'), where('g', '!=', 'h'))
+            ),
+            orderBy('r'),
+            orderBy('a')
+          )
+        ).not.to.throw();
 
-            // Multiple top level composite filters
-            expect(() =>
-            // @ts-ignore
-            query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
-          ).to.throw(
-            'InvalidQuery. When using composite filters, you cannot use ' +
-              'more than one filter at the top level. Consider nesting the multiple ' +
-              'filters within an `and(...)` statement. For example: ' +
-              'change `query(query, where(...), or(...))` to ' +
-              '`query(query, and(where(...), or(...)))`.'
-          );
-    
-          // Once top level composite filter and one top level field filter
-          expect(() =>
-            // @ts-ignore
-            query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
-          ).to.throw(
-            'InvalidQuery. When using composite filters, you cannot use ' +
-              'more than one filter at the top level. Consider nesting the multiple ' +
-              'filters within an `and(...)` statement. For example: ' +
-              'change `query(query, where(...), or(...))` to ' +
-              '`query(query, and(where(...), or(...)))`.'
-          );
-    });
-    
+        // Multiple inequality inside two composite filters.
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '==', 'n'), where('o', '<', 'p'))
+              )
+            )
+          )
+        ).not.to.throw();
+
+        // Multiple top level composite filters
+        expect(() =>
+          // @ts-ignore
+          query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
+        ).to.throw(
+          'InvalidQuery. When using composite filters, you cannot use ' +
+            'more than one filter at the top level. Consider nesting the multiple ' +
+            'filters within an `and(...)` statement. For example: ' +
+            'change `query(query, where(...), or(...))` to ' +
+            '`query(query, and(where(...), or(...)))`.'
+        );
+
+        // Once top level composite filter and one top level field filter
+        expect(() =>
+          // @ts-ignore
+          query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
+        ).to.throw(
+          'InvalidQuery. When using composite filters, you cannot use ' +
+            'more than one filter at the top level. Consider nesting the multiple ' +
+            'filters within an `and(...)` statement. For example: ' +
+            'change `query(query, where(...), or(...))` to ' +
+            '`query(query, and(where(...), or(...)))`.'
+        );
+
+        // Multiple top level composite filters
+        expect(() =>
+          // @ts-ignore
+          query(coll, and(where('a', '==', 'b')), or(where('b', '==', 'a')))
+        ).to.throw(
+          'InvalidQuery. When using composite filters, you cannot use ' +
+            'more than one filter at the top level. Consider nesting the multiple ' +
+            'filters within an `and(...)` statement. For example: ' +
+            'change `query(query, where(...), or(...))` to ' +
+            '`query(query, and(where(...), or(...)))`.'
+        );
+
+        // Once top level composite filter and one top level field filter
+        expect(() =>
+          // @ts-ignore
+          query(coll, or(where('a', '==', 'b')), where('b', '==', 'a'))
+        ).to.throw(
+          'InvalidQuery. When using composite filters, you cannot use ' +
+            'more than one filter at the top level. Consider nesting the multiple ' +
+            'filters within an `and(...)` statement. For example: ' +
+            'change `query(query, where(...), or(...))` to ' +
+            '`query(query, and(where(...), or(...)))`.'
+        );
+      }
+    );
   });
 });
 
