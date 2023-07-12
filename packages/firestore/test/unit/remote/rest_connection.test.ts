@@ -97,7 +97,8 @@ describe('RestConnection', () => {
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
       'x-firebase-appcheck': 'some-app-check-token',
-      'x-goog-request-params': 'project_id=testproject'
+      'x-goog-request-params': 'project_id=testproject',
+      'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
     });
   });
 
@@ -113,7 +114,8 @@ describe('RestConnection', () => {
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
-      'x-goog-request-params': 'project_id=testproject'
+      'x-goog-request-params': 'project_id=testproject',
+      'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
       // Note: AppCheck token should not exist here.
     });
   });

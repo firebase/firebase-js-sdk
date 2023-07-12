@@ -58,7 +58,9 @@ function getGoogApiClientValue(): string {
 export abstract class RestConnection implements Connection {
   protected readonly databaseId: DatabaseId;
   protected readonly baseUrl: string;
-  private readonly databaseRoot: string;
+  private readonly databasePath: string;
+  private readonly requestParams: string;
+
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
     // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
@@ -70,12 +72,10 @@ export abstract class RestConnection implements Connection {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';
     this.baseUrl = proto + '://' + databaseInfo.host;
-    this.databaseRoot =
-      'projects/' +
-      this.databaseId.projectId +
-      '/databases/' +
-      this.databaseId.database +
-      '/documents';
+    this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
+    this.requestParams = this.databaseId.database === DEFAULT_DATABASE_NAME
+      ? `project_id=${this.databaseId.projectId}`
+      : `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`;
   }
 
   invokeRPC<Req, Resp>(
@@ -90,10 +90,8 @@ export abstract class RestConnection implements Connection {
     logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers: StringMap = {
-      'x-goog-request-params':
-        this.databaseId.database === DEFAULT_DATABASE_NAME
-          ? `project_id=${this.databaseId.projectId}`
-          : `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`
+      'google-cloud-resource-prefix': this.databasePath,
+      'x-goog-request-params': this.requestParams
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
