@@ -32,7 +32,7 @@ List of characters that are considered non-alphanumeric during validation.
 <b>Signature:</b>
 
 ```typescript
-readonly allowedNonAlphanumericCharacters: string[];
+readonly allowedNonAlphanumericCharacters?: string[];
 ```
 
 ## PasswordPolicy.customStrengthOptions
