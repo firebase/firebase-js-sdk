@@ -790,23 +790,27 @@ describe('core/auth/auth_impl', () => {
   context('passwordPolicy', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
     const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_SCHEMA_VERSION = 1;
+    const TEST_TENANT_ID = 'tenant-id';
+    const TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION =
+      'tenant-id-unsupported-policy-version';
 
-    const passwordPolicyResponse = {
+    const PASSWORD_POLICY_RESPONSE = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
-    const passwordPolicyResponseRequireNumeric = {
+    const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC = {
       customStrengthOptions: {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         containsNumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
-      schemaVersion: 1
+      schemaVersion: TEST_SCHEMA_VERSION
     };
-    const passwordPolicyResponseUnsupportedVersion = {
+    const PASSWORD_POLICY_RESPONSE_UNSUPPORTED_VERSION = {
       customStrengthOptions: {
         maxPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         unsupportedPasswordPolicyProperty: 10
@@ -814,40 +818,30 @@ describe('core/auth/auth_impl', () => {
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: 0
     };
-    const cachedPasswordPolicy = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
-    const cachedPasswordPolicyRequireNumeric = {
-      customStrengthOptions: {
-        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
-        containsNumericCharacter: true
-      },
-      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
-    };
+    const CACHED_PASSWORD_POLICY = PASSWORD_POLICY_RESPONSE;
+    const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC =
+      PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
 
     beforeEach(async () => {
       mockFetch.setUp();
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {},
-        passwordPolicyResponse
+        PASSWORD_POLICY_RESPONSE
       );
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'tenant-id'
+          tenantId: TEST_TENANT_ID
         },
-        passwordPolicyResponseRequireNumeric
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
       );
       mockEndpointWithParams(
         Endpoint.GET_PASSWORD_POLICY,
         {
-          tenantId: 'tenant-id-with-unsupported-policy-version'
+          tenantId: TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION
         },
-        passwordPolicyResponseUnsupportedVersion
+        PASSWORD_POLICY_RESPONSE_UNSUPPORTED_VERSION
       );
     });
 
@@ -860,16 +854,16 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
     });
 
     it('password policy should be set for tenant if tenant ID is not null', async () => {
       auth = await testAuth();
-      auth.tenantId = 'tenant-id';
+      auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
-      expect(auth._getPasswordPolicy()).to.eql(
-        cachedPasswordPolicyRequireNumeric
+      expect(auth._getPasswordPolicyInternal()).to.eql(
+        CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
     });
 
@@ -878,27 +872,27 @@ describe('core/auth/auth_impl', () => {
       auth.tenantId = null;
       await auth._updatePasswordPolicy();
 
-      auth.tenantId = 'tenant-id';
+      auth.tenantId = TEST_TENANT_ID;
       await auth._updatePasswordPolicy();
 
       auth.tenantId = null;
-      expect(auth._getPasswordPolicy()).to.eql(cachedPasswordPolicy);
-      auth.tenantId = 'tenant-id';
-      expect(auth._getPasswordPolicy()).to.eql(
-        cachedPasswordPolicyRequireNumeric
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      auth.tenantId = TEST_TENANT_ID;
+      expect(auth._getPasswordPolicyInternal()).to.eql(
+        CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
       );
       auth.tenantId = 'other-tenant-id';
-      expect(auth._getPasswordPolicy()).to.be.undefined;
+      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
     });
 
     it('password policy should not be set when the schema version is not supported', async () => {
       auth = await testAuth();
-      auth.tenantId = 'tenant-id-with-unsupported-policy-version';
+      auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
       await expect(auth._updatePasswordPolicy()).to.be.rejectedWith(
         AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
       );
 
-      expect(auth._getPasswordPolicy()).to.be.undefined;
+      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
     });
   });
 });

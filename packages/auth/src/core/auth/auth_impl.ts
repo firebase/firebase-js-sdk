@@ -32,7 +32,6 @@ import {
   ErrorFn,
   NextFn,
   Unsubscribe,
-  PasswordPolicy,
   PasswordValidationStatus
 } from '../../model/public_types';
 import {
@@ -70,6 +69,8 @@ import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
 import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
+import { PasswordPolicyInternal } from '../../model/password_policy';
+import { PasswordPolicyImpl } from './password_policy_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -105,8 +106,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _DEFAULT_AUTH_ERROR_FACTORY;
   _agentRecaptchaConfig: RecaptchaConfig | null = null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
-  _projectPasswordPolicy: PasswordPolicy | null = null;
-  _tenantPasswordPolicies: Record<string, PasswordPolicy> = {};
+  _projectPasswordPolicy: PasswordPolicyInternal | null = null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -429,11 +430,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async validatePassword(password: string): Promise<PasswordValidationStatus> {
-    // TODO(chazzy): Implement.
-    return Promise.reject(password);
+    if (!this._getPasswordPolicyInternal()) {
+      await this._updatePasswordPolicy();
+    }
+
+    return this._getPasswordPolicyInternal()!.validatePassword(password);
   }
 
-  _getPasswordPolicy(): PasswordPolicy | null {
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null {
     if (this.tenantId === null) {
       return this._projectPasswordPolicy;
     } else {
@@ -457,11 +461,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       );
     }
 
-    const passwordPolicy: PasswordPolicy = {
-      customStrengthOptions: response.customStrengthOptions,
-      allowedNonAlphanumericCharacters:
-        response.allowedNonAlphanumericCharacters
-    };
+    const passwordPolicy: PasswordPolicyInternal = new PasswordPolicyImpl(
+      response
+    );
 
     if (this.tenantId === null) {
       this._projectPasswordPolicy = passwordPolicy;
