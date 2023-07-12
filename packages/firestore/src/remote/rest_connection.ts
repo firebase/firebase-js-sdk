@@ -73,9 +73,10 @@ export abstract class RestConnection implements Connection {
     const proto = databaseInfo.ssl ? 'https' : 'http';
     this.baseUrl = proto + '://' + databaseInfo.host;
     this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
-    this.requestParams = this.databaseId.database === DEFAULT_DATABASE_NAME
-      ? `project_id=${this.databaseId.projectId}`
-      : `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`;
+    this.requestParams =
+      this.databaseId.database === DEFAULT_DATABASE_NAME
+        ? `project_id=${this.databaseId.projectId}`
+        : `project_id=${this.databaseId.projectId}&database_id=${this.databaseId.database}`;
   }
 
   invokeRPC<Req, Resp>(
