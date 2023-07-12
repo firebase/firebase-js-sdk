@@ -34,7 +34,7 @@ describe('core/auth/password_policy_impl', () => {
   const TEST_CONTAINS_NON_ALPHANUMERIC = true;
   const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
   const TEST_SCHEMA_VERSION = 1;
-  const passwordPolicyResponseRequireAll: GetPasswordPolicyResponse = {
+  const PASSWORD_POLICY_RESPONSE_REQUIRE_ALL: GetPasswordPolicyResponse = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
@@ -46,7 +46,7 @@ describe('core/auth/password_policy_impl', () => {
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
     schemaVersion: TEST_SCHEMA_VERSION
   };
-  const passwordPolicyResponseRequireLength: GetPasswordPolicyResponse = {
+  const PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH: GetPasswordPolicyResponse = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
@@ -54,7 +54,7 @@ describe('core/auth/password_policy_impl', () => {
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
     schemaVersion: TEST_SCHEMA_VERSION
   };
-  const passwordPolicyRequireAll: PasswordPolicy = {
+  const PASSWORD_POLICY_REQUIRE_ALL: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
@@ -65,7 +65,7 @@ describe('core/auth/password_policy_impl', () => {
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
   };
-  const passwordPolicyRequireLength: PasswordPolicy = {
+  const PASSWORD_POLICY_REQUIRE_LENGTH: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
@@ -76,28 +76,37 @@ describe('core/auth/password_policy_impl', () => {
   context('#PasswordPolicyImpl', () => {
     it('can construct the password policy from the backend response', () => {
       const policy: PasswordPolicy = new PasswordPolicyImpl(
-        passwordPolicyResponseRequireAll
+        PASSWORD_POLICY_RESPONSE_REQUIRE_ALL
       );
       // The password policy contains the schema version internally, but the public typing does not.
       // Only check the fields that are publicly exposed.
       expect(policy.customStrengthOptions).to.eql(
-        passwordPolicyRequireAll.customStrengthOptions
+        PASSWORD_POLICY_REQUIRE_ALL.customStrengthOptions
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
-        passwordPolicyRequireAll.allowedNonAlphanumericCharacters
+        PASSWORD_POLICY_REQUIRE_ALL.allowedNonAlphanumericCharacters
       );
     });
 
     it('only includes requirements defined in the response', () => {
       const policy: PasswordPolicy = new PasswordPolicyImpl(
-        passwordPolicyResponseRequireLength
+        PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH
       );
       expect(policy.customStrengthOptions).to.eql(
-        passwordPolicyRequireLength.customStrengthOptions
+        PASSWORD_POLICY_REQUIRE_LENGTH.customStrengthOptions
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
-        passwordPolicyRequireLength.allowedNonAlphanumericCharacters
+        PASSWORD_POLICY_REQUIRE_LENGTH.allowedNonAlphanumericCharacters
       );
+      // Requirements that are not in the response should be undefined.
+      expect(policy.customStrengthOptions.containsLowercaseLetter).to.be
+        .undefined;
+      expect(policy.customStrengthOptions.containsUppercaseLetter).to.be
+        .undefined;
+      expect(policy.customStrengthOptions.containsNumericCharacter).to.be
+        .undefined;
+      expect(policy.customStrengthOptions.containsNonAlphanumericCharacter).to
+        .be.undefined;
     });
   });
 });
