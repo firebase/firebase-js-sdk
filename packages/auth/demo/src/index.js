@@ -501,9 +501,15 @@ function onValidatePassword() {
   /**
    * Updates the displayed status for a requirement.
    * @param {string} id The ID of the DOM element displaying the requirement status.
-   * @param {boolean} status Whether the requirement is met.
+   * @param {boolean | undefined} status Whether the requirement is met.
    */
   function setRequirementStatus(id, status) {
+    // Hide the requirement if the status does not include it.
+    if (status === undefined) {
+      $(id).hide();
+      return;
+    }
+
     if (status) {
       $(id).removeClass('list-group-item-danger');
       $(id).addClass('list-group-item-success');
@@ -524,44 +530,36 @@ function onValidatePassword() {
         $('#password-validation-min-length').text(
           customStrengthOptions.minPasswordLength
         );
-        setRequirementStatus(
-          '#password-validation-meets-min-length',
-          status.meetsMinPasswordLength
-        );
       }
       if (customStrengthOptions.maxPasswordLength) {
         $('#password-validation-max-length').text(
           customStrengthOptions.maxPasswordLength
         );
-        setRequirementStatus(
-          '#password-validation-meets-max-length',
-          status.meetsMaxPasswordLength
-        );
       }
-      if (customStrengthOptions.containsLowercaseLetter) {
-        setRequirementStatus(
-          '#password-validation-contains-lowercase',
-          status.containsLowercaseLetter
-        );
-      }
-      if (customStrengthOptions.containsUppercaseLetter) {
-        setRequirementStatus(
-          '#password-validation-contains-uppercase',
-          status.containsUppercaseLetter
-        );
-      }
-      if (customStrengthOptions.containsNumericCharacter) {
-        setRequirementStatus(
-          '#password-validation-contains-numeric',
-          status.containsNumericCharacter
-        );
-      }
-      if (customStrengthOptions.containsNonAlphanumericCharacter) {
-        setRequirementStatus(
-          '#password-validation-contains-non-alphanumeric',
-          status.containsNonAlphanumericCharacter
-        );
-      }
+      setRequirementStatus(
+        '#password-validation-meets-min-length',
+        status.meetsMinPasswordLength
+      );
+      setRequirementStatus(
+        '#password-validation-meets-max-length',
+        status.meetsMaxPasswordLength
+      );
+      setRequirementStatus(
+        '#password-validation-contains-lowercase',
+        status.containsLowercaseLetter
+      );
+      setRequirementStatus(
+        '#password-validation-contains-uppercase',
+        status.containsUppercaseLetter
+      );
+      setRequirementStatus(
+        '#password-validation-contains-numeric',
+        status.containsNumericCharacter
+      );
+      setRequirementStatus(
+        '#password-validation-contains-non-alphanumeric',
+        status.containsNonAlphanumericCharacter
+      );
 
       $('#password-validation-password').prop('disabled', false);
       $('#password-validation-requirements').show();
