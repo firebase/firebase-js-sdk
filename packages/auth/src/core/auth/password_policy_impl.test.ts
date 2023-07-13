@@ -40,7 +40,6 @@ describe('core/auth/password_policy_impl', () => {
   const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
     TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
   const TEST_SCHEMA_VERSION = 1;
-
   const PASSWORD_POLICY_RESPONSE_REQUIRE_ALL: GetPasswordPolicyResponse = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
