@@ -84,30 +84,32 @@ export function getCountFromCache<
   AppModelType,
   DbModelType extends DocumentData
   >(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> },
+  query: Query<AppModelType, DbModelType>
+): Promise<AggregateQuerySnapshot<
+  { count: AggregateField<number> },
   AppModelType,
   DbModelType>> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 
-  return getAggregateFromCache(query, countQuerySpec);
+  return getAggregateFromCache<{ count: AggregateField<number> }, AppModelType, DbModelType>(query, countQuerySpec);
 }
 
 export function getCount<
   AppModelType,
   DbModelType extends DocumentData
   >(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> },
+  query: Query<AppModelType, DbModelType>
+): Promise<AggregateQuerySnapshot<
+  { count: AggregateField<number> },
   AppModelType,
   DbModelType>> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 
-  return getAggregate(query, countQuerySpec);
+  return getAggregate<{ count: AggregateField<number> }, AppModelType, DbModelType>(query, countQuerySpec);
 }
 
 /**
@@ -266,7 +268,7 @@ function convertToAggregateQuerySnapshot<
     aggregateResult,
     // TODO (streaming-count) add real snapshot metadata
     new SnapshotMetadata(false, false) // this is stubbed
-  // );
+  );
   return querySnapshot;
 }
 
@@ -291,11 +293,14 @@ function convertToAggregateQuerySnapshot<
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onAggregateSnapshot<T extends  AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T,
+export function onAggregateSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot<T>) => void;
+    next?: (snapshot: AggregateQuerySnapshot<AggregateSpecType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -320,12 +325,15 @@ export function onAggregateSnapshot<T extends  AggregateSpec>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T,
+export function onAggregateSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot<T>) => void;
+    next?: (snapshot: AggregateQuerySnapshot<AggregateSpecType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -354,10 +362,13 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T,
-  onNext: (snapshot: AggregateQuerySnapshot<T>) => void,
+export function onAggregateSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
+  onNext: (snapshot: AggregateQuerySnapshot<AggregateSpecType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -386,18 +397,24 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onAggregateSnapshot<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T,
+export function onAggregateSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
   options: SnapshotListenOptions,
-  onNext: (snapshot: AggregateQuerySnapshot<T>) => void,
+  onNext: (snapshot: AggregateQuerySnapshot<AggregateSpecType>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 
-export function onAggregateSnapshot<T extends AggregateSpec>(
-  reference: Query<T> | DocumentReference<T>,
-  aggregateSpec: T,
+export function onAggregateSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>  | DocumentReference<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
   ...args: unknown[]
 ): Unsubscribe {
   // TODO (streaming-count)
@@ -423,8 +440,10 @@ export function onAggregateSnapshot<T extends AggregateSpec>(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot(
-  query: Query<unknown>,
+export function onCountSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   observer: {
     next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
     error?: (error: FirestoreError) => void;
@@ -451,8 +470,10 @@ export function onCountSnapshot(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot(
-  query: Query<unknown>,
+export function onCountSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
     next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
@@ -484,8 +505,10 @@ export function onCountSnapshot(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot(
-  query: Query<unknown>,
+export function onCountSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
@@ -511,17 +534,22 @@ export function onCountSnapshot(
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot(
-  query: Query<unknown>,
+export function onCountSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 
-export function onCountSnapshot<T extends AggregateSpec>(
-  reference: Query<T> | DocumentReference<T>,
-  aggregateSpec: T,
+export function onCountSnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData>(
+  reference: Query<AppModelType, DbModelType> | DocumentReference<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType,
   ...args: unknown[]
 ): Unsubscribe {
   const countQuerySpec: { count: AggregateField<number> } = {
