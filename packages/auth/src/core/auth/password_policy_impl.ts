@@ -30,7 +30,7 @@ import { PasswordValidationStatus } from '../../model/public_types';
  */
 export class PasswordPolicyImpl implements PasswordPolicyInternal {
   readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
-  readonly allowedNonAlphanumericCharacters: string[];
+  readonly allowedNonAlphanumericCharacters: string;
   readonly schemaVersion: number;
 
   constructor(response: GetPasswordPolicyResponse) {
@@ -63,22 +63,80 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     }
 
     this.allowedNonAlphanumericCharacters =
-      response.allowedNonAlphanumericCharacters;
+      response.allowedNonAlphanumericCharacters.join('');
     this.schemaVersion = response.schemaVersion;
   }
 
   validatePassword(password: string): PasswordValidationStatus {
     const status: PasswordValidationStatusInternal = {
-      isValid: false,
+      isValid: true,
       passwordPolicy: this
     };
 
-    // TODO: Implement private helper methods for checking length and character options.
-    // Call these here to populate the status object.
-    if (password) {
-      status.isValid = true;
-    }
+    // Check the password length and character options.
+    this.validatePasswordLengthOptions(password, status);
+    this.validatePasswordCharacterOptions(password, status);
+
+    // Combine the status into single isValid property.
+    status.isValid &&= status.meetsMinPasswordLength ?? true;
+    status.isValid &&= status.meetsMaxPasswordLength ?? true;
+    status.isValid &&= status.containsLowercaseLetter ?? true;
+    status.isValid &&= status.containsUppercaseLetter ?? true;
+    status.isValid &&= status.containsNumericCharacter ?? true;
+    status.isValid &&= status.containsNonAlphanumericCharacter ?? true;
 
     return status;
+  }
+
+  /**
+   * Validates that the password meets the length options for the policy.
+   *
+   * @param password Password to validate.
+   * @param status Validation status.
+   */
+  private validatePasswordLengthOptions(
+    password: string,
+    status: PasswordValidationStatusInternal
+  ): void {
+    const minPasswordLength = this.customStrengthOptions.minPasswordLength;
+    const maxPasswordLength = this.customStrengthOptions.maxPasswordLength;
+    if (minPasswordLength) {
+      status.meetsMinPasswordLength = password.length >= minPasswordLength;
+    }
+    if (maxPasswordLength) {
+      status.meetsMaxPasswordLength = password.length <= maxPasswordLength;
+    }
+  }
+
+  /**
+   * Validates that the password meets the character options for the policy.
+   *
+   * @param password Password to validate.
+   * @param status Validation status.
+   */
+  private validatePasswordCharacterOptions(
+    password: string,
+    status: PasswordValidationStatusInternal
+  ): void {
+    let passwordChar;
+    for (let i = 0; i < password.length; i++) {
+      passwordChar = password.charAt(i);
+      if (this.customStrengthOptions.containsLowercaseLetter) {
+        status.containsLowercaseLetter ||=
+          passwordChar >= 'a' && passwordChar <= 'z';
+      }
+      if (this.customStrengthOptions.containsUppercaseLetter) {
+        status.containsUppercaseLetter ||=
+          passwordChar >= 'A' && passwordChar <= 'Z';
+      }
+      if (this.customStrengthOptions.containsNumericCharacter) {
+        status.containsNumericCharacter ||=
+          passwordChar >= '0' && passwordChar <= '9';
+      }
+      if (this.customStrengthOptions.containsNonAlphanumericCharacter) {
+        status.containsNonAlphanumericCharacter ||=
+          this.allowedNonAlphanumericCharacters.includes(passwordChar);
+      }
+    }
   }
 }
