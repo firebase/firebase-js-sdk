@@ -852,7 +852,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'can have != and inequality queries on different fields',
+      'can have NOT-IN and inequality queries on different fields',
       db => {
         const collection = db.collection('test');
         expect(() =>

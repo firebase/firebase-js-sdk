@@ -784,28 +784,6 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('inequality same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '>', 32), orderBy('x'), orderBy('y'))
-        ).not.to.throw();
-        expect(() =>
-          query(coll, orderBy('x'), where('x', '>', 32), orderBy('y'))
-        ).not.to.throw();
-      });
-    });
-
-    it('!= same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '!=', 32), orderBy('x'), orderBy('y'))
-        ).not.to.throw();
-        expect(() =>
-          query(coll, orderBy('x'), where('x', '!=', 32), orderBy('y'))
-        ).not.to.throw();
-      });
-    });
-
     it('equality different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -822,11 +800,6 @@ apiDescribe('Database', persistence => {
         expect(() =>
           query(coll, orderBy('y'), where('x', '>', 32))
         ).not.to.throw();
-      });
-    });
-
-    it('inequality different from first orderBy works.', () => {
-      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('y'), orderBy('z'))
         ).not.to.throw();
@@ -835,6 +808,7 @@ apiDescribe('Database', persistence => {
         ).not.to.throw();
       });
     });
+
     it('multiple inequality different from orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>

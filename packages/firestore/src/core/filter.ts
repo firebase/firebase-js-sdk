@@ -57,7 +57,7 @@ export abstract class Filter {
 
   abstract getFilters(): Filter[];
 
-  abstract getInequalityFilters(): readonly FieldFilter[] | null;
+  abstract getInequalityFilters(): readonly FieldFilter[];
 }
 
 export class FieldFilter extends Filter {
@@ -195,11 +195,11 @@ export class FieldFilter extends Filter {
     return [this];
   }
 
-  getInequalityFilters(): readonly FieldFilter[] | null {
+  getInequalityFilters(): readonly FieldFilter[] {
     if (this.isInequality()) {
       return [this];
     }
-    return null;
+    return [];
   }
 }
 
@@ -248,17 +248,15 @@ export class CompositeFilter extends Filter {
   }
 
   // Performs a depth-first search to find and return the inequality FieldFilters in the composite
-  // filter. Returns `null` if none of the FieldFilters satisfy the predicate.
-  getInequalityFilters(): readonly FieldFilter[] | null {
+  // filter. Returns an empty array if none of the FieldFilters has inequality filters.
+  getInequalityFilters(): readonly FieldFilter[] {
     const result: FieldFilter[] = [];
 
-    this.getFlattenedFilters().forEach((fieldFilter: FieldFilter) => {
-      const subFilters = fieldFilter.getInequalityFilters();
-      if (subFilters !== null) {
-        result.push(...subFilters);
-      }
+    this.getFlattenedFilters().forEach((filter: FieldFilter) => {
+      result.push(...filter.getInequalityFilters());
     });
-    return result.length === 0 ? null : result;
+
+    return result;
   }
 }
 

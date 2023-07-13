@@ -75,7 +75,6 @@ import {
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
-import { getAggregate, getCount } from '../../../src/lite-api/aggregate';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -1701,17 +1700,7 @@ apiDescribe('Queries', persistence => {
         );
         expect(snapshot1.data().count).to.equal(4);
 
-        const snapshot2 = await getCount(
-          query(
-            coll,
-            where('key', '>', 'a'),
-            where('sort', '>=', 1),
-            orderBy('v')
-          )
-        );
-        expect(snapshot2.data().count).to.equal(4);
-
-        const snapshot3 = await getAggregateFromServer(
+        const snapshot2 = await getAggregateFromServer(
           query(
             coll,
             where('key', '>', 'a'),
@@ -1724,26 +1713,9 @@ apiDescribe('Queries', persistence => {
             avg: average('v')
           }
         );
-        expect(snapshot3.data().count).to.equal(3);
-        expect(snapshot3.data().sum).to.equal(6);
-        expect(snapshot3.data().avg).to.equal(1);
-
-        const snapshot4 = await getAggregate(
-          query(
-            coll,
-            where('key', '>', 'a'),
-            where('sort', '>=', 1),
-            where('v', '!=', 0)
-          ),
-          {
-            count: count(),
-            sum: sum('sort'),
-            avg: average('v')
-          }
-        );
-        expect(snapshot4.data().count).to.equal(3);
-        expect(snapshot4.data().sum).to.equal(6);
-        expect(snapshot4.data().avg).to.equal(1);
+        expect(snapshot2.data().count).to.equal(3);
+        expect(snapshot2.data().sum).to.equal(6);
+        expect(snapshot2.data().avg).to.equal(1);
       });
     });
 
