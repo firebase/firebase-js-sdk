@@ -172,7 +172,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run --concurrency 4 test:ci --scope '{@firebase/firestore*,firebase-firestore-integration-test}'
+        xvfb-run yarn lerna run --concurrency 4 test:ci --scope '{@firebase/firestore*}'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -184,3 +184,38 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
+
+  test-firestore-integration:
+    name: Firestore Integration Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
+    - name: install Chrome stable
+      run: |
+        sudo apt-get update
+        sudo apt-get install google-chrome-stable
+    - name: Download build archive
+      uses: actions/download-artifact@v3
+      with:
+        name: build.tar.gz
+    - name: Unzip build artifact
+      run: tar xf build.tar.gz
+    - name: Set up Node (16)
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+    - name: Bump Node memory limit
+      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: Set start timestamp env var
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
+    - name: Run unit tests
+      run: |
+        xvfb-run yarn lerna run --concurrency 4 test:ci --scope firebase-firestore-integration-test
+        node scripts/print_test_logs.js
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}

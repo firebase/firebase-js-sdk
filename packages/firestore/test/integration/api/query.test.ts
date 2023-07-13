@@ -48,7 +48,6 @@ import {
   Query,
   query,
   QuerySnapshot,
-  runTransaction,
   setDoc,
   startAfter,
   startAt,
@@ -2096,16 +2095,16 @@ apiDescribe('Queries', persistence => {
         expect(snapshot1.size, 'snapshot1.size').to.equal(100);
         const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
 
-        // Delete 50 of the 100 documents. Do this in a transaction, rather than
+        // Delete 50 of the 100 documents. Use a WriteBatch, rather than
         // deleteDoc(), to avoid affecting the local cache.
         const deletedDocumentIds = new Set<string>();
-        await runTransaction(db, async txn => {
-          for (let i = 0; i < createdDocuments.length; i += 2) {
-            const documentToDelete = createdDocuments[i];
-            txn.delete(documentToDelete);
-            deletedDocumentIds.add(documentToDelete.id);
-          }
-        });
+        const writeBatchForDocumentDeletes = writeBatch(db);
+        for (let i = 0; i < createdDocuments.length; i += 2) {
+          const documentToDelete = createdDocuments[i];
+          writeBatchForDocumentDeletes.delete(documentToDelete);
+          deletedDocumentIds.add(documentToDelete.id);
+        }
+        await writeBatchForDocumentDeletes.commit();
 
         // Wait for 10 seconds, during which Watch will stop tracking the query
         // and will send an existence filter rather than "delete" events when
@@ -2260,19 +2259,11 @@ apiDescribe('Queries', persistence => {
         );
 
         // Delete one of the documents so that the next call to getDocs() will
-        // experience an existence filter mismatch. Do this deletion in a
-        // transaction, rather than using deleteDoc(), to avoid affecting the
-        // local cache.
-        await runTransaction(db, async txn => {
-          const snapshotOfDocumentToDelete = await txn.get(
-            doc(coll, 'DocumentToDelete')
-          );
-          expect(
-            snapshotOfDocumentToDelete.exists(),
-            'snapshotOfDocumentToDelete.exists()'
-          ).to.be.true;
-          txn.delete(snapshotOfDocumentToDelete.ref);
-        });
+        // experience an existence filter mismatch. Use a WriteBatch, rather
+        // than deleteDoc(), to avoid affecting the local cache.
+        const writeBatchForDocumentDeletes = writeBatch(db);
+        writeBatchForDocumentDeletes.delete(doc(coll, 'DocumentToDelete'));
+        await writeBatchForDocumentDeletes.commit();
 
         // Wait for 10 seconds, during which Watch will stop tracking the query
         // and will send an existence filter rather than "delete" events when
