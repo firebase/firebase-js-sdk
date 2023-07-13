@@ -547,10 +547,18 @@ export class WatchChangeAggregator {
     bloomFilterMightContain: (documentPath: string) => boolean
   ): number {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
+    const modifiedKeys =
+      this.ensureTargetState(targetId).toTargetChange().modifiedDocuments;
     let removalCount = 0;
 
     existingKeys.forEach(key => {
-      if (!bloomFilterMightContain(key.path.canonicalString())) {
+      // Existing keys include untouched, deleted and modified keys. Modified documents will not be
+      // included in ExistenceFilter.unchanged_names, and do not need to test against bloom filter
+      // as well.
+      if (
+        !modifiedKeys.has(key) &&
+        !bloomFilterMightContain(key.path.canonicalString())
+      ) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;
       }
