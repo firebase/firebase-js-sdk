@@ -18,22 +18,29 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import { PasswordPolicy } from '../../model/public_types';
+import {
+  PasswordPolicy,
+  PasswordValidationStatus
+} from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
+import { PasswordPolicyInternal } from '../../model/password_policy';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('core/auth/password_policy_impl', () => {
   const TEST_MIN_PASSWORD_LENGTH = 6;
-  const TEST_MAX_PASSWORD_LENGTH = 30;
+  const TEST_MAX_PASSWORD_LENGTH = 12;
   const TEST_CONTAINS_LOWERCASE = true;
   const TEST_CONTAINS_UPPERCASE = true;
   const TEST_CONTAINS_NUMERIC = true;
   const TEST_CONTAINS_NON_ALPHANUMERIC = true;
-  const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+  const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')', '@'];
+  const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
+    TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
   const TEST_SCHEMA_VERSION = 1;
+
   const PASSWORD_POLICY_RESPONSE_REQUIRE_ALL: GetPasswordPolicyResponse = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -63,33 +70,34 @@ describe('core/auth/password_policy_impl', () => {
       containsNumericCharacter: TEST_CONTAINS_NUMERIC,
       containsNonAlphanumericCharacter: TEST_CONTAINS_UPPERCASE
     },
-    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING
   };
   const PASSWORD_POLICY_REQUIRE_LENGTH: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
     },
-    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING
   };
 
   context('#PasswordPolicyImpl', () => {
     it('can construct the password policy from the backend response', () => {
-      const policy: PasswordPolicy = new PasswordPolicyImpl(
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_ALL
       );
-      // The password policy contains the schema version internally, but the public typing does not.
-      // Only check the fields that are publicly exposed.
       expect(policy.customStrengthOptions).to.eql(
         PASSWORD_POLICY_REQUIRE_ALL.customStrengthOptions
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
         PASSWORD_POLICY_REQUIRE_ALL.allowedNonAlphanumericCharacters
       );
+      expect(policy.schemaVersion).to.eql(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_ALL.schemaVersion
+      );
     });
 
     it('only includes requirements defined in the response', () => {
-      const policy: PasswordPolicy = new PasswordPolicyImpl(
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH
       );
       expect(policy.customStrengthOptions).to.eql(
@@ -97,6 +105,9 @@ describe('core/auth/password_policy_impl', () => {
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
         PASSWORD_POLICY_REQUIRE_LENGTH.allowedNonAlphanumericCharacters
+      );
+      expect(policy.schemaVersion).to.eql(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH.schemaVersion
       );
       // Requirements that are not in the response should be undefined.
       expect(policy.customStrengthOptions.containsLowercaseLetter).to.be
@@ -107,6 +118,183 @@ describe('core/auth/password_policy_impl', () => {
         .undefined;
       expect(policy.customStrengthOptions.containsNonAlphanumericCharacter).to
         .be.undefined;
+    });
+
+    context('#validatePassword', () => {
+      const PASSWORD_POLICY_IMPL_REQUIRE_ALL = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_ALL
+      );
+      const PASSWORD_POLICY_IMPL_REQUIRE_LENGTH = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH
+      );
+
+      it('password that is too short is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('P4ss!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that is too long is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: false,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('Password01234!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a lowercase character is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: false,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('P4SSWORD!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain an uppercase character is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: false,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('p4ssword!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a numeric character is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: false,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('Password!');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password that does not contain a non-alphanumeric character is considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: policy
+        };
+
+        let status = policy.validatePassword('P4ssword');
+        expect(status).to.eql(expectedValidationStatus);
+
+        // Characters not in allowedNonAlphanumericCharacters should not be considered valid.
+        status = policy.validatePassword('P4sswo*d');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('passwords that only partially meet requirements are considered invalid', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        let expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: false,
+          containsLowercaseLetter: true,
+          containsUppercaseLetter: false,
+          containsNumericCharacter: true,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: policy
+        };
+
+        let status = policy.validatePassword('password01234');
+        expect(status).to.eql(expectedValidationStatus);
+
+        expectedValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: false,
+          containsUppercaseLetter: true,
+          containsNumericCharacter: false,
+          containsNonAlphanumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        status = policy.validatePassword('P@SS');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('should only include statuses for requirements included in the policy', async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_LENGTH;
+        let expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          meetsMaxPasswordLength: true,
+          passwordPolicy: policy
+        };
+
+        let status = policy.validatePassword('password');
+        expect(status).to.eql(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).to.be.undefined;
+        expect(status.containsUppercaseLetter).to.be.undefined;
+        expect(status.containsNumericCharacter).to.be.undefined;
+        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+
+        expectedValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          passwordPolicy: PASSWORD_POLICY_IMPL_REQUIRE_LENGTH
+        };
+
+        status = policy.validatePassword('pass');
+        expect(status).to.eql(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).to.be.undefined;
+        expect(status.containsUppercaseLetter).to.be.undefined;
+        expect(status.containsNumericCharacter).to.be.undefined;
+        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+      });
     });
   });
 });

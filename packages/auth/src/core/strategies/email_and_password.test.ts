@@ -749,6 +749,8 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
   context('#passwordPolicy', () => {
     const TEST_MIN_PASSWORD_LENGTH = 6;
     const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+    const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
+      TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
     const TEST_SCHEMA_VERSION = 1;
 
     const TEST_TENANT_ID = 'tenant-id';
@@ -772,9 +774,21 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
       schemaVersion: TEST_SCHEMA_VERSION
     };
-    const CACHED_PASSWORD_POLICY = PASSWORD_POLICY_RESPONSE;
-    const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC =
-      PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
+    const CACHED_PASSWORD_POLICY = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
     let policyEndpointMock: mockFetch.Route;
     let policyEndpointMockWithTenant: mockFetch.Route;
     let policyEndpointMockWithOtherTenant: mockFetch.Route;

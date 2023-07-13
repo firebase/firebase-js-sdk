@@ -434,7 +434,24 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this._updatePasswordPolicy();
     }
 
-    return this._getPasswordPolicyInternal()!.validatePassword(password);
+    const passwordPolicy: PasswordPolicyInternal =
+      this._getPasswordPolicyInternal()!;
+
+    // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
+    if (
+      passwordPolicy.schemaVersion !==
+      this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
+    ) {
+      return Promise.reject(
+        this._errorFactory.create(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
+          {}
+        )
+      );
+    }
+
+    return passwordPolicy.validatePassword(password);
   }
 
   _getPasswordPolicyInternal(): PasswordPolicyInternal | null {
@@ -447,19 +464,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 
   async _updatePasswordPolicy(): Promise<void> {
     const response = await _getPasswordPolicy(this);
-
-    // Check that the policy schema version is supported by the SDK.
-    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
-    if (
-      response.schemaVersion !== this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
-    ) {
-      return Promise.reject(
-        this._errorFactory.create(
-          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
-          {}
-        )
-      );
-    }
 
     const passwordPolicy: PasswordPolicyInternal = new PasswordPolicyImpl(
       response
