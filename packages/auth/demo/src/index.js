@@ -72,8 +72,7 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig,
-  signInWithPhoneNumber
+  initializeRecaptchaConfig
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -540,7 +539,7 @@ function clearApplicationVerifier() {
 /**
  * Sends a phone number verification code for sign-in.
  */
-async function onSignInVerifyPhoneNumber() {
+function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
   const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
@@ -548,41 +547,17 @@ async function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  // provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-  //   verificationId => {
-  //     clearApplicationVerifier();
-  //     $('#signin-phone-verification-id').val(verificationId);
-  //     alertSuccess('Phone verification sent!');
-  //   },
-  //   error => {
-  //     clearApplicationVerifier();
-  //     onAuthError(error);
-  //   }
-  // );
-  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
-    .then(confirmationResult => {
-      // SMS sent. Prompt user to type the code from the message, then sign the
-      // user in with confirmationResult.confirm(code).
-      confirmationResult
-        .confirm('12345')
-        .then(result => {
-          console.log('confirm success');
-          // User signed in successfully.
-          const user = result.user;
-          // ...
-        })
-        .catch(error => {
-          // User couldn't sign in (bad verification code?)
-          // ...
-          console.log(error);
-        });
-
-    })
-    .catch(error => {
-      // Error; SMS not sent
-      // ...
-      console.log(error);
-    });
+  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
+    verificationId => {
+      clearApplicationVerifier();
+      $('#signin-phone-verification-id').val(verificationId);
+      alertSuccess('Phone verification sent!');
+    },
+    error => {
+      clearApplicationVerifier();
+      onAuthError(error);
+    }
+  );
 }
 
 /**
