@@ -909,7 +909,7 @@ describe('core/auth/auth_impl', () => {
       expect(auth._getPasswordPolicyInternal()).to.be.undefined;
     });
 
-    it('password policy should store the schema version when it is not supported', async () => {
+    it('password policy should still be set when the schema version is not supported', async () => {
       auth = await testAuth();
       auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
       await expect(auth._updatePasswordPolicy()).to.be.fulfilled;
