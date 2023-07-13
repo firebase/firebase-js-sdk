@@ -1396,6 +1396,7 @@ apiDescribe('Queries', persistence => {
     });
 
     it('can use multiple inequality with nested field', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const testData = (n?: number): any => {
         n = n || 1;
         return {
@@ -1447,7 +1448,7 @@ apiDescribe('Queries', persistence => {
       });
     });
 
-    it.only('can use with nested composite filters', async () => {
+    it('can use with nested composite filters', async () => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: 5 },
         doc2: { key: 'aa', sort: 4, v: 4 },

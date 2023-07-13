@@ -181,7 +181,7 @@ export function getInequalityFilterFields(query: Query): FieldPath[] | null {
 function FiledPathLexicographicComparator(
   fieldPathA: FieldPath,
   fieldPathB: FieldPath
-) {
+): number {
   // Document key field should be ordered to the last.
   if (fieldPathA.isKeyField() && fieldPathB.isKeyField()) {
     return 0;
@@ -251,7 +251,7 @@ export function queryOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
-    const fieldsIncluded = new Set<String>();
+    const fieldsIncluded = new Set<string>();
 
     // Add the explicit order by.
     for (const orderBy of queryImpl.explicitOrderBy) {

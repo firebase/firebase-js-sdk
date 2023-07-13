@@ -20,6 +20,7 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { ref } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -76,7 +77,6 @@ import {
   withNamedTestDbsOrSkipUnlessUsingEmulator
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
-import { ref } from '../../util/helpers';
 
 use(chaiAsPromised);
 

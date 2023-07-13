@@ -37,7 +37,7 @@ import {
   withTestDoc,
   withTestDocAndSettings
 } from '../util/helpers';
-import { DEFAULT_SETTINGS, USE_EMULATOR } from '../util/settings';
+import { DEFAULT_SETTINGS } from '../util/settings';
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -18,7 +18,7 @@
 import { FieldFilter, Operator } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
 import { Target } from '../core/target';
-import { debugAssert, hardAssert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 
 import {
   FieldIndex,
@@ -27,7 +27,6 @@ import {
   IndexKind,
   IndexSegment
 } from './field_index';
-import { FieldPath } from './path';
 
 /**
  * A light query planner for Firestore.
@@ -53,7 +52,7 @@ export class TargetIndexMatcher {
   // The collection ID (or collection group) of the query target.
   private readonly collectionId: string;
   // The inequality filters of the target (if it exists).
-  private readonly inequalityFilters = new Map<String, FieldFilter>();
+  private readonly inequalityFilters = new Map<string, FieldFilter>();
   // The list of equality filters of the target.
   private readonly equalityFilters: FieldFilter[];
   // The list of orderBys of the target.
