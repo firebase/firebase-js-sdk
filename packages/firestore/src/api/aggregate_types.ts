@@ -19,7 +19,7 @@ import {
   AggregateQuerySnapshot as LiteAggregateQuerySnapshot,
   AggregateSpec
 } from '../lite-api/aggregate_types';
-import {Query} from "../lite-api/reference";
+import {DocumentData, Query} from "../lite-api/reference";
 import {AbstractUserDataWriter} from "../lite-api/user_data_writer";
 import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
@@ -27,7 +27,10 @@ import {
   SnapshotMetadata
 } from "./snapshot";
 
-export class AggregateQuerySnapshot<T extends AggregateSpec> extends LiteAggregateQuerySnapshot<T> {
+export class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData> extends LiteAggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
   /**
    *  Metadata about the `DocumentSnapshot`, including information about its
    *  source and local modifications.
@@ -36,7 +39,7 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> extends LiteAggrega
 
   /** @hideconstructor protected */
   constructor(
-    query: Query<unknown>,
+    query: Query<AppModelType, DbModelType>,
     _userDataWriter: AbstractUserDataWriter,
     _data: ApiClientObjectMap<Value>,
     metadata: SnapshotMetadata,
