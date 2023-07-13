@@ -22,7 +22,7 @@ export interface PasswordPolicy
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [allowedNonAlphanumericCharacters](./auth.passwordpolicy.md#passwordpolicyallowednonalphanumericcharacters) | string\[\] | List of characters that are considered non-alphanumeric during validation. |
+|  [allowedNonAlphanumericCharacters](./auth.passwordpolicy.md#passwordpolicyallowednonalphanumericcharacters) | string | List of characters that are considered non-alphanumeric during validation. |
 |  [customStrengthOptions](./auth.passwordpolicy.md#passwordpolicycustomstrengthoptions) | { readonly minPasswordLength?: number; readonly maxPasswordLength?: number; readonly containsLowercaseLetter?: boolean; readonly containsUppercaseLetter?: boolean; readonly containsNumericCharacter?: boolean; readonly containsNonAlphanumericCharacter?: boolean; } | Requirements enforced by this password policy. |
 
 ## PasswordPolicy.allowedNonAlphanumericCharacters
@@ -32,7 +32,7 @@ List of characters that are considered non-alphanumeric during validation.
 <b>Signature:</b>
 
 ```typescript
-readonly allowedNonAlphanumericCharacters: string[];
+readonly allowedNonAlphanumericCharacters: string;
 ```
 
 ## PasswordPolicy.customStrengthOptions
