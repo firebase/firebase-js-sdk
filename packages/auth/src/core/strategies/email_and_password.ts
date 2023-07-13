@@ -340,7 +340,8 @@ export async function createUserWithEmailAndPassword(
         return signUp(authInternal, requestWithRecaptcha);
       } else {
         if (
-          error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+          error.code ===
+          `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
         ) {
           await updatePasswordPolicyIfCached(auth);
         }
