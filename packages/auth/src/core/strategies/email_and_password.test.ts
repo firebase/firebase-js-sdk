@@ -50,6 +50,7 @@ import {
   verifyPasswordResetCode
 } from './email_and_password';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import { _window } from '../../platform_browser/auth_window';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -172,7 +173,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         return;
       }
       const recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
         .returns(Promise.resolve('recaptcha-response'));
@@ -283,7 +284,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       // Mock recaptcha js loading method and manually set window.recaptcha
       sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
       const recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
       stub
         .withArgs('site-key', {
@@ -587,7 +588,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       if (typeof window === 'undefined') {
         return;
       }
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
         .returns(Promise.resolve('recaptcha-response'));
@@ -710,7 +711,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       // Mock recaptcha js loading method and manually set window.recaptcha
       sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
       const recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
       stub
         .withArgs('site-key', {

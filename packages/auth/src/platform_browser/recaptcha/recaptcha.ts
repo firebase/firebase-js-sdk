@@ -64,13 +64,6 @@ export function isEnterprise(
   );
 }
 
-// TODO(chuanr): Replace this with the AuthWindow after resolving the dependency issue in Node.js env.
-declare global {
-  interface Window {
-    grecaptcha?: Recaptcha | GreCAPTCHATopLevel;
-  }
-}
-
 export class RecaptchaConfig {
   /**
    * The reCAPTCHA site key.

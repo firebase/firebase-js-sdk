@@ -38,6 +38,7 @@ import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
 import { ServerError } from '../../api/errors';
+import { _window } from '../../platform_browser/auth_window';
 
 use(chaiAsPromised);
 
@@ -123,7 +124,7 @@ describe('core/credentials/email', () => {
           if (typeof window === 'undefined') {
             return;
           }
-          window.grecaptcha = recaptcha;
+          _window().grecaptcha = recaptcha;
           sinon
             .stub(recaptcha.enterprise, 'execute')
             .returns(Promise.resolve('recaptcha-response'));
@@ -157,7 +158,7 @@ describe('core/credentials/email', () => {
           if (typeof window === 'undefined') {
             return;
           }
-          window.grecaptcha = recaptcha;
+          _window().grecaptcha = recaptcha;
           sinon
             .stub(recaptcha.enterprise, 'execute')
             .returns(Promise.resolve('recaptcha-response'));
@@ -192,7 +193,7 @@ describe('core/credentials/email', () => {
           sinon
             .stub(jsHelpers, '_loadJS')
             .returns(Promise.resolve(new Event('')));
-          window.grecaptcha = undefined;
+          _window().grecaptcha = undefined;
 
           const getRecaptchaConfigMock = mockEndpointWithParams(
             Endpoint.GET_RECAPTCHA_CONFIG,
@@ -260,7 +261,7 @@ describe('core/credentials/email', () => {
             .stub(jsHelpers, '_loadJS')
             .returns(Promise.resolve(new Event('')));
           const recaptcha = new MockGreCAPTCHATopLevel();
-          window.grecaptcha = recaptcha;
+          _window().grecaptcha = recaptcha;
           const stub = sinon.stub(recaptcha.enterprise, 'execute');
           stub
             .withArgs('site-key', {

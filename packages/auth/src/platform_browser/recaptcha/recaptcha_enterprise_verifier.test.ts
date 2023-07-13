@@ -31,6 +31,7 @@ import {
   RecaptchaEnterpriseVerifier,
   FAKE_TOKEN
 } from './recaptcha_enterprise_verifier';
+import { _window } from '../../platform_browser/auth_window';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -69,7 +70,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     let recaptcha: MockGreCAPTCHATopLevel;
     beforeEach(() => {
       recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
     });
 
     it('returns if response is available', async () => {

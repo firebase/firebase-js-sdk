@@ -46,6 +46,7 @@ import {
 } from './email_link';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
+import { _window } from '../../platform_browser/auth_window';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -188,7 +189,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
         .returns(Promise.resolve('recaptcha-response'));
@@ -262,7 +263,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
 
       // // First verification should fail with 'wrong-site-key'
@@ -336,7 +337,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       // Mock recaptcha js loading method and manually set window.recaptcha
       sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
       const recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
+      _window().grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
       stub
         .withArgs('site-key', {

@@ -28,6 +28,7 @@ import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
+import { _window } from '../auth_window';
 
 const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js?render=';
@@ -103,7 +104,7 @@ export class RecaptchaEnterpriseVerifier {
       resolve: (value: string | PromiseLike<string>) => void,
       reject: (reason?: unknown) => void
     ): void {
-      const grecaptcha = window.grecaptcha;
+      const grecaptcha = _window().grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
           grecaptcha.enterprise
@@ -123,7 +124,7 @@ export class RecaptchaEnterpriseVerifier {
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth)
         .then(siteKey => {
-          if (!forceRefresh && isEnterprise(window.grecaptcha)) {
+          if (!forceRefresh && isEnterprise(_window().grecaptcha)) {
             retrieveRecaptchaToken(siteKey, resolve, reject);
           } else {
             if (typeof window === 'undefined') {
