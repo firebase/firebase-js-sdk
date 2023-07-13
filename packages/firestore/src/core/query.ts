@@ -167,12 +167,13 @@ export function queryMatchesAllDocuments(query: Query): boolean {
 
 export function getInequalityFilterFields(query: Query): FieldPath[] | null {
   const result: FieldPath[] = [];
-  for (const filter of query.filters) {
-    const field = filter.getFirstInequalityField();
-    if (field !== null) {
-      result.push(field);
+
+  query.filters.forEach((filter: Filter) => {
+    const inequalityFilters = filter.getInequalityFilters();
+    if (inequalityFilters !== null) {
+      result.push(...inequalityFilters.map(filter => filter.field));
     }
-  }
+  });
 
   return result.length === 0 ? null : result;
 }
@@ -248,7 +249,6 @@ export function isCollectionGroupQuery(query: Query): boolean {
  */
 export function queryOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
-
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
     const fieldsIncluded = new Set<String>();

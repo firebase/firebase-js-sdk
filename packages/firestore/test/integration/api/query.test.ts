@@ -1437,7 +1437,7 @@ apiDescribe('Queries', persistence => {
             where('field', '>=', 'field 100'),
             where(new FieldPath('field.dot'), '!=', 300),
             where('field\\slash', '<', 400),
-            orderBy('name','desc')
+            orderBy('name', 'desc')
           )
         );
         expect(toDataArray(snapshot2)).to.deep.equal([
@@ -1446,72 +1446,71 @@ apiDescribe('Queries', persistence => {
         ]);
       });
     });
-    
 
     it.only('can use with nested composite filters', async () => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: 5 },
         doc2: { key: 'aa', sort: 4, v: 4 },
-        doc3: { key: 'b', sort: 3, v: 3 },
+        doc3: { key: 'c', sort: 3, v: 3 },
         doc4: { key: 'b', sort: 2, v: 2 },
         doc5: { key: 'b', sort: 2, v: 1 },
         doc6: { key: 'b', sort: 0, v: 0 }
       };
       await withTestCollection(persistence, testDocs, async coll => {
         const snapshot1 = await getDocs(
-          query(coll,
+          query(
+            coll,
             or(
-            and(where('key', '==', 'b'), where('sort', '<=',2)),
-            and(where('key', '!=', 'b'), where('v',">",4))
-          ))
+              and(where('key', '==', 'b'), where('sort', '<=', 2)),
+              and(where('key', '!=', 'b'), where('v', '>', 4))
+            )
+          )
         );
-        // Implicitly ordered by: 'sort' asc, 'v' asc, __name__ asc
+        // Implicitly ordered by: 'key' asc, 'sort' asc, 'v' asc, __name__ asc
         expect(toDataArray(snapshot1)).to.deep.equal([
           { key: 'a', sort: 0, v: 5 },
           { key: 'b', sort: 0, v: 0 },
           { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 2, v: 2 },
+          { key: 'b', sort: 2, v: 2 }
         ]);
 
-        // const snapshot2 = await getDocs(
-        //   query(
-        //     coll,
-        //     or(
-        //       and(where('key', '==', 'b'), where('sort', '<=',2)),
-        //       and(where('v', 'in', [2,3,4]), where('sort',">",3))
-        //     ),
-        //     orderBy('sort', 'desc'),
-        //     orderBy('key')
-        //   )
-        // );
-        // expect(toDataArray(snapshot2)).to.deep.equal([
-        //   { key: 'aa', sort: 4, v: 4 },
-        //   { key: 'b', sort: 2, v: 2 },
-        //   { key: 'b', sort: 2, v: 1 },
-        //   { key: 'b', sort: 0, v: 0 },
-        // ]);
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            or(
+              and(where('key', '==', 'b'), where('sort', '<=', 2)),
+              and(where('key', '!=', 'b'), where('v', '>', 4))
+            ),
+            orderBy('sort', 'desc'),
+            orderBy('key')
+          )
+        );
+        // Ordered by: 'sort' desc, 'key' asc, 'v' asc, __name__ asc
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'b', sort: 2, v: 1 },
+          { key: 'b', sort: 2, v: 2 },
+          { key: 'a', sort: 0, v: 5 },
+          { key: 'b', sort: 0, v: 0 }
+        ]);
 
-
-        // const snapshot3 = await getDocs(
-        //   query(
-        //     coll,
-        //     and(
-        //       or(
-        //         and(where('a', '==', 'b'), where('c', '>=', 'd')),
-        //         and(where('e', '==', 'f'), where('g', '!=', 'h'))
-        //       ),
-        //       or(
-        //         and(where('i', '==', 'j'), where('k', '>', 'l')),
-        //         and(where('m', '==', 'n'), where('o', '<', 'p'))
-        //       )
-        //   )
-        // ));
-        // expect(toDataArray(snapshot3)).to.deep.equal([
-        //   { key: 'aa', sort: 4, v: 4 },
-        //   { key: 'b', sort: 2, v: 2 },
-        //   { key: 'b', sort: 2, v: 1 },
-        //   { key: 'b', sort: 3, v: 3 }
-        // ]);
+        const snapshot3 = await getDocs(
+          query(
+            coll,
+            and(
+              or(
+                and(where('key', '==', 'b'), where('sort', '<=', 4)),
+                and(where('key', '!=', 'b'), where('v', '>', 4))
+              ),
+              or(
+                and(where('key', '>', 'b'), where('sort', '>=', 1)),
+                and(where('key', '<', 'b'), where('v', '>', 0))
+              )
+            )
+          )
+        );
+        expect(toDataArray(snapshot3)).to.deep.equal([
+          { key: 'a', sort: 0, v: 5 }
+        ]);
       });
     });
 
