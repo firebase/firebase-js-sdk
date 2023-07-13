@@ -23,9 +23,11 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
   and,
+  average,
   Bytes,
   collection,
   collectionGroup,
+  count,
   deleteDoc,
   disableNetwork,
   doc,
@@ -38,6 +40,8 @@ import {
   endBefore,
   FieldPath,
   GeoPoint,
+  getAggregateFromServer,
+  getCountFromServer,
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
@@ -53,6 +57,7 @@ import {
   setDoc,
   startAfter,
   startAt,
+  sum,
   Timestamp,
   updateDoc,
   where,
@@ -71,6 +76,7 @@ import {
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
+import { getAggregate, getCount } from '../../../src/lite-api/aggregate';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -716,10 +722,10 @@ apiDescribe('Queries', persistence => {
 
   it('can query by document ID', () => {
     const testDocs = {
-      aa: { key: '1' },
-      ab: { key: '2' },
-      ba: { key: '3' },
-      bb: { key: '4' }
+      aa: { key: 'aa' },
+      ab: { key: 'ab' },
+      ba: { key: 'ba' },
+      bb: { key: 'bb' }
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(query(coll, where(documentId(), '==', 'ab')))
@@ -1341,20 +1347,12 @@ apiDescribe('Queries', persistence => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: 0 },
         doc2: { key: 'b', sort: 3, v: 1 },
-        doc3: { key: 'c', sort: 1, v: 2 },
-        doc4: { key: 'd', sort: 2, v: 3 }
+        doc3: { key: 'c', sort: 1, v: 3 },
+        doc4: { key: 'd', sort: 2, v: 2 }
       };
-      await withTestCollection(persistence, testDocs, async coll => {
+      return withTestCollection(persistence, testDocs, async coll => {
         // multiple inequality fields
         const snapshot1 = await getDocs(
-          query(coll, where('key', '!=', 'a'), where('sort', '<=', 2))
-        );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'c', sort: 1, v: 2 },
-          { key: 'd', sort: 2, v: 3 }
-        ]);
-
-        const snapshot2 = await getDocs(
           query(
             coll,
             where('key', '!=', 'a'),
@@ -1362,12 +1360,12 @@ apiDescribe('Queries', persistence => {
             where('v', '>', 2)
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'd', sort: 2, v: 3 }
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'c', sort: 1, v: 3 }
         ]);
 
         // duplicate inequality fields
-        const snapshot3 = await getDocs(
+        const snapshot2 = await getDocs(
           query(
             coll,
             where('key', '!=', 'a'),
@@ -1375,12 +1373,12 @@ apiDescribe('Queries', persistence => {
             where('sort', '>', 1)
           )
         );
-        expect(toDataArray(snapshot3)).to.deep.equal([
-          { key: 'd', sort: 2, v: 3 }
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'd', sort: 2, v: 2 }
         ]);
 
         // With NOT-IN operator
-        const snapshot4 = await getDocs(
+        const snapshot3 = await getDocs(
           query(
             coll,
             where('key', '>=', 'a'),
@@ -1388,9 +1386,54 @@ apiDescribe('Queries', persistence => {
             where('v', 'not-in', [2, 4, 5])
           )
         );
-        expect(toDataArray(snapshot4)).to.deep.equal([
+        expect(toDataArray(snapshot3)).to.deep.equal([
           { key: 'a', sort: 0, v: 0 },
-          { key: 'd', sort: 2, v: 3 }
+          { key: 'c', sort: 1, v: 3 }
+        ]);
+
+        // With orderby
+        const snapshot4 = await getDocs(
+          query(
+            coll,
+            where('key', '>=', 'a'),
+            where('sort', '<=', 2),
+            orderBy('v', 'desc')
+          )
+        );
+        expect(toDataArray(snapshot4)).to.deep.equal([
+          { key: 'c', sort: 1, v: 3 },
+          { key: 'd', sort: 2, v: 2 },
+          { key: 'a', sort: 0, v: 0 }
+        ]);
+
+        // With limit
+        const snapshot5 = await getDocs(
+          query(
+            coll,
+            where('key', '>=', 'a'),
+            where('sort', '<=', 2),
+            orderBy('v', 'desc'),
+            limit(2)
+          )
+        );
+        expect(toDataArray(snapshot5)).to.deep.equal([
+          { key: 'c', sort: 1, v: 3 },
+          { key: 'd', sort: 2, v: 2 }
+        ]);
+
+        // With limit to last
+        const snapshot6 = await getDocs(
+          query(
+            coll,
+            where('key', '>=', 'a'),
+            where('sort', '<=', 2),
+            orderBy('v', 'desc'),
+            limitToLast(2)
+          )
+        );
+        expect(toDataArray(snapshot6)).to.deep.equal([
+          { key: 'd', sort: 2, v: 2 },
+          { key: 'a', sort: 0, v: 0 }
         ]);
       });
     });
@@ -1457,7 +1500,7 @@ apiDescribe('Queries', persistence => {
         doc5: { key: 'b', sort: 2, v: 1 },
         doc6: { key: 'b', sort: 0, v: 0 }
       };
-      await withTestCollection(persistence, testDocs, async coll => {
+      return withTestCollection(persistence, testDocs, async coll => {
         const snapshot1 = await getDocs(
           query(
             coll,
@@ -1524,7 +1567,7 @@ apiDescribe('Queries', persistence => {
         doc5: { key: 'b', sort: 2, v: 1 },
         doc6: { key: 'b', sort: 0, v: 0 }
       };
-      await withTestCollection(persistence, testDocs, async coll => {
+      return withTestCollection(persistence, testDocs, async coll => {
         // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
         const snapshot1 = await getDocs(
           query(
@@ -1569,7 +1612,7 @@ apiDescribe('Queries', persistence => {
         doc6: { key: 'c', sort: 0, v: 2 }
       };
 
-      await withTestCollection(persistence, testDocs, async coll => {
+      return withTestCollection(persistence, testDocs, async coll => {
         // Ordered by: 'v' asc, 'key' asc, 'sort' asc, __name__ asc
         const snapshot1 = await getDocs(
           query(
@@ -1637,6 +1680,165 @@ apiDescribe('Queries', persistence => {
           { key: 'aa', sort: 4, v: 0 }
         ]);
       });
+    });
+
+    it('can use in aggregate query', async () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 5, v: 0 },
+        doc2: { key: 'aa', sort: 4, v: 0 },
+        doc3: { key: 'b', sort: 3, v: 1 },
+        doc4: { key: 'b', sort: 2, v: 1 },
+        doc5: { key: 'bb', sort: 1, v: 1 }
+      };
+
+      return withTestCollection(persistence, testDocs, async coll => {
+        const snapshot1 = await getCountFromServer(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v')
+          )
+        );
+        expect(snapshot1.data().count).to.equal(4);
+
+        const snapshot2 = await getCount(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            orderBy('v')
+          )
+        );
+        expect(snapshot2.data().count).to.equal(4);
+
+        const snapshot3 = await getAggregateFromServer(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            where('v', '!=', 0)
+          ),
+          {
+            count: count(),
+            sum: sum('sort'),
+            avg: average('v')
+          }
+        );
+        expect(snapshot3.data().count).to.equal(3);
+        expect(snapshot3.data().sum).to.equal(6);
+        expect(snapshot3.data().avg).to.equal(1);
+
+        const snapshot4 = await getAggregate(
+          query(
+            coll,
+            where('key', '>', 'a'),
+            where('sort', '>=', 1),
+            where('v', '!=', 0)
+          ),
+          {
+            count: count(),
+            sum: sum('sort'),
+            avg: average('v')
+          }
+        );
+        expect(snapshot4.data().count).to.equal(3);
+        expect(snapshot4.data().sum).to.equal(6);
+        expect(snapshot4.data().avg).to.equal(1);
+      });
+    });
+
+    it('can use document ID im multiple inequality query', () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 5 },
+        doc2: { key: 'aa', sort: 4 },
+        doc3: { key: 'b', sort: 3 },
+        doc4: { key: 'b', sort: 2 },
+        doc5: { key: 'bb', sort: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        const snapshot1 = await getDocs(
+          query(
+            coll,
+            where('sort', '>=', 1),
+            where('key', '!=', 'a'),
+            where(documentId(), '<', 'doc5')
+          )
+        );
+        // Document Key in inequality field will implicitly ordered to the last.
+        // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'aa', sort: 4 },
+          { key: 'b', sort: 2 },
+          { key: 'b', sort: 3 }
+        ]);
+
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            where(documentId(), '<', 'doc5'),
+            where('sort', '>=', 1),
+            where('key', '!=', 'a')
+          )
+        );
+        // Changing filters order will not effect implicit order.
+        // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'aa', sort: 4 },
+          { key: 'b', sort: 2 },
+          { key: 'b', sort: 3 }
+        ]);
+
+        const snapshot3 = await getDocs(
+          query(
+            coll,
+            where(documentId(), '<', 'doc5'),
+            where('sort', '>=', 1),
+            where('key', '!=', 'a'),
+            orderBy('sort', 'desc')
+          )
+        );
+        // Ordered by: 'sort' desc,'key' desc,  __name__ desc
+        expect(toDataArray(snapshot3)).to.deep.equal([
+          { key: 'aa', sort: 4 },
+          { key: 'b', sort: 3 },
+          { key: 'b', sort: 2 }
+        ]);
+      });
+    });
+
+    it('can get documents while offline', () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 1 },
+        doc2: { key: 'aa', sort: 4 },
+        doc3: { key: 'b', sort: 3 },
+        doc4: { key: 'b', sort: 2 }
+      };
+      return withTestCollection(
+        persistence.toLruGc(),
+        testDocs,
+        async (coll, db) => {
+          const query_ = query(
+            coll,
+            where('key', '!=', 'a'),
+            where('sort', '<=', 3)
+          );
+          //populate the cache.
+          const snapshot1 = await getDocs(query_);
+          expect(snapshot1.size).to.equal(2);
+
+          await disableNetwork(db);
+
+          const snapshot2 = await getDocs(query_);
+          expect(snapshot2.metadata.fromCache).to.be.true;
+          expect(snapshot2.metadata.hasPendingWrites).to.be.false;
+          // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
+          expect(toDataArray(snapshot2)).to.deep.equal([
+            { key: 'b', sort: 2 },
+            { key: 'b', sort: 3 }
+          ]);
+        }
+      );
     });
   });
 

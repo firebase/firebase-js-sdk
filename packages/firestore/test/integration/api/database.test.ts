@@ -20,7 +20,6 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { ref } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -643,18 +642,18 @@ apiDescribe('Database', persistence => {
   apiDescribe('Queries are validated client-side', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
-    it('inequality and equality on different fields works', () => {
+    it('same inequality fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(coll, where('x', '>=', 32), where('y', '==', 'cat'))
+          query(coll, where('x', '>=', 32), where('x', '<=', 'cat'))
         ).not.to.throw();
       });
     });
 
-    it('inequality on same field works', () => {
+    it('inequality and equality on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(coll, where('x', '>=', 32), where('x', '<', 42))
+          query(coll, where('x', '>=', 32), where('y', '==', 'cat'))
         ).not.to.throw();
       });
     });
@@ -670,11 +669,7 @@ apiDescribe('Database', persistence => {
     it('inequality with key fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          query(
-            coll,
-            where(documentId(), '>=', ref('collection/id')),
-            where('x', '>=', 32)
-          )
+          query(coll, where(documentId(), '>=', 'aa'), where('x', '>=', 32))
         ).not.to.throw();
       });
     });
@@ -699,6 +694,32 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('multiple inequality and array-contains on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains', 'cat'),
+            where('z', '<=', 42)
+          )
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality and array-contains-any on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains-any', [1, 2]),
+            where('z', '<=', 42)
+          )
+        ).not.to.throw();
+      });
+    });
+
     it('inequality and IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -707,10 +728,36 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('multiple inequality and IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'in', [1, 2]),
+            where('z', '<=', 42)
+          )
+        ).not.to.throw();
+      });
+    });
+
     it('inequality and NOT IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', 'not-in', [1, 2]))
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality and NOT IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'not-in', [1, 2]),
+            where('z', '<=', 42)
+          )
         ).not.to.throw();
       });
     });
@@ -767,7 +814,7 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('inequality different from orderBy works.', () => {
+    it('inequality different than orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>', 32), orderBy('y'))
