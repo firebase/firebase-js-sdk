@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-Add `x-goog-request-params` to REST request header.
+Fixed issue where count and lite API queries did not work with named databases.
