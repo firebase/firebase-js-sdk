@@ -434,6 +434,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this._updatePasswordPolicy();
     }
 
+    // Password policy will be defined after fetching.
     const passwordPolicy: PasswordPolicyInternal =
       this._getPasswordPolicyInternal()!;
 
