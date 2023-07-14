@@ -41,6 +41,26 @@ import { IdTokenResponse } from '../../model/id_token';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
+ * Updates the password policy cached in the {@link Auth} instance if a policy is already
+ * cached for the project or tenant.
+ *
+ * @remarks
+ * We only fetch the password policy if the password did not meet policy requirements and
+ * there is an existing policy cached. A developer must call validatePassword at least
+ * once for the cache to be automatically updated.
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @private
+ */
+async function recachePasswordPolicy(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  if (authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+}
+
+/**
  * Sends a password reset email to the given email address.
  *
  * @remarks
@@ -154,10 +174,21 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(getModularInstance(auth), {
-    oobCode,
-    newPassword
-  });
+  await account
+    .resetPassword(getModularInstance(auth), {
+      oobCode,
+      newPassword
+    })
+    .catch(async error => {
+      if (
+        error.code ===
+        `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+      ) {
+        await recachePasswordPolicy(auth);
+      }
+
+      return Promise.reject(error);
+    });
   // Do not return the email.
 }
 
@@ -308,14 +339,11 @@ export async function createUserWithEmailAndPassword(
         );
         return signUp(authInternal, requestWithRecaptcha);
       } else {
-        // Only fetch the password policy if the password did not meet policy requirements and there is an existing policy cached.
-        // A developer must call validatePassword at least once for the cache to be automatically updated.
         if (
           error.code ===
-            `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}` &&
-          authInternal._getPasswordPolicyInternal()
+          `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
         ) {
-          await authInternal._updatePasswordPolicy();
+          await recachePasswordPolicy(auth);
         }
 
         return Promise.reject(error);
