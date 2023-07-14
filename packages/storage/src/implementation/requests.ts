@@ -48,7 +48,6 @@ import { makeUrl } from './url';
 import { Connection, ConnectionType } from './connection';
 import { FirebaseStorageImpl } from '../service';
 import { SignedURLOptions } from '../public-types';
-import { DEFAULT_TIME_TO_LIVE_MILLIS } from './constants';
 
 /**
  * Throws the UNKNOWN StorageError if cndn is false.
@@ -266,7 +265,7 @@ export function generateSignedURL(
   options?: SignedURLOptions
 ): RequestInfo<string, string | null> {
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  const expiration = { ttlInMillis: validateSignedURLOptions(options) }
+  const expiration = { ttlSeconds: validateSignedURLOptions(options) }
   const body = JSON.stringify(expiration);
   const urlPart = location.fullServerUrl();
   const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';

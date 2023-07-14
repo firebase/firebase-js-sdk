@@ -129,9 +129,9 @@ export interface ListResult {
  */
 export interface SignedURLOptions {
   /**
-   * Number of milliseconds after creation date/time that URL should expire.
+   * Integer number of seconds after creation date/time that URL should expire.
    */
-  ttlInMillis: number;
+  ttlSeconds: number;
 }
 
 /**
