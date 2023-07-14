@@ -1349,7 +1349,7 @@ apiDescribe('Queries', persistence => {
         doc4: { key: 'd', sort: 2, v: 2 }
       };
       return withTestCollection(persistence, testDocs, async coll => {
-        // multiple inequality fields
+        // Multiple inequality fields
         const snapshot1 = await getDocs(
           query(
             coll,
@@ -1362,7 +1362,7 @@ apiDescribe('Queries', persistence => {
           { key: 'c', sort: 1, v: 3 }
         ]);
 
-        // duplicate inequality fields
+        // Duplicate inequality fields
         const snapshot2 = await getDocs(
           query(
             coll,
@@ -1433,7 +1433,7 @@ apiDescribe('Queries', persistence => {
           { key: 'd', sort: 2, v: 2 }
         ]);
 
-        // With limit to last
+        // With limitToLast
         const snapshot7 = await getDocs(
           query(
             coll,
@@ -1450,13 +1450,46 @@ apiDescribe('Queries', persistence => {
       });
     });
 
+    it('can use on unary values', async () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 0, v: 0 },
+        doc2: { key: 'b', sort: NaN, v: 1 },
+        doc3: { key: 'c', sort: null, v: 3 },
+        doc4: { key: 'd', v: 0 },
+        doc5: { key: 'e', sort: 1 },
+        doc6: { key: 'f', sort: 1, v: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        const snapshot1 = await getDocs(
+          query(coll, where('key', '!=', 'a'), where('sort', '<=', 2))
+        );
+        expect(toDataArray(snapshot1)).to.deep.equal([
+          { key: 'e', sort: 1 },
+          { key: 'f', sort: 1, v: 1 }
+        ]);
+
+        const snapshot2 = await getDocs(
+          query(
+            coll,
+            where('key', '!=', 'a'),
+            where('sort', '<=', 2),
+            where('v', '<=', 1)
+          )
+        );
+        expect(toDataArray(snapshot2)).to.deep.equal([
+          { key: 'f', sort: 1, v: 1 }
+        ]);
+      });
+    });
     it('can use with array membership', async () => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: [0] },
         doc2: { key: 'b', sort: 1, v: [0, 1, 3] },
         doc3: { key: 'c', sort: 1, v: [] },
         doc4: { key: 'd', sort: 2, v: [1] },
-        doc5: { key: 'e', sort: 3, v: [2, 4] }
+        doc5: { key: 'e', sort: 3, v: [2, 4] },
+        doc6: { key: 'f', sort: 4, v: [NaN] },
+        doc7: { key: 'g', sort: 4, v: [null] }
       };
       return withTestCollection(persistence, testDocs, async coll => {
         const snapshot1 = await getDocs(
@@ -1861,6 +1894,69 @@ apiDescribe('Queries', persistence => {
         }
       );
     });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? it : it.skip)(
+      'can get same result from server and cache',
+      () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
+
+        return withTestCollection(persistence, testDocs, async coll => {
+          // implicit AND: a != 1 && b < 2
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '!=', 1), where('b', '<', 2)),
+            'doc2'
+          );
+
+          // explicit AND: a != 1 && b < 2
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, and(where('a', '!=', 1), where('b', '<', 2))),
+            'doc2'
+          );
+
+          // explicit AND: a < 3 && b not-in [2, 3]
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, and(where('a', '<', 3), where('b', 'not-in', [2, 3]))),
+            'doc1',
+            'doc5',
+            'doc2'
+          );
+
+          // a <3 && b != 0, implicitly ordered by: a asc, b asc, __name__ asc
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, where('a', '<', 3), where('b', '!=', 0), limit(2)),
+            'doc5',
+            'doc4'
+          );
+
+          // a <3 && b != 0, implicitly ordered by: b desc, a desc, __name__ desc
+          await checkOnlineAndOfflineResultsMatch(
+            query(
+              coll,
+              where('a', '<', 3),
+              where('b', '!=', 0),
+              orderBy('b', 'desc'),
+              limit(2)
+            ),
+            'doc4',
+            'doc2'
+          );
+
+          // explicit OR: multiple inequality: a>2 || b<=1.
+          await checkOnlineAndOfflineResultsMatch(
+            query(coll, or(where('a', '>', 2), where('b', '<', 1))),
+            'doc1',
+            'doc3'
+          );
+        });
+      }
+    );
   });
 
   // OR Query tests only run when the SDK's local cache is configured to use
@@ -1896,20 +1992,6 @@ apiDescribe('Queries', persistence => {
         await checkOnlineAndOfflineResultsMatch(
           query(coll, and(where('a', '==', 1), where('b', '==', 3))),
           'doc4'
-        );
-
-        // explicit AND: a != 1 && b < 2
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, and(where('a', '!=', 1), where('b', '<', 2))),
-          'doc2'
-        );
-
-        // explicit AND: a < 3 && b not-in [2
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, and(where('a', '<', 3), where('b', 'not-in', [2, 3]))),
-          'doc1',
-          'doc5',
-          'doc2'
         );
 
         // a == 1, limit 2
@@ -2278,13 +2360,6 @@ apiDescribe('Queries', persistence => {
               orderBy('a')
             ),
             'doc2'
-          );
-
-          // with multiple inequality: a>2 || b<=1.
-          await checkOnlineAndOfflineResultsMatch(
-            query(coll, or(where('a', '>', 2), where('b', '<', 1))),
-            'doc1',
-            'doc3'
           );
         });
       });
