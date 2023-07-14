@@ -53,9 +53,9 @@ import { RecaptchaActionName, RecaptchaClientType } from '../../api';
  *
  * @private
  */
-async function updatePasswordPolicyIfCached(auth: Auth): Promise<void> {
+async function recachePasswordPolicy(auth: Auth): Promise<void> {
   const authInternal = _castAuth(auth);
-  if (authInternal._getPasswordPolicy()) {
+  if (authInternal._getPasswordPolicyInternal()) {
     await authInternal._updatePasswordPolicy();
   }
 }
@@ -184,7 +184,7 @@ export async function confirmPasswordReset(
         error.code ===
         `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
       ) {
-        await updatePasswordPolicyIfCached(auth);
+        await recachePasswordPolicy(auth);
       }
 
       return Promise.reject(error);
@@ -343,7 +343,7 @@ export async function createUserWithEmailAndPassword(
           error.code ===
           `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
         ) {
-          await updatePasswordPolicyIfCached(auth);
+          await recachePasswordPolicy(auth);
         }
 
         return Promise.reject(error);
@@ -391,9 +391,10 @@ export function signInWithEmailAndPassword(
     EmailAuthProvider.credential(email, password)
   ).catch(async error => {
     if (
-      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+      error.code ===
+      `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
     ) {
-      await updatePasswordPolicyIfCached(auth);
+      await recachePasswordPolicy(auth);
     }
 
     return Promise.reject(error);

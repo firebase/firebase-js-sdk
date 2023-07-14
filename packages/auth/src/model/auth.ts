@@ -32,6 +32,7 @@ import { PopupRedirectResolverInternal } from './popup_redirect';
 import { UserInternal } from './user';
 import { ClientPlatform } from '../core/util/version';
 import { RecaptchaConfig } from '../platform_browser/recaptcha/recaptcha';
+import { PasswordPolicyInternal } from './password_policy';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -87,7 +88,7 @@ export interface AuthInternal extends Auth {
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
   _getRecaptchaConfig(): RecaptchaConfig | null;
-  _getPasswordPolicy(): PasswordPolicy | null;
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null;
   _updatePasswordPolicy(): Promise<void>;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
