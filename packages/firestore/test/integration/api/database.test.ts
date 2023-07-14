@@ -1139,6 +1139,33 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can compare multiple inequality Query instances with isEqual().', () => {
+    return withTestDb(persistence, async firestore => {
+      const query1 = query(
+        collection(firestore, 'foo'),
+        where('x', '>=', 42),
+        where('y', '!=', 42),
+        orderBy('z')
+      );
+      const query2 = query(
+        collection(firestore, 'foo'),
+        where('x', '>=', 42),
+        where('y', '!=', 42),
+        orderBy('z')
+      );
+      expect(queryEqual(query1, query2)).to.be.true;
+
+      // Inequality fields in different order
+      const query3 = query(
+        collection(firestore, 'foo'),
+        where('y', '!=', 42),
+        where('x', '>=', 42),
+        orderBy('z')
+      );
+      expect(queryEqual(query1, query3)).to.be.false;
+    });
+  });
+
   it('can traverse collections and documents.', () => {
     return withTestDb(persistence, async db => {
       const expected = 'a/b/c/d';
