@@ -104,6 +104,10 @@ export class RecaptchaEnterpriseVerifier {
       resolve: (value: string | PromiseLike<string>) => void,
       reject: (reason?: unknown) => void
     ): void {
+      if (typeof window === 'undefined') {
+        reject(new Error('RecaptchaVerifier is only supported in browser'));
+        return;
+      }
       const grecaptcha = _window().grecaptcha;
       if (isEnterprise(grecaptcha)) {
         grecaptcha.enterprise.ready(() => {
