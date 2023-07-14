@@ -555,27 +555,20 @@ async function onSignInVerifyPhoneNumber() {
   .then(confirmationResult => {  
     confirmationResult
     .confirmWithWebOTP()
-    .then(result => {
+    .then(userCredential => {
       console.log('confirm success');
-      alertSuccess('You got a code' + user.uid);
-      // User signed in successfully.
-      const user = result.user;
-      // ...
-    })
-    .catch(error => {
-      // User couldn't sign in (bad verification code?)
-      // ...
-      alertError(error);
-      console.log(error);
-    });
+      alertSuccess('You got a code' + result.user);
+      onAuthUserCredentialSuccess(userCredential);
+    }, onAuthError);
+  })
+  .catch(error => {
+    console.log("you have made no progress");
+    alertError('You got no code');
 
-})
-.catch(error => {
-  console.log("you have made no progress");
-  // Error; SMS not sent
-  // ...
-  console.log(error);
-});
+    // Error; SMS not sent
+    // ...
+    console.log(error);
+  });
 }
 
 /**
@@ -1275,7 +1268,7 @@ function onSelectMultiFactorHint(index) {
  * Start sign-in with the 2nd factor phone number.
  * @param {!jQuery.Event} event The jQuery event object.
  */
-async function onStartSignInWithPhoneMultiFactor(event) {
+function onStartSignInWithPhoneMultiFactor(event) {
   event.preventDefault();
   // Make sure a second factor is selected.
   if (!selectedMultiFactorHint || !multiFactorErrorResolver) {
@@ -1287,58 +1280,17 @@ async function onStartSignInWithPhoneMultiFactor(event) {
     multiFactorHint: selectedMultiFactorHint,
     session: multiFactorErrorResolver.session
   };
-  const phoneNumber = signInRequest.multiFactorHint.phoneNumber;
-  console.log(phoneNumber);
-  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
-  .then(confirmationResult => {  
-    console.log('you didnt break');
-    confirmationResult
-    .confirmWithWebOTP()
-    .then(result => {
-      console.log('confirm success');
-      // User signed in successfully.
-      const user = result.user;
-      // ...
-    })
-    .catch(error => {
-      // User couldn't sign in (bad verification code?)
-      // ...
-      console.log(error);
-    });
-
-})
-.catch(error => {
-  console.log("you have made no progress");
-  // Error; SMS not sent
-  // ...
-  console.log(error);
-});
-/*
-  // write code here
-console.log("hello");
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
     verificationId => {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
-      try {
-        console.log(signInRequest.multiFactorHint);
-        const confirmationResult =  (async () => await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier)
-        );
-         // Obtain verificationCode from the user.
-         // test confirm method to see if the existing methodit works then
-         const userCredential = confirmationResult.confirmWithWebOTP();
-      } catch(error) {
-        console.log(error);
-      }
     },
-
     error => {
       clearApplicationVerifier();
       onAuthError(error);
     }
   );
-*/
 }
 
 /**

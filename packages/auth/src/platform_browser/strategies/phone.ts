@@ -78,39 +78,37 @@ class ConfirmationResultImpl implements ConfirmationResult {
     return this.onConfirmation(authCredential);
   }
 
-   async confirmWithWebOTP (): Promise<UserCredential> {
+  async confirmWithWebOTP (): Promise<UserCredential> {
     if ('OTPCredential' in window) {
       const abortController = new AbortController();
-      let time1 = new Date();
-      console.log("Start Time " + time1.getTime());
       let timer = setTimeout(() => {
         abortController.abort();
-        console.log("time's up buddy");
-        let time2 = new Date();
-        console.log("Promise Resolves Time " +( time2.getTime() - time1.getTime()));
+        console.log("Time out");
         throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
         // throws error on timeout
       }, 30 * 1000);
 
         // @ts-ignore - ignore types for testing
       let o: OTPCredentialRequestOptions = {
-        //otp: { transport: ['sms'] },
+        otp: { transport: ['sms'] },
         signal: abortController.signal
       };
-      console.log("awaiting code...");
-      //const content: OTPCredential|null =  await window.navigator['credentials'].get(o);
-      const content: Credential|null =  await window.navigator['credentials'].get(o);
-      console.log("found something!");
-      console.log(content);
-      // if(content === undefined || content === null || content.code === undefined) {
-      //   //fix
-      //   console.log("no user content found");
-      //   throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
-
-      // } else {
-      //   return await this.confirm(content.code);
-      // }
-      throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");
+      // doesn't resolve?
+      let code : string = "";
+      await (window.navigator['credentials'].get(o) as Promise<OTPCredential|null>).then(async (content) => {
+        console.log("SMS has been fetched");
+        if (content === undefined || content === null || content.code === undefined) {
+          console.log("Content is not defined");
+          throw new FirebaseError('WEB_OTP_UNDEFINED', "auth/web-otp-undefined");
+        } else {
+          code = content.code;
+        }
+        console.log("Sucess: " + content?.code);
+      }).catch (error => {
+        console.log("Something is broken" + error);
+        throw new FirebaseError('WEB_OTP_BROKEN', "auth/web-otp-broken");
+      });
+      return await this.confirm(code);
     } else {
       // throws error if Web OTP not supported
       throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");
