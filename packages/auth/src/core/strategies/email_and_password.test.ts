@@ -54,8 +54,17 @@ import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptc
 use(chaiAsPromised);
 use(sinonChai);
 
+const TEST_ID_TOKEN = 'id-token';
+const TEST_REFRESH_TOKEN = 'refresh-token';
+const TEST_TOKEN_EXPIRY_TIME = '1234';
+
+const TEST_LOCAL_ID = 'local-id';
+
+const TEST_EMAIL = 'foo@bar.com';
+const TEST_PASSWORD = 'some-password';
+
 describe('core/strategies/sendPasswordResetEmail', () => {
-  const email = 'foo@bar.com';
+  const email = TEST_EMAIL;
 
   let auth: TestAuth;
 
@@ -323,7 +332,7 @@ describe('core/strategies/confirmPasswordReset', () => {
 
   it('should confirm the password reset and not return the email', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
-      email: 'foo@bar.com'
+      email: TEST_EMAIL
     });
     const response = await confirmPasswordReset(auth, oobCode, newPassword);
     expect(response).to.be.undefined;
@@ -395,7 +404,7 @@ describe('core/strategies/applyActionCode', () => {
 
 describe('core/strategies/checkActionCode', () => {
   const oobCode = 'oob-code';
-  const email = 'foo@bar.com';
+  const email = TEST_EMAIL;
   const newEmail = 'new@email.com';
 
   let auth: TestAuth;
@@ -410,7 +419,7 @@ describe('core/strategies/checkActionCode', () => {
   it('should verify the oob code', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       requestType: ActionCodeOperation.PASSWORD_RESET,
-      email: 'foo@bar.com'
+      email: TEST_EMAIL
     });
     const response = await checkActionCode(auth, oobCode);
     expect(response).to.eql({
@@ -478,7 +487,7 @@ describe('core/strategies/checkActionCode', () => {
 
 describe('core/strategies/verifyPasswordResetCode', () => {
   const oobCode = 'oob-code';
-  const email = 'foo@bar.com';
+  const email = TEST_EMAIL;
 
   let auth: TestAuth;
 
@@ -492,7 +501,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
   it('should verify the oob code', async () => {
     const mock = mockEndpoint(Endpoint.RESET_PASSWORD, {
       requestType: ActionCodeOperation.PASSWORD_RESET,
-      email: 'foo@bar.com',
+      email: TEST_EMAIL,
       previousEmail: null
     });
     const response = await verifyPasswordResetCode(auth, oobCode);
@@ -535,16 +544,16 @@ describe('core/strategies/verifyPasswordResetCode', () => {
 describe('core/strategies/email_and_password/createUserWithEmailAndPassword', () => {
   let auth: TestAuth;
   const serverUser: APIUserInfo = {
-    localId: 'local-id'
+    localId: TEST_LOCAL_ID
   };
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
     mockEndpoint(Endpoint.SIGN_UP, {
-      idToken: 'id-token',
-      refreshToken: 'refresh-token',
-      expiresIn: '1234',
+      idToken: TEST_ID_TOKEN,
+      refreshToken: TEST_REFRESH_TOKEN,
+      expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -557,13 +566,13 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
     const { _tokenResponse, user, operationType } =
       (await createUserWithEmailAndPassword(
         auth,
-        'some-email',
-        'some-password'
+        TEST_EMAIL,
+        TEST_PASSWORD
       )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
-      idToken: 'id-token',
-      refreshToken: 'refresh-token',
-      expiresIn: '1234',
+      idToken: TEST_ID_TOKEN,
+      refreshToken: TEST_REFRESH_TOKEN,
+      expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
     expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -622,13 +631,13 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
           auth,
-          'some-email',
-          'some-password'
+          TEST_EMAIL,
+          TEST_PASSWORD
         )) as UserCredentialInternal;
       expect(_tokenResponse).to.eql({
-        idToken: 'id-token',
-        refreshToken: 'refresh-token',
-        expiresIn: '1234',
+        idToken: TEST_ID_TOKEN,
+        refreshToken: TEST_REFRESH_TOKEN,
+        expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
       expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -653,13 +662,13 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
           auth,
-          'some-email',
-          'some-password'
+          TEST_EMAIL,
+          TEST_PASSWORD
         )) as UserCredentialInternal;
       expect(_tokenResponse).to.eql({
-        idToken: 'id-token',
-        refreshToken: 'refresh-token',
-        expiresIn: '1234',
+        idToken: TEST_ID_TOKEN,
+        refreshToken: TEST_REFRESH_TOKEN,
+        expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
       expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -676,8 +685,8 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       mockEndpointWithParams(
         Endpoint.SIGN_UP,
         {
-          email: 'some-email',
-          password: 'some-password',
+          email: TEST_EMAIL,
+          password: TEST_PASSWORD,
           clientType: RecaptchaClientType.WEB
         },
         {
@@ -693,16 +702,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       mockEndpointWithParams(
         Endpoint.SIGN_UP,
         {
-          email: 'some-email',
-          password: 'some-password',
+          email: TEST_EMAIL,
+          password: TEST_PASSWORD,
           captchaResp: 'recaptcha-response',
           clientType: RecaptchaClientType.WEB,
           recaptchaVersion: RecaptchaVersion.ENTERPRISE
         },
         {
-          idToken: 'id-token',
-          refreshToken: 'refresh-token',
-          expiresIn: '1234',
+          idToken: TEST_ID_TOKEN,
+          refreshToken: TEST_REFRESH_TOKEN,
+          expiresIn: TEST_TOKEN_EXPIRY_TIME,
           localId: serverUser.localId!
         }
       );
@@ -731,13 +740,13 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
           auth,
-          'some-email',
-          'some-password'
+          TEST_EMAIL,
+          TEST_PASSWORD
         )) as UserCredentialInternal;
       expect(_tokenResponse).to.eql({
-        idToken: 'id-token',
-        refreshToken: 'refresh-token',
-        expiresIn: '1234',
+        idToken: TEST_ID_TOKEN,
+        refreshToken: TEST_REFRESH_TOKEN,
+        expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: serverUser.localId!
       });
       expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -750,16 +759,16 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
 describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => {
   let auth: TestAuth;
   const serverUser: APIUserInfo = {
-    localId: 'local-id'
+    localId: TEST_LOCAL_ID
   };
 
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
     mockEndpoint(Endpoint.SIGN_IN_WITH_PASSWORD, {
-      idToken: 'id-token',
-      refreshToken: 'refresh-token',
-      expiresIn: '1234',
+      idToken: TEST_ID_TOKEN,
+      refreshToken: TEST_REFRESH_TOKEN,
+      expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -772,13 +781,13 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
     const { _tokenResponse, user, operationType } =
       (await signInWithEmailAndPassword(
         auth,
-        'some-email',
-        'some-password'
+        TEST_EMAIL,
+        TEST_PASSWORD
       )) as UserCredentialInternal;
     expect(_tokenResponse).to.eql({
-      idToken: 'id-token',
-      refreshToken: 'refresh-token',
-      expiresIn: '1234',
+      idToken: TEST_ID_TOKEN,
+      refreshToken: TEST_REFRESH_TOKEN,
+      expiresIn: TEST_TOKEN_EXPIRY_TIME,
       localId: serverUser.localId!
     });
     expect(operationType).to.eq(OperationType.SIGN_IN);
@@ -829,8 +838,6 @@ describe('password policy cache is updated in auth flows upon error', () => {
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
     schemaVersion: TEST_SCHEMA_VERSION
   };
-  const TEST_EMAIL = 'foo@bar.com';
-  const TEST_PASSWORD = 'some-password';
   let policyEndpointMock: mockFetch.Route;
   let policyEndpointMockWithTenant: mockFetch.Route;
   let policyEndpointMockWithOtherTenant: mockFetch.Route;
@@ -862,14 +869,14 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
   context('#createUserWithEmailAndPassword', () => {
     const TEST_SERVER_USER: APIUserInfo = {
-      localId: 'local-id'
+      localId: TEST_LOCAL_ID
     };
 
     beforeEach(() => {
       mockEndpoint(Endpoint.SIGN_UP, {
-        idToken: 'id-token',
-        refreshToken: 'refresh-token',
-        expiresIn: '1234',
+        idToken: TEST_ID_TOKEN,
+        refreshToken: TEST_REFRESH_TOKEN,
+        expiresIn: TEST_TOKEN_EXPIRY_TIME,
         localId: TEST_SERVER_USER.localId!
       });
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
@@ -911,7 +918,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
         );
       });
 
-      it('updates the cached password policy when password does not meet backend requirements', async () => {
+      it('updates the cached password policy when password does not meet backend requirements for the project', async () => {
         await auth._updatePasswordPolicy();
         expect(policyEndpointMock.calls.length).to.eq(1);
         expect(auth._getPasswordPolicyInternal()).to.eql(
@@ -925,6 +932,27 @@ describe('password policy cache is updated in auth flows upon error', () => {
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+        );
+      });
+
+      it('updates the cached password policy when password does not meet backend requirements for the tenant', async () => {
+        auth.tenantId = TEST_TENANT_ID;
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY
+        );
+
+        // Password policy changed after previous fetch.
+        policyEndpointMockWithTenant.response =
+          PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
+        await expect(
+          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
@@ -1000,7 +1028,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
         );
       });
 
-      it('updates the cached password policy when password does not meet backend requirements', async () => {
+      it('updates the cached password policy when password does not meet backend requirements for the project', async () => {
         await auth._updatePasswordPolicy();
         expect(policyEndpointMock.calls.length).to.eq(1);
         expect(auth._getPasswordPolicyInternal()).to.eql(
@@ -1014,6 +1042,27 @@ describe('password policy cache is updated in auth flows upon error', () => {
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
         expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+        );
+      });
+
+      it('updates the cached password policy when password does not meet backend requirements for the tenant', async () => {
+        auth.tenantId = TEST_TENANT_ID;
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY
+        );
+
+        // Password policy changed after previous fetch.
+        policyEndpointMockWithTenant.response =
+          PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
+        await expect(
+          confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
         );
