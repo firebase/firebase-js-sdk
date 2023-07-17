@@ -122,9 +122,9 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     this.updatePasswordCharacterOptionsStasuses(
       status,
       /* containsLowercaseCharacter= */ false,
-      /** containsUppercaseCharacter= */ false,
-      /** containsNumericCharacter= */ false,
-      /** containsNonAlphanumericCharacter= */ false
+      /* containsUppercaseCharacter= */ false,
+      /* containsNumericCharacter= */ false,
+      /* containsNonAlphanumericCharacter= */ false
     );
 
     let passwordChar;
@@ -134,11 +134,11 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
         status,
         /* containsLowercaseCharacter= */ passwordChar >= 'a' &&
           passwordChar <= 'z',
-        /** containsUppercaseCharacter= */ passwordChar >= 'A' &&
+        /* containsUppercaseCharacter= */ passwordChar >= 'A' &&
           passwordChar <= 'Z',
-        /** containsNumericCharacter= */ passwordChar >= '0' &&
+        /* containsNumericCharacter= */ passwordChar >= '0' &&
           passwordChar <= '9',
-        /** containsNonAlphanumericCharacter= */ this.allowedNonAlphanumericCharacters.includes(
+        /* containsNonAlphanumericCharacter= */ this.allowedNonAlphanumericCharacters.includes(
           passwordChar
         )
       );
