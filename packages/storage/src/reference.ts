@@ -41,7 +41,11 @@ import { Metadata } from './metadata';
 import { FirebaseStorageImpl } from './service';
 import { ListResult } from './list';
 import { UploadTask } from './task';
-import { invalidRootOperation, noDownloadURL, noSignedURL } from './implementation/error';
+import {
+  invalidRootOperation,
+  noDownloadURL,
+  noSignedURL
+} from './implementation/error';
 import { validateNumber } from './implementation/type';
 import {
   newBlobConnection,
@@ -485,7 +489,10 @@ export function getDownloadURL(ref: Reference): Promise<string> {
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function generateSignedURL(ref: Reference, options?: SignedURLOptions): Promise<string> {
+export function generateSignedURL(
+  ref: Reference,
+  options?: SignedURLOptions
+): Promise<string> {
   ref._throwIfRoot('generateSignedURL');
   const requestInfo = requestsGenerateSignedURL(
     ref.storage,

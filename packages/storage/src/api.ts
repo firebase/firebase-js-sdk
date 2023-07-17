@@ -281,7 +281,10 @@ export function getDownloadURL(ref: StorageReference): Promise<string> {
  * @returns A `Promise` that resolves with the signed
  *     URL for this object.
  */
-export function generateSignedURL(ref: StorageReference, options?: SignedURLOptions): Promise<string> {
+export function generateSignedURL(
+  ref: StorageReference,
+  options?: SignedURLOptions
+): Promise<string> {
   ref = getModularInstance(ref);
   return generateSignedURLInternal(ref as Reference, options);
 }

@@ -99,8 +99,11 @@ export function downloadUrlHandler(
   return handler;
 }
 
-export function signedURLHandler(): (p1: Connection<string>, p2: string) => string | null{
-  function handler(xhr: Connection<string>, text: string): string | null{
+export function signedURLHandler(): (
+  p1: Connection<string>,
+  p2: string
+) => string | null {
+  function handler(xhr: Connection<string>, text: string): string | null {
     return signedURLFromResourceString(text);
   }
   return handler;
@@ -265,18 +268,14 @@ export function generateSignedURL(
   options?: SignedURLOptions
 ): RequestInfo<string, string | null> {
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  const expiration = { ttlSeconds: validateSignedURLOptions(options) }
+  const expiration = { ttlSeconds: validateSignedURLOptions(options) };
   const body = JSON.stringify(expiration);
   const urlPart = location.fullServerUrl();
-  const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
+  const url =
+    makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
   const method = 'POST';
   const timeout = service.maxOperationRetryTime;
-  const requestInfo = new RequestInfo(
-    url,
-    method,
-    signedURLHandler(),
-    timeout
-    );
+  const requestInfo = new RequestInfo(url, method, signedURLHandler(), timeout);
   requestInfo.headers = headers;
   requestInfo.body = body;
   requestInfo.errorHandler = objectErrorHandler(location);
