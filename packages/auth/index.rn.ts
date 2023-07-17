@@ -22,15 +22,14 @@
  * just use index.ts
  */
 
-import * as ReactNative from 'react-native';
-
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
-import { Auth, Persistence } from './src/model/public_types';
+import { Auth } from './src/model/public_types';
 
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // Core functionality shared by all clients
 export * from './index.shared';
@@ -50,28 +49,6 @@ export {
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
-/**
- * An implementation of {@link Persistence} of type 'LOCAL' for use in React
- * Native environments.
- *
- * @public
- */
-export const reactNativeLocalPersistence: Persistence =
-  getReactNativePersistence({
-    getItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.getItem(...args);
-    },
-    setItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.setItem(...args);
-    },
-    removeItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.removeItem(...args);
-    }
-  });
-
 export { getReactNativePersistence };
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
@@ -82,7 +59,7 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   }
 
   return initializeAuth(app, {
-    persistence: reactNativeLocalPersistence
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
   });
 }
 

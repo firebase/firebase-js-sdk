@@ -69,5 +69,6 @@ export interface ExistenceFilterMismatchInfo {
     hashCount: number;
     bitmapLength: number;
     padding: number;
+    mightContain?(documentPath: string): boolean;
   };
 }

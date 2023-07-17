@@ -78,6 +78,7 @@ import {
   updateDoc
 } from '../../src/lite-api/reference_impl';
 import {
+  FirestoreDataConverter,
   snapshotEqual,
   QuerySnapshot,
   QueryDocumentSnapshot
@@ -428,26 +429,28 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
   ): Promise<void>;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): Promise<void>;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    data: UpdateData<T>
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
   ): Promise<void>;
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
-  delete(documentRef: DocumentReference<unknown>): Promise<void>;
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<void>;
 }
 
 genericMutationTests({
@@ -458,15 +461,17 @@ genericMutationTests({
 
 describe('WriteBatch', () => {
   class WriteBatchTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       batch.delete(ref);
       return batch.commit();
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -476,9 +481,9 @@ describe('WriteBatch', () => {
       return batch.commit();
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -521,29 +526,31 @@ describe('WriteBatch', () => {
 
 describe('Transaction', () => {
   class TransactionTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         transaction.delete(ref);
       });
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
           transaction.set(ref, data, options);
         } else {
-          transaction.set(ref, data as WithFieldValue<T>);
+          transaction.set(ref, data as WithFieldValue<AppModelType>);
         }
       });
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -556,7 +563,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as UpdateData<T>);
+          transaction.update(ref, dataOrField as UpdateData<DbModelType>);
         }
       });
     }
@@ -1385,7 +1392,7 @@ describe('withConverter() support', () => {
       ) {}
     }
 
-    const testConverter = {
+    const testConverter: FirestoreDataConverter<TestObject, TestObject> = {
       toFirestore(testObj: WithFieldValue<TestObject>) {
         return { ...testObj };
       },
@@ -1780,8 +1787,7 @@ describe('withConverter() support', () => {
 
       it('supports string-separated fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
           await updateDoc(testDocRef, {
             // @ts-expect-error
             outerString: 3,
@@ -1895,7 +1901,10 @@ describe('withConverter() support', () => {
             | { requiredNumber: number };
         }
 
-        const testConverterUnion = {
+        const testConverterUnion: FirestoreDataConverter<
+          TestObjectUnion,
+          TestObjectUnion
+        > = {
           toFirestore(testObj: WithFieldValue<TestObjectUnion>) {
             return { ...testObj };
           },
@@ -1909,8 +1918,7 @@ describe('withConverter() support', () => {
         };
 
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObjectUnion> =
-            docRef.withConverter(testConverterUnion);
+          const testDocRef = docRef.withConverter(testConverterUnion);
 
           await updateDoc(testDocRef, {
             nested: {
@@ -1943,8 +1951,7 @@ describe('withConverter() support', () => {
 
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
 
           // Top-level fields.
           await updateDoc(testDocRef, {

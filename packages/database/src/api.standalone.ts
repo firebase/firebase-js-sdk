@@ -37,6 +37,7 @@ export { OnDisconnect } from './api/OnDisconnect';
 export {
   DataSnapshot,
   EventType,
+  IteratedDataSnapshot,
   QueryConstraint,
   QueryConstraintType,
   endAt,
@@ -95,4 +96,5 @@ export {
   hijackHash as _TEST_ACCESS_hijackHash,
   forceRestClient as _TEST_ACCESS_forceRestClient
 } from './api/test_access';
+export * from './internal/index';
 /* eslint-enable camelcase */

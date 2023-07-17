@@ -33,7 +33,7 @@ export class DataSnapshot {
     child(path: string): DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (child: DataSnapshot) => boolean | void): boolean;
+    forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
     get key(): string | null;
@@ -84,6 +84,12 @@ export function goOnline(db: Database): void;
 
 // @public
 export function increment(delta: number): object;
+
+// @public
+export interface IteratedDataSnapshot extends DataSnapshot {
+    // (undocumented)
+    key: string;
+}
 
 // @public
 export function limitToFirst(limit: number): QueryConstraint;

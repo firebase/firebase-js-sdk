@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.23.2",
+  "version": "1.0.0",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -41,10 +41,6 @@
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
     },
-    "./react-native": {
-      "types": "./dist/rn/index.rn.d.ts",
-      "default": "./dist/rn/index.js"
-    },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
       "node": {
@@ -72,8 +68,7 @@
   "files": [
     "dist",
     "cordova/package.json",
-    "internal/package.json",
-    "react-native/package.json"
+    "internal/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -114,22 +109,23 @@
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
+    "@react-native-async-storage/async-storage": "1.17.12",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.13",
+    "@firebase/app": "0.9.14",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
+    "@types/express": "4.17.17",
     "chromedriver": "98.0.1",
     "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
     "selenium-webdriver": "4.8.0",
-    "typescript": "4.7.4",
-    "@types/express": "4.17.17",
-    "totp-generator": "0.0.14"
+    "totp-generator": "0.0.14",
+    "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/auth",

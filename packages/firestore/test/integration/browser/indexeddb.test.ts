@@ -24,7 +24,12 @@ import {
   FirestoreError,
   setDoc
 } from '../util/firebase_export';
-import { isPersistenceAvailable, withTestDb } from '../util/helpers';
+import {
+  IndexedDbPersistenceMode,
+  isPersistenceAvailable,
+  withTestDb,
+  PERSISTENCE_MODE_UNSPECIFIED
+} from '../util/helpers';
 
 describe('where indexeddb is not available: ', () => {
   // Only test on platforms where persistence is *not* available (e.g. Edge,
@@ -36,7 +41,7 @@ describe('where indexeddb is not available: ', () => {
   it('fails with code unimplemented', () => {
     // withTestDb will fail the test if persistence is requested but it fails
     // so we'll enable persistence here instead.
-    return withTestDb(/* persistence= */ false, db => {
+    return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
       return enableIndexedDbPersistence(db).then(
         () => expect.fail('enablePersistence should not have succeeded!'),
         (error: FirestoreError) => {
@@ -47,7 +52,7 @@ describe('where indexeddb is not available: ', () => {
   });
 
   it('falls back without requiring a wait for the promise', () => {
-    return withTestDb(/* persistence= */ false, db => {
+    return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
       const persistenceFailedPromise = enableIndexedDbPersistence(db).catch(
         (err: FirestoreError) => {
           expect(err.code).to.equal('unimplemented');
@@ -62,10 +67,10 @@ describe('where indexeddb is not available: ', () => {
     });
   });
 
-  it('fails back to memory cache with initializeFirestore too', () => {
+  it('falls back to memory cache with initializeFirestore too', () => {
     // withTestDb will fail the test if persistence is requested but it fails
     // so we'll enable persistence here instead.
-    return withTestDb(/* persistence= */ true, db => {
+    return withTestDb(new IndexedDbPersistenceMode(), db => {
       // Do the set immediately without waiting on the promise.
       const testDoc = doc(collection(db, 'test-collection'));
       return setDoc(testDoc, { foo: 'bar' });
