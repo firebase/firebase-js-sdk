@@ -118,25 +118,63 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     password: string,
     status: PasswordValidationStatusInternal
   ): void {
+    // Assign statuses for requirements even if the password is an empty string.
+    this.updatePasswordCharacterOptionsStasuses(
+      status,
+      /* containsLowercaseCharacter= */ false,
+      /* containsUppercaseCharacter= */ false,
+      /* containsNumericCharacter= */ false,
+      /* containsNonAlphanumericCharacter= */ false
+    );
+
     let passwordChar;
     for (let i = 0; i < password.length; i++) {
       passwordChar = password.charAt(i);
-      if (this.customStrengthOptions.containsLowercaseLetter) {
-        status.containsLowercaseLetter ||=
-          passwordChar >= 'a' && passwordChar <= 'z';
-      }
-      if (this.customStrengthOptions.containsUppercaseLetter) {
-        status.containsUppercaseLetter ||=
-          passwordChar >= 'A' && passwordChar <= 'Z';
-      }
-      if (this.customStrengthOptions.containsNumericCharacter) {
-        status.containsNumericCharacter ||=
-          passwordChar >= '0' && passwordChar <= '9';
-      }
-      if (this.customStrengthOptions.containsNonAlphanumericCharacter) {
-        status.containsNonAlphanumericCharacter ||=
-          this.allowedNonAlphanumericCharacters.includes(passwordChar);
-      }
+      this.updatePasswordCharacterOptionsStasuses(
+        status,
+        /* containsLowercaseCharacter= */ passwordChar >= 'a' &&
+          passwordChar <= 'z',
+        /* containsUppercaseCharacter= */ passwordChar >= 'A' &&
+          passwordChar <= 'Z',
+        /* containsNumericCharacter= */ passwordChar >= '0' &&
+          passwordChar <= '9',
+        /* containsNonAlphanumericCharacter= */ this.allowedNonAlphanumericCharacters.includes(
+          passwordChar
+        )
+      );
+    }
+  }
+
+  /**
+   * Updates the running validation status with the statuses for the character options.
+   * Expected to be called each time a character is processed to update each option status
+   * based on the current character.
+   *
+   * @param status Validation status.
+   * @param containsLowercaseCharacter Whether the character is a lowercase letter.
+   * @param containsUppercaseCharacter Whether the character is an uppercase letter.
+   * @param containsNumericCharacter Whether the character is a numeric character.
+   * @param containsNonAlphanumericCharacter Whether the character is a non-alphanumeric character.
+   */
+  private updatePasswordCharacterOptionsStasuses(
+    status: PasswordValidationStatusInternal,
+    containsLowercaseCharacter: boolean,
+    containsUppercaseCharacter: boolean,
+    containsNumericCharacter: boolean,
+    containsNonAlphanumericCharacter: boolean
+  ): void {
+    if (this.customStrengthOptions.containsLowercaseLetter) {
+      status.containsLowercaseLetter ||= containsLowercaseCharacter;
+    }
+    if (this.customStrengthOptions.containsUppercaseLetter) {
+      status.containsUppercaseLetter ||= containsUppercaseCharacter;
+    }
+    if (this.customStrengthOptions.containsNumericCharacter) {
+      status.containsNumericCharacter ||= containsNumericCharacter;
+    }
+    if (this.customStrengthOptions.containsNonAlphanumericCharacter) {
+      status.containsNonAlphanumericCharacter ||=
+        containsNonAlphanumericCharacter;
     }
   }
 }

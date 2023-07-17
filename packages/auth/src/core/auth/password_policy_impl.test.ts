@@ -60,6 +60,15 @@ describe('core/auth/password_policy_impl', () => {
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
     schemaVersion: TEST_SCHEMA_VERSION
   };
+  const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC: GetPasswordPolicyResponse = {
+    customStrengthOptions: {
+      minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+      maxPasswordLength: TEST_MAX_PASSWORD_LENGTH,
+      containsNumericCharacter: TEST_CONTAINS_NUMERIC
+    },
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    schemaVersion: TEST_SCHEMA_VERSION
+  };
   const PASSWORD_POLICY_REQUIRE_ALL: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -78,6 +87,7 @@ describe('core/auth/password_policy_impl', () => {
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING
   };
+  const TEST_EMPTY_PASSWORD = '';
 
   context('#PasswordPolicyImpl', () => {
     it('can construct the password policy from the backend response', () => {
@@ -125,6 +135,9 @@ describe('core/auth/password_policy_impl', () => {
       );
       const PASSWORD_POLICY_IMPL_REQUIRE_LENGTH = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH
+      );
+      const PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
       );
 
       it('password that is too short is considered invalid', async () => {
@@ -292,6 +305,38 @@ describe('core/auth/password_policy_impl', () => {
         expect(status.containsLowercaseLetter).to.be.undefined;
         expect(status.containsUppercaseLetter).to.be.undefined;
         expect(status.containsNumericCharacter).to.be.undefined;
+        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+      });
+
+      it('should include statuses for requirements included in the policy when the password is an empty string', async () => {
+        let policy = PASSWORD_POLICY_IMPL_REQUIRE_ALL;
+        let expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsLowercaseLetter: false,
+          containsUppercaseLetter: false,
+          containsNumericCharacter: false,
+          containsNonAlphanumericCharacter: false,
+          passwordPolicy: policy
+        };
+
+        let status = policy.validatePassword(TEST_EMPTY_PASSWORD);
+        expect(status).to.eql(expectedValidationStatus);
+
+        policy = PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC;
+        expectedValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsNumericCharacter: false,
+          passwordPolicy: policy
+        };
+
+        status = policy.validatePassword(TEST_EMPTY_PASSWORD);
+        expect(status).to.eql(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).to.be.undefined;
+        expect(status.containsUppercaseLetter).to.be.undefined;
         expect(status.containsNonAlphanumericCharacter).to.be.undefined;
       });
     });
