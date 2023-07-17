@@ -219,7 +219,7 @@ export interface SettableMetadata {
 
 // @public
 export interface SignedURLOptions {
-    ttlInMillis: number;
+    ttlSeconds: number;
 }
 
 // @public
