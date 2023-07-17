@@ -3,6 +3,17 @@
     "rules": "database.rules.json"
   },
   "hosting": {
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ],
     "public": "public",
       "rewrites": [
         {
