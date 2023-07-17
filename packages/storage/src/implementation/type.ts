@@ -66,9 +66,9 @@ export function validateNumber(
 }
 
 // TODO - move to new file?
-export function validateSignedURLOptions(options?: SignedURLOptions): number {
+export function validateSignedURLOptions(options?: SignedURLOptions): number | undefined {
   if (options === undefined) {
-    return DEFAULT_TIME_TO_LIVE_SECONDS;
+    return undefined;
   }
   if (!Number.isInteger(options.ttlSeconds)) {
     throw invalidArgument(`Invalid type for 'options.ttlSeconds'. Expected an integer.`);

@@ -271,8 +271,6 @@ export function generateSignedURL(
   const url = makeUrl(urlPart, service.host, service._protocol) + ':generateSignedUrl';
   const method = 'POST';
   const timeout = service.maxOperationRetryTime;
-  console.log("request endpoint: ", url);
-  console.log("request body: ", body);
   const requestInfo = new RequestInfo(
     url,
     method,

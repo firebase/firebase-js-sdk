@@ -190,18 +190,14 @@ export function downloadUrlFromResourceString(
 
 //TODO - move to new file?
 export function signedURLFromResourceString(resourceString: string): string | null {
-  console.log("response text: ", resourceString);
   const obj = jsonObjectOrNull(resourceString);
   if (obj === null) {
-    console.log("response was not json object");
     return null;
   }
   if (!isString(obj['signed_url'])) {
-    console.log("signed-url field did not exist in response");
     return null;
   }
   const signedURL = obj['signed_url'] as string;
-  console.log("signed-url field existed: ", signedURL);
   return signedURL;
 }
 
