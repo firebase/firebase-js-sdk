@@ -48,11 +48,6 @@ export const DEFAULT_MAX_UPLOAD_RETRY_TIME = 10 * 60 * 1000;
 export const DEFAULT_MIN_SLEEP_TIME_MILLIS = 1000;
 
 /**
- * 1 hour
- */
-export const DEFAULT_TIME_TO_LIVE_SECONDS = 60 * 60;
-
-/**
  * 1 second
  */
 export const DEFAULT_MIN_TIME_TO_LIVE_SECONDS = 1;
