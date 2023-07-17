@@ -17,7 +17,7 @@
 
 import { isNode } from '@firebase/util';
 import { invalidArgument } from './error';
-import { DEFAULT_MAX_TIME_TO_LIVE_SECONDS, DEFAULT_MIN_TIME_TO_LIVE_SECONDS, DEFAULT_TIME_TO_LIVE_SECONDS } from './constants';
+import { DEFAULT_MAX_TIME_TO_LIVE_SECONDS, DEFAULT_MIN_TIME_TO_LIVE_SECONDS } from './constants';
 import { SignedURLOptions } from '../public-types';
 
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
@@ -66,9 +66,9 @@ export function validateNumber(
 }
 
 // TODO - move to new file?
-export function validateSignedURLOptions(options?: SignedURLOptions): number {
+export function validateSignedURLOptions(options?: SignedURLOptions): number | undefined {
   if (options === undefined) {
-    return DEFAULT_TIME_TO_LIVE_SECONDS;
+    return undefined;
   }
   if (!Number.isInteger(options.ttlSeconds)) {
     throw invalidArgument(`Invalid type for 'options.ttlSeconds'. Expected an integer.`);
