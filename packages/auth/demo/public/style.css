@@ -87,6 +87,12 @@ body.user-info-displayed {
   list-style-type: none;
 }
 
+#password-validation-contains-non-alphanumeric .tooltip {
+  font-family: 'Courier New', Courier;
+  font-size: 1.1em;
+  letter-spacing: 5px;
+}
+
 .logs {
   color: #555;
   font-family: 'Courier New', Courier;

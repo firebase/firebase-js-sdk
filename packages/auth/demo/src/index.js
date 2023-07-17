@@ -523,7 +523,8 @@ function onValidatePassword() {
   const password = $('#password-validation-password').val();
   validatePassword(auth, password).then(
     status => {
-      const customStrengthOptions = status.passwordPolicy.customStrengthOptions;
+      const passwordPolicy = status.passwordPolicy;
+      const customStrengthOptions = passwordPolicy.customStrengthOptions;
 
       // Only show options required by the password policy.
       if (customStrengthOptions.minPasswordLength) {
@@ -534,6 +535,12 @@ function onValidatePassword() {
       if (customStrengthOptions.maxPasswordLength) {
         $('#password-validation-max-length').text(
           customStrengthOptions.maxPasswordLength
+        );
+      }
+      if (customStrengthOptions.containsNonAlphanumericCharacter) {
+        $('#password-validation-allowed-non-alphanumeric-characters').attr(
+          'data-original-title',
+          passwordPolicy.allowedNonAlphanumericCharacters
         );
       }
       setRequirementStatus(
