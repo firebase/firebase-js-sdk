@@ -841,6 +841,17 @@ describe('password policy cache is updated in auth flows upon error', () => {
   let policyEndpointMockWithTenant: mockFetch.Route;
   let policyEndpointMockWithOtherTenant: mockFetch.Route;
 
+  /**
+   * Wait for 50ms to allow the password policy to be fetched and recached.
+   */
+  async function waitForRecachePasswordPolicy(): Promise<void> {
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        resolve();
+      }, 50);
+    });
+  }
+
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
@@ -884,6 +895,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
         createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
       ).to.be.fulfilled;
 
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
+
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicyInternal()).to.be.null;
     });
@@ -894,6 +908,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
       await expect(
         createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
       ).to.be.fulfilled;
+
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
 
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
@@ -926,6 +943,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMock.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -947,6 +967,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -959,6 +982,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
 
         expect(policyEndpointMock.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.null;
@@ -976,6 +1002,10 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is not fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.undefined;
       });
@@ -995,6 +1025,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
       await expect(confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)).to
         .be.fulfilled;
 
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
+
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicyInternal()).to.be.null;
     });
@@ -1004,6 +1037,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       await expect(confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)).to
         .be.fulfilled;
+
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
 
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
@@ -1036,6 +1072,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMock.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1057,6 +1096,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1069,6 +1111,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is not fetched and recached.
+        await waitForRecachePasswordPolicy();
 
         expect(policyEndpointMock.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.null;
@@ -1086,6 +1131,10 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           confirmPasswordReset(auth, TEST_OOB_CODE, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is not fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.undefined;
       });
@@ -1109,6 +1158,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
       await expect(signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD))
         .to.be.fulfilled;
 
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
+
       expect(policyEndpointMock.calls.length).to.eq(0);
       expect(auth._getPasswordPolicyInternal()).to.be.null;
     });
@@ -1118,6 +1170,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
       await expect(signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD))
         .to.be.fulfilled;
+
+      // Wait to ensure the password policy is not fetched and recached.
+      await waitForRecachePasswordPolicy();
 
       expect(policyEndpointMock.calls.length).to.eq(1);
       expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
@@ -1150,6 +1205,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMock.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1171,6 +1229,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithTenant.calls.length).to.eq(2);
         expect(auth._getPasswordPolicyInternal()).to.eql(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1183,6 +1244,9 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is not fetched and recached.
+        await waitForRecachePasswordPolicy();
 
         expect(policyEndpointMock.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.null;
@@ -1200,6 +1264,10 @@ describe('password policy cache is updated in auth flows upon error', () => {
         await expect(
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is not fetched and recached.
+        await waitForRecachePasswordPolicy();
+
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.undefined;
       });

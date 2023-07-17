@@ -184,10 +184,10 @@ export async function confirmPasswordReset(
         error.code ===
         `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
       ) {
-        await recachePasswordPolicy(auth);
+        void recachePasswordPolicy(auth);
       }
 
-      return Promise.reject(error);
+      throw error;
     });
   // Do not return the email.
 }
@@ -343,10 +343,10 @@ export async function createUserWithEmailAndPassword(
           error.code ===
           `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
         ) {
-          await recachePasswordPolicy(auth);
+          void recachePasswordPolicy(auth);
         }
 
-        return Promise.reject(error);
+        throw error;
       }
     });
   }
@@ -393,9 +393,9 @@ export function signInWithEmailAndPassword(
     if (
       error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
     ) {
-      await recachePasswordPolicy(auth);
+      void recachePasswordPolicy(auth);
     }
 
-    return Promise.reject(error);
+    throw error;
   });
 }
