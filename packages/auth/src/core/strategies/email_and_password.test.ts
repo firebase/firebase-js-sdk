@@ -802,6 +802,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
   const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
   const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
     TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
+  const TEST_ENFORCEMENT_STATE = 'ENFORCE';
+  const TEST_FORCE_UPGRADE_ON_SIGN_IN = false;
   const TEST_SCHEMA_VERSION = 1;
   const TEST_TENANT_ID = 'tenant-id';
   const TEST_TENANT_ID_REQUIRE_NUMERIC = 'other-tenant-id';
@@ -812,6 +814,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    enforcementState: TEST_ENFORCEMENT_STATE,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC = {
@@ -820,6 +823,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
       containsNumericCharacter: true
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    enforcementState: TEST_ENFORCEMENT_STATE,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const CACHED_PASSWORD_POLICY = {
@@ -827,6 +831,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+    enforcementState: TEST_ENFORCEMENT_STATE,
+    forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC = {
@@ -835,6 +841,8 @@ describe('password policy cache is updated in auth flows upon error', () => {
       containsNumericCharacter: true
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+    enforcementState: TEST_ENFORCEMENT_STATE,
+    forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   let policyEndpointMock: mockFetch.Route;

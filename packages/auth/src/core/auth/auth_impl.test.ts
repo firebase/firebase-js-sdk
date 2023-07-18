@@ -794,6 +794,8 @@ describe('core/auth/auth_impl', () => {
     const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
       TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
     const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_ENFORCEMENT_STATE = 'ENFORCE';
+    const TEST_FORCE_UPGRADE_ON_SIGN_IN = false;
     const TEST_SCHEMA_VERSION = 1;
     const TEST_UNSUPPORTED_SCHEMA_VERSION = 0;
     const TEST_TENANT_ID = 'tenant-id';
@@ -805,6 +807,7 @@ describe('core/auth/auth_impl', () => {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE,
       schemaVersion: TEST_SCHEMA_VERSION
     };
     const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC = {
@@ -813,6 +816,7 @@ describe('core/auth/auth_impl', () => {
         containsNumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE,
       schemaVersion: TEST_SCHEMA_VERSION
     };
     const PASSWORD_POLICY_RESPONSE_UNSUPPORTED_SCHEMA_VERSION = {
@@ -821,6 +825,8 @@ describe('core/auth/auth_impl', () => {
         unsupportedPasswordPolicyProperty: 10
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
       schemaVersion: TEST_UNSUPPORTED_SCHEMA_VERSION
     };
     const CACHED_PASSWORD_POLICY = {
@@ -828,6 +834,8 @@ describe('core/auth/auth_impl', () => {
         minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
       schemaVersion: TEST_SCHEMA_VERSION
     };
     const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC = {
@@ -836,13 +844,17 @@ describe('core/auth/auth_impl', () => {
         containsNumericCharacter: true
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
       schemaVersion: TEST_SCHEMA_VERSION
     };
-    const PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION = {
+    const CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION = {
       customStrengthOptions: {
         maxPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
       schemaVersion: TEST_UNSUPPORTED_SCHEMA_VERSION
     };
 
@@ -915,7 +927,7 @@ describe('core/auth/auth_impl', () => {
       await expect(auth._updatePasswordPolicy()).to.be.fulfilled;
 
       expect(auth._getPasswordPolicyInternal()).to.eql(
-        PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION
+        CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION
       );
     });
 

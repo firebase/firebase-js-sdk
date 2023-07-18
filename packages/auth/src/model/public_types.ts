@@ -1292,6 +1292,14 @@ export interface PasswordPolicy {
    * List of characters that are considered non-alphanumeric during validation.
    */
   readonly allowedNonAlphanumericCharacters: string;
+  /**
+   * The enforcement state of the policy. Can be 'OFF' or 'ENFORCE'.
+   */
+  readonly enforcementState: string;
+  /**
+   * Whether existing passwords must meet the policy.
+   */
+  readonly forceUpgradeOnSignin: boolean;
 }
 
 /**

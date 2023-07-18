@@ -24,6 +24,8 @@ export interface PasswordPolicy
 |  --- | --- | --- |
 |  [allowedNonAlphanumericCharacters](./auth.passwordpolicy.md#passwordpolicyallowednonalphanumericcharacters) | string | List of characters that are considered non-alphanumeric during validation. |
 |  [customStrengthOptions](./auth.passwordpolicy.md#passwordpolicycustomstrengthoptions) | { readonly minPasswordLength?: number; readonly maxPasswordLength?: number; readonly containsLowercaseLetter?: boolean; readonly containsUppercaseLetter?: boolean; readonly containsNumericCharacter?: boolean; readonly containsNonAlphanumericCharacter?: boolean; } | Requirements enforced by this password policy. |
+|  [enforcementState](./auth.passwordpolicy.md#passwordpolicyenforcementstate) | string | The enforcement state of the policy. Can be 'OFF' or 'ENFORCE'. |
+|  [forceUpgradeOnSignin](./auth.passwordpolicy.md#passwordpolicyforceupgradeonsignin) | boolean | Whether existing passwords must meet the policy. |
 
 ## PasswordPolicy.allowedNonAlphanumericCharacters
 
@@ -50,4 +52,24 @@ readonly customStrengthOptions: {
         readonly containsNumericCharacter?: boolean;
         readonly containsNonAlphanumericCharacter?: boolean;
     };
+```
+
+## PasswordPolicy.enforcementState
+
+The enforcement state of the policy. Can be 'OFF' or 'ENFORCE'.
+
+<b>Signature:</b>
+
+```typescript
+readonly enforcementState: string;
+```
+
+## PasswordPolicy.forceUpgradeOnSignin
+
+Whether existing passwords must meet the policy.
+
+<b>Signature:</b>
+
+```typescript
+readonly forceUpgradeOnSignin: boolean;
 ```

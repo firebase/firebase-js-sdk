@@ -43,6 +43,8 @@ export interface GetPasswordPolicyResponse {
     containsNonAlphanumericCharacter?: boolean;
   };
   allowedNonAlphanumericCharacters: string[];
+  enforcementState: string;
+  forceUpgradeOnSignin?: boolean;
   schemaVersion: number;
 }
 

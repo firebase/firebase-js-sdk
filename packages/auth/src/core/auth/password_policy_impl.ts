@@ -31,6 +31,8 @@ import { PasswordValidationStatus } from '../../model/public_types';
 export class PasswordPolicyImpl implements PasswordPolicyInternal {
   readonly customStrengthOptions: PasswordPolicyCustomStrengthOptions;
   readonly allowedNonAlphanumericCharacters: string;
+  readonly enforcementState: string;
+  readonly forceUpgradeOnSignin: boolean;
   readonly schemaVersion: number;
 
   constructor(response: GetPasswordPolicyResponse) {
@@ -62,8 +64,15 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
         responseOptions.containsNonAlphanumericCharacter;
     }
 
+    const enforcementStateUnspecified =
+      response.enforcementState === 'ENFORCEMENT_STATE_UNSPECIFIED';
+    this.enforcementState = enforcementStateUnspecified
+      ? 'OFF'
+      : response.enforcementState;
+
     this.allowedNonAlphanumericCharacters =
       response.allowedNonAlphanumericCharacters.join('');
+    this.forceUpgradeOnSignin = response.forceUpgradeOnSignin ?? false;
     this.schemaVersion = response.schemaVersion;
   }
 
