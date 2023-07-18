@@ -87,7 +87,7 @@ body.user-info-displayed {
   list-style-type: none;
 }
 
-#password-validation-contains-non-alphanumeric .tooltip {
+#password-validation-contains-non-alphanumeric-character .tooltip {
   font-family: 'Courier New', Courier;
   font-size: 1.1em;
   letter-spacing: 5px;

@@ -543,30 +543,17 @@ function onValidatePassword() {
           passwordPolicy.allowedNonAlphanumericCharacters
         );
       }
-      setRequirementStatus(
-        '#password-validation-meets-min-length',
-        status.meetsMinPasswordLength
-      );
-      setRequirementStatus(
-        '#password-validation-meets-max-length',
-        status.meetsMaxPasswordLength
-      );
-      setRequirementStatus(
-        '#password-validation-contains-lowercase',
-        status.containsLowercaseLetter
-      );
-      setRequirementStatus(
-        '#password-validation-contains-uppercase',
-        status.containsUppercaseLetter
-      );
-      setRequirementStatus(
-        '#password-validation-contains-numeric',
-        status.containsNumericCharacter
-      );
-      setRequirementStatus(
-        '#password-validation-contains-non-alphanumeric',
-        status.containsNonAlphanumericCharacter
-      );
+      Object.keys(status).forEach(requirement => {
+        if (requirement !== 'passwordPolicy') {
+          // Get the requirement ID by converting to kebab case.
+          const requirementIdPrefix = '#password-validation-';
+          const requirementId =
+            requirementIdPrefix +
+            requirement.replace(/[A-Z]/g, match => '-' + match.toLowerCase());
+
+          setRequirementStatus(requirementId, status[requirement]);
+        }
+      });
 
       $('#password-validation-password').prop('disabled', false);
       $('#password-validation-requirements').show();
