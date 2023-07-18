@@ -214,8 +214,12 @@ export { DocumentKey as _DocumentKey } from './model/document_key';
 export { debugAssert as _debugAssert } from './util/assert';
 export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
-export type { ByteString as _ByteString } from './util/byte_string';
+export { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
+export type {
+  AuthTokenFactory,
+  FirstPartyCredentialsSettings
+} from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
 export { TestingHooks as _TestingHooks } from './util/testing_hooks';
