@@ -573,6 +573,8 @@ export interface PasswordPolicy {
         readonly containsNumericCharacter?: boolean;
         readonly containsNonAlphanumericCharacter?: boolean;
     };
+    readonly enforcementState: string;
+    readonly forceUpgradeOnSignin: boolean;
 }
 
 // @public
