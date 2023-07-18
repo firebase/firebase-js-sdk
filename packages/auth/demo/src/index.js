@@ -114,7 +114,7 @@ const providersIcons = {
 };
 
 /**
- * Returns the active user (i.e. currentUser or lastUser).
+ * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
 function activeUser() {
@@ -127,62 +127,87 @@ function activeUser() {
 }
 
 /**
+ * Blocks until there is a valid user
+ * then returns the valid user (currentUser or lastUser).
+ * @return {!firebase.User}
+ */
+async function getActiveUserBlocking() {
+  const type = $('input[name=toggle-user-selection]:checked').val();
+  if (type === 'lastUser') {
+    return lastUser;
+  } else {
+    try {
+      await auth.authStateReady();
+      return auth.currentUser;
+    } catch (e) {
+      log(e);
+    }
+  }
+}
+
+/**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
  */
-function refreshUserData() {
-  if (activeUser()) {
-    const user = activeUser();
-    $('.profile').show();
-    $('body').addClass('user-info-displayed');
-    $('div.profile-email,span.profile-email').text(user.email || 'No Email');
-    $('div.profile-phone,span.profile-phone').text(
-      user.phoneNumber || 'No Phone'
-    );
-    $('div.profile-uid,span.profile-uid').text(user.uid);
-    $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
-    $('input.profile-name').val(user.displayName);
-    $('input.photo-url').val(user.photoURL);
-    if (user.photoURL != null) {
-      let photoURL = user.photoURL;
-      // Append size to the photo URL for Google hosted images to avoid requesting
-      // the image with its original resolution (using more bandwidth than needed)
-      // when it is going to be presented in smaller size.
-      if (
-        photoURL.indexOf('googleusercontent.com') !== -1 ||
-        photoURL.indexOf('ggpht.com') !== -1
-      ) {
-        photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+async function refreshUserData() {
+  try {
+    let user = await getActiveUserBlocking();
+    if (user) {
+      $('.profile').show();
+      $('body').addClass('user-info-displayed');
+      $('div.profile-email,span.profile-email').text(user.email || 'No Email');
+      $('div.profile-phone,span.profile-phone').text(
+        user.phoneNumber || 'No Phone'
+      );
+      $('div.profile-uid,span.profile-uid').text(user.uid);
+      $('div.profile-name,span.profile-name').text(
+        user.displayName || 'No Name'
+      );
+      $('input.profile-name').val(user.displayName);
+      $('input.photo-url').val(user.photoURL);
+      if (user.photoURL != null) {
+        let photoURL = user.photoURL;
+        // Append size to the photo URL for Google hosted images to avoid requesting
+        // the image with its original resolution (using more bandwidth than needed)
+        // when it is going to be presented in smaller size.
+        if (
+          photoURL.indexOf('googleusercontent.com') !== -1 ||
+          photoURL.indexOf('ggpht.com') !== -1
+        ) {
+          photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+        }
+        $('img.profile-image').attr('src', photoURL).show();
+      } else {
+        $('img.profile-image').hide();
       }
-      $('img.profile-image').attr('src', photoURL).show();
-    } else {
-      $('img.profile-image').hide();
-    }
-    $('.profile-email-verified').toggle(user.emailVerified);
-    $('.profile-email-not-verified').toggle(!user.emailVerified);
-    $('.profile-anonymous').toggle(user.isAnonymous);
-    // Display/Hide providers icons.
-    $('.profile-providers').empty();
-    if (user['providerData'] && user['providerData'].length) {
-      const providersCount = user['providerData'].length;
-      for (let i = 0; i < providersCount; i++) {
-        addProviderIcon(user['providerData'][i]['providerId']);
+      $('.profile-email-verified').toggle(user.emailVerified);
+      $('.profile-email-not-verified').toggle(!user.emailVerified);
+      $('.profile-anonymous').toggle(user.isAnonymous);
+      // Display/Hide providers icons.
+      $('.profile-providers').empty();
+      if (user['providerData'] && user['providerData'].length) {
+        const providersCount = user['providerData'].length;
+        for (let i = 0; i < providersCount; i++) {
+          addProviderIcon(user['providerData'][i]['providerId']);
+        }
       }
-    }
-    // Show enrolled second factors if available for the active user.
-    showMultiFactorStatus(user);
-    // Change color.
-    if (user === auth.currentUser) {
-      $('#user-info').removeClass('last-user');
-      $('#user-info').addClass('current-user');
+      // Show enrolled second factors if available for the active user.
+      showMultiFactorStatus(user);
+      // Change color.
+      if (user === auth.currentUser) {
+        $('#user-info').removeClass('last-user');
+        $('#user-info').addClass('current-user');
+      } else {
+        $('#user-info').removeClass('current-user');
+        $('#user-info').addClass('last-user');
+      }
     } else {
-      $('#user-info').removeClass('current-user');
-      $('#user-info').addClass('last-user');
+      $('.profile').slideUp();
+      $('body').removeClass('user-info-displayed');
+      $('input.profile-data').val('');
     }
-  } else {
-    $('.profile').slideUp();
-    $('body').removeClass('user-info-displayed');
-    $('input.profile-data').val('');
+  } catch (error) {
+    log(error);
   }
 }
 
@@ -456,7 +481,7 @@ function onReauthenticateWithEmailAndPassword() {
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated with email/password!');
+    alertSuccess('User reauthenticated with email/password');
   }, onAuthError);
 }
 
@@ -1050,7 +1075,7 @@ function onApplyActionCode() {
  *     or not.
  */
 function getIdToken(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -1075,7 +1100,7 @@ function getIdToken(forceRefresh) {
  *     or not
  */
 function getIdTokenResult(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
