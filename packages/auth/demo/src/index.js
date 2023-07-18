@@ -72,7 +72,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  validatePassword
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -491,6 +492,93 @@ function onSetTenantID(_event) {
 
 function onInitializeRecaptchaConfig() {
   initializeRecaptchaConfig(auth);
+}
+
+/**
+ * Updates the displayed validation status for the inputted password.
+ */
+function onValidatePassword() {
+  /**
+   * Updates the displayed status for a requirement.
+   * @param {string} id The ID of the DOM element displaying the requirement status.
+   * @param {boolean | undefined} status Whether the requirement is met.
+   */
+  function setRequirementStatus(id, status) {
+    // Hide the requirement if the status does not include it.
+    if (status === undefined) {
+      $(id).hide();
+      return;
+    }
+
+    if (status) {
+      $(id).removeClass('list-group-item-danger');
+      $(id).addClass('list-group-item-success');
+    } else {
+      $(id).removeClass('list-group-item-success');
+      $(id).addClass('list-group-item-danger');
+    }
+    $(id).show();
+  }
+
+  const password = $('#password-validation-password').val();
+  validatePassword(auth, password).then(
+    status => {
+      const passwordPolicy = status.passwordPolicy;
+      const customStrengthOptions = passwordPolicy.customStrengthOptions;
+
+      // Only show options required by the password policy.
+      if (customStrengthOptions.minPasswordLength) {
+        $('#password-validation-min-length').text(
+          customStrengthOptions.minPasswordLength
+        );
+      }
+      if (customStrengthOptions.maxPasswordLength) {
+        $('#password-validation-max-length').text(
+          customStrengthOptions.maxPasswordLength
+        );
+      }
+      if (customStrengthOptions.containsNonAlphanumericCharacter) {
+        $('#password-validation-allowed-non-alphanumeric-characters').attr(
+          'data-original-title',
+          passwordPolicy.allowedNonAlphanumericCharacters
+        );
+      }
+      Object.keys(status).forEach(requirement => {
+        if (requirement !== 'passwordPolicy') {
+          // Get the requirement ID by converting to kebab case.
+          const requirementIdPrefix = '#password-validation-';
+          const requirementId =
+            requirementIdPrefix +
+            requirement.replace(/[A-Z]/g, match => '-' + match.toLowerCase());
+
+          setRequirementStatus(requirementId, status[requirement]);
+        }
+      });
+
+      $('#password-validation-password').prop('disabled', false);
+      $('#password-validation-requirements').show();
+    },
+    error => {
+      // Disable the password input and hide the requirements since validation cannot be performed.
+      if (error.code === `auth/unsupported-password-policy-schema-version`) {
+        $('#password-validation-password').prop('disabled', true);
+      }
+      $('#password-validation-requirements').hide();
+      onAuthError(error);
+    }
+  );
+}
+
+/**
+ * Toggles text visibility for the password validation input field.
+ */
+function onToggleViewPasswordForValidation() {
+  const id = '#password-validation-password';
+  if ($(id).prop('type') === 'password') {
+    $(id).prop('type', 'text');
+  } else {
+    $(id).prop('type', 'password');
+  }
 }
 
 /**
@@ -2033,6 +2121,10 @@ function initApp() {
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
+  $('#password-validation-password').keyup(onValidatePassword);
+  $('#password-validation-view-password').click(
+    onToggleViewPasswordForValidation
+  );
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
