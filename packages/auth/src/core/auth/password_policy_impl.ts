@@ -64,11 +64,10 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
         responseOptions.containsNonAlphanumericCharacter;
     }
 
-    const enforcementStateUnspecified =
-      response.enforcementState === 'ENFORCEMENT_STATE_UNSPECIFIED';
-    this.enforcementState = enforcementStateUnspecified
-      ? 'OFF'
-      : response.enforcementState;
+    this.enforcementState = response.enforcementState;
+    if (this.enforcementState === 'ENFORCEMENT_STATE_UNSPECIFIED') {
+      this.enforcementState = 'OFF';
+    }
 
     this.allowedNonAlphanumericCharacters =
       response.allowedNonAlphanumericCharacters.join('');
