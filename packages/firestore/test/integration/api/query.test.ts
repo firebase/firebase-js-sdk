@@ -1358,9 +1358,7 @@ apiDescribe('Queries', persistence => {
             where('v', '>', 2)
           )
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'c', sort: 1, v: 3 }
-        ]);
+        expect(toIds(snapshot1)).to.deep.equal(['doc3']);
 
         // Duplicate inequality fields
         const snapshot2 = await getDocs(
@@ -1371,9 +1369,7 @@ apiDescribe('Queries', persistence => {
             where('sort', '>', 1)
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'd', sort: 2, v: 2 }
-        ]);
+        expect(toIds(snapshot2)).to.deep.equal(['doc4']);
 
         // With multiple IN
         const snapshot3 = await getDocs(
@@ -1385,9 +1381,7 @@ apiDescribe('Queries', persistence => {
             where('sort', 'in', [2, 3])
           )
         );
-        expect(toDataArray(snapshot3)).to.deep.equal([
-          { key: 'd', sort: 2, v: 2 }
-        ]);
+        expect(toIds(snapshot3)).to.deep.equal(['doc4']);
 
         // With NOT-IN
         const snapshot4 = await getDocs(
@@ -1398,10 +1392,7 @@ apiDescribe('Queries', persistence => {
             where('v', 'not-in', [2, 4, 5])
           )
         );
-        expect(toDataArray(snapshot4)).to.deep.equal([
-          { key: 'a', sort: 0, v: 0 },
-          { key: 'c', sort: 1, v: 3 }
-        ]);
+        expect(toIds(snapshot4)).to.deep.equal(['doc1', 'doc3']);
 
         // With orderby
         const snapshot5 = await getDocs(
@@ -1412,11 +1403,7 @@ apiDescribe('Queries', persistence => {
             orderBy('v', 'desc')
           )
         );
-        expect(toDataArray(snapshot5)).to.deep.equal([
-          { key: 'c', sort: 1, v: 3 },
-          { key: 'd', sort: 2, v: 2 },
-          { key: 'a', sort: 0, v: 0 }
-        ]);
+        expect(toIds(snapshot5)).to.deep.equal(['doc3', 'doc4', 'doc1']);
 
         // With limit
         const snapshot6 = await getDocs(
@@ -1428,10 +1415,7 @@ apiDescribe('Queries', persistence => {
             limit(2)
           )
         );
-        expect(toDataArray(snapshot6)).to.deep.equal([
-          { key: 'c', sort: 1, v: 3 },
-          { key: 'd', sort: 2, v: 2 }
-        ]);
+        expect(toIds(snapshot6)).to.deep.equal(['doc3', 'doc4']);
 
         // With limitToLast
         const snapshot7 = await getDocs(
@@ -1443,10 +1427,7 @@ apiDescribe('Queries', persistence => {
             limitToLast(2)
           )
         );
-        expect(toDataArray(snapshot7)).to.deep.equal([
-          { key: 'd', sort: 2, v: 2 },
-          { key: 'a', sort: 0, v: 0 }
-        ]);
+        expect(toIds(snapshot7)).to.deep.equal(['doc4', 'doc1']);
       });
     });
 
@@ -1463,10 +1444,7 @@ apiDescribe('Queries', persistence => {
         const snapshot1 = await getDocs(
           query(coll, where('key', '!=', 'a'), where('sort', '<=', 2))
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'e', sort: 1 },
-          { key: 'f', sort: 1, v: 1 }
-        ]);
+        expect(toIds(snapshot1)).to.deep.equal(['doc5', 'doc6']);
 
         const snapshot2 = await getDocs(
           query(
@@ -1476,9 +1454,7 @@ apiDescribe('Queries', persistence => {
             where('v', '<=', 1)
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'f', sort: 1, v: 1 }
-        ]);
+        expect(toIds(snapshot2)).to.deep.equal(['doc6']);
       });
     });
     it('can use with array membership', async () => {
@@ -1500,9 +1476,7 @@ apiDescribe('Queries', persistence => {
             where('v', 'array-contains', 0)
           )
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'b', sort: 1, v: [0, 1, 3] }
-        ]);
+        expect(toIds(snapshot1)).to.deep.equal(['doc2']);
 
         const snapshot2 = await getDocs(
           query(
@@ -1512,10 +1486,7 @@ apiDescribe('Queries', persistence => {
             where('v', 'array-contains-any', [0, 1])
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'b', sort: 1, v: [0, 1, 3] },
-          { key: 'd', sort: 2, v: [1] }
-        ]);
+        expect(toIds(snapshot2)).to.deep.equal(['doc2', 'doc4']);
       });
     });
 
@@ -1535,10 +1506,10 @@ apiDescribe('Queries', persistence => {
       };
 
       const testDocs = {
-        '1': testData(400),
-        '2': testData(200),
-        '3': testData(100),
-        '4': testData(300)
+        'doc1': testData(400),
+        'doc2': testData(200),
+        'doc3': testData(100),
+        'doc4': testData(300)
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
@@ -1551,10 +1522,7 @@ apiDescribe('Queries', persistence => {
             orderBy('name')
           )
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          testData(300),
-          testData(400)
-        ]);
+        expect(toIds(snapshot1)).to.deep.equal(['doc4', 'doc1']);
 
         const snapshot2 = await getDocs(
           query(
@@ -1565,10 +1533,7 @@ apiDescribe('Queries', persistence => {
             orderBy('name', 'desc')
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          testData(200),
-          testData(100)
-        ]);
+        expect(toIds(snapshot2)).to.deep.equal(['doc2', 'doc3']);
       });
     });
 
@@ -1592,11 +1557,11 @@ apiDescribe('Queries', persistence => {
           )
         );
         // Implicitly ordered by: 'key' asc, 'sort' asc, 'v' asc, __name__ asc
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'a', sort: 0, v: 5 },
-          { key: 'b', sort: 0, v: 0 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 2, v: 2 }
+        expect(toIds(snapshot1)).to.deep.equal([
+          'doc1',
+          'doc6',
+          'doc5',
+          'doc4'
         ]);
 
         const snapshot2 = await getDocs(
@@ -1611,11 +1576,11 @@ apiDescribe('Queries', persistence => {
           )
         );
         // Ordered by: 'sort' desc, 'key' asc, 'v' asc, __name__ asc
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 2, v: 2 },
-          { key: 'a', sort: 0, v: 5 },
-          { key: 'b', sort: 0, v: 0 }
+        expect(toIds(snapshot2)).to.deep.equal([
+          'doc5',
+          'doc4',
+          'doc1',
+          'doc6'
         ]);
 
         const snapshot3 = await getDocs(
@@ -1624,7 +1589,7 @@ apiDescribe('Queries', persistence => {
             and(
               or(
                 and(where('key', '==', 'b'), where('sort', '<=', 4)),
-                and(where('key', '!=', 'b'), where('v', '>', 4))
+                and(where('key', '!=', 'b'), where('v', '>=', 4))
               ),
               or(
                 and(where('key', '>', 'b'), where('sort', '>=', 1)),
@@ -1633,9 +1598,8 @@ apiDescribe('Queries', persistence => {
             )
           )
         );
-        expect(toDataArray(snapshot3)).to.deep.equal([
-          { key: 'a', sort: 0, v: 5 }
-        ]);
+        // Implicitly ordered by: 'key' asc, 'sort' asc, 'v' asc, __name__ asc
+        expect(toIds(snapshot3)).to.deep.equal(['doc1', 'doc2']);
       });
     });
 
@@ -1658,11 +1622,11 @@ apiDescribe('Queries', persistence => {
             where('v', 'in', [1, 2, 3, 4])
           )
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'aa', sort: 4, v: 4 },
-          { key: 'b', sort: 2, v: 2 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 3, v: 3 }
+        expect(toIds(snapshot1)).to.deep.equal([
+          'doc2',
+          'doc4',
+          'doc5',
+          'doc3'
         ]);
 
         // Implicitly ordered by:  'key' asc, 'sort' asc,__name__ asc
@@ -1674,11 +1638,11 @@ apiDescribe('Queries', persistence => {
             where('v', 'in', [1, 2, 3, 4])
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'aa', sort: 4, v: 4 },
-          { key: 'b', sort: 2, v: 2 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 3, v: 3 }
+        expect(toIds(snapshot2)).to.deep.equal([
+          'doc2',
+          'doc4',
+          'doc5',
+          'doc3'
         ]);
       });
     });
@@ -1703,11 +1667,11 @@ apiDescribe('Queries', persistence => {
             orderBy('v')
           )
         );
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'aa', sort: 4, v: 0 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 3, v: 1 },
-          { key: 'bb', sort: 1, v: 1 }
+        expect(toIds(snapshot1)).to.deep.equal([
+          'doc2',
+          'doc4',
+          'doc3',
+          'doc5'
         ]);
 
         // Ordered by: 'v asc, 'sort' asc, 'key' asc,  __name__ asc
@@ -1720,11 +1684,11 @@ apiDescribe('Queries', persistence => {
             orderBy('sort')
           )
         );
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'aa', sort: 4, v: 0 },
-          { key: 'bb', sort: 1, v: 1 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 3, v: 1 }
+        expect(toIds(snapshot2)).to.deep.equal([
+          'doc2',
+          'doc5',
+          'doc4',
+          'doc3'
         ]);
 
         // Implicit order by matches the direction of last explicit order by.
@@ -1737,11 +1701,11 @@ apiDescribe('Queries', persistence => {
             orderBy('v', 'desc')
           )
         );
-        expect(toDataArray(snapshot3)).to.deep.equal([
-          { key: 'bb', sort: 1, v: 1 },
-          { key: 'b', sort: 3, v: 1 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'aa', sort: 4, v: 0 }
+        expect(toIds(snapshot3)).to.deep.equal([
+          'doc5',
+          'doc3',
+          'doc4',
+          'doc2'
         ]);
 
         // Ordered by: 'v desc, 'sort' asc, 'key' asc,  __name__ asc
@@ -1754,11 +1718,11 @@ apiDescribe('Queries', persistence => {
             orderBy('sort')
           )
         );
-        expect(toDataArray(snapshot4)).to.deep.equal([
-          { key: 'bb', sort: 1, v: 1 },
-          { key: 'b', sort: 2, v: 1 },
-          { key: 'b', sort: 3, v: 1 },
-          { key: 'aa', sort: 4, v: 0 }
+        expect(toIds(snapshot4)).to.deep.equal([
+          'doc5',
+          'doc4',
+          'doc3',
+          'doc2'
         ]);
       });
     });
@@ -1821,11 +1785,7 @@ apiDescribe('Queries', persistence => {
         );
         // Document Key in inequality field will implicitly ordered to the last.
         // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
-        expect(toDataArray(snapshot1)).to.deep.equal([
-          { key: 'aa', sort: 4 },
-          { key: 'b', sort: 2 },
-          { key: 'b', sort: 3 }
-        ]);
+        expect(toIds(snapshot1)).to.deep.equal(['doc2', 'doc4', 'doc3']);
 
         const snapshot2 = await getDocs(
           query(
@@ -1837,11 +1797,7 @@ apiDescribe('Queries', persistence => {
         );
         // Changing filters order will not effect implicit order.
         // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
-        expect(toDataArray(snapshot2)).to.deep.equal([
-          { key: 'aa', sort: 4 },
-          { key: 'b', sort: 2 },
-          { key: 'b', sort: 3 }
-        ]);
+        expect(toIds(snapshot2)).to.deep.equal(['doc2', 'doc4', 'doc3']);
 
         const snapshot3 = await getDocs(
           query(
@@ -1853,11 +1809,7 @@ apiDescribe('Queries', persistence => {
           )
         );
         // Ordered by: 'sort' desc,'key' desc,  __name__ desc
-        expect(toDataArray(snapshot3)).to.deep.equal([
-          { key: 'aa', sort: 4 },
-          { key: 'b', sort: 3 },
-          { key: 'b', sort: 2 }
-        ]);
+        expect(toIds(snapshot3)).to.deep.equal(['doc2', 'doc3', 'doc4']);
       });
     });
 
@@ -1887,10 +1839,7 @@ apiDescribe('Queries', persistence => {
           expect(snapshot2.metadata.fromCache).to.be.true;
           expect(snapshot2.metadata.hasPendingWrites).to.be.false;
           // Implicitly ordered by: 'key' asc, 'sort' asc, __name__ asc
-          expect(toDataArray(snapshot2)).to.deep.equal([
-            { key: 'b', sort: 2 },
-            { key: 'b', sort: 3 }
-          ]);
+          expect(toIds(snapshot2)).to.deep.equal(['doc4', 'doc3']);
         }
       );
     });
@@ -1921,6 +1870,7 @@ apiDescribe('Queries', persistence => {
           );
 
           // explicit AND: a < 3 && b not-in [2, 3]
+          // Implicitly ordered by: a asc, __name__ asc
           await checkOnlineAndOfflineResultsMatch(
             query(coll, and(where('a', '<', 3), where('b', 'not-in', [2, 3]))),
             'doc1',
@@ -1930,7 +1880,7 @@ apiDescribe('Queries', persistence => {
 
           // a <3 && b != 0, implicitly ordered by: a asc, b asc, __name__ asc
           await checkOnlineAndOfflineResultsMatch(
-            query(coll, where('a', '<', 3), where('b', '!=', 0), limit(2)),
+            query(coll, where('b', '!=', 0), where('a', '<', 3), limit(2)),
             'doc5',
             'doc4'
           );
