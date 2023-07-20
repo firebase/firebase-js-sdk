@@ -69,8 +69,10 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
       this.enforcementState = 'OFF';
     }
 
+    // Use an empty string if no non-alphanumeric characters are specified in the response.
     this.allowedNonAlphanumericCharacters =
-      response.allowedNonAlphanumericCharacters.join('');
+      response.allowedNonAlphanumericCharacters?.join('') ?? '';
+
     this.forceUpgradeOnSignin = response.forceUpgradeOnSignin ?? false;
     this.schemaVersion = response.schemaVersion;
   }
