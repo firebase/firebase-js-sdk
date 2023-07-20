@@ -1,5 +1,14 @@
 # @firebase/database-compat
 
+## 1.0.1
+
+### Patch Changes
+
+- [`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905) [#7258](https://github.com/firebase/firebase-js-sdk/pull/7258) - Included `initStandalone` as an internal method to RTDB.
+
+- Updated dependencies [[`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905)]:
+  - @firebase/database@1.0.1
+
 ## 1.0.0
 
 ### Major Changes
