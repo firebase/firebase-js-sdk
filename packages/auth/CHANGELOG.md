@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 1.1.0
+
+### Minor Changes
+
+- [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b) [#7384](https://github.com/firebase/firebase-js-sdk/pull/7384) - Implemented `authStateReady()`, which returns a promise that resolves immediately when the initial auth state is settled and currentUser is available. When the promise is resolved, the current user might be a valid user or null if there is no user signed in currently.
+
+### Patch Changes
+
+- [`e91f82a20`](https://github.com/firebase/firebase-js-sdk/commit/e91f82a20b2c8cea75a81f55bd71d878a3d908d6) [#7467](https://github.com/firebase/firebase-js-sdk/pull/7467) (fixes [#7448](https://github.com/firebase/firebase-js-sdk/issues/7448)) - Unpin `@react-native-async-storage/async-storage` dependency to give users more control over the exact version.
+
 ## 1.0.0
 
 ### Major Changes
