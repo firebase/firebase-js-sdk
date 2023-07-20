@@ -39,6 +39,10 @@ describe('core/auth/password_policy_impl', () => {
   const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')', '@'];
   const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
     TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
+  const TEST_ENFORCEMENT_STATE_ENFORCE = 'ENFORCE';
+  const TEST_ENFORCEMENT_STATE_OFF = 'OFF';
+  const TEST_REQUIRE_ALL_FORCE_UPGRADE_ON_SIGN_IN = true;
+  const TEST_REQUIRE_LENGTH_FORCE_UPGRADE_ON_SIGN_IN = false;
   const TEST_SCHEMA_VERSION = 1;
   const PASSWORD_POLICY_RESPONSE_REQUIRE_ALL: GetPasswordPolicyResponse = {
     customStrengthOptions: {
@@ -50,6 +54,8 @@ describe('core/auth/password_policy_impl', () => {
       containsNonAlphanumericCharacter: TEST_CONTAINS_NON_ALPHANUMERIC
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+    forceUpgradeOnSignin: TEST_REQUIRE_ALL_FORCE_UPGRADE_ON_SIGN_IN,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH: GetPasswordPolicyResponse = {
@@ -58,6 +64,8 @@ describe('core/auth/password_policy_impl', () => {
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    enforcementState: TEST_ENFORCEMENT_STATE_OFF,
+    forceUpgradeOnSignin: TEST_REQUIRE_LENGTH_FORCE_UPGRADE_ON_SIGN_IN,
     schemaVersion: TEST_SCHEMA_VERSION
   };
   const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC: GetPasswordPolicyResponse = {
@@ -67,8 +75,19 @@ describe('core/auth/password_policy_impl', () => {
       containsNumericCharacter: TEST_CONTAINS_NUMERIC
     },
     allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+    enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
     schemaVersion: TEST_SCHEMA_VERSION
   };
+  const PASSWORD_POLICY_RESPONSE_UNSPECIFIED_ENFORCEMENT_STATE: GetPasswordPolicyResponse =
+    {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: 'ENFORCEMENT_STATE_UNSPECIFIED',
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
   const PASSWORD_POLICY_REQUIRE_ALL: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -78,14 +97,18 @@ describe('core/auth/password_policy_impl', () => {
       containsNumericCharacter: TEST_CONTAINS_NUMERIC,
       containsNonAlphanumericCharacter: TEST_CONTAINS_UPPERCASE
     },
-    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+    enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+    forceUpgradeOnSignin: TEST_REQUIRE_ALL_FORCE_UPGRADE_ON_SIGN_IN
   };
   const PASSWORD_POLICY_REQUIRE_LENGTH: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
       maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
     },
-    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING
+    allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+    enforcementState: TEST_ENFORCEMENT_STATE_OFF,
+    forceUpgradeOnSignin: TEST_REQUIRE_LENGTH_FORCE_UPGRADE_ON_SIGN_IN
   };
   const TEST_EMPTY_PASSWORD = '';
 
@@ -99,6 +122,9 @@ describe('core/auth/password_policy_impl', () => {
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
         PASSWORD_POLICY_REQUIRE_ALL.allowedNonAlphanumericCharacters
+      );
+      expect(policy.enforcementState).to.eql(
+        PASSWORD_POLICY_REQUIRE_ALL.enforcementState
       );
       expect(policy.schemaVersion).to.eql(
         PASSWORD_POLICY_RESPONSE_REQUIRE_ALL.schemaVersion
@@ -115,6 +141,9 @@ describe('core/auth/password_policy_impl', () => {
       expect(policy.allowedNonAlphanumericCharacters).to.eql(
         PASSWORD_POLICY_REQUIRE_LENGTH.allowedNonAlphanumericCharacters
       );
+      expect(policy.enforcementState).to.eql(
+        PASSWORD_POLICY_REQUIRE_LENGTH.enforcementState
+      );
       expect(policy.schemaVersion).to.eql(
         PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH.schemaVersion
       );
@@ -127,6 +156,20 @@ describe('core/auth/password_policy_impl', () => {
         .undefined;
       expect(policy.customStrengthOptions.containsNonAlphanumericCharacter).to
         .be.undefined;
+    });
+
+    it("assigns 'OFF' as the enforcement state when it is unspecified", () => {
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_UNSPECIFIED_ENFORCEMENT_STATE
+      );
+      expect(policy.enforcementState).to.eql(TEST_ENFORCEMENT_STATE_OFF);
+    });
+
+    it('assigns false to forceUpgradeOnSignin when it is undefined in the response', () => {
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
+      );
+      expect(policy.forceUpgradeOnSignin).to.be.false;
     });
 
     context('#validatePassword', () => {
@@ -338,6 +381,20 @@ describe('core/auth/password_policy_impl', () => {
         expect(status.containsLowercaseLetter).to.be.undefined;
         expect(status.containsUppercaseLetter).to.be.undefined;
         expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+      });
+
+      it("should consider a password invalid if it does not meet all requirements even if the enforcement state is 'OFF'", async () => {
+        const policy = PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC;
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          meetsMaxPasswordLength: true,
+          containsNumericCharacter: true,
+          passwordPolicy: policy
+        };
+
+        const status = policy.validatePassword('p4ss');
+        expect(status).to.eql(expectedValidationStatus);
       });
     });
   });
