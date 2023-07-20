@@ -88,6 +88,15 @@ describe('core/auth/password_policy_impl', () => {
       enforcementState: 'ENFORCEMENT_STATE_UNSPECIFIED',
       schemaVersion: TEST_SCHEMA_VERSION
     };
+  const PASSWORD_POLICY_RESPONSE_NO_NON_ALPHANUMERIC_CHARS: GetPasswordPolicyResponse =
+    {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        maxPasswordLength: TEST_MAX_PASSWORD_LENGTH
+      },
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
   const PASSWORD_POLICY_REQUIRE_ALL: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -170,6 +179,13 @@ describe('core/auth/password_policy_impl', () => {
         PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
       );
       expect(policy.forceUpgradeOnSignin).to.be.false;
+    });
+
+    it('assigns an empty string as the allowed non-alphanumeric characters when they are undefined in the response', () => {
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_NO_NON_ALPHANUMERIC_CHARS
+      );
+      expect(policy.allowedNonAlphanumericCharacters).to.eql('');
     });
 
     context('#validatePassword', () => {
