@@ -1314,6 +1314,59 @@ apiDescribe('Validation:', persistence => {
             )
           )
         ).not.to.throw();
+
+        // Composite queries can validate conflicting operators.
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '!=', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', '<', 'p'))
+              )
+            )
+          )
+        ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
+
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', 'not-in', ['p']))
+              )
+            )
+          )
+        ).to.throw(
+          "Invalid query. You cannot use 'not-in' filters with '!=' filters."
+        );
+
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', 'not-in', ['h']))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', 'not-in', ['p']))
+              )
+            )
+          )
+        ).to.throw(
+          "Invalid query. You cannot use more than one 'not-in' filter."
+        );
       }
     );
   });

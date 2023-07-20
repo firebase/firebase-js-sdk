@@ -885,16 +885,6 @@ describe('Query', () => {
       )
     );
     assertQueryMatches(query3, [doc1, doc2, doc5], [doc3, doc4]);
-
-    // (a!=1 || b!=1) && (a>=3 || b<3)
-    const query5 = query(
-      'collection',
-      andFilter(
-        orFilter(filter('a', '!=', 1), filter('b', '!=', 1)),
-        orFilter(filter('a', '>=', 3), filter('b', '<', 3))
-      )
-    );
-    assertQueryMatches(query5, [doc1, doc2, doc3], [doc4, doc5]);
   });
 
   function assertQueryMatches(
