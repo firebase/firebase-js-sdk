@@ -19,6 +19,7 @@ import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 
 import {
   Bound,
@@ -165,55 +166,18 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
-// Perform an in depth search on the query to get all inequality filter fields. Returns an empty
-// array if there is no inequality filters.
-export function getInequalityFilterFields(query: Query): FieldPath[] {
-  const result: FieldPath[] = [];
-
+// Returns the sorted set of inequality filter fields used in this query.
+export function getInequalityFilterFields(query: Query): SortedSet<FieldPath> {
+  let result = new SortedSet<FieldPath>(FieldPath.comparator);
   query.filters.forEach((filter: Filter) => {
     const inequalityFields = filter
       .getInequalityFilters()
       .map(filter => filter.field);
-    result.push(...inequalityFields);
+    inequalityFields.forEach((field: FieldPath) => {
+      result = result.add(field);
+    });
   });
-
   return result;
-}
-
-function FieldPathLexicographicComparator(
-  fieldPathA: FieldPath,
-  fieldPathB: FieldPath
-): number {
-  if (fieldPathA.isKeyField() && fieldPathB.isKeyField()) {
-    return 0;
-  } else if (fieldPathA.isKeyField() || fieldPathB.isKeyField()) {
-    // Document key field should always be ordered to the last.
-    return fieldPathA.isKeyField() ? 1 : -1;
-  }
-
-  const segmentsA = fieldPathA.toArray();
-  const segmentsB = fieldPathB.toArray();
-  const minLength = Math.min(segmentsA.length, segmentsB.length);
-
-  for (let i = 0; i < minLength; i++) {
-    const segmentA = segmentsA[i];
-    const segmentB = segmentsB[i];
-
-    if (segmentA < segmentB) {
-      return -1;
-    } else if (segmentA > segmentB) {
-      return 1;
-    }
-  }
-
-  // If the common segments are the same, compare the lengths.
-  if (segmentsA.length < segmentsB.length) {
-    return -1;
-  } else if (segmentsA.length > segmentsB.length) {
-    return 1;
-  }
-
-  return 0;
 }
 
 /**
@@ -253,12 +217,12 @@ export function queryOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
-    const fieldsIncluded = new Set<string>();
+    const explicitFields = new Set<string>();
 
     // Any explicit order by fields should be added as is.
     for (const orderBy of queryImpl.explicitOrderBy) {
       queryImpl.memoizedOrderBy.push(orderBy);
-      fieldsIncluded.add(orderBy.field.canonicalString());
+      explicitFields.add(orderBy.field.canonicalString());
     }
 
     // The order of the implicit ordering always matches the last explicit order by.
@@ -267,26 +231,25 @@ export function queryOrderBy(query: Query): OrderBy[] {
         ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1].dir
         : Direction.ASCENDING;
 
-    // Any inequality field not explicitly ordered should be implicitly ordered in a lexicographical
+    // Any inequality fields not explicitly ordered should be implicitly ordered in a lexicographical
     // order. When there are multiple inequality filters on the same field, the field should be added
     // only once.
-    const inequalityFields = getInequalityFilterFields(queryImpl);
-    inequalityFields.sort(FieldPathLexicographicComparator);
-    for (const field of inequalityFields) {
-      if (!fieldsIncluded.has(field.canonicalString())) {
-        queryImpl.memoizedOrderBy.push(new OrderBy(field, lastDirection));
-        fieldsIncluded.add(field.canonicalString());
+    // Note: key field would be lexicographically ordered to the first by sorted set.
+    const inequalityFields: SortedSet<FieldPath> =
+      getInequalityFilterFields(queryImpl);
+    inequalityFields.forEach(field => {
+      if (!explicitFields.has(field.canonicalString()) && !field.isKeyField()) {
+        queryImpl.memoizedOrderBy!.push(new OrderBy(field, lastDirection));
       }
-    }
+    });
 
-    // Add the document key field to the last if it is not included above.
-    if (!fieldsIncluded.has(FieldPath.keyField().canonicalString())) {
+    // Add the document key field to the last if it is not explicitly ordered.
+    if (!explicitFields.has(FieldPath.keyField().canonicalString())) {
       queryImpl.memoizedOrderBy.push(
         new OrderBy(FieldPath.keyField(), lastDirection)
       );
     }
   }
-
   return queryImpl.memoizedOrderBy;
 }
 
