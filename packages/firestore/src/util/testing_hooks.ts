@@ -104,6 +104,18 @@ export interface ExistenceFilterMismatchInfo {
   existenceFilterCount: number;
 
   /**
+   * The projectId used when checking documents for membership in the bloom
+   * filter.
+   */
+  projectId: string;
+
+  /**
+   * The databaseId used when checking documents for membership in the bloom
+   * filter.
+   */
+  databaseId: string;
+
+  /**
    * Information about the bloom filter provided by Watch in the ExistenceFilter
    * message's `unchangedNames` field. If this property is omitted or undefined
    * then that means that Watch did _not_ provide a bloom filter.
@@ -126,19 +138,11 @@ export interface ExistenceFilterMismatchInfo {
     padding: number;
 
     /**
-     * Check if the given document path is contained in the bloom filter.
-     *
-     * The "path" of a document can be retrieved from the
-     * `DocumentReference.path` property.
-     *
-     * Note that due to the probabilistic nature of a bloom filter, it is
-     * possible that false positives may occur; that is, this function may
-     * return `true` even though the given string is not in the bloom filter.
-     *
-     * This property is "optional"; if it is undefined then parsing the bloom
-     * filter failed.
+     * Tests the given string for membership in the bloom filter created from
+     * the existence filter; will be undefined if creating the bloom filter
+     * failed.
      */
-    mightContain?(documentPath: string): boolean;
+    mightContain?: (value: string) => boolean;
   };
 }
 

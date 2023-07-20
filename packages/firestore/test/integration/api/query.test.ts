@@ -2260,8 +2260,9 @@ apiDescribe('Queries', persistence => {
         // Delete one of the documents so that the next call to getDocs() will
         // experience an existence filter mismatch. Use a WriteBatch, rather
         // than deleteDoc(), to avoid affecting the local cache.
+        const documentToDelete = doc(coll, 'DocumentToDelete');
         const writeBatchForDocumentDeletes = writeBatch(db);
-        writeBatchForDocumentDeletes.delete(doc(coll, 'DocumentToDelete'));
+        writeBatchForDocumentDeletes.delete(documentToDelete);
         await writeBatchForDocumentDeletes.commit();
 
         // Wait for 10 seconds, during which Watch will stop tracking the query
@@ -2278,7 +2279,7 @@ apiDescribe('Queries', persistence => {
           documentSnapshot => documentSnapshot.id
         );
         const testDocIdsMinusDeletedDocId = testDocIds.filter(
-          documentId => documentId !== 'DocumentToDelete'
+          documentId => documentId !== documentToDelete.id
         );
         expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
           testDocIdsMinusDeletedDocId
@@ -2309,20 +2310,17 @@ apiDescribe('Queries', persistence => {
         // is if there is a false positive when testing for 'DocumentToDelete'
         // in the bloom filter. So verify that the bloom filter application is
         // successful, unless there was a false positive.
-        const isFalsePositive = bloomFilter.mightContain!(
-          `${coll.path}/DocumentToDelete`
-        );
+        const isFalsePositive = bloomFilter.mightContain(documentToDelete);
         expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
           !isFalsePositive
         );
 
         // Verify that the bloom filter contains the document paths with complex
         // Unicode characters.
-        for (const testDocId of testDocIdsMinusDeletedDocId) {
-          const testDocPath = `${coll.path}/${testDocId}`;
+        for (const testDoc of snapshot2.docs.map(snapshot => snapshot.ref)) {
           expect(
-            bloomFilter.mightContain!(testDocPath),
-            `bloomFilter.mightContain('${testDocPath}')`
+            bloomFilter.mightContain(testDoc),
+            `bloomFilter.mightContain('${testDoc.path}')`
           ).to.be.true;
         }
       });

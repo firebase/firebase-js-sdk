@@ -433,15 +433,18 @@ export class WatchChangeAggregator {
         // raise a snapshot with `isFromCache:true`.
         if (currentSize !== expectedCount) {
           // Apply bloom filter to identify and mark removed documents.
-          const applyResult = this.applyBloomFilter(watchChange, currentSize);
+          const bloomFilter = this.parseBloomFilter(watchChange);
+          const status = bloomFilter
+            ? this.applyBloomFilter(bloomFilter, watchChange, currentSize)
+            : BloomFilterApplicationStatus.Skipped;
 
-          if (applyResult.status !== BloomFilterApplicationStatus.Success) {
+          if (status !== BloomFilterApplicationStatus.Success) {
             // If bloom filter application fails, we reset the mapping and
             // trigger re-run of the query.
             this.resetTarget(targetId);
 
             const purpose: TargetPurpose =
-              applyResult.status === BloomFilterApplicationStatus.FalsePositive
+              status === BloomFilterApplicationStatus.FalsePositive
                 ? TargetPurpose.ExistenceFilterMismatchBloom
                 : TargetPurpose.ExistenceFilterMismatch;
             this.pendingTargetResets = this.pendingTargetResets.insert(
@@ -451,10 +454,11 @@ export class WatchChangeAggregator {
           }
           TestingHooks.instance?.notifyOnExistenceFilterMismatch(
             createExistenceFilterMismatchInfoForTestingHooks(
-              applyResult.status,
-              applyResult.bloomFilterMightContain ?? null,
               currentSize,
-              watchChange.existenceFilter
+              watchChange.existenceFilter,
+              this.metadataProvider.getDatabaseId(),
+              bloomFilter,
+              status
             )
           );
         }
@@ -463,21 +467,15 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Apply bloom filter to remove the deleted documents, and return the
-   * application status.
+   * Parse the bloom filter from the "unchanged_names" field of an existence
+   * filter.
    */
-  private applyBloomFilter(
-    watchChange: ExistenceFilterChange,
-    currentCount: number
-  ): {
-    status: BloomFilterApplicationStatus;
-    bloomFilterMightContain?: (documentPath: string) => boolean;
-  } {
-    const { unchangedNames, count: expectedCount } =
-      watchChange.existenceFilter;
-
+  private parseBloomFilter(
+    watchChange: ExistenceFilterChange
+  ): BloomFilter | null {
+    const unchangedNames = watchChange.existenceFilter.unchangedNames;
     if (!unchangedNames || !unchangedNames.bits) {
-      return { status: BloomFilterApplicationStatus.Skipped };
+      return null;
     }
 
     const {
@@ -495,7 +493,7 @@ export class WatchChangeAggregator {
             err.message +
             '); ignoring the bloom filter and falling back to full re-query.'
         );
-        return { status: BloomFilterApplicationStatus.Skipped };
+        return null;
       } else {
         throw err;
       }
@@ -511,31 +509,35 @@ export class WatchChangeAggregator {
       } else {
         logWarn('Applying bloom filter failed: ', err);
       }
-      return { status: BloomFilterApplicationStatus.Skipped };
+      return null;
     }
-
-    const bloomFilterMightContain = (documentPath: string): boolean => {
-      const databaseId = this.metadataProvider.getDatabaseId();
-      return bloomFilter.mightContain(
-        `projects/${databaseId.projectId}/databases/${databaseId.database}` +
-          `/documents/${documentPath}`
-      );
-    };
 
     if (bloomFilter.bitCount === 0) {
-      return { status: BloomFilterApplicationStatus.Skipped };
+      return null;
     }
 
+    return bloomFilter;
+  }
+
+  /**
+   * Apply bloom filter to remove the deleted documents, and return the
+   * application status.
+   */
+  private applyBloomFilter(
+    bloomFilter: BloomFilter,
+    watchChange: ExistenceFilterChange,
+    currentCount: number
+  ): BloomFilterApplicationStatus {
+    const expectedCount = watchChange.existenceFilter.count;
+
     const removedDocumentCount = this.filterRemovedDocuments(
-      watchChange.targetId,
-      bloomFilterMightContain
+      bloomFilter,
+      watchChange.targetId
     );
 
-    const status =
-      expectedCount === currentCount - removedDocumentCount
-        ? BloomFilterApplicationStatus.Success
-        : BloomFilterApplicationStatus.FalsePositive;
-    return { status, bloomFilterMightContain };
+    return expectedCount === currentCount - removedDocumentCount
+      ? BloomFilterApplicationStatus.Success
+      : BloomFilterApplicationStatus.FalsePositive;
   }
 
   /**
@@ -543,14 +545,20 @@ export class WatchChangeAggregator {
    * return number of documents removed.
    */
   private filterRemovedDocuments(
-    targetId: number,
-    bloomFilterMightContain: (documentPath: string) => boolean
+    bloomFilter: BloomFilter,
+    targetId: number
   ): number {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     let removalCount = 0;
 
     existingKeys.forEach(key => {
-      if (!bloomFilterMightContain(key.path.canonicalString())) {
+      const databaseId = this.metadataProvider.getDatabaseId();
+      const documentPath =
+        `projects/${databaseId.projectId}` +
+        `/databases/${databaseId.database}` +
+        `/documents/${key.path.canonicalString()}`;
+
+      if (!bloomFilter.mightContain(documentPath)) {
         this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
         removalCount++;
       }
@@ -835,27 +843,29 @@ function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
 }
 
 function createExistenceFilterMismatchInfoForTestingHooks(
-  status: BloomFilterApplicationStatus,
-  bloomFilterMightContain: null | ((documentPath: string) => boolean),
   localCacheCount: number,
-  existenceFilter: ExistenceFilter
+  existenceFilter: ExistenceFilter,
+  databaseId: DatabaseId,
+  bloomFilter: BloomFilter | null,
+  bloomFilterStatus: BloomFilterApplicationStatus
 ): TestingHooksExistenceFilterMismatchInfo {
   const result: TestingHooksExistenceFilterMismatchInfo = {
     localCacheCount,
-    existenceFilterCount: existenceFilter.count
+    existenceFilterCount: existenceFilter.count,
+    databaseId: databaseId.database,
+    projectId: databaseId.projectId
   };
 
   const unchangedNames = existenceFilter.unchangedNames;
   if (unchangedNames) {
     result.bloomFilter = {
-      applied: status === BloomFilterApplicationStatus.Success,
+      applied: bloomFilterStatus === BloomFilterApplicationStatus.Success,
       hashCount: unchangedNames?.hashCount ?? 0,
       bitmapLength: unchangedNames?.bits?.bitmap?.length ?? 0,
-      padding: unchangedNames?.bits?.padding ?? 0
+      padding: unchangedNames?.bits?.padding ?? 0,
+      mightContain: (value: string): boolean =>
+        bloomFilter?.mightContain(value) ?? false
     };
-    if (bloomFilterMightContain) {
-      result.bloomFilter.mightContain = bloomFilterMightContain;
-    }
   }
 
   return result;
