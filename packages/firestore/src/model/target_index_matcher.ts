@@ -148,6 +148,7 @@ export class TargetIndexMatcher {
         return false;
       }
 
+      // Only a single inequality is currently supported. Get the only entry in the map.
       const inequalityFilter = this.inequalityFilters.values().next().value;
       // If there is an inequality filter and the field was not in one of the
       // equality filters above, the next segment must match both the filter

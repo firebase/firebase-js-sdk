@@ -180,7 +180,7 @@ export function getInequalityFilterFields(query: Query): FieldPath[] {
   return result;
 }
 
-function FiledPathLexicographicComparator(
+function FieldPathLexicographicComparator(
   fieldPathA: FieldPath,
   fieldPathB: FieldPath
 ): number {
@@ -245,7 +245,7 @@ export function isCollectionGroupQuery(query: Query): boolean {
 }
 
 /**
- * Returns the order by constraint that is used to execute the Query, in which the implicit order by
+ * Returns the order by constraint that is used to execute the Query. Note that the implicit order by
  * constraint can be different from the order by constraints the user provided (e.g. the SDK and
  * backend always orders by `__name__`).
  */
@@ -271,7 +271,7 @@ export function queryOrderBy(query: Query): OrderBy[] {
     // order. When there are multiple inequality filters on the same field, the field should be added
     // only once.
     const inequalityFields = getInequalityFilterFields(queryImpl);
-    inequalityFields.sort(FiledPathLexicographicComparator);
+    inequalityFields.sort(FieldPathLexicographicComparator);
     for (const field of inequalityFields) {
       if (!fieldsIncluded.has(field.canonicalString())) {
         queryImpl.memoizedOrderBy.push(new OrderBy(field, lastDirection));

@@ -250,13 +250,9 @@ export class CompositeFilter extends Filter {
   // Performs a depth-first search to find and return the inequality FieldFilters in the composite
   // filter. Returns an empty array if none of the FieldFilters has inequality filters.
   getInequalityFilters(): readonly FieldFilter[] {
-    const result: FieldFilter[] = [];
-
-    this.getFlattenedFilters().forEach((filter: FieldFilter) => {
-      result.push(...filter.getInequalityFilters());
-    });
-
-    return result;
+    return this.getFlattenedFilters().filter((filter: FieldFilter) =>
+      filter.isInequality()
+    );
   }
 }
 
