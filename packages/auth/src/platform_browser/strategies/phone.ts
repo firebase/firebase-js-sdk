@@ -88,7 +88,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
       }, webOTPTimeout * 1000);
 
       // @ts-ignore - ignore types for testing
-      let o: OTPCredentialRequestOptions = {
+      const o: OTPCredentialRequestOptions = {
         otp: { transport: ['sms'] },
         signal: abortController.signal
       };
@@ -112,15 +112,15 @@ class ConfirmationResultImpl implements ConfirmationResult {
             code = content.code;
           }
         })
-        .catch(error => {
+        .catch(() => {
           clearTimeout(timer);
           throw new FirebaseError(
             'WEB_OTP_NOT_RETRIEVED',
             'auth/web-otp-not-retrieved'
           );
         });
-
-      return await this.confirm(code);
+        const userCred = await this.confirm(code);
+      return userCred;
     } else {
       throw new FirebaseError(
         'WEB_OTP_NOT_SUPPORTED',
@@ -189,7 +189,7 @@ export async function signInWithPhoneNumber(
     getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
 
-  let confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
+  const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
   );
 
