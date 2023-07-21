@@ -534,20 +534,20 @@ function onValidatePassword(sectionIdPrefix) {
       // Only show options required by the password policy.
       $(requirementsId).children().hide();
 
+      // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
+      if (
+        sectionIdPrefix === '#signin-' &&
+        !passwordPolicy.forceUpgradeOnSignin
+      ) {
+        return;
+      }
+
       // Display a message if the password policy is not being enforced.
       const notEnforcedId = idPrefix + 'not-enforced';
       if (passwordPolicy.enforcementState === 'OFF') {
         $(notEnforcedId).show();
       } else {
         $(notEnforcedId).hide();
-      }
-
-      // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
-      if (
-        sectionIdPrefix === 'signin-' &&
-        !passwordPolicy.forceUpgradeOnSignin
-      ) {
-        return;
       }
 
       if (customStrengthOptions.minPasswordLength) {
@@ -579,7 +579,7 @@ function onValidatePassword(sectionIdPrefix) {
       // Show a note that existing password must meet the policy if trying to sign-in.
       if (sectionIdPrefix === '#signin-') {
         const forceUpgradeId = idPrefix + 'force-upgrade';
-        if (!passwordPolicy.forceUpgradeOnSignin) {
+        if (passwordPolicy.forceUpgradeOnSignin) {
           $(forceUpgradeId).show();
         } else {
           $(forceUpgradeId).hide();
