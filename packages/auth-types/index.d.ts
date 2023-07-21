@@ -458,8 +458,8 @@ export class FirebaseAuth {
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier,
-    useWebOTP: boolean,
-    webOTPTimeout: number
+    useWebOTP?: boolean,
+    webOTPTimeout?: number
   ): Promise<ConfirmationResult | UserCredential>;
   signInWithPopup(provider: AuthProvider): Promise<UserCredential>;
   signInWithRedirect(provider: AuthProvider): Promise<void>;
