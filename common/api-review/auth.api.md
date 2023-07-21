@@ -281,6 +281,7 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    confirmWithWebOTP(webOTPTimeout: number): Promise<UserCredential>;
     readonly verificationId: string;
 }
 
@@ -747,7 +748,7 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, useWebOTP?: boolean, webOTPTimeout?: number): Promise<ConfirmationResult | UserCredential>;
 
 // @public
 export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
