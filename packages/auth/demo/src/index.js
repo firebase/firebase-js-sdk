@@ -531,6 +531,9 @@ function onValidatePassword(sectionIdPrefix) {
       const passwordPolicy = status.passwordPolicy;
       const customStrengthOptions = passwordPolicy.customStrengthOptions;
 
+      // Only show options required by the password policy.
+      $(requirementsId).children().hide();
+
       // Display a message if the password policy is not being enforced.
       const notEnforcedId = idPrefix + 'not-enforced';
       if (passwordPolicy.enforcementState === 'OFF') {
@@ -538,9 +541,6 @@ function onValidatePassword(sectionIdPrefix) {
       } else {
         $(notEnforcedId).hide();
       }
-
-      // Only show options required by the password policy.
-      $(requirementsId).children().hide();
 
       // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
       if (
@@ -579,7 +579,7 @@ function onValidatePassword(sectionIdPrefix) {
       // Show a note that existing password must meet the policy if trying to sign-in.
       if (sectionIdPrefix === '#signin-') {
         const forceUpgradeId = idPrefix + 'force-upgrade';
-        if (passwordPolicy.forceUpgradeOnSignin) {
+        if (!passwordPolicy.forceUpgradeOnSignin) {
           $(forceUpgradeId).show();
         } else {
           $(forceUpgradeId).hide();
@@ -594,15 +594,14 @@ function onValidatePassword(sectionIdPrefix) {
       const requirements = $(
         idPrefix + 'requirements .list-group-item:visible'
       );
-      requirements.each(function (index) {
+      requirements.each((index, elem) => {
         if (index === 0) {
-          $(this).css('border-top-left-radius', borderRadius);
-          $(this).css('border-top-right-radius', borderRadius);
+          $(elem).css('border-top-left-radius', borderRadius);
+          $(elem).css('border-top-right-radius', borderRadius);
         }
-        console.log(elem);
         if (index === requirements.length - 1) {
-          $(this).css('border-bottom-left-radius', borderRadius);
-          $(this).css('border-bottom-right-radius', borderRadius);
+          $(elem).css('border-bottom-left-radius', borderRadius);
+          $(elem).css('border-bottom-right-radius', borderRadius);
         }
       });
     },
@@ -618,11 +617,22 @@ function onValidatePassword(sectionIdPrefix) {
 }
 
 /**
- * Toggles text visibility for the password validation input field.
- * @param {string} sectionIdPrefix The ID prefix of the section to show the password requirements in.
+ * Hides requirements in a section when the password field is blurred and empty.
+ * @param {string} sectionIdPrefix The ID prefix of the section to hide the password requirements in.
  */
-function onToggleViewPassword(sectionIdPrefix = '#') {
-  const id = sectionIdPrefix + '-password';
+function onBlurPassword(sectionIdPrefix) {
+  if ($(sectionIdPrefix + 'password').val() === '') {
+    const id = sectionIdPrefix + 'password-validation-requirements';
+    $(id).hide();
+  }
+}
+
+/**
+ * Toggles text visibility for the password validation input field.
+ * @param {string} sectionIdPrefix The ID prefix of the DOM element of the password input.
+ */
+function onToggleViewPassword(sectionIdPrefix) {
+  const id = sectionIdPrefix + 'password';
   if ($(id).prop('type') === 'password') {
     $(id).prop('type', 'text');
   } else {
@@ -2170,17 +2180,23 @@ function initApp() {
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
-  $('#password-validation-password').keyup(() => onValidatePassword());
+
   $('#signin-password').keyup(() => onValidatePassword('#signin-'));
   $('#signup-password').keyup(() => onValidatePassword('#signup-'));
   $('#password-reset-password').keyup(() =>
     onValidatePassword('#password-reset-')
   );
+
   $('#signin-view-password').click(() => onToggleViewPassword('#signin-'));
   $('#signup-view-password').click(() => onToggleViewPassword('#signup-'));
   $('#password-reset-view-password').click(() =>
     onToggleViewPassword('#password-reset-')
   );
+
+  $('#signin-password').blur(() => onBlurPassword('#signin-'));
+  $('#signup-password').blur(() => onBlurPassword('#signup-'));
+  $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
