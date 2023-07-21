@@ -119,7 +119,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
             'auth/web-otp-not-retrieved'
           );
         });
-        const userCred = await this.confirm(code);
+      const userCred = await this.confirm(code);
       return userCred;
     } else {
       throw new FirebaseError(

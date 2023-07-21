@@ -83,7 +83,12 @@ describe('platform_browser/strategies/phone', () => {
 
     context('ConfirmationResult', () => {
       it('result contains verification id baked in if ConfirmationResult is returned', async () => {
-        const result = await signInWithPhoneNumber(auth, 'number', verifier, false);
+        const result = await signInWithPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          false
+        );
         const confirmationResStor = result as unknown;
         const confirmationRes = confirmationResStor as ConfirmationResult;
 
@@ -109,7 +114,12 @@ describe('platform_browser/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        const result = await signInWithPhoneNumber(auth, 'number', verifier, false);
+        const result = await signInWithPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          false
+        );
         const confirmationResStor = result as unknown;
         const confirmationRes = confirmationResStor as ConfirmationResult;
         const userCred = await confirmationRes.confirm('6789');
