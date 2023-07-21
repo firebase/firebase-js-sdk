@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app';
 import { Auth, User } from '../../../src/model/public_types';
 
-import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
+import { getAuth, connectAuthEmulator, PasswordPolicy } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
@@ -116,3 +116,29 @@ export const email = 'totpuser-donotdelete@test.com';
 export const fakePassword = 'password';
 //1000000 is always incorrect since it has 7 digits and we expect 6.
 export const incorrectTotpCode = '1000000';
+
+/**
+ * Generates a valid password for the given password policy.
+ * @param passwordPolicy The policy to generate a valid password for.
+ * @returns A valid password according to the policy.
+ */
+export function generateValidPassword(passwordPolicy: PasswordPolicy): string {
+  const options = passwordPolicy.customStrengthOptions;
+
+  // Create a string that satisfies all possible options.
+  const nonAlphaNumericCharacter =
+    passwordPolicy.allowedNonAlphanumericCharacters.charAt(0);
+  const stringWithAllOptions = 'aA0' + nonAlphaNumericCharacter;
+
+  // Repeat the string enough times to fill up the maximum max password length, as set on the backend.
+  const maximumMaxPasswordLength = 4096;
+  const password = stringWithAllOptions.repeat(
+    Math.round(maximumMaxPasswordLength / stringWithAllOptions.length)
+  );
+
+  // Return a string that is only as long as the maximum length required by the policy.
+  return password.substring(
+    0,
+    options.maxPasswordLength ?? maximumMaxPasswordLength
+  );
+}
