@@ -44,6 +44,8 @@ import {
   updatePhoneNumber
 } from './phone';
 
+import { ConfirmationResult } from '@firebase/auth-types';
+
 use(chaiAsPromised);
 use(sinonChai);
 
@@ -80,9 +82,12 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('ConfirmationResult', () => {
-      it('result contains verification id baked in', async () => {
-        const result = await signInWithPhoneNumber(auth, 'number', verifier);
-        expect(result.verificationId).to.eq('session-info');
+      it('result contains verification id baked in if ConfirmationResult is returned', async () => {
+        const result = await signInWithPhoneNumber(auth, 'number', verifier, false);
+        const confirmationResStor = result as unknown;
+        const confirmationRes = confirmationResStor as ConfirmationResult;
+
+        expect(confirmationRes.verificationId).to.eq('session-info');
       });
 
       it('calling #confirm finishes the sign in flow', async () => {
@@ -104,9 +109,12 @@ describe('platform_browser/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        const result = await signInWithPhoneNumber(auth, 'number', verifier);
-        const userCred = await result.confirm('6789');
-        expect(userCred.user.uid).to.eq('uid');
+        const result = await signInWithPhoneNumber(auth, 'number', verifier, false);
+        const confirmationResStor = result as unknown;
+        const confirmationRes = confirmationResStor as ConfirmationResult;
+        const userCred = await confirmationRes.confirm('6789');
+
+        expect(userCred.user!.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
