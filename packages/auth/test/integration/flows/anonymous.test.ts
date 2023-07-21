@@ -42,7 +42,7 @@ import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
-describe.only('Integration test: anonymous auth', () => {
+describe('Integration test: anonymous auth', () => {
   let auth: Auth;
   beforeEach(() => (auth = getTestInstance()));
   afterEach(() => cleanUpTestInstance(auth));
