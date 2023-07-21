@@ -178,6 +178,38 @@ export async function convertConfirmationResult(
   };
 }
 
+export async function convertPhoneSignInPromiseResult(
+  auth: exp.Auth,
+  phoneSignInPromise: Promise<exp.ConfirmationResult | exp.UserCredential>
+): Promise<compat.ConfirmationResult | compat.UserCredential> {
+  const result = await phoneSignInPromise;
+  const resultAsConfirmationResult = result as exp.ConfirmationResult;
+  if (resultAsConfirmationResult) {
+    return {
+      verificationId: resultAsConfirmationResult.verificationId,
+      confirm: (verificationCode: string) =>
+        convertCredential(
+          auth,
+          resultAsConfirmationResult.confirm(verificationCode)
+        )
+    };
+  } else {
+    const resultAsUserCredential = result as exp.UserCredential;
+    const operationType = resultAsUserCredential.operationType;
+    const user = resultAsUserCredential.user;
+    return {
+      operationType,
+      credential: credentialFromResponse(
+        resultAsUserCredential as exp.UserCredentialInternal
+      ),
+      additionalUserInfo: exp.getAdditionalUserInfo(
+        resultAsUserCredential as exp.UserCredential
+      ),
+      user: User.getOrCreate(user)
+    };
+  }
+}
+
 class MultiFactorResolver implements compat.MultiFactorResolver {
   readonly auth: Auth;
   constructor(

@@ -43,7 +43,7 @@ Firebase Authentication
 |  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken) | Asynchronously signs in using a custom token. |
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink) | Asynchronously signs in using an email and sign-in email link. |
-|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
+|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier, useWebOTP, webOTPTimeout)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect) | Authenticates a Firebase client using a full-page redirect flow. |
 |  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
@@ -878,7 +878,11 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 Asynchronously signs in using a phone number.
 
-This method sends a code via SMS to the given phone number, and returns a [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->. After the user provides the code sent to their phone, call [ConfirmationResult.confirm()](./auth.confirmationresult.md#confirmationresultconfirm) with the code to sign the user in.
+This method sends a code via SMS to the given phone number. It returns a [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface) if  is set to false. If  is set to true, the method will return a [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->.
+
+If  is set to `false`<!-- -->, webOTP autofill is disabled. After the user provides the code sent to their phone, call [ConfirmationResult.confirm()](./auth.confirmationresult.md#confirmationresultconfirm) with the code to sign the user in. [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface) is returned.
+
+If  is set to `true`<!-- -->, webOTP autofill is enabled and the verfication code is automatically fetched, then [ConfirmationResult.confirm()](./auth.confirmationresult.md#confirmationresultconfirm) will be called with the code to sign the user in. [UserCredential](./auth.usercredential.md#usercredential_interface) is returned.
 
 For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
 
@@ -887,7 +891,7 @@ This method does not work in a Node.js environment.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, useWebOTP?: boolean, webOTPTimeout?: number): Promise<ConfirmationResult | UserCredential>;
 ```
 
 ### Parameters
@@ -897,10 +901,12 @@ export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, a
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
 |  appVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | The [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. |
+|  useWebOTP | boolean | Specifies whether to use WebOTP autofill or not in the sign in |
+|  webOTPTimeout | number | Error would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds). |
 
 <b>Returns:</b>
 
-Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->&gt;
+Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface) \| [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
 ### Example
 
@@ -908,7 +914,10 @@ Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_
 ```javascript
 // 'recaptcha-container' is the ID of an element in the DOM.
 const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
-const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+const credential = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, true);
+
+const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, false);
 // Obtain a verificationCode from the user.
 const credential = await confirmationResult.confirm(verificationCode);
 

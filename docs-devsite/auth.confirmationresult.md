@@ -29,6 +29,7 @@ export interface ConfirmationResult
 |  Method | Description |
 |  --- | --- |
 |  [confirm(verificationCode)](./auth.confirmationresult.md#confirmationresultconfirm) | Finishes a phone number sign-in, link, or reauthentication. |
+|  [confirmWithWebOTP(webOTPTimeout)](./auth.confirmationresult.md#confirmationresultconfirmwithwebotp) | Automatically fetches the verification code from SMS message. Then, it calls confirm(verificationCode) to finish a phone number sign-in, link, or reauthentication. |
 
 ## ConfirmationResult.verificationId
 
@@ -71,4 +72,24 @@ const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applic
 const userCredential = await confirmationResult.confirm(verificationCode);
 
 ```
+
+## ConfirmationResult.confirmWithWebOTP()
+
+Automatically fetches the verification code from SMS message. Then, it calls confirm(verificationCode) to finish a phone number sign-in, link, or reauthentication.
+
+<b>Signature:</b>
+
+```typescript
+confirmWithWebOTP(webOTPTimeout: number): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  webOTPTimeout | number | Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds). |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 

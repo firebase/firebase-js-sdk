@@ -3260,8 +3260,11 @@ declare namespace firebase.auth {
      */
     signInWithPhoneNumber(
       phoneNumber: string,
-      applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<firebase.auth.ConfirmationResult>;
+      applicationVerifier: firebase.auth.ApplicationVerifier,
+      useWebOTP: boolean,
+      webOTPTimeout: number
+    ): Promise<firebase.auth.ConfirmationResult | firebase.auth.UserCredential>;
+
     /**
      * Asynchronously signs in using an email and sign-in email link. If no link
      * is passed, the link is inferred from the current URL.
