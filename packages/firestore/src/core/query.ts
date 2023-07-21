@@ -209,20 +209,20 @@ export function isCollectionGroupQuery(query: Query): boolean {
 }
 
 /**
- * Returns the order by constraint that is used to execute the Query. Note that the implicit order by
- * constraint can be different from the order by constraints the user provided (e.g. the SDK and
+ * Returns the order by constraint that is used to execute the Query. Note that the implicit order
+ * by constraint can be different from the order by constraints the user provided (e.g. the SDK and
  * backend always orders by `__name__`).
  */
 export function queryOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
-    const explicitFields = new Set<string>();
+    const fieldsNormalized = new Set<string>();
 
     // Any explicit order by fields should be added as is.
     for (const orderBy of queryImpl.explicitOrderBy) {
       queryImpl.memoizedOrderBy.push(orderBy);
-      explicitFields.add(orderBy.field.canonicalString());
+      fieldsNormalized.add(orderBy.field.canonicalString());
     }
 
     // The order of the implicit ordering always matches the last explicit order by.
@@ -234,17 +234,21 @@ export function queryOrderBy(query: Query): OrderBy[] {
     // Any inequality fields not explicitly ordered should be implicitly ordered in a lexicographical
     // order. When there are multiple inequality filters on the same field, the field should be added
     // only once.
-    // Note: key field would be lexicographically ordered to the first by sorted set.
+    // Note: `SortedSet<FieldPath>` sorts the key field before other fields. However, we want the key
+    // field to be sorted last.
     const inequalityFields: SortedSet<FieldPath> =
       getInequalityFilterFields(queryImpl);
     inequalityFields.forEach(field => {
-      if (!explicitFields.has(field.canonicalString()) && !field.isKeyField()) {
+      if (
+        !fieldsNormalized.has(field.canonicalString()) &&
+        !field.isKeyField()
+      ) {
         queryImpl.memoizedOrderBy!.push(new OrderBy(field, lastDirection));
       }
     });
 
     // Add the document key field to the last if it is not explicitly ordered.
-    if (!explicitFields.has(FieldPath.keyField().canonicalString())) {
+    if (!fieldsNormalized.has(FieldPath.keyField().canonicalString())) {
       queryImpl.memoizedOrderBy.push(
         new OrderBy(FieldPath.keyField(), lastDirection)
       );
