@@ -34,6 +34,7 @@ import { FirebaseError } from '@firebase/util';
 
 import {
   cleanUpTestInstance,
+  generateValidPassword,
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
@@ -41,7 +42,7 @@ import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
-describe('Integration test: anonymous auth', () => {
+describe.only('Integration test: anonymous auth', () => {
   let auth: Auth;
   beforeEach(() => (auth = getTestInstance()));
   afterEach(() => cleanUpTestInstance(auth));
@@ -65,9 +66,11 @@ describe('Integration test: anonymous auth', () => {
 
   context('email/password interaction', () => {
     let email: string;
+    let password: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       email = randomEmail();
+      password = await generateValidPassword(auth);
     });
 
     it('anonymous / email-password accounts remain independent', async () => {
@@ -75,7 +78,7 @@ describe('Integration test: anonymous auth', () => {
       const emailCred = await createUserWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(emailCred.user.uid).not.to.eql(anonCred.user.uid);
 
@@ -84,7 +87,7 @@ describe('Integration test: anonymous auth', () => {
       const emailSignIn = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(emailCred.user.uid).to.eql(emailSignIn.user.uid);
       expect(emailSignIn.user.uid).not.to.eql(anonCred.user.uid);
@@ -93,36 +96,36 @@ describe('Integration test: anonymous auth', () => {
     it('account can be upgraded by setting email and password', async () => {
       const { user: anonUser } = await signInAnonymously(auth);
       await updateEmail(anonUser, email);
-      await updatePassword(anonUser, 'password');
+      await updatePassword(anonUser, password);
 
       await auth.signOut();
 
       const { user: emailPassUser } = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(emailPassUser.uid).to.eq(anonUser.uid);
     });
 
     it('account can be linked using email and password', async () => {
       const { user: anonUser } = await signInAnonymously(auth);
-      const cred = EmailAuthProvider.credential(email, 'password');
+      const cred = EmailAuthProvider.credential(email, password);
       await linkWithCredential(anonUser, cred);
       await auth.signOut();
 
       const { user: emailPassUser } = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(emailPassUser.uid).to.eq(anonUser.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
-      await createUserWithEmailAndPassword(auth, email, 'password');
+      await createUserWithEmailAndPassword(auth, email, password);
       const { user: anonUser } = await signInAnonymously(auth);
-      const cred = EmailAuthProvider.credential(email, 'password');
+      const cred = EmailAuthProvider.credential(email, password);
       await expect(linkWithCredential(anonUser, cred)).to.be.rejectedWith(
         FirebaseError,
         'auth/email-already-in-use'

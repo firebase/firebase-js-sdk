@@ -22,7 +22,10 @@ import sinonChai from 'sinon-chai';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, createUserWithEmailAndPassword, User } from '@firebase/auth';
-import { randomEmail } from '../../helpers/integration/helpers';
+import {
+  generateValidPassword,
+  randomEmail
+} from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -34,10 +37,12 @@ export function generateMiddlewareTests(
   context('middleware', () => {
     let auth: Auth;
     let unsubscribes: Array<() => void>;
+    let password: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       auth = authGetter();
       unsubscribes = [];
+      password = await generateValidPassword(auth);
     });
 
     afterEach(() => {
@@ -81,7 +86,7 @@ export function generateMiddlewareTests(
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
         randomEmail(),
-        'password'
+        password
       );
 
       beforeAuthStateChanged(() => {
@@ -115,7 +120,7 @@ export function generateMiddlewareTests(
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
         randomEmail(),
-        'password'
+        password
       );
 
       beforeAuthStateChanged(() => {
@@ -148,7 +153,7 @@ export function generateMiddlewareTests(
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
         randomEmail(),
-        'password'
+        password
       );
 
       // Also check that the function is called multiple
@@ -172,7 +177,7 @@ export function generateMiddlewareTests(
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
         randomEmail(),
-        'password'
+        password
       );
 
       // Also check that the function is called multiple

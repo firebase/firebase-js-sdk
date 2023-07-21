@@ -35,6 +35,7 @@ import { FirebaseError } from '@firebase/util';
 
 import {
   cleanUpTestInstance,
+  generateValidPassword,
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
@@ -45,9 +46,12 @@ use(chaiAsPromised);
 describe('Integration test: email/password auth', () => {
   let auth: Auth;
   let email: string;
-  beforeEach(() => {
+  let password: string;
+
+  beforeEach(async () => {
     auth = getTestInstance();
     email = randomEmail();
+    password = await generateValidPassword(auth);
   });
 
   afterEach(() => cleanUpTestInstance(auth));
@@ -56,7 +60,7 @@ describe('Integration test: email/password auth', () => {
     const userCred = await createUserWithEmailAndPassword(
       auth,
       email,
-      'password'
+      password
     );
     expect(auth.currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -76,9 +80,9 @@ describe('Integration test: email/password auth', () => {
   });
 
   it('errors when createUser called twice', async () => {
-    await createUserWithEmailAndPassword(auth, email, 'password');
+    await createUserWithEmailAndPassword(auth, email, password);
     await expect(
-      createUserWithEmailAndPassword(auth, email, 'password')
+      createUserWithEmailAndPassword(auth, email, password)
     ).to.be.rejectedWith(FirebaseError, 'auth/email-already-in-use');
   });
 
@@ -86,11 +90,7 @@ describe('Integration test: email/password auth', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
-      signUpCred = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        'password'
-      );
+      signUpCred = await createUserWithEmailAndPassword(auth, email, password);
       await auth.signOut();
     });
 
@@ -98,7 +98,7 @@ describe('Integration test: email/password auth', () => {
       const signInCred = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(auth.currentUser).to.eq(signInCred.user);
 
@@ -110,7 +110,7 @@ describe('Integration test: email/password auth', () => {
     });
 
     it('allows the user to sign in with signInWithCredential', async () => {
-      const credential = EmailAuthProvider.credential(email, 'password');
+      const credential = EmailAuthProvider.credential(email, password);
       const signInCred = await signInWithCredential(auth, credential);
       expect(auth.currentUser).to.eq(signInCred.user);
 
@@ -122,7 +122,7 @@ describe('Integration test: email/password auth', () => {
     });
 
     it('allows the user to update profile', async () => {
-      let { user } = await signInWithEmailAndPassword(auth, email, 'password');
+      let { user } = await signInWithEmailAndPassword(auth, email, password);
       await updateProfile(user, {
         displayName: 'Display Name',
         photoURL: 'photo-url'
@@ -132,17 +132,13 @@ describe('Integration test: email/password auth', () => {
 
       await auth.signOut();
 
-      user = (await signInWithEmailAndPassword(auth, email, 'password')).user;
+      user = (await signInWithEmailAndPassword(auth, email, password)).user;
       expect(user.displayName).to.eq('Display Name');
       expect(user.photoURL).to.eq('photo-url');
     });
 
     it('allows the user to delete the account', async () => {
-      const { user } = await signInWithEmailAndPassword(
-        auth,
-        email,
-        'password'
-      );
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
       await user.delete();
 
       await expect(reload(user)).to.be.rejectedWith(
@@ -152,7 +148,7 @@ describe('Integration test: email/password auth', () => {
 
       expect(auth.currentUser).to.be.null;
       await expect(
-        signInWithEmailAndPassword(auth, email, 'password')
+        signInWithEmailAndPassword(auth, email, password)
       ).to.be.rejectedWith(FirebaseError, 'auth/user-not-found');
     });
 
@@ -160,12 +156,12 @@ describe('Integration test: email/password auth', () => {
       const { user: userA } = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       const { user: userB } = await signInWithEmailAndPassword(
         auth,
         email,
-        'password'
+        password
       );
       expect(userA.uid).to.eq(userB.uid);
     });
@@ -173,7 +169,7 @@ describe('Integration test: email/password auth', () => {
     generateMiddlewareTests(
       () => auth,
       () => {
-        return signInWithEmailAndPassword(auth, email, 'password');
+        return signInWithEmailAndPassword(auth, email, password);
       }
     );
   });

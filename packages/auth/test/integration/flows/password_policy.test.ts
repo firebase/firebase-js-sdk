@@ -16,9 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {
-  Auth, PasswordPolicy, validatePassword
-} from '@firebase/auth';
+import { Auth, validatePassword } from '@firebase/auth';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {
@@ -44,19 +42,14 @@ describe('Integration test: password validation', () => {
     // Password will always be invalid since the minimum min length is 6.
     const INVALID_PASSWORD = 'a';
 
-    let passwordPolicy: PasswordPolicy;
-
-    beforeEach(async () => {
-      passwordPolicy = (await validatePassword(auth, '')).passwordPolicy;
-    });
-
     it('considers valid passwords valid against the policy configured for the project', async () => {
-      const password = generateValidPassword(passwordPolicy);
+      const password = await generateValidPassword(auth);
       expect((await validatePassword(auth, password)).isValid).to.be.true;
     });
 
     it('considers invalid passwords invalid against the policy configured for the project', async () => {
-      expect((await validatePassword(auth, INVALID_PASSWORD)).isValid).to.be.false;
+      expect((await validatePassword(auth, INVALID_PASSWORD)).isValid).to.be
+        .false;
     });
   });
 });
