@@ -31,7 +31,6 @@ import { _isPopupRedirectSupported } from './platform';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
 import {
-  convertConfirmationResult,
   convertPhoneSignInPromiseResult,
   convertCredential
 } from './user_credential';
