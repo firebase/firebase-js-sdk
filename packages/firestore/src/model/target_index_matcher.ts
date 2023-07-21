@@ -56,7 +56,7 @@ export class TargetIndexMatcher {
   // The inequality filters of the target (if it exists).
   // Note: The sort on FieldFilters is not required. Using SortedSet here just to utilize the custom
   // comparator.
-  private inequalityFiltersSet = new SortedSet<FieldFilter>((lhs, rhs) =>
+  private inequalityFilters = new SortedSet<FieldFilter>((lhs, rhs) =>
     FieldPath.comparator(lhs.field, rhs.field)
   );
 
@@ -75,7 +75,7 @@ export class TargetIndexMatcher {
     for (const filter of target.filters) {
       const fieldFilter = filter as FieldFilter;
       if (fieldFilter.isInequality()) {
-        this.inequalityFiltersSet = this.inequalityFiltersSet.add(fieldFilter);
+        this.inequalityFilters = this.inequalityFilters.add(fieldFilter);
       } else {
         this.equalityFilters.push(fieldFilter);
       }
@@ -146,16 +146,14 @@ export class TargetIndexMatcher {
       return true;
     }
 
-    if (this.inequalityFiltersSet.size > 0) {
-      if (this.inequalityFiltersSet.size > 1) {
+    if (this.inequalityFilters.size > 0) {
+      if (this.inequalityFilters.size > 1) {
         // Only single inequality is supported for now.
         return false;
       }
 
       // Only a single inequality is currently supported. Get the only entry in the map.
-      const inequalityFilter = this.inequalityFiltersSet
-        .getIterator()
-        .getNext();
+      const inequalityFilter = this.inequalityFilters.getIterator().getNext();
       // If there is an inequality filter and the field was not in one of the
       // equality filters above, the next segment must match both the filter
       // and the first orderBy clause.
