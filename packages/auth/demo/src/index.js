@@ -1779,7 +1779,7 @@ function onRunServiceWorkTests() {
 }
 
 /** Copy current user of auth to tempAuth. */
-function onCopyActiveUser() {
+/*function onCopyActiveUser() {
   tempAuth.updateCurrentUser(activeUser()).then(
     () => {
       alertSuccess('Copied active user to temp Auth');
@@ -1788,7 +1788,7 @@ function onCopyActiveUser() {
       alertError('Error: ' + error.code);
     }
   );
-}
+}*/
 
 /** Copy last user to auth. */
 function onCopyLastUser() {
@@ -1832,13 +1832,13 @@ function initApp() {
     },
     `${auth.name}-temp`
   );
-  tempAuth = initializeAuth(tempApp, {
+  /*tempAuth = initializeAuth(tempApp, {
     persistence: inMemoryPersistence,
     popupRedirectResolver: browserPopupRedirectResolver
   });
   if (USE_AUTH_EMULATOR) {
     connectAuthEmulator(tempAuth, AUTH_EMULATOR_URL);
-  }
+  }*/
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(size => {
@@ -1882,14 +1882,14 @@ function initApp() {
     });
   }
 
-  if (tempAuth.onAuthStateChanged) {
+  /*if (tempAuth.onAuthStateChanged) {
     tempAuth.onAuthStateChanged(user => {
       if (user) {
         log('user state change on temp Auth detect: ' + JSON.stringify(user));
         alertSuccess('user state change on temp Auth detect: ' + user.uid);
       }
     });
-  }
+  }*/
 
   /**
    * @fileoverview Utilities for Auth test app features.

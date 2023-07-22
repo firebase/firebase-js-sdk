@@ -597,7 +597,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => cb(this.currentUser));
+    promise.then(() => {if (this.authStateSubscription.next === cb) { cb(this.currentUser)}});
 
     if (typeof nextOrObserver === 'function') {
       return subscription.addObserver(nextOrObserver, error, completed);

@@ -71,6 +71,8 @@ export class PersistenceUserManager {
   }
 
   removeCurrentUser(): Promise<void> {
+    console.log("Trying to remove from persistence " + this.fullUserKey);
+    console.log("using persistence - " + this.persistence.type.toString());
     return this.persistence._remove(this.fullUserKey);
   }
 

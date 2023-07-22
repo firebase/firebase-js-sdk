@@ -43,7 +43,7 @@ import {
   MultiFactorSessionType
 } from '../../mfa/mfa_session';
 import { UserInternal } from '../../model/user';
-import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
+import { RECAPTCHA_VERIFIER_TYPE, RecaptchaVerifier } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
@@ -176,8 +176,6 @@ export async function _verifyPhoneNumber(
   verifier: ApplicationVerifierInternal
 ): Promise<string> {
   const recaptchaToken = await verifier.verify();
-
-  try {
     _assert(
       typeof recaptchaToken === 'string',
       auth,
@@ -188,7 +186,8 @@ export async function _verifyPhoneNumber(
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
-
+    let recaptchaVerifier = verifier as RecaptchaVerifier
+  try {
     let phoneInfoOptions: PhoneInfoOptions;
 
     if (typeof options === 'string') {
@@ -243,7 +242,7 @@ export async function _verifyPhoneNumber(
       return sessionInfo;
     }
   } finally {
-    verifier._reset();
+    recaptchaVerifier.clear();
   }
 }
 
