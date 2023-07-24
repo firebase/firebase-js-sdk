@@ -68,7 +68,7 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 }
 
-/** 
+/**
  * @internal
  * Undocumented, private additional settings not exposed in our public API.
  */
