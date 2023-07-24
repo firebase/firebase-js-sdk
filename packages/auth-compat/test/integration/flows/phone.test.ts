@@ -16,6 +16,7 @@
  */
 
 import { expect, use } from 'chai';
+import * as sinon from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
@@ -29,6 +30,11 @@ import {
   RecaptchaVerifier,
   UserCredential
 } from '@firebase/auth-types';
+
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
 
 use(chaiAsPromised);
 
@@ -90,6 +96,33 @@ describe('Integration test: phone auth', () => {
         false
       )) as ConfirmationResult;
     const userCred = await cr.confirm(await code(cr));
+
+    expect(firebase.auth().currentUser).to.eq(userCred.user);
+    expect(userCred.operationType).to.eq('signIn');
+
+    const user = userCred.user;
+    expect(user!.isAnonymous).to.be.false;
+    expect(user!.uid).to.be.a('string');
+    expect(user!.phoneNumber).to.eq(PHONE_A.phoneNumber);
+  });
+
+  it('allows user to sign up using webOTP autofill', async () => {
+    sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
+      const otpCred : OTPCredential = {
+        id: "fakeuid",
+        type: 'signIn',
+        code: '123456',
+      }
+      return Promise.resolve(otpCred);
+    });
+
+    const userCred = (await firebase
+      .auth()
+      .signInWithPhoneNumber(
+        PHONE_A.phoneNumber,
+        verifier,
+        true,
+      )) as UserCredential;
 
     expect(firebase.auth().currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq('signIn');
@@ -170,13 +203,36 @@ describe('Integration test: phone auth', () => {
       await firebase.auth().signOut();
     });
 
-    it('allows the user to sign in again', async () => {
+    it('allows the user to sign in again without using webOTP autofill', async () => {
       const cr = (await firebase
         .auth()
         .signInWithPhoneNumber(
           PHONE_A.phoneNumber,
           verifier,
           false
+        )) as ConfirmationResult;
+      const signInCred = await cr.confirm(await code(cr));
+
+      expect(signInCred.user!.uid).to.eq(signUpCred.user!.uid);
+    });
+
+    it('allows the user to sign in again using webOTP autofill', async () => {
+
+      sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
+        const otpCred : OTPCredential = {
+          id: "fakeuid",
+          type: 'signIn',
+          code: '123456',
+        }
+        return Promise.resolve(otpCred);
+      });
+
+      const cr = (await firebase
+        .auth()
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          true
         )) as ConfirmationResult;
       const signInCred = await cr.confirm(await code(cr));
 

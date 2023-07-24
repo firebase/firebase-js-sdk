@@ -80,7 +80,6 @@ class ConfirmationResultImpl implements ConfirmationResult {
 
   async confirmWithWebOTP(webOTPTimeout: number): Promise<UserCredential> {
     if ('OTPCredential' in window) {
-      console.log(this.verificationId);
       const abortController = new AbortController();
       const timer = setTimeout(() => {
         abortController.abort();
