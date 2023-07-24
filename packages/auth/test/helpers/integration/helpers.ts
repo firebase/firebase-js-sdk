@@ -21,11 +21,11 @@ import { Auth, User } from '../../../src/model/public_types';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
-import { getAppConfig, getEmulatorUrl } from './settings';
+import { USE_EMULATOR, getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
 // @ts-ignore - ignore types since this is only used in tests.
 import totp from 'totp-generator';
-import { PasswordPolicy, _castAuth } from '../../../internal';
+import { _castAuth } from '../../../internal';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -118,39 +118,37 @@ export const fakePassword = 'password';
 //1000000 is always incorrect since it has 7 digits and we expect 6.
 export const incorrectTotpCode = '1000000';
 
-// Cache the password policy to prevent exceeding the quota for fetching.
-// We cannot use the internal Auth caching since it is reset for every test.
-let cachedPasswordPolicy: PasswordPolicy;
-
 /**
  * Generates a valid password for the project or tenant password policy in the Auth instance.
  * @param auth The {@link Auth} instance.
  * @returns A valid password according to the password policy.
  */
 export async function generateValidPassword(auth: Auth): Promise<string> {
-  // Fetch the policy using the Auth instance if one is not cached.
-  const authInternal = _castAuth(auth);
-  if (!cachedPasswordPolicy) {
-    await authInternal._updatePasswordPolicy();
-    cachedPasswordPolicy = authInternal._getPasswordPolicyInternal()!;
+  // TODO: Update when the password policy endpoint is supported by the auth emulator.
+  if (USE_EMULATOR) {
+    return 'password';
   }
 
-  const options = cachedPasswordPolicy.customStrengthOptions;
+  // Fetch the policy using the Auth instance if one is not cached.
+  const authInternal = _castAuth(auth);
+  if (!authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+
+  const passwordPolicy = authInternal._getPasswordPolicyInternal()!;
+  const options = passwordPolicy.customStrengthOptions;
 
   // Create a string that satisfies all possible options.
   const nonAlphaNumericCharacter =
-    cachedPasswordPolicy.allowedNonAlphanumericCharacters.charAt(0);
+    passwordPolicy.allowedNonAlphanumericCharacters.charAt(0);
   const stringWithAllOptions = 'aA0' + nonAlphaNumericCharacter;
 
-  // Repeat the string enough times to fill up the maximum max password length, as set on the backend.
-  const maximumMaxPasswordLength = 4096;
+  // Repeat the string enough times to fill up the minimum password length.
+  const minPasswordLength = options.minPasswordLength ?? 6;
   const password = stringWithAllOptions.repeat(
-    Math.round(maximumMaxPasswordLength / stringWithAllOptions.length)
+    Math.round(minPasswordLength / stringWithAllOptions.length)
   );
 
-  // Return a string that is only as long as the maximum length required by the policy.
-  return password.substring(
-    0,
-    options.maxPasswordLength ?? maximumMaxPasswordLength
-  );
+  // Return a string that is only as long as the minimum length required by the policy.
+  return password.substring(0, minPasswordLength);
 }

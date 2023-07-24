@@ -24,17 +24,27 @@ import {
   generateValidPassword,
   getTestInstance
 } from '../../helpers/integration/helpers';
+import { USE_EMULATOR } from '../../helpers/integration/settings';
 
 use(chaiAsPromised);
 
 describe('Integration test: password validation', () => {
   let auth: Auth;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    // TODO: Remove when the password policy endpoint is supported by the auth emulator.
+    if (USE_EMULATOR) {
+      this.skip();
+    }
+
     auth = getTestInstance();
   });
 
   afterEach(async () => {
+    if (USE_EMULATOR) {
+      return;
+    }
+
     await cleanUpTestInstance(auth);
   });
 
