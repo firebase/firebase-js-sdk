@@ -3,7 +3,7 @@ name: E2E Smoke Tests
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
   repository_dispatch:
-    types: [staging-tests]
+    types: [staging-tests,canary-tests]
 
 jobs:
   test:
@@ -62,6 +62,8 @@ jobs:
       - name: Tests succeeded
         if: success()
         run: node scripts/ci/notify-test-result.js success
+        # we don't want THIS step erroring to trigger the failure notification
+        continue-on-error: true
         env:
           WEBHOOK_URL: ${{ secrets.JSCORE_CHAT_WEBHOOK_URL }}
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
