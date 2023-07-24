@@ -25,6 +25,7 @@ import {
   getMetadata,
   list,
   getDownloadUrl,
+  generateSignedURL,
   updateMetadata,
   deleteObject,
   multipartUpload,
@@ -122,6 +123,17 @@ describe('Firebase Storage > Requests', () => {
     downloadTokens: 'a,b,c',
     metadata: { foo: 'bar' }
   };
+
+  const serverSignedURL =
+    `https://${DEFAULT_HOST}/v0/b/` +
+    normalBucket +
+    '/o/' +
+    encodeURIComponent(serverResource.name) +
+    '?alt=media' +
+    '&X-Firebase-Date=Some Time' +
+    '&X-Firebase-Expires=Some Time Later' +
+    '&X-Firebase-Signature=A bunch of random chars';
+
   const serverResourceString = JSON.stringify(serverResource);
   const metadataFromServerResource = fromResourceString(
     storageService,
@@ -347,6 +359,34 @@ describe('Firebase Storage > Requests', () => {
     const url = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.equal(url, downloadUrlFromServerResource);
   });
+
+  it('generateSignedURL request info', () => {
+    const maps: Array<[Location, string]> = [
+      [locationNormal, locationNormalUrl],
+      [locationEscapes, locationEscapesUrl]
+    ];
+    for (const [location, url] of maps) {
+      const requestInfo = generateSignedURL(storageService, location);
+      assertObjectIncludes(
+        {
+          url:
+            makeUrl(url, storageService.host, storageService._protocol) +
+            ':generateSignedUrl',
+          method: 'POST',
+          body: '{}',
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        },
+        requestInfo
+      );
+    }
+  });
+  it('generateSignedURL handler', () => {
+    const requestInfo = generateSignedURL(storageService, locationNormal);
+    const signedURLResourceString = `{ "signed_url": "${serverSignedURL}" }`;
+    const url = requestInfo.handler(fakeXhrIo({}), signedURLResourceString);
+    assert.equal(url, serverSignedURL);
+  });
+
   it('getBytes handler', () => {
     const requestInfo = getBytes(storageService, locationNormal);
     const bytes = requestInfo.handler(
