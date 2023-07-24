@@ -137,7 +137,7 @@ export const enum AuthErrorCode {
   WEB_OTP_BROKEN = 'web-otp-broken',
   WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved',
   WEB_OTP_NOT_SUPPORTED = 'web-otp-not-supported',
-  WEB_OTP_NOT_DEFINED = 'web-otp-not-defined',
+  WEB_OTP_NOT_DEFINED = 'web-otp-not-defined'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -390,13 +390,13 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.WEB_OTP_TIMEOUT]:
       'Web OTP code is not fetched on time in autofill',
     [AuthErrorCode.WEB_OTP_BROKEN]:
-        'ConfirmWithWebOTP code fetching attempt failed',
-    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 
-        'Web OTP code is not retrieved successfully',
+      'ConfirmWithWebOTP code fetching attempt failed',
+    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]:
+      'Web OTP code is not retrieved successfully',
     [AuthErrorCode.WEB_OTP_NOT_SUPPORTED]:
-        'Web OTP is not supported on this app',
+      'Web OTP is not supported on this app',
     [AuthErrorCode.WEB_OTP_NOT_DEFINED]:
-        'The auto-fetched Web OTP code is not valid'
+      'The auto-fetched Web OTP code is not valid'
   };
 }
 

@@ -575,16 +575,22 @@ async function onSignInVerifyPhoneNumber() {
   makeApplicationVerifier('signin-verify-phone-number');
   console.log(phoneNumber);
   alertSuccess('Code sent');
-  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, true, 30)
-  .then(userCredential => {
-    onAuthUserCredentialSuccess(userCredential);
-  },
-  error => {
-    clearApplicationVerifier();
-    onAuthError(error);
-  });
+  await signInWithPhoneNumber(
+    auth,
+    phoneNumber,
+    applicationVerifier,
+    true,
+    30
+  ).then(
+    userCredential => {
+      onAuthUserCredentialSuccess(userCredential);
+    },
+    error => {
+      clearApplicationVerifier();
+      onAuthError(error);
+    }
+  );
 }
-
 
 /**
  * Confirms a phone number verification for sign-in.

@@ -113,7 +113,12 @@ describe('Integration test: phone auth', () => {
   }
 
   it('allows user to sign up without using webOTP autofill', async () => {
-    const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier, false) as ConfirmationResult;
+    const cr = (await signInWithPhoneNumber(
+      auth,
+      PHONE_A.phoneNumber,
+      verifier,
+      false
+    )) as ConfirmationResult;
     const userCred = await cr.confirm(await code(cr, PHONE_A.code));
 
     expect(auth.currentUser).to.eq(userCred.user);
@@ -126,16 +131,21 @@ describe('Integration test: phone auth', () => {
   });
 
   it('allows user to sign up using webOTP autofill', async () => {
-    sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
-      const otpCred : OTPCredential = {
-        id: "fakeuid",
+    sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+      const otpCred: OTPCredential = {
+        id: 'fakeuid',
         type: 'signIn',
-        code: '123456',
-      }
+        code: '123456'
+      };
       return Promise.resolve(otpCred);
     });
 
-    const userCred = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier, true) as UserCredential;
+    const userCred = (await signInWithPhoneNumber(
+      auth,
+      PHONE_A.phoneNumber,
+      verifier,
+      true
+    )) as UserCredential;
 
     expect(auth.currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -185,7 +195,11 @@ describe('Integration test: phone auth', () => {
     await auth.signOut();
     resetVerifier();
 
-    const cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier) as ConfirmationResult;
+    const cr = (await signInWithPhoneNumber(
+      auth,
+      PHONE_B.phoneNumber,
+      verifier
+    )) as ConfirmationResult;
     const { user: secondSignIn } = await cr.confirm(
       await code(cr, PHONE_B.code)
     );
@@ -199,45 +213,54 @@ describe('Integration test: phone auth', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
-      const cr = await signInWithPhoneNumber(
+      const cr = (await signInWithPhoneNumber(
         auth,
         PHONE_A.phoneNumber,
         verifier,
-        false,
-      ) as ConfirmationResult;
+        false
+      )) as ConfirmationResult;
       signUpCred = await cr.confirm(await code(cr, PHONE_A.code));
       resetVerifier();
       await auth.signOut();
     });
 
     it('allows the user to sign in again without using webOTP autofill', async () => {
-      const cr = await signInWithPhoneNumber(
+      const cr = (await signInWithPhoneNumber(
         auth,
         PHONE_A.phoneNumber,
         verifier,
         false
-      ) as ConfirmationResult;
+      )) as ConfirmationResult;
       const signInCred = await cr.confirm(await code(cr, PHONE_A.code));
 
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
     });
 
     it('allows the user to sign in again using webOTP autofill', async () => {
-      sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
-        const otpCred : OTPCredential = {
-          id: "fakeuid",
+      sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+        const otpCred: OTPCredential = {
+          id: 'fakeuid',
           type: 'signIn',
-          code: '123456',
-        }
+          code: '123456'
+        };
         return Promise.resolve(otpCred);
       });
-  
-      const signInCred = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier, true) as UserCredential;
+
+      const signInCred = (await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier,
+        true
+      )) as UserCredential;
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
-    })
+    });
 
     it('allows the user to update their phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier) as ConfirmationResult;
+      let cr = (await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
 
       resetVerifier();
@@ -260,7 +283,11 @@ describe('Integration test: phone auth', () => {
       await auth.signOut();
       resetVerifier();
 
-      cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier) as ConfirmationResult;
+      cr = (await signInWithPhoneNumber(
+        auth,
+        PHONE_B.phoneNumber,
+        verifier
+      )) as ConfirmationResult;
       const { user: secondSignIn } = await cr.confirm(
         await code(cr, PHONE_B.code)
       );
@@ -268,7 +295,11 @@ describe('Integration test: phone auth', () => {
     });
 
     it('allows the user to reauthenticate with phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier) as ConfirmationResult;
+      let cr = (await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
       const oldToken = await user.getIdToken();
 
@@ -290,7 +321,11 @@ describe('Integration test: phone auth', () => {
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier) as ConfirmationResult;
+      let cr = (await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
 
       resetVerifier();
@@ -308,7 +343,11 @@ describe('Integration test: phone auth', () => {
       // We need to manually delete PHONE_B number since a failed
       // reauthenticateWithPhoneNumber does not trigger a state change
       resetVerifier();
-      cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier) as ConfirmationResult;
+      cr = (await signInWithPhoneNumber(
+        auth,
+        PHONE_B.phoneNumber,
+        verifier
+      )) as ConfirmationResult;
       const { user: otherUser } = await cr.confirm(
         await code(cr, PHONE_B.code)
       );
@@ -353,11 +392,11 @@ describe('Integration test: phone auth', () => {
   generateMiddlewareTests(
     () => auth,
     async () => {
-      const cr = await signInWithPhoneNumber(
+      const cr = (await signInWithPhoneNumber(
         auth,
         PHONE_A.phoneNumber,
         verifier
-      ) as ConfirmationResult;
+      )) as ConfirmationResult;
       await cr.confirm(await code(cr, PHONE_A.code));
     }
   );

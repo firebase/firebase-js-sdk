@@ -31,7 +31,6 @@ import {
   UserCredential
 } from '@firebase/auth-types';
 
-
 interface OTPCredential extends Credential {
   code?: string;
 }
@@ -107,12 +106,12 @@ describe('Integration test: phone auth', () => {
   });
 
   it('allows user to sign up using webOTP autofill', async () => {
-    sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
-      const otpCred : OTPCredential = {
-        id: "fakeuid",
+    sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+      const otpCred: OTPCredential = {
+        id: 'fakeuid',
         type: 'signIn',
-        code: '123456',
-      }
+        code: '123456'
+      };
       return Promise.resolve(otpCred);
     });
 
@@ -121,7 +120,7 @@ describe('Integration test: phone auth', () => {
       .signInWithPhoneNumber(
         PHONE_A.phoneNumber,
         verifier,
-        true,
+        true
       )) as UserCredential;
 
     expect(firebase.auth().currentUser).to.eq(userCred.user);
@@ -217,13 +216,12 @@ describe('Integration test: phone auth', () => {
     });
 
     it('allows the user to sign in again using webOTP autofill', async () => {
-
-      sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
-        const otpCred : OTPCredential = {
-          id: "fakeuid",
+      sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+        const otpCred: OTPCredential = {
+          id: 'fakeuid',
           type: 'signIn',
-          code: '123456',
-        }
+          code: '123456'
+        };
         return Promise.resolve(otpCred);
       });
 

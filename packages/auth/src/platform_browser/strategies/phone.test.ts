@@ -87,12 +87,12 @@ describe('platform_browser/strategies/phone', () => {
 
     context('ConfirmationResult', () => {
       it('result contains verification id baked in if ConfirmationResult is returned', async () => {
-        const result = await signInWithPhoneNumber(
+        const result = (await signInWithPhoneNumber(
           auth,
           'number',
           verifier,
           false
-        ) as unknown;
+        )) as unknown;
         const confirmationRes = result as ConfirmationResult;
 
         expect(confirmationRes.verificationId).to.eq('session-info');
@@ -117,12 +117,12 @@ describe('platform_browser/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        const result = await signInWithPhoneNumber(
+        const result = (await signInWithPhoneNumber(
           auth,
           'number',
           verifier,
           false
-        ) as unknown;
+        )) as unknown;
         const confirmationRes = result as ConfirmationResult;
         const userCred = await confirmationRes.confirm('6789');
 
@@ -152,22 +152,22 @@ describe('platform_browser/strategies/phone', () => {
         mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
           users: [{ localId: 'uid' }]
         });
-        
-        sinon.stub(window.navigator['credentials'], "get").callsFake( () => {
-          const otpCred : OTPCredential = {
-            id: "uid",
+
+        sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+          const otpCred: OTPCredential = {
+            id: 'uid',
             type: 'signIn',
-            code: '6789',
-          }
+            code: '6789'
+          };
           return Promise.resolve(otpCred);
         });
-    
-        const result = await signInWithPhoneNumber(
+
+        const result = (await signInWithPhoneNumber(
           auth,
           'number',
           verifier,
           true
-        ) as unknown;
+        )) as unknown;
 
         const confirmationRes = result as ConfirmationResult;
         const userCred = await confirmationRes.confirm('6789');
