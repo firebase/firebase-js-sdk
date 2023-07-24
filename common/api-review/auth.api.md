@@ -235,6 +235,11 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly WEB_OTP_TIMEOUT: "auth/web-otp-timeout";
+    readonly WEB_OTP_BROKEN: "auth/web-otp-broken";
+    readonly WEB_OTP_NOT_RETRIEVED: "auth/web-otp-not-retrieved";
+    readonly WEB_OTP_NOT_SUPPORTED: "auth/web-otp-not-supported";
+    readonly WEB_OTP_NOT_DEFINED: "auth/web-otp-not-defined";
 };
 
 // @public
