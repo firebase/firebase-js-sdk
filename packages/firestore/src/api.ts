@@ -82,7 +82,7 @@ export {
 } from './api/bundle';
 
 export { FirestoreSettings, PersistenceSettings } from './api/settings';
-export { PrivateSettings } from './lite-api/settings';
+export type { PrivateSettings } from './lite-api/settings';
 export { ExperimentalLongPollingOptions } from './api/long_polling_options';
 
 export {
