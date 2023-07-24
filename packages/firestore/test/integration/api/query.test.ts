@@ -62,6 +62,7 @@ import {
   toChangesArray,
   toDataArray,
   toIds,
+  PERSISTENCE_MODE_UNSPECIFIED,
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
@@ -2106,16 +2107,18 @@ apiDescribe('Queries', persistence => {
               snapshot => snapshot.ref
             );
 
-            // Delete 50 of the 100 documents. Use a WriteBatch, rather than
-            // deleteDoc(), to avoid affecting the local cache.
+            // Delete 50 of the 100 documents. Use a different Firestore
+            // instance to avoid affecting the local cache.
             const deletedDocumentIds = new Set<string>();
-            const writeBatchForDocumentDeletes = writeBatch(db);
-            for (let i = 0; i < createdDocuments.length; i += 2) {
-              const documentToDelete = createdDocuments[i];
-              writeBatchForDocumentDeletes.delete(documentToDelete);
-              deletedDocumentIds.add(documentToDelete.id);
-            }
-            await writeBatchForDocumentDeletes.commit();
+            await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
+              const batch = writeBatch(db2);
+              for (let i = 0; i < createdDocuments.length; i += 2) {
+                const documentToDelete = doc(db2, createdDocuments[i].path);
+                batch.delete(documentToDelete);
+                deletedDocumentIds.add(documentToDelete.id);
+              }
+              await batch.commit();
+            });
 
             // Wait for 10 seconds, during which Watch will stop tracking the
             // query and will send an existence filter rather than "delete"
@@ -2258,12 +2261,12 @@ apiDescribe('Queries', persistence => {
         );
 
         // Delete one of the documents so that the next call to getDocs() will
-        // experience an existence filter mismatch. Use a WriteBatch, rather
-        // than deleteDoc(), to avoid affecting the local cache.
+        // experience an existence filter mismatch. Use a different Firestore
+        // instance to avoid affecting the local cache.
         const documentToDelete = doc(coll, 'DocumentToDelete');
-        const writeBatchForDocumentDeletes = writeBatch(db);
-        writeBatchForDocumentDeletes.delete(documentToDelete);
-        await writeBatchForDocumentDeletes.commit();
+        await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
+          await deleteDoc(doc(db2, documentToDelete.path));
+        });
 
         // Wait for 10 seconds, during which Watch will stop tracking the query
         // and will send an existence filter rather than "delete" events when
