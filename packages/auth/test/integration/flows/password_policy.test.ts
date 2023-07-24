@@ -24,7 +24,7 @@ import {
   generateValidPassword,
   getTestInstance
 } from '../../helpers/integration/helpers';
-import { USE_EMULATOR } from '../../helpers/integration/settings';
+import { getEmulatorUrl } from '../../helpers/integration/settings';
 
 use(chaiAsPromised);
 
@@ -32,19 +32,15 @@ describe('Integration test: password validation', () => {
   let auth: Auth;
 
   beforeEach(function () {
+    auth = getTestInstance();
+
     // TODO: Remove when the password policy endpoint is supported by the auth emulator.
-    if (USE_EMULATOR) {
+    if (getEmulatorUrl()) {
       this.skip();
     }
-
-    auth = getTestInstance();
   });
 
   afterEach(async () => {
-    if (USE_EMULATOR) {
-      return;
-    }
-
     await cleanUpTestInstance(auth);
   });
 

@@ -21,7 +21,7 @@ import { Auth, User } from '../../../src/model/public_types';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
-import { USE_EMULATOR, getAppConfig, getEmulatorUrl } from './settings';
+import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
 // @ts-ignore - ignore types since this is only used in tests.
 import totp from 'totp-generator';
@@ -124,8 +124,8 @@ export const incorrectTotpCode = '1000000';
  * @returns A valid password according to the password policy.
  */
 export async function generateValidPassword(auth: Auth): Promise<string> {
-  // TODO: Update when the password policy endpoint is supported by the auth emulator.
-  if (USE_EMULATOR) {
+  // TODO: Remove when the password policy endpoint is supported by the auth emulator.
+  if (getEmulatorUrl()) {
     return 'password';
   }
 
