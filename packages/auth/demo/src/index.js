@@ -72,7 +72,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  signInWithPhoneNumber
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -564,7 +565,7 @@ function clearApplicationVerifier() {
 /**
  * Sends a phone number verification code for sign-in.
  */
-function onSignInVerifyPhoneNumber() {
+async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
   const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
@@ -572,18 +573,18 @@ function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    verificationId => {
-      clearApplicationVerifier();
-      $('#signin-phone-verification-id').val(verificationId);
-      alertSuccess('Phone verification sent!');
-    },
-    error => {
-      clearApplicationVerifier();
-      onAuthError(error);
-    }
-  );
+  console.log(phoneNumber);
+  alertSuccess('Code sent');
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, true, 30)
+  .then(userCredential => {
+    onAuthUserCredentialSuccess(userCredential);
+  },
+  error => {
+    clearApplicationVerifier();
+    onAuthError(error);
+  });
 }
+
 
 /**
  * Confirms a phone number verification for sign-in.
