@@ -603,7 +603,7 @@ export class PhoneAuthProvider {
     static readonly PHONE_SIGN_IN_METHOD: 'phone';
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
-    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string | UserCredential>;
 }
 
 // @public
