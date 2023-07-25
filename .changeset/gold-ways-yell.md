@@ -4,4 +4,4 @@
 'firebase': minor
 ---
 
-Support multiple inequality in compound queries.
+Added support for multiple inequality in compound queries.
