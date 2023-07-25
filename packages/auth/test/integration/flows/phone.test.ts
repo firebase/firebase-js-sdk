@@ -17,7 +17,7 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
+import { stub, restore } from 'sinon';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
@@ -85,6 +85,7 @@ describe('Integration test: phone auth', () => {
   });
 
   afterEach(async () => {
+    restore();
     await cleanUpTestInstance(auth);
     document.body.removeChild(fakeRecaptchaContainer);
   });
@@ -131,7 +132,7 @@ describe('Integration test: phone auth', () => {
   });
 
   it('allows user to sign up using webOTP autofill', async () => {
-    sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+    stub(window.navigator['credentials'], 'get').callsFake(() => {
       const otpCred: OTPCredential = {
         id: 'fakeuid',
         type: 'signIn',
@@ -237,7 +238,8 @@ describe('Integration test: phone auth', () => {
     });
 
     it('allows the user to sign in again using webOTP autofill', async () => {
-      sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+      
+      stub(window.navigator['credentials'], 'get').callsFake(() => {
         const otpCred: OTPCredential = {
           id: 'fakeuid',
           type: 'signIn',

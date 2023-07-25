@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import * as sinon from 'sinon';
+import { stub, restore } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
@@ -67,6 +67,7 @@ describe('Integration test: phone auth', () => {
   });
 
   afterEach(async () => {
+    restore();
     await cleanUpTestInstance();
     document.body.removeChild(fakeRecaptchaContainer);
   });
@@ -106,11 +107,20 @@ describe('Integration test: phone auth', () => {
   });
 
   it('allows user to sign up using webOTP autofill', async () => {
-    sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+    const cr = (await firebase
+      .auth()
+      .signInWithPhoneNumber(
+        PHONE_A.phoneNumber,
+        verifier,
+        false
+      )) as ConfirmationResult;
+    let correctCode = await code(cr);
+    
+    stub(window.navigator['credentials'], 'get').callsFake(() => {
       const otpCred: OTPCredential = {
         id: 'fakeuid',
         type: 'signIn',
-        code: '123456'
+        code: correctCode
       };
       return Promise.resolve(otpCred);
     });
@@ -216,11 +226,20 @@ describe('Integration test: phone auth', () => {
     });
 
     it('allows the user to sign in again using webOTP autofill', async () => {
-      sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+      const confirmationRes = (await firebase
+        .auth()
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
+      let correctCode = await code(confirmationRes);
+
+      stub(window.navigator['credentials'], 'get').callsFake(() => {
         const otpCred: OTPCredential = {
           id: 'fakeuid',
           type: 'signIn',
-          code: '123456'
+          code: correctCode
         };
         return Promise.resolve(otpCred);
       });

@@ -17,7 +17,7 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
+import { spy, stub, restore } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
@@ -44,7 +44,7 @@ import {
   updatePhoneNumber
 } from './phone';
 
-import { ConfirmationResult } from '@firebase/auth-types';
+import { ConfirmationResult, UserCredential } from '@firebase/auth-types';
 
 interface OTPCredential extends Credential {
   code?: string;
@@ -67,17 +67,17 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
-    sinon.stub(verifier, 'verify').returns(Promise.resolve('recaptcha-token'));
+    stub(verifier, 'verify').returns(Promise.resolve('recaptcha-token'));
   });
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    restore();
   });
 
   describe('signInWithPhoneNumber', () => {
     it('calls verify phone number', async () => {
-      await signInWithPhoneNumber(auth, '+15105550000', verifier);
+      await signInWithPhoneNumber(auth, '+15105550000', verifier, false);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
@@ -134,7 +134,7 @@ describe('platform_browser/strategies/phone', () => {
         });
       });
 
-      it('automatically finishes the sign in flow when webOTP autofill is used', async () => {
+      it('fail with webOTP not supported error when webOTP autofill is used in sign in flow', async () => {
         const idTokenResponse: IdTokenResponse = {
           idToken: 'my-id-token',
           refreshToken: 'my-refresh-token',
@@ -153,7 +153,7 @@ describe('platform_browser/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+        stub(window.navigator['credentials'], 'get').callsFake(() => {
           const otpCred: OTPCredential = {
             id: 'uid',
             type: 'signIn',
@@ -162,22 +162,19 @@ describe('platform_browser/strategies/phone', () => {
           return Promise.resolve(otpCred);
         });
 
-        const result = (await signInWithPhoneNumber(
-          auth,
-          'number',
-          verifier,
-          true
-        )) as unknown;
+        expect(
+          await signInWithPhoneNumber(
+            auth,
+            'number',
+            verifier,
+            true
+          )
+        ).to.be.rejectedWith(
+          FirebaseError,
+          'auth/web-otp-not-supported'
+        );
 
-        const confirmationRes = result as ConfirmationResult;
-        const userCred = await confirmationRes.confirm('6789');
-
-        expect(userCred.user!.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-        expect(signInEndpoint.calls[0].request).to.eql({
-          sessionInfo: 'session-info',
-          code: '6789'
-        });
+        
       });
     });
   });
@@ -461,7 +458,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     it('resets the verifer after successful verification', async () => {
-      sinon.spy(verifier, '_reset');
+      spy(verifier, '_reset');
       expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq(
         'session-info'
       );
@@ -469,7 +466,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     it('resets the verifer after a failed verification', async () => {
-      sinon.spy(verifier, '_reset');
+      spy(verifier, '_reset');
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
 
       await expect(_verifyPhoneNumber(auth, 'number', verifier)).to.be.rejected;
