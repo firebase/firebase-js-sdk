@@ -1886,7 +1886,7 @@ apiDescribe('Queries', persistence => {
             'doc4'
           );
 
-          // a <3 && b != 0, implicitly ordered by: b desc, a desc, __name__ desc
+          // a <3 && b != 0, ordered by: b desc, a desc, __name__ desc
           await checkOnlineAndOfflineResultsMatch(
             query(
               coll,
@@ -1899,7 +1899,7 @@ apiDescribe('Queries', persistence => {
             'doc2'
           );
 
-          // explicit OR: multiple inequality: a>2 || b<=1.
+          // explicit OR: multiple inequality: a>2 || b<1.
           await checkOnlineAndOfflineResultsMatch(
             query(coll, or(where('a', '>', 2), where('b', '<', 1))),
             'doc1',
