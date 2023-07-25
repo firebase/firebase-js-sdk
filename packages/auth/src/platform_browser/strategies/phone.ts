@@ -31,7 +31,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -77,13 +77,18 @@ class ConfirmationResultImpl implements ConfirmationResult {
     );
     return this.onConfirmation(authCredential);
   }
-  async confirmWithWebOTP (webOTPTimeout : number): Promise<UserCredential> {
+
+  async confirmWithWebOTP (auth: Auth, webOTPTimeout : number): Promise<UserCredential> {
     if ('OTPCredential' in window) {
       console.log(this.verificationId);
       const abortController = new AbortController();
       const timer = setTimeout(() => {
         abortController.abort();
-        throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
+        throw _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        );
       }, webOTPTimeout * 1000);
 
         // @ts-ignore - ignore types for testing
@@ -95,18 +100,30 @@ class ConfirmationResultImpl implements ConfirmationResult {
       let code : string = "";
       await (window.navigator['credentials'].get(o) as Promise<OTPCredential|null>).then(async (content) => {
         if (content === undefined || content === null || content.code === undefined) {
-          throw new FirebaseError('WEB_OTP_UNDEFINED', "auth/web-otp-undefined");
+          throw _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP get method failed to fetch a defined OTPCredential instance`
+          );
         } else {
           clearTimeout(timer);
           code = content.code;
         }
       }).catch (() => {
         clearTimeout(timer);
-        throw new FirebaseError('WEB_OTP_NOT_RETRIEVED', "auth/web-otp-not-retrieved");
+        throw _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP get method failed to retrieve the code`
+        );
       });
       return this.confirm(code);
     } else {
-      throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");
+      throw _errorWithCustomMessage(
+        auth,
+        AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+        `Web OTP is not supported`
+      );
     }
   }
 
