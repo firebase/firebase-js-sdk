@@ -25,11 +25,23 @@ import {
   getTestInstance
 } from '../../helpers/integration/helpers';
 import { getEmulatorUrl } from '../../helpers/integration/settings';
+import { PasswordPolicyCustomStrengthOptions } from '../../../src/model/password_policy';
 
 use(chaiAsPromised);
 
 describe('Integration test: password validation', () => {
   let auth: Auth;
+
+  // TODO: Update with the tenant ID for the test project once created.
+  const TEST_TENANT_ID = 'passpol-tenant-dgcgt';
+  const EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS: PasswordPolicyCustomStrengthOptions = {
+    minPasswordLength: 6,
+    maxPasswordLength: 30,
+    containsLowercaseLetter: true,
+    containsUppercaseLetter: true,
+    containsNumericCharacter: true,
+    containsNonAlphanumericCharacter: true
+  };
 
   beforeEach(function () {
     auth = getTestInstance();
@@ -56,6 +68,39 @@ describe('Integration test: password validation', () => {
     it('considers invalid passwords invalid against the policy configured for the project', async () => {
       expect((await validatePassword(auth, INVALID_PASSWORD)).isValid).to.be
         .false;
+    });
+
+    it('considers valid passwords valid against the policy configured for the tenant', async () => {
+      auth.tenantId = TEST_TENANT_ID;
+      const password = await generateValidPassword(auth);
+      const status = await validatePassword(auth, password);
+
+      expect(status.isValid).to.be.true;
+      expect(status.meetsMinPasswordLength).to.be.true;
+      expect(status.meetsMaxPasswordLength).to.be.true;
+      expect(status.containsLowercaseLetter).to.be.true;
+      expect(status.containsUppercaseLetter).to.be.true;
+      expect(status.containsNumericCharacter).to.be.true;
+      expect(status.containsNonAlphanumericCharacter).to.be.true;
+    });
+
+    it('considers invalid passwords invalid against the policy configured for the tenant', async () => {
+      auth.tenantId = TEST_TENANT_ID;
+      const status = await validatePassword(auth, INVALID_PASSWORD);
+
+      expect(status.isValid).to.be.false;
+      expect(status.meetsMinPasswordLength).to.be.false;
+      expect(status.meetsMaxPasswordLength).to.be.true;
+      expect(status.containsLowercaseLetter).to.be.true;
+      expect(status.containsUppercaseLetter).to.be.false;
+      expect(status.containsNumericCharacter).to.be.false;
+      expect(status.containsNonAlphanumericCharacter).to.be.false;
+    });
+
+    it('includes the password policy strength options in the returned status', async () => {
+      auth.tenantId = TEST_TENANT_ID;
+      const status = await validatePassword(auth, INVALID_PASSWORD);
+      expect(status.passwordPolicy.customStrengthOptions).to.eql(EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS);
     });
   });
 });
