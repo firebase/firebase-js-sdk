@@ -45,8 +45,20 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
-import { getModularInstance } from '@firebase/util';
+import { getModularInstance,FirebaseError } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
+
+interface OTPCredentialRequestOptions extends CredentialRequestOptions{
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential{
+  code?: string;
+}
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
@@ -65,6 +77,40 @@ class ConfirmationResultImpl implements ConfirmationResult {
     );
     return this.onConfirmation(authCredential);
   }
+  async confirmWithWebOTP (webOTPTimeout : number): Promise<UserCredential> {
+    if ('OTPCredential' in window) {
+      console.log(this.verificationId);
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+        throw new FirebaseError('WEB_OTP_TIMEOUT', "auth/web-otp-timeout");
+      }, webOTPTimeout * 1000);
+
+        // @ts-ignore - ignore types for testing
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+
+      let code : string = "";
+      await (window.navigator['credentials'].get(o) as Promise<OTPCredential|null>).then(async (content) => {
+        if (content === undefined || content === null || content.code === undefined) {
+          throw new FirebaseError('WEB_OTP_UNDEFINED', "auth/web-otp-undefined");
+        } else {
+          clearTimeout(timer);
+          code = content.code;
+        }
+      }).catch (() => {
+        clearTimeout(timer);
+        throw new FirebaseError('WEB_OTP_NOT_RETRIEVED', "auth/web-otp-not-retrieved");
+      });
+      return this.confirm(code);
+    } else {
+      throw new FirebaseError('WEB_OTP_NOT_SUPPORTED', "auth/web-otp-not-supported");
+    }
+  }
+
+
 }
 
 /**
