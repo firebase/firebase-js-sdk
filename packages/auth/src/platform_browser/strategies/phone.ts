@@ -351,11 +351,15 @@ export async function _verifyPhoneNumber(
       const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
         signInWithCredential(authInternal, cred)
       );
-      if (webOTPTimeout != null) {
+      if (webOTPTimeout) {
         try {
           return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeout);
         } catch (error) {
-          throw new FirebaseError('WEB_OTP_BROKEN', 'auth/web-otp-broken');
+          throw _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP code is broken`
+          );
         }
       } else {
         return verificationId;

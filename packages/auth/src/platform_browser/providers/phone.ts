@@ -105,13 +105,34 @@ export class PhoneAuthProvider {
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
-  ): Promise<string> {
+  ): Promise<string>;
+
+  verifyPhoneNumber(
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier,
+    webOTPTimeout: number
+  ): Promise<UserCredential>;
+  
+  verifyPhoneNumber(
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier,
+    webOTPTimeout?: number
+  ): Promise<unknown> {
+    if(webOTPTimeout) {
+      return _verifyPhoneNumber(
+        this.auth,
+        phoneOptions,
+        getModularInstance(applicationVerifier as ApplicationVerifierInternal),
+        webOTPTimeout
+      );
+    }
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
       getModularInstance(applicationVerifier as ApplicationVerifierInternal)
     );
   }
+
 
   /**
    * Creates a phone auth credential, given the verification ID from

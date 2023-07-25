@@ -594,5 +594,6 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_CLIENT_TYPE: 'auth/missing-client-type',
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
-  INVALID_REQ_TYPE: 'auth/invalid-req-type'
+  INVALID_REQ_TYPE: 'auth/invalid-req-type',
+  WEB_OTP_NOT_RETRIEVED: 'auth/web-otp-not-retrieved'
 } as const;
