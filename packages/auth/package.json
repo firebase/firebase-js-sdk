@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -109,13 +109,13 @@
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
-    "@react-native-async-storage/async-storage": "1.17.12",
+    "@react-native-async-storage/async-storage": "^1.18.1",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.14",
+    "@firebase/app": "0.9.15",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "@types/express": "4.17.17",
