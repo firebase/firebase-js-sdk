@@ -76,18 +76,16 @@ body.user-info-displayed {
   border: none;
 }
 
-#password-validation-requirements {
-  margin-top: 20px;
-  margin-bottom: 0;
+.password-validation-requirements {
+  margin: 5px 0;
   display: none;
 }
 
-#password-validation-requirements .list-group-item {
+.password-validation-requirements .list-group-item {
   display: none;
-  list-style-type: none;
 }
 
-#password-validation-contains-non-alphanumeric-character .tooltip {
+.password-validation-contains-non-alphanumeric-character .tooltip {
   font-family: 'Courier New', Courier;
   font-size: 1.1em;
   letter-spacing: 5px;
@@ -159,7 +157,11 @@ input + .form,
 
 .form + button,
 .form-control + .btn-block,
-.form-control + .form-control {
+.form-control + .form-control,
+.form-control + .input-group,
+.form-control + .list-group,
+.input-group + .btn-block,
+.list-group + .btn-block {
   margin-top: 5px;
 }
 

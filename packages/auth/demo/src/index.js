@@ -496,8 +496,9 @@ function onInitializeRecaptchaConfig() {
 
 /**
  * Updates the displayed validation status for the inputted password.
+ * @param {string} sectionIdPrefix The ID prefix of the section to show the password requirements in.
  */
-function onValidatePassword() {
+function onValidatePassword(sectionIdPrefix) {
   /**
    * Updates the displayed status for a requirement.
    * @param {string} id The ID of the DOM element displaying the requirement status.
@@ -520,25 +521,47 @@ function onValidatePassword() {
     $(id).show();
   }
 
-  const password = $('#password-validation-password').val();
+  const idPrefix = sectionIdPrefix + 'password-validation-';
+  const requirementsId = idPrefix + 'requirements';
+  const passwordId = sectionIdPrefix + 'password';
+
+  const password = $(passwordId).val();
   validatePassword(auth, password).then(
     status => {
       const passwordPolicy = status.passwordPolicy;
       const customStrengthOptions = passwordPolicy.customStrengthOptions;
 
       // Only show options required by the password policy.
+      $(requirementsId).children().hide();
+
+      // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
+      if (
+        sectionIdPrefix === '#signin-' &&
+        !passwordPolicy.forceUpgradeOnSignin
+      ) {
+        return;
+      }
+
+      // Display a message if the password policy is not being enforced.
+      const notEnforcedId = idPrefix + 'not-enforced';
+      if (passwordPolicy.enforcementState === 'OFF') {
+        $(notEnforcedId).show();
+      } else {
+        $(notEnforcedId).hide();
+      }
+
       if (customStrengthOptions.minPasswordLength) {
-        $('#password-validation-min-length').text(
+        $(idPrefix + 'min-length').text(
           customStrengthOptions.minPasswordLength
         );
       }
       if (customStrengthOptions.maxPasswordLength) {
-        $('#password-validation-max-length').text(
+        $(idPrefix + 'max-length').text(
           customStrengthOptions.maxPasswordLength
         );
       }
       if (customStrengthOptions.containsNonAlphanumericCharacter) {
-        $('#password-validation-allowed-non-alphanumeric-characters').attr(
+        $(idPrefix + 'allowed-non-alphanumeric-characters').attr(
           'data-original-title',
           passwordPolicy.allowedNonAlphanumericCharacters
         );
@@ -546,34 +569,70 @@ function onValidatePassword() {
       Object.keys(status).forEach(requirement => {
         if (requirement !== 'passwordPolicy') {
           // Get the requirement ID by converting to kebab case.
-          const requirementIdPrefix = '#password-validation-';
           const requirementId =
-            requirementIdPrefix +
+            idPrefix +
             requirement.replace(/[A-Z]/g, match => '-' + match.toLowerCase());
-
           setRequirementStatus(requirementId, status[requirement]);
         }
       });
 
-      $('#password-validation-password').prop('disabled', false);
-      $('#password-validation-requirements').show();
+      // Show a note that existing password must meet the policy if trying to sign-in.
+      if (sectionIdPrefix === '#signin-') {
+        const forceUpgradeId = idPrefix + 'force-upgrade';
+        if (passwordPolicy.forceUpgradeOnSignin) {
+          $(forceUpgradeId).show();
+        } else {
+          $(forceUpgradeId).hide();
+        }
+      }
+
+      $(passwordId).prop('disabled', false);
+      $(requirementsId).show();
+
+      // Fix the border radius, since hidden elements are still considered in styling.
+      const borderRadius = '5px';
+      const requirements = $(
+        idPrefix + 'requirements .list-group-item:visible'
+      );
+      requirements.each((index, elem) => {
+        if (index === 0) {
+          $(elem).css('border-top-left-radius', borderRadius);
+          $(elem).css('border-top-right-radius', borderRadius);
+        }
+        if (index === requirements.length - 1) {
+          $(elem).css('border-bottom-left-radius', borderRadius);
+          $(elem).css('border-bottom-right-radius', borderRadius);
+        }
+      });
     },
     error => {
       // Disable the password input and hide the requirements since validation cannot be performed.
       if (error.code === `auth/unsupported-password-policy-schema-version`) {
-        $('#password-validation-password').prop('disabled', true);
+        $(passwordId).prop('disabled', true);
       }
-      $('#password-validation-requirements').hide();
+      $(requirementsId).hide();
       onAuthError(error);
     }
   );
 }
 
 /**
- * Toggles text visibility for the password validation input field.
+ * Hides requirements in a section when the password field is blurred and empty.
+ * @param {string} sectionIdPrefix The ID prefix of the section to hide the password requirements in.
  */
-function onToggleViewPasswordForValidation() {
-  const id = '#password-validation-password';
+function onBlurPassword(sectionIdPrefix) {
+  if ($(sectionIdPrefix + 'password').val() === '') {
+    const id = sectionIdPrefix + 'password-validation-requirements';
+    $(id).hide();
+  }
+}
+
+/**
+ * Toggles text visibility for the password validation input field.
+ * @param {string} sectionIdPrefix The ID prefix of the DOM element of the password input.
+ */
+function onToggleViewPassword(sectionIdPrefix) {
+  const id = sectionIdPrefix + 'password';
   if ($(id).prop('type') === 'password') {
     $(id).prop('type', 'text');
   } else {
@@ -2121,10 +2180,23 @@ function initApp() {
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
-  $('#password-validation-password').keyup(onValidatePassword);
-  $('#password-validation-view-password').click(
-    onToggleViewPasswordForValidation
+
+  $('#signin-password').keyup(() => onValidatePassword('#signin-'));
+  $('#signup-password').keyup(() => onValidatePassword('#signup-'));
+  $('#password-reset-password').keyup(() =>
+    onValidatePassword('#password-reset-')
   );
+
+  $('#signin-view-password').click(() => onToggleViewPassword('#signin-'));
+  $('#signup-view-password').click(() => onToggleViewPassword('#signup-'));
+  $('#password-reset-view-password').click(() =>
+    onToggleViewPassword('#password-reset-')
+  );
+
+  $('#signin-password').blur(() => onBlurPassword('#signin-'));
+  $('#signup-password').blur(() => onBlurPassword('#signup-'));
+  $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
