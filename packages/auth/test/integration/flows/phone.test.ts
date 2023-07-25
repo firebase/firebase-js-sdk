@@ -238,7 +238,6 @@ describe('Integration test: phone auth', () => {
     });
 
     it('allows the user to sign in again using webOTP autofill', async () => {
-      
       stub(window.navigator['credentials'], 'get').callsFake(() => {
         const otpCred: OTPCredential = {
           id: 'fakeuid',

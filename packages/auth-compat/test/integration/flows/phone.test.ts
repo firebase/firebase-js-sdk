@@ -115,7 +115,7 @@ describe('Integration test: phone auth', () => {
         false
       )) as ConfirmationResult;
     let correctCode = await code(cr);
-    
+
     stub(window.navigator['credentials'], 'get').callsFake(() => {
       const otpCred: OTPCredential = {
         id: 'fakeuid',

@@ -163,18 +163,8 @@ describe('platform_browser/strategies/phone', () => {
         });
 
         expect(
-          await signInWithPhoneNumber(
-            auth,
-            'number',
-            verifier,
-            true
-          )
-        ).to.be.rejectedWith(
-          FirebaseError,
-          'auth/web-otp-not-supported'
-        );
-
-        
+          await signInWithPhoneNumber(auth, 'number', verifier, true)
+        ).to.be.rejectedWith(FirebaseError, 'auth/web-otp-not-supported');
       });
     });
   });
