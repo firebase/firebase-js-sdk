@@ -44,7 +44,7 @@ import {
   updatePhoneNumber
 } from './phone';
 
-import { ConfirmationResult, UserCredential } from '@firebase/auth-types';
+import { ConfirmationResult } from '@firebase/auth-types';
 
 interface OTPCredential extends Credential {
   code?: string;
@@ -135,20 +135,6 @@ describe('platform_browser/strategies/phone', () => {
       });
 
       it('fail with webOTP not supported error when webOTP autofill is used in sign in flow', async () => {
-        const idTokenResponse: IdTokenResponse = {
-          idToken: 'my-id-token',
-          refreshToken: 'my-refresh-token',
-          expiresIn: '1234',
-          localId: 'uid',
-          kind: IdTokenResponseKind.CreateAuthUri
-        };
-
-        // This endpoint is called from within the callback, in
-        // signInWithCredential
-        const signInEndpoint = mockEndpoint(
-          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-          idTokenResponse
-        );
         mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
           users: [{ localId: 'uid' }]
         });
@@ -162,8 +148,8 @@ describe('platform_browser/strategies/phone', () => {
           return Promise.resolve(otpCred);
         });
 
-        expect(
-          await signInWithPhoneNumber(auth, 'number', verifier, true)
+        await expect(
+          signInWithPhoneNumber(auth, 'number', verifier, true)
         ).to.be.rejectedWith(FirebaseError, 'auth/web-otp-not-supported');
       });
     });
