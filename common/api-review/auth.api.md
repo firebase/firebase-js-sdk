@@ -281,6 +281,7 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    confirmWithWebOTP(webOTPTimeout: number): Promise<UserCredential>;
     readonly verificationId: string;
 }
 
