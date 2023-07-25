@@ -176,6 +176,7 @@ jobs:
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+        EXPERIMENTAL_MODE: true
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage

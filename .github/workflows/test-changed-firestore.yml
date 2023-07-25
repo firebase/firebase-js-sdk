@@ -31,6 +31,8 @@ jobs:
         run: yarn build:changed firestore
       - name: Run tests if firestore or its dependencies has changed
         run: yarn test:changed firestore
+        env:
+          EXPERIMENTAL_MODE: true
 
   test-firefox:
     name: Test Firestore on Firefox If Changed
@@ -65,3 +67,4 @@ jobs:
         run: xvfb-run yarn test:changed firestore
         env:
           BROWSERS: 'Firefox'
+          EXPERIMENTAL_MODE: true
