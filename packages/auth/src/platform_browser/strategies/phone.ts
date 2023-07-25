@@ -165,18 +165,39 @@ class ConfirmationResultImpl implements ConfirmationResult {
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier
-): Promise<ConfirmationResult> {
+  appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export async function signInWithPhoneNumber(
+  auth: Auth,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier,
+  webOTPTimeout: number): Promise<UserCredential>;
+export async function signInWithPhoneNumber(
+  auth: Auth,
+  phoneNumber: string,
+  appVerifier: ApplicationVerifier,
+  webOTPTimeout?: number,
+): Promise<unknown> {
   const authInternal = _castAuth(auth);
-  const verificationId = await _verifyPhoneNumber(
-    authInternal,
-    phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal)
-  );
-  return new ConfirmationResultImpl(verificationId, cred =>
-    signInWithCredential(authInternal, cred)
-  );
+  if(webOTPTimeout) {
+    const userCred = await _verifyPhoneNumber(
+      authInternal,
+      phoneNumber,
+      getModularInstance(appVerifier as ApplicationVerifierInternal),
+      webOTPTimeout
+    );
+    return userCred;
+  }else{
+    const verificationId = await _verifyPhoneNumber(
+      authInternal,
+      phoneNumber,
+      getModularInstance(appVerifier as ApplicationVerifierInternal)
+    );
+    return new ConfirmationResultImpl(verificationId, cred =>
+      signInWithCredential(authInternal, cred)
+    );
+  }  
 }
+
 
 /**
  * Links the user account with the given phone number.

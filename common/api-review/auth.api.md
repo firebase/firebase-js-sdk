@@ -750,6 +750,9 @@ export function signInWithEmailLink(auth: Auth, email: string, emailLink?: strin
 // @public
 export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
+// @public (undocumented)
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, webOTPTimeout: number): Promise<UserCredential>;
+
 // @public
 export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 
