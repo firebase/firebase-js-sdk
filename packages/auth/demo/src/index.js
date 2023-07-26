@@ -118,6 +118,7 @@ const providersIcons = {
  * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
+
 function activeUser() {
   const type = $('input[name=toggle-user-selection]:checked').val();
   if (type === 'lastUser') {
@@ -588,6 +589,11 @@ async function onSignInVerifyPhoneNumber() {
       clearApplicationVerifier();
       onAuthError(error);
     }
+  ).catch ((e) => {
+    if (e.code === 'auth/web-otp-not-retrieved') {
+      e.confirmationResult.confirm(code);
+    }
+  }
   );
 }
 

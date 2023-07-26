@@ -29,7 +29,7 @@ import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode, WebOTPError } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
 import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
@@ -88,7 +88,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
           auth,
           AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
           `Web OTP code is not fetched before timeout`
-        );
+        ) as WebOTPError;
       }, webOTPTimeout * 1000);
 
         // @ts-ignore - ignore types for testing
@@ -104,7 +104,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
             `Web OTP get method failed to fetch a defined OTPCredential instance`
-          );
+          ) as WebOTPError;
         } else {
           clearTimeout(timer);
           code = content.code;
@@ -115,7 +115,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
           auth,
           AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
           `Web OTP get method failed to retrieve the code`
-        );
+        ) as WebOTPError;
       });
       return this.confirm(code);
     } else {
@@ -123,7 +123,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
         auth,
         AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
         `Web OTP is not supported`
-      );
+      ) as WebOTPError;
     }
   }
 
@@ -359,7 +359,7 @@ export async function _verifyPhoneNumber(
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
             `Web OTP code is broken`
-          );
+          ) as WebOTPError;
         }
       } else {
         return verificationId;

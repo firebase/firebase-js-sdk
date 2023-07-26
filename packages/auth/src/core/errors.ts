@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { AuthErrorMap, User } from '../model/public_types';
-import { ErrorFactory, ErrorMap } from '@firebase/util';
-
+import { AuthErrorMap, User, ConfirmationResult } from '../model/public_types';
+import { ErrorFactory, ErrorMap,FirebaseError } from '@firebase/util';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
 import { AuthCredential } from './credentials';
@@ -430,6 +429,10 @@ export interface NamedErrorParams {
   tenantId?: string;
   user?: User;
   _serverResponse?: object;
+}
+export interface WebOTPError extends FirebaseError {
+  code: AuthErrorCode.WEB_OTP_NOT_RETRIEVED
+  confirmationResult: ConfirmationResult;  // Standard ConfirmationResult; for fallback
 }
 
 /**
