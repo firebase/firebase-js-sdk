@@ -124,7 +124,6 @@ export const incorrectTotpCode = '1000000';
  * @returns A valid password according to the password policy.
  */
 export async function generateValidPassword(auth: Auth): Promise<string> {
-  // TODO: Remove when the password policy endpoint is supported by the auth emulator.
   if (getEmulatorUrl()) {
     return 'password';
   }

@@ -32,21 +32,20 @@ use(chaiAsPromised);
 describe('Integration test: password validation', () => {
   let auth: Auth;
 
-  // TODO: Update with the tenant ID for the test project once created.
-  const TEST_TENANT_ID = 'passpol-tenant-dgcgt';
-  const EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS: PasswordPolicyCustomStrengthOptions = {
-    minPasswordLength: 6,
-    maxPasswordLength: 30,
-    containsLowercaseLetter: true,
-    containsUppercaseLetter: true,
-    containsNumericCharacter: true,
-    containsNonAlphanumericCharacter: true
-  };
+  const TEST_TENANT_ID = 'passpol-tenant-d7hha';
+  const EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS: PasswordPolicyCustomStrengthOptions =
+    {
+      minPasswordLength: 6,
+      maxPasswordLength: 30,
+      containsLowercaseLetter: true,
+      containsUppercaseLetter: true,
+      containsNumericCharacter: true,
+      containsNonAlphanumericCharacter: true
+    };
 
   beforeEach(function () {
     auth = getTestInstance();
 
-    // TODO: Remove when the password policy endpoint is supported by the auth emulator.
     if (getEmulatorUrl()) {
       this.skip();
     }
@@ -100,7 +99,9 @@ describe('Integration test: password validation', () => {
     it('includes the password policy strength options in the returned status', async () => {
       auth.tenantId = TEST_TENANT_ID;
       const status = await validatePassword(auth, INVALID_PASSWORD);
-      expect(status.passwordPolicy.customStrengthOptions).to.eql(EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS);
+      expect(status.passwordPolicy.customStrengthOptions).to.eql(
+        EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS
+      );
     });
   });
 });
