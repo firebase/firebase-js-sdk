@@ -35,8 +35,8 @@ describe('Integration test: password validation', () => {
   const TEST_TENANT_ID = 'passpol-tenant-d7hha';
   const EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS: PasswordPolicyCustomStrengthOptions =
     {
-      minPasswordLength: 6,
-      maxPasswordLength: 30,
+      minPasswordLength: 8,
+      maxPasswordLength: 24,
       containsLowercaseLetter: true,
       containsUppercaseLetter: true,
       containsNumericCharacter: true,
