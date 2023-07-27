@@ -45,7 +45,7 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
-import { getModularInstance, FirebaseError } from '@firebase/util';
+import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 
 interface OTPCredentialRequestOptions extends CredentialRequestOptions {
