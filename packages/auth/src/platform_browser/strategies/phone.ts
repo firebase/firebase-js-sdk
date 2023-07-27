@@ -45,10 +45,10 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
-import { getModularInstance,FirebaseError } from '@firebase/util';
+import { getModularInstance, FirebaseError } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 
-interface OTPCredentialRequestOptions extends CredentialRequestOptions{
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
   otp: OTPOptions;
 }
 
@@ -56,7 +56,7 @@ interface OTPOptions {
   transport: string[];
 }
 
-interface OTPCredential extends Credential{
+interface OTPCredential extends Credential {
   code?: string;
 }
 
@@ -78,7 +78,10 @@ class ConfirmationResultImpl implements ConfirmationResult {
     return this.onConfirmation(authCredential);
   }
 
-  async confirmWithWebOTP (auth: Auth, webOTPTimeout : number): Promise<UserCredential> {
+  async confirmWithWebOTP(
+    auth: Auth,
+    webOTPTimeout: number
+  ): Promise<UserCredential> {
     if ('OTPCredential' in window) {
       console.log(this.verificationId);
       const abortController = new AbortController();
@@ -91,32 +94,40 @@ class ConfirmationResultImpl implements ConfirmationResult {
         ) as WebOTPError;
       }, webOTPTimeout * 1000);
 
-        // @ts-ignore - ignore types for testing
+      // @ts-ignore - ignore types for testing
       const o: OTPCredentialRequestOptions = {
         otp: { transport: ['sms'] },
         signal: abortController.signal
       };
 
-      let code : string = "";
-      await (window.navigator['credentials'].get(o) as Promise<OTPCredential|null>).then(async (content) => {
-        if (content === undefined || content === null || content.code === undefined) {
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            throw _errorWithCustomMessage(
+              auth,
+              AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+              `Web OTP get method failed to fetch a defined OTPCredential instance`
+            ) as WebOTPError;
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
           throw _errorWithCustomMessage(
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-            `Web OTP get method failed to fetch a defined OTPCredential instance`
+            `Web OTP get method failed to retrieve the code`
           ) as WebOTPError;
-        } else {
-          clearTimeout(timer);
-          code = content.code;
-        }
-      }).catch (() => {
-        clearTimeout(timer);
-        throw _errorWithCustomMessage(
-          auth,
-          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-          `Web OTP get method failed to retrieve the code`
-        ) as WebOTPError;
-      });
+        });
       return this.confirm(code);
     } else {
       throw _errorWithCustomMessage(
@@ -126,15 +137,13 @@ class ConfirmationResultImpl implements ConfirmationResult {
       ) as WebOTPError;
     }
   }
-
-
 }
 
 /**
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given phone number, 
+ * This method sends a code via SMS to the given phone number,
  * and returns a {@link ConfirmationResult}. After the user
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
@@ -165,14 +174,15 @@ class ConfirmationResultImpl implements ConfirmationResult {
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult>;
 
 /**
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given phone number. 
- * Then, the method will try to autofill the SMS code for the user and 
+ * This method sends a code via SMS to the given phone number.
+ * Then, the method will try to autofill the SMS code for the user and
  * sign the user in. A {@link UserCredential} is then returned if the process is successful.
  * If the process failed, {@link FirebaseError} is thrown.
  *
@@ -202,17 +212,18 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
-  webOTPTimeout: number): Promise<UserCredential>;
+  webOTPTimeout: number
+): Promise<UserCredential>;
 
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
-  webOTPTimeout?: number,
+  webOTPTimeout?: number
 ): Promise<unknown> {
   const authInternal = _castAuth(auth);
-  if(webOTPTimeout) {
-    try{
+  if (webOTPTimeout) {
+    try {
       const userCred = await _verifyPhoneNumber(
         authInternal,
         phoneNumber,
@@ -220,15 +231,14 @@ export async function signInWithPhoneNumber(
         webOTPTimeout
       );
       return userCred;
-    }catch(error){
+    } catch (error) {
       throw _errorWithCustomMessage(
         auth,
         AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
         `Web OTP code is broken`
       );
     }
-    
-  }else{
+  } else {
     const verificationId = await _verifyPhoneNumber(
       authInternal,
       phoneNumber,
@@ -237,9 +247,8 @@ export async function signInWithPhoneNumber(
     return new ConfirmationResultImpl(verificationId, cred =>
       signInWithCredential(authInternal, cred)
     );
-  }  
+  }
 }
-
 
 /**
  * Links the user account with the given phone number.
@@ -308,7 +317,7 @@ export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal
-): Promise<string>; 
+): Promise<string>;
 
 export async function _verifyPhoneNumber(
   auth: AuthInternal,
@@ -346,7 +355,7 @@ export async function _verifyPhoneNumber(
     } else {
       phoneInfoOptions = options;
     }
-    let verificationId = "";
+    let verificationId = '';
     if ('session' in phoneInfoOptions) {
       const session = phoneInfoOptions.session as MultiFactorSessionImpl;
 

@@ -576,25 +576,21 @@ async function onSignInVerifyPhoneNumber() {
   makeApplicationVerifier('signin-verify-phone-number');
   console.log(phoneNumber);
   alertSuccess('Code sent');
-  await signInWithPhoneNumber(
-    auth,
-    phoneNumber,
-    applicationVerifier,
-    30
-  ).then(
-    userCredential => {
-      onAuthUserCredentialSuccess(userCredential);
-    },
-    error => {
-      clearApplicationVerifier();
-      onAuthError(error);
-    }
-  ).catch ((e) => {
-    if (e.code === 'auth/web-otp-not-retrieved') {
-      e.confirmationResult.confirm(code);
-    }
-  }
-  );
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
+    .then(
+      userCredential => {
+        onAuthUserCredentialSuccess(userCredential);
+      },
+      error => {
+        clearApplicationVerifier();
+        onAuthError(error);
+      }
+    )
+    .catch(e => {
+      if (e.code === 'auth/web-otp-not-retrieved') {
+        e.confirmationResult.confirm(code);
+      }
+    });
 }
 
 /**

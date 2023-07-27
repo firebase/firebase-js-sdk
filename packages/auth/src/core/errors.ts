@@ -16,7 +16,7 @@
  */
 
 import { AuthErrorMap, User, ConfirmationResult } from '../model/public_types';
-import { ErrorFactory, ErrorMap,FirebaseError } from '@firebase/util';
+import { ErrorFactory, ErrorMap, FirebaseError } from '@firebase/util';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
 import { AuthCredential } from './credentials';
@@ -382,8 +382,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
       'The reCAPTCHA version is invalid when sending request to the backend.',
-    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 
-      'WEB OTP autofill failed',
+    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 'WEB OTP autofill failed'
   };
 }
 
@@ -431,8 +430,8 @@ export interface NamedErrorParams {
   _serverResponse?: object;
 }
 export interface WebOTPError extends FirebaseError {
-  code: AuthErrorCode.WEB_OTP_NOT_RETRIEVED
-  confirmationResult: ConfirmationResult;  // Standard ConfirmationResult; for fallback
+  code: AuthErrorCode.WEB_OTP_NOT_RETRIEVED;
+  confirmationResult: ConfirmationResult; // Standard ConfirmationResult; for fallback
 }
 
 /**

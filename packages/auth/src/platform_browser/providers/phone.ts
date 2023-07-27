@@ -101,7 +101,7 @@ export class PhoneAuthProvider {
    *
    * @returns A Promise for a verification ID that can be passed to
    * {@link PhoneAuthProvider.credential} to identify this flow..
-   * 
+   *
    */
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
@@ -110,9 +110,9 @@ export class PhoneAuthProvider {
 
   /**
    *
-   * Completes a phone number authentication flow by sending a verification code to the 
-   * given phone number, automatically retrieving the verification code from the SMS message, 
-   * and signing the user in. 
+   * Completes a phone number authentication flow by sending a verification code to the
+   * given phone number, automatically retrieving the verification code from the SMS message,
+   * and signing the user in.
    *
    * @example
    * ```javascript
@@ -139,13 +139,13 @@ export class PhoneAuthProvider {
     applicationVerifier: ApplicationVerifier,
     webOTPTimeout: number
   ): Promise<UserCredential>;
-  
+
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
     webOTPTimeout?: number
   ): Promise<unknown> {
-    if(webOTPTimeout) {
+    if (webOTPTimeout) {
       return _verifyPhoneNumber(
         this.auth,
         phoneOptions,
@@ -159,7 +159,6 @@ export class PhoneAuthProvider {
       getModularInstance(applicationVerifier as ApplicationVerifierInternal)
     );
   }
-
 
   /**
    * Creates a phone auth credential, given the verification ID from
