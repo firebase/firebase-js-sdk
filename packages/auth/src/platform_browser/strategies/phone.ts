@@ -231,12 +231,12 @@ export async function signInWithPhoneNumber(
         webOTPTimeout
       );
       return userCred;
-    } catch (error) {
+    } catch {
       throw _errorWithCustomMessage(
         auth,
         AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
         `Web OTP code is broken`
-      );
+      ) as WebOTPError;
     }
   } else {
     const verificationId = await _verifyPhoneNumber(
@@ -405,7 +405,7 @@ export async function _verifyPhoneNumber(
       if (webOTPTimeout) {
         try {
           return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeout);
-        } catch (error) {
+        } catch {
           throw _errorWithCustomMessage(
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,

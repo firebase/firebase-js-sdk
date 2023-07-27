@@ -588,7 +588,8 @@ async function onSignInVerifyPhoneNumber() {
     )
     .catch(e => {
       if (e.code === 'auth/web-otp-not-retrieved') {
-        e.confirmationResult.confirm(code);
+        const verificationCode = $('#signin-phone-verification-code').val();
+        e.confirmationResult.confirm(verificationCode);
       }
     });
 }
