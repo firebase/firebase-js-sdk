@@ -134,8 +134,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given
- * phone number, and returns a {@link ConfirmationResult}. After the user
+ * This method sends a code via SMS to the given phone number, 
+ * and returns a {@link ConfirmationResult}. After the user
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
@@ -166,11 +166,44 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+
+/**
+ * Asynchronously signs in using a phone number.
+ *
+ * @remarks
+ * This method sends a code via SMS to the given phone number. 
+ * Then, the method will try to autofill the SMS code for the user and 
+ * sign the user in. A {@link UserCredential} is then returned if the process is successful.
+ * If the process failed, {@link FirebaseError} is thrown.
+ *
+ * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
+ * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
+ * This function can work on other platforms that do not support the
+ * {@link RecaptchaVerifier} (like React Native), but you need to use a
+ * third-party {@link ApplicationVerifier} implementation.
+ *
+ * This method does not work in a Node.js environment.
+ *
+ * @example
+ * ```javascript
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const userCredential = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 10);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
+ * @param appVerifier - The {@link ApplicationVerifier}.
+ * @param webOTPTimtout - Errors would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
+ *
+ * @public
+ */
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
   webOTPTimeout: number): Promise<UserCredential>;
+
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
@@ -179,13 +212,22 @@ export async function signInWithPhoneNumber(
 ): Promise<unknown> {
   const authInternal = _castAuth(auth);
   if(webOTPTimeout) {
-    const userCred = await _verifyPhoneNumber(
-      authInternal,
-      phoneNumber,
-      getModularInstance(appVerifier as ApplicationVerifierInternal),
-      webOTPTimeout
-    );
-    return userCred;
+    try{
+      const userCred = await _verifyPhoneNumber(
+        authInternal,
+        phoneNumber,
+        getModularInstance(appVerifier as ApplicationVerifierInternal),
+        webOTPTimeout
+      );
+      return userCred;
+    }catch(error){
+      throw _errorWithCustomMessage(
+        auth,
+        AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+        `Web OTP code is broken`
+      );
+    }
+    
   }else{
     const verificationId = await _verifyPhoneNumber(
       authInternal,
