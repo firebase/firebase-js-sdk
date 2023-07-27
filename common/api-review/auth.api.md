@@ -600,7 +600,6 @@ export class PhoneAuthProvider {
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
-    // (undocumented)
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier, webOTPTimeout: number): Promise<UserCredential>;
 }
 
@@ -753,7 +752,7 @@ export function signInWithEmailLink(auth: Auth, email: string, emailLink?: strin
 // @public
 export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
-// @public (undocumented)
+// @public
 export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, webOTPTimeout: number): Promise<UserCredential>;
 
 // @public
