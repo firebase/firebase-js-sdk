@@ -39,10 +39,9 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     // Only include custom strength options defined in the response.
     const responseOptions = response.customStrengthOptions;
     this.customStrengthOptions = {};
-    if (responseOptions.minPasswordLength) {
-      this.customStrengthOptions.minPasswordLength =
-        responseOptions.minPasswordLength;
-    }
+    // A minimum length of 6 will be enforced by the backend if no minimum length is set.
+    this.customStrengthOptions.minPasswordLength =
+      responseOptions.minPasswordLength ?? 6;
     if (responseOptions.maxPasswordLength) {
       this.customStrengthOptions.maxPasswordLength =
         responseOptions.maxPasswordLength;

@@ -97,6 +97,11 @@ describe('core/auth/password_policy_impl', () => {
       enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
       schemaVersion: TEST_SCHEMA_VERSION
     };
+  const PASSWORD_POLICY_RESPONSE_NO_MIN_LENGTH: GetPasswordPolicyResponse = {
+    customStrengthOptions: {},
+    enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+    schemaVersion: TEST_SCHEMA_VERSION
+  };
   const PASSWORD_POLICY_REQUIRE_ALL: PasswordPolicy = {
     customStrengthOptions: {
       minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
@@ -186,6 +191,13 @@ describe('core/auth/password_policy_impl', () => {
         PASSWORD_POLICY_RESPONSE_NO_NON_ALPHANUMERIC_CHARS
       );
       expect(policy.allowedNonAlphanumericCharacters).to.eql('');
+    });
+
+    it('assigns a default minimum length if it is undefined in the response', () => {
+      const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_NO_MIN_LENGTH
+      );
+      expect(policy.customStrengthOptions.minPasswordLength).to.eql(6);
     });
 
     context('#validatePassword', () => {
