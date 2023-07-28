@@ -215,10 +215,28 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * which can be different from the order by constraints the user provided (e.g.
  * the SDK and backend always orders by `__name__`).
  */
-export function queryOrderBy(query: Query): OrderBy[] {
+export function queryOrderBy(
+  query: Query,
+  settings?: { includeImplicitOrderBy: boolean }
+): OrderBy[] {
+  if (!settings) {
+    settings = {
+      includeImplicitOrderBy: true
+    };
+  }
+
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
+
+    // If there are no explicit order-by operators, and we are not including
+    // implicit order-bys, then return the empty memoizedOrderBy result
+    if (
+      queryImpl.explicitOrderBy.length === 0 &&
+      !settings.includeImplicitOrderBy
+    ) {
+      return queryImpl.memoizedOrderBy;
+    }
 
     const inequalityField = getInequalityFilterField(queryImpl);
     const firstOrderByField = getFirstOrderByField(queryImpl);
@@ -267,13 +285,24 @@ export function queryOrderBy(query: Query): OrderBy[] {
  * Converts this `Query` instance to it's corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
+  return _queryToTarget(query);
+}
+
+export function aggregateQueryToTarget(query: Query): Target {
+  return _queryToTarget(query, { includeImplicitOrderBy: false });
+}
+
+export function _queryToTarget(
+  query: Query,
+  settings?: { includeImplicitOrderBy: boolean }
+): Target {
   const queryImpl = debugCast(query, QueryImpl);
   if (!queryImpl.memoizedTarget) {
     if (queryImpl.limitType === LimitType.First) {
       queryImpl.memoizedTarget = newTarget(
         queryImpl.path,
         queryImpl.collectionGroup,
-        queryOrderBy(queryImpl),
+        queryOrderBy(queryImpl, settings),
         queryImpl.filters,
         queryImpl.limit,
         queryImpl.startAt,
