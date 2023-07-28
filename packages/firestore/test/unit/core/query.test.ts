@@ -27,7 +27,7 @@ import {
   newQueryForPath,
   Query,
   queryMatches,
-  queryOrderBy,
+  queryNormalizedOrderBy,
   queryWithAddedFilter,
   queryWithEndAt,
   queryWithLimit,
@@ -866,7 +866,7 @@ describe('Query', () => {
   }
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {
-    expect(queryOrderBy(query)).to.deep.equal(orderBys);
+    expect(queryNormalizedOrderBy(query)).to.deep.equal(orderBys);
   }
 
   function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
