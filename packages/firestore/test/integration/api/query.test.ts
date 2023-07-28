@@ -1432,7 +1432,7 @@ apiDescribe('Queries', persistence => {
       });
     });
 
-    it('can use on unary values', async () => {
+    it('can use on special values', async () => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: 0 },
         doc2: { key: 'b', sort: NaN, v: 1 },
