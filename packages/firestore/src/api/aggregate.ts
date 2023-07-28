@@ -107,7 +107,6 @@ export function getCountFromServer<
  * const totalHours: number = aggregateSnapshot.data().totalHours;
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
- * @internal TODO (sum/avg) remove when public
  */
 export function getAggregateFromServer<
   AggregateSpecType extends AggregateSpec,
@@ -125,7 +124,7 @@ export function getAggregateFromServer<
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
-      aggregate._aggregateType,
+      aggregate.aggregateType,
       aggregate._internalFieldPath
     );
   });

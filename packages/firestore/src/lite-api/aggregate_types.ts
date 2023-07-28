@@ -19,6 +19,7 @@ import { AggregateType } from '../core/aggregate';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
+import { average, count, sum } from './aggregate';
 import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
@@ -34,23 +35,23 @@ export class AggregateField<T> {
 
   /**
    * Create a new AggregateField<T>
-   * @param _aggregateType Specifies the type of aggregation operation to perform.
+   * @param aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
-    // TODO (sum/avg) make aggregateType public when the feature is supported
-    readonly _aggregateType: AggregateType = 'count',
+    public readonly aggregateType: AggregateType = 'count',
     readonly _internalFieldPath?: InternalFieldPath
   ) {}
 }
 
-// TODO (sum/avg) Update the definition of AggregateFieldType to be based
-// on the return type of `sum(..)`, `average(...)`, and `count()`
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export type AggregateFieldType = AggregateField<number | null>;
+export type AggregateFieldType =
+  | ReturnType<typeof sum>
+  | ReturnType<typeof average>
+  | ReturnType<typeof count>;
 
 /**
  * Specifies a set of aggregations and their aliases.
