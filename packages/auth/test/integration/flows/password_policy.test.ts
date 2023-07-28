@@ -58,6 +58,7 @@ describe('Integration test: password validation', () => {
   context('validatePassword', () => {
     // Password will always be invalid since the minimum min length is 6.
     const INVALID_PASSWORD = 'a';
+    const TENANT_PARTIALLY_INVALID_PASSWORD = 'Password0123';
 
     it('considers valid passwords valid against the policy configured for the project', async () => {
       const password = await generateValidPassword(auth);
@@ -85,7 +86,7 @@ describe('Integration test: password validation', () => {
 
     it('considers invalid passwords invalid against the policy configured for the tenant', async () => {
       auth.tenantId = TEST_TENANT_ID;
-      const status = await validatePassword(auth, INVALID_PASSWORD);
+      let status = await validatePassword(auth, INVALID_PASSWORD);
 
       expect(status.isValid).to.be.false;
       expect(status.meetsMinPasswordLength).to.be.false;
@@ -93,6 +94,16 @@ describe('Integration test: password validation', () => {
       expect(status.containsLowercaseLetter).to.be.true;
       expect(status.containsUppercaseLetter).to.be.false;
       expect(status.containsNumericCharacter).to.be.false;
+      expect(status.containsNonAlphanumericCharacter).to.be.false;
+
+      status = await validatePassword(auth, TENANT_PARTIALLY_INVALID_PASSWORD);
+
+      expect(status.isValid).to.be.false;
+      expect(status.meetsMinPasswordLength).to.be.true;
+      expect(status.meetsMaxPasswordLength).to.be.true;
+      expect(status.containsLowercaseLetter).to.be.true;
+      expect(status.containsUppercaseLetter).to.be.true;
+      expect(status.containsNumericCharacter).to.be.true;
       expect(status.containsNonAlphanumericCharacter).to.be.false;
     });
 
