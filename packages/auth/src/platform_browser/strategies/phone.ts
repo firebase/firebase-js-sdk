@@ -81,17 +81,21 @@ class ConfirmationResultImpl implements ConfirmationResult {
   async confirmWithWebOTP(
     auth: Auth,
     webOTPTimeout: number
-  ): Promise<UserCredential> {
+  ): Promise<UserCredential | undefined> {
     if ('OTPCredential' in window) {
       console.log(this.verificationId);
       const abortController = new AbortController();
       const timer = setTimeout(() => {
         abortController.abort();
-        throw _errorWithCustomMessage(
+        
+        let myErr = _errorWithCustomMessage(
           auth,
           AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
           `Web OTP code is not fetched before timeout`
         ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+
       }, webOTPTimeout * 1000);
 
       // @ts-ignore - ignore types for testing
@@ -110,11 +114,13 @@ class ConfirmationResultImpl implements ConfirmationResult {
             content === null ||
             content.code === undefined
           ) {
-            throw _errorWithCustomMessage(
+            let myErr = _errorWithCustomMessage(
               auth,
               AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-              `Web OTP get method failed to fetch a defined OTPCredential instance`
+              `Web OTP code is not valid`
             ) as WebOTPError;
+            myErr.confirmationResult = this;
+            throw myErr;
           } else {
             clearTimeout(timer);
             code = content.code;
@@ -122,19 +128,33 @@ class ConfirmationResultImpl implements ConfirmationResult {
         })
         .catch(() => {
           clearTimeout(timer);
-          throw _errorWithCustomMessage(
+          let myErr = _errorWithCustomMessage(
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
             `Web OTP get method failed to retrieve the code`
           ) as WebOTPError;
+          myErr.confirmationResult = this;
+          throw myErr;
         });
-      return this.confirm(code);
+      try{
+        return this.confirm(code);
+      } catch {
+        let myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code received is incorrect`
+        ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+      }
     } else {
-      throw _errorWithCustomMessage(
+      let myErr = _errorWithCustomMessage(
         auth,
         AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
         `Web OTP is not supported`
       ) as WebOTPError;
+      myErr.confirmationResult = this;
+      throw myErr;
     }
   }
 }
@@ -231,12 +251,8 @@ export async function signInWithPhoneNumber(
         webOTPTimeout
       );
       return userCred;
-    } catch {
-      throw _errorWithCustomMessage(
-        auth,
-        AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-        `Web OTP code is broken`
-      ) as WebOTPError;
+    } catch (error) {
+      throw error;
     }
   } else {
     const verificationId = await _verifyPhoneNumber(
@@ -405,17 +421,16 @@ export async function _verifyPhoneNumber(
       if (webOTPTimeout) {
         try {
           return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeout);
-        } catch {
-          throw _errorWithCustomMessage(
-            auth,
-            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-            `Web OTP code is broken`
-          ) as WebOTPError;
+        } catch (error) {
+          throw error;
         }
       } else {
         return verificationId;
       }
     }
+  } catch(error) {
+    console.log("reached error catching block in _verifyphonenumber");
+    throw error;
   } finally {
     verifier._reset();
   }

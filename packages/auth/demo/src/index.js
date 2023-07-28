@@ -568,7 +568,6 @@ function clearApplicationVerifier() {
  */
 async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
-  const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
   // link/re-auth operation.
   clearApplicationVerifier();
@@ -580,14 +579,10 @@ async function onSignInVerifyPhoneNumber() {
     .then(
       userCredential => {
         onAuthUserCredentialSuccess(userCredential);
-      },
-      error => {
-        clearApplicationVerifier();
-        onAuthError(error);
-      }
-    )
-    .catch(e => {
-      if (e.code === 'auth/web-otp-not-retrieved') {
+      }).catch(e => {
+      clearApplicationVerifier();
+      onAuthError(e);
+      if (e.code === 'auth/auth/web-otp-not-retrieved') {
         const verificationCode = $('#signin-phone-verification-code').val();
         e.confirmationResult.confirm(verificationCode);
       }

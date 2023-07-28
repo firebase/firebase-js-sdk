@@ -595,7 +595,7 @@ export interface ConfirmationResult {
    * @param webOTPTimeout - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds).
    *
    */
-  confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential>;
+  confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential | undefined>;
 }
 
 /**
