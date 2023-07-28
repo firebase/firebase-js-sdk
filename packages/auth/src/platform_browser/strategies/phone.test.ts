@@ -47,10 +47,6 @@ import {
 use(chaiAsPromised);
 use(sinonChai);
 
-interface OTPCredential extends Credential {
-  code?: string;
-}
-
 describe('platform_browser/strategies/phone', () => {
   let auth: TestAuth;
   let verifier: ApplicationVerifierInternal;
@@ -83,57 +79,13 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
 
-    context('UserCredential', () => {
-      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
-        const idTokenResponse: IdTokenResponse = {
-          idToken: 'my-id-token',
-          refreshToken: 'my-refresh-token',
-          expiresIn: '1234',
-          localId: 'uid',
-          kind: IdTokenResponseKind.CreateAuthUri
-        };
-
-        // This endpoint is called from within the callback, in
-        // signInWithCredential
-        const signInEndpoint = mockEndpoint(
-          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-          idTokenResponse
-        );
-        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-          users: [{ localId: 'uid' }]
-        });
-
-        sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
-          const otpCred: OTPCredential = {
-            id: 'uid',
-            type: 'signIn',
-            code: '6789'
-          };
-          return Promise.resolve(otpCred);
-        });
-
-        const userCred = await signInWithPhoneNumber(
-          auth,
-          'number',
-          verifier,
-          10
-        );
-        expect(userCred.user.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-        expect(signInEndpoint.calls[0].request).to.eql({
-          sessionInfo: 'session-info',
-          code: '6789'
-        });
-      });
-    });
-
     context('ConfirmationResult', () => {
-      it('result contains verification id baked in if webOTP autofill is not used', async () => {
+      it('result contains verification id baked in', async () => {
         const result = await signInWithPhoneNumber(auth, 'number', verifier);
         expect(result.verificationId).to.eq('session-info');
       });
 
-      it('calling #confirm finishes the sign in flow if webOTP autofill is not used', async () => {
+      it('calling #confirm finishes the sign in flow', async () => {
         const idTokenResponse: IdTokenResponse = {
           idToken: 'my-id-token',
           refreshToken: 'my-refresh-token',
