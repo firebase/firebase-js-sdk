@@ -2719,7 +2719,7 @@ describe('Aggregate queries', () => {
   );
 });
 
-apiDescribe('Aggregation queries - sum / average', () => {
+describe('Aggregate queries - sum / average', () => {
   it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA', rating: 1 },
