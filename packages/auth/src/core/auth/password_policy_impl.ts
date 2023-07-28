@@ -23,6 +23,9 @@ import {
 } from '../../model/password_policy';
 import { PasswordValidationStatus } from '../../model/public_types';
 
+// Minimum password length enforced by the backend, even if no minimum length is set.
+const MINIMUM_MIN_PASSWORD_LENGTH = 6;
+
 /**
  * Stores password policy requirements and provides password validation against the policy.
  *
@@ -39,9 +42,9 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     // Only include custom strength options defined in the response.
     const responseOptions = response.customStrengthOptions;
     this.customStrengthOptions = {};
-    // A minimum length of 6 will be enforced by the backend if no minimum length is set.
+    // TODO: Remove once the backend is updated to include the minimum min password length instead of undefined when there is no minimum length set.
     this.customStrengthOptions.minPasswordLength =
-      responseOptions.minPasswordLength ?? 6;
+      responseOptions.minPasswordLength ?? MINIMUM_MIN_PASSWORD_LENGTH;
     if (responseOptions.maxPasswordLength) {
       this.customStrengthOptions.maxPasswordLength =
         responseOptions.maxPasswordLength;
