@@ -137,7 +137,7 @@ export async function generateValidPassword(auth: Auth): Promise<string> {
   const passwordPolicy = authInternal._getPasswordPolicyInternal()!;
   const options = passwordPolicy.customStrengthOptions;
 
-  // Create a string that satisfies all possible options.
+  // Create a string that satisfies all possible options (uppercase, lowercase, numeric, and special characters).
   const nonAlphaNumericCharacter =
     passwordPolicy.allowedNonAlphanumericCharacters.charAt(0);
   const stringWithAllOptions = 'aA0' + nonAlphaNumericCharacter;
