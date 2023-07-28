@@ -582,7 +582,7 @@ async function onSignInVerifyPhoneNumber() {
       }).catch(e => {
       clearApplicationVerifier();
       onAuthError(e);
-      if (e.code === 'auth/auth/web-otp-not-retrieved') {
+      if (e.code === 'auth/web-otp-not-retrieved') {
         const verificationCode = $('#signin-phone-verification-code').val();
         e.confirmationResult.confirm(verificationCode);
       }

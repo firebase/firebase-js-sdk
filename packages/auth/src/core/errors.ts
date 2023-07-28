@@ -132,7 +132,7 @@ export const enum AuthErrorCode {
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
-  WEB_OTP_NOT_RETRIEVED = 'auth/web-otp-not-retrieved'
+  WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
