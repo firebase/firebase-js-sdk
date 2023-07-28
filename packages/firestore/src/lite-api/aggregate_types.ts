@@ -33,16 +33,21 @@ export class AggregateField<T> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateField';
 
+  /** Indicates the aggregation operation of this AggregateField. */
+  readonly aggregateType: AggregateType;
+
   /**
    * Create a new AggregateField<T>
-   * @param aggregateType Specifies the type of aggregation operation to perform.
+   * @param _aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
-    public readonly aggregateType: AggregateType = 'count',
+    readonly _aggregateType: AggregateType = 'count',
     readonly _internalFieldPath?: InternalFieldPath
-  ) {}
+  ) {
+    this.aggregateType = _aggregateType;
+  }
 }
 
 /**

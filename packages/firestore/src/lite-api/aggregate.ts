@@ -70,7 +70,7 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
  * set of the given query, without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
- * final aggregation values, not the documents' data, is downloaded. This
+ * final aggregation values, not the documents' data, are downloaded. This
  * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
