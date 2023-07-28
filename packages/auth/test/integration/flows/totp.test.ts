@@ -55,7 +55,13 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {
-      mfaUser = null;
+      const cr = await signInWithEmailAndPassword(auth, email, password);
+      mfaUser = multiFactor(cr.user);
+      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
+        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
+          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
+        }
+      }
       auth = getTestInstance();
       displayName = 'totp-integration-test';
     }
@@ -77,9 +83,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const cr = await signInWithEmailAndPassword(auth, email, password);
-    mfaUser = multiFactor(cr.user);
-    const session = await mfaUser.getSession();
+    const session = await mfaUser!.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
 
     const multiFactorAssertion =
@@ -89,7 +93,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       );
 
     await expect(
-      mfaUser.enroll(multiFactorAssertion, displayName)
+      mfaUser!.enroll(multiFactorAssertion, displayName)
     ).to.be.rejectedWith('auth/invalid-verification-code');
   });
 
@@ -98,9 +102,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const cr = await signInWithEmailAndPassword(auth, email, password);
-    mfaUser = multiFactor(cr.user);
-    const session = await mfaUser.getSession();
+    const session = await mfaUser!.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
     totpTimestamp = new Date();
     const totpVerificationCode = getTotpCode(
@@ -116,7 +118,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
         totpVerificationCode
       );
 
-    await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
+    await expect(mfaUser!.enroll(multiFactorAssertion, displayName)).to.be
       .fulfilled;
   });
 });
@@ -132,6 +134,11 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
 
       const cr = await signInWithEmailAndPassword(auth, email, password);
       mfaUser = multiFactor(cr.user);
+      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
+        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
+          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
+        }
+      }
       const session = await mfaUser.getSession();
       totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
       totpTimestamp = new Date();
