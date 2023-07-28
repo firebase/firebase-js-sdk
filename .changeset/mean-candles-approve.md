@@ -2,4 +2,4 @@
 '@firebase/auth': patch
 ---
 
-Fix auth event uncancellable bug
+Fix auth event uncancellable bug #7383
