@@ -821,7 +821,7 @@ describe('core/auth/auth_impl', () => {
     };
     const PASSWORD_POLICY_RESPONSE_UNSUPPORTED_SCHEMA_VERSION = {
       customStrengthOptions: {
-        maxPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
         unsupportedPasswordPolicyProperty: 10
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
@@ -850,7 +850,7 @@ describe('core/auth/auth_impl', () => {
     };
     const CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION = {
       customStrengthOptions: {
-        maxPasswordLength: TEST_MIN_PASSWORD_LENGTH
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
       },
       allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
       enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
