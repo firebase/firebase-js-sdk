@@ -339,17 +339,21 @@ describe('Firebase Storage > Reference', () => {
       });
     });
     describe('generateSignedURL', () => {
-      it('throws on invalid ttlSeconds', async () => {
+      it('throws on ttlSeconds less than allowed minimum', async () => {
         expect(() =>
           generateSignedURL(child, {
             ttlSeconds: DEFAULT_MIN_TIME_TO_LIVE_SECONDS - 1
           })
         ).to.throw('storage/invalid-argument');
+      });
+      it('throws on ttlSeconds greater than allowed maximum', async () => {
         expect(() =>
           generateSignedURL(child, {
             ttlSeconds: DEFAULT_MAX_TIME_TO_LIVE_SECONDS + 1
           })
         ).to.throw('storage/invalid-argument');
+      });
+      it('throws on non-integer ttlSeconds within valid range', async () => {
         expect(() =>
           generateSignedURL(child, {
             ttlSeconds:

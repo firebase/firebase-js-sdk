@@ -267,7 +267,7 @@ export function generateSignedURL(
   location: Location,
   options?: SignedURLOptions
 ): RequestInfo<string, string | null> {
-  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+  const headers = { 'Content-Type': 'application/json; charset=utf-8' }; // TODO - can we extract out
   const expiration = { ttlSeconds: validateSignedURLOptions(options) };
   const body = JSON.stringify(expiration);
   const urlPart = location.fullServerUrl();
