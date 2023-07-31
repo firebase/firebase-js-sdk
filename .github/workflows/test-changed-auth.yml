@@ -45,13 +45,20 @@ jobs:
     # Whatever version of Firefox comes with 22.04 is causing Firefox
     # startup to hang when launched by karma. Need to look further into
     # why.
+
     runs-on: ubuntu-20.04
 
+    # Chrome webdriver version is pinned to avoid install failures like "No such object: chromedriver/LATEST_RELEASE_115.0.5790"
+    # These are installed even in the Firefox test due to `yarn` command which pulls the devDependency listed in package.json.
     steps:
       - name: install Firefox stable
         run: |
           sudo apt-get update
           sudo apt-get install firefox
+          sudo apt-get install wget
+          sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_110.0.5481.177-1_amd64.deb
+          sudo apt-get install -f ./google-chrome-stable_110.0.5481.177-1_amd64.deb --allow-downgrades
+
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
