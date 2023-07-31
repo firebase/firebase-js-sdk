@@ -70,6 +70,10 @@ export class QueryImpl implements Query {
   // The corresponding `Target` of this `Query` instance.
   memoizedTarget: Target | null = null;
 
+  // The corresponding `Target` of this `Query` instance for use with
+  // aggregate queries
+  memoizedAggregateTarget: Target | null = null;
+
   /**
    * Initializes a Query with a path and optional additional query constraints.
    * Path must currently be empty if this is a collection group query.
@@ -287,8 +291,15 @@ export function queryToTarget(query: Query): Target {
 export function queryToAggregateTarget(query: Query): Target {
   const queryImpl = debugCast(query, QueryImpl);
 
-  // Do not include implicit order-bys for aggregate queries.
-  return _queryToTarget(queryImpl, query.explicitOrderBy);
+  if (!queryImpl.memoizedAggregateTarget) {
+    // Do not include implicit order-bys for aggregate queries.
+    queryImpl.memoizedAggregateTarget = _queryToTarget(
+      queryImpl,
+      query.explicitOrderBy
+    );
+  }
+
+  return queryImpl.memoizedAggregateTarget;
 }
 
 export function _queryToTarget(
