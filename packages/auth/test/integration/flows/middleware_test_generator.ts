@@ -36,7 +36,7 @@ export function generateMiddlewareTests(
     let unsubscribes: Array<() => void>;
     let password: string;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       auth = authGetter();
       unsubscribes = [];
       password = 'password';

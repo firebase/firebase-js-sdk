@@ -47,7 +47,7 @@ describe('Integration test: email/password auth', () => {
   let email: string;
   let password: string;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     auth = getTestInstance();
     email = randomEmail();
     password = 'password';
