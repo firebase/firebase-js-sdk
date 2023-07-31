@@ -269,62 +269,71 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
  * Converts this `Query` instance to it's corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
-  return _queryToTarget(query, queryNormalizedOrderBy(query));
+  const queryImpl = debugCast(query, QueryImpl);
+  if (!queryImpl.memoizedTarget) {
+    queryImpl.memoizedTarget = _queryToTarget(
+      queryImpl,
+      queryNormalizedOrderBy(query)
+    );
+  }
+
+  return queryImpl.memoizedTarget;
 }
 
 /**
  * Converts this `Query` instance to it's corresponding `Target` representation,
  * for use within an aggregate query.
  */
-export function aggregateQueryToTarget(query: Query): Target {
+export function queryToAggregateTarget(query: Query): Target {
+  const queryImpl = debugCast(query, QueryImpl);
+
   // Do not include implicit order-bys for aggregate queries.
-  return _queryToTarget(query, query.explicitOrderBy);
+  return _queryToTarget(queryImpl, query.explicitOrderBy);
 }
 
-export function _queryToTarget(query: Query, orderBys: OrderBy[]): Target {
-  const queryImpl = debugCast(query, QueryImpl);
-  if (!queryImpl.memoizedTarget) {
-    if (queryImpl.limitType === LimitType.First) {
-      queryImpl.memoizedTarget = newTarget(
-        queryImpl.path,
-        queryImpl.collectionGroup,
-        orderBys,
-        queryImpl.filters,
-        queryImpl.limit,
-        queryImpl.startAt,
-        queryImpl.endAt
-      );
-    } else {
-      // Flip the orderBy directions since we want the last results
-      orderBys = orderBys.map(orderBy => {
-        const dir =
-          orderBy.dir === Direction.DESCENDING
-            ? Direction.ASCENDING
-            : Direction.DESCENDING;
-        return new OrderBy(orderBy.field, dir);
-      });
+export function _queryToTarget(
+  queryImpl: QueryImpl,
+  orderBys: OrderBy[]
+): Target {
+  if (queryImpl.limitType === LimitType.First) {
+    return newTarget(
+      queryImpl.path,
+      queryImpl.collectionGroup,
+      orderBys,
+      queryImpl.filters,
+      queryImpl.limit,
+      queryImpl.startAt,
+      queryImpl.endAt
+    );
+  } else {
+    // Flip the orderBy directions since we want the last results
+    orderBys = orderBys.map(orderBy => {
+      const dir =
+        orderBy.dir === Direction.DESCENDING
+          ? Direction.ASCENDING
+          : Direction.DESCENDING;
+      return new OrderBy(orderBy.field, dir);
+    });
 
-      // We need to swap the cursors to match the now-flipped query ordering.
-      const startAt = queryImpl.endAt
-        ? new Bound(queryImpl.endAt.position, queryImpl.endAt.inclusive)
-        : null;
-      const endAt = queryImpl.startAt
-        ? new Bound(queryImpl.startAt.position, queryImpl.startAt.inclusive)
-        : null;
+    // We need to swap the cursors to match the now-flipped query ordering.
+    const startAt = queryImpl.endAt
+      ? new Bound(queryImpl.endAt.position, queryImpl.endAt.inclusive)
+      : null;
+    const endAt = queryImpl.startAt
+      ? new Bound(queryImpl.startAt.position, queryImpl.startAt.inclusive)
+      : null;
 
-      // Now return as a LimitType.First query.
-      queryImpl.memoizedTarget = newTarget(
-        queryImpl.path,
-        queryImpl.collectionGroup,
-        orderBys,
-        queryImpl.filters,
-        queryImpl.limit,
-        startAt,
-        endAt
-      );
-    }
+    // Now return as a LimitType.First query.
+    return newTarget(
+      queryImpl.path,
+      queryImpl.collectionGroup,
+      orderBys,
+      queryImpl.filters,
+      queryImpl.limit,
+      startAt,
+      endAt
+    );
   }
-  return queryImpl.memoizedTarget!;
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
