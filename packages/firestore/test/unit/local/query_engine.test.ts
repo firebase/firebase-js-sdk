@@ -725,690 +725,687 @@ function genericQueryEngineTest(
       );
       verifyResult(result5, [doc1, doc2, doc4, doc5]);
     });
+  }
 
-    // Tests in this section require client side indexing
-    if (configureCsi) {
-      it('combines indexed with non-indexed results', async () => {
-        debugAssert(configureCsi, 'Test requires durable persistence');
+  // Tests in this section require client side indexing
+  if (configureCsi) {
+    it('combines indexed with non-indexed results', async () => {
+      debugAssert(configureCsi, 'Test requires durable persistence');
 
-        const doc1 = doc('coll/a', 1, { 'foo': true });
-        const doc2 = doc('coll/b', 2, { 'foo': true });
-        const doc3 = doc('coll/c', 3, { 'foo': true });
-        const doc4 = doc('coll/d', 3, { 'foo': true }).setHasLocalMutations();
+      const doc1 = doc('coll/a', 1, { 'foo': true });
+      const doc2 = doc('coll/b', 2, { 'foo': true });
+      const doc3 = doc('coll/c', 3, { 'foo': true });
+      const doc4 = doc('coll/d', 3, { 'foo': true }).setHasLocalMutations();
 
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['foo', IndexKind.ASCENDING]] })
-        );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['foo', IndexKind.ASCENDING]] })
+      );
 
-        await addDocument(doc1);
-        await addDocument(doc2);
-        await indexManager.updateIndexEntries(documentMap(doc1, doc2));
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc2)
-        );
+      await addDocument(doc1);
+      await addDocument(doc2);
+      await indexManager.updateIndexEntries(documentMap(doc1, doc2));
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc2)
+      );
 
-        await addDocument(doc3);
-        await addMutation(setMutation('coll/d', { 'foo': true }));
+      await addDocument(doc3);
+      await addMutation(setMutation('coll/d', { 'foo': true }));
 
-        const queryWithFilter = queryWithAddedFilter(
-          query('coll'),
-          filter('foo', '==', true)
-        );
-        const results = await expectOptimizedCollectionQuery(() =>
-          runQuery(queryWithFilter, SnapshotVersion.min())
-        );
+      const queryWithFilter = queryWithAddedFilter(
+        query('coll'),
+        filter('foo', '==', true)
+      );
+      const results = await expectOptimizedCollectionQuery(() =>
+        runQuery(queryWithFilter, SnapshotVersion.min())
+      );
 
-        verifyResult(results, [doc1, doc2, doc3, doc4]);
-      });
+      verifyResult(results, [doc1, doc2, doc3, doc4]);
+    });
 
-      it('uses partial index for limit queries', async () => {
-        debugAssert(configureCsi, 'Test requires durable persistence');
+    it('uses partial index for limit queries', async () => {
+      debugAssert(configureCsi, 'Test requires durable persistence');
 
-        const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
-        const doc2 = doc('coll/2', 1, { 'a': 1, 'b': 1 });
-        const doc3 = doc('coll/3', 1, { 'a': 1, 'b': 2 });
-        const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
-        const doc5 = doc('coll/5', 1, { 'a': 2, 'b': 3 });
-        await addDocument(doc1, doc2, doc3, doc4, doc5);
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc5)
-        );
-
-        const q = queryWithLimit(
-          queryWithAddedFilter(
-            queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
-            filter('b', '==', 1)
-          ),
-          3,
-          LimitType.First
-        );
-        const results = await expectOptimizedCollectionQuery(() =>
-          runQuery(q, SnapshotVersion.min())
-        );
-
-        verifyResult(results, [doc2]);
-      });
-
-      it('re-fills indexed limit queries', async () => {
-        debugAssert(configureCsi, 'Test requires durable persistence');
-
-        const doc1 = doc('coll/1', 1, { 'a': 1 });
-        const doc2 = doc('coll/2', 1, { 'a': 2 });
-        const doc3 = doc('coll/3', 1, { 'a': 3 });
-        const doc4 = doc('coll/4', 1, { 'a': 4 });
-        await addDocument(doc1, doc2, doc3, doc4);
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc4)
-        );
-
-        await addMutation(patchMutation('coll/3', { 'a': 5 }));
-
-        const q = queryWithLimit(
-          queryWithAddedOrderBy(query('coll'), orderBy('a')),
-          3,
-          LimitType.First
-        );
-        const results = await expectOptimizedCollectionQuery(() =>
-          runQuery(q, SnapshotVersion.min())
-        );
-
-        verifyResult(results, [doc1, doc2, doc4]);
-      });
-    }
-
-    // Tests below this line execute with and without client side indexing
-    it('query with multiple ins on the same field', async () => {
       const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
-      const doc2 = doc('coll/2', 1, { 'b': 1 });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+      const doc2 = doc('coll/2', 1, { 'a': 1, 'b': 1 });
+      const doc3 = doc('coll/3', 1, { 'a': 1, 'b': 2 });
       const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+      const doc5 = doc('coll/5', 1, { 'a': 2, 'b': 3 });
+      await addDocument(doc1, doc2, doc3, doc4, doc5);
 
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-      const query1 = query(
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5)
+      );
+      await indexManager.updateCollectionGroup(
         'coll',
-        andFilter(filter('a', 'in', [1, 2, 3]), filter('a', 'in', [0, 1, 4]))
+        newIndexOffsetFromDocument(doc5)
       );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc1, doc4, doc5]);
 
-      // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an empty set.
-      const query2 = query(
-        'coll',
-        andFilter(filter('a', 'in', [2, 3]), filter('a', 'in', [0, 1, 4]))
+      const q = queryWithLimit(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+          filter('b', '==', 1)
+        ),
+        3,
+        LimitType.First
       );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
+      const results = await expectOptimizedCollectionQuery(() =>
+        runQuery(q, SnapshotVersion.min())
       );
-      verifyResult(result2, []);
 
-      // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
-      const query3 = query(
-        'coll',
-        orFilter(filter('a', 'in', [0, 3]), filter('a', 'in', [0, 2]))
-      );
-      const result3 = await expectFunction(() =>
-        runQuery(query3, lastLimboFreeSnapshot)
-      );
-      verifyResult(result3, [doc3, doc6]);
-
-      // Nested composite filter: (a IN [0,1,2,3] && (a IN [0,2] || (b>1 && a IN [1,3]))
-      const query4 = query(
-        'coll',
-        andFilter(
-          filter('a', 'in', [1, 2, 3]),
-          orFilter(
-            filter('a', 'in', [0, 2]),
-            andFilter(filter('b', '>=', 1), filter('a', 'in', [1, 3]))
-          )
-        )
-      );
-      const result4 = await expectFunction(() =>
-        runQuery(query4, lastLimboFreeSnapshot)
-      );
-      verifyResult(result4, [doc3, doc4]);
+      verifyResult(results, [doc2]);
     });
 
-    it('query with ins and not-ins on the same field', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
-      const doc2 = doc('coll/2', 1, { 'b': 1 });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+    it('re-fills indexed limit queries', async () => {
+      debugAssert(configureCsi, 'Test requires durable persistence');
 
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+      const doc1 = doc('coll/1', 1, { 'a': 1 });
+      const doc2 = doc('coll/2', 1, { 'a': 2 });
+      const doc3 = doc('coll/3', 1, { 'a': 3 });
+      const doc4 = doc('coll/4', 1, { 'a': 4 });
+      await addDocument(doc1, doc2, doc3, doc4);
 
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      // a IN [1,2,3] && a IN [0,1,3,4] && a NOT-IN [1] should result in
-      // "a==1 && a!=1 || a==3 && a!=1" or just "a == 3"
-      const query1 = query(
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4)
+      );
+      await indexManager.updateCollectionGroup(
         'coll',
-        andFilter(
-          filter('a', 'in', [1, 2, 3]),
-          filter('a', 'in', [0, 1, 3, 4]),
-          filter('a', 'not-in', [1])
-        )
+        newIndexOffsetFromDocument(doc4)
       );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
+
+      await addMutation(patchMutation('coll/3', { 'a': 5 }));
+
+      const q = queryWithLimit(
+        queryWithAddedOrderBy(query('coll'), orderBy('a')),
+        3,
+        LimitType.First
       );
-      verifyResult(result1, [doc3]);
-
-      // a IN [2,3] && a IN [0,1,2,4] && a NOT-IN [1,2] is never true and so the
-      // result should be an empty set.
-      const query2 = query(
-        'coll',
-        andFilter(
-          filter('a', 'in', [2, 3]),
-          filter('a', 'in', [0, 1, 2, 4]),
-          filter('a', 'not-in', [1, 2])
-        )
+      const results = await expectOptimizedCollectionQuery(() =>
+        runQuery(q, SnapshotVersion.min())
       );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, []);
 
-      // a IN [] || a NOT-IN [0,1,2] should union them (similar to: a NOT-IN [0,1,2]).
-      const query3 = query(
-        'coll',
-        orFilter(filter('a', 'in', []), filter('a', 'not-in', [0, 1, 2]))
-      );
-      const result3 = await expectFunction(() =>
-        runQuery(query3, lastLimboFreeSnapshot)
-      );
-      verifyResult(result3, [doc3]);
-
-      const query4 = query(
-        'coll',
-        andFilter(
-          filter('a', '<=', 1),
-          filter('a', 'in', [1, 2, 3, 4]),
-          filter('a', 'not-in', [0, 2])
-        )
-      );
-      const result4 = await expectFunction(() =>
-        runQuery(query4, lastLimboFreeSnapshot)
-      );
-      verifyResult(result4, [doc1, doc4, doc5]);
-    });
-
-    it('query with multiple ins on different fields', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
-      const doc2 = doc('coll/2', 1, { 'b': 1 });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query(
-        'coll',
-        orFilter(filter('a', 'in', [2, 3]), filter('b', 'in', [0, 2]))
-      );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
-      );
-      verifyResult(result1, [doc1, doc3, doc6]);
-
-      const query2 = query(
-        'coll',
-        andFilter(filter('a', 'in', [2, 3]), filter('b', 'in', [0, 2]))
-      );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc3]);
-
-      // Nested composite filter: (a IN [0,1,2,3] && (a IN [0,2] || (b>1 && a IN [1,3]))
-      const query3 = query(
-        'coll',
-        andFilter(
-          filter('b', 'in', [0, 3]),
-          orFilter(
-            filter('b', 'in', [1]),
-            andFilter(filter('b', 'in', [2, 3]), filter('a', 'in', [1, 3]))
-          )
-        )
-      );
-      const result3 = await expectFunction(() =>
-        runQuery(query3, lastLimboFreeSnapshot)
-      );
-      verifyResult(result3, [doc4]);
-    });
-
-    it('query in with array-contains-any', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
-      const doc2 = doc('coll/2', 1, { 'b': [1] });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query(
-        'coll',
-        orFilter(
-          filter('a', 'in', [2, 3]),
-          filter('b', 'array-contains-any', [0, 7])
-        )
-      );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc1, doc3, doc4, doc6]);
-
-      const query2 = query(
-        'coll',
-        andFilter(
-          filter('a', 'in', [2, 3]),
-          filter('b', 'array-contains-any', [0, 7])
-        )
-      );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc3]);
-
-      const query3 = query(
-        'coll',
-        orFilter(
-          andFilter(filter('a', 'in', [2, 3]), filter('c', '==', 10)),
-          filter('b', 'array-contains-any', [0, 7])
-        )
-      );
-      const result3 = await expectFunction(() =>
-        runQuery(query3, lastLimboFreeSnapshot)
-      );
-      verifyResult(result3, [doc1, doc3, doc4]);
-
-      const query4 = query(
-        'coll',
-        andFilter(
-          filter('a', 'in', [2, 3]),
-          orFilter(
-            filter('b', 'array-contains-any', [0, 7]),
-            filter('c', '==', 20)
-          )
-        )
-      );
-      const result4 = await expectFunction(() =>
-        runQuery(query4, lastLimboFreeSnapshot)
-      );
-      verifyResult(result4, [doc3, doc6]);
-    });
-
-    it('query in with array-contains', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
-      const doc2 = doc('coll/2', 1, { 'b': [1] });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
-        );
-
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query(
-        'coll',
-        orFilter(filter('a', 'in', [2, 3]), filter('b', 'array-contains', 3))
-      );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc3, doc4, doc6]);
-
-      const query2 = query(
-        'coll',
-        andFilter(filter('a', 'in', [2, 3]), filter('b', 'array-contains', 7))
-      );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc3]);
-
-      const query3 = query(
-        'coll',
-        orFilter(
-          filter('a', 'in', [2, 3]),
-          andFilter(filter('b', 'array-contains', 3), filter('a', '==', 1))
-        )
-      );
-      const result3 = await expectFunction(() =>
-        runQuery(query3, lastLimboFreeSnapshot)
-      );
-      verifyResult(result3, [doc3, doc4, doc6]);
-
-      const query4 = query(
-        'coll',
-        andFilter(
-          filter('a', 'in', [2, 3]),
-          orFilter(filter('b', 'array-contains', 7), filter('a', '==', 1))
-        )
-      );
-      const result4 = await expectFunction(() =>
-        runQuery(query4, lastLimboFreeSnapshot)
-      );
-      verifyResult(result4, [doc3]);
-    });
-
-    it('order by equality', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
-      const doc2 = doc('coll/2', 1, { 'b': [1] });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
-        );
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query('coll', filter('a', '==', 1), orderBy('a'));
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc1, doc4, doc5]);
-
-      const query2 = query('coll', filter('a', 'in', [2, 3]), orderBy('a'));
-
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc6, doc3]);
-    });
-
-    it('or query with in and not-in', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
-      const doc2 = doc('coll/2', 1, { 'b': 1 });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
-        );
-
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query(
-        'coll',
-        orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
-      );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc3, doc4, doc6]);
-
-      // a==2 || (b != 2 && b != 3)
-      // Has implicit "orderBy b"
-      const query2 = query(
-        'coll',
-        orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
-      );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc1, doc2]);
-    });
-
-    it('query with array membership', async () => {
-      const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
-      const doc2 = doc('coll/2', 1, { 'b': [1] });
-      const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7] });
-      const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
-      const doc5 = doc('coll/5', 1, { 'a': 1 });
-      const doc6 = doc('coll/6', 1, { 'a': 2 });
-      await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
-
-      let expectFunction = expectFullCollectionQuery;
-      let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
-
-      if (configureCsi) {
-        expectFunction = expectOptimizedCollectionQuery;
-        lastLimboFreeSnapshot = SnapshotVersion.min();
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
-        );
-        await indexManager.addFieldIndex(
-          fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
-        );
-
-        await indexManager.updateIndexEntries(
-          documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
-        );
-        await indexManager.updateCollectionGroup(
-          'coll',
-          newIndexOffsetFromDocument(doc6)
-        );
-      }
-
-      const query1 = query(
-        'coll',
-        orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
-      );
-      const result1 = await expectFunction(() =>
-        runQuery(query1, lastLimboFreeSnapshot)
-      );
-      verifyResult(result1, [doc3, doc4, doc6]);
-
-      const query2 = query(
-        'coll',
-        orFilter(
-          filter('a', '==', 2),
-          filter('b', 'array-contains-any', [0, 3])
-        )
-      );
-      const result2 = await expectFunction(() =>
-        runQuery(query2, lastLimboFreeSnapshot)
-      );
-      verifyResult(result2, [doc1, doc4, doc6]);
+      verifyResult(results, [doc1, doc2, doc4]);
     });
   }
+
+  // Tests below this line execute with and without client side indexing
+  it('query with multiple ins on the same field', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
+    const query1 = query(
+      'coll',
+      andFilter(filter('a', 'in', [1, 2, 3]), filter('a', 'in', [0, 1, 4]))
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc1, doc4, doc5]);
+
+    // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an empty set.
+    const query2 = query(
+      'coll',
+      andFilter(filter('a', 'in', [2, 3]), filter('a', 'in', [0, 1, 4]))
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, []);
+
+    // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
+    const query3 = query(
+      'coll',
+      orFilter(filter('a', 'in', [0, 3]), filter('a', 'in', [0, 2]))
+    );
+    const result3 = await expectFunction(() =>
+      runQuery(query3, lastLimboFreeSnapshot)
+    );
+    verifyResult(result3, [doc3, doc6]);
+
+    // Nested composite filter: (a IN [0,1,2,3] && (a IN [0,2] || (b>1 && a IN [1,3]))
+    const query4 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [1, 2, 3]),
+        orFilter(
+          filter('a', 'in', [0, 2]),
+          andFilter(filter('b', '>=', 1), filter('a', 'in', [1, 3]))
+        )
+      )
+    );
+    const result4 = await expectFunction(() =>
+      runQuery(query4, lastLimboFreeSnapshot)
+    );
+    verifyResult(result4, [doc3, doc4]);
+  });
+
+  it('query with ins and not-ins on the same field', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    // a IN [1,2,3] && a IN [0,1,3,4] && a NOT-IN [1] should result in
+    // "a==1 && a!=1 || a==3 && a!=1" or just "a == 3"
+    const query1 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [1, 2, 3]),
+        filter('a', 'in', [0, 1, 3, 4]),
+        filter('a', 'not-in', [1])
+      )
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc3]);
+
+    // a IN [2,3] && a IN [0,1,2,4] && a NOT-IN [1,2] is never true and so the
+    // result should be an empty set.
+    const query2 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [2, 3]),
+        filter('a', 'in', [0, 1, 2, 4]),
+        filter('a', 'not-in', [1, 2])
+      )
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, []);
+
+    // a IN [] || a NOT-IN [0,1,2] should union them (similar to: a NOT-IN [0,1,2]).
+    const query3 = query(
+      'coll',
+      orFilter(filter('a', 'in', []), filter('a', 'not-in', [0, 1, 2]))
+    );
+    const result3 = await expectFunction(() =>
+      runQuery(query3, lastLimboFreeSnapshot)
+    );
+    verifyResult(result3, [doc3]);
+
+    const query4 = query(
+      'coll',
+      andFilter(
+        filter('a', '<=', 1),
+        filter('a', 'in', [1, 2, 3, 4]),
+        filter('a', 'not-in', [0, 2])
+      )
+    );
+    const result4 = await expectFunction(() =>
+      runQuery(query4, lastLimboFreeSnapshot)
+    );
+    verifyResult(result4, [doc1, doc4, doc5]);
+  });
+
+  it('query with multiple ins on different fields', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', 'in', [2, 3]), filter('b', 'in', [0, 2]))
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+    );
+    verifyResult(result1, [doc1, doc3, doc6]);
+
+    const query2 = query(
+      'coll',
+      andFilter(filter('a', 'in', [2, 3]), filter('b', 'in', [0, 2]))
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc3]);
+
+    // Nested composite filter: (a IN [0,1,2,3] && (a IN [0,2] || (b>1 && a IN [1,3]))
+    const query3 = query(
+      'coll',
+      andFilter(
+        filter('b', 'in', [0, 3]),
+        orFilter(
+          filter('b', 'in', [1]),
+          andFilter(filter('b', 'in', [2, 3]), filter('a', 'in', [1, 3]))
+        )
+      )
+    );
+    const result3 = await expectFunction(() =>
+      runQuery(query3, lastLimboFreeSnapshot)
+    );
+    verifyResult(result3, [doc4]);
+  });
+
+  it('query in with array-contains-any', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query(
+      'coll',
+      orFilter(
+        filter('a', 'in', [2, 3]),
+        filter('b', 'array-contains-any', [0, 7])
+      )
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc1, doc3, doc4, doc6]);
+
+    const query2 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [2, 3]),
+        filter('b', 'array-contains-any', [0, 7])
+      )
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc3]);
+
+    const query3 = query(
+      'coll',
+      orFilter(
+        andFilter(filter('a', 'in', [2, 3]), filter('c', '==', 10)),
+        filter('b', 'array-contains-any', [0, 7])
+      )
+    );
+    const result3 = await expectFunction(() =>
+      runQuery(query3, lastLimboFreeSnapshot)
+    );
+    verifyResult(result3, [doc1, doc3, doc4]);
+
+    const query4 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [2, 3]),
+        orFilter(
+          filter('b', 'array-contains-any', [0, 7]),
+          filter('c', '==', 20)
+        )
+      )
+    );
+    const result4 = await expectFunction(() =>
+      runQuery(query4, lastLimboFreeSnapshot)
+    );
+    verifyResult(result4, [doc3, doc6]);
+  });
+
+  it('query in with array-contains', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+      );
+
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', 'in', [2, 3]), filter('b', 'array-contains', 3))
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    const query2 = query(
+      'coll',
+      andFilter(filter('a', 'in', [2, 3]), filter('b', 'array-contains', 7))
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc3]);
+
+    const query3 = query(
+      'coll',
+      orFilter(
+        filter('a', 'in', [2, 3]),
+        andFilter(filter('b', 'array-contains', 3), filter('a', '==', 1))
+      )
+    );
+    const result3 = await expectFunction(() =>
+      runQuery(query3, lastLimboFreeSnapshot)
+    );
+    verifyResult(result3, [doc3, doc4, doc6]);
+
+    const query4 = query(
+      'coll',
+      andFilter(
+        filter('a', 'in', [2, 3]),
+        orFilter(filter('b', 'array-contains', 7), filter('a', '==', 1))
+      )
+    );
+    const result4 = await expectFunction(() =>
+      runQuery(query4, lastLimboFreeSnapshot)
+    );
+    verifyResult(result4, [doc3]);
+  });
+
+  it('order by equality', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7], 'c': 10 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2, 'c': 20 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+      );
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query('coll', filter('a', '==', 1), orderBy('a'));
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc1, doc4, doc5]);
+
+    const query2 = query('coll', filter('a', 'in', [2, 3]), orderBy('a'));
+
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc6, doc3]);
+  });
+
+  it('or query with in and not-in', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
+    const doc2 = doc('coll/2', 1, { 'b': 1 });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': 2 });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': 3 });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.DESCENDING]] })
+      );
+
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'in', [2, 3]))
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    // a==2 || (b != 2 && b != 3)
+    // Has implicit "orderBy b"
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'not-in', [2, 3]))
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc1, doc2]);
+  });
+
+  it('query with array membership', async () => {
+    const doc1 = doc('coll/1', 1, { 'a': 1, 'b': [0] });
+    const doc2 = doc('coll/2', 1, { 'b': [1] });
+    const doc3 = doc('coll/3', 1, { 'a': 3, 'b': [2, 7] });
+    const doc4 = doc('coll/4', 1, { 'a': 1, 'b': [3, 7] });
+    const doc5 = doc('coll/5', 1, { 'a': 1 });
+    const doc6 = doc('coll/6', 1, { 'a': 2 });
+    await addDocument(doc1, doc2, doc3, doc4, doc5, doc6);
+
+    let expectFunction = expectFullCollectionQuery;
+    let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
+
+    if (configureCsi) {
+      expectFunction = expectOptimizedCollectionQuery;
+      lastLimboFreeSnapshot = SnapshotVersion.min();
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.ASCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['a', IndexKind.DESCENDING]] })
+      );
+      await indexManager.addFieldIndex(
+        fieldIndex('coll', { fields: [['b', IndexKind.CONTAINS]] })
+      );
+
+      await indexManager.updateIndexEntries(
+        documentMap(doc1, doc2, doc3, doc4, doc5, doc6)
+      );
+      await indexManager.updateCollectionGroup(
+        'coll',
+        newIndexOffsetFromDocument(doc6)
+      );
+    }
+
+    const query1 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains', 7))
+    );
+    const result1 = await expectFunction(() =>
+      runQuery(query1, lastLimboFreeSnapshot)
+    );
+    verifyResult(result1, [doc3, doc4, doc6]);
+
+    const query2 = query(
+      'coll',
+      orFilter(filter('a', '==', 2), filter('b', 'array-contains-any', [0, 3]))
+    );
+    const result2 = await expectFunction(() =>
+      runQuery(query2, lastLimboFreeSnapshot)
+    );
+    verifyResult(result2, [doc1, doc4, doc6]);
+  });
 }
 
 function verifyResult(actualDocs: DocumentSet, expectedDocs: Document[]): void {
