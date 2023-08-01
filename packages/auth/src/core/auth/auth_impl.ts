@@ -613,12 +613,18 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     promise.then(() => {
-      if (isUnsubscribed) { return; }
+      if (isUnsubscribed) {
+        return;
+      }
       cb(this.currentUser);
     });
 
     if (typeof nextOrObserver === 'function') {
-      const unsubscribe = subscription.addObserver(nextOrObserver, error, completed);
+      const unsubscribe = subscription.addObserver(
+        nextOrObserver,
+        error,
+        completed
+      );
       return () => {
         isUnsubscribed = true;
         unsubscribe();
@@ -628,7 +634,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       return () => {
         isUnsubscribed = true;
         unsubscribe();
-      }
+      };
     }
   }
 
