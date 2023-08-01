@@ -1418,7 +1418,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
           signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
         ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
 
-        // Wait to ensure the password policy is not fetched and recached.
+        // Wait to ensure the password policy is fetched and recached.
         await waitForRecachePasswordPolicy();
 
         expect(policyEndpointMock.calls.length).to.eq(2);
