@@ -50,6 +50,7 @@ import {
   doc,
   expectCorrectComparisons,
   expectEqualitySets,
+  fieldPath,
   filter,
   orderBy,
   orFilter,
@@ -774,6 +775,82 @@ describe('Query', () => {
       orderBy('foo', 'desc'),
       orderBy('bar', 'asc'),
       orderBy(DOCUMENT_KEY_NAME, 'asc')
+    );
+  });
+
+  it("generates the correct implicit order by's for multiple inequality", () => {
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('aa', '>', 5),
+        filter('b', '>', 5),
+        filter('A', '>', 5)
+      ),
+      orderBy('A'),
+      orderBy('a'),
+      orderBy('aa'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // numbers
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('1', '>', 5),
+        filter('19', '>', 5),
+        filter('2', '>', 5)
+      ),
+      orderBy('1'),
+      orderBy('19'),
+      orderBy('2'),
+      orderBy('a'),
+
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // nested fields
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('aa', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy('aa'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // special characters
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('_a', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('_a'),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // field name with dot
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('a.a', '>', 5),
+        filter(fieldPath('a.a'), '>', 5)
+      ),
+      orderBy('a'),
+      orderBy('a.a'), // nested field
+      orderBy(fieldPath('a.a')), // field name with dot
+      orderBy(DOCUMENT_KEY_NAME)
     );
   });
 

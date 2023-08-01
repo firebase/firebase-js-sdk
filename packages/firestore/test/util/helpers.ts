@@ -226,10 +226,13 @@ export function path(path: string, offset?: number): ResourcePath {
   return new ResourcePath(splitPath(path, '/'), offset);
 }
 
-export function field(path: string): FieldPath {
-  return new FieldPath(path.split('.'));
+export function field(path: string | FieldPath): FieldPath {
+  return path instanceof FieldPath ? path : new FieldPath(path.split('.'));
 }
 
+export function fieldPath(path: string): FieldPath {
+  return new FieldPath([path]);
+}
 export function fieldIndex(
   collectionGroup: string,
   options: {
@@ -261,7 +264,11 @@ export function blob(...bytes: number[]): Bytes {
   return Bytes.fromUint8Array(new Uint8Array(bytes || []));
 }
 
-export function filter(path: string, op: string, value: unknown): FieldFilter {
+export function filter(
+  path: string | FieldPath,
+  op: string,
+  value: unknown
+): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
   return FieldFilter.create(field(path), operator, dataValue);
@@ -736,7 +743,7 @@ export function resumeTokenForSnapshot(
   }
 }
 
-export function orderBy(path: string, op?: string): OrderBy {
+export function orderBy(path: string | FieldPath, op?: string): OrderBy {
   op = op || 'asc';
   debugAssert(op === 'asc' || op === 'desc', 'Unknown direction: ' + op);
   const dir: Direction =
