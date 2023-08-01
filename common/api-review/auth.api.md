@@ -81,6 +81,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 // @public
 export interface Auth {
     readonly app: FirebaseApp;
+    authStateReady(): Promise<void>;
     beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
     readonly config: Config;
     readonly currentUser: User | null;
@@ -550,7 +551,7 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
 export interface ParsedToken {
-    [key: string]: any;
+    [key: string]: unknown;
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {
@@ -708,7 +709,7 @@ export interface RecaptchaParameters {
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
-    constructor(containerOrId: HTMLElement | string, parameters: RecaptchaParameters, authExtern: Auth);
+    constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //

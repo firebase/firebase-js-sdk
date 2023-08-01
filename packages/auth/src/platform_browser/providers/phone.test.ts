@@ -45,9 +45,9 @@ describe('platform_browser/providers/phone', () => {
       });
 
       const verifier = new RecaptchaVerifier(
+        auth,
         document.createElement('div'),
-        {},
-        auth
+        {}
       );
       sinon
         .stub(verifier, 'verify')

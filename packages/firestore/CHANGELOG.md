@@ -1,5 +1,37 @@
 # @firebase/firestore
 
+## 4.1.0
+
+### Minor Changes
+
+- [`52b17b426`](https://github.com/firebase/firebase-js-sdk/commit/52b17b4267729c14adcb52f2d523572aa22e4759) [#7452](https://github.com/firebase/firebase-js-sdk/pull/7452) - Update the grpc dependency to the latest version.
+
+### Patch Changes
+
+- [`c5518c80f`](https://github.com/firebase/firebase-js-sdk/commit/c5518c80fc577d6ab4f524d49c44b6dfd6ed96e7) [#7440](https://github.com/firebase/firebase-js-sdk/pull/7440) - Fixed issue where count and lite API queries did not work with named databases.
+
+## 4.0.0
+
+### Major Changes
+
+- [`f2fb56fc0`](https://github.com/firebase/firebase-js-sdk/commit/f2fb56fc0f5d1573fe7700f019c58ec2755a3478) [#7310](https://github.com/firebase/firebase-js-sdk/pull/7310) - Fixed updateDoc() typing issue by adding a 2nd type parameter to FirestoreDataConverter
+
+### Minor Changes
+
+- [`57f2a863f`](https://github.com/firebase/firebase-js-sdk/commit/57f2a863f188ca11b6167656fc7a7d7c9affc1d6) [#7318](https://github.com/firebase/firebase-js-sdk/pull/7318) (fixes [#6105](https://github.com/firebase/firebase-js-sdk/issues/6105)) - Changing UpdateData<T> to expand support for types with index signatures.
+
+### Patch Changes
+
+- [`aaf3fa396`](https://github.com/firebase/firebase-js-sdk/commit/aaf3fa3969521c540c4a4583648536348033e1c6) [#7385](https://github.com/firebase/firebase-js-sdk/pull/7385) - Fix an issue where localCache is not copied as part of Settings.
+
+- [`d86c89f9c`](https://github.com/firebase/firebase-js-sdk/commit/d86c89f9c65203842eed39699c729f841d902cc0) [#7382](https://github.com/firebase/firebase-js-sdk/pull/7382) - Fix source maps that incorrectly referenced yet another minified and mangled bundle, rendering them useless. The fixed bundles' source maps are: index.esm2017.js, index.cjs.js, index.node.mjs, and index.browser.esm2017.js (lite sdk only).
+
+## 3.13.0
+
+### Minor Changes
+
+- [`59c7b5801`](https://github.com/firebase/firebase-js-sdk/commit/59c7b580167509b8346e5eded82d9a4358893cd8) [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356) - Expose the MultiDB API for Public Preview. [#7356](https://github.com/firebase/firebase-js-sdk/pull/7356)
+
 ## 3.12.2
 
 ### Patch Changes

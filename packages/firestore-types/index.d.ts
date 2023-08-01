@@ -241,7 +241,10 @@ export interface GetOptions {
   readonly source?: 'default' | 'server' | 'cache';
 }
 
-export class DocumentReference<T = DocumentData> {
+export class DocumentReference<
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> {
   private constructor();
 
   readonly id: string;
@@ -307,7 +310,10 @@ export interface SnapshotMetadata {
   isEqual(other: SnapshotMetadata): boolean;
 }
 
-export class DocumentSnapshot<T = DocumentData> {
+export class DocumentSnapshot<
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> {
   protected constructor();
 
   readonly exists: boolean;
@@ -323,8 +329,9 @@ export class DocumentSnapshot<T = DocumentData> {
 }
 
 export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> extends DocumentSnapshot<T, T2> {
   private constructor();
 
   data(options?: SnapshotOptions): T;
@@ -344,7 +351,7 @@ export type WhereFilterOp =
   | 'array-contains-any'
   | 'not-in';
 
-export class Query<T = DocumentData> {
+export class Query<T = DocumentData, T2 extends DocumentData = DocumentData> {
   protected constructor();
 
   readonly firestore: FirebaseFirestore;
@@ -409,7 +416,10 @@ export class Query<T = DocumentData> {
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> {
   private constructor();
 
   readonly query: Query<T>;
@@ -430,14 +440,20 @@ export class QuerySnapshot<T = DocumentData> {
 
 export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
-export interface DocumentChange<T = DocumentData> {
+export interface DocumentChange<
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> {
   readonly type: DocumentChangeType;
   readonly doc: QueryDocumentSnapshot<T>;
   readonly oldIndex: number;
   readonly newIndex: number;
 }
 
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<
+  T = DocumentData,
+  T2 extends DocumentData = DocumentData
+> extends Query<T, T2> {
   private constructor();
 
   readonly id: string;

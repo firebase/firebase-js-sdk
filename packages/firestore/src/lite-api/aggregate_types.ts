@@ -19,7 +19,7 @@ import { AggregateType } from '../core/aggregate';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
-import { Query } from './reference';
+import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 export { AggregateType };
@@ -71,7 +71,11 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<T extends AggregateSpec> {
+export class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
@@ -79,11 +83,11 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * The underlying query over which the aggregations recorded in this
    * `AggregateQuerySnapshot` were performed.
    */
-  readonly query: Query<unknown>;
+  readonly query: Query<AppModelType, DbModelType>;
 
   /** @hideconstructor */
   constructor(
-    query: Query<unknown>,
+    query: Query<AppModelType, DbModelType>,
     private readonly _userDataWriter: AbstractUserDataWriter,
     private readonly _data: ApiClientObjectMap<Value>
   ) {
@@ -101,9 +105,9 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * @returns The results of the aggregations performed over the underlying
    * query.
    */
-  data(): AggregateSpecData<T> {
+  data(): AggregateSpecData<AggregateSpecType> {
     return this._userDataWriter.convertObjectMap(
       this._data
-    ) as AggregateSpecData<T>;
+    ) as AggregateSpecData<AggregateSpecType>;
   }
 }

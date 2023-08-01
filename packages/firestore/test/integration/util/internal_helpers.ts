@@ -42,7 +42,7 @@ import {
   limit,
   limitToLast
 } from './firebase_export';
-import { withTestDbsSettings } from './helpers';
+import { withTestDbsSettings, PersistenceMode } from './helpers';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
 
 export function asyncQueue(db: Firestore): AsyncQueueImpl {
@@ -101,7 +101,7 @@ export class MockAuthCredentialsProvider extends EmptyAuthCredentialsProvider {
 }
 
 export function withMockCredentialProviderTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode,
   fn: (
     db: Firestore,
     mockCredential: MockAuthCredentialsProvider

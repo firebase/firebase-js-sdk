@@ -42,7 +42,7 @@ addEqualityMatcher();
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-apiDescribe('Array Transforms:', (persistence: boolean) => {
+apiDescribe('Array Transforms:', persistence => {
   // A document reference to read and write to.
   let docRef: DocumentReference;
 
@@ -160,80 +160,84 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
    * Unlike the withTestSetup() tests above, these tests intentionally avoid
    * having any ongoing listeners so that we can test what gets stored in the
    * offline cache based purely on the write acknowledgement (without receiving
-   * an updated document via watch). As such they also rely on persistence
-   * being enabled so documents remain in the cache after the write.
+   * an updated document via watch). As such they also rely on persistence with
+   * LRU garbage collection (rather than eager garbage collection) so documents
+   * remain in the cache after the write.
    */
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? describe : describe.skip)('Server Application: ', () => {
-    it('set() with no cached base doc', async () => {
-      await withTestDoc(persistence, async docRef => {
-        await setDoc(docRef, { array: arrayUnion(1, 2) });
-        const snapshot = await getDocFromCache(docRef);
-        expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
-      });
-    });
-
-    it('update() with no cached base doc', async () => {
-      let path: string | null = null;
-      // Write an initial document in an isolated Firestore instance so it's not
-      // stored in our cache
-      await withTestDoc(persistence, async docRef => {
-        path = docRef.path;
-        await setDoc(docRef, { array: [42] });
+  (persistence.gc === 'lru' ? describe : describe.skip)(
+    'Server Application: ',
+    () => {
+      it('set() with no cached base doc', async () => {
+        await withTestDoc(persistence, async docRef => {
+          await setDoc(docRef, { array: arrayUnion(1, 2) });
+          const snapshot = await getDocFromCache(docRef);
+          expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+        });
       });
 
-      await withTestDb(persistence, async db => {
-        const docRef = doc(db, path!);
-        await updateDoc(docRef, { array: arrayUnion(1, 2) });
+      it('update() with no cached base doc', async () => {
+        let path: string | null = null;
+        // Write an initial document in an isolated Firestore instance so it's not
+        // stored in our cache
+        await withTestDoc(persistence, async docRef => {
+          path = docRef.path;
+          await setDoc(docRef, { array: [42] });
+        });
 
-        // Nothing should be cached since it was an update and we had no base
-        // doc.
-        let errCaught = false;
-        try {
-          await getDocFromCache(docRef);
-        } catch (err) {
-          expect((err as FirestoreError).code).to.equal('unavailable');
-          errCaught = true;
-        }
-        expect(errCaught).to.be.true;
+        await withTestDb(persistence, async db => {
+          const docRef = doc(db, path!);
+          await updateDoc(docRef, { array: arrayUnion(1, 2) });
+
+          // Nothing should be cached since it was an update and we had no base
+          // doc.
+          let errCaught = false;
+          try {
+            await getDocFromCache(docRef);
+          } catch (err) {
+            expect((err as FirestoreError).code).to.equal('unavailable');
+            errCaught = true;
+          }
+          expect(errCaught).to.be.true;
+        });
       });
-    });
 
-    it('set(..., {merge}) with no cached based doc', async () => {
-      let path: string | null = null;
-      // Write an initial document in an isolated Firestore instance so it's not
-      // stored in our cache
-      await withTestDoc(persistence, async docRef => {
-        path = docRef.path;
-        await setDoc(docRef, { array: [42] });
+      it('set(..., {merge}) with no cached based doc', async () => {
+        let path: string | null = null;
+        // Write an initial document in an isolated Firestore instance so it's not
+        // stored in our cache
+        await withTestDoc(persistence, async docRef => {
+          path = docRef.path;
+          await setDoc(docRef, { array: [42] });
+        });
+
+        await withTestDb(persistence, async db => {
+          const docRef = doc(db, path!);
+          await setDoc(docRef, { array: arrayUnion(1, 2) }, { merge: true });
+
+          // Document will be cached but we'll be missing 42.
+          const snapshot = await getDocFromCache(docRef);
+          expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+        });
       });
 
-      await withTestDb(persistence, async db => {
-        const docRef = doc(db, path!);
-        await setDoc(docRef, { array: arrayUnion(1, 2) }, { merge: true });
-
-        // Document will be cached but we'll be missing 42.
-        const snapshot = await getDocFromCache(docRef);
-        expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+      it('update() with cached base doc using arrayUnion()', async () => {
+        await withTestDoc(persistence, async docRef => {
+          await setDoc(docRef, { array: [42] });
+          await updateDoc(docRef, { array: arrayUnion(1, 2) });
+          const snapshot = await getDocFromCache(docRef);
+          expect(snapshot.data()).to.deep.equal({ array: [42, 1, 2] });
+        });
       });
-    });
 
-    it('update() with cached base doc using arrayUnion()', async () => {
-      await withTestDoc(persistence, async docRef => {
-        await setDoc(docRef, { array: [42] });
-        await updateDoc(docRef, { array: arrayUnion(1, 2) });
-        const snapshot = await getDocFromCache(docRef);
-        expect(snapshot.data()).to.deep.equal({ array: [42, 1, 2] });
+      it('update() with cached base doc using arrayRemove()', async () => {
+        await withTestDoc(persistence, async docRef => {
+          await setDoc(docRef, { array: [42, 1, 2] });
+          await updateDoc(docRef, { array: arrayRemove(1, 2) });
+          const snapshot = await getDocFromCache(docRef);
+          expect(snapshot.data()).to.deep.equal({ array: [42] });
+        });
       });
-    });
-
-    it('update() with cached base doc using arrayRemove()', async () => {
-      await withTestDoc(persistence, async docRef => {
-        await setDoc(docRef, { array: [42, 1, 2] });
-        await updateDoc(docRef, { array: arrayRemove(1, 2) });
-        const snapshot = await getDocFromCache(docRef);
-        expect(snapshot.data()).to.deep.equal({ array: [42] });
-      });
-    });
-  });
+    }
+  );
 });

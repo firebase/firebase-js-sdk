@@ -28,7 +28,7 @@ export declare interface FirestoreSettings
 |  [experimentalLongPollingOptions](./firestore_.firestoresettings.md#firestoresettingsexperimentallongpollingoptions) | [ExperimentalLongPollingOptions](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptions_interface) | Options that configure the SDK’s underlying network transport (WebChannel) when long-polling is used.<!-- -->These options are only used if <code>experimentalForceLongPolling</code> is true or if <code>experimentalAutoDetectLongPolling</code> is true and the auto-detection determined that long-polling was needed. Otherwise, these options have no effect. |
 |  [host](./firestore_.firestoresettings.md#firestoresettingshost) | string | The hostname to connect to. |
 |  [ignoreUndefinedProperties](./firestore_.firestoresettings.md#firestoresettingsignoreundefinedproperties) | boolean | Whether to skip nested properties that are set to <code>undefined</code> during object serialization. If set to <code>true</code>, these properties are skipped and not written to Firestore. If set to <code>false</code> or omitted, the SDK throws an exception when it encounters properties of type <code>undefined</code>. |
-|  [localCache](./firestore_.firestoresettings.md#firestoresettingslocalcache) | [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Specifies the cache used by the SDK. Available options are <code>MemoryLocalCache</code> and <code>IndexedDbLocalCache</code>, each with different configuration options.<!-- -->When unspecified, <code>MemoryLocalCache</code> will be used by default.<!-- -->NOTE: setting this field and <code>cacheSizeBytes</code> at the same time will throw exception during SDK initialization. Instead, using the configuration in the <code>FirestoreLocalCache</code> object to specify the cache size. |
+|  [localCache](./firestore_.firestoresettings.md#firestoresettingslocalcache) | [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Specifies the cache used by the SDK. Available options are <code>MemoryLocalCache</code> and <code>PersistentLocalCache</code>, each with different configuration options.<!-- -->When unspecified, <code>MemoryLocalCache</code> will be used by default.<!-- -->NOTE: setting this field and <code>cacheSizeBytes</code> at the same time will throw exception during SDK initialization. Instead, using the configuration in the <code>FirestoreLocalCache</code> object to specify the cache size. |
 |  [ssl](./firestore_.firestoresettings.md#firestoresettingsssl) | boolean | Whether to use SSL when connecting. |
 
 ## FirestoreSettings.cacheSizeBytes
@@ -107,7 +107,7 @@ ignoreUndefinedProperties?: boolean;
 
 ## FirestoreSettings.localCache
 
-Specifies the cache used by the SDK. Available options are `MemoryLocalCache` and `IndexedDbLocalCache`<!-- -->, each with different configuration options.
+Specifies the cache used by the SDK. Available options are `MemoryLocalCache` and `PersistentLocalCache`<!-- -->, each with different configuration options.
 
 When unspecified, `MemoryLocalCache` will be used by default.
 

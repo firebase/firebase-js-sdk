@@ -104,6 +104,18 @@ export interface ExistenceFilterMismatchInfo {
   existenceFilterCount: number;
 
   /**
+   * The projectId used when checking documents for membership in the bloom
+   * filter.
+   */
+  projectId: string;
+
+  /**
+   * The databaseId used when checking documents for membership in the bloom
+   * filter.
+   */
+  databaseId: string;
+
+  /**
    * Information about the bloom filter provided by Watch in the ExistenceFilter
    * message's `unchangedNames` field. If this property is omitted or undefined
    * then that means that Watch did _not_ provide a bloom filter.
@@ -124,6 +136,13 @@ export interface ExistenceFilterMismatchInfo {
 
     /** The number of bits of padding in the last byte of the bloom filter. */
     padding: number;
+
+    /**
+     * Tests the given string for membership in the bloom filter created from
+     * the existence filter; will be undefined if creating the bloom filter
+     * failed.
+     */
+    mightContain?: (value: string) => boolean;
   };
 }
 
