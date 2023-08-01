@@ -187,13 +187,15 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
+ * @param webOTPTimeout - if webOTP failed to autofill within the specific time, an error will be thrown
  *
  * @public
  */
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier
+  appVerifier: ApplicationVerifier,
+  webOTPTimeout?: number
 ): Promise<ConfirmationResult> {
   const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
