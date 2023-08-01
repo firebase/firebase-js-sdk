@@ -203,9 +203,14 @@ export async function signInWithPhoneNumber(
     phoneNumber,
     getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
-  return new ConfirmationResultImpl(verificationId, cred =>
+  let confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
   );
+  if(webOTPTimeout){
+    return confirmationRes;
+  }else{
+    return confirmationRes;
+  };
 }
 
 /**
