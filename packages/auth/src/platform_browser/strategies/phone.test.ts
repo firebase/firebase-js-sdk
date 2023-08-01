@@ -149,7 +149,12 @@ describe('platform_browser/strategies/phone', () => {
           return Promise.resolve(otpCred);
         });
 
-        const userCred = await signInWithPhoneNumber(auth, 'number', verifier, 10);
+        const userCred = await signInWithPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          10
+        );
         expect(userCred.user.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
         expect(signInEndpoint.calls[0].request).to.eql({
@@ -157,7 +162,7 @@ describe('platform_browser/strategies/phone', () => {
           code: '6789'
         });
       });
-    })
+    });
   });
 
   describe('linkWithPhoneNumber', () => {
