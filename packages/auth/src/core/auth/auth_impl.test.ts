@@ -1038,7 +1038,7 @@ describe('core/auth/auth_impl', () => {
       });
     });
   });
-  
+
   describe('AuthStateReady', () => {
     let user: UserInternal;
     let authStateChangedSpy: sinon.SinonSpy;
