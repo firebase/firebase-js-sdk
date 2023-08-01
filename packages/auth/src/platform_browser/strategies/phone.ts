@@ -53,17 +53,6 @@ interface OnConfirmationCallback {
 }
 
 // interfaces added to provide typescript support for webOTP autofill
-interface OTPCredentialRequestOptions extends CredentialRequestOptions {
-  otp: OTPOptions;
-}
-
-interface OTPOptions {
-  transport: string[];
-}
-
-interface OTPCredential extends Credential {
-  code?: string;
-}
 
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
