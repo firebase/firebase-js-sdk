@@ -80,7 +80,7 @@ Automatically fetches the verification code from SMS message. Then, it calls con
 <b>Signature:</b>
 
 ```typescript
-confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential>;
+confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential | undefined>;
 ```
 
 ### Parameters
@@ -92,5 +92,5 @@ confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential>;
 
 <b>Returns:</b>
 
-Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface) \| undefined&gt;
 
