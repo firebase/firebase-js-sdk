@@ -105,33 +105,7 @@ export class PhoneAuthProvider {
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
-  ): Promise<string>;
-
-  verifyPhoneNumber(
-    phoneOptions: PhoneInfoOptions | string,
-    applicationVerifier: ApplicationVerifier,
-    webOTPTimeout: number
-  ): Promise<UserCredential>;
-
-  verifyPhoneNumber(
-    phoneOptions: PhoneInfoOptions | string,
-    applicationVerifier: ApplicationVerifier,
-    webOTPTimeout?: number
-  ): Promise<unknown> {
-    if (webOTPTimeout) {
-      try {
-        return _verifyPhoneNumber(
-          this.auth,
-          phoneOptions,
-          getModularInstance(
-            applicationVerifier as ApplicationVerifierInternal
-          ),
-          webOTPTimeout
-        );
-      } catch (error) {
-        throw error;
-      }
-    }
+  ): Promise<string> {
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,

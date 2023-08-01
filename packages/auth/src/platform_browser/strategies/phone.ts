@@ -187,13 +187,15 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
+ * @param webOTPTimeout - if webOTP failed to autofill within the specific time, an error will be thrown
  *
  * @public
  */
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier
+  appVerifier: ApplicationVerifier,
+  webOTPTimeout?: number
 ): Promise<ConfirmationResult> {
   const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
@@ -201,9 +203,14 @@ export async function signInWithPhoneNumber(
     phoneNumber,
     getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
-  return new ConfirmationResultImpl(verificationId, cred =>
+  let confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
   );
+  if(webOTPTimeout){
+    return confirmationRes;
+  }else{
+    return confirmationRes;
+  };
 }
 
 /**
@@ -273,20 +280,9 @@ export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal
-): Promise<string>;
-export async function _verifyPhoneNumber(
-  auth: AuthInternal,
-  options: PhoneInfoOptions | string,
-  verifier: ApplicationVerifierInternal,
-  webOTPTimeout: number
-): Promise<UserCredential>;
-export async function _verifyPhoneNumber(
-  auth: AuthInternal,
-  options: PhoneInfoOptions | string,
-  verifier: ApplicationVerifierInternal,
-  webOTPTimeout?: number
-): Promise<unknown> {
+): Promise<string> {
   const recaptchaToken = await verifier.verify();
+
   try {
     _assert(
       typeof recaptchaToken === 'string',
@@ -298,7 +294,9 @@ export async function _verifyPhoneNumber(
       auth,
       AuthErrorCode.ARGUMENT_ERROR
     );
+
     let phoneInfoOptions: PhoneInfoOptions;
+
     if (typeof options === 'string') {
       phoneInfoOptions = {
         phoneNumber: options
@@ -306,9 +304,10 @@ export async function _verifyPhoneNumber(
     } else {
       phoneInfoOptions = options;
     }
-    let verificationId = '';
+
     if ('session' in phoneInfoOptions) {
       const session = phoneInfoOptions.session as MultiFactorSessionImpl;
+
       if ('phoneNumber' in phoneInfoOptions) {
         _assert(
           session.type === MultiFactorSessionType.ENROLL,
@@ -322,7 +321,7 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        verificationId = response.phoneSessionInfo.sessionInfo;
+        return response.phoneSessionInfo.sessionInfo;
       } else {
         _assert(
           session.type === MultiFactorSessionType.SIGN_IN,
@@ -340,31 +339,15 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        verificationId = response.phoneResponseInfo.sessionInfo;
+        return response.phoneResponseInfo.sessionInfo;
       }
     } else {
       const { sessionInfo } = await sendPhoneVerificationCode(auth, {
         phoneNumber: phoneInfoOptions.phoneNumber,
         recaptchaToken
       });
-      verificationId = sessionInfo;
-      const authInternal = _castAuth(auth);
-      const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
-        signInWithCredential(authInternal, cred)
-      );
-      if (webOTPTimeout) {
-        try {
-          return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeout);
-        } catch (error) {
-          throw error;
-        }
-      } else {
-        return verificationId;
-      }
+      return sessionInfo;
     }
-  } catch (error) {
-    console.log('reached error catching block in _verifyphonenumber');
-    throw error;
   } finally {
     verifier._reset();
   }
