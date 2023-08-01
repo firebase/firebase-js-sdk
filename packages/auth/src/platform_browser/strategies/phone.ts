@@ -29,9 +29,9 @@ import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode, WebOTPError } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -52,6 +52,19 @@ interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
+// interfaces added to provide typescript support for webOTP autofill
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
+
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
     readonly verificationId: string,
@@ -64,6 +77,84 @@ class ConfirmationResultImpl implements ConfirmationResult {
       verificationCode
     );
     return this.onConfirmation(authCredential);
+  }
+
+  async confirmWithWebOTP(
+    auth: Auth,
+    webOTPTimeout: number
+  ): Promise<UserCredential | undefined> {
+    if ('OTPCredential' in window) {
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+
+        const myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+      }, webOTPTimeout * 1000);
+
+      // @ts-ignore - ignore types for testing
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            const myErr = _errorWithCustomMessage(
+              auth,
+              AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+              `Web OTP code is not valid`
+            ) as WebOTPError;
+            myErr.confirmationResult = this;
+            throw myErr;
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          const myErr = _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP get method failed to retrieve the code`
+          ) as WebOTPError;
+          myErr.confirmationResult = this;
+          throw myErr;
+        });
+      try {
+        return this.confirm(code);
+      } catch {
+        const myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code received is incorrect`
+        ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+      }
+    } else {
+      const myErr = _errorWithCustomMessage(
+        auth,
+        AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+        `Web OTP is not supported`
+      ) as WebOTPError;
+      myErr.confirmationResult = this;
+      throw myErr;
+    }
   }
 }
 

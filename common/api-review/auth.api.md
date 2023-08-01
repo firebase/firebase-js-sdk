@@ -235,6 +235,7 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly WEB_OTP_NOT_RETRIEVED: "auth/web-otp-not-retrieved";
 };
 
 // @public
@@ -281,6 +282,7 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential | undefined>;
     readonly verificationId: string;
 }
 
