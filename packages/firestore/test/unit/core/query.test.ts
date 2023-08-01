@@ -844,11 +844,11 @@ describe('Query', () => {
       query(
         'foo',
         filter('a', '<', 5),
-        filter('a.a', '>', 5),
+        filter('a.z', '>', 5),
         filter(fieldPath('a.a'), '>', 5)
       ),
       orderBy('a'),
-      orderBy('a.a'), // nested field
+      orderBy('a.z'), // nested field
       orderBy(fieldPath('a.a')), // field name with dot
       orderBy(DOCUMENT_KEY_NAME)
     );
