@@ -73,7 +73,8 @@ import {
   browserPopupRedirectResolver,
   connectAuthEmulator,
   initializeRecaptchaConfig,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  AuthErrorCodes
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -573,18 +574,14 @@ async function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  console.log(phoneNumber);
-  alertSuccess('Code sent');
   await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
-    .then(
-      userCredential => {
-        onAuthUserCredentialSuccess(userCredential);
-      }).catch(e => {
+    .then(userCredential => {
+      onAuthUserCredentialSuccess(userCredential);
+    })
+    .catch(e => {
       clearApplicationVerifier();
       onAuthError(e);
-      console.log(e.code);
-      if (e.code === "auth/web-opt-not-retrieved") {
-        console.log(e.code);
+      if (e.code === `auth/${AuthErrorCodes.WEB_OTP_NOT_RETRIEVED}`) {
         const verificationCode = $('#signin-phone-verification-code').val();
         e.confirmationResult.confirm(verificationCode);
       }

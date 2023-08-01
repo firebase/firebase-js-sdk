@@ -146,14 +146,16 @@ export class PhoneAuthProvider {
     webOTPTimeout?: number
   ): Promise<unknown> {
     if (webOTPTimeout) {
-      try{
+      try {
         return _verifyPhoneNumber(
           this.auth,
           phoneOptions,
-          getModularInstance(applicationVerifier as ApplicationVerifierInternal),
+          getModularInstance(
+            applicationVerifier as ApplicationVerifierInternal
+          ),
           webOTPTimeout
         );
-      }catch(error){
+      } catch (error) {
         throw error;
       }
     }

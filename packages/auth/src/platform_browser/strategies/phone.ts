@@ -48,6 +48,11 @@ import { _castAuth } from '../../core/auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 
+interface OnConfirmationCallback {
+  (credential: PhoneAuthCredential): Promise<UserCredential>;
+}
+
+// interfaces added to provide typescript support for webOTP autofill
 interface OTPCredentialRequestOptions extends CredentialRequestOptions {
   otp: OTPOptions;
 }
@@ -58,10 +63,6 @@ interface OTPOptions {
 
 interface OTPCredential extends Credential {
   code?: string;
-}
-
-interface OnConfirmationCallback {
-  (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
 class ConfirmationResultImpl implements ConfirmationResult {
@@ -83,19 +84,17 @@ class ConfirmationResultImpl implements ConfirmationResult {
     webOTPTimeout: number
   ): Promise<UserCredential | undefined> {
     if ('OTPCredential' in window) {
-      console.log(this.verificationId);
       const abortController = new AbortController();
       const timer = setTimeout(() => {
         abortController.abort();
-        
-        let myErr = _errorWithCustomMessage(
+
+        const myErr = _errorWithCustomMessage(
           auth,
           AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
           `Web OTP code is not fetched before timeout`
         ) as WebOTPError;
         myErr.confirmationResult = this;
         throw myErr;
-
       }, webOTPTimeout * 1000);
 
       // @ts-ignore - ignore types for testing
@@ -114,7 +113,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
             content === null ||
             content.code === undefined
           ) {
-            let myErr = _errorWithCustomMessage(
+            const myErr = _errorWithCustomMessage(
               auth,
               AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
               `Web OTP code is not valid`
@@ -128,7 +127,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
         })
         .catch(() => {
           clearTimeout(timer);
-          let myErr = _errorWithCustomMessage(
+          const myErr = _errorWithCustomMessage(
             auth,
             AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
             `Web OTP get method failed to retrieve the code`
@@ -136,10 +135,10 @@ class ConfirmationResultImpl implements ConfirmationResult {
           myErr.confirmationResult = this;
           throw myErr;
         });
-      try{
+      try {
         return this.confirm(code);
       } catch {
-        let myErr = _errorWithCustomMessage(
+        const myErr = _errorWithCustomMessage(
           auth,
           AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
           `Web OTP code received is incorrect`
@@ -148,7 +147,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
         throw myErr;
       }
     } else {
-      let myErr = _errorWithCustomMessage(
+      const myErr = _errorWithCustomMessage(
         auth,
         AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
         `Web OTP is not supported`
@@ -428,8 +427,8 @@ export async function _verifyPhoneNumber(
         return verificationId;
       }
     }
-  } catch(error) {
-    console.log("reached error catching block in _verifyphonenumber");
+  } catch (error) {
+    console.log('reached error catching block in _verifyphonenumber');
     throw error;
   } finally {
     verifier._reset();
