@@ -599,7 +599,7 @@ export interface ConfirmationResult {
   confirmWithWebOTP(
     auth: Auth,
     webOTPTimeout: number
-  ): Promise<UserCredential | undefined>;
+  ): Promise<UserCredential>;
 }
 
 /**
