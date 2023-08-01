@@ -856,6 +856,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
       }
     ]
   };
+  const MISSING_RECAPTCHA_TOKEN_ERROR = {
+    error: {
+      code: 400,
+      message: ServerError.MISSING_RECAPTCHA_TOKEN
+    }
+  };
   let policyEndpointMock: mockFetch.Route;
   let policyEndpointMockWithTenant: mockFetch.Route;
   let policyEndpointMockWithOtherTenant: mockFetch.Route;
@@ -1096,12 +1102,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
             password: TEST_PASSWORD,
             clientType: RecaptchaClientType.WEB
           },
-          {
-            error: {
-              code: 400,
-              message: ServerError.MISSING_RECAPTCHA_TOKEN
-            }
-          },
+          MISSING_RECAPTCHA_TOKEN_ERROR,
           400
         );
 
@@ -1406,12 +1407,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
             returnSecureToken: true,
             clientType: RecaptchaClientType.WEB
           },
-          {
-            error: {
-              code: 400,
-              message: ServerError.MISSING_RECAPTCHA_TOKEN
-            }
-          },
+          MISSING_RECAPTCHA_TOKEN_ERROR,
           400
         );
 
