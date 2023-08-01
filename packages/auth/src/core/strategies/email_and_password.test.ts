@@ -845,6 +845,23 @@ describe('password policy cache is updated in auth flows upon error', () => {
     forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
     schemaVersion: TEST_SCHEMA_VERSION
   };
+  const TEST_RECAPTCHA_RESPONSE = 'recaptcha-response';
+  const TEST_SITE_KEY = 'site-key';
+  const RECAPTCHA_CONFIG_RESPONSE_ENFORCE = {
+    recaptchaKey: 'foo/bar/to/' + TEST_SITE_KEY,
+    recaptchaEnforcementState: [
+      {
+        provider: 'EMAIL_PASSWORD_PROVIDER',
+        enforcementState: 'ENFORCE'
+      }
+    ]
+  };
+  const MISSING_RECAPTCHA_TOKEN_ERROR = {
+    error: {
+      code: 400,
+      message: ServerError.MISSING_RECAPTCHA_TOKEN
+    }
+  };
   let policyEndpointMock: mockFetch.Route;
   let policyEndpointMockWithTenant: mockFetch.Route;
   let policyEndpointMockWithOtherTenant: mockFetch.Route;
@@ -858,6 +875,29 @@ describe('password policy cache is updated in auth flows upon error', () => {
         resolve();
       }, 50);
     });
+  }
+
+  /**
+   * Mock reCAPTCHA JS loading method and manually set window.recaptcha.
+   */
+  async function setUpRecaptcha(): Promise<void> {
+    // Initialize the reCAPTCHA config so the auth flows use reCAPTCHA.
+    await auth.initializeRecaptchaConfig();
+
+    sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+    const recaptcha = new MockGreCAPTCHATopLevel();
+    window.grecaptcha = recaptcha;
+    const stub = sinon.stub(recaptcha.enterprise, 'execute');
+    stub
+      .withArgs(TEST_SITE_KEY, {
+        action: RecaptchaActionName.SIGN_UP_PASSWORD
+      })
+      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
+    stub
+      .withArgs(TEST_SITE_KEY, {
+        action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+      })
+      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
   }
 
   beforeEach(async () => {
@@ -882,8 +922,30 @@ describe('password policy cache is updated in auth flows upon error', () => {
       },
       PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
     );
+    mockEndpointWithParams(
+      Endpoint.GET_RECAPTCHA_CONFIG,
+      {
+        clientType: RecaptchaClientType.WEB,
+        version: RecaptchaVersion.ENTERPRISE
+      },
+      RECAPTCHA_CONFIG_RESPONSE_ENFORCE
+    );
+
+    // Mock reCAPTCHA with a fake response.
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const recaptcha = new MockGreCAPTCHATopLevel();
+    window.grecaptcha = recaptcha;
+    sinon
+      .stub(recaptcha.enterprise, 'execute')
+      .returns(Promise.resolve(TEST_RECAPTCHA_RESPONSE));
   });
-  afterEach(mockFetch.tearDown);
+
+  afterEach(() => {
+    mockFetch.tearDown();
+    sinon.restore();
+  });
 
   context('#createUserWithEmailAndPassword', () => {
     beforeEach(() => {
@@ -1016,6 +1078,48 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+      });
+
+      it('updates the cached password policy even when a MISSING_RECAPTCHA_TOKEN error is handled first', async () => {
+        if (typeof window === 'undefined') {
+          return;
+        }
+
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMock.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY
+        );
+
+        // Password policy changed after previous fetch.
+        policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
+
+        // First sign up without reCAPTCHA token should fail with MISSING_RECAPTCHA_TOKEN error.
+        mockEndpointWithParams(
+          Endpoint.SIGN_UP,
+          {
+            email: TEST_EMAIL,
+            password: TEST_PASSWORD,
+            clientType: RecaptchaClientType.WEB
+          },
+          MISSING_RECAPTCHA_TOKEN_ERROR,
+          400
+        );
+
+        // Set up reCAPTCHA mock and configs.
+        await setUpRecaptcha();
+
+        await expect(
+          createUserWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait for the password policy to be fetched and recached.
+        await waitForRecachePasswordPolicy();
+
+        expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+        );
       });
     });
   });
@@ -1278,6 +1382,49 @@ describe('password policy cache is updated in auth flows upon error', () => {
 
         expect(policyEndpointMockWithOtherTenant.calls.length).to.eq(0);
         expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+      });
+
+      it('updates the cached password policy even when a MISSING_RECAPTCHA_TOKEN error is handled first', async () => {
+        if (typeof window === 'undefined') {
+          return;
+        }
+
+        await auth._updatePasswordPolicy();
+        expect(policyEndpointMock.calls.length).to.eq(1);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY
+        );
+
+        // Password policy changed after previous fetch.
+        policyEndpointMock.response = PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC;
+
+        // First sign-in without reCAPTCHA token should fail with MISSING_RECAPTCHA_TOKEN error.
+        mockEndpointWithParams(
+          Endpoint.SIGN_IN_WITH_PASSWORD,
+          {
+            email: TEST_EMAIL,
+            password: TEST_PASSWORD,
+            returnSecureToken: true,
+            clientType: RecaptchaClientType.WEB
+          },
+          MISSING_RECAPTCHA_TOKEN_ERROR,
+          400
+        );
+
+        // Set up reCAPTCHA mock and configs.
+        await setUpRecaptcha();
+
+        await expect(
+          signInWithEmailAndPassword(auth, TEST_EMAIL, TEST_PASSWORD)
+        ).to.be.rejectedWith(FirebaseError, PASSWORD_ERROR_MSG);
+
+        // Wait to ensure the password policy is fetched and recached.
+        await waitForRecachePasswordPolicy();
+
+        expect(policyEndpointMock.calls.length).to.eq(2);
+        expect(auth._getPasswordPolicyInternal()).to.eql(
+          CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+        );
       });
     });
   });

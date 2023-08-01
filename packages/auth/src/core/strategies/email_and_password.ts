@@ -338,21 +338,20 @@ export async function createUserWithEmailAndPassword(
           RecaptchaActionName.SIGN_UP_PASSWORD
         );
         return signUp(authInternal, requestWithRecaptcha);
-      } else {
-        if (
-          error.code ===
-          `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
-        ) {
-          void recachePasswordPolicy(auth);
-        }
-
-        throw error;
       }
+
+      throw error;
     });
   }
 
   const response = await signUpResponse.catch(error => {
-    return Promise.reject(error);
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
