@@ -395,25 +395,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
-  async initializeRecaptchaConfig(): Promise<void> {
-    const response = await getRecaptchaConfig(this, {
-      clientType: RecaptchaClientType.WEB,
-      version: RecaptchaVersion.ENTERPRISE
-    });
-
-    const config = new RecaptchaConfig(response);
-    if (this.tenantId == null) {
-      this._agentRecaptchaConfig = config;
-    } else {
-      this._tenantRecaptchaConfigs[this.tenantId] = config;
-    }
-
-    if (config.emailPasswordEnabled) {
-      const verifier = new RecaptchaEnterpriseVerifier(this);
-      void verifier.verify();
-    }
-  }
-
   _getRecaptchaConfig(): RecaptchaConfig | null {
     if (this.tenantId == null) {
       return this._agentRecaptchaConfig;
