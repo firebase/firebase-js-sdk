@@ -66,6 +66,7 @@ describe('Integration test: password validation', () => {
     });
 
     it('considers invalid passwords invalid against the policy configured for the project', async () => {
+      // Even if there is no policy configured for the project, a minimum length of 6 will always be enforced.
       expect((await validatePassword(auth, INVALID_PASSWORD)).isValid).to.be
         .false;
     });
