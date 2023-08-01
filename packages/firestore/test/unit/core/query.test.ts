@@ -852,6 +852,23 @@ describe('Query', () => {
       orderBy(fieldPath('a.a')), // field name with dot
       orderBy(DOCUMENT_KEY_NAME)
     );
+
+    // composite filter
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        andFilter(
+          orFilter(filter('b', '>=', 1), filter('c', '<=', 1)),
+          orFilter(filter('d', '>', 1), filter('e', '==', 1))
+        )
+      ),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy('c'),
+      orderBy('d'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
   });
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
