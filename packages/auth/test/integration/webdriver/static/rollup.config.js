@@ -25,5 +25,5 @@ export default {
     format: 'esm',
     sourcemap: false
   },
-  plugins: [nodeResolve(), typescript({ sourceMap: false })]
+  plugins: [nodeResolve(), typescript({ sourceMap: true })]
 };
