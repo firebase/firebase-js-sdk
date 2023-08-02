@@ -82,7 +82,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
   async confirmWithWebOTP(
     auth: Auth,
     webOTPTimeout: number
-  ): Promise<UserCredential> {
+  ): Promise<UserCredential | undefined> {
     if ('OTPCredential' in window) {
       const abortController = new AbortController();
       const timer = setTimeout(() => {
@@ -194,27 +194,17 @@ class ConfirmationResultImpl implements ConfirmationResult {
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier,
-  webOTPTimeout?: number
-): Promise<ConfirmationResult | UserCredential> {
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
   const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
     authInternal,
     phoneNumber,
     getModularInstance(appVerifier as ApplicationVerifierInternal)
   );
-  let confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
+  return new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
   );
-  if(webOTPTimeout){
-    try{
-      return confirmationRes.confirmWithWebOTP(auth, webOTPTimeout);
-    }catch (error){
-      throw error;
-    }
-  }else{
-    return confirmationRes;
-  };
 }
 
 /**
