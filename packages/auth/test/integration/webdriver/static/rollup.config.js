@@ -23,7 +23,7 @@ export default {
   output: {
     file: 'test/integration/webdriver/static/dist/bundle.js',
     format: 'esm',
-    sourcemap: true
+    sourcemap: false
   },
   plugins: [nodeResolve(), typescript({ sourceMap: false })]
 };
