@@ -123,7 +123,7 @@ function customDeepEqual(
 }
 
 /** The original equality function passed in by chai(). */
-let originalFunction: ((r: unknown, l: unknown) => boolean) | null = null;
+let originalFunction: ((expected: unknown) => void) | null = null;
 
 export function addEqualityMatcher(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,7 +136,7 @@ export function addEqualityMatcher(
       const Assertion = chai.Assertion;
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
+      const assertEql = (_super: (expected: unknown) => void) => {
         originalFunction = originalFunction || _super;
         return function (this: Chai.Assertion, expected?: unknown): void {
           if (isActive) {
