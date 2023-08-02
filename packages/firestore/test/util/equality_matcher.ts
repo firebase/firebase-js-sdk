@@ -156,7 +156,7 @@ export function addEqualityMatcher(
               /*showDiff=*/ true
             );
           } else if (originalFunction) {
-            originalFunction.call(this, expected, msg);
+            originalFunction.call(this, expected);
           }
         };
       };
