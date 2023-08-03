@@ -5,6 +5,10 @@ on: pull_request
 jobs:
   test-chrome:
     name: Test Firestore on Chrome and Node If Changed
+    strategy:
+      matrix:
+        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +34,7 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests if firestore or its dependencies has changed
-        run: yarn test:changed firestore
+        run: yarn test:changed firestore ${{ matrix.test-name }}
 
   test-firefox:
     name: Test Firestore on Firefox If Changed
@@ -62,6 +66,6 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests if firestore or its dependencies has changed
-        run: xvfb-run yarn test:changed firestore
+        run: xvfb-run yarn test:changed firestore ${{ matrix.test-name }}
         env:
           BROWSERS: 'Firefox'

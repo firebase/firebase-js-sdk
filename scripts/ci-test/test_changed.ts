@@ -25,7 +25,10 @@ const root = resolve(__dirname, '../..');
 
 const argv = yargs.parseSync();
 const inputTestConfigName = argv._[0].toString();
-const testCommand = 'test:ci';
+let testCommand = 'test:ci';
+if (argv._.length > 1) {
+  testCommand = argv._[1].toString();
+}
 
 const allTestConfigNames = Object.keys(testConfig);
 if (!inputTestConfigName) {
