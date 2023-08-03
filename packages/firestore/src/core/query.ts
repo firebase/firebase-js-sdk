@@ -307,10 +307,7 @@ export function queryToAggregateTarget(query: Query): Target {
   return queryImpl.memoizedAggregateTarget;
 }
 
-function _queryToTarget(
-  queryImpl: QueryImpl,
-  orderBys: OrderBy[]
-): Target {
+function _queryToTarget(queryImpl: QueryImpl, orderBys: OrderBy[]): Target {
   if (queryImpl.limitType === LimitType.First) {
     return newTarget(
       queryImpl.path,
