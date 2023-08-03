@@ -46,7 +46,7 @@ import {
 } from './email_link';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
-import { _initializeRecaptchaConfig } from '../auth/initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);

@@ -23,12 +23,7 @@ import { AuthErrorCode } from '../errors';
 import { PersistenceInternal } from '../persistence';
 import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
-import { AuthImpl, _castAuth } from './auth_impl';
-
-import { RecaptchaClientType, RecaptchaVersion } from '../../api';
-import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
+import { AuthImpl } from './auth_impl';
 
 /**
  * Initializes an {@link Auth} instance with fine-grained control over
@@ -89,25 +84,4 @@ export function _initializeAuthInstance(
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   auth._initializeWithPersistence(hierarchy, deps?.popupRedirectResolver);
-}
-
-export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
-  const authInternal = _castAuth(auth);
-
-  const response = await getRecaptchaConfig(authInternal, {
-    clientType: RecaptchaClientType.WEB,
-    version: RecaptchaVersion.ENTERPRISE
-  });
-
-  const config = new RecaptchaConfig(response);
-  if (authInternal.tenantId == null) {
-    authInternal._agentRecaptchaConfig = config;
-  } else {
-    authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
-  }
-
-  if (config.emailPasswordEnabled) {
-    const verifier = new RecaptchaEnterpriseVerifier(authInternal);
-    void verifier.verify();
-  }
 }

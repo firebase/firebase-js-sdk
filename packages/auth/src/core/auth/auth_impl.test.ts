@@ -39,10 +39,8 @@ import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
-import {
-  _initializeAuthInstance,
-  _initializeRecaptchaConfig
-} from './initialize';
+import { _initializeAuthInstance } from './initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { ClientPlatform } from '../util/version';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';

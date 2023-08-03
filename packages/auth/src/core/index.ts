@@ -25,7 +25,7 @@ import {
   ErrorFn,
   Unsubscribe
 } from '../model/public_types';
-import { _initializeRecaptchaConfig } from '../core/auth/initialize';
+import { _initializeRecaptchaConfig } from '../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 export {
   debugErrorMap,

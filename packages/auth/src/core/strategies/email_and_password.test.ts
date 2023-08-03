@@ -50,7 +50,7 @@ import {
   verifyPasswordResetCode
 } from './email_and_password';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
-import { _initializeRecaptchaConfig } from '../auth/initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
