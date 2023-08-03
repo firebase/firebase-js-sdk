@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test-chrome:
-    name: Test Firestore on Chrome and Node If Changed
+    name: Test Firestore
     strategy:
       matrix:
         test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
@@ -37,7 +37,10 @@ jobs:
         run: yarn test:changed firestore ${{ matrix.test-name }}
 
   test-firefox:
-    name: Test Firestore on Firefox If Changed
+    name: Test Firestore on Firefox
+    strategy:
+      matrix:
+        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
     # Whatever version of Firefox comes with 22.04 is causing Firefox
     # startup to hang when launched by karma. Need to look further into
     # why.
