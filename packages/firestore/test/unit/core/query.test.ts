@@ -50,7 +50,6 @@ import {
   doc,
   expectCorrectComparisons,
   expectEqualitySets,
-  fieldPath,
   filter,
   orderBy,
   orFilter,
@@ -844,12 +843,12 @@ describe('Query', () => {
       query(
         'foo',
         filter('a', '<', 5),
-        filter('a.z', '>', 5),
-        filter(fieldPath('a.a'), '>', 5)
+        filter('a.z', '>', 5), // nested field
+        filter('`a.a`', '>', 5) // field name with dot
       ),
       orderBy('a'),
-      orderBy('a.z'), // nested field
-      orderBy(fieldPath('a.a')), // field name with dot
+      orderBy('a.z'),
+      orderBy('`a.a`'),
       orderBy(DOCUMENT_KEY_NAME)
     );
 
