@@ -61,9 +61,7 @@ import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
-import { HttpHeader, RecaptchaClientType, RecaptchaVersion } from '../../api';
-import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
-import { RecaptchaEnterpriseVerifier } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { HttpHeader } from '../../api';
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
@@ -393,25 +391,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
-  }
-
-  async initializeRecaptchaConfig(): Promise<void> {
-    const response = await getRecaptchaConfig(this, {
-      clientType: RecaptchaClientType.WEB,
-      version: RecaptchaVersion.ENTERPRISE
-    });
-
-    const config = new RecaptchaConfig(response);
-    if (this.tenantId == null) {
-      this._agentRecaptchaConfig = config;
-    } else {
-      this._tenantRecaptchaConfigs[this.tenantId] = config;
-    }
-
-    if (config.emailPasswordEnabled) {
-      const verifier = new RecaptchaEnterpriseVerifier(this);
-      void verifier.verify();
-    }
   }
 
   _getRecaptchaConfig(): RecaptchaConfig | null {

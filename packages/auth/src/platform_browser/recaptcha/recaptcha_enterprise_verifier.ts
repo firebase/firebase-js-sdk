@@ -174,3 +174,24 @@ export async function injectRecaptchaFields<T>(
   });
   return newRequest;
 }
+
+export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+
+  const response = await getRecaptchaConfig(authInternal, {
+    clientType: RecaptchaClientType.WEB,
+    version: RecaptchaVersion.ENTERPRISE
+  });
+
+  const config = new RecaptchaConfig(response);
+  if (authInternal.tenantId == null) {
+    authInternal._agentRecaptchaConfig = config;
+  } else {
+    authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
+  }
+
+  if (config.emailPasswordEnabled) {
+    const verifier = new RecaptchaEnterpriseVerifier(authInternal);
+    void verifier.verify();
+  }
+}
