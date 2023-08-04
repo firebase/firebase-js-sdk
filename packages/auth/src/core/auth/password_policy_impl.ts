@@ -131,7 +131,7 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     status: PasswordValidationStatusInternal
   ): void {
     // Assign statuses for requirements even if the password is an empty string.
-    this.updatePasswordCharacterOptionsStasuses(
+    this.updatePasswordCharacterOptionsStatuses(
       status,
       /* containsLowercaseCharacter= */ false,
       /* containsUppercaseCharacter= */ false,
@@ -142,7 +142,7 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
     let passwordChar;
     for (let i = 0; i < password.length; i++) {
       passwordChar = password.charAt(i);
-      this.updatePasswordCharacterOptionsStasuses(
+      this.updatePasswordCharacterOptionsStatuses(
         status,
         /* containsLowercaseCharacter= */ passwordChar >= 'a' &&
           passwordChar <= 'z',
@@ -168,7 +168,7 @@ export class PasswordPolicyImpl implements PasswordPolicyInternal {
    * @param containsNumericCharacter Whether the character is a numeric character.
    * @param containsNonAlphanumericCharacter Whether the character is a non-alphanumeric character.
    */
-  private updatePasswordCharacterOptionsStasuses(
+  private updatePasswordCharacterOptionsStatuses(
     status: PasswordValidationStatusInternal,
     containsLowercaseCharacter: boolean,
     containsUppercaseCharacter: boolean,
