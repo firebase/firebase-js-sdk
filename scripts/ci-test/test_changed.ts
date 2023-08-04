@@ -84,7 +84,7 @@ async function runTests(config: TestConfig) {
     }
 
     // Firestore integration tests should be run in isolation due to multi-tab support.
-    if(isFirestore) {
+    if (isFirestore) {
       lernaCmd.push('--concurrency', '1');
     } else {
       lernaCmd.push('--concurrency', '4');

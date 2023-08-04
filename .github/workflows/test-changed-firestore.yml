@@ -3,6 +3,36 @@ name: Test Firestore
 on: pull_request
 
 jobs:
+  compat-test-chrome:
+    name: Test Firestore
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+        with:
+          # This makes Actions fetch all Git history so run-changed script can diff properly.
+          fetch-depth: 0
+      - name: Set up Node (14)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Bump Node memory limit
+        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+      - name: Test setup and yarn install
+        run: |
+          cp config/ci.config.json config/project.json
+          yarn
+      - name: build
+        run: yarn build:changed firestore
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci
+
   test-chrome:
     name: Test Firestore
     strategy:
@@ -35,8 +65,6 @@ jobs:
         run: yarn build:changed firestore
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }} && cd -
-      - name: Run compat tests
-        run: cd packages/firestore-compat && yarn run test:ci && cd -
 
 
   test-firefox:
@@ -72,10 +100,6 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests
-        run: cd packages/firestore && yarn run ${{ matrix.test-name }} && cd -
-        env:
-          BROWSERS: 'Firefox'
-      - name: Run compat tests
-        run: cd packages/firestore-compat && yarn run test:ci && cd -
+        run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }} && cd -
         env:
           BROWSERS: 'Firefox'
