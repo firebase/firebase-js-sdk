@@ -67,8 +67,15 @@ export interface Query {
 export class QueryImpl implements Query {
   memoizedNormalizedOrderBy: OrderBy[] | null = null;
 
-  // The corresponding `Target` of this `Query` instance.
+  // The corresponding `Target` of this `Query` instance, for use with
+  // non-aggregate queries.
   memoizedTarget: Target | null = null;
+
+  // The corresponding `Target` of this `Query` instance, for use with
+  // aggregate queries. Unlike targets for non-aggregate queries,
+  // aggregate query targets do not contain normalized order-bys, they only
+  // contain explicit order-bys.
+  memoizedAggregateTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -211,8 +218,8 @@ export function isCollectionGroupQuery(query: Query): boolean {
 }
 
 /**
- * Returns the normalized order by constraint that is used to execute the Query,
- * which can be different from the order by constraints the user provided (e.g.
+ * Returns the normalized order-by constraint that is used to execute the Query,
+ * which can be different from the order-by constraints the user provided (e.g.
  * the SDK and backend always orders by `__name__`). The normalized order-by
  * includes implicit order-bys in addition to the explicit user provided
  * order-bys.
@@ -250,7 +257,7 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
       }
       if (!foundKeyOrdering) {
         // The order of the implicit key ordering always matches the last
-        // explicit order by
+        // explicit order-by
         const lastDirection =
           queryImpl.explicitOrderBy.length > 0
             ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1]
@@ -266,7 +273,7 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
 }
 
 /**
- * Converts this `Query` instance to it's corresponding `Target` representation.
+ * Converts this `Query` instance to its corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
   const queryImpl = debugCast(query, QueryImpl);
@@ -281,20 +288,26 @@ export function queryToTarget(query: Query): Target {
 }
 
 /**
- * Converts this `Query` instance to it's corresponding `Target` representation,
- * for use within an aggregate query.
+ * Converts this `Query` instance to its corresponding `Target` representation,
+ * for use within an aggregate query. Unlike targets for non-aggregate queries,
+ * aggregate query targets do not contain normalized order-bys, they only
+ * contain explicit order-bys.
  */
 export function queryToAggregateTarget(query: Query): Target {
   const queryImpl = debugCast(query, QueryImpl);
 
-  // Do not include implicit order-bys for aggregate queries.
-  return _queryToTarget(queryImpl, query.explicitOrderBy);
+  if (!queryImpl.memoizedAggregateTarget) {
+    // Do not include implicit order-bys for aggregate queries.
+    queryImpl.memoizedAggregateTarget = _queryToTarget(
+      queryImpl,
+      query.explicitOrderBy
+    );
+  }
+
+  return queryImpl.memoizedAggregateTarget;
 }
 
-export function _queryToTarget(
-  queryImpl: QueryImpl,
-  orderBys: OrderBy[]
-): Target {
+function _queryToTarget(queryImpl: QueryImpl, orderBys: OrderBy[]): Target {
   if (queryImpl.limitType === LimitType.First) {
     return newTarget(
       queryImpl.path,
@@ -491,7 +504,7 @@ function queryMatchesOrderBy(query: Query, doc: Document): boolean {
   // A document with content of {b:1} matches the filters, but does not match the orderBy because
   // it's missing the field 'a'.
   for (const orderBy of queryNormalizedOrderBy(query)) {
-    // order by key always matches
+    // order-by key always matches
     if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;
     }
