@@ -38,6 +38,7 @@ import { EmailAuthCredential } from './email';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
 import { ServerError } from '../../api/errors';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 
@@ -135,7 +136,7 @@ describe('core/credentials/email', () => {
             },
             recaptchaConfigResponseEnforce
           );
-          await auth.initializeRecaptchaConfig();
+          await _initializeRecaptchaConfig(auth);
 
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
@@ -169,7 +170,7 @@ describe('core/credentials/email', () => {
             },
             recaptchaConfigResponseOff
           );
-          await auth.initializeRecaptchaConfig();
+          await _initializeRecaptchaConfig(auth);
 
           const idTokenResponse = await credential._getIdTokenResponse(auth);
           expect(idTokenResponse.idToken).to.eq('id-token');
@@ -202,7 +203,7 @@ describe('core/credentials/email', () => {
             },
             recaptchaConfigResponseEnforce
           );
-          await auth.initializeRecaptchaConfig();
+          await _initializeRecaptchaConfig(auth);
           auth._agentRecaptchaConfig!.siteKey = 'cached-site-key';
 
           await expect(credential._getIdTokenResponse(auth)).to.be.rejectedWith(
