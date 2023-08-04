@@ -2404,9 +2404,13 @@ describe('Count queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getCount(query_)).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(getCount(query_)).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(getCount(query_)).to.be.eventually.rejected;
+        }
       });
     }
   );
@@ -2707,13 +2711,21 @@ describe('Aggregate queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(
-          getAggregate(query_, {
-            myCount: count()
-          })
-        ).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejected;
+        }
       });
     }
   );

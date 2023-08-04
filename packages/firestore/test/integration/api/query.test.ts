@@ -682,9 +682,11 @@ apiDescribe('Queries', persistence => {
           err => {
             expect(err.code).to.equal('failed-precondition');
             expect(err.message).to.exist;
-            expect(err.message).to.match(
-              /index.*https:\/\/console\.firebase\.google\.com/
-            );
+            if (coll.firestore._databaseId.isDefaultDatabase) {
+              expect(err.message).to.match(
+                /index.*https:\/\/console\.firebase\.google\.com/
+              );
+            }
             deferred.resolve();
           }
         );

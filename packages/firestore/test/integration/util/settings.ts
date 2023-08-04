@@ -35,6 +35,8 @@ enum TargetBackend {
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
+export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
+
 const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
 export const USE_EMULATOR: boolean = TARGET_BACKEND === TargetBackend.EMULATOR;
@@ -46,6 +48,19 @@ export const DEFAULT_SETTINGS: PrivateSettings = {
 
 // eslint-disable-next-line no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
+// eslint-disable-next-line no-console
+console.log(`Default DatabaseId: ${JSON.stringify(TARGET_DB_ID)}`);
+
+function getTargetDbId(): string | '(default)' {
+  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
+  if (karma && karma.config.databaseId) {
+    return karma.config.databaseId;
+  }
+  if (process.env.FIRESTORE_TARGET_DB_ID) {
+    return process.env.FIRESTORE_TARGET_DB_ID;
+  }
+  return '(default)';
+}
 
 function parseTargetBackend(targetBackend: string): TargetBackend {
   switch (targetBackend) {

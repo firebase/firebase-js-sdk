@@ -1114,7 +1114,8 @@ apiDescribe('Database', persistence => {
 
         const firestore2 = newTestFirestore(
           newTestApp(options.projectId!, name),
-          DEFAULT_SETTINGS
+          DEFAULT_SETTINGS,
+          firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
         await waitForPendingWrites(firestore2);
@@ -1157,7 +1158,9 @@ apiDescribe('Database', persistence => {
         await deleteApp(app);
 
         const firestore2 = newTestFirestore(
-          newTestApp(options.projectId!, name)
+          newTestApp(options.projectId!, name),
+          undefined,
+          docRef.firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
         const docRef2 = doc(firestore2, docRef.path);
