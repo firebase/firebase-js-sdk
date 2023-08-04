@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   compat-test-chrome:
-    name: Test Firestore
+    name: Test Firestore Compatible
 
     runs-on: ubuntu-latest
 
