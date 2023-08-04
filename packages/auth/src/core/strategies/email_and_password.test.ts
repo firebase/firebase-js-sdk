@@ -883,7 +883,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
    */
   async function setUpRecaptcha(): Promise<void> {
     // Initialize the reCAPTCHA config so the auth flows use reCAPTCHA.
-    await auth.initializeRecaptchaConfig();
+    await _initializeRecaptchaConfig(auth);
 
     sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
     const recaptcha = new MockGreCAPTCHATopLevel();
