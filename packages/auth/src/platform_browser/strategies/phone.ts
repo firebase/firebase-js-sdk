@@ -70,7 +70,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
 
   async confirmWithWebOTP(
     auth: Auth,
-    webOTPTimeout: number
+    webOTPTimeoutSeconds: number
   ): Promise<UserCredential | undefined> {
     if ('OTPCredential' in window) {
       const abortController = new AbortController();
@@ -84,7 +84,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
         ) as WebOTPError;
         myErr.confirmationResult = this;
         throw myErr;
-      }, webOTPTimeout * 1000);
+      }, webOTPTimeoutSeconds * 1000);
 
       // @ts-ignore - ignore types for testing
       const o: OTPCredentialRequestOptions = {
@@ -212,7 +212,7 @@ export async function signInWithPhoneNumber(
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
- * @param webOTPTimtout - Errors would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
+ * @param webOTPTimtoutSeconds - Errors would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
  *
  * @public
  */
@@ -220,23 +220,23 @@ export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
-  webOTPTimeout: number
+  webOTPTimeoutSeconds: number
 ): Promise<UserCredential>;
 
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
-  webOTPTimeout?: number
+  webOTPTimeoutSeconds?: number
 ): Promise<unknown> {
   const authInternal = _castAuth(auth);
-  if (webOTPTimeout) {
+  if (webOTPTimeoutSeconds) {
     try {
       const userCred = await _verifyPhoneNumber(
         authInternal,
         phoneNumber,
         getModularInstance(appVerifier as ApplicationVerifierInternal),
-        webOTPTimeout
+        webOTPTimeoutSeconds
       );
       return userCred;
     } catch (error) {
@@ -327,14 +327,14 @@ export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal,
-  webOTPTimeout: number
+  webOTPTimeoutSeconds: number
 ): Promise<UserCredential>;
 
 export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal,
-  webOTPTimeout?: number
+  webOTPTimeoutSeconds?: number
 ): Promise<unknown> {
   const recaptchaToken = await verifier.verify();
 
@@ -406,9 +406,9 @@ export async function _verifyPhoneNumber(
       const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
         signInWithCredential(authInternal, cred)
       );
-      if (webOTPTimeout) {
+      if (webOTPTimeoutSeconds) {
         try {
-          return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeout);
+          return confirmationRes.confirmWithWebOTP(authInternal, webOTPTimeoutSeconds);
         } catch (error) {
           throw error;
         }

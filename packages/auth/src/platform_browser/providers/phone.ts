@@ -137,15 +137,15 @@ export class PhoneAuthProvider {
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
-    webOTPTimeout: number
+    webOTPTimeoutSeconds: number
   ): Promise<UserCredential>;
 
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
-    webOTPTimeout?: number
+    webOTPTimeoutSeconds?: number
   ): Promise<unknown> {
-    if (webOTPTimeout) {
+    if (webOTPTimeoutSeconds) {
       try {
         return _verifyPhoneNumber(
           this.auth,
@@ -153,7 +153,7 @@ export class PhoneAuthProvider {
           getModularInstance(
             applicationVerifier as ApplicationVerifierInternal
           ),
-          webOTPTimeout
+          webOTPTimeoutSeconds
         );
       } catch (error) {
         throw error;
