@@ -62,8 +62,10 @@ async function runTests(config: TestConfig) {
       process.exit(0);
     }
 
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+    const lernaCmd = ['lerna', 'run'];
     console.log(chalk`{blue Running tests in:}`);
+
+    let isFirestore = false;
     for (const task of testTasks) {
       if (task.reason === TestReason.Changed) {
         console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
@@ -76,6 +78,16 @@ async function runTests(config: TestConfig) {
       }
       lernaCmd.push('--scope');
       lernaCmd.push(task.pkgName);
+      if (task.pkgName.includes('firestore')) {
+        isFirestore = true;
+      }
+    }
+
+    // Firestore integration tests should be run in isolation due to multi-tab support.
+    if(isFirestore) {
+      lernaCmd.push('--concurrency', '1');
+    } else {
+      lernaCmd.push('--concurrency', '4');
     }
 
     lernaCmd.push(testCommand);
