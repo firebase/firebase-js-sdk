@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { AuthErrorMap, User } from '../model/public_types';
-import { ErrorFactory, ErrorMap } from '@firebase/util';
-
+import { AuthErrorMap, User, ConfirmationResult } from '../model/public_types';
+import { ErrorFactory, ErrorMap, FirebaseError } from '@firebase/util';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
 import { AuthCredential } from './credentials';
@@ -132,7 +131,8 @@ export const enum AuthErrorCode {
   MISSING_CLIENT_TYPE = 'missing-client-type',
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
-  INVALID_REQ_TYPE = 'invalid-req-type'
+  INVALID_REQ_TYPE = 'invalid-req-type',
+  WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -381,7 +381,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The reCAPTCHA version is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
-      'The reCAPTCHA version is invalid when sending request to the backend.'
+      'The reCAPTCHA version is invalid when sending request to the backend.',
+    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 'WEB OTP autofill failed'
   };
 }
 
@@ -427,6 +428,10 @@ export interface NamedErrorParams {
   tenantId?: string;
   user?: User;
   _serverResponse?: object;
+}
+export interface WebOTPError extends FirebaseError {
+  code: AuthErrorCode.WEB_OTP_NOT_RETRIEVED;
+  confirmationResult: ConfirmationResult; // Standard ConfirmationResult; for fallback
 }
 
 /**
@@ -591,5 +596,6 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_CLIENT_TYPE: 'auth/missing-client-type',
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
-  INVALID_REQ_TYPE: 'auth/invalid-req-type'
+  INVALID_REQ_TYPE: 'auth/invalid-req-type',
+  WEB_OTP_NOT_RETRIEVED: 'auth/web-otp-not-retrieved'
 } as const;

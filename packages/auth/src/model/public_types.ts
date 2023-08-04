@@ -587,6 +587,18 @@ export interface ConfirmationResult {
    * @param verificationCode - The code that was sent to the user's mobile device.
    */
   confirm(verificationCode: string): Promise<UserCredential>;
+  /**
+   *
+   * Automatically fetches the verification code from SMS message. Then, it calls confirm(verificationCode) to finish a phone number sign-in, link, or reauthentication.
+   *
+   * @param auth - the current {@link Auth} instance
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds).
+   *
+   */
+  confirmWithWebOTP(
+    auth: Auth,
+    webOTPTimeoutSeconds: number
+  ): Promise<UserCredential | undefined>;
 }
 
 /**

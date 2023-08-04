@@ -72,7 +72,9 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  signInWithPhoneNumber,
+  AuthErrorCodes
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -117,6 +119,7 @@ const providersIcons = {
  * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
+
 function activeUser() {
   const type = $('input[name=toggle-user-selection]:checked').val();
   if (type === 'lastUser') {
@@ -564,25 +567,25 @@ function clearApplicationVerifier() {
 /**
  * Sends a phone number verification code for sign-in.
  */
-function onSignInVerifyPhoneNumber() {
+async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
-  const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
   // link/re-auth operation.
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    verificationId => {
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
+    .then(userCredential => {
+      onAuthUserCredentialSuccess(userCredential);
+    })
+    .catch(e => {
       clearApplicationVerifier();
-      $('#signin-phone-verification-id').val(verificationId);
-      alertSuccess('Phone verification sent!');
-    },
-    error => {
-      clearApplicationVerifier();
-      onAuthError(error);
-    }
-  );
+      onAuthError(e);
+      if (e.code === `auth/${AuthErrorCodes.WEB_OTP_NOT_RETRIEVED}`) {
+        const verificationCode = $('#signin-phone-verification-code').val();
+        e.confirmationResult.confirm(verificationCode);
+      }
+    });
 }
 
 /**
