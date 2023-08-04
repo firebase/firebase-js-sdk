@@ -34,7 +34,10 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests
-        run: yarn test:changed firestore ${{ matrix.test-name }}
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }} && cd -
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci && cd -
+
 
   test-firefox:
     name: Test Firestore on Firefox
@@ -69,6 +72,10 @@ jobs:
       - name: build
         run: yarn build:changed firestore
       - name: Run tests
-        run: xvfb-run yarn test:changed firestore ${{ matrix.test-name }}
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }} && cd -
+        env:
+          BROWSERS: 'Firefox'
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci && cd -
         env:
           BROWSERS: 'Firefox'
