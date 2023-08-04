@@ -104,6 +104,5 @@ export interface AuthInternal extends Auth {
 
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
-  initializeRecaptchaConfig(): Promise<void>;
   validatePassword(password: string): Promise<PasswordValidationStatus>;
 }

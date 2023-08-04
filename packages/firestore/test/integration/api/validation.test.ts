@@ -61,7 +61,11 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
+import {
+  ALT_PROJECT_ID,
+  DEFAULT_PROJECT_ID,
+  TARGET_DB_ID
+} from '../util/settings';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -445,8 +449,8 @@ apiDescribe('Validation:', persistence => {
             db,
             data,
             `Document reference is for database ` +
-              `${ALT_PROJECT_ID}/(default) but should be for database ` +
-              `${DEFAULT_PROJECT_ID}/(default) (found in field ` +
+              `${ALT_PROJECT_ID}/${TARGET_DB_ID} but should be for database ` +
+              `${DEFAULT_PROJECT_ID}/${TARGET_DB_ID} (found in field ` +
               `foo)`
           );
         });

@@ -40,6 +40,7 @@ import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { ClientPlatform } from '../util/version';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
@@ -736,7 +737,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
     });
@@ -753,7 +754,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
@@ -769,7 +770,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
       auth.tenantId = 'tenant-id';
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -780,7 +781,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       auth.tenantId = null;
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);

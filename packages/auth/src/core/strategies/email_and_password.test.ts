@@ -50,6 +50,7 @@ import {
   verifyPasswordResetCode
 } from './email_and_password';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -214,7 +215,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -242,7 +243,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -311,7 +312,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
       const response = await sendPasswordResetEmail(auth, email);
@@ -627,7 +628,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
@@ -658,7 +659,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
@@ -736,7 +737,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const { _tokenResponse, user, operationType } =
         (await createUserWithEmailAndPassword(
