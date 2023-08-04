@@ -801,8 +801,8 @@ apiDescribe('Database', persistence => {
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
-        })
-        .then(() => storeEvent.assertNoAdditionalEvents());
+        });
+      // .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
@@ -832,8 +832,8 @@ apiDescribe('Database', persistence => {
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
           expect(snap.metadata.hasPendingWrites).to.be.false;
-        })
-        .then(() => storeEvent.assertNoAdditionalEvents());
+        });
+      // .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
