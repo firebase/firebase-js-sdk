@@ -18,7 +18,7 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
-import { Query, queryToTarget } from '../core/query';
+import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -248,7 +248,7 @@ export async function invokeRunAggregationQueryRpc(
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const { request, aliasMap } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query),
+    queryToAggregateTarget(query),
     aggregates
   );
 
