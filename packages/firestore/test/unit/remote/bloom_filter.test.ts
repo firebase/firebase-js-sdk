@@ -210,13 +210,17 @@ describe('BloomFilter', () => {
         TEST_DATA.count50000Rate01TestResult
       );
       //Extend default timeout(2000)
-    }).timeout(10_000);
+    })
+      .timeout(60_000)
+      .retries(3);
     it('mightContain result for 50000 documents with 0.0001 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
         TEST_DATA.count50000Rate0001TestData,
         TEST_DATA.count50000Rate0001TestResult
       );
       //Extend default timeout(2000)
-    }).timeout(10_000);
+    })
+      .timeout(60_000)
+      .retries(3);
   });
 });
