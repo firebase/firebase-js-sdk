@@ -291,6 +291,12 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+  /**
+   * returns a promise that resolves immediately when the initial
+   * auth state is settled. When the promise resolves, the current user might be a valid user
+   * or `null` if the user signed out.
+   */
+  authStateReady(): Promise<void>;
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
   /** The current emulator configuration (or null). */

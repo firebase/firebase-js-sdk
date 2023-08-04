@@ -40,6 +40,7 @@ import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { ClientPlatform } from '../util/version';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
@@ -734,7 +735,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
     });
@@ -751,7 +752,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
@@ -767,7 +768,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
       auth.tenantId = 'tenant-id';
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -778,12 +779,119 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       auth.tenantId = null;
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
       auth.tenantId = 'tenant-id';
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
+    });
+  });
+
+  describe('AuthStateReady', () => {
+    let user: UserInternal;
+    let authStateChangedSpy: sinon.SinonSpy;
+
+    beforeEach(async () => {
+      user = testUser(auth, 'uid');
+
+      authStateChangedSpy = sinon.spy(auth, 'onAuthStateChanged');
+
+      await auth._updateCurrentUser(null);
+    });
+
+    it('immediately returns resolved promise if the user is previously logged in', async () => {
+      await auth._updateCurrentUser(user);
+
+      await auth
+        .authStateReady()
+        .then(() => {
+          expect(authStateChangedSpy).to.not.have.been.called;
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+    });
+
+    it('calls onAuthStateChanged if there is no currentUser available, and returns resolved promise once the user is updated', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await auth._updateCurrentUser(user);
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise during repeated logout', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await auth._updateCurrentUser(null);
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise with currentUser being null during log in failure', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      const auth2 = await testAuth();
+      Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
+      const user = testUser(auth2, 'uid');
+      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-user-token'
+      );
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise in a delayed user log in process', async () => {
+      setTimeout(async () => {
+        await auth._updateCurrentUser(user);
+      }, 5000);
+
+      const promiseVar = auth.authStateReady();
+      expect(auth.currentUser).to.eq(null);
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await setTimeout(() => {
+        promiseVar
+          .then(async () => {
+            await expect(auth.currentUser).to.eq(user);
+          })
+          .catch(error => {
+            throw new Error(error);
+          });
+      }, 10000);
     });
   });
 });

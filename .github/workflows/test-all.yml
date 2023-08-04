@@ -7,7 +7,7 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
-  artifactRetentionDays: 2
+  artifactRetentionDays: 14
 
 jobs:
   build:
