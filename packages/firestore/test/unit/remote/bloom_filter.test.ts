@@ -211,7 +211,7 @@ describe('BloomFilter', () => {
       );
       //Extend default timeout(2000)
     })
-      .timeout(60_000)
+      .timeout(10_000)
       .retries(3);
     it('mightContain result for 50000 documents with 0.0001 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
