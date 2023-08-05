@@ -31,7 +31,7 @@ import { _isPopupRedirectSupported } from './platform';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
 import {
-  convertConfirmationResult,
+  convertPhoneSignInPromiseResult,
   convertCredential
 } from './user_credential';
 import { ReverseWrapper, Wrapper } from './wrap';
@@ -280,14 +280,18 @@ export class Auth
   }
   signInWithPhoneNumber(
     phoneNumber: string,
-    applicationVerifier: compat.ApplicationVerifier
-  ): Promise<compat.ConfirmationResult> {
-    return convertConfirmationResult(
+    applicationVerifier: compat.ApplicationVerifier,
+    useWebOTP = false,
+    webOTPTimeout = 30
+  ): Promise<compat.ConfirmationResult | compat.UserCredential> {
+    return convertPhoneSignInPromiseResult(
       this._delegate,
       exp.signInWithPhoneNumber(
         this._delegate,
         phoneNumber,
-        applicationVerifier
+        applicationVerifier,
+        useWebOTP,
+        webOTPTimeout
       )
     );
   }

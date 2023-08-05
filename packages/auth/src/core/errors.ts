@@ -132,7 +132,12 @@ export const enum AuthErrorCode {
   MISSING_CLIENT_TYPE = 'missing-client-type',
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
-  INVALID_REQ_TYPE = 'invalid-req-type'
+  INVALID_REQ_TYPE = 'invalid-req-type',
+  WEB_OTP_TIMEOUT = 'web-otp-timeout',
+  WEB_OTP_BROKEN = 'web-otp-broken',
+  WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved',
+  WEB_OTP_NOT_SUPPORTED = 'web-otp-not-supported',
+  WEB_OTP_NOT_DEFINED = 'web-otp-not-defined'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -381,7 +386,17 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The reCAPTCHA version is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
-      'The reCAPTCHA version is invalid when sending request to the backend.'
+      'The reCAPTCHA version is invalid when sending request to the backend.',
+    [AuthErrorCode.WEB_OTP_TIMEOUT]:
+      'Web OTP code is not fetched on time in autofill',
+    [AuthErrorCode.WEB_OTP_BROKEN]:
+      'ConfirmWithWebOTP code fetching attempt failed',
+    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]:
+      'Web OTP code is not retrieved successfully',
+    [AuthErrorCode.WEB_OTP_NOT_SUPPORTED]:
+      'Web OTP is not supported on this app',
+    [AuthErrorCode.WEB_OTP_NOT_DEFINED]:
+      'The auto-fetched Web OTP code is not valid'
   };
 }
 
@@ -591,5 +606,10 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_CLIENT_TYPE: 'auth/missing-client-type',
   MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
-  INVALID_REQ_TYPE: 'auth/invalid-req-type'
+  INVALID_REQ_TYPE: 'auth/invalid-req-type',
+  WEB_OTP_TIMEOUT: 'auth/web-otp-timeout',
+  WEB_OTP_BROKEN: 'auth/web-otp-broken',
+  WEB_OTP_NOT_RETRIEVED: 'auth/web-otp-not-retrieved',
+  WEB_OTP_NOT_SUPPORTED: 'auth/web-otp-not-supported',
+  WEB_OTP_NOT_DEFINED: 'auth/web-otp-not-defined'
 } as const;

@@ -105,11 +105,13 @@ export class PhoneAuthProvider {
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
-  ): Promise<string> {
+  ): Promise<string | UserCredential> {
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
-      getModularInstance(applicationVerifier as ApplicationVerifierInternal)
+      getModularInstance(applicationVerifier as ApplicationVerifierInternal),
+      false,
+      30
     );
   }
 

@@ -17,7 +17,7 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
+import { spy, stub, restore } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
@@ -44,6 +44,12 @@ import {
   updatePhoneNumber
 } from './phone';
 
+import { ConfirmationResult } from '@firebase/auth-types';
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
+
 use(chaiAsPromised);
 use(sinonChai);
 
@@ -61,17 +67,17 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
-    sinon.stub(verifier, 'verify').returns(Promise.resolve('recaptcha-token'));
+    stub(verifier, 'verify').returns(Promise.resolve('recaptcha-token'));
   });
 
   afterEach(() => {
     fetch.tearDown();
-    sinon.restore();
+    restore();
   });
 
   describe('signInWithPhoneNumber', () => {
     it('calls verify phone number', async () => {
-      await signInWithPhoneNumber(auth, '+15105550000', verifier);
+      await signInWithPhoneNumber(auth, '+15105550000', verifier, false);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
@@ -80,12 +86,19 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('ConfirmationResult', () => {
-      it('result contains verification id baked in', async () => {
-        const result = await signInWithPhoneNumber(auth, 'number', verifier);
-        expect(result.verificationId).to.eq('session-info');
+      it('result contains verification id baked in if ConfirmationResult is returned', async () => {
+        const result = (await signInWithPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          false
+        )) as unknown;
+        const confirmationRes = result as ConfirmationResult;
+
+        expect(confirmationRes.verificationId).to.eq('session-info');
       });
 
-      it('calling #confirm finishes the sign in flow', async () => {
+      it('calling #confirm finishes the sign in flow when webOTP autofill is not used', async () => {
         const idTokenResponse: IdTokenResponse = {
           idToken: 'my-id-token',
           refreshToken: 'my-refresh-token',
@@ -104,14 +117,40 @@ describe('platform_browser/strategies/phone', () => {
           users: [{ localId: 'uid' }]
         });
 
-        const result = await signInWithPhoneNumber(auth, 'number', verifier);
-        const userCred = await result.confirm('6789');
-        expect(userCred.user.uid).to.eq('uid');
+        const result = (await signInWithPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          false
+        )) as unknown;
+        const confirmationRes = result as ConfirmationResult;
+        const userCred = await confirmationRes.confirm('6789');
+
+        expect(userCred.user!.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
         expect(signInEndpoint.calls[0].request).to.eql({
           sessionInfo: 'session-info',
           code: '6789'
         });
+      });
+
+      it('fail with webOTP not supported error when webOTP autofill is used in sign in flow', async () => {
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+
+        stub(window.navigator['credentials'], 'get').callsFake(() => {
+          const otpCred: OTPCredential = {
+            id: 'uid',
+            type: 'signIn',
+            code: '6789'
+          };
+          return Promise.resolve(otpCred);
+        });
+
+        await expect(
+          signInWithPhoneNumber(auth, 'number', verifier, true)
+        ).to.be.rejectedWith(FirebaseError, 'auth/web-otp-not-supported');
       });
     });
   });
@@ -395,7 +434,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     it('resets the verifer after successful verification', async () => {
-      sinon.spy(verifier, '_reset');
+      spy(verifier, '_reset');
       expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq(
         'session-info'
       );
@@ -403,7 +442,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     it('resets the verifer after a failed verification', async () => {
-      sinon.spy(verifier, '_reset');
+      spy(verifier, '_reset');
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
 
       await expect(_verifyPhoneNumber(auth, 'number', verifier)).to.be.rejected;

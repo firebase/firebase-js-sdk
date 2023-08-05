@@ -457,8 +457,10 @@ export class FirebaseAuth {
   ): Promise<UserCredential>;
   signInWithPhoneNumber(
     phoneNumber: string,
-    applicationVerifier: ApplicationVerifier
-  ): Promise<ConfirmationResult>;
+    applicationVerifier: ApplicationVerifier,
+    useWebOTP?: boolean,
+    webOTPTimeout?: number
+  ): Promise<ConfirmationResult | UserCredential>;
   signInWithPopup(provider: AuthProvider): Promise<UserCredential>;
   signInWithRedirect(provider: AuthProvider): Promise<void>;
   signOut(): Promise<void>;

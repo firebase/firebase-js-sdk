@@ -16,6 +16,7 @@
  */
 
 import { expect, use } from 'chai';
+import { stub, restore } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 import { FirebaseError } from '@firebase/util';
 import firebase from '@firebase/app-compat';
@@ -29,6 +30,10 @@ import {
   RecaptchaVerifier,
   UserCredential
 } from '@firebase/auth-types';
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
 
 use(chaiAsPromised);
 
@@ -62,6 +67,7 @@ describe('Integration test: phone auth', () => {
   });
 
   afterEach(async () => {
+    restore();
     await cleanUpTestInstance();
     document.body.removeChild(fakeRecaptchaContainer);
   });
@@ -81,11 +87,51 @@ describe('Integration test: phone auth', () => {
     return codes[vid].code;
   }
 
-  it('allows user to sign up', async () => {
-    const cr = await firebase
+  it('allows user to sign up without using webOTP autofill', async () => {
+    const cr = (await firebase
       .auth()
-      .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+      .signInWithPhoneNumber(
+        PHONE_A.phoneNumber,
+        verifier,
+        false
+      )) as ConfirmationResult;
     const userCred = await cr.confirm(await code(cr));
+
+    expect(firebase.auth().currentUser).to.eq(userCred.user);
+    expect(userCred.operationType).to.eq('signIn');
+
+    const user = userCred.user;
+    expect(user!.isAnonymous).to.be.false;
+    expect(user!.uid).to.be.a('string');
+    expect(user!.phoneNumber).to.eq(PHONE_A.phoneNumber);
+  });
+
+  it('allows user to sign up using webOTP autofill', async () => {
+    const cr = (await firebase
+      .auth()
+      .signInWithPhoneNumber(
+        PHONE_A.phoneNumber,
+        verifier,
+        false
+      )) as ConfirmationResult;
+    const correctCode = await code(cr);
+
+    stub(window.navigator['credentials'], 'get').callsFake(() => {
+      const otpCred: OTPCredential = {
+        id: 'fakeuid',
+        type: 'signIn',
+        code: correctCode
+      };
+      return Promise.resolve(otpCred);
+    });
+
+    const userCred = (await firebase
+      .auth()
+      .signInWithPhoneNumber(
+        PHONE_A.phoneNumber,
+        verifier,
+        true
+      )) as UserCredential;
 
     expect(firebase.auth().currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq('signIn');
@@ -134,9 +180,13 @@ describe('Integration test: phone auth', () => {
     await firebase.auth().signOut();
     resetVerifier();
 
-    const cr = await firebase
+    const cr = (await firebase
       .auth()
-      .signInWithPhoneNumber(PHONE_B.phoneNumber, verifier);
+      .signInWithPhoneNumber(
+        PHONE_B.phoneNumber,
+        verifier,
+        false
+      )) as ConfirmationResult;
     const { user: secondSignIn } = await cr.confirm(await code(cr));
     expect(secondSignIn!.uid).to.eq(anonId);
     expect(secondSignIn!.isAnonymous).to.be.false;
@@ -150,27 +200,70 @@ describe('Integration test: phone auth', () => {
     let signUpCred: UserCredential;
 
     beforeEach(async () => {
-      const cr = await firebase
+      const cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       signUpCred = await cr.confirm(await code(cr));
       resetVerifier();
       await firebase.auth().signOut();
     });
 
-    it('allows the user to sign in again', async () => {
-      const cr = await firebase
+    it('allows the user to sign in again without using webOTP autofill', async () => {
+      const cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
+      const signInCred = await cr.confirm(await code(cr));
+
+      expect(signInCred.user!.uid).to.eq(signUpCred.user!.uid);
+    });
+
+    it('allows the user to sign in again using webOTP autofill', async () => {
+      const confirmationRes = (await firebase
+        .auth()
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
+      const correctCode = await code(confirmationRes);
+
+      stub(window.navigator['credentials'], 'get').callsFake(() => {
+        const otpCred: OTPCredential = {
+          id: 'fakeuid',
+          type: 'signIn',
+          code: correctCode
+        };
+        return Promise.resolve(otpCred);
+      });
+
+      const cr = (await firebase
+        .auth()
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          true
+        )) as ConfirmationResult;
       const signInCred = await cr.confirm(await code(cr));
 
       expect(signInCred.user!.uid).to.eq(signUpCred.user!.uid);
     });
 
     it('allows the user to update their phone number', async () => {
-      let cr = await firebase
+      let cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr));
 
       resetVerifier();
@@ -192,17 +285,25 @@ describe('Integration test: phone auth', () => {
       await firebase.auth().signOut();
       resetVerifier();
 
-      cr = await firebase
+      cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_B.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_B.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       const { user: secondSignIn } = await cr.confirm(await code(cr));
       expect(secondSignIn!.uid).to.eq(user!.uid);
     });
 
     it('allows the user to reauthenticate with phone number', async () => {
-      let cr = await firebase
+      let cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr));
       const oldToken = await user!.getIdToken();
 
@@ -223,9 +324,13 @@ describe('Integration test: phone auth', () => {
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
-      let cr = await firebase
+      let cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_A.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_A.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       const { user } = await cr.confirm(await code(cr));
 
       resetVerifier();
@@ -242,9 +347,13 @@ describe('Integration test: phone auth', () => {
       // We need to manually delete PHONE_B number since a failed
       // reauthenticateWithPhoneNumber does not trigger a state change
       resetVerifier();
-      cr = await firebase
+      cr = (await firebase
         .auth()
-        .signInWithPhoneNumber(PHONE_B.phoneNumber, verifier);
+        .signInWithPhoneNumber(
+          PHONE_B.phoneNumber,
+          verifier,
+          false
+        )) as ConfirmationResult;
       const { user: otherUser } = await cr.confirm(await code(cr));
       await otherUser!.delete();
     });

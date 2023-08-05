@@ -31,7 +31,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -45,8 +45,20 @@ import {
 import { UserInternal } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
-import { getModularInstance } from '@firebase/util';
+import { getModularInstance, FirebaseError } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
+
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
@@ -65,16 +77,77 @@ class ConfirmationResultImpl implements ConfirmationResult {
     );
     return this.onConfirmation(authCredential);
   }
+
+  async confirmWithWebOTP (auth:Auth, webOTPTimeout: number): Promise<UserCredential> {
+    if ('OTPCredential' in window) {
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+        throw _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        );
+      }, webOTPTimeout * 1000);
+
+      // @ts-ignore - ignore types for testing
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            throw new FirebaseError(
+              'WEB_OTP_UNDEFINED',
+              'auth/web-otp-undefined'
+            );
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          throw new FirebaseError(
+            'WEB_OTP_NOT_RETRIEVED',
+            'auth/web-otp-not-retrieved'
+          );
+        });
+      const userCred = await this.confirm(code);
+      return userCred;
+    } else {
+      throw new FirebaseError(
+        'WEB_OTP_NOT_SUPPORTED',
+        'auth/web-otp-not-supported'
+      );
+    }
+  }
 }
 
 /**
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given
- * phone number, and returns a {@link ConfirmationResult}. After the user
- * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
- * with the code to sign the user in.
+ * This method sends a code via SMS to the given phone number.
+ * It returns a {@link ConfirmationResult} if {@param useWebOtp} is set to
+ * false.  If {@param useWebOtp} is set to true, the method will return a {@link UserCredential}.
+ *
+ * If {@param useWebOtp} is set to `false`, webOTP autofill is disabled.
+ * After the user provides the code sent to their phone, call {@link ConfirmationResult.confirm}
+ * with the code to sign the user in. {@link ConfirmationResult} is returned.
+ *
+ * If {@param useWebOtp} is set to `true`, webOTP autofill is enabled and
+ * the verfication code is automatically fetched, then {@link ConfirmationResult.confirm} will be
+ * called with the code to sign the user in. {@link UserCredential} is returned.
  *
  * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
  * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
@@ -88,7 +161,10 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * ```javascript
  * // 'recaptcha-container' is the ID of an element in the DOM.
  * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
- * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+ * const credential = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, true);
+ *
+ * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, false);
  * // Obtain a verificationCode from the user.
  * const credential = await confirmationResult.confirm(verificationCode);
  * ```
@@ -96,23 +172,41 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
+ * @param useWebOTP - Specifies whether to use WebOTP autofill or not in the sign in
+ * @param webOTPTimeout - Error would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
+ *
  *
  * @public
  */
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier
-): Promise<ConfirmationResult> {
+  appVerifier: ApplicationVerifier,
+  useWebOTP = false,
+  webOTPTimeout = 30
+): Promise<ConfirmationResult | UserCredential> {
   const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
     authInternal,
     phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal)
-  );
-  return new ConfirmationResultImpl(verificationId, cred =>
+    getModularInstance(appVerifier as ApplicationVerifierInternal),
+    false,
+    30
+  ) as string;
+
+  const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
     signInWithCredential(authInternal, cred)
   );
+
+  if (useWebOTP) {
+    try {
+      return confirmationRes.confirmWithWebOTP(webOTPTimeout);
+    } catch (error) {
+      throw new FirebaseError('WEB_OTP_BROKEN', 'auth/web-otp-broken');
+    }
+  } else {
+    return confirmationRes;
+  }
 }
 
 /**
@@ -137,8 +231,10 @@ export async function linkWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal)
-  );
+    getModularInstance(appVerifier as ApplicationVerifierInternal),
+    false,
+    30
+  ) as string;
   return new ConfirmationResultImpl(verificationId, cred =>
     linkWithCredential(userInternal, cred)
   );
@@ -167,8 +263,10 @@ export async function reauthenticateWithPhoneNumber(
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal)
-  );
+    getModularInstance(appVerifier as ApplicationVerifierInternal),
+    false,
+    30
+  ) as string;
   return new ConfirmationResultImpl(verificationId, cred =>
     reauthenticateWithCredential(userInternal, cred)
   );
@@ -181,8 +279,10 @@ export async function reauthenticateWithPhoneNumber(
 export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
-  verifier: ApplicationVerifierInternal
-): Promise<string> {
+  verifier: ApplicationVerifierInternal,
+  useWebOTP = false,
+  webOTPTimeout = 30
+): Promise<string | UserCredential>{
   const recaptchaToken = await verifier.verify();
 
   try {
@@ -206,7 +306,7 @@ export async function _verifyPhoneNumber(
     } else {
       phoneInfoOptions = options;
     }
-
+    let verificationId = "";
     if ('session' in phoneInfoOptions) {
       const session = phoneInfoOptions.session as MultiFactorSessionImpl;
 
@@ -223,7 +323,7 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        return response.phoneSessionInfo.sessionInfo;
+        verificationId = response.phoneSessionInfo.sessionInfo;
       } else {
         _assert(
           session.type === MultiFactorSessionType.SIGN_IN,
@@ -241,14 +341,27 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        return response.phoneResponseInfo.sessionInfo;
+        verificationId = response.phoneResponseInfo.sessionInfo;
       }
     } else {
       const { sessionInfo } = await sendPhoneVerificationCode(auth, {
         phoneNumber: phoneInfoOptions.phoneNumber,
         recaptchaToken
       });
-      return sessionInfo;
+      verificationId = sessionInfo;
+    }
+    const authInternal = _castAuth(auth);
+    const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
+      signInWithCredential(authInternal, cred)
+    );
+    if (useWebOTP) {
+      try {
+        return confirmationRes.confirmWithWebOTP(webOTPTimeout);
+      } catch (error) {
+        throw new FirebaseError('WEB_OTP_BROKEN', 'auth/web-otp-broken');
+      }
+    } else {
+      return verificationId;
     }
   } finally {
     verifier._reset();
