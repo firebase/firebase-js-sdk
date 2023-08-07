@@ -68,7 +68,8 @@ export const enum Endpoint {
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
   GET_PROJECT_CONFIG = '/v1/projects',
   GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
-  GET_PASSWORD_POLICY = '/v2/passwordPolicy'
+  GET_PASSWORD_POLICY = '/v2/passwordPolicy',
+  REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
 export const enum RecaptchaClientType {

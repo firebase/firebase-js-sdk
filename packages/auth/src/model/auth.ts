@@ -105,4 +105,5 @@ export interface AuthInternal extends Auth {
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
   validatePassword(password: string): Promise<PasswordValidationStatus>;
+  revokeAccessToken(token: string): Promise<void>;
 }

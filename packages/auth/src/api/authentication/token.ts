@@ -22,15 +22,24 @@ import { querystring } from '@firebase/util';
 import {
   _getFinalTarget,
   _performFetchWithErrorHandling,
+  _performApiRequest,
+  _addTidIfNecessary,
   HttpMethod,
-  HttpHeader
+  HttpHeader,
+  Endpoint
 } from '../index';
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 
-export const enum Endpoint {
+export const enum Path {
   TOKEN = '/v1/token'
+}
+
+export const enum TokenType {
+  UNSPECIFIED = 'TOKEN_TYPE_UNSPECIFIED',
+  REFRESH_TOKEN = 'REFRESH_TOKEN',
+  ACCESS_TOKEN = 'ACCESS_TOKEN'
 }
 
 /** The server responses with snake_case; we convert to camelCase */
@@ -45,6 +54,17 @@ export interface RequestStsTokenResponse {
   expiresIn: string;
   refreshToken: string;
 }
+
+export interface RevokeTokenRequest {
+  provider_id: string;
+  tokenType: TokenType;
+  token: string;
+  idToken: string;
+  tenantId?: string;
+  redirectUri?: string;
+}
+
+export interface RevokeTokenResponse {}
 
 export async function requestStsToken(
   auth: Auth,
@@ -63,7 +83,7 @@ export async function requestStsToken(
         const url = _getFinalTarget(
           auth,
           tokenApiHost,
-          Endpoint.TOKEN,
+          Path.TOKEN,
           `key=${apiKey}`
         );
 
@@ -84,4 +104,16 @@ export async function requestStsToken(
     expiresIn: response.expires_in,
     refreshToken: response.refresh_token
   };
+}
+
+export async function revokeToken(
+  auth: Auth,
+  request: RevokeTokenRequest
+): Promise<RevokeTokenResponse> {
+  return _performApiRequest<RevokeTokenRequest, RevokeTokenResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.REVOKE_TOKEN,
+    _addTidIfNecessary(auth, request)
+  );
 }
