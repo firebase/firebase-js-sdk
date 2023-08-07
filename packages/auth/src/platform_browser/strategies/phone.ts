@@ -430,7 +430,6 @@ export async function _verifyPhoneNumber(
       }
     }
   } catch (error) {
-    console.log('reached error catching block in _verifyphonenumber');
     throw error;
   } finally {
     verifier._reset();
