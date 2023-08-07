@@ -97,7 +97,6 @@ class ConfirmationResultImpl implements ConfirmationResult {
         throw myErr;
       }, webOTPTimeoutSeconds * 1000);
 
-      // @ts-ignore - ignore types for testing
       const o: OTPCredentialRequestOptions = {
         otp: { transport: ['sms'] },
         signal: abortController.signal
