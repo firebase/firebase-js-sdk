@@ -55,10 +55,9 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {
+      mfaUser = null;
       auth = getTestInstance();
       displayName = 'totp-integration-test';
-      const cr = await signInWithEmailAndPassword(auth, email, password);
-      mfaUser = multiFactor(cr.user);
     }
   });
 
@@ -129,11 +128,6 @@ describe('Integration tests: sign-in for mfa-enrolled users', () => {
 
       const cr = await signInWithEmailAndPassword(auth, email, password);
       mfaUser = multiFactor(cr.user);
-      if (mfaUser && mfaUser.enrolledFactors.length > 0) {
-        for (let i = 0; i < mfaUser.enrolledFactors.length; i++) {
-          await mfaUser.unenroll(mfaUser.enrolledFactors[i]);
-        }
-      }
       const session = await mfaUser.getSession();
       totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
       totpTimestamp = new Date();
