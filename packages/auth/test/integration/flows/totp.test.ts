@@ -77,7 +77,9 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const session = await mfaUser!.getSession();
+    const cr = await signInWithEmailAndPassword(auth, email, password);
+    mfaUser = multiFactor(cr.user);
+    const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
 
     const multiFactorAssertion =
@@ -87,7 +89,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       );
 
     await expect(
-      mfaUser!.enroll(multiFactorAssertion, displayName)
+      mfaUser.enroll(multiFactorAssertion, displayName)
     ).to.be.rejectedWith('auth/invalid-verification-code');
   });
 
@@ -96,7 +98,9 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
       this.skip();
     }
 
-    const session = await mfaUser!.getSession();
+    const cr = await signInWithEmailAndPassword(auth, email, password);
+    mfaUser = multiFactor(cr.user);
+    const session = await mfaUser.getSession();
     totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
     totpTimestamp = new Date();
     const totpVerificationCode = getTotpCode(
@@ -112,7 +116,7 @@ describe(' Integration tests: Mfa enrollement using totp', () => {
         totpVerificationCode
       );
 
-    await expect(mfaUser!.enroll(multiFactorAssertion, displayName)).to.be
+    await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
       .fulfilled;
   });
 });
