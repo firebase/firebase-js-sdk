@@ -381,7 +381,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The reCAPTCHA version is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
-      'The reCAPTCHA version is invalid when sending request to the backend.',
+      'The reCAPTCHA version sent to the backend is invalid.',
     [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 'WEB OTP autofill failed'
   };
 }

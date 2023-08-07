@@ -82,7 +82,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
   async confirmWithWebOTP(
     auth: Auth,
     webOTPTimeoutSeconds: number
-  ): Promise<UserCredential | undefined> {
+  ): Promise<UserCredential> {
     if ('OTPCredential' in window) {
       const abortController = new AbortController();
       const timer = setTimeout(() => {
@@ -238,7 +238,7 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier,
   webOTPTimeoutSeconds?: number
-): Promise<unknown> {
+): Promise<UserCredential | ConfirmationResult> {
   const authInternal = _castAuth(auth);
   if (webOTPTimeoutSeconds) {
     try {
@@ -345,7 +345,7 @@ export async function _verifyPhoneNumber(
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal,
   webOTPTimeoutSeconds?: number
-): Promise<unknown> {
+): Promise<string | UserCredential> {
   const recaptchaToken = await verifier.verify();
 
   try {
@@ -412,25 +412,22 @@ export async function _verifyPhoneNumber(
         recaptchaToken
       });
       verificationId = sessionInfo;
-      const authInternal = _castAuth(auth);
-      const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
-        signInWithCredential(authInternal, cred)
-      );
-      if (webOTPTimeoutSeconds) {
-        try {
-          return confirmationRes.confirmWithWebOTP(
-            authInternal,
-            webOTPTimeoutSeconds
-          );
-        } catch (error) {
-          throw error;
-        }
-      } else {
-        return verificationId;
+    }
+    const authInternal = _castAuth(auth);
+    const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
+      signInWithCredential(authInternal, cred)
+    );
+    if (webOTPTimeoutSeconds) {
+      try {
+        return confirmationRes.confirmWithWebOTP(
+          authInternal,
+          webOTPTimeoutSeconds
+        );
+      } catch (error) {
+        throw error;
       }
     }
-  } catch (error) {
-    throw error;
+    return verificationId;
   } finally {
     verifier._reset();
   }

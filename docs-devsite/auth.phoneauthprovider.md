@@ -42,7 +42,7 @@ export declare class PhoneAuthProvider
 |  [credentialFromError(error)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromerror) | <code>static</code> | Returns an [AuthCredential](./auth.authcredential.md#authcredential_class) when passed an error. |
 |  [credentialFromResult(userCredential)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromresult) | <code>static</code> | Generates an [AuthCredential](./auth.authcredential.md#authcredential_class) from a [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->. |
 |  [verifyPhoneNumber(phoneOptions, applicationVerifier)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. |
-|  [verifyPhoneNumber(phoneOptions, applicationVerifier, webOTPTimeoutSeconds)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Completes a phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in. |
+|  [verifyPhoneNumber(phoneOptions, applicationVerifier, webOTPTimeoutSeconds)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Completes the phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in. |
 
 ## PhoneAuthProvider.(constructor)
 
@@ -245,7 +245,7 @@ const userCredential = confirmationResult.confirm(verificationCode);
 
 ## PhoneAuthProvider.verifyPhoneNumber()
 
-Completes a phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in.
+Completes the phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in.
 
 <b>Signature:</b>
 
@@ -259,7 +259,7 @@ verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: 
 |  --- | --- | --- |
 |  phoneOptions | [PhoneInfoOptions](./auth.md#phoneinfooptions) \| string |  |
 |  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. |
-|  webOTPTimeoutSeconds | number |  |
+|  webOTPTimeoutSeconds | number | Error would be thrown if WebOTP does not resolve within this specified timeout parameter (in seconds). |
 
 <b>Returns:</b>
 

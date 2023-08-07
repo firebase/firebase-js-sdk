@@ -111,7 +111,7 @@ export class PhoneAuthProvider {
 
   /**
    *
-   * Completes a phone number authentication flow by sending a verification code to the
+   * Completes the phone number authentication flow by sending a verification code to the
    * given phone number, automatically retrieving the verification code from the SMS message,
    * and signing the user in.
    *
@@ -128,7 +128,7 @@ export class PhoneAuthProvider {
    * ```
    *
    * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in
-   * E.164 format (e.g. +16505550101).
+   * E.164 format (for example, +16505550101).
    * @param applicationVerifier - For abuse prevention, this method also requires a
    * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
@@ -146,7 +146,7 @@ export class PhoneAuthProvider {
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
     webOTPTimeoutSeconds?: number
-  ): Promise<unknown> {
+  ): Promise<string | UserCredential> {
     if (webOTPTimeoutSeconds) {
       try {
         return _verifyPhoneNumber(
