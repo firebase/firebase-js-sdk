@@ -22,18 +22,18 @@ export interface PasswordValidationStatus
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [containsLowercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainslowercaseletter) | boolean | Whether the password contains a lowercase letter, if required. |
-|  [containsNonAlphanumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnonalphanumericcharacter) | boolean | Whether the password contains a non-alphanumeric character, if required. |
-|  [containsNumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnumericcharacter) | boolean | Whether the password contains a numeric character, if required. |
-|  [containsUppercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsuppercaseletter) | boolean | Whether the password contains an uppercase letter, if required. |
+|  [containsLowercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainslowercaseletter) | boolean | Whether the password contains a lowercase letter, or undefined if not required. |
+|  [containsNonAlphanumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnonalphanumericcharacter) | boolean | Whether the password contains a non-alphanumeric character, or undefined if not required. |
+|  [containsNumericCharacter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsnumericcharacter) | boolean | Whether the password contains a numeric character, or undefined if not required. |
+|  [containsUppercaseLetter](./auth.passwordvalidationstatus.md#passwordvalidationstatuscontainsuppercaseletter) | boolean | Whether the password contains an uppercase letter, or undefined if not required. |
 |  [isValid](./auth.passwordvalidationstatus.md#passwordvalidationstatusisvalid) | boolean | Whether the password meets all requirements. |
-|  [meetsMaxPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsmaxpasswordlength) | boolean | Whether the password meets the maximum password length. |
-|  [meetsMinPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsminpasswordlength) | boolean | Whether the password meets the minimum password length. |
+|  [meetsMaxPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsmaxpasswordlength) | boolean | Whether the password meets the maximum password length, or undefined if not required. |
+|  [meetsMinPasswordLength](./auth.passwordvalidationstatus.md#passwordvalidationstatusmeetsminpasswordlength) | boolean | Whether the password meets the minimum password length, or undefined if not required. |
 |  [passwordPolicy](./auth.passwordvalidationstatus.md#passwordvalidationstatuspasswordpolicy) | [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | The policy used to validate the password. |
 
 ## PasswordValidationStatus.containsLowercaseLetter
 
-Whether the password contains a lowercase letter, if required.
+Whether the password contains a lowercase letter, or undefined if not required.
 
 <b>Signature:</b>
 
@@ -43,7 +43,7 @@ readonly containsLowercaseLetter?: boolean;
 
 ## PasswordValidationStatus.containsNonAlphanumericCharacter
 
-Whether the password contains a non-alphanumeric character, if required.
+Whether the password contains a non-alphanumeric character, or undefined if not required.
 
 <b>Signature:</b>
 
@@ -53,7 +53,7 @@ readonly containsNonAlphanumericCharacter?: boolean;
 
 ## PasswordValidationStatus.containsNumericCharacter
 
-Whether the password contains a numeric character, if required.
+Whether the password contains a numeric character, or undefined if not required.
 
 <b>Signature:</b>
 
@@ -63,7 +63,7 @@ readonly containsNumericCharacter?: boolean;
 
 ## PasswordValidationStatus.containsUppercaseLetter
 
-Whether the password contains an uppercase letter, if required.
+Whether the password contains an uppercase letter, or undefined if not required.
 
 <b>Signature:</b>
 
@@ -83,7 +83,7 @@ readonly isValid: boolean;
 
 ## PasswordValidationStatus.meetsMaxPasswordLength
 
-Whether the password meets the maximum password length.
+Whether the password meets the maximum password length, or undefined if not required.
 
 <b>Signature:</b>
 
@@ -93,7 +93,7 @@ readonly meetsMaxPasswordLength?: boolean;
 
 ## PasswordValidationStatus.meetsMinPasswordLength
 
-Whether the password meets the minimum password length.
+Whether the password meets the minimum password length, or undefined if not required.
 
 <b>Signature:</b>
 

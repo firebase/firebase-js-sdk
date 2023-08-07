@@ -1270,27 +1270,27 @@ export interface PasswordPolicy {
    */
   readonly customStrengthOptions: {
     /**
-     * Minimum password length.
+     * Minimum password length, or undefined if not configured.
      */
     readonly minPasswordLength?: number;
     /**
-     * Maximum password length.
+     * Maximum password length, or undefined if not configured.
      */
     readonly maxPasswordLength?: number;
     /**
-     * Whether the password should contain a lowercase letter.
+     * Whether the password should contain a lowercase letter, or undefined if not configured.
      */
     readonly containsLowercaseLetter?: boolean;
     /**
-     * Whether the password should contain an uppercase letter.
+     * Whether the password should contain an uppercase letter, or undefined if not configured.
      */
     readonly containsUppercaseLetter?: boolean;
     /**
-     * Whether the password should contain a numeric character.
+     * Whether the password should contain a numeric character, or undefined if not configured.
      */
     readonly containsNumericCharacter?: boolean;
     /**
-     * Whether the password should contain a non-alphanumeric character.
+     * Whether the password should contain a non-alphanumeric character, or undefined if not configured.
      */
     readonly containsNonAlphanumericCharacter?: boolean;
   };
@@ -1320,27 +1320,27 @@ export interface PasswordValidationStatus {
    */
   readonly isValid: boolean;
   /**
-   * Whether the password meets the minimum password length.
+   * Whether the password meets the minimum password length, or undefined if not required.
    */
   readonly meetsMinPasswordLength?: boolean;
   /**
-   * Whether the password meets the maximum password length.
+   * Whether the password meets the maximum password length, or undefined if not required.
    */
   readonly meetsMaxPasswordLength?: boolean;
   /**
-   * Whether the password contains a lowercase letter, if required.
+   * Whether the password contains a lowercase letter, or undefined if not required.
    */
   readonly containsLowercaseLetter?: boolean;
   /**
-   * Whether the password contains an uppercase letter, if required.
+   * Whether the password contains an uppercase letter, or undefined if not required.
    */
   readonly containsUppercaseLetter?: boolean;
   /**
-   * Whether the password contains a numeric character, if required.
+   * Whether the password contains a numeric character, or undefined if not required.
    */
   readonly containsNumericCharacter?: boolean;
   /**
-   * Whether the password contains a non-alphanumeric character, if required.
+   * Whether the password contains a non-alphanumeric character, or undefined if not required.
    */
   readonly containsNonAlphanumericCharacter?: boolean;
   /**
