@@ -42,7 +42,7 @@ export declare class PhoneAuthProvider
 |  [credentialFromError(error)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromerror) | <code>static</code> | Returns an [AuthCredential](./auth.authcredential.md#authcredential_class) when passed an error. |
 |  [credentialFromResult(userCredential)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromresult) | <code>static</code> | Generates an [AuthCredential](./auth.authcredential.md#authcredential_class) from a [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->. |
 |  [verifyPhoneNumber(phoneOptions, applicationVerifier)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. |
-|  [verifyPhoneNumber(phoneOptions, applicationVerifier, webOTPTimeout)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Completes a phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in. |
+|  [verifyPhoneNumber(phoneOptions, applicationVerifier, webOTPTimeoutSeconds)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Completes a phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in. |
 
 ## PhoneAuthProvider.(constructor)
 
@@ -250,7 +250,7 @@ Completes a phone number authentication flow by sending a verification code to t
 <b>Signature:</b>
 
 ```typescript
-verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier, webOTPTimeout: number): Promise<UserCredential>;
+verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier, webOTPTimeoutSeconds: number): Promise<UserCredential>;
 ```
 
 ### Parameters
@@ -259,7 +259,7 @@ verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: 
 |  --- | --- | --- |
 |  phoneOptions | [PhoneInfoOptions](./auth.md#phoneinfooptions) \| string |  |
 |  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. |
-|  webOTPTimeout | number |  |
+|  webOTPTimeoutSeconds | number |  |
 
 <b>Returns:</b>
 

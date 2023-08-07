@@ -44,7 +44,7 @@ Firebase Authentication
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink) | Asynchronously signs in using an email and sign-in email link. |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
-|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier, webOTPTimeout)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
+|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier, webOTPTimeoutSeconds)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect) | Authenticates a Firebase client using a full-page redirect flow. |
 |  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
@@ -928,7 +928,7 @@ This method does not work in a Node.js environment.
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, webOTPTimeout: number): Promise<UserCredential>;
+export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, webOTPTimeoutSeconds: number): Promise<UserCredential>;
 ```
 
 ### Parameters
@@ -938,7 +938,7 @@ export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, a
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
 |  appVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | The [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. |
-|  webOTPTimeout | number |  |
+|  webOTPTimeoutSeconds | number |  |
 
 <b>Returns:</b>
 

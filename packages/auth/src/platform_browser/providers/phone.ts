@@ -98,6 +98,7 @@ export class PhoneAuthProvider {
    * @param applicationVerifier - For abuse prevention, this method also requires a
    * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds).
    *
    * @returns A Promise for a verification ID that can be passed to
    * {@link PhoneAuthProvider.credential} to identify this flow..
@@ -131,21 +132,22 @@ export class PhoneAuthProvider {
    * @param applicationVerifier - For abuse prevention, this method also requires a
    * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds).
    *
    * @returns A Promise for a UserCredential.
    */
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
-    webOTPTimeout: number
+    webOTPTimeoutSeconds: number
   ): Promise<UserCredential>;
 
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier,
-    webOTPTimeout?: number
+    webOTPTimeoutSeconds?: number
   ): Promise<unknown> {
-    if (webOTPTimeout) {
+    if (webOTPTimeoutSeconds) {
       try {
         return _verifyPhoneNumber(
           this.auth,
@@ -153,7 +155,7 @@ export class PhoneAuthProvider {
           getModularInstance(
             applicationVerifier as ApplicationVerifierInternal
           ),
-          webOTPTimeout
+          webOTPTimeoutSeconds
         );
       } catch (error) {
         throw error;

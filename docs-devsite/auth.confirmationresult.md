@@ -29,7 +29,7 @@ export interface ConfirmationResult
 |  Method | Description |
 |  --- | --- |
 |  [confirm(verificationCode)](./auth.confirmationresult.md#confirmationresultconfirm) | Finishes a phone number sign-in, link, or reauthentication. |
-|  [confirmWithWebOTP(auth, webOTPTimeout)](./auth.confirmationresult.md#confirmationresultconfirmwithwebotp) | Automatically fetches the verification code from SMS message. Then, it calls confirm(verificationCode) to finish a phone number sign-in, link, or reauthentication. |
+|  [confirmWithWebOTP(auth, webOTPTimeoutSeconds)](./auth.confirmationresult.md#confirmationresultconfirmwithwebotp) | Automatically fetches the verification code from SMS message. Then, it calls confirm(verificationCode) to finish a phone number sign-in, link, or reauthentication. |
 
 ## ConfirmationResult.verificationId
 
@@ -80,7 +80,7 @@ Automatically fetches the verification code from SMS message. Then, it calls con
 <b>Signature:</b>
 
 ```typescript
-confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential | undefined>;
+confirmWithWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<UserCredential | undefined>;
 ```
 
 ### Parameters
@@ -88,7 +88,7 @@ confirmWithWebOTP(auth: Auth, webOTPTimeout: number): Promise<UserCredential | u
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | the current [Auth](./auth.auth.md#auth_interface) instance |
-|  webOTPTimeout | number | Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds). |
+|  webOTPTimeoutSeconds | number | Error would be thrown if WebOTP does not resolve within this specified timeout parameter (milliseconds). |
 
 <b>Returns:</b>
 
