@@ -25,7 +25,7 @@ import { HttpHeader } from '../';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { Endpoint, requestStsToken } from './token';
+import { Path, requestStsToken } from './token';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../../core/util/browser';
 
@@ -38,7 +38,7 @@ describe('requestStsToken', () => {
   beforeEach(async () => {
     auth = await testAuth();
     const { apiKey, tokenApiHost, apiScheme } = auth.config;
-    endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
+    endpoint = `${apiScheme}://${tokenApiHost}${Path.TOKEN}?key=${apiKey}`;
     fetch.setUp();
   });
 

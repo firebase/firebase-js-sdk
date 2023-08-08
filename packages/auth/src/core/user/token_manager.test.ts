@@ -23,7 +23,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api/authentication/token';
+import { Path } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
@@ -103,7 +103,7 @@ describe('core/user/token_manager', () => {
       let mock: fetch.Route;
       beforeEach(() => {
         const { apiKey, tokenApiHost, apiScheme } = auth.config;
-        const endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
+        const endpoint = `${apiScheme}://${tokenApiHost}${Path.TOKEN}?key=${apiKey}`;
         mock = fetch.mock(endpoint, {
           'access_token': 'new-access-token',
           'refresh_token': 'new-refresh-token',
