@@ -26,7 +26,7 @@ import {
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { Filter } from './filter';
+import { FieldFilter, Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -170,11 +170,11 @@ export function queryMatchesAllDocuments(query: Query): boolean {
 export function getInequalityFilterFields(query: Query): SortedSet<FieldPath> {
   let result = new SortedSet<FieldPath>(FieldPath.comparator);
   query.filters.forEach((filter: Filter) => {
-    const inequalityFields = filter
-      .getInequalityFilters()
-      .map(filter => filter.field);
-    inequalityFields.forEach((field: FieldPath) => {
-      result = result.add(field);
+    const subFilters = filter.getFlattenedFilters();
+    subFilters.forEach((filter: FieldFilter) => {
+      if (filter.isInequality()) {
+        result = result.add(filter.field);
+      }
     });
   });
   return result;

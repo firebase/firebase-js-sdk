@@ -777,6 +777,99 @@ describe('Query', () => {
     );
   });
 
+  it("generates the correct implicit order by's for multiple inequality", () => {
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('aa', '>', 5),
+        filter('b', '>', 5),
+        filter('A', '>', 5)
+      ),
+      orderBy('A'),
+      orderBy('a'),
+      orderBy('aa'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // numbers
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('1', '>', 5),
+        filter('19', '>', 5),
+        filter('2', '>', 5)
+      ),
+      orderBy('1'),
+      orderBy('19'),
+      orderBy('2'),
+      orderBy('a'),
+
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // nested fields
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('aa', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy('aa'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // special characters
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('_a', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('_a'),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // field name with dot
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('a.z', '>', 5), // nested field
+        filter('`a.a`', '>', 5) // field name with dot
+      ),
+      orderBy('a'),
+      orderBy('a.z'),
+      orderBy('`a.a`'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // composite filter
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        andFilter(
+          orFilter(filter('b', '>=', 1), filter('c', '<=', 1)),
+          orFilter(filter('d', '>', 1), filter('e', '==', 1))
+        )
+      ),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy('c'),
+      orderBy('d'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+  });
+
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
     expect(queryMatchesAllDocuments(baseQuery)).to.be.true;
