@@ -21,11 +21,11 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError, getUA, querystringDecode } from '@firebase/util';
 
-import { HttpHeader } from '../';
+import { Endpoint, HttpHeader } from '../';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { Path, requestStsToken } from './token';
+import { requestStsToken } from './token';
 import { SDK_VERSION } from '@firebase/app';
 import { _getBrowserName } from '../../core/util/browser';
 
@@ -38,7 +38,7 @@ describe('requestStsToken', () => {
   beforeEach(async () => {
     auth = await testAuth();
     const { apiKey, tokenApiHost, apiScheme } = auth.config;
-    endpoint = `${apiScheme}://${tokenApiHost}${Path.TOKEN}?key=${apiKey}`;
+    endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
     fetch.setUp();
   });
 

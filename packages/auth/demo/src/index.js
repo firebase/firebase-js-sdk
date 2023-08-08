@@ -1734,7 +1734,6 @@ function onDelete() {
   var isAppleProviderLinked = false;
 
   for (const provider of activeUser().providerData) {
-    console.log('provider.providerId: ' + provider.providerId);
     if (provider.providerId == 'apple.com') {
       isAppleProviderLinked = true;
       break;
@@ -1761,7 +1760,6 @@ function revokeAppleTokenAndDeleteUser() {
   provider.addScope('name');
 
   const auth = getAuth();
-  // TODO: Make this pop up or redirect. Can't use signInWithPopupRedirect because we need `then`.
   signInWithPopup(auth, provider).then(result => {
     // The signed-in user info.
     const user = result.user;

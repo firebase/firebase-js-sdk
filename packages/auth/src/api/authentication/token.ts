@@ -32,10 +32,6 @@ import { FetchProvider } from '../../core/util/fetch_provider';
 import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 
-export const enum Path {
-  TOKEN = '/v1/token'
-}
-
 export const enum TokenType {
   UNSPECIFIED = 'TOKEN_TYPE_UNSPECIFIED',
   REFRESH_TOKEN = 'REFRESH_TOKEN',
@@ -83,7 +79,7 @@ export async function requestStsToken(
         const url = _getFinalTarget(
           auth,
           tokenApiHost,
-          Path.TOKEN,
+          Endpoint.TOKEN,
           `key=${apiKey}`
         );
 

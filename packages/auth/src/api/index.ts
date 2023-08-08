@@ -69,6 +69,7 @@ export const enum Endpoint {
   GET_PROJECT_CONFIG = '/v1/projects',
   GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
   GET_PASSWORD_POLICY = '/v2/passwordPolicy',
+  TOKEN = '/v1/token',
   REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
