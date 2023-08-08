@@ -41,7 +41,7 @@ If you have a production issue, please [contact Firebase support][support] who w
 
 Before you submit your issue, try searching [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] for issues similar to your own. You can help us to maximize the effort we spend fixing issues, and adding new features, by not reporting duplicate issues. 
 
-If you encounter an issue that appears to be a bug that has not been reported before, please open a new issue. When filling out the new issue report form, be sure to include as much information as possible, such as reproduction steps, the error message you received, and any screenshots or other relevant data. The more context you can provide, the better we will be able to understand the issue, route it to the appropriate team, and provide you with the help you need.
+If you encounter an issue that appears to be a bug that has not been reported before, please [open a new issue in the repo](https://github.com/firebase/firebase-js-sdk/issues/new/choose). When filling out the new issue report form, be sure to include as much information as possible, such as reproduction steps, the error message you received, and any screenshots or other relevant data. The more context you can provide the better we will be able to understand the issue, route it to the appropriate team, and provide you with the help you need.
 
 Also as a great rule of thumb:
 
@@ -95,27 +95,41 @@ when/if they feel it is good to go.
 That's it! Thank you for your contribution!
 
 #### Adding changeset to PR
-The repository uses changesets to associate PR contributions with major and minor version releases.
-If your change is a feature or a behavioral change (either of which should correspond to a version
-bump) then you will need to generate a Changeset in your PR to track the change.
+The repository uses changesets to associate PR contributions with major and minor version releases
+adn patch releases. If your change is a feature or a behavioral change (either of which should
+correspond to a version bump) then you will need to generate a changeset in your PR to track the
+change.
 
 Start the changeset creation process by running the following command in the base directory of the
 repository:
 
-    ```shell
-    yarn changeset
-    ```
+```shell
+yarn changeset
+```
 
 You will be asked to create a description (here's an
-[example]((https://github.com/firebase/firebase-js-sdk/pull/3284#issuecomment-649718617)), select
-which Firebase product packages you’ve updated, and if the change is a major, minor or simply a
-patch revision, where:
+[example]((https://github.com/firebase/firebase-js-sdk/pull/3284#issuecomment-649718617)). You
+should include the version bump for your package as well as the description for the change. Valid
+version bump types are major, minor or patch, where:
 
-[Example message]).
  * a major version is an incompatible API change
  * a minor version is a backwards compatible API change
  * a patch version is a backwards compatible bug fix or any change that does not affect the API. A
    refactor, for example.
+
+Please always include the firebase package with the same version bump type as your package. This is
+to ensure that the version of the firebase package will be bumped correctly, 
+
+ For example,
+
+```
+---
+"@firebase/storage": minor
+"firebase": minor
+---
+
+This is a test.
+```
 
 You do not need to create a Changeset for the following changes:
 
@@ -140,13 +154,13 @@ If any pages are added or removed by your change (by adding or removing a class 
 # Formatting Code
 A Formatting Check CI failure in your PR indicates that the code does not follow the repo's
 formatting guidelines. In your local build environment, please run the code formatting tool locally
-by executing the command $ yarn format. Once the code is formatted, commit the changes and push your
+by executing the command `yarn format`. Once the code is formatted, commit the changes and push your
 branch. The push should cause the CI to re-check your PR's changes.
 
 ### Generating Documentation HTML Files
 
 If the Doc Change Check fails in your PR, it indicates that the documentation has not been generated
-correctly for the changes. In your local build environment, please run $ yarn docgen devsite to
+correctly for the changes. In your local build environment, please run `yarn docgen devsite` to
 generate the documentation locally. Once the documentation has been generated, commit the changes
 and push your branch. The push should cause the CI to re-check your PR's changes.
 
