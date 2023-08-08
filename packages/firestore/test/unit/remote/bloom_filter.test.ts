@@ -199,14 +199,17 @@ describe('BloomFilter', () => {
       );
     });
 
-    // Skip the large sized golden tests below as they are flaky on CI.
+    // Skip large sized golden tests as they slow down unit test runs without significantly
+    // improving coverage compared to other golden tests.
     // These tests can be run manually if needed.
+    // eslint-disable-next-line no-restricted-properties
     it.skip('mightContain result for 50000 documents with 1 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
         TEST_DATA.count50000Rate1TestData,
         TEST_DATA.count50000Rate1TestResult
       );
     });
+    // eslint-disable-next-line no-restricted-properties
     it.skip(
       'mightContain result for 50000 documents with 0.01 false positive rate',
       () => {
@@ -217,6 +220,7 @@ describe('BloomFilter', () => {
         // Extend the default timeout to 10000ms
       }
     ).timeout(10_000);
+    // eslint-disable-next-line no-restricted-properties
     it.skip(
       'mightContain result for 50000 documents with 0.0001 false positive rate',
       () => {
