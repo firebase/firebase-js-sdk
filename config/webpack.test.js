@@ -104,7 +104,7 @@ module.exports = {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     mainFields: ['browser', 'module', 'main'],
     extensions: ['.js', '.ts'],
-    symlinks: false
+    symlinks: true
   },
   plugins: [
     new webpack.NormalModuleReplacementPlugin(PLATFORM_RE, resource => {
