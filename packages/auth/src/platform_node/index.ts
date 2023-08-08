@@ -101,6 +101,7 @@ export const linkWithRedirect = fail;
 export const reauthenticateWithRedirect = fail;
 export const getRedirectResult = fail;
 export const RecaptchaVerifier = FailClass;
+export const initializeRecaptchaConfig = fail;
 export class PhoneMultiFactorGenerator {
   static assertion(): unknown {
     throw NOT_AVAILABLE_ERROR;
