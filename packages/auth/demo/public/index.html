@@ -252,8 +252,38 @@
               <form class="form form-bordered no-submit">
                 <input type="email" name="email" id="signup-email"
                        class="form-control" placeholder="Email" />
-                <input type="password" name="password" id="signup-password"
+                <div class="input-group">
+                  <input type="password" name="password" id="signup-password"
                        class="form-control" placeholder="Password" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="signup-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="signup-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="signup-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-meets-min-password-length">
+                    Password must be at least <span id="signup-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-meets-max-password-length">
+                    Password must be at most <span id="signup-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="signup-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="signup-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-primary"
                         id="sign-up-with-email-and-password">Sign Up</button>
               </form>
@@ -264,8 +294,41 @@
               <form class="form form-bordered no-submit">
                 <input type="email" name="email" id="signin-email"
                        class="form-control" placeholder="Email" />
-                <input type="password" name="password" id="signin-password"
+                <div class="input-group">
+                  <input type="password" name="password" id="signin-password"
                        class="form-control" placeholder="Password" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="signin-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="signin-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="signin-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced.
+                  </div>
+                  <div class="list-group-item list-group-item-warning" id="signin-password-validation-force-upgrade">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Existing passwords must meet these requirements.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-meets-min-password-length">
+                    Password must be at least <span id="signin-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-meets-max-password-length">
+                    Password must be at most <span id="signin-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="signin-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="signin-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-primary"
                         id="sign-in-with-email-and-password">
                   Sign In with Email and Password
@@ -355,9 +418,39 @@
                 <input type="text" id="password-reset-code"
                        placeholder="Password Reset Code"
                        class="form-control" />
-                <input type="password" id="password-reset-password"
+                <div class="input-group">
+                  <input type="password" id="password-reset-password"
                        placeholder="New Password"
-                       class="form-control" />
+                       class="form-control input-group" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="password-reset-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="password-reset-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="password-reset-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-meets-min-password-length">
+                    Password must be at least <span id="password-reset-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-meets-max-password-length">
+                    Password must be at most <span id="password-reset-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="password-reset-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="password-reset-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-default"
                         id="verify-password-reset-code">
                   Verify Password Reset Code
@@ -367,6 +460,7 @@
                   Confirm Password Change
                 </button>
               </form>
+
               <!-- Fetch Sign In Methods -->
               <div class="group">Fetch Sign In Methods</div>
               <form class="form form-bordered no-submit">
