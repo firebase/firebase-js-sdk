@@ -63,7 +63,11 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
-import { TokenType, revokeToken } from '../../api/authentication/token';
+import {
+  RevokeTokenRequest,
+  TokenType,
+  revokeToken
+} from '../../api/authentication/token';
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
@@ -522,12 +526,16 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (this.currentUser) {
       const idToken = await this.currentUser.getIdToken();
       // Generalize this to accept other providers once supported.
-      const response = await revokeToken(this, {
-        provider_id: 'apple.com',
+      const request: RevokeTokenRequest = {
+        providerId: 'apple.com',
         tokenType: TokenType.ACCESS_TOKEN,
         token: token,
         idToken: idToken
-      });
+      };
+      if (this.tenantId != null) {
+        request.tenantId = this.tenantId;
+      }
+      await revokeToken(this, request);
     }
   }
 

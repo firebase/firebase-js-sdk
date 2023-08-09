@@ -52,12 +52,11 @@ export interface RequestStsTokenResponse {
 }
 
 export interface RevokeTokenRequest {
-  provider_id: string;
+  providerId: string;
   tokenType: TokenType;
   token: string;
   idToken: string;
   tenantId?: string;
-  redirectUri?: string;
 }
 
 export interface RevokeTokenResponse {}

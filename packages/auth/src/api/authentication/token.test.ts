@@ -147,7 +147,7 @@ describe('requestStsToken', () => {
 
 describe('api/authentication/revokeToken', () => {
   const request = {
-    provider_id: 'provider-id',
+    providerId: 'provider-id',
     tokenType: TokenType.ACCESS_TOKEN,
     token: 'token',
     idToken: 'id-token'
