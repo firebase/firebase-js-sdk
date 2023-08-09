@@ -136,7 +136,7 @@ export async function _performApiRequest<T, V>(
     return FetchProvider.fetch()(
       _getFinalTarget(
         auth,
-        'staging-identitytoolkit.sandbox.googleapis.com',
+        auth.config.apiHost,
         path,
         query
       ),

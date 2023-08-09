@@ -425,7 +425,49 @@ describe('platform_browser/strategies/phone', () => {
         });
       });
     });
+    context('WebOTP', () => {
+      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
+        const idTokenResponse: IdTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: IdTokenResponseKind.CreateAuthUri
+        };
 
+        // This endpoint is called from within the callback, in
+        // signInWithCredential
+        const signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+
+        sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+          const otpCred: OTPCredential = {
+            id: 'uid',
+            type: 'signIn',
+            code: '6789'
+          };
+          return Promise.resolve(otpCred);
+        });
+
+        const userCred = await _verifyPhoneNumber(
+          auth,
+          'number',
+          verifier,
+          10
+        );
+        expect(userCred.user.uid).to.eq('uid');
+        expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+        expect(signInEndpoint.calls[0].request).to.eql({
+          sessionInfo: 'session-info',
+          code: '6789'
+        });
+      });
+    });
     it('throws if the verifier does not return a string', async () => {
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
       await expect(

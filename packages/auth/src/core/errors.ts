@@ -382,7 +382,17 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
       'The reCAPTCHA version sent to the backend is invalid.',
-    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 'WEB OTP autofill failed'
+    [AuthErrorCode.WEB_OTP_NOT_RETRIEVED]: 
+    'Web OTP code is not retrieved successfully',
+    /** 
+       * This is the default error message.
+       * This message is customized to one of the following depending on the type of error:
+       *  `Web OTP code is not fetched before timeout`
+       *  `The auto-retrieved credential or code is not defined`
+       *  `Web OTP get method failed to retrieve the code`
+       *  `Web OTP code received is incorrect`
+       *  `Web OTP is not supported`
+    */
   };
 }
 
