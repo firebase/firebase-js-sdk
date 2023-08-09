@@ -168,7 +168,7 @@ describe('api/authentication/revokeToken', () => {
     const mock = mockEndpoint(Endpoint.REVOKE_TOKEN, {});
 
     auth.tenantId = 'tenant-id';
-    const response = await revokeToken(auth, request);
+    await revokeToken(auth, request);
     // Currently, backend returns an empty response.
     expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
     expect(mock.calls[0].method).to.eq('POST');

@@ -529,8 +529,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       const request: RevokeTokenRequest = {
         providerId: 'apple.com',
         tokenType: TokenType.ACCESS_TOKEN,
-        token: token,
-        idToken: idToken
+        token,
+        idToken
       };
       if (this.tenantId != null) {
         request.tenantId = this.tenantId;
