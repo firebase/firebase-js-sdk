@@ -245,6 +245,14 @@ export function signOut(auth: Auth): Promise<void> {
   return getModularInstance(auth).signOut();
 }
 
+/**
+ * Revokes the given access token. Currently only supports Apple OAuth Access token.
+ */
+export function revokeAccessToken(auth: Auth, token: string): Promise<void> {
+  const authInternal = _castAuth(auth);
+  return authInternal.revokeAccessToken(token);
+}
+
 export { initializeAuth } from './auth/initialize';
 export { connectAuthEmulator } from './auth/emulator';
 
