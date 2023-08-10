@@ -22,8 +22,7 @@ export default {
   input: ['test/integration/webdriver/static/index.js'],
   output: {
     file: 'test/integration/webdriver/static/dist/bundle.js',
-    format: 'esm',
-    sourcemap: false
+    format: 'esm'
   },
-  plugins: [nodeResolve(), typescript({ sourceMap: true })]
+  plugins: [nodeResolve()]
 };

@@ -115,7 +115,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
             const myErr = _errorWithCustomMessage(
               auth,
               AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
-              `the auto-retrieved credential or code is not defined`,
+              `the auto-retrieved credential or code is not defined`
             ) as WebOTPError;
             myErr.confirmationResult = this;
             throw myErr;

@@ -454,12 +454,7 @@ describe('platform_browser/strategies/phone', () => {
           return Promise.resolve(otpCred);
         });
 
-        const userCred = await _verifyPhoneNumber(
-          auth,
-          'number',
-          verifier,
-          10
-        );
+        const userCred = await _verifyPhoneNumber(auth, 'number', verifier, 10);
         expect(userCred.user.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
         expect(signInEndpoint.calls[0].request).to.eql({
