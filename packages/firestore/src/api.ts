@@ -229,4 +229,8 @@ export {
   enablePersistentCacheIndexAutoCreation as _enablePersistentCacheIndexAutoCreation,
   disablePersistentCacheIndexAutoCreation as _disablePersistentCacheIndexAutoCreation
 } from './api/persistent_cache_index_manager';
-export { TestingHooks as _TestingHooks } from './util/testing_hooks';
+export {
+  ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback,
+  TestingHooks as _TestingHooks
+} from './util/testing_hooks';
+export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';

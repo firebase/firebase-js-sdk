@@ -16,6 +16,7 @@
  */
 
 import { ensureFirestoreConfigured, Firestore } from '../api/database';
+import { Unsubscribe } from '../api/reference_impl';
 import { TestingHooks as FirestoreClientTestingHooks } from '../core/firestore_client';
 import { Query } from '../lite-api/reference';
 import { IndexType } from '../local/index_manager';
@@ -28,8 +29,11 @@ import {
 } from './testing_hooks_spi';
 
 /**
- * Test-only hooks into the internals of the SDK for exclusive use by
- * Firestore's integration tests.
+ * Testing hooks for use by Firestore's integration test suite to reach into the
+ * SDK internals to validate logic and behavior that is not visible from the
+ * public API surface.
+ *
+ * @internal
  */
 export class TestingHooks {
   private constructor() {
@@ -52,7 +56,7 @@ export class TestingHooks {
    */
   static onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
-  ): Unregister {
+  ): Unsubscribe {
     return TestingHooksSpiImpl.instance.onExistenceFilterMismatch(callback);
   }
 
@@ -75,7 +79,7 @@ export class TestingHooks {
    */
   static onPersistentCacheIndexAutoCreationToggle(
     callback: PersistentCacheIndexAutoCreationToggleCallback
-  ): Unregister {
+  ): Unsubscribe {
     return TestingHooksSpiImpl.instance.onPersistentCacheIndexAutoCreationToggle(
       callback
     );
@@ -117,10 +121,11 @@ export class TestingHooks {
 /**
  * The signature of callbacks registered with
  * `TestingUtils.onExistenceFilterMismatch()`.
+ * @internal
  */
-export type ExistenceFilterMismatchCallback = (
-  info: ExistenceFilterMismatchInfo
-) => void;
+export interface ExistenceFilterMismatchCallback {
+  (info: ExistenceFilterMismatchInfo): void;
+}
 
 /**
  * The signature of callbacks registered with
@@ -132,18 +137,12 @@ export type ExistenceFilterMismatchCallback = (
  * be rejected if it fails.
  *
  * The return value of the callback, if any, is ignored.
- */
-export type PersistentCacheIndexAutoCreationToggleCallback = (
-  promise: Promise<void>
-) => unknown;
-
-/**
- * A function that, when invoked, unregisters something that was registered.
  *
- * Only the *first* invocation of this function has any effect; subsequent
- * invocations do nothing.
+ * @internal
  */
-export type Unregister = () => void;
+export interface PersistentCacheIndexAutoCreationToggleCallback {
+  (promise: Promise<void>): unknown;
+}
 
 /**
  * The implementation of `TestingHooksSpi`.
@@ -177,7 +176,7 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
 
   onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
-  ): Unregister {
+  ): Unsubscribe {
     const id = Symbol();
     const callbacks = this.existenceFilterMismatchCallbacksById;
     callbacks.set(id, callback);
@@ -192,7 +191,7 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
 
   onPersistentCacheIndexAutoCreationToggle(
     callback: PersistentCacheIndexAutoCreationToggleCallback
-  ): Unregister {
+  ): Unsubscribe {
     const id = Symbol();
     const callbacks = this.persistentCacheIndexAutoCreationToggleCallbacks;
     callbacks.set(id, callback);
