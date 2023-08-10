@@ -22,6 +22,7 @@ import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
+import { AuthErrorCodes } from '../../core';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { makeJWT } from '../../../test/helpers/jwt';
@@ -121,46 +122,60 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('UserCredential', () => {
-      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
-        const idTokenResponse: IdTokenResponse = {
-          idToken: 'my-id-token',
-          refreshToken: 'my-refresh-token',
-          expiresIn: '1234',
-          localId: 'uid',
-          kind: IdTokenResponseKind.CreateAuthUri
-        };
-
-        // This endpoint is called from within the callback, in
-        // signInWithCredential
-        const signInEndpoint = mockEndpoint(
-          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-          idTokenResponse
-        );
-        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-          users: [{ localId: 'uid' }]
-        });
-
-        sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
-          const otpCred: OTPCredential = {
-            id: 'uid',
-            type: 'signIn',
-            code: '6789'
-          };
-          return Promise.resolve(otpCred);
-        });
-
-        const userCred = await signInWithPhoneNumber(
+      it('fails to sign in using webOTP if browser does not support webOTP', async () => {        
+        await expect(signInWithPhoneNumber(
           auth,
           'number',
           verifier,
           10
+        )).to.be.rejectedWith(
+          AuthErrorCodes.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP is not supported`
         );
-        expect(userCred.user.uid).to.eq('uid');
-        expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-        expect(signInEndpoint.calls[0].request).to.eql({
-          sessionInfo: 'session-info',
-          code: '6789'
-        });
+      })
+
+      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
+        if (('OTPCredential' in window)) {
+          const idTokenResponse: IdTokenResponse = {
+            idToken: 'my-id-token',
+            refreshToken: 'my-refresh-token',
+            expiresIn: '1234',
+            localId: 'uid',
+            kind: IdTokenResponseKind.CreateAuthUri
+          };
+  
+          // This endpoint is called from within the callback, in
+          // signInWithCredential
+          const signInEndpoint = mockEndpoint(
+            Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+            idTokenResponse
+          );
+          mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+            users: [{ localId: 'uid' }]
+          });
+  
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            const otpCred: OTPCredential = {
+              id: 'uid',
+              type: 'signIn',
+              code: '6789'
+            };
+            return Promise.resolve(otpCred);
+          });
+  
+          const userCred = await signInWithPhoneNumber(
+            auth,
+            'number',
+            verifier,
+            10
+          );
+          expect(userCred.user.uid).to.eq('uid');
+          expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+          expect(signInEndpoint.calls[0].request).to.eql({
+            sessionInfo: 'session-info',
+            code: '6789'
+          });
+        }
       });
     });
   });
@@ -426,7 +441,7 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
     context('WebOTP', () => {
-      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
+      it('finishes the sign in flow without calling #confirm if the browser support webOTP and webOTP autofill is used', async () => {
         const idTokenResponse: IdTokenResponse = {
           idToken: 'my-id-token',
           refreshToken: 'my-refresh-token',
@@ -453,7 +468,7 @@ describe('platform_browser/strategies/phone', () => {
           };
           return Promise.resolve(otpCred);
         });
-
+        
         const userCred = await _verifyPhoneNumber(auth, 'number', verifier, 10);
         expect(userCred.user.uid).to.eq('uid');
         expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -461,6 +476,7 @@ describe('platform_browser/strategies/phone', () => {
           sessionInfo: 'session-info',
           code: '6789'
         });
+        
       });
     });
     it('throws if the verifier does not return a string', async () => {
