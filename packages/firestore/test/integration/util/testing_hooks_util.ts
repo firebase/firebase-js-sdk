@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+
 import {
+  DocumentData,
   DocumentReference,
+  Query,
   _TestingHooks as TestingHooks
 } from './firebase_export';
 
@@ -121,4 +125,62 @@ function createExistenceFilterMismatchInfoFrom(
   }
 
   return info;
+}
+
+/**
+ * Verifies than an invocation of `enablePersistentCacheIndexAutoCreation()` or
+ * `disablePersistentCacheIndexAutoCreation()` made during the execution of the
+ * given callback succeeds.
+ *
+ * @param callback The callback to invoke; this callback must invoke exactly one
+ * of `enablePersistentCacheIndexAutoCreation()` or
+ * `disablePersistentCacheIndexAutoCreation()` exactly once; this callback is
+ * called synchronously by this function, and is called exactly once.
+ *
+ * @return a promise that is fulfilled when the asynchronous work started by
+ * `enablePersistentCacheIndexAutoCreation()` or
+ * `disablePersistentCacheIndexAutoCreation()` completes successfully, or is
+ * rejected
+ */
+export function verifyPersistentCacheIndexAutoCreationToggleSucceedsDuring(
+  callback: () => void
+): Promise<void> {
+  const promises: Array<Promise<void>> = [];
+  const onTogglePersistentCacheIndexAutoCreationCallback = (
+    promise: Promise<void>
+  ): void => {
+    promises.push(promise);
+  };
+
+  const unregister =
+    TestingHooks.getOrCreateInstance().onTogglePersistentCacheIndexAutoCreation(
+      onTogglePersistentCacheIndexAutoCreationCallback
+    );
+
+  try {
+    callback();
+  } finally {
+    unregister();
+  }
+
+  expect(
+    promises,
+    'exactly one invocation of enablePersistentCacheIndexAutoCreation() or ' +
+      'disablePersistentCacheIndexAutoCreation() should be made by the callback'
+  ).to.have.length(1);
+
+  return promises[0];
+}
+
+/**
+ * Determines the type of client-side index that will be used when executing the
+ * given query against the local cache.
+ */
+export function getQueryIndexType<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<'full' | 'partial' | 'none'> {
+  return TestingHooks.getOrCreateInstance().getQueryIndexType(query);
 }

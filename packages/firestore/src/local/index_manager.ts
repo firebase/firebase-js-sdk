@@ -41,6 +41,19 @@ export const enum IndexType {
   FULL
 }
 
+export function displayNameForIndexType(indexType: IndexType): string {
+  switch (indexType) {
+    case IndexType.NONE:
+      return 'NONE';
+    case IndexType.PARTIAL:
+      return 'PARTIAL';
+    case IndexType.FULL:
+      return 'FULL';
+    default:
+      return `[unknown IndexType: ${indexType}]`;
+  }
+}
+
 /**
  * Represents a set of indexes that are used to execute queries efficiently.
  *
@@ -90,6 +103,12 @@ export interface IndexManager {
   deleteFieldIndex(
     transaction: PersistenceTransaction,
     index: FieldIndex
+  ): PersistencePromise<void>;
+
+  /** Creates a full matched field index which serves the given target. */
+  createTargetIndexes(
+    transaction: PersistenceTransaction,
+    target: Target
   ): PersistencePromise<void>;
 
   /**

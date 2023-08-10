@@ -223,4 +223,10 @@ export type {
 } from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
+export {
+  PersistentCacheIndexManager as _PersistentCacheIndexManager,
+  getPersistentCacheIndexManager as _getPersistentCacheIndexManager,
+  enablePersistentCacheIndexAutoCreation as _enablePersistentCacheIndexAutoCreation,
+  disablePersistentCacheIndexAutoCreation as _disablePersistentCacheIndexAutoCreation
+} from './api/persistent_cache_index_manager';
 export { TestingHooks as _TestingHooks } from './util/testing_hooks';

@@ -15,6 +15,13 @@
  * limitations under the License.
  */
 
+import { ensureFirestoreConfigured, Firestore } from '../api/database';
+import { TestingHooks as FirestoreClientTestingHooks } from '../core/firestore_client';
+import { Query } from '../lite-api/reference';
+import { IndexType } from '../local/index_manager';
+
+import { cast } from './input_validation';
+
 /**
  * Manages "testing hooks", hooks into the internals of the SDK to verify
  * internal state and events during integration tests. Do not use this class
@@ -35,6 +42,11 @@ export class TestingHooks {
   private readonly onExistenceFilterMismatchCallbacks = new Map<
     Symbol,
     ExistenceFilterMismatchCallback
+  >();
+
+  private readonly onTogglePersistentCacheIndexAutoCreationCallbacks = new Map<
+    Symbol,
+    TogglePersistentCacheIndexAutoCreationCallback
   >();
 
   private constructor() {}
@@ -86,6 +98,75 @@ export class TestingHooks {
    */
   notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
     this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(info));
+  }
+
+  /**
+   * Registers a callback to be notified when
+   * `enablePersistentCacheIndexAutoCreation()` or
+   * `disablePersistentCacheIndexAutoCreation()` is invoked.
+   *
+   * The relative order in which callbacks are notified is unspecified; do not
+   * rely on any particular ordering. If a given callback is registered multiple
+   * times then it will be notified multiple times, once per registration.
+   *
+   * @param callback the callback to invoke when
+   * `enablePersistentCacheIndexAutoCreation()` or
+   * `disablePersistentCacheIndexAutoCreation()` is invoked.
+   *
+   * @return a function that, when called, unregisters the given callback; only
+   * the first invocation of the returned function does anything; all subsequent
+   * invocations do nothing.
+   */
+  onTogglePersistentCacheIndexAutoCreation(
+    callback: TogglePersistentCacheIndexAutoCreationCallback
+  ): () => void {
+    const key = Symbol();
+    this.onTogglePersistentCacheIndexAutoCreationCallbacks.set(key, callback);
+    return () =>
+      this.onTogglePersistentCacheIndexAutoCreationCallbacks.delete(key);
+  }
+
+  /**
+   * Invokes all currently-registered
+   * `onTogglePersistentCacheIndexAutoCreation` callbacks.
+   * @param promise The argument to specify to the callback.
+   */
+  notifyPersistentCacheIndexAutoCreationToggled(promise: Promise<void>): void {
+    this.onTogglePersistentCacheIndexAutoCreationCallbacks.forEach(callback =>
+      callback(promise)
+    );
+  }
+
+  /**
+   * Determines the type of client-side index that will be used when executing the
+   * given query against the local cache.
+   *
+   * @param query The query whose client-side index type to get; it is typed as
+   * `unknown` so that it is usable in the minified, bundled code, but it should
+   * be a `Query` object.
+   */
+  async getQueryIndexType(
+    query: unknown
+  ): Promise<'full' | 'partial' | 'none'> {
+    const query_ = cast<Query>(query as Query, Query);
+    const firestore = cast(query_.firestore, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
+    const firestoreClientTestingHooks = new FirestoreClientTestingHooks(client);
+
+    const indexType = await firestoreClientTestingHooks.getQueryIndexType(
+      query_._query
+    );
+
+    switch (indexType) {
+      case IndexType.NONE:
+        return 'none';
+      case IndexType.PARTIAL:
+        return 'partial';
+      case IndexType.FULL:
+        return 'full';
+      default:
+        throw new Error(`unrecognized IndexType: ${indexType}`);
+    }
   }
 }
 
@@ -152,6 +233,19 @@ export interface ExistenceFilterMismatchInfo {
  */
 export type ExistenceFilterMismatchCallback = (
   info: ExistenceFilterMismatchInfo
+) => void;
+
+/**
+ * The signature of callbacks registered with
+ * `TestingUtils.onTogglePersistentCacheIndexAutoCreation()`.
+ *
+ * The `promise` argument will be fulfilled when the asynchronous work started
+ * by the call to `enablePersistentCacheIndexAutoCreation()` or
+ * `disablePersistentCacheIndexAutoCreation()` completes successfully, or will
+ * be rejected if it fails.
+ */
+export type TogglePersistentCacheIndexAutoCreationCallback = (
+  promise: Promise<void>
 ) => void;
 
 /** The global singleton instance of `TestingHooks`. */

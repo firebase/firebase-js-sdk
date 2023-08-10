@@ -70,7 +70,7 @@ import { BATCHID_UNKNOWN } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
-import { IndexManager } from './index_manager';
+import { IndexManager, IndexType } from './index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
@@ -1085,7 +1085,7 @@ export function localStoreExecuteQuery(
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
-    'readonly',
+    'readwrite', // Use readwrite instead of readonly so indexes can be created
     txn => {
       return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
         .next(targetData => {
@@ -1525,4 +1525,42 @@ export async function localStoreConfigureFieldIndexes(
         )
         .next(() => PersistencePromise.waitFor(promises))
   );
+}
+
+export function localStoreSetIndexAutoCreationEnabled(
+  localStore: LocalStore,
+  enabled: boolean
+): void {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  localStoreImpl.queryEngine.indexAutoCreationEnabled = enabled;
+}
+
+/**
+ * Test-only hooks into the SDK for use exclusively by integration tests.
+ */
+export class TestingHooks {
+  private readonly localStoreImpl: LocalStoreImpl;
+
+  constructor(localStore: LocalStore) {
+    this.localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  }
+
+  setIndexAutoCreationMinCollectionSize(newValue: number): void {
+    this.localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
+      newValue;
+  }
+
+  setRelativeIndexReadCostPerDocument(newValue: number): void {
+    this.localStoreImpl.queryEngine.relativeIndexReadCostPerDocument = newValue;
+  }
+
+  getQueryIndexType(query: Query): Promise<IndexType> {
+    const target = queryToTarget(query);
+    const indexManager = this.localStoreImpl.indexManager;
+    return this.localStoreImpl.persistence.runTransaction(
+      'local_store_impl TestingHooks getQueryIndexType',
+      'readonly',
+      txn => indexManager.getIndexType(txn, target)
+    );
+  }
 }

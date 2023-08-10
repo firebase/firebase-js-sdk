@@ -23,13 +23,16 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { IndexType } from '../local/index_manager';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument
+  localStoreReadDocument,
+  localStoreSetIndexAutoCreationEnabled,
+  TestingHooks as LocalStoreTestingHooks
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -827,4 +830,31 @@ export function firestoreClientSetIndexConfiguration(
       indexes
     );
   });
+}
+
+export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+  client: FirestoreClient,
+  enabled: boolean
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreSetIndexAutoCreationEnabled(
+      await getLocalStore(client),
+      enabled
+    );
+  });
+}
+
+/**
+ * Test-only hooks into the SDK for use exclusively by integration tests.
+ */
+export class TestingHooks {
+  constructor(private client: FirestoreClient) {}
+
+  getQueryIndexType(query: Query): Promise<IndexType> {
+    return this.client.asyncQueue.enqueue(async () => {
+      const localStore = await getLocalStore(this.client);
+      const localStoreTestingHooks = new LocalStoreTestingHooks(localStore);
+      return localStoreTestingHooks.getQueryIndexType(query);
+    });
+  }
 }
