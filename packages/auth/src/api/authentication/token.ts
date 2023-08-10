@@ -33,7 +33,6 @@ import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 
 export const enum TokenType {
-  UNSPECIFIED = 'TOKEN_TYPE_UNSPECIFIED',
   REFRESH_TOKEN = 'REFRESH_TOKEN',
   ACCESS_TOKEN = 'ACCESS_TOKEN'
 }
