@@ -38,10 +38,9 @@ export async function captureExistenceFilterMismatches<T>(
     results.push(createExistenceFilterMismatchInfoFrom(info));
   };
 
-  const unregister =
-    TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
-      onExistenceFilterMismatchCallback
-    );
+  const unregister = TestingHooks.onExistenceFilterMismatch(
+    onExistenceFilterMismatchCallback
+  );
 
   let callbackResult: T;
   try {
@@ -55,9 +54,6 @@ export async function captureExistenceFilterMismatches<T>(
 
 /**
  * A copy of `ExistenceFilterMismatchInfo` as defined in `testing_hooks.ts`.
- *
- * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
- * for the meaning of these values.
  *
  * TODO: Delete this "interface" definition and instead use the one from
  * testing_hooks.ts. I tried to do this but couldn't figure out how to get it to
@@ -80,9 +76,6 @@ interface ExistenceFilterMismatchInfoInternal {
 /**
  * Information about an existence filter mismatch, captured during an invocation
  * of `captureExistenceFilterMismatches()`.
- *
- * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
- * for the meaning of these values.
  */
 export interface ExistenceFilterMismatchInfo {
   localCacheCount: number;
