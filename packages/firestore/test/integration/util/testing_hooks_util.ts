@@ -56,6 +56,9 @@ export async function captureExistenceFilterMismatches<T>(
 /**
  * Information about an existence filter mismatch, captured during an invocation
  * of `captureExistenceFilterMismatches()`.
+ *
+ * See the documentation of `ExistenceFilterMismatchInfo` in
+ * `testing_hooks_spi.ts` for the meaning of these values.
  */
 export interface ExistenceFilterMismatchInfo {
   localCacheCount: number;
