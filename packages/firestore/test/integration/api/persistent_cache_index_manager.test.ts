@@ -161,7 +161,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
   });
 
   describe('Query execution', () => {
-    it('Indexing is disabled by default', () =>
+    it('Auto-indexing is disabled by default', () =>
       testIndexesGetAutoCreated({
         documentCounts: { matching: 1, notMatching: 100 },
         expectedIndexAutoCreated: false,
