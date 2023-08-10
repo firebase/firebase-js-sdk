@@ -725,6 +725,9 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
 // @public
 export function reload(user: User): Promise<void>;
 
+// @public
+export function revokeAccessToken(auth: Auth, token: string): Promise<void>;
+
 // Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.d.ts
 //
 // @public
