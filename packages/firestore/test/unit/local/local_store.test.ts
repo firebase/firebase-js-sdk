@@ -355,14 +355,15 @@ class LocalStoreTester {
       if (config.enabled !== undefined) {
         localStoreSetIndexAutoCreationEnabled(this.localStore, config.enabled);
       }
-      const testingHooks = new LocalStoreTestingHooks(this.localStore);
       if (config.autoCreationMinCollectionSize !== undefined) {
-        testingHooks.setIndexAutoCreationMinCollectionSize(
+        LocalStoreTestingHooks.setIndexAutoCreationMinCollectionSize(
+          this.localStore,
           config.autoCreationMinCollectionSize
         );
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
-        testingHooks.setRelativeIndexReadCostPerDocument(
+        LocalStoreTestingHooks.setRelativeIndexReadCostPerDocument(
+          this.localStore,
           config.relativeIndexReadCostPerDocument
         );
       }

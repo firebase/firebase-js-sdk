@@ -848,13 +848,17 @@ export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
  * Test-only hooks into the SDK for use exclusively by integration tests.
  */
 export class TestingHooks {
-  constructor(private client: FirestoreClient) {}
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
 
-  getQueryIndexType(query: Query): Promise<IndexType> {
-    return this.client.asyncQueue.enqueue(async () => {
-      const localStore = await getLocalStore(this.client);
-      const localStoreTestingHooks = new LocalStoreTestingHooks(localStore);
-      return localStoreTestingHooks.getQueryIndexType(query);
+  static getQueryIndexType(
+    client: FirestoreClient,
+    query: Query
+  ): Promise<IndexType> {
+    return client.asyncQueue.enqueue(async () => {
+      const localStore = await getLocalStore(client);
+      return LocalStoreTestingHooks.getQueryIndexType(localStore, query);
     });
   }
 }

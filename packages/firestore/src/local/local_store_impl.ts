@@ -1539,28 +1539,36 @@ export function localStoreSetIndexAutoCreationEnabled(
  * Test-only hooks into the SDK for use exclusively by integration tests.
  */
 export class TestingHooks {
-  private readonly localStoreImpl: LocalStoreImpl;
-
-  constructor(localStore: LocalStore) {
-    this.localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  private constructor() {
+    throw new Error('creating instances is not supported');
   }
 
-  setIndexAutoCreationMinCollectionSize(newValue: number): void {
-    this.localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
-      newValue;
+  static setIndexAutoCreationMinCollectionSize(
+    localStore: LocalStore,
+    newValue: number
+  ): void {
+    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+    localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize = newValue;
   }
 
-  setRelativeIndexReadCostPerDocument(newValue: number): void {
-    this.localStoreImpl.queryEngine.relativeIndexReadCostPerDocument = newValue;
+  static setRelativeIndexReadCostPerDocument(
+    localStore: LocalStore,
+    newValue: number
+  ): void {
+    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+    localStoreImpl.queryEngine.relativeIndexReadCostPerDocument = newValue;
   }
 
-  getQueryIndexType(query: Query): Promise<IndexType> {
+  static getQueryIndexType(
+    localStore: LocalStore,
+    query: Query
+  ): Promise<IndexType> {
+    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
     const target = queryToTarget(query);
-    const indexManager = this.localStoreImpl.indexManager;
-    return this.localStoreImpl.persistence.runTransaction(
+    return localStoreImpl.persistence.runTransaction(
       'local_store_impl TestingHooks getQueryIndexType',
       'readonly',
-      txn => indexManager.getIndexType(txn, target)
+      txn => localStoreImpl.indexManager.getIndexType(txn, target)
     );
   }
 }

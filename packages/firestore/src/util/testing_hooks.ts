@@ -21,53 +21,19 @@ import { Query } from '../lite-api/reference';
 import { IndexType } from '../local/index_manager';
 
 import { cast } from './input_validation';
+import {
+  setTestingHooksSpi,
+  ExistenceFilterMismatchInfo,
+  TestingHooksSpi
+} from './testing_hooks_spi';
 
 /**
- * Manages "testing hooks", hooks into the internals of the SDK to verify
- * internal state and events during integration tests. Do not use this class
- * except for testing purposes.
- *
- * There are two ways to retrieve the global singleton instance of this class:
- * 1. The `instance` property, which returns null if the global singleton
- *      instance has not been created. Use this property if the caller should
- *      "do nothing" if there are no testing hooks registered, such as when
- *      delivering an event to notify registered callbacks.
- * 2. The `getOrCreateInstance()` method, which creates the global singleton
- *      instance if it has not been created. Use this method if the instance is
- *      needed to, for example, register a callback.
- *
- * @internal
+ * Test-only hooks into the internals of the SDK for exclusive use by
+ * Firestore's integration tests.
  */
 export class TestingHooks {
-  private readonly onExistenceFilterMismatchCallbacks = new Map<
-    Symbol,
-    ExistenceFilterMismatchCallback
-  >();
-
-  private readonly onTogglePersistentCacheIndexAutoCreationCallbacks = new Map<
-    Symbol,
-    TogglePersistentCacheIndexAutoCreationCallback
-  >();
-
-  private constructor() {}
-
-  /**
-   * Returns the singleton instance of this class, or null if it has not been
-   * initialized.
-   */
-  static get instance(): TestingHooks | null {
-    return gTestingHooksSingletonInstance;
-  }
-
-  /**
-   * Returns the singleton instance of this class, creating it if is has never
-   * been created before.
-   */
-  static getOrCreateInstance(): TestingHooks {
-    if (gTestingHooksSingletonInstance === null) {
-      gTestingHooksSingletonInstance = new TestingHooks();
-    }
-    return gTestingHooksSingletonInstance;
+  private constructor() {
+    throw new Error('instances of this class should not be created');
   }
 
   /**
@@ -84,20 +50,10 @@ export class TestingHooks {
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */
-  onExistenceFilterMismatch(
+  static onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
-  ): () => void {
-    const key = Symbol();
-    this.onExistenceFilterMismatchCallbacks.set(key, callback);
-    return () => this.onExistenceFilterMismatchCallbacks.delete(key);
-  }
-
-  /**
-   * Invokes all currently-registered `onExistenceFilterMismatch` callbacks.
-   * @param info Information about the existence filter mismatch.
-   */
-  notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
-    this.onExistenceFilterMismatchCallbacks.forEach(callback => callback(info));
+  ): Unregister {
+    return TestingHooksSpiImpl.instance.onExistenceFilterMismatch(callback);
   }
 
   /**
@@ -117,23 +73,11 @@ export class TestingHooks {
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */
-  onTogglePersistentCacheIndexAutoCreation(
-    callback: TogglePersistentCacheIndexAutoCreationCallback
-  ): () => void {
-    const key = Symbol();
-    this.onTogglePersistentCacheIndexAutoCreationCallbacks.set(key, callback);
-    return () =>
-      this.onTogglePersistentCacheIndexAutoCreationCallbacks.delete(key);
-  }
-
-  /**
-   * Invokes all currently-registered
-   * `onTogglePersistentCacheIndexAutoCreation` callbacks.
-   * @param promise The argument to specify to the callback.
-   */
-  notifyPersistentCacheIndexAutoCreationToggled(promise: Promise<void>): void {
-    this.onTogglePersistentCacheIndexAutoCreationCallbacks.forEach(callback =>
-      callback(promise)
+  static onPersistentCacheIndexAutoCreationToggle(
+    callback: PersistentCacheIndexAutoCreationToggleCallback
+  ): Unregister {
+    return TestingHooksSpiImpl.instance.onPersistentCacheIndexAutoCreationToggle(
+      callback
     );
   }
 
@@ -145,15 +89,15 @@ export class TestingHooks {
    * `unknown` so that it is usable in the minified, bundled code, but it should
    * be a `Query` object.
    */
-  async getQueryIndexType(
+  static async getQueryIndexType(
     query: unknown
   ): Promise<'full' | 'partial' | 'none'> {
     const query_ = cast<Query>(query as Query, Query);
     const firestore = cast(query_.firestore, Firestore);
     const client = ensureFirestoreConfigured(firestore);
-    const firestoreClientTestingHooks = new FirestoreClientTestingHooks(client);
 
-    const indexType = await firestoreClientTestingHooks.getQueryIndexType(
+    const indexType = await FirestoreClientTestingHooks.getQueryIndexType(
+      client,
       query_._query
     );
 
@@ -171,63 +115,6 @@ export class TestingHooks {
 }
 
 /**
- * Information about an existence filter mismatch, as specified to callbacks
- * registered with `TestingUtils.onExistenceFilterMismatch()`.
- */
-export interface ExistenceFilterMismatchInfo {
-  /** The number of documents that matched the query in the local cache. */
-  localCacheCount: number;
-
-  /**
-   * The number of documents that matched the query on the server, as specified
-   * in the ExistenceFilter message's `count` field.
-   */
-  existenceFilterCount: number;
-
-  /**
-   * The projectId used when checking documents for membership in the bloom
-   * filter.
-   */
-  projectId: string;
-
-  /**
-   * The databaseId used when checking documents for membership in the bloom
-   * filter.
-   */
-  databaseId: string;
-
-  /**
-   * Information about the bloom filter provided by Watch in the ExistenceFilter
-   * message's `unchangedNames` field. If this property is omitted or undefined
-   * then that means that Watch did _not_ provide a bloom filter.
-   */
-  bloomFilter?: {
-    /**
-     * Whether a full requery was averted by using the bloom filter. If false,
-     * then something happened, such as a false positive, to prevent using the
-     * bloom filter to avoid a full requery.
-     */
-    applied: boolean;
-
-    /** The number of hash functions used in the bloom filter. */
-    hashCount: number;
-
-    /** The number of bytes in the bloom filter's bitmask. */
-    bitmapLength: number;
-
-    /** The number of bits of padding in the last byte of the bloom filter. */
-    padding: number;
-
-    /**
-     * Tests the given string for membership in the bloom filter created from
-     * the existence filter; will be undefined if creating the bloom filter
-     * failed.
-     */
-    mightContain?: (value: string) => boolean;
-  };
-}
-
-/**
  * The signature of callbacks registered with
  * `TestingUtils.onExistenceFilterMismatch()`.
  */
@@ -237,16 +124,80 @@ export type ExistenceFilterMismatchCallback = (
 
 /**
  * The signature of callbacks registered with
- * `TestingUtils.onTogglePersistentCacheIndexAutoCreation()`.
+ * `TestingHooks.onPersistentCacheIndexAutoCreationToggle()`.
  *
  * The `promise` argument will be fulfilled when the asynchronous work started
  * by the call to `enablePersistentCacheIndexAutoCreation()` or
  * `disablePersistentCacheIndexAutoCreation()` completes successfully, or will
  * be rejected if it fails.
+ *
+ * The return value of the callback, if any, is ignored.
  */
-export type TogglePersistentCacheIndexAutoCreationCallback = (
+export type PersistentCacheIndexAutoCreationToggleCallback = (
   promise: Promise<void>
-) => void;
+) => unknown;
 
-/** The global singleton instance of `TestingHooks`. */
-let gTestingHooksSingletonInstance: TestingHooks | null = null;
+/**
+ * A function that, when invoked, unregisters something that was registered.
+ *
+ * Only the *first* invocation of this function has any effect; subsequent
+ * invocations do nothing.
+ */
+export type Unregister = () => void;
+
+/**
+ * The implementation of `TestingHooksSpi`.
+ */
+class TestingHooksSpiImpl implements TestingHooksSpi {
+  private readonly existenceFilterMismatchCallbacksById = new Map<
+    Symbol,
+    ExistenceFilterMismatchCallback
+  >();
+
+  private readonly persistentCacheIndexAutoCreationToggleCallbacks = new Map<
+    Symbol,
+    PersistentCacheIndexAutoCreationToggleCallback
+  >();
+
+  private constructor() {}
+
+  static get instance(): TestingHooksSpiImpl {
+    if (!testingHooksSpiImplInstance) {
+      testingHooksSpiImplInstance = new TestingHooksSpiImpl();
+      setTestingHooksSpi(testingHooksSpiImplInstance);
+    }
+    return testingHooksSpiImplInstance;
+  }
+
+  notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void {
+    this.existenceFilterMismatchCallbacksById.forEach(callback =>
+      callback(info)
+    );
+  }
+
+  onExistenceFilterMismatch(
+    callback: ExistenceFilterMismatchCallback
+  ): Unregister {
+    const id = Symbol();
+    const callbacks = this.existenceFilterMismatchCallbacksById;
+    callbacks.set(id, callback);
+    return () => callbacks.delete(id);
+  }
+
+  notifyPersistentCacheIndexAutoCreationToggle(promise: Promise<void>): void {
+    this.persistentCacheIndexAutoCreationToggleCallbacks.forEach(callback =>
+      callback(promise)
+    );
+  }
+
+  onPersistentCacheIndexAutoCreationToggle(
+    callback: PersistentCacheIndexAutoCreationToggleCallback
+  ): Unregister {
+    const id = Symbol();
+    const callbacks = this.persistentCacheIndexAutoCreationToggleCallbacks;
+    callbacks.set(id, callback);
+    return () => callbacks.delete(id);
+  }
+}
+
+let testingHooksSpiImplInstance: TestingHooksSpiImpl | null = null;

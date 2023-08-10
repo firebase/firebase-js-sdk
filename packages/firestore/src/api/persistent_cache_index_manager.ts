@@ -21,7 +21,7 @@ import {
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
-import { TestingHooks } from '../util/testing_hooks';
+import { testingHooksSpi } from '../util/testing_hooks_spi';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -126,7 +126,7 @@ function setPersistentCacheIndexAutoCreationEnabled(
       )
     );
 
-  TestingHooks.instance?.notifyPersistentCacheIndexAutoCreationToggled(promise);
+  testingHooksSpi?.notifyPersistentCacheIndexAutoCreationToggle(promise);
 }
 
 /**

@@ -260,7 +260,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       });
     });
 
-    it('Indexes are NOT upgraded from partial to full', async () => {
+    it('A full index is not auto-created if there is a partial index match', async () => {
       const testDocs = partitionedTestDocs({
         FooMatches: {
           documentData: { foo: 'match' },
