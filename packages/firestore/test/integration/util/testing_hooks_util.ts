@@ -17,7 +17,8 @@
 
 import {
   DocumentReference,
-  _TestingHooks as TestingHooks
+  _TestingHooks as TestingHooks,
+  _TestingHooksExistenceFilterMismatchInfo as ExistenceFilterMismatchInfoInternal
 } from './firebase_export';
 
 /**
@@ -50,27 +51,6 @@ export async function captureExistenceFilterMismatches<T>(
   }
 
   return [results, callbackResult];
-}
-
-/**
- * A copy of `ExistenceFilterMismatchInfo` as defined in `testing_hooks.ts`.
- *
- * TODO: Delete this "interface" definition and instead use the one from
- * testing_hooks.ts. I tried to do this but couldn't figure out how to get it to
- * work in a way that survived bundling and minification.
- */
-interface ExistenceFilterMismatchInfoInternal {
-  localCacheCount: number;
-  existenceFilterCount: number;
-  projectId: string;
-  databaseId: string;
-  bloomFilter?: {
-    applied: boolean;
-    hashCount: number;
-    bitmapLength: number;
-    padding: number;
-    mightContain?: (value: string) => boolean;
-  };
 }
 
 /**

@@ -15,12 +15,21 @@
  * limitations under the License.
  */
 
+import { Unsubscribe } from '../api/reference_impl';
+
 import {
   setTestingHooksSpi,
   ExistenceFilterMismatchInfo,
   TestingHooksSpi
 } from './testing_hooks_spi';
 
+/**
+ * Testing hooks for use by Firestore's integration test suite to reach into the
+ * SDK internals to validate logic and behavior that is not visible from the
+ * public API surface.
+ *
+ * @internal
+ */
 export class TestingHooks {
   private constructor() {
     throw new Error('instances of this class should not be created');
@@ -42,7 +51,7 @@ export class TestingHooks {
    */
   static onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
-  ): Unregister {
+  ): Unsubscribe {
     return TestingHooksSpiImpl.instance.onExistenceFilterMismatch(callback);
   }
 }
@@ -50,18 +59,11 @@ export class TestingHooks {
 /**
  * The signature of callbacks registered with
  * `TestingUtils.onExistenceFilterMismatch()`.
+ * @internal
  */
-export type ExistenceFilterMismatchCallback = (
-  info: ExistenceFilterMismatchInfo
-) => void;
-
-/**
- * A function that, when invoked, unregisters something that was registered.
- *
- * Only the *first* invocation of this function has any effect; subsequent
- * invocations do nothing.
- */
-export type Unregister = () => void;
+export interface ExistenceFilterMismatchCallback {
+  (info: ExistenceFilterMismatchInfo): void;
+}
 
 /**
  * The implementation of `TestingHooksSpi`.
@@ -90,7 +92,7 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
 
   onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
-  ): Unregister {
+  ): Unsubscribe {
     const id = Symbol();
     const callbacks = this.existenceFilterMismatchCallbacksById;
     callbacks.set(id, callback);

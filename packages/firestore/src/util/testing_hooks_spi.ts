@@ -54,6 +54,7 @@ export interface TestingHooksSpi {
 
 /**
  * Information about an existence filter mismatch.
+ * @internal
  */
 export interface ExistenceFilterMismatchInfo {
   /** The number of documents that matched the query in the local cache. */
