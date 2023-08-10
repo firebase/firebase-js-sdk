@@ -132,7 +132,9 @@ export const enum AuthErrorCode {
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
   INVALID_REQ_TYPE = 'invalid-req-type',
-  WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved'
+  WEB_OTP_NOT_RETRIEVED = 'web-otp-not-retrieved',
+  UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION = 'unsupported-password-policy-schema-version',
+  PASSWORD_DOES_NOT_MEET_REQUIREMENTS = 'password-does-not-meet-requirements'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -393,6 +395,10 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
        *  `Web OTP code received is incorrect`
        *  `Web OTP is not supported`
     */
+    [AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION]:
+      'The password policy received from the backend uses a schema version that is not supported by this version of the Firebase SDK.',
+    [AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS]:
+      'The password does not meet the requirements.'
   };
 }
 

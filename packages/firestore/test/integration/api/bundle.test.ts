@@ -85,7 +85,9 @@ apiDescribe('Bundles', persistence => {
     const projectId: string = db.app.options.projectId!;
 
     // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
-    const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
+    const elements = BUNDLE_TEMPLATE.map(e =>
+      e.replace('{0}', projectId).replace('(default)', db._databaseId.database)
+    );
 
     // Recalculating length prefixes for elements that are not BundleMetadata.
     let bundleContent = '';

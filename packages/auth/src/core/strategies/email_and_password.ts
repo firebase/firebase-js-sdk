@@ -41,6 +41,26 @@ import { IdTokenResponse } from '../../model/id_token';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
+ * Updates the password policy cached in the {@link Auth} instance if a policy is already
+ * cached for the project or tenant.
+ *
+ * @remarks
+ * We only fetch the password policy if the password did not meet policy requirements and
+ * there is an existing policy cached. A developer must call validatePassword at least
+ * once for the cache to be automatically updated.
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @private
+ */
+async function recachePasswordPolicy(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  if (authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+}
+
+/**
  * Sends a password reset email to the given email address.
  *
  * @remarks
@@ -154,10 +174,21 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(getModularInstance(auth), {
-    oobCode,
-    newPassword
-  });
+  await account
+    .resetPassword(getModularInstance(auth), {
+      oobCode,
+      newPassword
+    })
+    .catch(async error => {
+      if (
+        error.code ===
+        `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+      ) {
+        void recachePasswordPolicy(auth);
+      }
+
+      throw error;
+    });
   // Do not return the email.
 }
 
@@ -307,14 +338,20 @@ export async function createUserWithEmailAndPassword(
           RecaptchaActionName.SIGN_UP_PASSWORD
         );
         return signUp(authInternal, requestWithRecaptcha);
-      } else {
-        return Promise.reject(error);
       }
+
+      throw error;
     });
   }
 
   const response = await signUpResponse.catch(error => {
-    return Promise.reject(error);
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -351,5 +388,13 @@ export function signInWithEmailAndPassword(
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
-  );
+  ).catch(async error => {
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
+  });
 }
