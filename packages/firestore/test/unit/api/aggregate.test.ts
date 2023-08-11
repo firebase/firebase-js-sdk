@@ -17,7 +17,13 @@
 
 import { expect } from 'chai';
 
-import { aggregateFieldEqual, count, sum, average } from '../../../src';
+import {
+  aggregateFieldEqual,
+  count,
+  sum,
+  average,
+  FieldPath
+} from '../../../src';
 
 describe('aggregateFieldEqual', () => {
   it('equates two equal aggregate fields', () => {
@@ -34,5 +40,18 @@ describe('aggregateFieldEqual', () => {
     expect(aggregateFieldEqual(average('foo'), average('bar'))).to.be.false;
     expect(aggregateFieldEqual(average('foo'), sum('foo'))).to.be.false;
     expect(aggregateFieldEqual(sum('foo'), average('foo'))).to.be.false;
+  });
+});
+
+describe('AggregateField.field', () => {
+  it('returns the field', () => {
+    expect(sum('foo').field?.isEqual(new FieldPath('foo'))).to.be.true;
+    expect(sum('foo.bar').field?.isEqual(new FieldPath('foo', 'bar'))).to.be
+      .true;
+    expect(average('foo').field?.isEqual(new FieldPath('foo'))).to.be.true;
+    expect(average('foo.bar').field?.isEqual(new FieldPath('foo', 'bar'))).to.be
+      .true;
+    expect(count().field).to.be.undefined;
+    expect(count().field).to.be.undefined;
   });
 });

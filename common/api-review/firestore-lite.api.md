@@ -20,6 +20,7 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 // @public
 export class AggregateField<T> {
     readonly aggregateType: AggregateType;
+    get field(): FieldPath | undefined;
     readonly type = "AggregateField";
 }
 
@@ -170,6 +171,7 @@ export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 // @public
 export class FieldPath {
     constructor(...fieldNames: string[]);
+    /* Excluded from this release type: FromInternalFieldPath */
     isEqual(other: FieldPath): boolean;
 }
 

@@ -20,6 +20,7 @@ import { FieldPath as InternalFieldPath } from '../model/path';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
 import { average, count, sum } from './aggregate';
+import { FieldPath } from './field_path';
 import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
@@ -36,17 +37,31 @@ export class AggregateField<T> {
   /** Indicates the aggregation operation of this AggregateField. */
   readonly aggregateType: AggregateType;
 
+  /** Indicates the field that is aggregated. Returns `undefined` if the
+   * aggregate is not performed over a specific field, for example with count
+   * queries.
+   */
+  get field(): FieldPath | undefined {
+    return this._internalFieldPath
+      ? FieldPath.FromInternalFieldPath(this._internalFieldPath)
+      : undefined;
+  }
+
+  readonly _internalFieldPath?: InternalFieldPath;
+
   /**
    * Create a new AggregateField<T>
-   * @param _aggregateType Specifies the type of aggregation operation to perform.
-   * @param _internalFieldPath Optionally specifies the field that is aggregated.
+   * @param aggregateType Specifies the type of aggregation operation to perform.
+   * @param field Optionally specifies the field that is aggregated.
+   * @param internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
-    readonly _aggregateType: AggregateType = 'count',
-    readonly _internalFieldPath?: InternalFieldPath
+    aggregateType: AggregateType = 'count',
+    internalFieldPath?: InternalFieldPath
   ) {
-    this.aggregateType = _aggregateType;
+    this.aggregateType = aggregateType;
+    this._internalFieldPath = internalFieldPath;
   }
 }
 

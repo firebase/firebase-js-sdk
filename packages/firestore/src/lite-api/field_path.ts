@@ -54,6 +54,19 @@ export class FieldPath {
   }
 
   /**
+   * Creates a `FieldPath` from an internal field path
+   *
+   * @param internalFieldPath Internal field path
+   * @returns FieldPath object that represents the internal field path.
+   * @internal
+   */
+  static FromInternalFieldPath(
+    internalFieldPath: InternalFieldPath
+  ): FieldPath {
+    return new FieldPath(...internalFieldPath.toArray());
+  }
+
+  /**
    * Returns true if this `FieldPath` is equal to the provided one.
    *
    * @param other - The `FieldPath` to compare against.
