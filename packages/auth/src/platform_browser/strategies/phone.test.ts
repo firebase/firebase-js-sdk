@@ -22,7 +22,6 @@ import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
-import { AuthErrorCodes } from '../../core';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { makeJWT } from '../../../test/helpers/jwt';
