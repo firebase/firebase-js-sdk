@@ -121,21 +121,28 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('UserCredential', () => {
-      const idTokenResponse: IdTokenResponse = {
-        idToken: 'my-id-token',
-        refreshToken: 'my-refresh-token',
-        expiresIn: '1234',
-        localId: 'uid',
-        kind: IdTokenResponseKind.CreateAuthUri
-      };
+      let idTokenResponse: IdTokenResponse; 
       // This endpoint is called from within the callback, in
       // signInWithCredential
-      const signInEndpoint = mockEndpoint(
-        Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-        idTokenResponse
-      );
-      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-        users: [{ localId: 'uid' }]
+      let signInEndpoint: fetch.Route;
+
+      beforeEach(() => {
+        idTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: IdTokenResponseKind.CreateAuthUri
+        };
+
+        signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
       });
 
       it('finishes the sign in flow without calling #confirm if webOTP is used and supported by browser', async () => {
@@ -535,21 +542,28 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('WebOTP', () => {
-      const idTokenResponse: IdTokenResponse = {
-        idToken: 'my-id-token',
-        refreshToken: 'my-refresh-token',
-        expiresIn: '1234',
-        localId: 'uid',
-        kind: IdTokenResponseKind.CreateAuthUri
-      };
+      let idTokenResponse: IdTokenResponse; 
       // This endpoint is called from within the callback, in
       // signInWithCredential
-      const signInEndpoint = mockEndpoint(
-        Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
-        idTokenResponse
-      );
-      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-        users: [{ localId: 'uid' }]
+      let signInEndpoint: fetch.Route;
+
+      beforeEach(() => {
+        idTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: IdTokenResponseKind.CreateAuthUri
+        };
+
+        signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
       });
 
       it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
