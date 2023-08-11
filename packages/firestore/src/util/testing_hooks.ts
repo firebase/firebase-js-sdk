@@ -139,13 +139,13 @@ export type ExistenceFilterMismatchCallback = (
  * `disablePersistentCacheIndexAutoCreation()` completes successfully, or will
  * be rejected if it fails.
  *
- * The return value of the callback, if any, is ignored.
+ * The return value, if any, is ignored.
  *
  * @internal
  */
-export interface PersistentCacheIndexAutoCreationToggleCallback {
-  (promise: Promise<void>): unknown;
-}
+export type PersistentCacheIndexAutoCreationToggleCallback = (
+  promise: Promise<void>
+) => unknown;
 
 /**
  * The implementation of `TestingHooksSpi`.
