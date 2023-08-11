@@ -252,7 +252,9 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
         !fieldsNormalized.has(field.canonicalString()) &&
         !field.isKeyField()
       ) {
-        queryImpl.memoizedNormalizedOrderBy!.push(new OrderBy(field, lastDirection));
+        queryImpl.memoizedNormalizedOrderBy!.push(
+          new OrderBy(field, lastDirection)
+        );
       }
     });
 

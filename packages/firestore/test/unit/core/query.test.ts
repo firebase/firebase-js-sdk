@@ -979,7 +979,7 @@ describe('Query', () => {
       )
     );
     assertQueryMatches(query3, [doc1, doc2, doc5], [doc3, doc4]);
-  })
+  });
 
   it('generates appropriate order-bys for aggregate and non-aggregate targets', () => {
     const col = newQueryForPath(ResourcePath.fromString('collection'));
