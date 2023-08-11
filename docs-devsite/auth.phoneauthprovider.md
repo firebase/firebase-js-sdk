@@ -38,10 +38,11 @@ export declare class PhoneAuthProvider
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credential(verificationId, verificationCode)](./auth.phoneauthprovider.md#phoneauthprovidercredential) | <code>static</code> | Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) and the code that was sent to the user's mobile device. |
+|  [credential(verificationId, verificationCode)](./auth.phoneauthprovider.md#phoneauthprovidercredential) | <code>static</code> | Creates a phone auth credential, given the verification ID from  and the code that was sent to the user's mobile device. |
 |  [credentialFromError(error)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromerror) | <code>static</code> | Returns an [AuthCredential](./auth.authcredential.md#authcredential_class) when passed an error. |
 |  [credentialFromResult(userCredential)](./auth.phoneauthprovider.md#phoneauthprovidercredentialfromresult) | <code>static</code> | Generates an [AuthCredential](./auth.authcredential.md#authcredential_class) from a [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->. |
 |  [verifyPhoneNumber(phoneOptions, applicationVerifier)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. |
+|  [verifyPhoneNumber(phoneOptions, applicationVerifier, webOTPTimeoutSeconds)](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) |  | Completes the phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in. |
 
 ## PhoneAuthProvider.(constructor)
 
@@ -91,7 +92,7 @@ readonly providerId: "phone";
 
 ## PhoneAuthProvider.credential()
 
-Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber) and the code that was sent to the user's mobile device.
+Creates a phone auth credential, given the verification ID from  and the code that was sent to the user's mobile device.
 
 <b>Signature:</b>
 
@@ -103,7 +104,7 @@ static credential(verificationId: string, verificationCode: string): PhoneAuthCr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  verificationId | string | The verification ID returned from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.md#phoneauthproviderverifyphonenumber)<!-- -->. |
+|  verificationId | string | The verification ID returned from . |
 |  verificationCode | string | The verification code sent to the user's mobile device. |
 
 <b>Returns:</b>
@@ -239,6 +240,48 @@ An alternative flow is provided using the `signInWithPhoneNumber` method.
 const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
 // Obtain verificationCode from the user.
 const userCredential = confirmationResult.confirm(verificationCode);
+
+```
+
+## PhoneAuthProvider.verifyPhoneNumber()
+
+Completes the phone number authentication flow by sending a verification code to the given phone number, automatically retrieving the verification code from the SMS message, and signing the user in.
+
+<b>Signature:</b>
+
+```typescript
+verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier, webOTPTimeoutSeconds: number): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  phoneOptions | [PhoneInfoOptions](./auth.md#phoneinfooptions) \| string |  |
+|  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. |
+|  webOTPTimeoutSeconds | number | Error would be thrown if WebOTP does not resolve within this specified timeout parameter (in seconds). |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A Promise for a UserCredential.
+
+### Example 1
+
+
+```javascript
+const provider = new PhoneAuthProvider(auth);
+const userCredential = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier, 10);
+
+```
+
+### Example 2
+
+An alternative flow is provided using the `signInWithPhoneNumber` method.
+
+```javascript
+const userCredential = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 10);
 
 ```
 
