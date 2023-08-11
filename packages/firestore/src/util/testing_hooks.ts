@@ -16,6 +16,10 @@
  */
 
 import { ensureFirestoreConfigured, Firestore } from '../api/database';
+import {
+  PersistentCacheIndexManager,
+  TestingHooks as PersistentCacheIndexManagerTestingHooks
+} from '../api/persistent_cache_index_manager';
 import { Unsubscribe } from '../api/reference_impl';
 import { TestingHooks as FirestoreClientTestingHooks } from '../core/firestore_client';
 import { Query } from '../lite-api/reference';
@@ -115,6 +119,26 @@ export class TestingHooks {
       default:
         throw new Error(`unrecognized IndexType: ${indexType}`);
     }
+  }
+
+  /**
+   * Sets the persistent cache index auto-creation settings for the given
+   * Firestore instance.
+   *
+   * @return a Promise that is fulfilled when the settings are successfully
+   * applied, or rejected if applying the settings fails.
+   */
+  static setPersistentCacheIndexAutoCreationSettings(
+    indexManager: PersistentCacheIndexManager,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): Promise<void> {
+    return PersistentCacheIndexManagerTestingHooks.setIndexAutoCreationSettings(
+      indexManager,
+      settings
+    );
   }
 }
 

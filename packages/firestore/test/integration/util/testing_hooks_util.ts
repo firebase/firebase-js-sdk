@@ -21,6 +21,7 @@ import {
   DocumentData,
   DocumentReference,
   Query,
+  _PersistentCacheIndexManager as PersistentCacheIndexManager,
   _TestingHooks as TestingHooks,
   _TestingHooksExistenceFilterMismatchInfo as ExistenceFilterMismatchInfoInternal
 } from './firebase_export';
@@ -148,4 +149,24 @@ export function getQueryIndexType<
   query: Query<AppModelType, DbModelType>
 ): Promise<'full' | 'partial' | 'none'> {
   return TestingHooks.getQueryIndexType(query);
+}
+
+/**
+ * Sets the persistent cache index auto-creation settings for the given
+ * Firestore instance.
+ *
+ * @return a Promise that is fulfilled when the settings are successfully
+ * applied, or rejected if applying the settings fails.
+ */
+export function setPersistentCacheIndexAutoCreationSettings(
+  indexManager: PersistentCacheIndexManager,
+  settings: {
+    indexAutoCreationMinCollectionSize?: number;
+    relativeIndexReadCostPerDocument?: number;
+  }
+): Promise<void> {
+  return TestingHooks.setPersistentCacheIndexAutoCreationSettings(
+    indexManager,
+    settings
+  );
 }

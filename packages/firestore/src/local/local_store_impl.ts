@@ -1543,20 +1543,22 @@ export class TestingHooks {
     throw new Error('creating instances is not supported');
   }
 
-  static setIndexAutoCreationMinCollectionSize(
+  static setIndexAutoCreationSettings(
     localStore: LocalStore,
-    newValue: number
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
   ): void {
     const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize = newValue;
-  }
-
-  static setRelativeIndexReadCostPerDocument(
-    localStore: LocalStore,
-    newValue: number
-  ): void {
-    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    localStoreImpl.queryEngine.relativeIndexReadCostPerDocument = newValue;
+    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
+      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
+        settings.indexAutoCreationMinCollectionSize;
+    }
+    if (settings.relativeIndexReadCostPerDocument !== undefined) {
+      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
+        settings.relativeIndexReadCostPerDocument;
+    }
   }
 
   static getQueryIndexType(

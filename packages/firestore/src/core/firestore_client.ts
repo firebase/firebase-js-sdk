@@ -51,7 +51,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert } from '../util/assert';
+import { debugAssert, debugCast } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
@@ -859,6 +859,23 @@ export class TestingHooks {
     return client.asyncQueue.enqueue(async () => {
       const localStore = await getLocalStore(client);
       return LocalStoreTestingHooks.getQueryIndexType(localStore, query);
+    });
+  }
+
+  static setPersistentCacheIndexAutoCreationSettings(
+    client: FirestoreClient,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): Promise<void> {
+    const settingsCopy = { ...settings };
+    return client.asyncQueue.enqueue(async () => {
+      const localStore = await getLocalStore(client);
+      LocalStoreTestingHooks.setIndexAutoCreationSettings(
+        localStore,
+        settingsCopy
+      );
     });
   }
 }

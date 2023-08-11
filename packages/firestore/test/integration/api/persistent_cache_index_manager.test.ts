@@ -26,7 +26,8 @@ import {
   _disablePersistentCacheIndexAutoCreation as disablePersistentCacheIndexAutoCreation,
   _enablePersistentCacheIndexAutoCreation as enablePersistentCacheIndexAutoCreation,
   _getPersistentCacheIndexManager as getPersistentCacheIndexManager,
-  _PersistentCacheIndexManager as PersistentCacheIndexManager
+  _PersistentCacheIndexManager as PersistentCacheIndexManager,
+  _TestingHooks as TestingHooks
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -36,6 +37,7 @@ import {
 } from '../util/helpers';
 import {
   getQueryIndexType,
+  setPersistentCacheIndexAutoCreationSettings,
   verifyPersistentCacheIndexAutoCreationToggleSucceedsDuring
 } from '../util/testing_hooks_util';
 
@@ -163,52 +165,80 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
   describe('Query execution', () => {
     it('Auto-indexing is disabled by default', () =>
       testIndexesGetAutoCreated({
-        documentCounts: { matching: 1, notMatching: 100 },
+        documentCounts: { matching: 1, notMatching: 5 },
         expectedIndexAutoCreated: false,
-        indexAutoCreationEnabled: false
+        indexAutoCreationEnabled: false,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2
       }));
 
-    it('Index is not auto-created if collection size is less than 100', () =>
-      testIndexesGetAutoCreated({
-        documentCounts: { matching: 1, notMatching: 98 },
-        expectedIndexAutoCreated: false
-      }));
+    it(
+      'Default indexAutoCreationMinCollectionSize=100: ' +
+        'index should *not* be auto-created if lookup scanned 99 documents',
+      () =>
+        testIndexesGetAutoCreated({
+          documentCounts: { matching: 1, notMatching: 98 },
+          expectedIndexAutoCreated: false
+        })
+    );
 
-    it('Index is not auto-created if 50% of documents match', () =>
-      testIndexesGetAutoCreated({
-        documentCounts: { matching: 50, notMatching: 50 },
-        expectedIndexAutoCreated: false
-      }));
+    it(
+      'Default indexAutoCreationMinCollectionSize=100' +
+        ' index *should* be auto-created if lookup scanned 100 documents',
+      () =>
+        testIndexesGetAutoCreated({
+          documentCounts: { matching: 1, notMatching: 99 },
+          expectedIndexAutoCreated: true
+        })
+    );
 
-    it('Index is auto-created if 49% of documents match and collection size is 100', () =>
-      testIndexesGetAutoCreated({
-        documentCounts: { matching: 49, notMatching: 51 },
-        expectedIndexAutoCreated: true
-      }));
+    it(
+      'Default relativeIndexReadCostPerDocument=2: ' +
+        'index should *not* be auto-created if the relative index read cost is matched exactly',
+      () =>
+        testIndexesGetAutoCreated({
+          documentCounts: { matching: 50, notMatching: 50 },
+          expectedIndexAutoCreated: false
+        })
+    );
+
+    it(
+      'Default relativeIndexReadCostPerDocument=2: ' +
+        'index *should* be auto-created if the relative index read cost is exceeded slightly',
+      () =>
+        testIndexesGetAutoCreated({
+          documentCounts: { matching: 49, notMatching: 51 },
+          expectedIndexAutoCreated: true
+        })
+    );
 
     it('Indexes are only auto-created when enabled', async () => {
       const testDocs = partitionedTestDocs({
         FooMatches: {
           documentData: { foo: 'match' },
-          documentCount: 11
+          documentCount: 1
         },
         BarMatches: {
           documentData: { bar: 'match' },
-          documentCount: 22
+          documentCount: 2
         },
         BazMatches: {
           documentData: { baz: 'match' },
-          documentCount: 33
+          documentCount: 3
         },
-        NeitherFooNorBarMatch: {
-          documentData: { foo: 'nomatch', bar: 'nomatch' },
-          documentCount: 100
+        NeitherFooNorBarNorMazMatch: {
+          documentData: { foo: 'nomatch', bar: 'nomatch', baz: 'nomatch' },
+          documentCount: 10
         }
       });
 
       return withTestCollection(persistence, testDocs, async (coll, db) => {
         const indexManager = getPersistentCacheIndexManager(db)!;
         expect(indexManager, 'indexManager').is.not.null;
+        await setPersistentCacheIndexAutoCreationSettings(indexManager, {
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        });
 
         // Populate the local cache with the entire collection.
         await getDocs(coll);
@@ -218,7 +248,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         enablePersistentCacheIndexAutoCreation(indexManager);
         const query1 = query(coll, where('foo', '==', 'match'));
         const snapshot1 = await getDocsFromCache(query1);
-        expect(snapshot1.size, 'snapshot1.size').to.equal(11);
+        expect(snapshot1.size, 'snapshot1.size').to.equal(1);
         expect(
           await getQueryIndexType(query1),
           'getQueryIndexType(query1)'
@@ -229,7 +259,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         disablePersistentCacheIndexAutoCreation(indexManager);
         const query2 = query(coll, where('bar', '==', 'match'));
         const snapshot2 = await getDocsFromCache(query2);
-        expect(snapshot2.size, 'snapshot2.size').to.equal(22);
+        expect(snapshot2.size, 'snapshot2.size').to.equal(2);
         expect(
           await getQueryIndexType(query2),
           'getQueryIndexType(query2)'
@@ -244,7 +274,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         enablePersistentCacheIndexAutoCreation(indexManager);
         const query3 = query(coll, where('baz', '==', 'match'));
         const snapshot3 = await getDocsFromCache(query3);
-        expect(snapshot3.size, 'snapshot3.size').to.equal(33);
+        expect(snapshot3.size, 'snapshot3.size').to.equal(3);
         expect(
           await getQueryIndexType(query3),
           'getQueryIndexType(query3)'
@@ -264,15 +294,15 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       const testDocs = partitionedTestDocs({
         FooMatches: {
           documentData: { foo: 'match' },
-          documentCount: 99
+          documentCount: 5
         },
-        FooBarMatches: {
+        FooAndBarBothMatch: {
           documentData: { foo: 'match', bar: 'match' },
           documentCount: 1
         },
         NeitherFooNorBarMatch: {
           documentData: { foo: 'nomatch', bar: 'nomatch' },
-          documentCount: 110
+          documentCount: 15
         }
       });
 
@@ -280,6 +310,10 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         const indexManager = getPersistentCacheIndexManager(db)!;
         expect(indexManager, 'indexManager').is.not.null;
         enablePersistentCacheIndexAutoCreation(indexManager);
+        await setPersistentCacheIndexAutoCreationSettings(indexManager, {
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        });
 
         // Populate the local cache with the entire collection.
         await getDocs(coll);
@@ -288,7 +322,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         {
           const fooQuery = query(coll, where('foo', '==', 'match'));
           const fooSnapshot = await getDocsFromCache(fooQuery);
-          expect(fooSnapshot.size, 'fooSnapshot.size').to.equal(100);
+          expect(fooSnapshot.size, 'fooSnapshot.size').to.equal(6);
           expect(
             await getQueryIndexType(fooQuery),
             'getQueryIndexType(fooQuery)'
@@ -324,6 +358,8 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       documentCounts: { matching: number; notMatching: number };
       expectedIndexAutoCreated: boolean;
       indexAutoCreationEnabled?: boolean;
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
     }): Promise<void> {
       const testDocs = partitionedTestDocs({
         matching: {
@@ -340,11 +376,20 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         // Populate the local cache with the entire collection.
         await getDocs(coll);
 
-        // Enable or disable automatic index creation, as requested.
+        // Configure automatic index creation, as requested.
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        expect(indexManager, 'indexManager').is.not.null;
         if (config.indexAutoCreationEnabled ?? true) {
-          const indexManager = getPersistentCacheIndexManager(db)!;
-          expect(indexManager, 'indexManager').is.not.null;
           enablePersistentCacheIndexAutoCreation(indexManager);
+        }
+        if (
+          config.indexAutoCreationMinCollectionSize !== undefined ||
+          config.relativeIndexReadCostPerDocument !== undefined
+        ) {
+          await TestingHooks.setPersistentCacheIndexAutoCreationSettings(
+            indexManager,
+            config
+          );
         }
 
         // Run a query against the local cache that matches a _subset_ of the
