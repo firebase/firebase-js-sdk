@@ -156,10 +156,8 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
     ExistenceFilterMismatchCallback
   >();
 
-  private readonly persistentCacheIndexAutoCreationToggleCallbacks = new Map<
-    Symbol,
-    PersistentCacheIndexAutoCreationToggleCallback
-  >();
+  private readonly persistentCacheIndexAutoCreationToggleCallbacksById =
+    new Map<Symbol, PersistentCacheIndexAutoCreationToggleCallback>();
 
   private constructor() {}
 
@@ -180,14 +178,14 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
   onExistenceFilterMismatch(
     callback: ExistenceFilterMismatchCallback
   ): Unsubscribe {
-    const id = Symbol();
-    const callbacks = this.existenceFilterMismatchCallbacksById;
-    callbacks.set(id, callback);
-    return () => callbacks.delete(id);
+    return registerCallback(
+      callback,
+      this.existenceFilterMismatchCallbacksById
+    );
   }
 
   notifyPersistentCacheIndexAutoCreationToggle(promise: Promise<void>): void {
-    this.persistentCacheIndexAutoCreationToggleCallbacks.forEach(callback =>
+    this.persistentCacheIndexAutoCreationToggleCallbacksById.forEach(callback =>
       callback(promise)
     );
   }
@@ -195,11 +193,20 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
   onPersistentCacheIndexAutoCreationToggle(
     callback: PersistentCacheIndexAutoCreationToggleCallback
   ): Unsubscribe {
-    const id = Symbol();
-    const callbacks = this.persistentCacheIndexAutoCreationToggleCallbacks;
-    callbacks.set(id, callback);
-    return () => callbacks.delete(id);
+    return registerCallback(
+      callback,
+      this.persistentCacheIndexAutoCreationToggleCallbacksById
+    );
   }
+}
+
+function registerCallback<T>(
+  callback: T,
+  callbacks: Map<Symbol, T>
+): Unsubscribe {
+  const id = Symbol();
+  callbacks.set(id, callback);
+  return () => callbacks.delete(id);
 }
 
 let testingHooksSpiImplInstance: TestingHooksSpiImpl | null = null;
