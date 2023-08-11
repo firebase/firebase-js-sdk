@@ -45,6 +45,7 @@ import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
+  TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
 
@@ -295,7 +296,11 @@ export async function withTestDbsSettings<T>(
     if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
       newSettings.localCache = persistence.asLocalCacheFirestoreSettings();
     }
-    const db = newTestFirestore(newTestApp(projectId), newSettings);
+    const db = newTestFirestore(
+      newTestApp(projectId),
+      newSettings,
+      TARGET_DB_ID
+    );
     dbs.push(db);
   }
 

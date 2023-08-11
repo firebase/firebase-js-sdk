@@ -49,6 +49,7 @@ Firebase Authentication
 |  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
 |  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage) | Sets the current language to the default device/browser preference. |
+|  [validatePassword(auth, password)](./auth.md#validatepassword) | Validates the password against the password policy configured for the project or tenant. |
 |  [verifyPasswordResetCode(auth, code)](./auth.md#verifypasswordresetcode) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
 |  <b>function(link...)</b> |
 |  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
@@ -124,6 +125,8 @@ Firebase Authentication
 |  [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth.user.md#user_interface)<!-- -->. |
 |  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md#oauthcredentialoptions_interface) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [ParsedToken](./auth.parsedtoken.md#parsedtoken_interface) | Interface representing a parsed ID token. |
+|  [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | A structure specifying password policy requirements. |
+|  [PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface) | A structure indicating which password policy requirements were met or violated and what the requirements are. |
 |  [Persistence](./auth.persistence.md#persistence_interface) | An interface covering the possible persistence mechanism types. |
 |  [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion)<!-- -->. |
 |  [PhoneMultiFactorEnrollInfoOptions](./auth.phonemultifactorenrollinfooptions.md#phonemultifactorenrollinfooptions_interface) | Options used for enrolling a second factor. |
@@ -1076,6 +1079,39 @@ export declare function useDeviceLanguage(auth: Auth): void;
 <b>Returns:</b>
 
 void
+
+## validatePassword()
+
+Validates the password against the password policy configured for the project or tenant.
+
+If no tenant ID is set on the `Auth` instance, then this method will use the password policy configured for the project. Otherwise, this method will use the policy configured for the tenant. If a password policy has not been configured, then the default policy configured for all projects will be used.
+
+If an auth flow fails because a submitted password does not meet the password policy requirements and this method has previously been called, then this method will use the most recent policy available when called again.
+
+<b>Signature:</b>
+
+```typescript
+export declare function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+|  password | string | The password to validate. |
+
+<b>Returns:</b>
+
+Promise&lt;[PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface)<!-- -->&gt;
+
+### Example
+
+
+```javascript
+validatePassword(auth, 'some-password');
+
+```
 
 ## verifyPasswordResetCode()
 
