@@ -121,7 +121,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('UserCredential', () => {
-      let idTokenResponse: IdTokenResponse; 
+      let idTokenResponse: IdTokenResponse;
       // This endpoint is called from within the callback, in
       // signInWithCredential
       let signInEndpoint: fetch.Route;
@@ -542,7 +542,7 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('WebOTP', () => {
-      let idTokenResponse: IdTokenResponse; 
+      let idTokenResponse: IdTokenResponse;
       // This endpoint is called from within the callback, in
       // signInWithCredential
       let signInEndpoint: fetch.Route;
