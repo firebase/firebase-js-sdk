@@ -121,11 +121,14 @@ export class TestingHooks {
 /**
  * The signature of callbacks registered with
  * `TestingUtils.onExistenceFilterMismatch()`.
+ *
+ * The return value, if any, is ignored.
+ *
  * @internal
  */
-export interface ExistenceFilterMismatchCallback {
-  (info: ExistenceFilterMismatchInfo): void;
-}
+export type ExistenceFilterMismatchCallback = (
+  info: ExistenceFilterMismatchInfo
+) => unknown;
 
 /**
  * The signature of callbacks registered with

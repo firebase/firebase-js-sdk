@@ -37,14 +37,9 @@ export async function captureExistenceFilterMismatches<T>(
   callback: () => Promise<T>
 ): Promise<[ExistenceFilterMismatchInfo[], T]> {
   const results: ExistenceFilterMismatchInfo[] = [];
-  const onExistenceFilterMismatchCallback = (
-    info: ExistenceFilterMismatchInfoInternal
-  ): void => {
-    results.push(createExistenceFilterMismatchInfoFrom(info));
-  };
 
-  const unregister = TestingHooks.onExistenceFilterMismatch(
-    onExistenceFilterMismatchCallback
+  const unregister = TestingHooks.onExistenceFilterMismatch(info =>
+    results.push(createExistenceFilterMismatchInfoFrom(info))
   );
 
   let callbackResult: T;
