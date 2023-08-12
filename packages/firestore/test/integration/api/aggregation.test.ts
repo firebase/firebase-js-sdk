@@ -290,7 +290,7 @@ apiDescribe('Aggregation queries', persistence => {
     return withTestDb(persistence, async db => {
       const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
       const docPaths = [
-        `${collectionGroupId}/cg-doc1`,
+        `${collectionGroupId}/cg-doc1z`,
         `abc/123/${collectionGroupId}/cg-doc2`,
         `zzz${collectionGroupId}/cg-doc3`,
         `abc/123/zzz${collectionGroupId}/cg-doc4`,
