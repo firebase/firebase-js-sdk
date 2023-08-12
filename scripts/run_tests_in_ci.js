@@ -60,7 +60,7 @@ async function runTestProcess(workingDir, scriptName, logFilePath) {
       proc.once('error', reject);
     });
     log(`Test process completed with exit code: ${exitCode}`);
-    return exitCode === 0 ? true : false;
+    return exitCode;
   } finally {
     fs.close(logFileHandle);
   }
@@ -91,7 +91,7 @@ async function printFile(path) {
 let logPrefix = '';
 
 function log() {
-  console.log('run_tests_in_ci.js', logPrefix, ...arguments);
+  console.log('run_tests_in_ci.js', logPrefix, elapsedTimeStr(), ...arguments);
 }
 
 function makeSafePath(s) {
@@ -137,6 +137,35 @@ function resolveScriptNameArg(scriptName) {
   }
 
   return scriptName;
+}
+
+let startTime = null;
+
+function getElapsedMilliseconds() {
+  const currentTimeMilliseconds = getCurrentMonotonicTimeMilliseconds();
+  if (startTime === null) {
+    startTime = currentTimeMilliseconds;
+    return 0;
+  }
+  return currentTimeMilliseconds - startTime;
+}
+
+function elapsedTimeStr() {
+  const milliseconds = getElapsedMilliseconds();
+  const minutes = Math.floor(milliseconds / (1000 * 60));
+  const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
+  return (
+    (minutes < 10 ? '0' : '') +
+    minutes +
+    ':' +
+    (seconds < 10 ? '0' : '') +
+    seconds.toFixed(3)
+  );
+}
+
+function getCurrentMonotonicTimeMilliseconds() {
+  const currentTime = process.hrtime();
+  return currentTime[0] * 1000 + currentTime[1] / 1_000_000;
 }
 
 main();
