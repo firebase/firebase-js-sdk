@@ -56,7 +56,7 @@ apiDescribe('Count queries', persistence => {
 
   it("count query doesn't use converter", () => {
     const testDocs = {
-      a: { author: 'authorA', title: 'titleA' },
+      a: { author: 'authorA', title: 'titleX' },
       b: { author: 'authorB', title: 'titleB' }
     };
     const throwingConverter = {
