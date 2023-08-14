@@ -102,7 +102,8 @@ apiDescribe('Numeric Transforms:', persistence => {
     });
   });
 
-  // Skipped due to test flakiness: timeout
+  // TODO(b/295872012): This test is skipped due to a timeout test flakiness
+  // We should investigate if this is an acutal bug.
   // eslint-disable-next-line no-restricted-properties
   it.skip('increment existing integer with integer', async () => {
     await withTestSetup(async () => {
@@ -160,8 +161,9 @@ apiDescribe('Numeric Transforms:', persistence => {
     });
   });
 
-  // Skipped due to test flakiness:
+  // TODO(b/295872012): This test is skipped due to test flakiness:
   // AssertionError: expected 0.122 to be close to 0.111 +/- 0.000001
+  // We should investigate the root cause, it might be an acutal bug.
   // eslint-disable-next-line no-restricted-properties
   it.skip('multiple double increments', async () => {
     await withTestSetup(async () => {
