@@ -61,7 +61,6 @@ const argv = yargs.options({
   let scriptName = argv.s;
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
-  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
   const testOutputFile = path.join(
     LOGDIR,
     `${getPathSafeName(name)}-ci-log.txt`
@@ -88,7 +87,7 @@ const argv = yargs.options({
   });
 
   const resultStr = exitCode === 0 ? 'Success' : 'Failure';
-  console.log(`${resultStr}: ` + name);
+  console.log(`${resultStr}: ${name}`);
   await printFile(testOutputFile);
 
   fs.writeFileSync(
