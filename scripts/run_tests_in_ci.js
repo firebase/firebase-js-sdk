@@ -21,11 +21,13 @@ const child_process = require('node:child_process');
 const fs = require('node:fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+let logger = null;
 
 async function main() {
   const { scriptName, workingDir } = parseArgs();
   const { name } = require(`${workingDir}/package.json`);
-  logPrefix = name;
+  const { Logger } = await import('./logger.mjs');
+  logger = new Logger('run_tests_in_ci.js', [name, scriptName]);
 
   const logFilePath = path.join(LOGDIR, `${makeSafePath(name)}-ci-log.txt`);
   const testProcessExitCode = await runTestProcess(
@@ -40,25 +42,35 @@ async function main() {
   );
   writeSummaryFile(summaryFilePath, name, testProcessExitCode === 0);
 
-  process.exit(testProcessExitCode);
+  // Ensure that this script terminates with the same exit code as the test
+  // process. Do _not_ call `process.exit()` directly as it can interrupt
+  // flushing of stdout/stderr leading to truncated output.
+  process.exitCode = testProcessExitCode;
 }
 
 async function runTestProcess(workingDir, scriptName, logFilePath) {
-  log(`Saving test process output to file: ${logFilePath}`);
+  logger.log(`Saving test process output to file: ${logFilePath}`);
   const logFileHandle = fs.openSync(logFilePath, 'w');
   try {
     const args = ['yarn', '--cwd', workingDir, scriptName];
-    log(`Starting test process: ${args.join(' ')}`);
+    logger.log(`Starting test process: ${args.join(' ')}`);
     const proc = child_process.spawn(args[0], args.splice(1), {
       stdio: ['inherit', logFileHandle, logFileHandle]
     });
-    proc.once('spawn', () => log(`Started test process with PID: ${proc.pid}`));
-    const exitCode = await new Promise((resolve, reject) => {
+    proc.once('spawn', () =>
+      logger.log(`Started test process with PID: ${proc.pid}`)
+    );
+    const procCompletePromise = new Promise((resolve, reject) => {
       proc.once('close', resolve);
       proc.once('error', reject);
     });
+
+    const exitCode = await procCompletePromise;
+    logger.log(
+      `Test process with PID ${proc.pid} completed ` +
+        `with exit code: ${exitCode}`
+    );
     await printFile(logFilePath);
-    log(`Test process completed with exit code: ${exitCode}`);
     return exitCode;
   } finally {
     fs.close(logFileHandle);
@@ -68,7 +80,7 @@ async function runTestProcess(workingDir, scriptName, logFilePath) {
 function writeSummaryFile(summaryFilePath, name, testProcessSuccessful) {
   const statusString = testProcessSuccessful ? 'Success' : 'Failure';
   const line = `${statusString}: ${name}`;
-  log(`Writing summary to file ${summaryFilePath}: ${line}`);
+  logger.log(`Writing summary to file ${summaryFilePath}: ${line}`);
   fs.writeFileSync(summaryFilePath, line, { encoding: 'utf8' });
 }
 
@@ -79,12 +91,6 @@ async function printFile(path) {
     readStream.once('end', resolve);
     readStream.once('error', reject);
   });
-}
-
-let logPrefix = '';
-
-function log() {
-  console.log('run_tests_in_ci.js', logPrefix, elapsedTimeStr(), ...arguments);
 }
 
 function makeSafePath(s) {
@@ -130,35 +136,6 @@ function resolveScriptNameArg(scriptName) {
   }
 
   return scriptName;
-}
-
-let startTime = null;
-
-function getElapsedMilliseconds() {
-  const currentTimeMilliseconds = getCurrentMonotonicTimeMilliseconds();
-  if (startTime === null) {
-    startTime = currentTimeMilliseconds;
-    return 0;
-  }
-  return currentTimeMilliseconds - startTime;
-}
-
-function elapsedTimeStr() {
-  const milliseconds = getElapsedMilliseconds();
-  const minutes = Math.floor(milliseconds / (1000 * 60));
-  const seconds = (milliseconds - minutes * 1000 * 60) / 1000;
-  return (
-    (minutes < 10 ? '0' : '') +
-    minutes +
-    ':' +
-    (seconds < 10 ? '0' : '') +
-    seconds.toFixed(3)
-  );
-}
-
-function getCurrentMonotonicTimeMilliseconds() {
-  const currentTime = process.hrtime();
-  return currentTime[0] * 1000 + currentTime[1] / 1_000_000;
 }
 
 main();
