@@ -36,8 +36,7 @@ jobs:
       - name: Archive build
         if: ${{ !cancelled() }}
         run: |
-          tar -cf build.tar .
-          gzip build.tar
+          tar -czf build.tar.gz --exclude="\.git" .
       - name: Upload build archive
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v3
@@ -53,11 +52,6 @@ jobs:
 
     needs: build
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-        with:
-          # This makes Actions fetch all Git history so run-changed script can diff properly.
-          fetch-depth: 0
       - name: Set up Node (14)
         uses: actions/setup-node@v3
         with:
@@ -77,7 +71,6 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
 
@@ -91,11 +84,6 @@ jobs:
 
     needs: build
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-        with:
-          # This makes Actions fetch all Git history so run-changed script can diff properly.
-          fetch-depth: 0
       - name: Set up Node (14)
         uses: actions/setup-node@v3
         with:
@@ -115,9 +103,8 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run tests
-        run: cd packages/firestore && yarn run ${{ matrix.test-name }} && cd -
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
 
 
   test-firefox:
@@ -136,11 +123,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Checkout Repo
-        uses: actions/checkout@master
-        with:
-          # This makes Actions fetch all Git history so run-changed script can diff properly.
-          fetch-depth: 0
       - name: Download build archive
         uses: actions/download-artifact@v3
         with:
@@ -156,8 +138,7 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run tests
-        run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }} && cd -
+        run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
           BROWSERS: 'Firefox'
