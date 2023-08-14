@@ -800,6 +800,7 @@ apiDescribe('Database', persistence => {
           expect(snap.data()).to.deep.equal({ a: 1 });
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
+          // TODO(b/295872012): Figure out a way to check for all scenarios.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
         });
     });
@@ -830,6 +831,7 @@ apiDescribe('Database', persistence => {
           expect(snap.data()).to.deep.equal(changedData);
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
+          // TODO(b/295872012): Figure out a way to check for all scenarios.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
         });
     });
