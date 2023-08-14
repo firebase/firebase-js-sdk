@@ -1,0 +1,5 @@
+---
+'@firebase/analytics': minor
+---
+
+test
