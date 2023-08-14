@@ -72,7 +72,6 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
 
@@ -105,7 +104,6 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
 
@@ -141,7 +139,6 @@ jobs:
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
-          yarn
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
