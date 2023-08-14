@@ -88,6 +88,10 @@ const argv = yargs.options({
     console.log(stdout);
     console.error(stderr);
     writeLogs('Failure', name, stdout + '\n' + stderr);
-    process.exit(1);
+
+    // NOTE: Set `process.exitCode` rather than calling `process.exit()` because
+    // the latter will exit forcefully even if stdout/stderr have not been fully
+    // flushed, leading to truncated output.
+    process.exitCode = 1;
   }
 })();
