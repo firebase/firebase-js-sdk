@@ -147,7 +147,7 @@ async function main() {
       /**
        * Sets Github Actions output for a step. Pass changeset error message to next
        * step. See:
-       * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+       * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
        */
       await exec(`echo "BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
     }
@@ -204,7 +204,7 @@ async function main() {
   /**
    * Sets Github Actions output for a step. Pass changeset error message to next
    * step. See:
-   * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+   * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
    */
   if (errors.length > 0)
     await exec(`echo "CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`);
