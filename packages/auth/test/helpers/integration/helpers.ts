@@ -17,7 +17,7 @@
 
 import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app';
-import { Auth, User } from '../../../src/model/public_types';
+import { Auth, User } from '@firebase/auth';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
