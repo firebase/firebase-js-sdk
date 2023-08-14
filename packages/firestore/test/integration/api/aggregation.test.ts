@@ -73,7 +73,7 @@ apiDescribe('Count queries', persistence => {
         where('author', '==', 'authorA')
       ).withConverter(throwingConverter);
       const snapshot = await getCountFromServer(query_);
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).to.equal(42);
     });
   });
 
