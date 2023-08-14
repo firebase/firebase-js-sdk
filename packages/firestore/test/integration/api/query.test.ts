@@ -444,7 +444,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // Skips because the checks on hasPendingWrites are flaky
+  // Skips because the checks on hasPendingWrites are flaky.
   // eslint-disable-next-line no-restricted-properties
   it.skip('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };

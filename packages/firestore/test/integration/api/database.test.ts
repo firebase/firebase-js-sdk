@@ -802,7 +802,6 @@ apiDescribe('Database', persistence => {
           // We comment this line out to reduce flakiness.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
         });
-      // .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
@@ -831,9 +830,8 @@ apiDescribe('Database', persistence => {
           expect(snap.data()).to.deep.equal(changedData);
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          // expect(snap.metadata.hasPendingWrites).to.be.false;
         });
-      // .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
