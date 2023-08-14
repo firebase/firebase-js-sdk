@@ -57,8 +57,6 @@ import { ERROR_FACTORY, AnalyticsError } from './errors';
 
 export { settings } from './factory';
 
-// test
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [ANALYTICS_TYPE]: AnalyticsService;
