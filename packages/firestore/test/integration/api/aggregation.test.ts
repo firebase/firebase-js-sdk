@@ -56,7 +56,7 @@ apiDescribe('Count queries', persistence => {
 
   it("count query doesn't use converter", () => {
     const testDocs = {
-      a: { author: 'authorA', title: 'titleX' },
+      a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
     };
     const throwingConverter = {
@@ -290,7 +290,7 @@ apiDescribe('Aggregation queries', persistence => {
     return withTestDb(persistence, async db => {
       const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
       const docPaths = [
-        `${collectionGroupId}/cg-doc1z`,
+        `${collectionGroupId}/cg-doc1`,
         `abc/123/${collectionGroupId}/cg-doc2`,
         `zzz${collectionGroupId}/cg-doc3`,
         `abc/123/zzz${collectionGroupId}/cg-doc4`,
