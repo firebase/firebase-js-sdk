@@ -36,7 +36,8 @@ jobs:
       - name: Archive build
         if: ${{ !cancelled() }}
         run: |
-          tar -czf build.tar.gz --exclude="\.git" .
+          tar -cf build.tar --exclude="\.git" .
+          gzip build.tar
       - name: Upload build archive
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v3
