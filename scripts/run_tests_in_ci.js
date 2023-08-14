@@ -40,8 +40,6 @@ async function main() {
   );
   writeSummaryFile(summaryFilePath, name, testProcessExitCode === 0);
 
-  await printFile(logFilePath);
-
   process.exit(testProcessExitCode);
 }
 
@@ -59,6 +57,7 @@ async function runTestProcess(workingDir, scriptName, logFilePath) {
       proc.once('close', resolve);
       proc.once('error', reject);
     });
+    await printFile(logFilePath);
     log(`Test process completed with exit code: ${exitCode}`);
     return exitCode;
   } finally {
@@ -74,18 +73,12 @@ function writeSummaryFile(summaryFilePath, name, testProcessSuccessful) {
 }
 
 async function printFile(path) {
-  log('========================================================');
-  log(`==== BEGIN ${path}`);
-  log('========================================================');
   const readStream = fs.createReadStream(path);
   readStream.pipe(process.stdout);
   await new Promise((resolve, reject) => {
     readStream.once('end', resolve);
     readStream.once('error', reject);
   });
-  log('========================================================');
-  log(`==== END ${path}`);
-  log('========================================================');
 }
 
 let logPrefix = '';
