@@ -31,7 +31,8 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordValidationStatus
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -65,6 +66,9 @@ import { HttpHeader } from '../../api';
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
+import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
+import { PasswordPolicyInternal } from '../../model/password_policy';
+import { PasswordPolicyImpl } from './password_policy_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -87,6 +91,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
+  private readonly EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION: number = 1;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -99,6 +104,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     _DEFAULT_AUTH_ERROR_FACTORY;
   _agentRecaptchaConfig: RecaptchaConfig | null = null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
+  _projectPasswordPolicy: PasswordPolicyInternal | null = null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -398,6 +405,54 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       return this._agentRecaptchaConfig;
     } else {
       return this._tenantRecaptchaConfigs[this.tenantId];
+    }
+  }
+
+  async validatePassword(password: string): Promise<PasswordValidationStatus> {
+    if (!this._getPasswordPolicyInternal()) {
+      await this._updatePasswordPolicy();
+    }
+
+    // Password policy will be defined after fetching.
+    const passwordPolicy: PasswordPolicyInternal =
+      this._getPasswordPolicyInternal()!;
+
+    // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
+    if (
+      passwordPolicy.schemaVersion !==
+      this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
+    ) {
+      return Promise.reject(
+        this._errorFactory.create(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
+          {}
+        )
+      );
+    }
+
+    return passwordPolicy.validatePassword(password);
+  }
+
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null {
+    if (this.tenantId === null) {
+      return this._projectPasswordPolicy;
+    } else {
+      return this._tenantPasswordPolicies[this.tenantId];
+    }
+  }
+
+  async _updatePasswordPolicy(): Promise<void> {
+    const response = await _getPasswordPolicy(this);
+
+    const passwordPolicy: PasswordPolicyInternal = new PasswordPolicyImpl(
+      response
+    );
+
+    if (this.tenantId === null) {
+      this._projectPasswordPolicy = passwordPolicy;
+    } else {
+      this._tenantPasswordPolicies[this.tenantId] = passwordPolicy;
     }
   }
 
