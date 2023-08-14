@@ -17,81 +17,125 @@
 
 const yargs = require('yargs');
 const path = require('path');
-const { spawn } = require('child-process-promise');
-const { writeFileSync } = require('fs');
+const child_process = require('node:child_process');
+const fs = require('node:fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
-// Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
-// TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
-const crossBrowserPackages = {
-  'packages/auth': 'test:browser:unit',
-  'packages/auth-compat': 'test:browser:unit',
-  'packages/firestore': 'test:browser:unit',
-  'packages/firestore-compat': 'test:browser'
-};
+let logger = null;
 
-function writeLogs(status, name, logText) {
-  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
-  writeFileSync(path.join(LOGDIR, `${safeName}-ci-log.txt`), logText, {
-    encoding: 'utf8'
-  });
-  writeFileSync(
-    path.join(LOGDIR, `${safeName}-ci-summary.txt`),
-    `${status}: ${name}`,
-    { encoding: 'utf8' }
+async function main() {
+  const { scriptName, workingDir } = parseArgs();
+  const { name } = require(`${workingDir}/package.json`);
+  const { Logger } = await import('./logger.mjs');
+  logger = new Logger('run_tests_in_ci.js', [name, scriptName]);
+
+  const logFilePath = path.join(LOGDIR, `${makeSafePath(name)}-ci-log.txt`);
+  const testProcessExitCode = await runTestProcess(
+    workingDir,
+    scriptName,
+    logFilePath
   );
+
+  const summaryFilePath = path.join(
+    LOGDIR,
+    `${makeSafePath(name)}-ci-summary.txt`
+  );
+  writeSummaryFile(summaryFilePath, name, testProcessExitCode === 0);
+
+  // Ensure that this script terminates with the same exit code as the test
+  // process. Do _not_ call `process.exit()` directly as it can interrupt
+  // flushing of stdout/stderr leading to truncated output.
+  process.exitCode = testProcessExitCode;
 }
 
-const argv = yargs.options({
-  d: {
-    type: 'string',
-    desc: 'current working directory',
-    default: '.'
-  },
-  s: {
-    type: 'string',
-    desc: 'the npm script to run',
-    default: 'test'
-  }
-}).argv;
-
-(async () => {
-  const myPath = argv.d;
-  let scriptName = argv.s;
-  const dir = path.resolve(myPath);
-  const { name } = require(`${dir}/package.json`);
-
-  let stdout = '';
-  let stderr = '';
+async function runTestProcess(workingDir, scriptName, logFilePath) {
+  logger.log(`Saving test process output to file: ${logFilePath}`);
+  const logFileHandle = fs.openSync(logFilePath, 'w');
   try {
-    if (process.env?.BROWSERS) {
-      for (const package in crossBrowserPackages) {
-        if (dir.endsWith(package)) {
-          scriptName = crossBrowserPackages[package];
-        }
+    const args = ['yarn', '--cwd', workingDir, scriptName];
+    logger.log(`Starting test process: ${args.join(' ')}`);
+    const proc = child_process.spawn(args[0], args.splice(1), {
+      stdio: ['inherit', logFileHandle, logFileHandle]
+    });
+    proc.once('spawn', () =>
+      logger.log(`Started test process with PID: ${proc.pid}`)
+    );
+    const procCompletePromise = new Promise((resolve, reject) => {
+      proc.once('close', resolve);
+      proc.once('error', reject);
+    });
+
+    const exitCode = await procCompletePromise;
+    logger.log(
+      `Test process with PID ${proc.pid} completed ` +
+        `with exit code: ${exitCode}`
+    );
+    await printFile(logFilePath);
+    return exitCode;
+  } finally {
+    fs.close(logFileHandle);
+  }
+}
+
+function writeSummaryFile(summaryFilePath, name, testProcessSuccessful) {
+  const statusString = testProcessSuccessful ? 'Success' : 'Failure';
+  const line = `${statusString}: ${name}`;
+  logger.log(`Writing summary to file ${summaryFilePath}: ${line}`);
+  fs.writeFileSync(summaryFilePath, line, { encoding: 'utf8' });
+}
+
+async function printFile(path) {
+  const readStream = fs.createReadStream(path);
+  readStream.pipe(process.stdout);
+  await new Promise((resolve, reject) => {
+    readStream.once('end', resolve);
+    readStream.once('error', reject);
+  });
+}
+
+function makeSafePath(s) {
+  return s.replace(/@/g, 'at_').replace(/\//g, '_');
+}
+
+function parseArgs() {
+  const argv = yargs.options({
+    d: {
+      type: 'string',
+      desc: 'current working directory',
+      default: '.'
+    },
+    s: {
+      type: 'string',
+      desc: 'the npm script to run',
+      default: 'test'
+    }
+  }).argv;
+
+  return {
+    scriptName: resolveScriptNameArg(argv.s),
+    workingDir: path.resolve(argv.d)
+  };
+}
+
+function resolveScriptNameArg(scriptName) {
+  // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
+  // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
+  const crossBrowserPackages = {
+    'packages/auth': 'test:browser:unit',
+    'packages/auth-compat': 'test:browser:unit',
+    'packages/firestore': 'test:browser:unit',
+    'packages/firestore-compat': 'test:browser'
+  };
+
+  if (process.env?.BROWSERS) {
+    for (const package in crossBrowserPackages) {
+      if (dir.endsWith(package)) {
+        scriptName = crossBrowserPackages[package];
       }
     }
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
-
-    testProcess.childProcess.stdout.on('data', data => {
-      stdout += data.toString();
-    });
-    testProcess.childProcess.stderr.on('data', data => {
-      stderr += data.toString();
-    });
-
-    await testProcess;
-    console.log('Success: ' + name);
-    writeLogs('Success', name, stdout + '\n' + stderr);
-  } catch (e) {
-    console.error('Failure: ' + name);
-    console.log(stdout);
-    console.error(stderr);
-    writeLogs('Failure', name, stdout + '\n' + stderr);
-
-    // NOTE: Set `process.exitCode` rather than calling `process.exit()` because
-    // the latter will exit forcefully even if stdout/stderr have not been fully
-    // flushed, leading to truncated output.
-    process.exitCode = 1;
   }
-})();
+
+  return scriptName;
+}
+
+main();
