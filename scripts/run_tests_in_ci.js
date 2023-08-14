@@ -61,8 +61,6 @@ const argv = yargs.options({
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
-  let stdout = '';
-  let stderr = '';
   try {
     if (process.env?.BROWSERS) {
       for (const package in crossBrowserPackages) {
@@ -71,23 +69,20 @@ const argv = yargs.options({
         }
       }
     }
-    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
-
-    testProcess.childProcess.stdout.on('data', data => {
-      stdout += data.toString();
+    const testProcessResult = await spawn('yarn', ['--cwd', dir, scriptName], {
+      capture: ['stdout', 'stderr']
     });
-    testProcess.childProcess.stderr.on('data', data => {
-      stderr += data.toString();
-    });
-
-    await testProcess;
     console.log('Success: ' + name);
-    writeLogs('Success', name, stdout + '\n' + stderr);
+    writeLogs(
+      'Success',
+      name,
+      testProcessResult.stdout + '\n' + testProcessResult.stderr
+    );
   } catch (e) {
     console.error('Failure: ' + name);
-    console.log(stdout);
-    console.error(stderr);
-    writeLogs('Failure', name, stdout + '\n' + stderr);
+    console.log(e.stdout);
+    console.error(e.stderr);
+    writeLogs('Failure', name, e.stdout + '\n' + e.stderr);
 
     // NOTE: Set `process.exitCode` rather than calling `process.exit()` because
     // the latter will exit forcefully even if stdout/stderr have not been fully
