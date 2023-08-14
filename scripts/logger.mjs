@@ -38,7 +38,7 @@ export class Logger {
   constructor(scriptName, logPrefixes) {
     const pidStr = `[${process.pid}]`;
     this._logPrefixes = [scriptName, pidStr].concat(logPrefixes ?? []);
-    this._startTime = null;
+    this._startTimeMilliseconds = null;
   }
 
   /**
@@ -58,9 +58,11 @@ export class Logger {
   }
 
   /**
-   * Calculates the elapsed time since the first invocation, and returns it as
-   * a human-friendly string that is suitable for inclusion in log messages.
-   * Upon the first invocation, the "start time" is initialized an elapsed
+   * Calculates the amount of time since the first invocation of this method on
+   * this object and returns it as a human-friendly string that is suitable for
+   * inclusion in log messages.
+   *
+   * Upon the first invocation, the "start time" is initialized and an elapsed
    * time of 0 (zero) is used.
    */
   _elapsedTimeStr() {
@@ -77,18 +79,19 @@ export class Logger {
   }
 
   /**
-   * Calculates the elapsed time since the first invocation, and returns it as
-   * a human-friendly string that is suitable for inclusion in log messages.
+   * Calculates the amount of time, in milliseconds, since the first invocation
+   * of this method on this object and returns it.
+   *
    * Upon the first invocation, the "start time" is initialized and an elapsed
-   * time of 0 (zero) is used.
+   * time of 0 (zero) is returned.
    */
   _getElapsedMilliseconds() {
     const currentTimeMilliseconds = getCurrentMonotonicTimeMilliseconds();
-    if (this._startTime === null) {
-      this._startTime = currentTimeMilliseconds;
+    if (this._startTimeMilliseconds === null) {
+      this._startTimeMilliseconds = currentTimeMilliseconds;
       return 0;
     }
-    return currentTimeMilliseconds - this._startTime;
+    return currentTimeMilliseconds - this._startTimeMilliseconds;
   }
 }
 
