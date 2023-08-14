@@ -79,9 +79,9 @@ async function runTestProcess(workingDir, scriptName, logFilePath) {
 
 function writeSummaryFile(summaryFilePath, name, testProcessSuccessful) {
   const statusString = testProcessSuccessful ? 'Success' : 'Failure';
-  const line = `${statusString}: ${name}`;
-  logger.log(`Writing summary to file ${summaryFilePath}: ${line}`);
-  fs.writeFileSync(summaryFilePath, line, { encoding: 'utf8' });
+  const summary = `${statusString}: ${name}`;
+  logger.log(`Writing summary to file ${summaryFilePath}: ${summary}`);
+  fs.writeFileSync(summaryFilePath, summary, { encoding: 'utf8' });
 }
 
 async function printFile(path) {
@@ -118,7 +118,8 @@ function parseArgs() {
 }
 
 function resolveScriptNameArg(scriptName) {
-  // Maps the packages where we should not run `test:all` and instead isolate the cross-browser tests.
+  // Maps the packages where we should not run `test:all` and instead isolate
+  // the cross-browser tests.
   // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
   const crossBrowserPackages = {
     'packages/auth': 'test:browser:unit',
