@@ -63,41 +63,36 @@ async function buildForTests(
   config: TestConfig,
   { buildAll = false }: Options
 ) {
-  try {
-    const testTasks = filterTasks(await getTestTasks(), config);
-    // print tasks for info
-    logTasks(testTasks);
-    if (testTasks.length === 0) {
-      console.log(chalk`{green No test tasks. Skipping all builds }`);
-      return;
-    }
-
-    // build all and return
-    if (buildAll) {
-      await spawn('yarn', ['build'], { stdio: 'inherit', cwd: root });
-      return;
-    }
-
-    const lernaCmd = ['lerna', 'run'];
-    console.log(chalk`{blue Running build in:}`);
-    for (const task of testTasks) {
-      if (task.reason === TestReason.Changed) {
-        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
-      } else if (task.reason === TestReason.Dependent) {
-        console.log(
-          chalk`{yellow ${task.pkgName} (depends on modified files)}`
-        );
-      } else {
-        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
-      }
-      lernaCmd.push('--scope');
-      lernaCmd.push(task.pkgName);
-    }
-
-    lernaCmd.push('--include-dependencies', 'build');
-    await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
-  } catch (e) {
-    console.error(chalk`{red ${e}}`);
-    process.exit(1);
+  const testTasks = filterTasks(await getTestTasks(), config);
+  // print tasks for info
+  logTasks(testTasks);
+  if (testTasks.length === 0) {
+    console.log(chalk`{green No test tasks. Skipping all builds }`);
+    return;
   }
+
+  // build all and return
+  if (buildAll) {
+    await spawn('yarn', ['build'], { stdio: 'inherit', cwd: root });
+    return;
+  }
+
+  const lernaCmd = ['lerna', 'run'];
+  console.log(chalk`{blue Running build in:}`);
+  for (const task of testTasks) {
+    if (task.reason === TestReason.Changed) {
+      console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
+    } else if (task.reason === TestReason.Dependent) {
+      console.log(
+        chalk`{yellow ${task.pkgName} (depends on modified files)}`
+      );
+    } else {
+      console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
+    }
+    lernaCmd.push('--scope');
+    lernaCmd.push(task.pkgName);
+  }
+
+  lernaCmd.push('--include-dependencies', 'build');
+  await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
 }

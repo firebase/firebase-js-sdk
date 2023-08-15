@@ -49,37 +49,31 @@ const config = testConfig[inputTestConfigName]!;
 runTests(config);
 
 async function runTests(config: TestConfig) {
-  try {
-    const testTasks = filterTasks(await getTestTasks(), config);
+  const testTasks = filterTasks(await getTestTasks(), config);
 
-    // print tasks for info
-    logTasks(testTasks);
-    if (testTasks.length === 0) {
-      chalk`{green No test tasks. Skipping all tests }`;
-      process.exit(0);
-    }
-
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
-    console.log(chalk`{blue Running tests in:}`);
-    for (const task of testTasks) {
-      if (task.reason === TestReason.Changed) {
-        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
-      } else if (task.reason === TestReason.Dependent) {
-        console.log(
-          chalk`{yellow ${task.pkgName} (depends on modified files)}`
-        );
-      } else {
-        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
-      }
-      lernaCmd.push('--scope');
-      lernaCmd.push(task.pkgName);
-    }
-
-    lernaCmd.push(testCommand);
-    await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
+  // print tasks for info
+  logTasks(testTasks);
+  if (testTasks.length === 0) {
+    chalk`{green No test tasks. Skipping all tests }`;
     process.exit(0);
-  } catch (e) {
-    console.error(chalk`{red ${e}}`);
-    process.exit(1);
   }
+
+  const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+  console.log(chalk`{blue Running tests in:}`);
+  for (const task of testTasks) {
+    if (task.reason === TestReason.Changed) {
+      console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
+    } else if (task.reason === TestReason.Dependent) {
+      console.log(
+        chalk`{yellow ${task.pkgName} (depends on modified files)}`
+      );
+    } else {
+      console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
+    }
+    lernaCmd.push('--scope');
+    lernaCmd.push(task.pkgName);
+  }
+
+  lernaCmd.push(testCommand);
+  await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
 }
