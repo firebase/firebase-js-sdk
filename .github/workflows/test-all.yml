@@ -143,7 +143,11 @@ jobs:
       continue-on-error: true
 
   test-firestore:
-    name: (Firestore) Node.js and Browser (Chrome) Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        npm_script: ['test:browser', 'test:travis', 'test:lite:browser', 'test:browser:prod:nameddb', 'test:lite:browser:nameddb']
+    name: Firestore Tests (${{ matrix.npm_script }})
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -172,8 +176,8 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run --concurrency 4 test:ci --scope '@firebase/firestore*'
-        node scripts/print_test_logs.js
+        cd packages/firestore
+        xvfb-run yarn ${{ matrix.npm_script }}
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
