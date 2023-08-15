@@ -50,7 +50,7 @@ apiDescribe('Count queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getCountFromServer(coll);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).to.equal('zzyzx');
     });
   });
 
