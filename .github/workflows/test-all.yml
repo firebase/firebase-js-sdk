@@ -223,6 +223,6 @@ jobs:
     - name: Run unit tests
       run: |
         cd integration/firestore
-        xvfb-run karma start --single-run
+        xvfb-run yarn karma:singlerun
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
