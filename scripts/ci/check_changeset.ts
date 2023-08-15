@@ -207,7 +207,9 @@ async function main() {
    * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
    */
   if (errors.length > 0)
-    await exec(`echo "CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`);
+    await exec(
+      `echo "CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`
+    );
   process.exit();
 }
 
