@@ -186,7 +186,10 @@ jobs:
       continue-on-error: true
 
   test-firestore-integration:
-    name: Firestore Integration Tests
+    strategy:
+      matrix:
+        persistence: ['memory', 'persistence']
+    name: Firestore Integration Tests (${{ matrix.persistence }})
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -213,9 +216,13 @@ jobs:
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
+    - name: Compile unit tests
+      run: |
+        cd integration/firestore
+        yarn build:${{ matrix.persistence }}
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run --concurrency 4 test:ci --scope firebase-firestore-integration-test
-        node scripts/print_test_logs.js
+        cd integration/firestore
+        xvfb-run karma start --single-run
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
