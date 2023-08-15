@@ -36,9 +36,11 @@ jobs:
       - name: build
         id: build
         run: yarn build:changed firestore | egrep "Skipping all"
-        # Only continue when "Skipping all is not found"
+        # Continue when "Skipping all" is not found
         continue-on-error: true
       - name: set output
+        # This means "Skipping all" was not found
+        if: steps.build.outcome != 'success'
         id: set-output
         run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
       - name: Archive build
