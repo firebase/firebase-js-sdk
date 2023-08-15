@@ -51,7 +51,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert, debugCast } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
