@@ -27,12 +27,13 @@ import {
   newQueryForPath,
   Query,
   queryMatches,
-  queryOrderBy,
+  queryNormalizedOrderBy,
   queryWithAddedFilter,
   queryWithEndAt,
   queryWithLimit,
   queryWithStartAt,
   stringifyQuery,
+  queryToAggregateTarget,
   queryToTarget,
   QueryImpl,
   queryEquals,
@@ -852,6 +853,57 @@ describe('Query', () => {
     assertQueryMatches(query5, [doc3], [doc1, doc2, doc4, doc5]);
   });
 
+  it('generates appropriate order-bys for aggregate and non-aggregate targets', () => {
+    const col = newQueryForPath(ResourcePath.fromString('collection'));
+
+    // Build two identical queries
+    const query1 = queryWithAddedFilter(col, filter('foo', '>', 1));
+    const query2 = queryWithAddedFilter(col, filter('foo', '>', 1));
+
+    // Compute an aggregate and non-aggregate target from the queries
+    const aggregateTarget = queryToAggregateTarget(query1);
+    const target = queryToTarget(query2);
+
+    expect(aggregateTarget.orderBy.length).to.equal(0);
+    expect(target.orderBy.length).to.equal(2);
+    expect(target.orderBy[0].dir).to.equal('asc');
+    expect(target.orderBy[0].field.canonicalString()).to.equal('foo');
+    expect(target.orderBy[1].dir).to.equal('asc');
+    expect(target.orderBy[1].field.canonicalString()).to.equal('__name__');
+  });
+
+  it('generated order-bys are not affected by previously memoized targets', () => {
+    const col = newQueryForPath(ResourcePath.fromString('collection'));
+
+    // Build two identical queries
+    const query1 = queryWithAddedFilter(col, filter('foo', '>', 1));
+    const query2 = queryWithAddedFilter(col, filter('foo', '>', 1));
+
+    // query1 - first to aggregate target, then to non-aggregate target
+    const aggregateTarget1 = queryToAggregateTarget(query1);
+    const target1 = queryToTarget(query1);
+
+    // query2 - first to non-aggregate target, then to aggregate target
+    const target2 = queryToTarget(query2);
+    const aggregateTarget2 = queryToAggregateTarget(query2);
+
+    expect(aggregateTarget1.orderBy.length).to.equal(0);
+
+    expect(aggregateTarget2.orderBy.length).to.equal(0);
+
+    expect(target1.orderBy.length).to.equal(2);
+    expect(target1.orderBy[0].dir).to.equal('asc');
+    expect(target1.orderBy[0].field.canonicalString()).to.equal('foo');
+    expect(target1.orderBy[1].dir).to.equal('asc');
+    expect(target1.orderBy[1].field.canonicalString()).to.equal('__name__');
+
+    expect(target2.orderBy.length).to.equal(2);
+    expect(target2.orderBy[0].dir).to.equal('asc');
+    expect(target2.orderBy[0].field.canonicalString()).to.equal('foo');
+    expect(target2.orderBy[1].dir).to.equal('asc');
+    expect(target2.orderBy[1].field.canonicalString()).to.equal('__name__');
+  });
+
   function assertQueryMatches(
     query: Query,
     matching: MutableDocument[],
@@ -866,7 +918,7 @@ describe('Query', () => {
   }
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {
-    expect(queryOrderBy(query)).to.deep.equal(orderBys);
+    expect(queryNormalizedOrderBy(query)).to.deep.equal(orderBys);
   }
 
   function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
