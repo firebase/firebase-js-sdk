@@ -40,14 +40,14 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar -cf build.tar .
-        gzip build.tar
+        tar zcf ${{ runner.temp }}/build.tar.gz --exclude=.git --exclude=node_modules .
+        ls -l ${{ runner.temp }}/build.tar.gz
     - name: Upload build archive
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v3
       with:
           name: build.tar.gz
-          path: build.tar.gz
+          path: ${{ runner.temp }}/build.tar.gz
           retention-days: ${{ env.artifactRetentionDays }}
         
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
