@@ -40,8 +40,8 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar zvcf ${{ runner.temp }}/build.tar.gz ./node_modules/chromedriver --exclude=.git --exclude=node_modules .
-        echo "File created successfully: ${{ runner.temp }}/build.tar.gz"
+        tar zcf ${{ runner.temp }}/build.tar.gz --exclude=.git .
+        echo "Archive created successfully: ${{ runner.temp }}/build.tar.gz"
         ls -l ${{ runner.temp }}/build.tar.gz
     - name: Upload build archive
       if: ${{ !cancelled() }}
