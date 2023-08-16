@@ -549,8 +549,6 @@ export class WatchChangeAggregator {
     targetId: number
   ): number {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
-    const modifiedKeys =
-      this.ensureTargetState(targetId).toTargetChange().modifiedDocuments;
     let removalCount = 0;
 
     existingKeys.forEach(key => {
