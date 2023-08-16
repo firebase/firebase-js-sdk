@@ -172,8 +172,6 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         cd packages/firestore
@@ -219,8 +217,6 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Compile unit tests
       run: |
         cd integration/firestore
