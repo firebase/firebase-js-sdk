@@ -38,9 +38,9 @@ import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import {
-  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo,
-  TestingHooks
-} from '../util/testing_hooks';
+  testingHooksSpi,
+  ExistenceFilterMismatchInfo as TestingHooksExistenceFilterMismatchInfo
+} from '../util/testing_hooks_spi';
 
 import { BloomFilter, BloomFilterError } from './bloom_filter';
 import { ExistenceFilter } from './existence_filter';
@@ -452,7 +452,7 @@ export class WatchChangeAggregator {
               purpose
             );
           }
-          TestingHooks.instance?.notifyOnExistenceFilterMismatch(
+          testingHooksSpi?.notifyOnExistenceFilterMismatch(
             createExistenceFilterMismatchInfoForTestingHooks(
               currentSize,
               watchChange.existenceFilter,
