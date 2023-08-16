@@ -115,9 +115,9 @@ module.exports = {
       );
     }),
     new NodePolyfillPlugin(),
-    new webpack.EnvironmentPlugin([
-      'RTDB_EMULATOR_PORT',
-      'RTDB_EMULATOR_NAMESPACE'
-    ])
+    new webpack.EnvironmentPlugin({
+      'RTDB_EMULATOR_PORT': false,
+      'RTDB_EMULATOR_NAMESPACE': false
+    })
   ]
 };

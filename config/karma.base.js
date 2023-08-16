@@ -87,11 +87,5 @@ const config = {
 config.mochaReporter = {
   showDiff: true
 };
-// Make it easy to spot failed tests in CI
-if (process.env.CI) {
-  config.mochaReporter = {
-    output: 'minimal'
-  };
-}
 
 module.exports = config;
