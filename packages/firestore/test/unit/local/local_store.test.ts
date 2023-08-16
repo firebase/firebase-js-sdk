@@ -345,15 +345,18 @@ class LocalStoreTester {
   }
 
   afterIndexAutoCreationConfigure(config: {
-    enabled?: boolean;
+    isEnabled?: boolean;
     indexAutoCreationMinCollectionSize?: number;
     relativeIndexReadCostPerDocument?: number;
   }): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() => {
-      if (config.enabled !== undefined) {
-        localStoreSetIndexAutoCreationEnabled(this.localStore, config.enabled);
+      if (config.isEnabled !== undefined) {
+        localStoreSetIndexAutoCreationEnabled(
+          this.localStore,
+          config.isEnabled
+        );
       }
       LocalStoreTestingHooks.setIndexAutoCreationSettings(
         this.localStore,
@@ -2724,7 +2727,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query_)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           indexAutoCreationMinCollectionSize: 0,
           relativeIndexReadCostPerDocument: 2
         })
@@ -2760,7 +2763,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query_)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           relativeIndexReadCostPerDocument: 2
         })
         .afterRemoteEvents([
@@ -2792,7 +2795,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query_)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           indexAutoCreationMinCollectionSize: 0,
           relativeIndexReadCostPerDocument: 5
         })
@@ -2829,7 +2832,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query_)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           indexAutoCreationMinCollectionSize: 0,
           relativeIndexReadCostPerDocument: 2
         })
@@ -2865,7 +2868,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query_)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           indexAutoCreationMinCollectionSize: 0,
           relativeIndexReadCostPerDocument: 2
         })
@@ -2883,7 +2886,7 @@ function indexedDbLocalStoreTests(
         .afterExecutingQuery(query_)
         .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
         .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ enabled: false })
+        .afterIndexAutoCreationConfigure({ isEnabled: false })
         .afterBackfillIndexes()
         .afterRemoteEvent(
           docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [2], [])
@@ -2903,7 +2906,7 @@ function indexedDbLocalStoreTests(
         .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .afterIndexAutoCreationConfigure({
-          enabled: true,
+          isEnabled: true,
           indexAutoCreationMinCollectionSize: 0,
           relativeIndexReadCostPerDocument: 2
         })
@@ -2921,7 +2924,7 @@ function indexedDbLocalStoreTests(
         .afterExecutingQuery(query1)
         .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
         .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ enabled: false })
+        .afterIndexAutoCreationConfigure({ isEnabled: false })
         .afterBackfillIndexes()
         .afterExecutingQuery(query1)
         .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
@@ -2953,7 +2956,7 @@ function indexedDbLocalStoreTests(
       .afterAllocatingQuery(query_)
       .toReturnTargetId(2)
       .afterIndexAutoCreationConfigure({
-        enabled: true,
+        isEnabled: true,
         indexAutoCreationMinCollectionSize: 0,
         relativeIndexReadCostPerDocument: 2
       })

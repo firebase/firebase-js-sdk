@@ -834,12 +834,12 @@ export function firestoreClientSetIndexConfiguration(
 
 export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
   client: FirestoreClient,
-  enabled: boolean
+  isEnabled: boolean
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
     return localStoreSetIndexAutoCreationEnabled(
       await getLocalStore(client),
-      enabled
+      isEnabled
     );
   });
 }

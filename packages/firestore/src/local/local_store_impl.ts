@@ -1529,10 +1529,10 @@ export async function localStoreConfigureFieldIndexes(
 
 export function localStoreSetIndexAutoCreationEnabled(
   localStore: LocalStore,
-  enabled: boolean
+  isEnabled: boolean
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.indexAutoCreationEnabled = enabled;
+  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
 }
 
 /**

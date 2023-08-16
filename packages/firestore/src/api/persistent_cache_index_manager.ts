@@ -103,26 +103,26 @@ export function disablePersistentCacheIndexAutoCreation(
 
 function setPersistentCacheIndexAutoCreationEnabled(
   indexManager: PersistentCacheIndexManager,
-  enabled: boolean
+  isEnabled: boolean
 ): void {
   indexManager._client.verifyNotTerminated();
 
   const promise = firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
     indexManager._client,
-    enabled
+    isEnabled
   );
 
   promise
     .then(_ =>
       logDebug(
         `setting persistent cache index auto creation ` +
-          `enabled=${enabled} succeeded`
+          `isEnabled=${isEnabled} succeeded`
       )
     )
     .catch(error =>
       logWarn(
         `setting persistent cache index auto creation ` +
-          `enabled=${enabled} failed`,
+          `isEnabled=${isEnabled} failed`,
         error
       )
     );
