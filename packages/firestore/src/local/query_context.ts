@@ -29,10 +29,7 @@ export class QueryContext {
     return this._documentReadCount;
   }
 
-  incrementDocumentReadCount(amount?: number): void {
-    if (amount === undefined) {
-      amount = 1;
-    }
+  incrementDocumentReadCount(amount: number): void {
     this._documentReadCount += amount;
   }
 }
