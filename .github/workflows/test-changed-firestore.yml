@@ -35,6 +35,8 @@ jobs:
           yarn
       - name: build
         id: build
+        # TODO(wuandy): Separate yarn and egrep into steps, so build failure
+        # is captured by github actions.
         run: yarn build:changed firestore | egrep "Skipping all"
         # Continue when "Skipping all" is not found
         continue-on-error: true
