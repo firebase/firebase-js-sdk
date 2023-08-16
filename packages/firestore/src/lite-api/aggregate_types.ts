@@ -38,15 +38,15 @@ export class AggregateField<T> {
 
   /**
    * Create a new AggregateField<T>
-   * @param _aggregateType Specifies the type of aggregation operation to perform.
+   * @param aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
-    readonly _aggregateType: AggregateType = 'count',
+    aggregateType: AggregateType = 'count',
     readonly _internalFieldPath?: InternalFieldPath
   ) {
-    this.aggregateType = _aggregateType;
+    this.aggregateType = aggregateType;
   }
 }
 
