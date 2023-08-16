@@ -72,7 +72,8 @@ import {
   getRedirectResult,
   browserPopupRedirectResolver,
   connectAuthEmulator,
-  initializeRecaptchaConfig
+  initializeRecaptchaConfig,
+  validatePassword
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -114,7 +115,7 @@ const providersIcons = {
 };
 
 /**
- * Returns the active user (i.e. currentUser or lastUser).
+ * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
 function activeUser() {
@@ -127,62 +128,87 @@ function activeUser() {
 }
 
 /**
+ * Blocks until there is a valid user
+ * then returns the valid user (currentUser or lastUser).
+ * @return {!firebase.User}
+ */
+async function getActiveUserBlocking() {
+  const type = $('input[name=toggle-user-selection]:checked').val();
+  if (type === 'lastUser') {
+    return lastUser;
+  } else {
+    try {
+      await auth.authStateReady();
+      return auth.currentUser;
+    } catch (e) {
+      log(e);
+    }
+  }
+}
+
+/**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
  */
-function refreshUserData() {
-  if (activeUser()) {
-    const user = activeUser();
-    $('.profile').show();
-    $('body').addClass('user-info-displayed');
-    $('div.profile-email,span.profile-email').text(user.email || 'No Email');
-    $('div.profile-phone,span.profile-phone').text(
-      user.phoneNumber || 'No Phone'
-    );
-    $('div.profile-uid,span.profile-uid').text(user.uid);
-    $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
-    $('input.profile-name').val(user.displayName);
-    $('input.photo-url').val(user.photoURL);
-    if (user.photoURL != null) {
-      let photoURL = user.photoURL;
-      // Append size to the photo URL for Google hosted images to avoid requesting
-      // the image with its original resolution (using more bandwidth than needed)
-      // when it is going to be presented in smaller size.
-      if (
-        photoURL.indexOf('googleusercontent.com') !== -1 ||
-        photoURL.indexOf('ggpht.com') !== -1
-      ) {
-        photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+async function refreshUserData() {
+  try {
+    let user = await getActiveUserBlocking();
+    if (user) {
+      $('.profile').show();
+      $('body').addClass('user-info-displayed');
+      $('div.profile-email,span.profile-email').text(user.email || 'No Email');
+      $('div.profile-phone,span.profile-phone').text(
+        user.phoneNumber || 'No Phone'
+      );
+      $('div.profile-uid,span.profile-uid').text(user.uid);
+      $('div.profile-name,span.profile-name').text(
+        user.displayName || 'No Name'
+      );
+      $('input.profile-name').val(user.displayName);
+      $('input.photo-url').val(user.photoURL);
+      if (user.photoURL != null) {
+        let photoURL = user.photoURL;
+        // Append size to the photo URL for Google hosted images to avoid requesting
+        // the image with its original resolution (using more bandwidth than needed)
+        // when it is going to be presented in smaller size.
+        if (
+          photoURL.indexOf('googleusercontent.com') !== -1 ||
+          photoURL.indexOf('ggpht.com') !== -1
+        ) {
+          photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+        }
+        $('img.profile-image').attr('src', photoURL).show();
+      } else {
+        $('img.profile-image').hide();
       }
-      $('img.profile-image').attr('src', photoURL).show();
-    } else {
-      $('img.profile-image').hide();
-    }
-    $('.profile-email-verified').toggle(user.emailVerified);
-    $('.profile-email-not-verified').toggle(!user.emailVerified);
-    $('.profile-anonymous').toggle(user.isAnonymous);
-    // Display/Hide providers icons.
-    $('.profile-providers').empty();
-    if (user['providerData'] && user['providerData'].length) {
-      const providersCount = user['providerData'].length;
-      for (let i = 0; i < providersCount; i++) {
-        addProviderIcon(user['providerData'][i]['providerId']);
+      $('.profile-email-verified').toggle(user.emailVerified);
+      $('.profile-email-not-verified').toggle(!user.emailVerified);
+      $('.profile-anonymous').toggle(user.isAnonymous);
+      // Display/Hide providers icons.
+      $('.profile-providers').empty();
+      if (user['providerData'] && user['providerData'].length) {
+        const providersCount = user['providerData'].length;
+        for (let i = 0; i < providersCount; i++) {
+          addProviderIcon(user['providerData'][i]['providerId']);
+        }
       }
-    }
-    // Show enrolled second factors if available for the active user.
-    showMultiFactorStatus(user);
-    // Change color.
-    if (user === auth.currentUser) {
-      $('#user-info').removeClass('last-user');
-      $('#user-info').addClass('current-user');
+      // Show enrolled second factors if available for the active user.
+      showMultiFactorStatus(user);
+      // Change color.
+      if (user === auth.currentUser) {
+        $('#user-info').removeClass('last-user');
+        $('#user-info').addClass('current-user');
+      } else {
+        $('#user-info').removeClass('current-user');
+        $('#user-info').addClass('last-user');
+      }
     } else {
-      $('#user-info').removeClass('current-user');
-      $('#user-info').addClass('last-user');
+      $('.profile').slideUp();
+      $('body').removeClass('user-info-displayed');
+      $('input.profile-data').val('');
     }
-  } else {
-    $('.profile').slideUp();
-    $('body').removeClass('user-info-displayed');
-    $('input.profile-data').val('');
+  } catch (error) {
+    log(error);
   }
 }
 
@@ -456,7 +482,7 @@ function onReauthenticateWithEmailAndPassword() {
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated with email/password!');
+    alertSuccess('User reauthenticated with email/password');
   }, onAuthError);
 }
 
@@ -491,6 +517,152 @@ function onSetTenantID(_event) {
 
 function onInitializeRecaptchaConfig() {
   initializeRecaptchaConfig(auth);
+}
+
+/**
+ * Updates the displayed validation status for the inputted password.
+ * @param {string} sectionIdPrefix The ID prefix of the section to show the password requirements in.
+ */
+function onValidatePassword(sectionIdPrefix) {
+  /**
+   * Updates the displayed status for a requirement.
+   * @param {string} id The ID of the DOM element displaying the requirement status.
+   * @param {boolean | undefined} status Whether the requirement is met.
+   */
+  function setRequirementStatus(id, status) {
+    // Hide the requirement if the status does not include it.
+    if (status === undefined) {
+      $(id).hide();
+      return;
+    }
+
+    if (status) {
+      $(id).removeClass('list-group-item-danger');
+      $(id).addClass('list-group-item-success');
+    } else {
+      $(id).removeClass('list-group-item-success');
+      $(id).addClass('list-group-item-danger');
+    }
+    $(id).show();
+  }
+
+  const idPrefix = sectionIdPrefix + 'password-validation-';
+  const requirementsId = idPrefix + 'requirements';
+  const passwordId = sectionIdPrefix + 'password';
+
+  const password = $(passwordId).val();
+  validatePassword(auth, password).then(
+    status => {
+      const passwordPolicy = status.passwordPolicy;
+      const customStrengthOptions = passwordPolicy.customStrengthOptions;
+
+      // Only show options required by the password policy.
+      $(requirementsId).children().hide();
+
+      // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
+      if (
+        sectionIdPrefix === '#signin-' &&
+        !passwordPolicy.forceUpgradeOnSignin
+      ) {
+        return;
+      }
+
+      // Display a message if the password policy is not being enforced.
+      const notEnforcedId = idPrefix + 'not-enforced';
+      if (passwordPolicy.enforcementState === 'OFF') {
+        $(notEnforcedId).show();
+      } else {
+        $(notEnforcedId).hide();
+      }
+
+      if (customStrengthOptions.minPasswordLength) {
+        $(idPrefix + 'min-length').text(
+          customStrengthOptions.minPasswordLength
+        );
+      }
+      if (customStrengthOptions.maxPasswordLength) {
+        $(idPrefix + 'max-length').text(
+          customStrengthOptions.maxPasswordLength
+        );
+      }
+      if (customStrengthOptions.containsNonAlphanumericCharacter) {
+        $(idPrefix + 'allowed-non-alphanumeric-characters').attr(
+          'data-original-title',
+          passwordPolicy.allowedNonAlphanumericCharacters
+        );
+      }
+      Object.keys(status).forEach(requirement => {
+        if (requirement !== 'passwordPolicy') {
+          // Get the requirement ID by converting to kebab case.
+          const requirementId =
+            idPrefix +
+            requirement.replace(/[A-Z]/g, match => '-' + match.toLowerCase());
+          setRequirementStatus(requirementId, status[requirement]);
+        }
+      });
+
+      // Show a note that existing password must meet the policy if trying to sign-in.
+      if (sectionIdPrefix === '#signin-') {
+        const forceUpgradeId = idPrefix + 'force-upgrade';
+        if (passwordPolicy.forceUpgradeOnSignin) {
+          $(forceUpgradeId).show();
+        } else {
+          $(forceUpgradeId).hide();
+        }
+      }
+
+      $(passwordId).prop('disabled', false);
+      $(requirementsId).show();
+
+      // Fix the border radius, since hidden elements are still considered in styling.
+      const borderRadius = '5px';
+      const requirements = $(
+        idPrefix + 'requirements .list-group-item:visible'
+      );
+      requirements.each((index, elem) => {
+        if (index === 0) {
+          $(elem).css('border-top-left-radius', borderRadius);
+          $(elem).css('border-top-right-radius', borderRadius);
+        }
+        if (index === requirements.length - 1) {
+          $(elem).css('border-bottom-left-radius', borderRadius);
+          $(elem).css('border-bottom-right-radius', borderRadius);
+        }
+      });
+    },
+    error => {
+      // Disable the password input and hide the requirements since validation cannot be performed.
+      if (error.code === `auth/unsupported-password-policy-schema-version`) {
+        $(passwordId).prop('disabled', true);
+      }
+      $(requirementsId).hide();
+      onAuthError(error);
+    }
+  );
+}
+
+/**
+ * Hides requirements in a section when the password field is blurred and empty.
+ * @param {string} sectionIdPrefix The ID prefix of the section to hide the password requirements in.
+ */
+function onBlurPassword(sectionIdPrefix) {
+  if ($(sectionIdPrefix + 'password').val() === '') {
+    const id = sectionIdPrefix + 'password-validation-requirements';
+    $(id).hide();
+  }
+}
+
+/**
+ * Toggles text visibility for the password validation input field.
+ * @param {string} sectionIdPrefix The ID prefix of the DOM element of the password input.
+ */
+function onToggleViewPassword(sectionIdPrefix) {
+  const id = sectionIdPrefix + 'password';
+  if ($(id).prop('type') === 'password') {
+    $(id).prop('type', 'text');
+  } else {
+    $(id).prop('type', 'password');
+  }
 }
 
 /**
@@ -1050,7 +1222,7 @@ function onApplyActionCode() {
  *     or not.
  */
 function getIdToken(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -1075,7 +1247,7 @@ function getIdToken(forceRefresh) {
  *     or not
  */
 function getIdTokenResult(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -2031,6 +2203,23 @@ function initApp() {
   $('#sign-in-anonymously').click(onSignInAnonymously);
   $('.set-tenant-id').click(onSetTenantID);
   $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
+
+  $('#signin-password').keyup(() => onValidatePassword('#signin-'));
+  $('#signup-password').keyup(() => onValidatePassword('#signup-'));
+  $('#password-reset-password').keyup(() =>
+    onValidatePassword('#password-reset-')
+  );
+
+  $('#signin-view-password').click(() => onToggleViewPassword('#signin-'));
+  $('#signup-view-password').click(() => onToggleViewPassword('#signup-'));
+  $('#password-reset-view-password').click(() =>
+    onToggleViewPassword('#password-reset-')
+  );
+
+  $('#signin-password').blur(() => onBlurPassword('#signin-'));
+  $('#signup-password').blur(() => onBlurPassword('#signup-'));
+  $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
