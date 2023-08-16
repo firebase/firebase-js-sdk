@@ -631,4 +631,202 @@ describeSpec('Existence Filters:', [], () => {
         .expectLimboDocs(...docKeys.slice(50))
     );
   });
+
+  specTest('Bloom filter handles new document adds', [], () => {
+    const query1 = query('collection');
+    const docs = [];
+    for (let i = 0; i < 100; i++) {
+      docs.push(doc(`collection/doc${i}`, 1000, { v: 1 }));
+    }
+    const docKeys = docs.map(item => item.key);
+
+    const bloomFilterProto = generateBloomFilterProto({
+      contains: docs.slice(0, 50),
+      notContains: docs.slice(50),
+      bitCount: 1000,
+      hashCount: 16
+    });
+    return (
+      spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, ...docs)
+        .expectEvents(query1, { added: docs })
+        // Doc0 to doc49 are deleted in the next sync.
+        .watchFilters([query1], docKeys.slice(0, 50), bloomFilterProto)
+        .watchSnapshots(2000)
+        // BloomFilter correctly identifies docs that deleted, skip full query.
+        .expectEvents(query1, { fromCache: true })
+        .expectLimboDocs(...docKeys.slice(50))
+    );
+  });
+
+
+  specTest(
+    'Existence filter when there is no changes',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: []
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // Nothing happened while this client was disconnected.
+          // Watch sends us documents that matches the query since the resume token.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          // Expected count equals to documents in cache. Existence Filter matches.
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
+
+  specTest(
+    'Existence filter when new documents are added',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA,docB],
+        notContains: []
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client added docB.
+          .watchSends({ affects: [query1] }, docB)
+          // Watch sends us documents that matches the query since the resume token.
+          .watchFilters([query1], [docA.key, docB.key], bloomFilterProto)
+          // Expected count equals to documents in cache. Existence Filter matches.
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(query1, { added: [docB], fromCache: false })
+      );
+    }
+  );
+
+  specTest(
+    'Existence filter when existing doc is updated',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA,docB],
+        notContains: []
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client updated fields in docB.
+          .watchSends({ affects: [query1] }, docB)
+          // Watch sends us documents that matches the query since the resume token.
+          .watchFilters([query1], [docA.key, docB.key], bloomFilterProto)
+          // Expected count equals to documents in cache. Existence Filter matches.
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
+
+  specTest(
+    'Existence filter when document is updated to no longer match the query',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA],
+        notContains: []
+      });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA,docB ] })
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client modified docB to no longer match the
+          // query. Watch sends us the only document that matches the query since the resume token.
+          .watchFilters([query1], [docA.key], bloomFilterProto)
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          // // BloomFilter identify docB no longer matches the query, skip full query and put docB
+          // // into limbo directly.
+          .expectLimboDocs(docB.key) // DocB is now in limbo.
+      );
+    }
+  ); 
+
+  specTest(
+    'Existence filter when documents added, updated and deleted',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 1 });
+      const docC = doc('collection/c', 1000, { v: 1 });
+      const docD = doc('collection/d', 1000, { v: 2 });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docA, docD],
+        notContains: [docB, docC],
+      });
+
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB, docC)
+          .expectEvents(query1, { added: [docA,docB, docC ] })
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client modified docB to no longer match the
+          // query, deleted docC and added docD. 
+          .watchSends({ affects: [query1] }, docD)
+          // Watch sends us the all documents that matches the query since the resume token.
+          .watchFilters([query1], [docA.key, docD.key], bloomFilterProto)
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(query1, { added: [docD], fromCache:true })
+          // BloomFilter identify docB and docC no longer match the query, skip full query and put
+          // them into limbo directly.
+          .expectLimboDocs(docB.key, docC.key) // DocB and docC is now in limbo.
+      );
+    }
+  );
 });
