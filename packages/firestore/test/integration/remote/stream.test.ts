@@ -291,7 +291,7 @@ it('token is not invalidated once the stream is healthy', () => {
       new FirestoreError(Code.UNAUTHENTICATED, '')
     );
     await streamListener.awaitCallback('close');
-    expect(credentials.observedStates).to.deep.equal(['zzyzx']);
+    expect(credentials.observedStates).to.deep.equal(['getToken']);
   }, credentials);
 });
 
