@@ -168,6 +168,8 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
+    - name: Set start timestamp env var
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         xvfb-run yarn lerna run --concurrency 4 test:ci --scope '@firebase/firestore*'
@@ -209,6 +211,8 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
+    - name: Set start timestamp env var
+      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
         xvfb-run yarn lerna run --concurrency 4 test:ci --scope firebase-firestore-integration-test
