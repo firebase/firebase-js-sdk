@@ -58,9 +58,7 @@ jobs:
 
   compat-test-chrome:
     name: Test Firestore Compatible
-
     runs-on: ubuntu-latest
-
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
@@ -91,9 +89,7 @@ jobs:
     strategy:
       matrix:
         test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
-
     runs-on: ubuntu-latest
-
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
@@ -129,7 +125,6 @@ jobs:
     # startup to hang when launched by karma. Need to look further into
     # why.
     runs-on: ubuntu-20.04
-
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
