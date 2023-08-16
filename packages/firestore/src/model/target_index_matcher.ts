@@ -185,7 +185,7 @@ export class TargetIndexMatcher {
   /** Returns a full matched field index for this target. */
   buildTargetIndex(): FieldIndex {
     // We want to make sure only one segment created for one field. For example,
-    // in case like a == 3 and a > 2, index, a ASCENDING, will only be created
+    // in case like a == 3 and a > 2, Index {a ASCENDING} will only be created
     // once.
     let uniqueFields = new SortedSet<FieldPath>(FieldPath.comparator);
     const segments: IndexSegment[] = [];
