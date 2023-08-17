@@ -1,5 +1,17 @@
 # @firebase/auth
 
+## 1.2.0
+
+### Minor Changes
+
+- [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189) [#7514](https://github.com/firebase/firebase-js-sdk/pull/7514) - Add a validatePassword method for validating passwords against the password policy configured for the project or a tenant. This method returns a status object that can be used to display the requirements of the password policy and whether each one was met.
+
+### Patch Changes
+
+- [`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5) [#7498](https://github.com/firebase/firebase-js-sdk/pull/7498) - Fix auth event uncancellable bug #7383
+
+- [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798) [#7284](https://github.com/firebase/firebase-js-sdk/pull/7284) - Raise error if calling initializeRecaptchaConfig in node env
+
 ## 1.1.0
 
 ### Minor Changes
