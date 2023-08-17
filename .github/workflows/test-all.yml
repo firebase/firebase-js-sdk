@@ -5,8 +5,6 @@ on:
     branches: ['**']
 
 env:
-  # make chromedriver detect installed Chrome version and download the corresponding driver
-  DETECT_CHROMEDRIVER_VERSION: true
   artifactRetentionDays: 14
 
 jobs:
@@ -17,22 +15,39 @@ jobs:
     - run: sudo apt update
     - run: sudo apt install wget
     - name: google-chrome install
+      if: false
       id: chrome_install
       run: |
         set -xv # echo command as they are executed
-        #DOWNLOAD_DIR="$(mktemp -d --tmpdir=${{ runner.temp }})"
-        #wget --no-verbose https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb --output-document="$DOWNLOAD_DIR/google-chrome-stable_current_amd64.deb"
-        #sudo dpkg -i "$DOWNLOAD_DIR/google-chrome-stable_current_amd64.deb"
-        #sudo apt-get install -f
+        download_dir="$(mktemp -d --tmpdir=${{ runner.temp }})"
+
+        wget \
+          --no-verbose \
+          https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+          --output-document \
+          "$download_dir/google-chrome-stable_current_amd64.deb"
+
+        sudo dpkg -i "$download_dir/google-chrome-stable_current_amd64.deb"
+        sudo apt-get install -f
+
         echo "Installed $(google-chrome --version)" >> "$GITHUB_STEP_SUMMARY"
-        chrome_version=$((google-chrome --version | awk '{ print $3 }'))
+        chrome_version=$(google-chrome --version | awk '{ print $3 }')
         echo "chrome_version=$chrome_version" >> "$GITHUB_OUTPUT"
     - name: chromedriver install
       run: |
         set -xv # echo command as they are executed
-        CHROMEDRIVER_DIR="$(mktemp -d --tmpdir=${{ runner.temp }})"
-        wget --no-verbose https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${{ steps.chrome_install.outputs.chrome_version }}/linux64/chromedriver-linux64.zip --output-document="$CHROMEDRIVER_DIR/chromedriver-linux64.zip"
-        echo "CHROMEDRIVER_FILEPATH=$CHROMEDRIVER_DIR/chromedriver-linux64.zip" >> "$GITHUB_ENV"
+        chrome_version=$(google-chrome --version | awk '{ print $3 }')
+        download_dir="$(mktemp -d --tmpdir=${{ runner.temp }})"
+
+        wget \
+          --no-verbose \
+          "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$chrome_version/linux64/chromedriver-linux64.zip" \
+          --output-document \
+          "$download_dir/chromedriver-linux64.zip"
+
+        # Tell the `chromedriver` npm package which binary to use.
+        # See https://www.npmjs.com/package/chromedriver
+        echo "CHROMEDRIVER_FILEPATH=$download_dir/chromedriver-linux64.zip" >> "$GITHUB_ENV"
 
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
