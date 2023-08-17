@@ -45,9 +45,14 @@ jobs:
           --output-document \
           "$download_dir/chromedriver-linux64.zip"
 
+        mkdir "$download_dir/unzipped"
+        unzip "$download_dir/chromedriver-linux64.zip" -d "$download_dir/unzipped"
+        chromedriver_exe="$download_dir/unzipped/chromedriver-linux64/chromedriver"
+        ls -l "$chromedriver_exe"
+
         # Tell the `chromedriver` npm package which binary to use.
         # See https://www.npmjs.com/package/chromedriver
-        echo "CHROMEDRIVER_FILEPATH=$download_dir/chromedriver-linux64.zip" >> "$GITHUB_ENV"
+        echo "CHROMEDRIVER_FILEPATH=$chromedriver_exe" >> "$GITHUB_ENV"
 
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
