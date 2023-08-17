@@ -50,12 +50,12 @@ jobs:
         id: set-output
         run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
       - name: Archive build
-        if: ${{ !cancelled() && steps.check-changed.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         run: |
           tar -cf build.tar --exclude=.git .
           gzip build.tar
       - name: Upload build archive
-        if: ${{ !cancelled() && steps.check-changed.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         uses: actions/upload-artifact@v3
         with:
           name: build.tar.gz
