@@ -121,7 +121,7 @@ export class Firestore extends LiteFirestore {
       // usage throws an exception.
       configureFirestore(this);
     }
-    return this._firestoreClient!.terminate();
+    return null;
   }
 }
 
