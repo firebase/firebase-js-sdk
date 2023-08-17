@@ -35,23 +35,27 @@ jobs:
           yarn
       - name: build
         id: build
-        # TODO(wuandy): Separate yarn and egrep into steps, so build failure
-        # is captured by github actions.
-        run: yarn build:changed firestore | egrep "Skipping all"
+        run: |
+          set -o pipefail
+          yarn build:changed firestore | tee ${{ runner.temp }}/yarn.log.txt
+        continue-on-error: false
+      - name: Check if Firestore is changed
+        id: check-changed
+        run: egrep "Skipping all" ${{ runner.temp }}/yarn.log.txt
         # Continue when "Skipping all" is not found
         continue-on-error: true
       - name: set output
         # This means "Skipping all" was not found
-        if: steps.build.outcome != 'success'
+        if: steps.check-changed.outcome != 'success'
         id: set-output
         run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
       - name: Archive build
-        if: ${{ !cancelled() && steps.build.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         run: |
-          tar -cf build.tar --exclude="\.git" .
+          tar -cf build.tar --exclude=.git .
           gzip build.tar
       - name: Upload build archive
-        if: ${{ !cancelled() && steps.build.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         uses: actions/upload-artifact@v3
         with:
           name: build.tar.gz
@@ -81,8 +85,7 @@ jobs:
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
+        run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
 
@@ -112,11 +115,41 @@ jobs:
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
+        run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
 
+  compat-test-firefox:
+    name: Test Firestore Compatible on Firefox
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: ubuntu-20.04
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: install Firefox stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install firefox
+      - name: Set up Node (14)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Bump Node memory limit
+        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run compat tests
+        run: cd packages/firestore-compat && xvfb-run yarn run test:ci
+        env:
+          BROWSERS: 'Firefox'
 
   test-firefox:
     name: Test Firestore on Firefox
@@ -147,9 +180,20 @@ jobs:
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
+        run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
           BROWSERS: 'Firefox'
+
+  # A job that fails if any required job in the test matrix fails,
+  # to be used as a required check for merging.
+  check-required-tests:
+    runs-on: ubuntu-latest
+    if: always()
+    name: Check all required tests results
+    needs: [build, test-chrome, compat-test-chrome]
+    steps:
+      - name: Check test matrix
+        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
+        run: exit 1
