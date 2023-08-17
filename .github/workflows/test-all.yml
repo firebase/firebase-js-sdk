@@ -186,7 +186,11 @@ jobs:
       continue-on-error: true
 
   test-firestore-integration:
-    name: Firestore Integration Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        persistence: ['memory', 'persistence']
+    name: Firestore Integration Tests (${{ matrix.persistence }})
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -207,15 +211,11 @@ jobs:
         node-version: 16.x
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
-    - name: Set start timestamp env var
-      run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
-    - name: Run unit tests
-      run: |
-        xvfb-run yarn lerna run --concurrency 4 test:ci --scope firebase-firestore-integration-test
-        node scripts/print_test_logs.js
+    - run: cp config/ci.config.json config/project.json
+    - run: yarn
+    - run: yarn build:${{ matrix.persistence }}
+      working-directory: integration/firestore
+    - run: xvfb-run yarn karma:singlerun
+      working-directory: integration/firestore
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
