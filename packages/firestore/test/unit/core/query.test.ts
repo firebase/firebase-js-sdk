@@ -783,6 +783,7 @@ describe('Query', () => {
       query(
         'foo',
         filter('a', '<', 5),
+        filter('a', '>=', 5),
         filter('aa', '>', 5),
         filter('b', '>', 5),
         filter('A', '>', 5)
@@ -867,6 +868,50 @@ describe('Query', () => {
       orderBy('b'),
       orderBy('c'),
       orderBy('d'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // OrderBy
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        filter('z', '>', 5),
+        orderBy('z')
+      ),
+      orderBy('z'),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // last explicit order by direction
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        orderBy('z', 'desc')
+      ),
+      orderBy('z', 'desc'),
+      orderBy('a', 'desc'),
+      orderBy('b', 'desc'),
+      orderBy(DOCUMENT_KEY_NAME, 'desc')
+    );
+
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        orderBy('z', 'desc'),
+        orderBy('c')
+      ),
+      orderBy('z', 'desc'),
+      orderBy('c'),
+      orderBy('a'),
+      orderBy('b'),
       orderBy(DOCUMENT_KEY_NAME)
     );
   });
