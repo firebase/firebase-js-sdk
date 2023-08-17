@@ -1,5 +1,21 @@
 # firebase
 
+## 10.2.0
+
+### Minor Changes
+
+- [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189) [#7514](https://github.com/firebase/firebase-js-sdk/pull/7514) - Add a validatePassword method for validating passwords against the password policy configured for the project or a tenant. This method returns a status object that can be used to display the requirements of the password policy and whether each one was met.
+
+### Patch Changes
+
+- Updated dependencies [[`43e402fb4`](https://github.com/firebase/firebase-js-sdk/commit/43e402fb49a081a59729290627c7b20099ca46a4), [`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5), [`b395277f3`](https://github.com/firebase/firebase-js-sdk/commit/b395277f3de5d017df7b2edfba329682a0928453), [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798), [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189)]:
+  - @firebase/app@0.9.16
+  - @firebase/firestore@4.1.1
+  - @firebase/auth@1.2.0
+  - @firebase/app-compat@0.2.16
+  - @firebase/firestore-compat@0.3.15
+  - @firebase/auth-compat@0.4.5
+
 ## 10.1.0
 
 ### Minor Changes
