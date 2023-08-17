@@ -38,6 +38,7 @@ jobs:
         run: |
           set -o pipefail
           yarn build:changed firestore | tee ${{ runner.temp }}/yarn.log.txt
+        continue-on-error: false
       - name: Check if Firestore is changed
         id: check-changed
         run: egrep "Skipping all" ${{ runner.temp }}/yarn.log.txt
@@ -191,8 +192,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     name: Check all required tests results
-    needs: [test-chrome, compat-test-chrome]
+    needs: [build, test-chrome, compat-test-chrome]
     steps:
       - name: Check test matrix
-        if: needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
+        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
         run: exit 1
