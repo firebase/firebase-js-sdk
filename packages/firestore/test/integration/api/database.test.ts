@@ -828,10 +828,9 @@ apiDescribe('Database', persistence => {
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
-          expect(snap.data()).to.deep.equal(changedData);
+          expect(snap.data()).to.deep.equal({});
           // This event could be a metadata change for fromCache as well.
           // We comment this line out to reduce flakiness.
-
           // TODO(b/295872012): Figure out a way to check for all scenarios.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
         });

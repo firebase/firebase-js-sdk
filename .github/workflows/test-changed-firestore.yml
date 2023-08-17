@@ -35,7 +35,9 @@ jobs:
           yarn
       - name: build
         id: build
-        run: yarn build:changed firestore | tee ${{ runner.temp }}/yarn.log.txt
+        run: |
+          set -o pipefail
+          yarn build:changed firestore | tee ${{ runner.temp }}/yarn.log.txt
       - name: Check if Firestore is changed
         id: check-changed
         run: egrep "Skipping all" ${{ runner.temp }}/yarn.log.txt
