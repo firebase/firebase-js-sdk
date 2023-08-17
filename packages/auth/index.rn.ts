@@ -23,13 +23,13 @@
  */
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
-import { Auth } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 
-import { initializeAuth } from './src';
+import { initializeAuth as initializeAuthOriginal } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { _logWarn } from './src/core/util/log';
 
 // Core functionality shared by all clients
 export * from './index.shared';
@@ -51,6 +51,20 @@ export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions
 
 export { getReactNativePersistence };
 
+const NO_PERSISTENCE_WARNING = `
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+`;
+
 export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth');
 
@@ -58,9 +72,16 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     return provider.getImmediate();
   }
 
-  return initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-  });
+  _logWarn(NO_PERSISTENCE_WARNING);
+
+  return initializeAuthOriginal(app);
+}
+
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  if (!deps?.persistence) {
+    _logWarn(NO_PERSISTENCE_WARNING);
+  }
+  return initializeAuthOriginal(app, deps);
 }
 
 registerAuth(ClientPlatform.REACT_NATIVE);
