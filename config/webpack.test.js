@@ -17,6 +17,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 /**
  * A regular expression used to replace Firestore's and Storage's platform-
@@ -28,6 +29,11 @@ const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 module.exports = {
   mode: 'development',
   devtool: 'source-map',
+  optimization: {
+    runtimeChunk: false,
+    splitChunks: false,
+    minimize: false
+  },
   module: {
     rules: [
       {
@@ -98,7 +104,7 @@ module.exports = {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     mainFields: ['browser', 'module', 'main'],
     extensions: ['.js', '.ts'],
-    symlinks: false
+    symlinks: true
   },
   plugins: [
     new webpack.NormalModuleReplacementPlugin(PLATFORM_RE, resource => {
@@ -108,9 +114,10 @@ module.exports = {
         `$1/platform/${targetPlatform}/$2.ts`
       );
     }),
-    new webpack.EnvironmentPlugin([
-      'RTDB_EMULATOR_PORT',
-      'RTDB_EMULATOR_NAMESPACE'
-    ])
+    new NodePolyfillPlugin(),
+    new webpack.EnvironmentPlugin({
+      'RTDB_EMULATOR_PORT': false,
+      'RTDB_EMULATOR_NAMESPACE': false
+    })
   ]
 };

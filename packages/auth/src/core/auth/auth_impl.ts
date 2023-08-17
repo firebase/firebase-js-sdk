@@ -638,18 +638,37 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         ? nextOrObserver
         : nextOrObserver.next.bind(nextOrObserver);
 
+    let isUnsubscribed = false;
+
     const promise = this._isInitialized
       ? Promise.resolve()
       : this._initializationPromise;
     _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => cb(this.currentUser));
+    promise.then(() => {
+      if (isUnsubscribed) {
+        return;
+      }
+      cb(this.currentUser);
+    });
 
     if (typeof nextOrObserver === 'function') {
-      return subscription.addObserver(nextOrObserver, error, completed);
+      const unsubscribe = subscription.addObserver(
+        nextOrObserver,
+        error,
+        completed
+      );
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
     } else {
-      return subscription.addObserver(nextOrObserver);
+      const unsubscribe = subscription.addObserver(nextOrObserver);
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
     }
   }
 
