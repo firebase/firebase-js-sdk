@@ -215,9 +215,9 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: Compile unit tests
-      run: cd integration/firestore && yarn build:${{ matrix.persistence }}
-    - name: Run unit tests
-      run: cd integration/firestore && xvfb-run yarn karma:singlerun
+    - run: yarn build:${{ matrix.persistence }}
+      working-directory: integration/firestore
+    - run: xvfb-run yarn karma:singlerun
+      working-directory: integration/firestore
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
