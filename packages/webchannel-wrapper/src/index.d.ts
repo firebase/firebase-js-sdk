@@ -108,6 +108,7 @@ export interface WebChannelOptions {
   internalChannelParams?: {
     forwardChannelRequestTimeoutMs?: number;
   };
+  useFetchStreams?: boolean;
   xmlHttpFactory?: unknown;
   requestRefreshThresholds?: { [key: string]: number };
 }
