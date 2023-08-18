@@ -23,7 +23,6 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { AggregateQuery, Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -71,14 +70,14 @@ import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
   EventManager,
-  eventManagerListen,
+  eventManagerListen, eventManagerListenAggregate,
   eventManagerUnlisten,
   ListenOptions,
   Observer,
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
-import { newQueryForPath, Query } from './query';
+import { newQueryForPath, Query, AggregateQuery } from './query';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
@@ -471,24 +470,6 @@ export function firestoreClientListen(
   };
 }
 
-export function firestoreClientListenAggregate(
-  client: FirestoreClient,
-  query: AggregateQuery,
-  observer: Partial<
-    Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
-  >
-): () => void {
-  const wrappedObserver = new AsyncObserver(observer);
-
-  client.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    // return eventManagerListenAggregate(eventManager, query, wrappedObserver);
-  });
-  return () => {
-    debugAssert(false, 'Unlisten not implemented');
-  };
-}
-
 export function firestoreClientGetDocumentFromLocalCache(
   client: FirestoreClient,
   docKey: DocumentKey
@@ -574,6 +555,29 @@ export function firestoreClientRunAggregateQuery(
     }
   });
   return deferred.promise;
+}
+
+export function firestoreClientListenAggregate(
+  client: FirestoreClient,
+  query: AggregateQuery,
+  options: ListenOptions,
+  observer: Partial<
+    Observer<ApiClientObjectMap<Value>>
+    >
+): () => void {
+  const wrappedObserver = new AsyncObserver(observer);
+
+  // TODO streaming-count add AggregateQueryListener
+  const listener = new QueryListener(query, wrappedObserver, options);
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return eventManagerListenAggregate(eventManager, query, wrappedObserver);
+  });
+  return () => {
+    // TODO streaming-count implement unlisten
+    debugAssert(false, 'Unlisten not implemented');
+  };
 }
 
 export function firestoreClientWrite(

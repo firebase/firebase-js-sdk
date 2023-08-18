@@ -750,24 +750,6 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   );
 }
 
-export function onAggregateSnapshot(
-  query: AggregateQuery,
-  onNext: (
-    snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
-  ) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe {
-  const ref = getModularInstance(query);
-  const client = ensureFirestoreConfigured(
-    cast(ref._baseQuery.firestore, Firestore)
-  );
-  return firestoreClientListenAggregate(client, query, {
-    next: onNext,
-    error: onError
-  });
-}
-
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
 

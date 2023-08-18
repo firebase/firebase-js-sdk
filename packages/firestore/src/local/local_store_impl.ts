@@ -96,6 +96,7 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
+import {Aggregate} from "../core/aggregate";
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1322,7 +1323,7 @@ export interface AggregateQueryResult {
 export async function localStoreExecuteAggregateQuery(
   localStore: LocalStore,
   targetId: TargetId,
-  query: AggregateQuery
+  query: AggregateQuery,
 ): Promise<AggregateQueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const lastLimboFreeSnapshotVersion = SnapshotVersion.min();

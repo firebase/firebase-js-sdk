@@ -24,6 +24,8 @@ import { SortedMap } from '../util/sorted_map';
 
 import { AggregateQuery, Query, queryEquals } from './query';
 import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
+import {Aggregate} from "./aggregate";
+import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
 export const enum ChangeType {
   Added,
@@ -143,6 +145,7 @@ export interface AggregateViewSnapshot {
   snapshot: AggregateSnapshotAndDiscountedKeys;
   fromCache: boolean;
   initialDiscountedKeys: DocumentKey[] | undefined;
+  delta: ApiClientObjectMap<number> | undefined;
 }
 
 export class ViewSnapshot {

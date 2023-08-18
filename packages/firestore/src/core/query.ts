@@ -35,6 +35,7 @@ import {
   Target,
   targetEquals
 } from './target';
+import {Aggregate} from "./aggregate";
 
 export const enum LimitType {
   First = 'F',
@@ -58,8 +59,9 @@ export interface Query {
   readonly endAt: Bound | null;
 }
 
+// TODO (streaming-count) update for aggregation operation
 export class AggregateQuery {
-  constructor(readonly _baseQuery: Query) {}
+  constructor(readonly _baseQuery: Query, readonly _aggregates: Aggregate[]) {}
 
   getHoldingMask(): FieldMask {
     return FieldMask.empty();
@@ -448,7 +450,7 @@ export function aggregateQueryEquals(
 }
 
 export function canonifyAggregateQuery(query: AggregateQuery): string {
-  // TODO: This should be updated to include the type of aggregation as well as
+  // TODO (streaming-count): This should be updated to include the type of aggregation as well as
   //  the relevant masks.
   return `countOn:${canonifyQuery(query._baseQuery)}`;
 }

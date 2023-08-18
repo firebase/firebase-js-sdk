@@ -43,6 +43,8 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from './view_snapshot';
+import {Aggregate} from "./aggregate";
+import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -86,7 +88,7 @@ export function newEventManager(): EventManager {
 
 interface AggregateView {
   view: AggregateViewSnapshot;
-  observer: Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>;
+  observer: Observer<ApiClientObjectMap<Value>>;
 }
 
 export class EventManagerImpl implements EventManager {
@@ -178,7 +180,7 @@ export function eventManagerUnlistenAggregate(
 export async function eventManagerListenAggregate(
   eventManager: EventManager,
   query: AggregateQuery,
-  observer: Observer<AggregateQuerySnapshot<{ count: AggregateField<number> }>>
+  observer: Observer<ApiClientObjectMap<Value>>
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   debugAssert(
@@ -194,7 +196,8 @@ export async function eventManagerListenAggregate(
         snapshot: countSnap,
         query,
         fromCache: true,
-        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray()
+        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray(),
+        delta: undefined
       }
     };
 
@@ -208,9 +211,12 @@ export async function eventManagerListenAggregate(
         view.view.initialDiscountedKeys!.length
       }) = ${case5Delta}`
     );
-    view.view.snapshot.snapshot = new AggregateQuerySnapshot<{
-      count: AggregateField<number>;
-    }>(undefined, { count: case5Delta + countSnap.snapshot.data()['count'] });
+    // view.view.snapshot.snapshot = new AggregateQuerySnapshot<{
+    //   count: AggregateField<number>;
+    // }>(undefined, { count: case5Delta + countSnap.snapshot.data()['count'] });
+
+    // TODO streaming-count ensure delta is applied
+    view.view.delta = { count: case5Delta };
 
     eventManagerImpl.aggregateQueries.set(query, view);
     observer.next(view.view.snapshot.snapshot);
@@ -278,10 +284,13 @@ export function eventManagerOnWatchAggregateChange(
       }) = ${case5Delta}`
     );
 
-    existingView!.view.snapshot = newSnap;
-    existingView!.view.snapshot.snapshot = new AggregateQuerySnapshot<{
-      count: AggregateField<number>;
-    }>(undefined, { count: case5Delta + newSnap.snapshot.data()['count'] });
+    existingView!.view.snapshot.snapshot = newSnap.snapshot;
+    // existingView!.view.snapshot.snapshot = new AggregateQuerySnapshot<{
+    //   count: AggregateField<number>;
+    // }>(undefined, { count: case5Delta + newSnap.snapshot.data()['count'] });
+
+    // TODO streaming-count ensure delta is applied
+    existingView!.view.delta = { count: case5Delta };
 
     // TODO(COUNT): Dude...
     observer?.next(existingView!.view.snapshot.snapshot);

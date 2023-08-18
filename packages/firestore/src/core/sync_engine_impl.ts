@@ -125,6 +125,7 @@ import {
   ViewChange
 } from './view';
 import { AggregateViewSnapshot, ViewSnapshot } from './view_snapshot';
+import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
 const LOG_TAG = 'SyncEngine';
 
@@ -495,7 +496,7 @@ export async function syncEngineListenAggregate(
 }
 
 export interface AggregateSnapshotAndDiscountedKeys {
-  snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>;
+  snapshot: ApiClientObjectMap<Value>;
   discountedKeys: DocumentKeySet;
   cachedDiscountedKeys: DocumentKeySet;
 }
@@ -503,6 +504,7 @@ export interface AggregateSnapshotAndDiscountedKeys {
 function calculateAggregateSnapshot(
   result: AggregateQueryResult
 ): AggregateSnapshotAndDiscountedKeys {
+  // TODO (streaming-aggregations) delta per aggregate
   let delta = 0;
   let plusZeros = documentKeySet();
   result.documentResult.documents.forEach((k, doc) => {
@@ -531,11 +533,13 @@ function calculateAggregateSnapshot(
   if (!!result.discountedKeys) {
     cachedDiscountedKeys = documentKeySet(...result.discountedKeys);
   }
+  // TODO streaming aggregate WTF?
   return {
-    snapshot: new AggregateQuerySnapshot<{ count: AggregateField<number> }>(
-      undefined,
-      { count: result.cachedCount + delta }
-    ),
+    snapshot: result.
+      { count: result.cachedCount + delta },
+    delta: {
+      'count': result.cachedCount + delta
+    },
     discountedKeys: plusZeros,
     cachedDiscountedKeys
   };
@@ -1218,7 +1222,8 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       // TODO(COUNT): This needs to sync up with the logic for document queries.
       fromCache: false,
       query: result.aggregateQuery,
-      initialDiscountedKeys
+      initialDiscountedKeys,
+      delta: undefined
     });
   });
 
