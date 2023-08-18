@@ -28,7 +28,6 @@ import { Auth, Dependencies } from './src/model/public_types';
 import { initializeAuth as initializeAuthOriginal } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
-import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 import { _logWarn } from './src/core/util/log';
 
 // Core functionality shared by all clients
@@ -49,7 +48,7 @@ export {
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
-export { getReactNativePersistence };
+export { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 
 const NO_PERSISTENCE_WARNING = `
 You are initializing Firebase Auth for React Native without providing
