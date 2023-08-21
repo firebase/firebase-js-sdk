@@ -632,35 +632,7 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
-  specTest('Bloom filter handles new document adds', [], () => {
-    const query1 = query('collection');
-    const docs = [];
-    for (let i = 0; i < 100; i++) {
-      docs.push(doc(`collection/doc${i}`, 1000, { v: 1 }));
-    }
-    const docKeys = docs.map(item => item.key);
-
-    const bloomFilterProto = generateBloomFilterProto({
-      contains: docs.slice(0, 50),
-      notContains: docs.slice(50),
-      bitCount: 1000,
-      hashCount: 16
-    });
-    return (
-      spec()
-        .userListens(query1)
-        .watchAcksFull(query1, 1000, ...docs)
-        .expectEvents(query1, { added: docs })
-        // Doc0 to doc49 are deleted in the next sync.
-        .watchFilters([query1], docKeys.slice(0, 50), bloomFilterProto)
-        .watchSnapshots(2000)
-        // BloomFilter correctly identifies docs that deleted, skip full query.
-        .expectEvents(query1, { fromCache: true })
-        .expectLimboDocs(...docKeys.slice(50))
-    );
-  });
-
-  specTest('Existence filter when there is no changes', [], () => {
+  specTest('Bloom filter when there is no document changes', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { v: 1 });
     const bloomFilterProto = generateBloomFilterProto({
@@ -687,7 +659,7 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
-  specTest('Existence filter when new documents are added', [], () => {
+  specTest('Bloom filter when new documents are added', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { v: 1 });
     const docB = doc('collection/b', 1000, { v: 2 });
@@ -716,7 +688,7 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
-  specTest('Existence filter when existing doc is updated', [], () => {
+  specTest('Bloom filter when existing docs are updated', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { v: 1 });
     const docB = doc('collection/b', 1000, { v: 2 });
@@ -746,7 +718,7 @@ describeSpec('Existence Filters:', [], () => {
   });
 
   specTest(
-    'Existence filter when document is updated to no longer match the query',
+    'Bloom filter when documents are updated to no longer match the query',
     [],
     () => {
       const query1 = query('collection');
@@ -779,7 +751,7 @@ describeSpec('Existence Filters:', [], () => {
   );
 
   specTest(
-    'Existence filter when documents added, updated and deleted',
+    'Bloom filter when documents are added, updated and deleted',
     [],
     () => {
       const query1 = query('collection');
