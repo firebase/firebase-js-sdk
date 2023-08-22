@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 0.10.2
+
+### Patch Changes
+
+- [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea) [#7569](https://github.com/firebase/firebase-js-sdk/pull/7569) - Fix how we enable fetch streams.
+
 ## 0.10.1
 
 ### Patch Changes
