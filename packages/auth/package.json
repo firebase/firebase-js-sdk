@@ -103,13 +103,18 @@
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/auth-public.d.ts"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x"
+    "@firebase/app": "0.x",
+    "@react-native-async-storage/async-storage": "^1.18.1"
+  },
+  "peerDependenciesMeta": {
+    "@react-native-async-storage/async-storage": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
-    "@react-native-async-storage/async-storage": "^1.18.1",
     "node-fetch": "2.6.7",
     "tslib": "^2.1.0"
   },
