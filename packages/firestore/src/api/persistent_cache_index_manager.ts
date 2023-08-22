@@ -18,11 +18,9 @@
 import {
   firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
   FirestoreClient,
-  TestingHooks as FirestoreClientTestingHooks
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
-import { testingHooksSpi } from '../util/testing_hooks_spi';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -126,8 +124,6 @@ function setPersistentCacheIndexAutoCreationEnabled(
         error
       )
     );
-
-  testingHooksSpi?.notifyPersistentCacheIndexAutoCreationToggle(promise);
 }
 
 /**
@@ -142,25 +138,3 @@ const persistentCacheIndexManagerByFirestore = new WeakMap<
   Firestore,
   PersistentCacheIndexManager
 >();
-
-/**
- * Test-only hooks into the SDK for use exclusively by integration tests.
- */
-export class TestingHooks {
-  private constructor() {
-    throw new Error('creating instances is not supported');
-  }
-
-  static setIndexAutoCreationSettings(
-    indexManager: PersistentCacheIndexManager,
-    settings: {
-      indexAutoCreationMinCollectionSize?: number;
-      relativeIndexReadCostPerDocument?: number;
-    }
-  ): Promise<void> {
-    return FirestoreClientTestingHooks.setPersistentCacheIndexAutoCreationSettings(
-      indexManager._client,
-      settings
-    );
-  }
-}

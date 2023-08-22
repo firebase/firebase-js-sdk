@@ -1536,7 +1536,7 @@ export function localStoreSetIndexAutoCreationEnabled(
 }
 
 /**
- * Test-only hooks into the SDK for use exclusively by integration tests.
+ * Test-only hooks into the SDK for use exclusively by tests.
  */
 export class TestingHooks {
   private constructor() {
@@ -1559,18 +1559,5 @@ export class TestingHooks {
       localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
         settings.relativeIndexReadCostPerDocument;
     }
-  }
-
-  static getQueryIndexType(
-    localStore: LocalStore,
-    query: Query
-  ): Promise<IndexType> {
-    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    const target = queryToTarget(query);
-    return localStoreImpl.persistence.runTransaction(
-      'local_store_impl TestingHooks getQueryIndexType',
-      'readonly',
-      txn => localStoreImpl.indexManager.getIndexType(txn, target)
-    );
   }
 }
