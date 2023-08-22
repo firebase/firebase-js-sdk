@@ -71,11 +71,20 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     return provider.getImmediate();
   }
 
+  // Only warn if getAuth() is called before initializeAuth()
   _logWarn(NO_PERSISTENCE_WARNING);
 
   return initializeAuthOriginal(app);
 }
 
+/**
+ * Wrapper around base `initializeAuth()` for RN users only, which
+ * shows the warning message if no persistence is provided.
+ * Double-checked potential collision with `export * from './index.shared'`
+ * as `./index.shared` also exports `initializeAuth()`, and the final
+ * bundle does correctly export only this `initializeAuth()` function
+ * and not the one from index.shared.
+ */
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
   if (!deps?.persistence) {
     _logWarn(NO_PERSISTENCE_WARNING);
