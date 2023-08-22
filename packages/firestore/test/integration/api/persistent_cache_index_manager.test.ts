@@ -18,15 +18,15 @@
 import { expect } from 'chai';
 
 import {
+  disablePersistentCacheIndexAutoCreation,
+  enablePersistentCacheIndexAutoCreation,
   getDocs,
   getDocsFromCache,
+  getPersistentCacheIndexManager,
+  PersistentCacheIndexManager,
   query,
   terminate,
   where,
-  _disablePersistentCacheIndexAutoCreation as disablePersistentCacheIndexAutoCreation,
-  _enablePersistentCacheIndexAutoCreation as enablePersistentCacheIndexAutoCreation,
-  _getPersistentCacheIndexManager as getPersistentCacheIndexManager,
-  _PersistentCacheIndexManager as PersistentCacheIndexManager,
   _TestingHooks as TestingHooks
 } from '../util/firebase_export';
 import {

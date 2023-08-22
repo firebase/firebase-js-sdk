@@ -202,6 +202,13 @@ export {
   setIndexConfiguration
 } from './api/index_configuration';
 
+export {
+  PersistentCacheIndexManager,
+  getPersistentCacheIndexManager,
+  enablePersistentCacheIndexAutoCreation,
+  disablePersistentCacheIndexAutoCreation
+} from './api/persistent_cache_index_manager';
+
 /**
  * Internal exports
  */
@@ -223,12 +230,6 @@ export type {
 } from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
-export {
-  PersistentCacheIndexManager as _PersistentCacheIndexManager,
-  getPersistentCacheIndexManager as _getPersistentCacheIndexManager,
-  enablePersistentCacheIndexAutoCreation as _enablePersistentCacheIndexAutoCreation,
-  disablePersistentCacheIndexAutoCreation as _disablePersistentCacheIndexAutoCreation
-} from './api/persistent_cache_index_manager';
 export {
   ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback,
   TestingHooks as _TestingHooks
