@@ -17,7 +17,7 @@
 
 import {
   firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
-  FirestoreClient,
+  FirestoreClient
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
