@@ -23,7 +23,6 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexType } from '../local/index_manager';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
