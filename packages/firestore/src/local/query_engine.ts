@@ -133,33 +133,48 @@ export class QueryEngine {
   ): PersistencePromise<DocumentMap> {
     debugAssert(this.initialized, 'initialize() not called');
 
-    const queryContext = new QueryContext();
+    // Stores the result from executing the query; using this object is more
+    // convenient than passing the result between steps of the persistence
+    // transaction and improves readability comparatively.
+    const queryResult: { result: DocumentMap | null } = { result: null };
+
     return this.performQueryUsingIndex(transaction, query)
-      .next(result =>
-        result
-          ? result
-          : this.performQueryUsingRemoteKeys(
-              transaction,
-              query,
-              remoteKeys,
-              lastLimboFreeSnapshotVersion
-            )
-      )
-      .next(result =>
-        result
-          ? result
-          : this.executeFullCollectionScan(transaction, query, queryContext)
-      )
-      .next(result =>
-        result && this.indexAutoCreationEnabled
-          ? this.createCacheIndexes(
-              transaction,
-              query,
-              queryContext,
-              result.size
-            ).next(_ => result)
-          : result
-      );
+      .next(result => {
+        queryResult.result = result;
+      })
+      .next(() => {
+        if (queryResult.result) {
+          return;
+        }
+        return this.performQueryUsingRemoteKeys(
+          transaction,
+          query,
+          remoteKeys,
+          lastLimboFreeSnapshotVersion
+        ).next(result => {
+          queryResult.result = result;
+        });
+      })
+      .next(() => {
+        if (queryResult.result) {
+          return;
+        }
+        const context = new QueryContext();
+        return this.executeFullCollectionScan(transaction, query, context).next(
+          result => {
+            queryResult.result = result;
+            if (this.indexAutoCreationEnabled) {
+              return this.createCacheIndexes(
+                transaction,
+                query,
+                context,
+                result.size
+              );
+            }
+          }
+        );
+      })
+      .next(() => queryResult.result!);
   }
 
   createCacheIndexes(
