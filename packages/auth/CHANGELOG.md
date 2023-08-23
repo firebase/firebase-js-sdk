@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.3.0
+
+### Minor Changes
+
+- [`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256) [#7570](https://github.com/firebase/firebase-js-sdk/pull/7570) - Remove dependency on @react-native-async-storage/async-storage and add warnings to remind React Native users to manually import it.
+
 ## 1.2.0
 
 ### Minor Changes
