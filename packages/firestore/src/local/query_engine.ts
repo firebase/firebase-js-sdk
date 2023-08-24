@@ -228,7 +228,7 @@ export class QueryEngine {
         queryToTarget(query)
       );
     }
-    
+
     return PersistencePromise.resolve();
   }
 
