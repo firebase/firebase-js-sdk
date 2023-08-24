@@ -202,6 +202,13 @@ export {
   setIndexConfiguration
 } from './api/index_configuration';
 
+export {
+  PersistentCacheIndexManager,
+  getPersistentCacheIndexManager,
+  enablePersistentCacheIndexAutoCreation,
+  disablePersistentCacheIndexAutoCreation
+} from './api/persistent_cache_index_manager';
+
 /**
  * Internal exports
  */
