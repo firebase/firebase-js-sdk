@@ -23,6 +23,7 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
+import { IndexType } from '../local/index_manager';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -31,7 +32,8 @@ import {
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
   localStoreReadDocument,
-  localStoreSetIndexAutoCreationEnabled
+  localStoreSetIndexAutoCreationEnabled,
+  TestingHooks as LocalStoreTestingHooks
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -849,4 +851,40 @@ export function firestoreClientDeleteAllFieldIndexes(
   return client.asyncQueue.enqueue(async () => {
     return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
+}
+
+/**
+ * Test-only hooks into the SDK for use exclusively by tests.
+ */
+export class TestingHooks {
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
+
+  static getQueryIndexType(
+    client: FirestoreClient,
+    query: Query
+  ): Promise<IndexType> {
+    return client.asyncQueue.enqueue(async () => {
+      const localStore = await getLocalStore(client);
+      return LocalStoreTestingHooks.getQueryIndexType(localStore, query);
+    });
+  }
+
+  static setPersistentCacheIndexAutoCreationSettings(
+    client: FirestoreClient,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): Promise<void> {
+    const settingsCopy = { ...settings };
+    return client.asyncQueue.enqueue(async () => {
+      const localStore = await getLocalStore(client);
+      LocalStoreTestingHooks.setIndexAutoCreationSettings(
+        localStore,
+        settingsCopy
+      );
+    });
+  }
 }
