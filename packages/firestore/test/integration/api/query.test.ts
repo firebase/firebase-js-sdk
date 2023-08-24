@@ -2216,8 +2216,7 @@ apiDescribe('Queries', persistence => {
       for (let i = 0; i < 20; i++) {
         testDocs['doc' + (1000 + i)] = {
           key: 42,
-          removed: false,
-          updated: false
+          removed: false
         };
       }
 
@@ -2237,7 +2236,7 @@ apiDescribe('Queries', persistence => {
           const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
 
           // Out of the 20 existing documents, leave 5 docs untouched. Delete 5 docs,
-          // remove 5 docs, update 5 docs, and add 10 new docs.
+          // remove 5 docs, update 5 docs, and add 15 new docs.
           const deletedDocumentIds = new Set<string>();
           const removedDocumentIds = new Set<string>();
           const updatedDocumentIds = new Set<string>();
@@ -2245,11 +2244,11 @@ apiDescribe('Queries', persistence => {
 
           // Use a different Firestore instance to avoid affecting the local cache.
           await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
-            const WriteBatch = writeBatch(db2);
+            const batch = writeBatch(db2);
 
             for (let i = 0; i < createdDocuments.length; i += 4) {
               const documentToDelete = doc(db2, createdDocuments[i].path);
-              WriteBatch.delete(documentToDelete);
+              batch.delete(documentToDelete);
               deletedDocumentIds.add(documentToDelete.id);
             }
             expect(deletedDocumentIds.size).to.equal(5);
@@ -2257,7 +2256,7 @@ apiDescribe('Queries', persistence => {
             // Update 5 documents to no longer match the query.
             for (let i = 1; i < createdDocuments.length; i += 4) {
               const documentToModify = doc(db2, createdDocuments[i].path);
-              WriteBatch.update(documentToModify, {
+              batch.update(documentToModify, {
                 removed: true
               });
               removedDocumentIds.add(documentToModify.id);
@@ -2267,27 +2266,26 @@ apiDescribe('Queries', persistence => {
             // Update 5 documents, but ensure they still match the query.
             for (let i = 2; i < createdDocuments.length; i += 4) {
               const documentToModify = doc(db2, createdDocuments[i].path);
-              WriteBatch.update(documentToModify, {
-                updated: true
+              batch.update(documentToModify, {
+                key: 43
               });
               updatedDocumentIds.add(documentToModify.id);
             }
             expect(updatedDocumentIds.size).to.equal(5);
 
-            for (let i = 0; i < 10; i += 1) {
+            for (let i = 0; i < 15; i += 1) {
               const documentToAdd = doc(
                 db2,
                 coll.path + '/newDoc' + (1000 + i)
               );
-              WriteBatch.set(documentToAdd, {
+              batch.set(documentToAdd, {
                 key: 42,
-                removed: false,
-                updated: false
+                removed: false
               });
               addedDocumentIds.push(documentToAdd.id);
             }
 
-            await WriteBatch.commit();
+            await batch.commit();
           });
 
           // Wait for 10 seconds, during which Watch will stop tracking the
@@ -2306,11 +2304,11 @@ apiDescribe('Queries', persistence => {
 
           // Verify that the snapshot from the resumed query contains the
           // expected documents; that is, 10 existing documents that still
-          // match the query, and 10 documents that are newly added.
+          // match the query, and 15 documents that are newly added.
           const actualDocumentIds = snapshot2.docs
             .map(documentSnapshot => documentSnapshot.ref.id)
             .sort();
-          expect(actualDocumentIds.length).to.equal(20);
+          expect(actualDocumentIds.length).to.equal(25);
 
           const expectedDocumentIds = createdDocuments
             .map(documentRef => documentRef.id)
@@ -2330,8 +2328,8 @@ apiDescribe('Queries', persistence => {
           ).to.have.length(1);
           const { localCacheCount, existenceFilterCount, bloomFilter } =
             existenceFilterMismatches[0];
-          expect(localCacheCount, 'localCacheCount').to.equal(30);
-          expect(existenceFilterCount, 'existenceFilterCount').to.equal(20);
+          expect(localCacheCount, 'localCacheCount').to.equal(35);
+          expect(existenceFilterCount, 'existenceFilterCount').to.equal(25);
 
           // Verify that Watch sent a valid bloom filter.
           if (!bloomFilter) {
