@@ -66,6 +66,12 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
+import {
+  FieldIndex,
+  IndexKind,
+  IndexSegment,
+  IndexState
+} from '../../../src/model/field_index';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
   FieldTransform,
@@ -79,12 +85,6 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
-import {
-  FieldIndex,
-  IndexKind,
-  IndexSegment,
-  IndexState
-} from '../../../src/model/field_index';
 import { ObjectValue } from '../../../src/model/object_value';
 import { FieldPath } from '../../../src/model/path';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
