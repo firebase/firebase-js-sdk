@@ -227,17 +227,9 @@ export class QueryEngine {
         transaction,
         queryToTarget(query)
       );
-    } else {
-      if (getLogLevel() <= LogLevel.DEBUG) {
-        logDebug(
-          'QueryEngine',
-          'The SDK decides not to create cache indexes for query:',
-          stringifyQuery(query),
-          'as using cache indexes may not help improve performance.'
-        );
-      }
-      return PersistencePromise.resolve();
     }
+    
+    return PersistencePromise.resolve();
   }
 
   /**
