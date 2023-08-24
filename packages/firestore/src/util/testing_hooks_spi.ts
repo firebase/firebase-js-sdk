@@ -57,6 +57,13 @@ export interface TestingHooksSpi {
    * promise.
    */
   notifyPersistentCacheIndexAutoCreationToggle(promise: Promise<void>): void;
+
+  /**
+   * Invokes all callbacks registered with
+   * `TestingHooks.onPersistentCacheDeleteAllIndexes()` with the given
+   * promise.
+   */
+  notifyPersistentCacheDeleteAllIndexes(promise: Promise<void>): void;
 }
 
 /**

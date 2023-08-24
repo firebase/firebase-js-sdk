@@ -139,6 +139,42 @@ export function verifyPersistentCacheIndexAutoCreationToggleSucceedsDuring(
 }
 
 /**
+ * Verifies than an invocation of `deleteAllPersistentCacheIndexes()` made
+ * during the execution of the given callback succeeds.
+ *
+ * @param callback The callback to invoke; this callback must invoke
+ * `deleteAllPersistentCacheIndexes()` exactly once; this callback is
+ * called synchronously by this function, and is called exactly once.
+ *
+ * @return a promise that is fulfilled when the asynchronous work started by
+ * `deleteAllPersistentCacheIndexes()` completes successfully, or is rejected
+ * if it fails.
+ */
+export function verifyPersistentCacheDeleteAllIndexesSucceedsDuring(
+  callback: () => void
+): Promise<void> {
+  const promises: Array<Promise<void>> = [];
+
+  const unregister = TestingHooks.onPersistentCacheDeleteAllIndexes(promise =>
+    promises.push(promise)
+  );
+
+  try {
+    callback();
+  } finally {
+    unregister();
+  }
+
+  expect(
+    promises,
+    'exactly one invocation of deleteAllPersistentCacheIndexes() should be ' +
+      'made by the callback'
+  ).to.have.length(1);
+
+  return promises[0];
+}
+
+/**
  * Determines the type of client-side index that will be used when executing the
  * given query against the local cache.
  */

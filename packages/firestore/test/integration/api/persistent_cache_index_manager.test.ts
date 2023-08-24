@@ -38,6 +38,7 @@ import {
 import {
   getQueryIndexType,
   setPersistentCacheIndexAutoCreationSettings,
+  verifyPersistentCacheDeleteAllIndexesSucceedsDuring,
   verifyPersistentCacheIndexAutoCreationToggleSucceedsDuring
 } from '../util/testing_hooks_util';
 
@@ -159,6 +160,42 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         expect(() =>
           disablePersistentCacheIndexAutoCreation(indexManager)
         ).to.throw('The client has already been terminated.');
+      }));
+  });
+
+  describe.only('deleteAllPersistentCacheIndexes()', () => {
+    it('should return successfully', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        deleteAllPersistentCacheIndexes(indexManager);
+      }));
+
+    it('should be successful when auto-indexing is enabled', () =>
+      withTestDb(persistence, db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        return verifyPersistentCacheDeleteAllIndexesSucceedsDuring(() =>
+          deleteAllPersistentCacheIndexes(indexManager)
+        );
+      }));
+
+    it('should be successful when auto-indexing is disabled', () =>
+      withTestDb(persistence, db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        disablePersistentCacheIndexAutoCreation(indexManager);
+        return verifyPersistentCacheDeleteAllIndexesSucceedsDuring(() =>
+          deleteAllPersistentCacheIndexes(indexManager)
+        );
+      }));
+
+    it('should fail if invoked after terminate()', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
+        expect(() => deleteAllPersistentCacheIndexes(indexManager)).to.throw(
+          'The client has already been terminated.'
+        );
       }));
   });
 

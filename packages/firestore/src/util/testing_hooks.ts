@@ -90,6 +90,29 @@ export class TestingHooks {
   }
 
   /**
+   * Registers a callback to be notified when
+   * `deleteAllPersistentCacheIndexes()` is invoked.
+   *
+   * The relative order in which callbacks are notified is unspecified; do not
+   * rely on any particular ordering. If a given callback is registered multiple
+   * times then it will be notified multiple times, once per registration.
+   *
+   * @param callback the callback to invoke when
+   * `deleteAllPersistentCacheIndexes()` is invoked.
+   *
+   * @return a function that, when called, unregisters the given callback; only
+   * the first invocation of the returned function does anything; all subsequent
+   * invocations do nothing.
+   */
+  static onPersistentCacheDeleteAllIndexes(
+    callback: PersistentCacheDeleteAllIndexesCallback
+  ): Unsubscribe {
+    return TestingHooksSpiImpl.instance.onPersistentCacheDeleteAllIndexes(
+      callback
+    );
+  }
+
+  /**
    * Determines the type of client-side index that will be used when executing the
    * given query against the local cache.
    *
@@ -172,6 +195,22 @@ export type PersistentCacheIndexAutoCreationToggleCallback = (
 ) => unknown;
 
 /**
+ * The signature of callbacks registered with
+ * `TestingHooks.onPersistentCacheDeleteAllIndexes()`.
+ *
+ * The `promise` argument will be fulfilled when the asynchronous work started
+ * by the call to `deleteAllPersistentCacheIndexes()` completes successfully, or
+ * will be rejected if it fails.
+ *
+ * The return value of the callback, if any, is ignored.
+ *
+ * @internal
+ */
+export type PersistentCacheDeleteAllIndexesCallback = (
+  promise: Promise<void>
+) => unknown;
+
+/**
  * The implementation of `TestingHooksSpi`.
  */
 class TestingHooksSpiImpl implements TestingHooksSpi {
@@ -182,6 +221,11 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
 
   private readonly persistentCacheIndexAutoCreationToggleCallbacksById =
     new Map<Symbol, PersistentCacheIndexAutoCreationToggleCallback>();
+
+  private readonly persistentCacheDeleteAllIndexesCallbacksById = new Map<
+    Symbol,
+    PersistentCacheDeleteAllIndexesCallback
+  >();
 
   private constructor() {}
 
@@ -220,6 +264,21 @@ class TestingHooksSpiImpl implements TestingHooksSpi {
     return registerCallback(
       callback,
       this.persistentCacheIndexAutoCreationToggleCallbacksById
+    );
+  }
+
+  notifyPersistentCacheDeleteAllIndexes(promise: Promise<void>): void {
+    this.persistentCacheDeleteAllIndexesCallbacksById.forEach(callback =>
+      callback(promise)
+    );
+  }
+
+  onPersistentCacheDeleteAllIndexes(
+    callback: PersistentCacheDeleteAllIndexesCallback
+  ): Unsubscribe {
+    return registerCallback(
+      callback,
+      this.persistentCacheDeleteAllIndexesCallbacksById
     );
   }
 }
