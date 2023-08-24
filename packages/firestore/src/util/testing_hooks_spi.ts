@@ -50,6 +50,13 @@ export interface TestingHooksSpi {
    * `TestingHooks.onExistenceFilterMismatch()` with the given info.
    */
   notifyOnExistenceFilterMismatch(info: ExistenceFilterMismatchInfo): void;
+
+  /**
+   * Invokes all callbacks registered with
+   * `TestingHooks.onPersistentCacheIndexAutoCreationToggle()` with the given
+   * promise.
+   */
+  notifyPersistentCacheIndexAutoCreationToggle(promise: Promise<void>): void;
 }
 
 /**
