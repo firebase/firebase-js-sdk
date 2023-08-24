@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { AggregateQuerySnapshot } from '../../../src';
 import { Token } from '../../../src/api/credentials';
 import {
   ComponentConfiguration,
@@ -27,7 +26,10 @@ import {
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import {
+  AggregateViewSnapshot,
+  ViewSnapshot
+} from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -457,11 +459,11 @@ export class EventAggregator implements Observer<ViewSnapshot> {
 }
 
 export class AggregateEventAggregator
-  implements Observer<AggregateQuerySnapshot<any>>
+  implements Observer<AggregateViewSnapshot>
 {
   constructor(private pushEvent: (e: AggregateQueryEvent) => void) {}
 
-  next(view: AggregateQuerySnapshot<any>): void {
+  next(view: AggregateViewSnapshot): void {
     this.pushEvent({
       view
     });
@@ -508,6 +510,6 @@ export interface QueryEvent {
 }
 
 export interface AggregateQueryEvent {
-  view?: AggregateQuerySnapshot<any>;
+  view?: AggregateViewSnapshot;
   error?: FirestoreError;
 }

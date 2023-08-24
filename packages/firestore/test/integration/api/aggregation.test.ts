@@ -41,11 +41,6 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
-import {
-  getAggregate,
-  getAggregateFromCache,
-  onAggregateSnapshot
-} from "../../../src/api/aggregate";
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -359,52 +354,49 @@ apiDescribe('Aggregation queries', persistence => {
 });
 
 // TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe.skip(
-  'Aggregation queries - sum / average',
-  persistence => {
-    it('can run sum query getAggregateFromServer', () => {
-      const testDocs = {
-        a: { author: 'authorA', title: 'titleA', pages: 100 },
-        b: { author: 'authorB', title: 'titleB', pages: 50 }
-      };
-      return withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await getAggregateFromServer(coll, {
-          totalPages: sum('pages')
-        });
-        expect(snapshot.data().totalPages).to.equal(150);
+apiDescribe.skip('Aggregation queries - sum / average', persistence => {
+  it('can run sum query getAggregateFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA', pages: 100 },
+      b: { author: 'authorB', title: 'titleB', pages: 50 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        totalPages: sum('pages')
       });
+      expect(snapshot.data().totalPages).to.equal(150);
     });
+  });
 
-    it('can run average query getAggregateFromServer', () => {
-      const testDocs = {
-        a: { author: 'authorA', title: 'titleA', pages: 100 },
-        b: { author: 'authorB', title: 'titleB', pages: 50 }
-      };
-      return withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await getAggregateFromServer(coll, {
-          averagePages: average('pages')
-        });
-        expect(snapshot.data().averagePages).to.equal(75);
+  it('can run average query getAggregateFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA', pages: 100 },
+      b: { author: 'authorB', title: 'titleB', pages: 50 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        averagePages: average('pages')
       });
+      expect(snapshot.data().averagePages).to.equal(75);
     });
+  });
 
-
-    it('can get multiple aggregations using getAggregateFromServer', () => {
-      const testDocs = {
-        a: { author: 'authorA', title: 'titleA', pages: 100 },
-        b: { author: 'authorB', title: 'titleB', pages: 50 }
-      };
-      return withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await getAggregateFromServer(coll, {
-          totalPages: sum('pages'),
-          averagePages: average('pages'),
-          count: count()
-        });
-        expect(snapshot.data().totalPages).to.equal(150);
-        expect(snapshot.data().averagePages).to.equal(75);
-        expect(snapshot.data().count).to.equal(2);
+  it('can get multiple aggregations using getAggregateFromServer', () => {
+    const testDocs = {
+      a: { author: 'authorA', title: 'titleA', pages: 100 },
+      b: { author: 'authorB', title: 'titleB', pages: 50 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await getAggregateFromServer(coll, {
+        totalPages: sum('pages'),
+        averagePages: average('pages'),
+        count: count()
       });
+      expect(snapshot.data().totalPages).to.equal(150);
+      expect(snapshot.data().averagePages).to.equal(75);
+      expect(snapshot.data().count).to.equal(2);
     });
+  });
 
   it('can get duplicate aggregations using getAggregationFromServer', () => {
     const testDocs = {

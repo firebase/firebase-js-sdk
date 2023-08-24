@@ -17,6 +17,7 @@
 
 import { LogLevel, setLogLevel } from '@firebase/logger';
 
+import { AggregateImpl } from '../../../src/core/aggregate';
 import {
   AggregateQuery,
   newQueryForCollectionGroup,
@@ -45,7 +46,8 @@ function specWithCachedDocs(...docs: Document[]): SpecBuilder {
 }
 
 function countFromQuery(base: Query): AggregateQuery {
-  return new AggregateQuery(base);
+  const countAggregate = new AggregateImpl('count', 'count');
+  return new AggregateQuery(base, [countAggregate]);
 }
 
 describeSpec('Count Queries:', ['exclusive', 'durable-persistence'], () => {

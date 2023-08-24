@@ -19,18 +19,21 @@ import {
   AggregateQuerySnapshot as LiteAggregateQuerySnapshot,
   AggregateSpec
 } from '../lite-api/aggregate_types';
-import {DocumentData, Query} from "../lite-api/reference";
-import {AbstractUserDataWriter} from "../lite-api/user_data_writer";
-import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
+import { DocumentData, Query } from '../lite-api/reference';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
-import {
-  SnapshotMetadata
-} from "./snapshot";
+import { SnapshotMetadata } from './snapshot';
 
 export class AggregateQuerySnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType = DocumentData,
-  DbModelType extends DocumentData = DocumentData> extends LiteAggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
+  DbModelType extends DocumentData = DocumentData
+> extends LiteAggregateQuerySnapshot<
+  AggregateSpecType,
+  AppModelType,
+  DbModelType
+> {
   /**
    *  Metadata about the `DocumentSnapshot`, including information about its
    *  source and local modifications.
@@ -42,9 +45,10 @@ export class AggregateQuerySnapshot<
     query: Query<AppModelType, DbModelType>,
     _userDataWriter: AbstractUserDataWriter,
     _data: ApiClientObjectMap<Value>,
-    metadata: SnapshotMetadata,
+    _delta: ApiClientObjectMap<number> | undefined,
+    metadata: SnapshotMetadata
   ) {
-    super(query, _userDataWriter, _data);
+    super(query, _userDataWriter, _data, _delta);
     this.metadata = metadata;
   }
 }

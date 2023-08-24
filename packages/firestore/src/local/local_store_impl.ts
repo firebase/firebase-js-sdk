@@ -54,13 +54,14 @@ import {
   Precondition
 } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
-import { normalizeNumber } from '../model/normalize';
 import { extractFieldMask } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import {
   BundleMetadata,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
+import { Value } from '../protos/firestore_proto_api';
+import { toNumber } from '../remote/number_serializer';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { diffArrays } from '../util/array';
@@ -96,7 +97,6 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import {Aggregate} from "../core/aggregate";
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1316,14 +1316,14 @@ export interface AggregateQueryResult {
   documentResult: QueryResult;
   matchesWithoutMutation: DocumentKeySet;
   discountedKeys?: DocumentKey[];
-  cachedCount: number;
+  cachedCount: Value;
   cachedCountReadTime: SnapshotVersion;
 }
 
 export async function localStoreExecuteAggregateQuery(
   localStore: LocalStore,
   targetId: TargetId,
-  query: AggregateQuery,
+  query: AggregateQuery
 ): Promise<AggregateQueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const lastLimboFreeSnapshotVersion = SnapshotVersion.min();
@@ -1358,7 +1358,7 @@ export async function localStoreExecuteAggregateQuery(
                   ...context.remoteMatches
                 ),
                 discountedKeys: undefined,
-                cachedCount: 0,
+                cachedCount: toNumber({ useProto3Json: true }, 0),
                 cachedCountReadTime: SnapshotVersion.min()
               };
             }
@@ -1366,9 +1366,10 @@ export async function localStoreExecuteAggregateQuery(
               aggregateQuery: query,
               documentResult: result,
               matchesWithoutMutation: documentKeySet(...context.remoteMatches),
-              cachedCount: normalizeNumber(
-                aggr.result.aggregateFields!['count'].integerValue
-              ),
+              cachedCount: aggr.result.aggregateFields!['count'],
+              // cachedCount: normalizeNumber(
+              //   aggr.result.aggregateFields!['count'].integerValue
+              // ),
               discountedKeys: aggr.localAggregateMatches?.map(
                 s => new DocumentKey(decodeResourcePath(s))
               ),

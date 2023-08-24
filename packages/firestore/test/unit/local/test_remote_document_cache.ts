@@ -119,7 +119,13 @@ export class TestRemoteDocumentCache {
       'getAllFromCollection',
       'readonly',
       txn =>
-        this.cache.getDocumentsMatchingQuery(txn, query, offset, mutatedDocs, undefined)
+        this.cache.getDocumentsMatchingQuery(
+          txn,
+          query,
+          offset,
+          mutatedDocs,
+          undefined
+        )
     );
   }
 

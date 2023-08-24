@@ -17,10 +17,6 @@
 
 import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
-import {
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../lite-api/aggregate_types';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
   AggregateQueryResult,
@@ -60,6 +56,8 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import { toNumber } from '../remote/number_serializer';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import {
   canUseNetwork,
@@ -125,7 +123,6 @@ import {
   ViewChange
 } from './view';
 import { AggregateViewSnapshot, ViewSnapshot } from './view_snapshot';
-import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
 const LOG_TAG = 'SyncEngine';
 
@@ -497,6 +494,7 @@ export async function syncEngineListenAggregate(
 
 export interface AggregateSnapshotAndDiscountedKeys {
   snapshot: ApiClientObjectMap<Value>;
+  delta: ApiClientObjectMap<number> | undefined;
   discountedKeys: DocumentKeySet;
   cachedDiscountedKeys: DocumentKeySet;
 }
@@ -504,7 +502,7 @@ export interface AggregateSnapshotAndDiscountedKeys {
 function calculateAggregateSnapshot(
   result: AggregateQueryResult
 ): AggregateSnapshotAndDiscountedKeys {
-  // TODO (streaming-aggregations) delta per aggregate
+  // TODO (streaming-aggregations) delta per aggregate. Currently only track delta for count.
   let delta = 0;
   let plusZeros = documentKeySet();
   result.documentResult.documents.forEach((k, doc) => {
@@ -533,12 +531,11 @@ function calculateAggregateSnapshot(
   if (!!result.discountedKeys) {
     cachedDiscountedKeys = documentKeySet(...result.discountedKeys);
   }
-  // TODO streaming aggregate WTF?
+
   return {
-    snapshot: result.
-      { count: result.cachedCount + delta },
+    snapshot: { count: result.cachedCount },
     delta: {
-      'count': result.cachedCount + delta
+      'count': delta
     },
     discountedKeys: plusZeros,
     cachedDiscountedKeys
@@ -1115,7 +1112,10 @@ function updateAggregateQueryResult(
 ): boolean {
   let aggregateUpdated = false;
   if (changes.changedAggregates && changes.changedAggregates.get(targetId)) {
-    existingResult.cachedCount = changes.changedAggregates.get(targetId)!;
+    existingResult.cachedCount = toNumber(
+      { useProto3Json: true },
+      changes.changedAggregates.get(targetId)!
+    );
     existingResult.cachedCountReadTime = globalSnapshot!;
     aggregateUpdated = true;
   }
@@ -1150,6 +1150,8 @@ function updateAggregateQueryResult(
       existingResult.documentResult.documents.get(k) &&
       !localAggregateMatches.has(k)
     ) {
+      // TODO streaming-count clean up this code. Unexpected use of "any".
+      //      What is this casting intended to do?
       (existingResult.documentResult.remoteKeys as any) =
         existingResult.documentResult.remoteKeys.delete(k);
       (existingResult.documentResult.documents as any) =
@@ -1185,6 +1187,7 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   }
 
   const aggregateViews: AggregateViewSnapshot[] = [];
+  const localStoreUpdates: Array<Promise<void>> = [];
   syncEngineImpl.aggregateResultByQuery.forEach((result, targetId) => {
     const aggregateUpdated = updateAggregateQueryResult(
       result,
@@ -1204,10 +1207,12 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
 
       // Save discountedKeys if this is a remote event update.
       // TODO(COUNT): Consider batching this.
-      localStoreUpdateDiscountedKeys(
-        syncEngineImpl.localStore,
-        targetId,
-        initialDiscountedKeys
+      localStoreUpdates.push(
+        localStoreUpdateDiscountedKeys(
+          syncEngineImpl.localStore,
+          targetId,
+          initialDiscountedKeys
+        )
       );
 
       result.discountedKeys = initialDiscountedKeys;
@@ -1222,10 +1227,11 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
       // TODO(COUNT): This needs to sync up with the logic for document queries.
       fromCache: false,
       query: result.aggregateQuery,
-      initialDiscountedKeys,
-      delta: undefined
+      initialDiscountedKeys
     });
   });
+
+  await Promise.all(localStoreUpdates);
 
   syncEngineImpl.syncEngineListener.onWatchAggregateChange!(aggregateViews);
 

@@ -31,20 +31,14 @@ import {
   firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetDocumentViaSnapshotListener,
   firestoreClientListen,
-  firestoreClientListenAggregate,
   firestoreClientWrite
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
-import {
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../lite-api/aggregate_types';
 import { Bytes } from '../lite-api/bytes';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
-  AggregateQuery,
   CollectionReference,
   doc,
   DocumentData,

@@ -31,7 +31,6 @@ import {
   newIndexOffsetFromDocument
 } from '../model/field_index';
 import { FieldMask } from '../model/field_mask';
-import { ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 

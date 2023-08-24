@@ -20,6 +20,7 @@ import { expect } from 'chai';
 
 import { serverTimestamp, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
+import { AggregateImpl } from '../../../src/core/aggregate';
 import { BundleConverterImpl } from '../../../src/core/bundle_impl';
 import {
   AggregateQuery,
@@ -136,7 +137,11 @@ class AsyncLocalStoreTester {
     ).changedDocs;
   }
 
-  async writeCount(targetId: number, count: number, readTime: SnapshotVersion) {
+  async writeCount(
+    targetId: number,
+    count: number,
+    readTime: SnapshotVersion
+  ): Promise<void> {
     this.prepareNextStep();
     await localStoreWriteCount(this.localStore, targetId, count, readTime);
   }
@@ -519,9 +524,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       docAddedRemoteEvent([docA, docB, docC], [targetId])
     );
 
+    const countAggregate = new AggregateImpl('count', 'count');
+
     const result = await test.executeAggregateQuery(
       targetId,
-      new AggregateQuery(queryMatches)
+      new AggregateQuery(queryMatches, [countAggregate])
     );
 
     expect(result.cachedCount).to.equal(0);
@@ -551,9 +558,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.applyRemoteEvent(docAddedRemoteEvent([docA, docC], [targetId]));
     await test.applyRemoteEvent(docAddedRemoteEvent([docB]));
 
+    const countAggregate = new AggregateImpl('count', 'count');
+
     const result = await test.executeAggregateQuery(
       targetId,
-      new AggregateQuery(queryMatches)
+      new AggregateQuery(queryMatches, [countAggregate])
     );
 
     expect(result.cachedCount).to.equal(0);
@@ -583,9 +592,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.applyRemoteEvent(docAddedRemoteEvent([docB]));
     await test.writeMutations(setMutation('coll/a', { foo: 'bar' }));
 
+    const countAggregate = new AggregateImpl('count', 'count');
+
     const result = await test.executeAggregateQuery(
       targetId,
-      new AggregateQuery(queryMatches)
+      new AggregateQuery(queryMatches, [countAggregate])
     );
 
     expect(result.cachedCount).to.equal(0);
@@ -618,9 +629,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.writeCount(targetId, 2022, version(3));
 
+    const countAggregate = new AggregateImpl('count', 'count');
+
     const result = await test.executeAggregateQuery(
       targetId,
-      new AggregateQuery(queryMatches)
+      new AggregateQuery(queryMatches, [countAggregate])
     );
 
     expect(result.cachedCount).to.equal(2022);
@@ -644,9 +657,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.writeMutations(patchMutation('coll/b', { matches: true }));
 
+    const countAggregate = new AggregateImpl('count', 'count');
+
     const result = await test.executeAggregateQuery(
       targetId,
-      new AggregateQuery(queryMatches)
+      new AggregateQuery(queryMatches, [countAggregate])
     );
 
     expect(result.cachedCount).to.equal(0);

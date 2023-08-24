@@ -24,7 +24,6 @@ import {
   queryEquals,
   QueryImpl
 } from '../core/query';
-import { FieldFilter } from '../core/target';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
@@ -270,9 +269,9 @@ export class DocumentReference<
     );
   }
 
-  countQuery(): AggregateQuery {
-    return new AggregateQuery(this);
-  }
+  // countQuery(): AggregateQuery {
+  //   return new AggregateQuery(this);
+  // }
 }
 
 // TODO: Make this more generic
@@ -285,8 +284,13 @@ export class AggregateQuery {
 
   getProcessingMask(): FieldMask {
     let result = FieldMask.empty();
-    for (const f of (this._baseQuery._query as QueryImpl).filters) {
-      result = result.unionWith([(f as FieldFilter).field]);
+
+    for (const filter of (this._baseQuery._query as QueryImpl).filters) {
+      // getFlattenedFilters will return all FieldFilters within a composite
+      // filter or return a FieldFilter itself.
+      for (const fieldFilter of filter.getFlattenedFilters()) {
+        result = result.unionWith([fieldFilter.field]);
+      }
     }
     result = result.unionWith(
       this._baseQuery._query.explicitOrderBy.map(o => o.field)

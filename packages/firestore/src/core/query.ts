@@ -21,12 +21,13 @@ import { FieldMask } from '../model/field_mask';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
 
+import { Aggregate } from './aggregate';
 import {
   Bound,
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { Filter } from './filter';
+import { FieldFilter, Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -35,7 +36,6 @@ import {
   Target,
   targetEquals
 } from './target';
-import {Aggregate} from "./aggregate";
 
 export const enum LimitType {
   First = 'F',

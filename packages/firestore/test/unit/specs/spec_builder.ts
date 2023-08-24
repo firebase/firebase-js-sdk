@@ -790,7 +790,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchSendsCount(targetId: TargetId, count: number) {
+  watchSendsCount(targetId: TargetId, count: number): SpecBuilder {
     this.nextStep();
     this.currentStep = {
       watchEntity: { targets: [targetId], count }
@@ -1155,7 +1155,6 @@ export class SpecBuilder {
         value: userDataWriter.convertValue(
           doc.data.value
         ) as JsonObject<unknown>,
-        createTime: doc.createTime.toMicroseconds(),
         options: {
           hasLocalMutations: doc.hasLocalMutations,
           hasCommittedMutations: doc.hasCommittedMutations

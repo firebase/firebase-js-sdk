@@ -70,7 +70,8 @@ import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
   EventManager,
-  eventManagerListen, eventManagerListenAggregate,
+  eventManagerListen,
+  eventManagerListenAggregate,
   eventManagerUnlisten,
   ListenOptions,
   Observer,
@@ -92,7 +93,7 @@ import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
-import { ViewSnapshot } from './view_snapshot';
+import { AggregateViewSnapshot, ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -561,14 +562,12 @@ export function firestoreClientListenAggregate(
   client: FirestoreClient,
   query: AggregateQuery,
   options: ListenOptions,
-  observer: Partial<
-    Observer<ApiClientObjectMap<Value>>
-    >
+  observer: Partial<Observer<AggregateViewSnapshot>>
 ): () => void {
   const wrappedObserver = new AsyncObserver(observer);
 
   // TODO streaming-count add AggregateQueryListener
-  const listener = new QueryListener(query, wrappedObserver, options);
+  // const listener = new QueryListener(query, wrappedObserver, options);
 
   client.asyncQueue.enqueueAndForget(async () => {
     const eventManager = await getEventManager(client);

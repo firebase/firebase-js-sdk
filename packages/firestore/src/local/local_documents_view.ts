@@ -543,7 +543,11 @@ export class LocalDocumentsView {
     // Query the remote documents and overlay mutations.
     let overlays: OverlayMap;
     return this.documentOverlayCache
-      .getOverlaysForCollection(transaction, query.path, offset.largestBatchId /* TODO(COUNT): add mask */ )
+      .getOverlaysForCollection(
+        transaction,
+        query.path,
+        offset.largestBatchId /* TODO(COUNT): add mask */
+      )
       .next(result => {
         overlays = result;
         return this.remoteDocumentCache.getDocumentsMatchingQuery(

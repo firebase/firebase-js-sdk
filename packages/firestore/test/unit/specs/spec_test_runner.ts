@@ -577,7 +577,9 @@ abstract class TestRunner {
     return eventManagerListenAggregate(this.eventManager, spec, aggregator);
   }
 
-  private async doUserUnlistenCount(spec: SpecUserUnlistenCount) {
+  private async doUserUnlistenCount(
+    spec: SpecUserUnlistenCount
+  ): Promise<void> {
     return eventManagerUnlistenAggregate(this.eventManager, spec[0], spec[1]);
   }
 
@@ -995,7 +997,9 @@ abstract class TestRunner {
       for (let i = 0; i < expectedEvents.length; i++) {
         const actual = this.aggregateEventList[i];
         const expected = expectedEvents[i];
-        expect({ count: actual.view?.data()['count'] }).to.deep.equal(expected);
+        expect({
+          count: actual.view?.snapshot.snapshot['count'].integerValue
+        }).to.deep.equal(expected);
       }
 
       this.aggregateEventList = [];
@@ -1218,7 +1222,6 @@ abstract class TestRunner {
 
     const actualTargets = { ...this.connection.activeTargets };
     this.expectedActiveTargets.forEach((expected, targetId) => {
-      console.log(`checking active target ${targetId}`);
       expect(actualTargets[targetId]).to.not.equal(
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
@@ -1791,7 +1794,6 @@ export interface SpecDocument {
   version: TestSnapshotVersion;
   createTime: TestSnapshotVersion;
   value: JsonObject<unknown> | null;
-  createTime?: TestSnapshotVersion;
   options?: DocumentOptions;
 }
 

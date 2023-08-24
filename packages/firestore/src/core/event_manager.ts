@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../lite-api/aggregate_types';
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
@@ -43,8 +39,6 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from './view_snapshot';
-import {Aggregate} from "./aggregate";
-import {ApiClientObjectMap, Value} from "../protos/firestore_proto_api";
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -88,7 +82,7 @@ export function newEventManager(): EventManager {
 
 interface AggregateView {
   view: AggregateViewSnapshot;
-  observer: Observer<ApiClientObjectMap<Value>>;
+  observer: Observer<AggregateViewSnapshot>;
 }
 
 export class EventManagerImpl implements EventManager {
@@ -114,6 +108,7 @@ export class EventManagerImpl implements EventManager {
   onListenAggregate?: (
     query: AggregateQuery
   ) => Promise<AggregateSnapshotAndDiscountedKeys>;
+
   onUnlistenAggregate?: (targetId: TargetId) => Promise<void>;
 }
 
@@ -166,21 +161,22 @@ export async function eventManagerListen(
   }
 }
 
-export function eventManagerUnlistenAggregate(
+export async function eventManagerUnlistenAggregate(
   eventManager: EventManager,
   targetId: TargetId,
   query: AggregateQuery
-): void {
+): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   eventManagerImpl.aggregateQueries.delete(query);
 
-  eventManagerImpl.onUnlistenAggregate!(targetId);
+  // TODO streaming-count ensure this unlisten is implemented correctly
+  await eventManagerImpl.onUnlistenAggregate!(targetId);
 }
 
 export async function eventManagerListenAggregate(
   eventManager: EventManager,
   query: AggregateQuery,
-  observer: Observer<ApiClientObjectMap<Value>>
+  observer: Observer<AggregateViewSnapshot>
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   debugAssert(
@@ -196,8 +192,7 @@ export async function eventManagerListenAggregate(
         snapshot: countSnap,
         query,
         fromCache: true,
-        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray(),
-        delta: undefined
+        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray()
       }
     };
 
@@ -211,15 +206,17 @@ export async function eventManagerListenAggregate(
         view.view.initialDiscountedKeys!.length
       }) = ${case5Delta}`
     );
-    // view.view.snapshot.snapshot = new AggregateQuerySnapshot<{
-    //   count: AggregateField<number>;
-    // }>(undefined, { count: case5Delta + countSnap.snapshot.data()['count'] });
 
-    // TODO streaming-count ensure delta is applied
-    view.view.delta = { count: case5Delta };
+    // delta is applied in API layer when proto Values are converted
+    // to numeric data types
+    view.view.snapshot.delta = {
+      count:
+        case5Delta +
+        (view.view.snapshot.delta ? view.view.snapshot.delta['count'] : 0)
+    };
 
     eventManagerImpl.aggregateQueries.set(query, view);
-    observer.next(view.view.snapshot.snapshot);
+    observer.next(view.view);
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
       e as Error,
@@ -265,6 +262,8 @@ export function eventManagerOnWatchAggregateChange(
 
   for (const snapshot of snapshots) {
     const existingView = eventManagerImpl.aggregateQueries.get(snapshot.query);
+
+    // TODO streaming-count implement fan-out for multiple observers
     const observer = existingView!.observer;
     const newSnap = snapshot.snapshot;
 
@@ -285,15 +284,19 @@ export function eventManagerOnWatchAggregateChange(
     );
 
     existingView!.view.snapshot.snapshot = newSnap.snapshot;
-    // existingView!.view.snapshot.snapshot = new AggregateQuerySnapshot<{
-    //   count: AggregateField<number>;
-    // }>(undefined, { count: case5Delta + newSnap.snapshot.data()['count'] });
 
-    // TODO streaming-count ensure delta is applied
-    existingView!.view.delta = { count: case5Delta };
+    // delta is applied in API layer when proto Values are converted
+    // to numeric data types
+    existingView!.view.snapshot.delta = {
+      count:
+        case5Delta +
+        (existingView!.view.snapshot.delta
+          ? existingView!.view.snapshot.delta['count']
+          : 0)
+    };
 
     // TODO(COUNT): Dude...
-    observer?.next(existingView!.view.snapshot.snapshot);
+    observer?.next(existingView!.view);
   }
 }
 

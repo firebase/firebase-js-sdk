@@ -15,38 +15,39 @@
  * limitations under the License.
  */
 
-import {
-  AggregateField,
-  AggregateSpec, DocumentReference, FirestoreError,
-  Query, SnapshotListenOptions,
-  SnapshotMetadata, Unsubscribe, DocumentData, AggregateType, QuerySnapshot
-} from '../api';
-import { AggregateQuerySnapshot } from '../api/aggregate_types';
 import { AggregateImpl } from '../core/aggregate';
 import {
   FirestoreClient,
   firestoreClientListenAggregate,
   firestoreClientRunAggregateQuery
 } from '../core/firestore_client';
+import { AggregateQuery as InternalAggregateQuery } from '../core/query';
+import { AggregateViewSnapshot } from '../core/view_snapshot';
 import { count } from '../lite-api/aggregate';
+import {
+  AggregateField,
+  AggregateSpec,
+  AggregateType
+} from '../lite-api/aggregate_types';
+import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import { hardAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
+import { AggregateQuerySnapshot } from './aggregate_types';
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { ExpUserDataWriter } from './reference_impl';
-import {AggregateQuery} from "../lite-api/reference";
-import {hardAssert} from "../util/assert";
-import {Query as InternalQuery, AggregateQuery as InternalAggregateQuery} from "../core/query";
 import {
   CompleteFn,
   ErrorFn,
   isPartialObserver,
   NextFn,
   PartialObserver
-} from "./observer";
-import {validateHasExplicitOrderByForLimitToLast} from "../lite-api/query";
-import {ViewSnapshot} from "../core/view_snapshot";
+} from './observer';
+import { Query, DocumentData } from './reference';
+import { ExpUserDataWriter, SnapshotListenOptions , Unsubscribe } from './reference_impl';
+import { SnapshotMetadata } from './snapshot';
 
 export {
   aggregateQuerySnapshotEqual,
@@ -99,33 +100,44 @@ export function getCountFromServer<
 export function getCountFromCache<
   AppModelType,
   DbModelType extends DocumentData
-  >(
+>(
   query: Query<AppModelType, DbModelType>
-): Promise<AggregateQuerySnapshot<
-  { count: AggregateField<number> },
-  AppModelType,
-  DbModelType>> {
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >
+> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 
-  return getAggregateFromCache<{ count: AggregateField<number> }, AppModelType, DbModelType>(query, countQuerySpec);
+  return getAggregateFromCache<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >(query, countQuerySpec);
 }
 
-export function getCount<
-  AppModelType,
-  DbModelType extends DocumentData
-  >(
+export function getCount<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
-): Promise<AggregateQuerySnapshot<
-  { count: AggregateField<number> },
-  AppModelType,
-  DbModelType>> {
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >
+> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
 
-  return getAggregate<{ count: AggregateField<number> }, AppModelType, DbModelType>(query, countQuerySpec);
+  return getAggregate<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >(query, countQuerySpec);
 }
 
 /**
@@ -192,7 +204,12 @@ export function getAggregateFromServer<
     query._query,
     internalAggregates
   ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
+    convertToAggregateQuerySnapshot(
+      firestore,
+      query,
+      aggregateResult,
+      undefined
+    )
   );
 }
 
@@ -224,14 +241,15 @@ export function getAggregateFromServer<
 export function getAggregateFromCache<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType
 ): Promise<
   AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
-  > {
+> {
   // TODO (streaming-count)
-  throw new Error("Not implemented: API design only");
+  throw new Error('Not implemented: API design only');
 }
 
 /**
@@ -250,14 +268,15 @@ export function getAggregateFromCache<
 export function getAggregate<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType
 ): Promise<
   AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
-  > {
+> {
   // TODO (streaming-count)
-  throw new Error("Not implemented: API design only");
+  throw new Error('Not implemented: API design only');
 }
 
 /**
@@ -274,7 +293,8 @@ function convertToAggregateQuerySnapshot<
 >(
   firestore: Firestore,
   query: Query<AppModelType, DbModelType>,
-  aggregateResult: ApiClientObjectMap<Value>
+  aggregateResult: ApiClientObjectMap<Value>,
+  delta: ApiClientObjectMap<number> | undefined
 ): AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
   const userDataWriter = new ExpUserDataWriter(firestore);
   const querySnapshot = new AggregateQuerySnapshot<
@@ -285,6 +305,7 @@ function convertToAggregateQuerySnapshot<
     query,
     userDataWriter,
     aggregateResult,
+    delta,
     // TODO (streaming-count) add real snapshot metadata
     new SnapshotMetadata(false, false) // this is stubbed
   );
@@ -312,7 +333,8 @@ function convertToAggregateQuerySnapshot<
 export function onAggregateSnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType,
   observer: {
@@ -344,7 +366,8 @@ export function onAggregateSnapshot<
 export function onAggregateSnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType,
   options: SnapshotListenOptions,
@@ -381,7 +404,8 @@ export function onAggregateSnapshot<
 export function onAggregateSnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType,
   onNext: (snapshot: AggregateQuerySnapshot<AggregateSpecType>) => void,
@@ -416,7 +440,8 @@ export function onAggregateSnapshot<
 export function onAggregateSnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType,
   options: SnapshotListenOptions,
@@ -428,7 +453,8 @@ export function onAggregateSnapshot<
 export function onAggregateSnapshot<
   AggregateSpecType extends AggregateSpec,
   AppModelType,
-  DbModelType extends DocumentData>(
+  DbModelType extends DocumentData
+>(
   query: Query<AppModelType, DbModelType>,
   aggregateSpec: AggregateSpecType,
   ...args: unknown[]
@@ -448,36 +474,54 @@ export function onAggregateSnapshot<
   });
   validateSupportedStreamingAggregations(internalAggregates);
 
-
   // process `...args`
-  const {options, next, error, complete} = processSnapshotArgs<AggregateQuerySnapshot<AggregateSpecType>>(...args);
+  const { options, next, error, complete } = processSnapshotArgs<
+    AggregateQuerySnapshot<AggregateSpecType>
+  >(...args);
 
   // Internal observer
-  const internalObserver: PartialObserver<ApiClientObjectMap<Value>> = {
-    next: snapshot => {
+  const internalObserver: PartialObserver<AggregateViewSnapshot> = {
+    next: view => {
       if (next) {
         // TODO streaming-count add snapshot metadata
         // TODO streaming-count apply offsets to snapshot metadata
-        next(convertToAggregateQuerySnapshot(firestore, query, snapshot));
+        next(
+          convertToAggregateQuerySnapshot(
+            firestore,
+            query,
+            view.snapshot.snapshot,
+            view.snapshot.delta
+          )
+        );
       }
     },
-    error: error,
-    complete: complete
+    error,
+    complete
   };
 
-  const internalAggregateQuery = new InternalAggregateQuery(query._query, internalAggregates);
+  const internalAggregateQuery = new InternalAggregateQuery(
+    query._query,
+    internalAggregates
+  );
 
-  return firestoreClientListenAggregate(client, internalAggregateQuery, options, internalObserver);
+  return firestoreClientListenAggregate(
+    client,
+    internalAggregateQuery,
+    options,
+    internalObserver
+  );
 }
 
 interface SnapshotArgs<SnapshotType> {
-  options: SnapshotListenOptions,
-  next?: NextFn<SnapshotType>,
-  error?: ErrorFn,
-  complete?: CompleteFn
+  options: SnapshotListenOptions;
+  next?: NextFn<SnapshotType>;
+  error?: ErrorFn;
+  complete?: CompleteFn;
 }
 
-function processSnapshotArgs<SnapshotType>(...args: unknown[]): SnapshotArgs<SnapshotType> {
+function processSnapshotArgs<SnapshotType>(
+  ...args: unknown[]
+): SnapshotArgs<SnapshotType> {
   // Get options or default options
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false
@@ -497,8 +541,8 @@ function processSnapshotArgs<SnapshotType>(...args: unknown[]): SnapshotArgs<Sna
     next = userObserver.next?.bind(userObserver);
     error = userObserver.error?.bind(userObserver);
     complete = userObserver.complete?.bind(userObserver);
-  }
-  else { // expecting 1-3 arguments representing the next, error, and complete functions
+  } else {
+    // expecting 1-3 arguments representing the next, error, and complete functions
     next = args[currArg] as NextFn<SnapshotType>;
     error = args[currArg + 1] as ErrorFn;
     complete = args[currArg + 2] as CompleteFn;
@@ -508,18 +552,22 @@ function processSnapshotArgs<SnapshotType>(...args: unknown[]): SnapshotArgs<Sna
     options: {
       includeMetadataChanges: options.includeMetadataChanges
     },
-    next: next,
-    error: error,
-    complete: complete
+    next,
+    error,
+    complete
   };
 }
 
-function validateSupportedStreamingAggregations(internalAggregates: Array<AggregateImpl>) {
+function validateSupportedStreamingAggregations(
+  internalAggregates: AggregateImpl[]
+): void {
   // Assert that only supported aggregations are requested.
-  const supportedStreamingAggregates: Array<AggregateType> = ["count"];
+  const supportedStreamingAggregates: AggregateType[] = ['count'];
   internalAggregates.forEach(agg => {
-    hardAssert(!supportedStreamingAggregates.includes(agg.aggregateType),
-      `Watch does not support the '${agg.aggregateType}' aggregation operation.`);
+    hardAssert(
+      !supportedStreamingAggregates.includes(agg.aggregateType),
+      `Watch does not support the '${agg.aggregateType}' aggregation operation.`
+    );
   });
 }
 
@@ -541,12 +589,12 @@ function validateSupportedStreamingAggregations(internalAggregates: Array<Aggreg
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData>(
+export function onCountSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
+    next?: (
+      snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
+    ) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -571,13 +619,13 @@ export function onCountSnapshot<
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData>(
+export function onCountSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void;
+    next?: (
+      snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
+    ) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
@@ -606,11 +654,11 @@ export function onCountSnapshot<
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData>(
+export function onCountSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
-  onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
+  onNext: (
+    snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  ) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
@@ -635,20 +683,17 @@ export function onCountSnapshot<
  * @returns An unsubscribe function that can be called to cancel
  * the snapshot listener.
  */
-export function onCountSnapshot<
-  AppModelType,
-  DbModelType extends DocumentData>(
+export function onCountSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
   options: SnapshotListenOptions,
-  onNext: (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>) => void,
+  onNext: (
+    snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }>
+  ) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 
-export function onCountSnapshot<
-  AggregateSpecType extends AggregateSpec,
-  AppModelType,
-  DbModelType extends DocumentData>(
+export function onCountSnapshot<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>,
   ...args: unknown[]
 ): Unsubscribe {
