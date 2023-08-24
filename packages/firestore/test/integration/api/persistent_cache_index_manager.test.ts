@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import {
+  deleteAllPersistentCacheIndexes,
   disablePersistentCacheIndexAutoCreation,
   enablePersistentCacheIndexAutoCreation,
   getDocs,
