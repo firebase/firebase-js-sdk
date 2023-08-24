@@ -105,14 +105,16 @@ export class CountingQueryEngine extends QueryEngine {
         transaction,
         query,
         sinceReadTime,
-        overlays
+        overlays,
+        context
       ) => {
         return subject
           .getDocumentsMatchingQuery(
             transaction,
             query,
             sinceReadTime,
-            overlays
+            overlays,
+            context
           )
           .next(result => {
             this.documentsReadByCollection += result.size;

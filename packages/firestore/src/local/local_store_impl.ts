@@ -1085,7 +1085,7 @@ export function localStoreExecuteQuery(
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
-    'readonly',
+    'readwrite', // Use readwrite instead of readonly so indexes can be created
     txn => {
       return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
         .next(targetData => {
@@ -1525,4 +1525,39 @@ export async function localStoreConfigureFieldIndexes(
         )
         .next(() => PersistencePromise.waitFor(promises))
   );
+}
+
+export function localStoreSetIndexAutoCreationEnabled(
+  localStore: LocalStore,
+  isEnabled: boolean
+): void {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
+}
+
+/**
+ * Test-only hooks into the SDK for use exclusively by tests.
+ */
+export class TestingHooks {
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
+
+  static setIndexAutoCreationSettings(
+    localStore: LocalStore,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): void {
+    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
+      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
+        settings.indexAutoCreationMinCollectionSize;
+    }
+    if (settings.relativeIndexReadCostPerDocument !== undefined) {
+      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
+        settings.relativeIndexReadCostPerDocument;
+    }
+  }
 }

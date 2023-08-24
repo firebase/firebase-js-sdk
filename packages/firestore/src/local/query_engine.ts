@@ -46,6 +46,18 @@ import { IndexManager, IndexType } from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
+
+const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
+
+/**
+ * This cost represents the evaluation result of
+ * (([index, docKey] + [docKey, docContent]) per document in the result set)
+ * / ([docKey, docContent] per documents in full collection scan) coming from
+ * experiment [enter PR experiment URL here].
+ * TODO: Enter PR experiment URL above.
+ */
+const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 2;
 
 /**
  * The Firestore query engine.
@@ -90,6 +102,18 @@ export class QueryEngine {
   private indexManager!: IndexManager;
   private initialized = false;
 
+  indexAutoCreationEnabled = false;
+
+  /**
+   * SDK only decides whether it should create index when collection size is
+   * larger than this.
+   */
+  indexAutoCreationMinCollectionSize =
+    DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE;
+
+  relativeIndexReadCostPerDocument =
+    DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
+
   /** Sets the document view to query against. */
   initialize(
     localDocuments: LocalDocumentsView,
@@ -109,20 +133,103 @@ export class QueryEngine {
   ): PersistencePromise<DocumentMap> {
     debugAssert(this.initialized, 'initialize() not called');
 
+    // Stores the result from executing the query; using this object is more
+    // convenient than passing the result between steps of the persistence
+    // transaction and improves readability comparatively.
+    const queryResult: { result: DocumentMap | null } = { result: null };
+
     return this.performQueryUsingIndex(transaction, query)
-      .next(result =>
-        result
-          ? result
-          : this.performQueryUsingRemoteKeys(
-              transaction,
-              query,
-              remoteKeys,
-              lastLimboFreeSnapshotVersion
-            )
-      )
-      .next(result =>
-        result ? result : this.executeFullCollectionScan(transaction, query)
+      .next(result => {
+        queryResult.result = result;
+      })
+      .next(() => {
+        if (queryResult.result) {
+          return;
+        }
+        return this.performQueryUsingRemoteKeys(
+          transaction,
+          query,
+          remoteKeys,
+          lastLimboFreeSnapshotVersion
+        ).next(result => {
+          queryResult.result = result;
+        });
+      })
+      .next(() => {
+        if (queryResult.result) {
+          return;
+        }
+        const context = new QueryContext();
+        return this.executeFullCollectionScan(transaction, query, context).next(
+          result => {
+            queryResult.result = result;
+            if (this.indexAutoCreationEnabled) {
+              return this.createCacheIndexes(
+                transaction,
+                query,
+                context,
+                result.size
+              );
+            }
+          }
+        );
+      })
+      .next(() => queryResult.result!);
+  }
+
+  createCacheIndexes(
+    transaction: PersistenceTransaction,
+    query: Query,
+    context: QueryContext,
+    resultSize: number
+  ): PersistencePromise<void> {
+    if (context.documentReadCount < this.indexAutoCreationMinCollectionSize) {
+      if (getLogLevel() <= LogLevel.DEBUG) {
+        logDebug(
+          'QueryEngine',
+          'SDK will not create cache indexes for query:',
+          stringifyQuery(query),
+          'since it only creates cache indexes for collection contains',
+          'more than or equal to',
+          this.indexAutoCreationMinCollectionSize,
+          'documents'
+        );
+      }
+      return PersistencePromise.resolve();
+    }
+
+    if (getLogLevel() <= LogLevel.DEBUG) {
+      logDebug(
+        'QueryEngine',
+        'Query:',
+        stringifyQuery(query),
+        'scans',
+        context.documentReadCount,
+        'local documents and returns',
+        resultSize,
+        'documents as results.'
       );
+    }
+
+    if (
+      context.documentReadCount >
+      this.relativeIndexReadCostPerDocument * resultSize
+    ) {
+      if (getLogLevel() <= LogLevel.DEBUG) {
+        logDebug(
+          'QueryEngine',
+          'The SDK decides to create cache indexes for query:',
+          stringifyQuery(query),
+          'as using cache indexes may help improve performance.'
+        );
+      }
+      return this.indexManager.createTargetIndexes(
+        transaction,
+        queryToTarget(query)
+      );
+    }
+
+    return PersistencePromise.resolve();
   }
 
   /**
@@ -221,18 +328,18 @@ export class QueryEngine {
     query: Query,
     remoteKeys: DocumentKeySet,
     lastLimboFreeSnapshotVersion: SnapshotVersion
-  ): PersistencePromise<DocumentMap> {
+  ): PersistencePromise<DocumentMap | null> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
       // key-based lookups. It is more efficient to scan all documents in a
       // collection, rather than to perform individual lookups.
-      return this.executeFullCollectionScan(transaction, query);
+      return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
     if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.min())) {
-      return this.executeFullCollectionScan(transaction, query);
+      return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
     return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
@@ -247,7 +354,7 @@ export class QueryEngine {
             lastLimboFreeSnapshotVersion
           )
         ) {
-          return this.executeFullCollectionScan(transaction, query);
+          return PersistencePromise.resolve<DocumentMap | null>(null);
         }
 
         if (getLogLevel() <= LogLevel.DEBUG) {
@@ -269,7 +376,7 @@ export class QueryEngine {
             lastLimboFreeSnapshotVersion,
             INITIAL_LARGEST_BATCH_ID
           )
-        );
+        ).next<DocumentMap | null>(results => results);
       }
     );
   }
@@ -343,7 +450,8 @@ export class QueryEngine {
 
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    context: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
@@ -356,7 +464,8 @@ export class QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      IndexOffset.min()
+      IndexOffset.min(),
+      context
     );
   }
 

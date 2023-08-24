@@ -22,6 +22,7 @@ import { User } from '../../../src/auth/user';
 import {
   LimitType,
   Query,
+  queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
   queryWithLimit
@@ -29,12 +30,17 @@ import {
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
+import {
+  displayNameForIndexType,
+  IndexType
+} from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
+import { QueryContext } from '../../../src/local/query_context';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
@@ -94,7 +100,8 @@ class TestLocalDocumentsView extends LocalDocumentsView {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     const skipsDocumentsBeforeSnapshot =
       indexOffsetComparator(IndexOffset.min(), offset) !== 0;
@@ -104,49 +111,45 @@ class TestLocalDocumentsView extends LocalDocumentsView {
       'Observed query execution mode did not match expectation'
     );
 
-    return super.getDocumentsMatchingQuery(transaction, query, offset);
+    return super.getDocumentsMatchingQuery(transaction, query, offset, context);
   }
 }
 
-describe('MemoryQueryEngine', async () => {
-  /* not durable and without client side indexing */
-  genericQueryEngineTest(
-    false,
-    persistenceHelpers.testMemoryEagerPersistence,
-    false
-  );
-});
+describe('QueryEngine', async () => {
+  describe('MemoryEagerPersistence', async () => {
+    /* not durable and without client side indexing */
+    genericQueryEngineTest(
+      persistenceHelpers.testMemoryEagerPersistence,
+      false
+    );
+  });
 
-describe('IndexedDbQueryEngine', async () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping IndexedDbQueryEngine tests.');
     return;
   }
 
-  let persistencePromise: Promise<Persistence>;
-  beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
+  describe('IndexedDbPersistence configureCsi=false', async () => {
+    /* durable but without client side indexing */
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, false);
   });
 
-  /* durable but without client side indexing */
-  genericQueryEngineTest(true, () => persistencePromise, false);
-
-  /* durable and with client side indexing */
-  genericQueryEngineTest(true, () => persistencePromise, true);
+  describe('IndexedDbQueryEngine configureCsi=true', async () => {
+    /* durable and with client side indexing */
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, true);
+  });
 });
 
 /**
  * Defines the set of tests to run against the memory and IndexedDB-backed
  * query engine.
  *
- * @param durable Whether the provided persistence is backed by IndexedDB
  * @param persistencePromise A factory function that returns an initialized
  * persistence layer.
  * @param configureCsi Whether tests should configure client side indexing
  * or use full table scans.
  */
 function genericQueryEngineTest(
-  durable: boolean,
   persistencePromise: () => Promise<Persistence>,
   configureCsi: boolean
 ): void {
@@ -232,7 +235,9 @@ function genericQueryEngineTest(
         'expectOptimizedCollectionQuery()/expectFullCollectionQuery()'
     );
 
-    return persistence.runTransaction('runQuery', 'readonly', txn => {
+    // NOTE: Use a `readwrite` transaction (instead of `readonly`) so that
+    // client-side indexes can be written to persistence.
+    return persistence.runTransaction('runQuery', 'readwrite', txn => {
       return targetCache
         .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
         .next(remoteKeys => {
@@ -832,6 +837,128 @@ function genericQueryEngineTest(
 
       verifyResult(results, [doc1, doc2, doc4]);
     });
+
+    // A generic test for index auto-creation.
+    // This function can be called with explicit parameters from it() methods.
+    const testIndexAutoCreation = async (config: {
+      indexAutoCreationEnabled: boolean;
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+      matchingDocumentCount?: number;
+      nonmatchingDocumentCount?: number;
+      expectedPostQueryExecutionIndexType: IndexType;
+    }): Promise<void> => {
+      debugAssert(configureCsi, 'Test requires durable persistence');
+
+      const matchingDocuments: MutableDocument[] = [];
+      for (let i = 0; i < (config.matchingDocumentCount ?? 3); i++) {
+        const matchingDocument = doc(`coll/A${i}`, 1, { 'foo': 'match' });
+        matchingDocuments.push(matchingDocument);
+      }
+      await addDocument(...matchingDocuments);
+
+      const nonmatchingDocuments: MutableDocument[] = [];
+      for (let i = 0; i < (config.nonmatchingDocumentCount ?? 3); i++) {
+        const nonmatchingDocument = doc(`coll/X${i}`, 1, { 'foo': 'nomatch' });
+        nonmatchingDocuments.push(nonmatchingDocument);
+      }
+      await addDocument(...nonmatchingDocuments);
+
+      queryEngine.indexAutoCreationEnabled = config.indexAutoCreationEnabled;
+
+      if (config.indexAutoCreationMinCollectionSize !== undefined) {
+        queryEngine.indexAutoCreationMinCollectionSize =
+          config.indexAutoCreationMinCollectionSize;
+      }
+      if (config.relativeIndexReadCostPerDocument !== undefined) {
+        queryEngine.relativeIndexReadCostPerDocument =
+          config.relativeIndexReadCostPerDocument;
+      }
+
+      const q = query('coll', filter('foo', '==', 'match'));
+      const target = queryToTarget(q);
+      const preQueryExecutionIndexType = await indexManager.getIndexType(
+        target
+      );
+      expect(
+        preQueryExecutionIndexType,
+        'index type for target _before_ running the query is ' +
+          displayNameForIndexType(preQueryExecutionIndexType) +
+          ', but expected ' +
+          displayNameForIndexType(IndexType.NONE)
+      ).to.equal(IndexType.NONE);
+
+      const result = await expectFullCollectionQuery(() =>
+        runQuery(q, SnapshotVersion.min())
+      );
+      verifyResult(result, matchingDocuments);
+
+      const postQueryExecutionIndexType = await indexManager.getIndexType(
+        target
+      );
+      expect(
+        postQueryExecutionIndexType,
+        'index type for target _after_ running the query is ' +
+          displayNameForIndexType(postQueryExecutionIndexType) +
+          ', but expected ' +
+          displayNameForIndexType(config.expectedPostQueryExecutionIndexType)
+      ).to.equal(config.expectedPostQueryExecutionIndexType);
+    };
+
+    it('creates indexes when indexAutoCreationEnabled=true', () =>
+      testIndexAutoCreation({
+        indexAutoCreationEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 0,
+        expectedPostQueryExecutionIndexType: IndexType.FULL
+      }));
+
+    it('does not create indexes when indexAutoCreationEnabled=false', () =>
+      testIndexAutoCreation({
+        indexAutoCreationEnabled: false,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 0,
+        expectedPostQueryExecutionIndexType: IndexType.NONE
+      }));
+
+    it(
+      'creates indexes when ' +
+        'min collection size is met exactly ' +
+        'and relative cost is ever-so-slightly better',
+      () =>
+        testIndexAutoCreation({
+          indexAutoCreationEnabled: true,
+          indexAutoCreationMinCollectionSize: 10,
+          relativeIndexReadCostPerDocument: 1.9999,
+          matchingDocumentCount: 5,
+          nonmatchingDocumentCount: 5,
+          expectedPostQueryExecutionIndexType: IndexType.FULL
+        })
+    );
+
+    it(
+      'does not create indexes when ' +
+        'min collection size is not met by only 1 document',
+      () =>
+        testIndexAutoCreation({
+          indexAutoCreationEnabled: true,
+          indexAutoCreationMinCollectionSize: 10,
+          relativeIndexReadCostPerDocument: 0,
+          matchingDocumentCount: 5,
+          nonmatchingDocumentCount: 4,
+          expectedPostQueryExecutionIndexType: IndexType.NONE
+        })
+    );
+
+    it('does not create indexes when relative cost is equal', () =>
+      testIndexAutoCreation({
+        indexAutoCreationEnabled: true,
+        indexAutoCreationMinCollectionSize: 0,
+        relativeIndexReadCostPerDocument: 2,
+        matchingDocumentCount: 5,
+        nonmatchingDocumentCount: 5,
+        expectedPostQueryExecutionIndexType: IndexType.NONE
+      }));
   }
 
   // Tests below this line execute with and without client side indexing
