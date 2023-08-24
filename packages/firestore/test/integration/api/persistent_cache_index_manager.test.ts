@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import {
+  deleteAllPersistentCacheIndexes,
   disablePersistentCacheIndexAutoCreation,
   doc,
   enablePersistentCacheIndexAutoCreation,
@@ -139,6 +140,68 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
         const query_ = query(coll, where('match', '==', true));
         const snapshot1 = await getDocsFromCache(query_);
         expect(snapshot1.size).to.equal(1);
+
+        // Run the query that matches only one of the documents again, which
+        // should _still_ return the one and only document that matches. Since
+        // the public API surface does not reveal whether an index was used,
+        // there isn't anything else that can be verified.
+        const snapshot2 = await getDocsFromCache(query_);
+        expect(snapshot2.size).to.equal(1);
+      });
+    });
+  });
+
+  describe('delete all persistent cache indexes', () => {
+    it('deleteAllPersistentCacheIndexes() on new instance should succeed', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        deleteAllPersistentCacheIndexes(indexManager);
+      }));
+
+    it('deleteAllPersistentCacheIndexes() should be successful when auto-indexing is enabled', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        deleteAllPersistentCacheIndexes(indexManager);
+      }));
+
+    it('deleteAllPersistentCacheIndexes() should be successful when auto-indexing is disabled', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        disablePersistentCacheIndexAutoCreation(indexManager);
+        deleteAllPersistentCacheIndexes(indexManager);
+      }));
+
+    it('deleteAllPersistentCacheIndexes() after terminate() should throw', () =>
+      withTestDb(persistence, async db => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        terminate(db).catch(e => expect.fail(`terminate() failed: ${e}`));
+        expect(() => deleteAllPersistentCacheIndexes(indexManager)).to.throw(
+          'The client has already been terminated.'
+        );
+      }));
+
+    it('query returns correct results when auto-created index has been deleted', () => {
+      const testDocs = partitionedTestDocs({
+        matching: { documentData: { match: true }, documentCount: 1 },
+        nonmatching: { documentData: { match: false }, documentCount: 100 }
+      });
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+
+        // Populate the local cache with the entire collection's contents.
+        await getDocs(coll);
+
+        // Run a query that matches only one of the documents in the collection;
+        // this should cause an index to be auto-created.
+        const query_ = query(coll, where('match', '==', true));
+        const snapshot1 = await getDocsFromCache(query_);
+        expect(snapshot1.size).to.equal(1);
+
+        // Delete the index
+        deleteAllPersistentCacheIndexes(indexManager);
 
         // Run the query that matches only one of the documents again, which
         // should _still_ return the one and only document that matches. Since

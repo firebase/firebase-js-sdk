@@ -71,6 +71,14 @@ export class TestIndexManager {
     );
   }
 
+  deleteAllFieldIndexes(): Promise<void> {
+    return this.persistence.runTransaction(
+      'deleteAllFieldIndexes',
+      'readwrite',
+      txn => this.indexManager.deleteAllFieldIndexes(txn)
+    );
+  }
+
   getFieldIndexes(collectionGroup?: string): Promise<FieldIndex[]> {
     return this.persistence.runTransaction('getFieldIndexes', 'readonly', txn =>
       collectionGroup

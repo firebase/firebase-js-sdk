@@ -205,6 +205,7 @@ export {
 export {
   PersistentCacheIndexManager,
   getPersistentCacheIndexManager,
+  deleteAllPersistentCacheIndexes,
   enablePersistentCacheIndexAutoCreation,
   disablePersistentCacheIndexAutoCreation
 } from './api/persistent_cache_index_manager';
