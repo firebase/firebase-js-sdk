@@ -164,7 +164,7 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
       }));
   });
 
-  describe.only('deleteAllPersistentCacheIndexes()', () => {
+  describe('deleteAllPersistentCacheIndexes()', () => {
     it('should return successfully', () =>
       withTestDb(persistence, async db => {
         const indexManager = getPersistentCacheIndexManager(db)!;
@@ -389,6 +389,136 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
             'getQueryIndexType(fooBarQuery) after'
           ).to.equal('partial');
         }
+      });
+    });
+
+    it('Indexes can be deleted while index auto-creation is enabled', async () => {
+      const testDocs = partitionedTestDocs({
+        FooMatches: {
+          documentData: { foo: 'match' },
+          documentCount: 2
+        },
+        BarMatches: {
+          documentData: { bar: 'match' },
+          documentCount: 3
+        },
+        NeitherFooNorBarMatch: {
+          documentData: { foo: 'nomatch', bar: 'nomatch' },
+          documentCount: 5
+        }
+      });
+
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        expect(indexManager, 'indexManager').is.not.null;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        await setPersistentCacheIndexAutoCreationSettings(indexManager, {
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        });
+
+        // Populate the local cache with the entire collection.
+        await getDocs(coll);
+
+        // Run a query to have an index on the 'foo' field created.
+        const fooQuery = query(coll, where('foo', '==', 'match'));
+        {
+          const fooSnapshot = await getDocsFromCache(fooQuery);
+          expect(fooSnapshot.size, 'fooSnapshot.size').to.equal(2);
+          expect(
+            await getQueryIndexType(fooQuery),
+            'getQueryIndexType(fooQuery)'
+          ).to.equal('full');
+        }
+
+        // Run a query to have an index on the 'bar' field created.
+        const barQuery = query(coll, where('bar', '==', 'match'));
+        {
+          const barSnapshot = await getDocsFromCache(barQuery);
+          expect(barSnapshot.size, 'barSnapshot.size').to.equal(3);
+          expect(
+            await getQueryIndexType(barQuery),
+            'getQueryIndexType(barQuery)'
+          ).to.equal('full');
+        }
+
+        // Delete the indexes that were auto-created.
+        deleteAllPersistentCacheIndexes(indexManager);
+        expect(
+          await getQueryIndexType(fooQuery),
+          'getQueryIndexType(fooQuery) after delete'
+        ).to.equal('none');
+        expect(
+          await getQueryIndexType(barQuery),
+          'getQueryIndexType(barQuery) after delete'
+        ).to.equal('none');
+      });
+    });
+
+    it('Indexes can be deleted while index auto-creation is disabled', async () => {
+      const testDocs = partitionedTestDocs({
+        FooMatches: {
+          documentData: { foo: 'match' },
+          documentCount: 2
+        },
+        BarMatches: {
+          documentData: { bar: 'match' },
+          documentCount: 3
+        },
+        NeitherFooNorBarMatch: {
+          documentData: { foo: 'nomatch', bar: 'nomatch' },
+          documentCount: 5
+        }
+      });
+
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const indexManager = getPersistentCacheIndexManager(db)!;
+        expect(indexManager, 'indexManager').is.not.null;
+        enablePersistentCacheIndexAutoCreation(indexManager);
+        await setPersistentCacheIndexAutoCreationSettings(indexManager, {
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        });
+
+        // Populate the local cache with the entire collection.
+        await getDocs(coll);
+
+        // Run a query to have an index on the 'foo' field created.
+        const fooQuery = query(coll, where('foo', '==', 'match'));
+        {
+          const fooSnapshot = await getDocsFromCache(fooQuery);
+          expect(fooSnapshot.size, 'fooSnapshot.size').to.equal(2);
+          expect(
+            await getQueryIndexType(fooQuery),
+            'getQueryIndexType(fooQuery)'
+          ).to.equal('full');
+        }
+
+        // Run a query to have an index on the 'bar' field created.
+        const barQuery = query(coll, where('bar', '==', 'match'));
+        {
+          const barSnapshot = await getDocsFromCache(barQuery);
+          expect(barSnapshot.size, 'barSnapshot.size').to.equal(3);
+          expect(
+            await getQueryIndexType(barQuery),
+            'getQueryIndexType(barQuery)'
+          ).to.equal('full');
+        }
+
+        // Disable index auto-creation so that the later step can verify that
+        // indexes can be deleted even while index auto-creation is disabled.
+        disablePersistentCacheIndexAutoCreation(indexManager);
+
+        // Delete the indexes that were auto-created.
+        deleteAllPersistentCacheIndexes(indexManager);
+        expect(
+          await getQueryIndexType(fooQuery),
+          'getQueryIndexType(fooQuery) after delete'
+        ).to.equal('none');
+        expect(
+          await getQueryIndexType(barQuery),
+          'getQueryIndexType(barQuery) after delete'
+        ).to.equal('none');
       });
     });
 
