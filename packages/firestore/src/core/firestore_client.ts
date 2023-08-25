@@ -26,6 +26,7 @@ import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
@@ -839,5 +840,13 @@ export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
       await getLocalStore(client),
       isEnabled
     );
+  });
+}
+
+export function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
 }

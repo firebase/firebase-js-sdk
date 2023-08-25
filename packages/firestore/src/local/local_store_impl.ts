@@ -1535,6 +1535,18 @@ export function localStoreSetIndexAutoCreationEnabled(
   localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
 }
 
+export function localStoreDeleteAllFieldIndexes(
+  localStore: LocalStore
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const indexManager = localStoreImpl.indexManager;
+  return localStoreImpl.persistence.runTransaction(
+    'Delete All Indexes',
+    'readwrite',
+    transaction => indexManager.deleteAllFieldIndexes(transaction)
+  );
+}
+
 /**
  * Test-only hooks into the SDK for use exclusively by tests.
  */
