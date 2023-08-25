@@ -45,6 +45,7 @@ import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
+  TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
 
@@ -295,7 +296,11 @@ export async function withTestDbsSettings<T>(
     if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
       newSettings.localCache = persistence.asLocalCacheFirestoreSettings();
     }
-    const db = newTestFirestore(newTestApp(projectId), newSettings);
+    const db = newTestFirestore(
+      newTestApp(projectId),
+      newSettings,
+      TARGET_DB_ID
+    );
     dbs.push(db);
   }
 
@@ -477,4 +482,38 @@ export function withTestCollectionSettings<T>(
       );
     }
   );
+}
+
+/**
+ * Creates a `docs` argument suitable for specifying to `withTestCollection()`
+ * that defines subsets of documents with different document data.
+ *
+ * This can be useful for pre-populating a collection with some documents that
+ * match a query and others that do _not_ match that query.
+ *
+ * Each key of the given `partitions` object will be considered a partition
+ * "name". The returned object will specify `documentCount` documents with the
+ * `documentData` whose document IDs are prefixed with the partition "name".
+ */
+export function partitionedTestDocs(partitions: {
+  [partitionName: string]: {
+    documentData: DocumentData;
+    documentCount: number;
+  };
+}): { [key: string]: DocumentData } {
+  const testDocs: { [key: string]: DocumentData } = {};
+
+  for (const partitionName in partitions) {
+    // Make lint happy (see https://eslint.org/docs/latest/rules/guard-for-in).
+    if (!Object.prototype.hasOwnProperty.call(partitions, partitionName)) {
+      continue;
+    }
+    const partition = partitions[partitionName];
+    for (let i = 0; i < partition.documentCount; i++) {
+      const documentId = `${partitionName}_${`${i}`.padStart(4, '0')}`;
+      testDocs[documentId] = partition.documentData;
+    }
+  }
+
+  return testDocs;
 }

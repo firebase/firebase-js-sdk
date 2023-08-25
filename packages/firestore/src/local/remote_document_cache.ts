@@ -29,6 +29,7 @@ import { FieldMask } from '../model/field_mask';
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { AggregateContext } from './query_engine';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -73,14 +74,17 @@ export interface RemoteDocumentCache {
    *
    * @param query - The query to match documents against.
    * @param offset - The offset to start the scan at (exclusive).
+   * @param context - A optional tracker to keep a record of important details
+   *   during database local query execution.
    * @returns The set of matching documents.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    mutatedDocs: OverlayMap | undefined,
-    context: AggregateContext | undefined
+    mutatedDocs: OverlayMap,
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap>;
 
   /**

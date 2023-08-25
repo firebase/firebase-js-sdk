@@ -1,5 +1,32 @@
 # @firebase/firestore
 
+## 4.1.2
+
+### Patch Changes
+
+- [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea) [#7569](https://github.com/firebase/firebase-js-sdk/pull/7569) - Fix how we enable fetch streams.
+
+- Updated dependencies [[`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea)]:
+  - @firebase/webchannel-wrapper@0.10.2
+
+## 4.1.1
+
+### Patch Changes
+
+- [`43e402fb4`](https://github.com/firebase/firebase-js-sdk/commit/43e402fb49a081a59729290627c7b20099ca46a4) [#7520](https://github.com/firebase/firebase-js-sdk/pull/7520) - Update @grpc/proto-loader from v0.6.13 to v0.7.8
+
+- [`b395277f3`](https://github.com/firebase/firebase-js-sdk/commit/b395277f3de5d017df7b2edfba329682a0928453) [#7507](https://github.com/firebase/firebase-js-sdk/pull/7507) - Refactored aggregate query order-by normalization to support future aggregate operations.
+
+## 4.1.0
+
+### Minor Changes
+
+- [`52b17b426`](https://github.com/firebase/firebase-js-sdk/commit/52b17b4267729c14adcb52f2d523572aa22e4759) [#7452](https://github.com/firebase/firebase-js-sdk/pull/7452) - Update the grpc dependency to the latest version.
+
+### Patch Changes
+
+- [`c5518c80f`](https://github.com/firebase/firebase-js-sdk/commit/c5518c80fc577d6ab4f524d49c44b6dfd6ed96e7) [#7440](https://github.com/firebase/firebase-js-sdk/pull/7440) - Fixed issue where count and lite API queries did not work with named databases.
+
 ## 4.0.0
 
 ### Major Changes

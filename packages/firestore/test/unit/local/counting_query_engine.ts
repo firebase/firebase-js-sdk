@@ -116,7 +116,8 @@ export class CountingQueryEngine extends QueryEngine {
             query,
             sinceReadTime,
             overlays,
-            context
+            context,
+            undefined
           )
           .next(result => {
             this.documentsReadByCollection += result.size;

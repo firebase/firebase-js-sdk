@@ -1,5 +1,57 @@
 # firebase
 
+## 10.3.0
+
+### Minor Changes
+
+- [`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256) [#7570](https://github.com/firebase/firebase-js-sdk/pull/7570) - Remove dependency on @react-native-async-storage/async-storage and add warnings to remind React Native users to manually import it.
+
+### Patch Changes
+
+- Updated dependencies [[`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256), [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea)]:
+  - @firebase/app@0.9.17
+  - @firebase/auth@1.3.0
+  - @firebase/firestore@4.1.2
+  - @firebase/app-compat@0.2.17
+  - @firebase/auth-compat@0.4.6
+  - @firebase/firestore-compat@0.3.16
+
+## 10.2.0
+
+### Minor Changes
+
+- [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189) [#7514](https://github.com/firebase/firebase-js-sdk/pull/7514) - Add a validatePassword method for validating passwords against the password policy configured for the project or a tenant. This method returns a status object that can be used to display the requirements of the password policy and whether each one was met.
+
+### Patch Changes
+
+- Updated dependencies [[`43e402fb4`](https://github.com/firebase/firebase-js-sdk/commit/43e402fb49a081a59729290627c7b20099ca46a4), [`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5), [`b395277f3`](https://github.com/firebase/firebase-js-sdk/commit/b395277f3de5d017df7b2edfba329682a0928453), [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798), [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189)]:
+  - @firebase/app@0.9.16
+  - @firebase/firestore@4.1.1
+  - @firebase/auth@1.2.0
+  - @firebase/app-compat@0.2.16
+  - @firebase/firestore-compat@0.3.15
+  - @firebase/auth-compat@0.4.5
+
+## 10.1.0
+
+### Minor Changes
+
+- [`52b17b426`](https://github.com/firebase/firebase-js-sdk/commit/52b17b4267729c14adcb52f2d523572aa22e4759) [#7452](https://github.com/firebase/firebase-js-sdk/pull/7452) - Update the grpc dependency to the latest version.
+
+- [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b) [#7384](https://github.com/firebase/firebase-js-sdk/pull/7384) - Implemented `authStateReady()`, which returns a promise that resolves immediately when the initial auth state is settled and currentUser is available. When the promise is resolved, the current user might be a valid user or null if there is no user signed in currently.
+
+### Patch Changes
+
+- Updated dependencies [[`c5518c80f`](https://github.com/firebase/firebase-js-sdk/commit/c5518c80fc577d6ab4f524d49c44b6dfd6ed96e7), [`52b17b426`](https://github.com/firebase/firebase-js-sdk/commit/52b17b4267729c14adcb52f2d523572aa22e4759), [`e91f82a20`](https://github.com/firebase/firebase-js-sdk/commit/e91f82a20b2c8cea75a81f55bd71d878a3d908d6), [`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905), [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b)]:
+  - @firebase/app@0.9.15
+  - @firebase/firestore@4.1.0
+  - @firebase/auth@1.1.0
+  - @firebase/database-compat@1.0.1
+  - @firebase/database@1.0.1
+  - @firebase/app-compat@0.2.15
+  - @firebase/firestore-compat@0.3.14
+  - @firebase/auth-compat@0.4.4
+
 ## 10.0.0
 
 ### Major Changes

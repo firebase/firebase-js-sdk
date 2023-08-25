@@ -33,7 +33,7 @@ import {
   isCollectionGroupQuery,
   LimitType,
   Query as InternalQuery,
-  queryOrderBy,
+  queryNormalizedOrderBy,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
   queryWithEndAt,
@@ -907,7 +907,7 @@ export function newQueryBoundFromDocument(
   // the provided document. Without the key (by using the explicit sort
   // orders), multiple documents could match the position, yielding duplicate
   // results.
-  for (const orderBy of queryOrderBy(query)) {
+  for (const orderBy of queryNormalizedOrderBy(query)) {
     if (orderBy.field.isKeyField()) {
       components.push(refValue(databaseId, doc.key));
     } else {

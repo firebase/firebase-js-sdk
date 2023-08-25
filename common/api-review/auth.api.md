@@ -81,6 +81,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 // @public
 export interface Auth {
     readonly app: FirebaseApp;
+    authStateReady(): Promise<void>;
     beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
     readonly config: Config;
     readonly currentUser: User | null;
@@ -563,6 +564,33 @@ export interface ParsedToken {
 }
 
 // @public
+export interface PasswordPolicy {
+    readonly allowedNonAlphanumericCharacters: string;
+    readonly customStrengthOptions: {
+        readonly minPasswordLength?: number;
+        readonly maxPasswordLength?: number;
+        readonly containsLowercaseLetter?: boolean;
+        readonly containsUppercaseLetter?: boolean;
+        readonly containsNumericCharacter?: boolean;
+        readonly containsNonAlphanumericCharacter?: boolean;
+    };
+    readonly enforcementState: string;
+    readonly forceUpgradeOnSignin: boolean;
+}
+
+// @public
+export interface PasswordValidationStatus {
+    readonly containsLowercaseLetter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
+    readonly isValid: boolean;
+    readonly meetsMaxPasswordLength?: boolean;
+    readonly meetsMinPasswordLength?: boolean;
+    readonly passwordPolicy: PasswordPolicy;
+}
+
+// @public
 export interface Persistence {
     readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
@@ -867,6 +895,9 @@ export interface UserMetadata {
 
 // @public
 export type UserProfile = Record<string, unknown>;
+
+// @public
+export function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
 
 // @public
 export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;

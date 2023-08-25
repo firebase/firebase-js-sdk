@@ -56,6 +56,7 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -283,7 +284,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     query: Query,
     offset: IndexOffset,
     mutatedDocs: OverlayMap,
-    context: AggregateContext | undefined
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey = [
@@ -301,11 +303,12 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       ''
     ];
 
-    let results = mutableDocumentMap();
     return remoteDocumentsStore(transaction)
-      .iterate(
-        { range: IDBKeyRange.bound(startKey, endKey, true) },
-        (_, dbRemoteDoc) => {
+      .loadAll(IDBKeyRange.bound(startKey, endKey, true))
+      .next(dbRemoteDocs => {
+        context?.incrementDocumentReadCount(dbRemoteDocs.length);
+        let results = mutableDocumentMap();
+        for (const dbRemoteDoc of dbRemoteDocs) {
           const document = this.maybeDecodeDocument(
             DocumentKey.fromSegments(
               dbRemoteDoc.prefixPath.concat(
@@ -314,7 +317,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
               )
             ),
             dbRemoteDoc,
-            context?.processingMask
+            aggregateContext?.processingMask
           );
           if (
             document.isFoundDocument() &&
@@ -324,8 +327,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
             results = results.insert(document.key, document);
           }
         }
-      )
-      .next(() => results);
+        return results;
+      });
   }
 
   getAllFromCollectionGroup(

@@ -139,9 +139,15 @@ apiDescribe('Count queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getCountFromServer(query_)
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(getCountFromServer(query_)).to.be.eventually.rejected;
+        }
       });
     }
   );
@@ -343,11 +349,21 @@ apiDescribe('Aggregation queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(
-          getAggregateFromServer(query_, { count: count() })
-        ).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getAggregateFromServer(query_, {
+              count: count()
+            })
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(
+            getAggregateFromServer(query_, {
+              count: count()
+            })
+          ).to.be.eventually.rejected;
+        }
       });
     }
   );

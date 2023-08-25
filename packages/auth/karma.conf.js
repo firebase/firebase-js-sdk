@@ -38,7 +38,10 @@ function getTestFiles(argv) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
     if (argv.prodbackend) {
-      return ['test/integration/flows/totp.test.ts'];
+      return [
+        'test/integration/flows/totp.test.ts',
+        'test/integration/flows/password_policy.test.ts'
+      ];
     }
     return argv.local
       ? ['test/integration/flows/*.test.ts']

@@ -60,6 +60,7 @@ import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 
@@ -367,32 +368,37 @@ export class LocalDocumentsView {
    * @param transaction - The persistence transaction.
    * @param query - The query to match documents against.
    * @param offset - Read time and key to start scanning by (exclusive).
+   * @param context - A optional tracker to keep a record of important details
+   *   during database local query execution.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context: AggregateContext | undefined
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(
         transaction,
         query.path,
-        context
+        aggregateContext
       );
     } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
         offset,
-        context
+        context,
+        aggregateContext
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
         offset,
-        context
+        context,
+        aggregateContext
       );
     }
   }
@@ -502,7 +508,8 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context: AggregateContext | undefined
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -524,7 +531,8 @@ export class LocalDocumentsView {
             transaction,
             collectionQuery,
             offset,
-            context
+            context,
+            aggregateContext
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -538,7 +546,8 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context: AggregateContext | undefined
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let overlays: OverlayMap;
@@ -555,16 +564,18 @@ export class LocalDocumentsView {
           query,
           offset,
           overlays,
-          context
+          context,
+          aggregateContext
         );
       })
       .next(remoteDocuments => {
-        if (!!context) {
+        if (!!aggregateContext) {
           remoteDocuments.forEach((k, doc) => {
             // TODO (streaming-count) why does this next line match on `context.query` and not the `query` argument?
             // TODO (streaming-count) do we still need to call queryMatches(...) here, or does `remoteDocumentCache.getDocumentsMatchingQuery(...)` already do the same thing?
-            if (queryMatches(context.query, doc)) {
-              context.remoteMatches = context.remoteMatches.concat(k);
+            if (queryMatches(aggregateContext.query, doc)) {
+              aggregateContext.remoteMatches =
+                aggregateContext.remoteMatches.concat(k);
             }
           });
         }

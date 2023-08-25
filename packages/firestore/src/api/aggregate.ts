@@ -46,7 +46,11 @@ import {
   PartialObserver
 } from './observer';
 import { Query, DocumentData } from './reference';
-import { ExpUserDataWriter, SnapshotListenOptions , Unsubscribe } from './reference_impl';
+import {
+  ExpUserDataWriter,
+  SnapshotListenOptions,
+  Unsubscribe
+} from './reference_impl';
 import { SnapshotMetadata } from './snapshot';
 
 export {

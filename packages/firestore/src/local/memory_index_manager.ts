@@ -66,6 +66,14 @@ export class MemoryIndexManager implements IndexManager {
     return PersistencePromise.resolve();
   }
 
+  createTargetIndexes(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<void> {
+    // Field indices are not supported with memory persistence.
+    return PersistencePromise.resolve();
+  }
+
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target

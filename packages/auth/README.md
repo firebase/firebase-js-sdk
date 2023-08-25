@@ -54,7 +54,7 @@ firebase emulators:exec --project foo-bar --only auth "yarn test:integration:loc
 
 ### Integration testing with the production backend
 
-Currently, MFA TOTP tests only run against the production backend (since they are not supported on the emulator yet).
+Currently, MFA TOTP and password policy tests only run against the production backend (since they are not supported on the emulator yet).
 Running against the backend also makes it a more reliable end-to-end test.
 
 The TOTP tests require the following email/password combination to exist in the project, so if you are running this test against your test project, please create this user:
@@ -70,6 +70,33 @@ curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Conten
       "returnOobLink": true,
     }'
 ```
+
+The password policy tests require a tenant configured with a password policy that requires all options to exist in the project.
+
+If you are running this test against your test project, please create the tenant and configure the policy with the following curl command:
+
+```
+curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Content-Type: application/json"   -H "X-Goog-User-Project: ${PROJECT_ID}"   -X POST https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/tenants   -d     '{
+      "displayName": "passpol-tenant",
+      "passwordPolicyConfig": {
+        "passwordPolicyEnforcementState": "ENFORCE",
+        "passwordPolicyVersions": [
+          {
+            "customStrengthOptions": {
+              "minPasswordLength": 8,
+              "maxPasswordLength": 24,
+              "containsLowercaseCharacter": true,
+              "containsUppercaseCharacter": true,
+              "containsNumericCharacter": true,
+              "containsNonAlphanumericCharacter": true
+            }
+          }
+        ]
+      }
+    }'
+```
+
+Replace the tenant ID `passpol-tenant-d7hha` in [test/integration/flows/password_policy.test.ts](https://github.com/firebase/firebase-js-sdk/blob/master/packages/auth/test/integration/flows/password_policy.test.ts) with the ID for the newly created tenant. The tenant ID can be found at the end of the `name` property in the response and is in the format `passpol-tenant-xxxxx`.
 
 ### Selenium Webdriver tests
 
