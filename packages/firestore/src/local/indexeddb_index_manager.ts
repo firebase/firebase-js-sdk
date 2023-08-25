@@ -252,6 +252,19 @@ export class IndexedDbIndexManager implements IndexManager {
       );
   }
 
+  deleteAllFieldIndexes(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const indexes = indexConfigurationStore(transaction);
+    const entries = indexEntriesStore(transaction);
+    const states = indexStateStore(transaction);
+
+    return indexes
+      .deleteAll()
+      .next(() => entries.deleteAll())
+      .next(() => states.deleteAll());
+  }
+
   createTargetIndexes(
     transaction: PersistenceTransaction,
     target: Target

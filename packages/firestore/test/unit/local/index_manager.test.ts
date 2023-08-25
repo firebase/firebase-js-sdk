@@ -1734,6 +1734,21 @@ describe('IndexedDbIndexManager', async () => {
     await validateIsFullIndex(query_);
   });
 
+  it('deleteAllFieldIndexes() deletes all indexes', async () => {
+    // Create some indexes.
+    const query1 = queryWithAddedFilter(query('coll'), filter('a', '==', 42));
+    await indexManager.createTargetIndexes(queryToTarget(query1));
+    await validateIsFullIndex(query1);
+    const query2 = queryWithAddedFilter(query('coll'), filter('b', '==', 42));
+    await indexManager.createTargetIndexes(queryToTarget(query2));
+    await validateIsFullIndex(query2);
+
+    // Verify that deleteAllFieldIndexes() deletes the indexes.
+    await indexManager.deleteAllFieldIndexes();
+    await validateIsNoneIndex(query1);
+    await validateIsNoneIndex(query2);
+  });
+
   async function validateIsPartialIndex(query: Query): Promise<void> {
     await validateIndexType(query, IndexType.PARTIAL);
   }

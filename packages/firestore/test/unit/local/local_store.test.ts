@@ -39,6 +39,8 @@ import {
   localStoreAllocateTarget,
   localStoreApplyBundledDocuments,
   localStoreApplyRemoteEventToLocalCache,
+  localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
@@ -64,6 +66,12 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
+import {
+  FieldIndex,
+  IndexKind,
+  IndexSegment,
+  IndexState
+} from '../../../src/model/field_index';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
   FieldTransform,
@@ -78,6 +86,7 @@ import {
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
 import { ObjectValue } from '../../../src/model/object_value';
+import { FieldPath } from '../../../src/model/path';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import { ServerTimestampTransform } from '../../../src/model/transform_operation';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
@@ -367,6 +376,22 @@ class LocalStoreTester {
     return this;
   }
 
+  afterDeleteAllFieldIndexes(): LocalStoreTester {
+    this.prepareNextStep();
+    this.promiseChain = this.promiseChain.then(() =>
+      localStoreDeleteAllFieldIndexes(this.localStore)
+    );
+    return this;
+  }
+
+  afterConfigureFieldIndexes(fieldIndexes: FieldIndex[]): LocalStoreTester {
+    this.prepareNextStep();
+    this.promiseChain = this.promiseChain.then(() =>
+      localStoreConfigureFieldIndexes(this.localStore, fieldIndexes)
+    );
+    return this;
+  }
+
   afterBackfillIndexes(options?: {
     maxDocumentsToProcess?: number;
   }): LocalStoreTester {
@@ -646,6 +671,18 @@ function compareDocsWithCreateTime(
       lhs.isEqual(rhs) &&
       lhs.createTime.isEqual(rhs.createTime))
   );
+}
+
+function fieldIndex(
+  collectionGroup: string,
+  indexId: number,
+  indexState: IndexState,
+  field: string,
+  kind: IndexKind
+): FieldIndex {
+  const fieldPath = new FieldPath(field.split('.'));
+  const segments = [new IndexSegment(fieldPath, kind)];
+  return new FieldIndex(indexId, collectionGroup, segments, indexState);
 }
 
 describe('LocalStore w/ Memory Persistence', () => {
@@ -2985,6 +3022,80 @@ function indexedDbLocalStoreTests(
         overlaysByCollection: 1
       })
       .toReturnChanged('coll/a', 'coll/f')
+      .finish();
+  });
+
+  it('delete all indexes works with index auto creation', () => {
+    const query_ = query('coll', filter('value', '==', 'match'));
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query_)
+        .toReturnTargetId(2)
+        .afterIndexAutoCreationConfigure({
+          isEnabled: true,
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        })
+        .afterRemoteEvents([
+          docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [2], []),
+          docAddedRemoteEvent(
+            doc('coll/b', 10, { value: Number.NaN }),
+            [2],
+            []
+          ),
+          docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [2], []),
+          docAddedRemoteEvent(
+            doc('coll/d', 10, { value: 'mismatch' }),
+            [2],
+            []
+          ),
+          docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [2], [])
+        ])
+        // First time query is running without indexes.
+        // Based on current heuristic, collection document counts (5) >
+        // 2 * resultSize (2).
+        // Full matched index should be created.
+        .afterExecutingQuery(query_)
+        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
+        .toReturnChanged('coll/a', 'coll/e')
+        .afterIndexAutoCreationConfigure({ isEnabled: false })
+        .afterBackfillIndexes()
+        .afterExecutingQuery(query_)
+        .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
+        .toReturnChanged('coll/a', 'coll/e')
+        .afterDeleteAllFieldIndexes()
+        .afterExecutingQuery(query_)
+        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
+        .toReturnChanged('coll/a', 'coll/e')
+        .finish()
+    );
+  });
+
+  it('delete all indexes works with manual added indexes', () => {
+    const query_ = query('coll', filter('matches', '==', true));
+    return expectLocalStore()
+      .afterConfigureFieldIndexes([
+        fieldIndex(
+          'coll',
+          0,
+          IndexState.empty(),
+          'matches',
+          IndexKind.ASCENDING
+        )
+      ])
+      .afterAllocatingQuery(query_)
+      .toReturnTargetId(2)
+      .afterRemoteEvents([
+        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [2], [])
+      ])
+      .afterBackfillIndexes()
+      .afterExecutingQuery(query_)
+      .toHaveRead({ documentsByKey: 1, documentsByCollection: 0 })
+      .toReturnChanged('coll/a')
+      .afterDeleteAllFieldIndexes()
+      .afterExecutingQuery(query_)
+      .toHaveRead({ documentsByKey: 0, documentsByCollection: 1 })
+      .toReturnChanged('coll/a')
       .finish();
   });
 }
