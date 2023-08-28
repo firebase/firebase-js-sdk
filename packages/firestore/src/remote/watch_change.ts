@@ -59,7 +59,8 @@ export class WatchAggregateChange {
   constructor(
     // TODO(COUNT): This should be a map in the future.
     public count: number,
-    public targetId: number
+    public targetId: number,
+    public readTime: SnapshotVersion
   ) {}
 }
 

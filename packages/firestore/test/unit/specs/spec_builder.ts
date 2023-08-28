@@ -793,7 +793,9 @@ export class SpecBuilder {
   watchSendsCount(targetId: TargetId, count: number): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      watchEntity: { targets: [targetId], count }
+      watchEntity: {
+        targets: [targetId]
+      }
     };
     return this;
   }

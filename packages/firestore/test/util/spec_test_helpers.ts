@@ -108,9 +108,12 @@ export function encodeWatchAggregateChange(
   change: WatchAggregateChange
 ): api.ListenResponse {
   return {
-    aggregationChange: {
+    aggregationView: {
       targetId: change.targetId,
-      result: { aggregateFields: { count: { integerValue: change.count } } }
+      aggregationResult: {
+        aggregateFields: { count: { integerValue: change.count } }
+      },
+      readTime: toVersion(serializer, change.readTime)
     }
   };
 }

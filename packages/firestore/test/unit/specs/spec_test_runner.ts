@@ -766,9 +766,13 @@ abstract class TestRunner {
         null
       );
       return this.doWatchEvent(change);
-    } else if (watchEntity.count) {
+    } else if (watchEntity.aggregates) {
       return this.doWatchCountEvent(
-        new WatchAggregateChange(watchEntity.count, watchEntity.targets![0])
+        new WatchAggregateChange(
+          watchEntity.aggregates.count,
+          watchEntity.targets![0],
+          version(watchEntity.aggregates.readTime)
+        )
       );
     } else {
       return fail('Either doc or docs must be set');
@@ -1733,7 +1737,7 @@ export interface SpecWatchEntity {
   doc?: SpecDocument;
   /** [<key>, <version>, <value>][] */
   docs?: SpecDocument[];
-  count?: number;
+  aggregates?: SpecAggregates;
   /** [<target-id>, ...] */
   targets?: TargetId[];
   /** [<target-id>, ...] */
@@ -1795,6 +1799,12 @@ export interface SpecDocument {
   createTime: TestSnapshotVersion;
   value: JsonObject<unknown> | null;
   options?: DocumentOptions;
+}
+
+export interface SpecAggregates {
+  readTime: TestSnapshotVersion;
+  // TODO streaming-aggregation make this generic for multiple aggregations
+  count: number;
 }
 
 export interface SnapshotEvent {

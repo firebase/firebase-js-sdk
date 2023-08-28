@@ -124,6 +124,7 @@ export class TestRemoteDocumentCache {
           query,
           offset,
           mutatedDocs,
+          undefined,
           undefined
         )
     );

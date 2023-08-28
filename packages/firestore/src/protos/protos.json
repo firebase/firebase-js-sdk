@@ -2001,15 +2001,20 @@
                     }
                   }
                 },
-                "AggregationChange": {
+                "AggregationView": {
                   "fields": {
-                    "result": {
+                    "aggregationResult": {
                       "type": "AggregationResult",
                       "id": 1
                     },
-                    "targetId": {
+                    "targetIds": {
+                      "rule": "repeated",
                       "type": "int32",
                       "id": 2
+                    },
+                    "readTime": {
+                      "type": "google.protobuf.Timestamp",
+                      "id": 3
                     }
                   }
                 },
@@ -2022,7 +2027,7 @@
                         "documentDelete",
                         "documentRemove",
                         "filter",
-                        "aggregationChange"
+                        "aggregationView"
                       ]
                     }
                   },
@@ -2047,8 +2052,8 @@
                       "type": "ExistenceFilter",
                       "id": 5
                     },
-                    "aggregationChange": {
-                      "type": "AggregationChange",
+                    "aggregationView": {
+                      "type": "AggregationView",
                       "id": 7
                     }
                   }
