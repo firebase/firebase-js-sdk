@@ -627,7 +627,7 @@ describeSpec('Existence Filters:', [], () => {
         // Doc0 to doc49 are deleted in the next sync.
         .watchFilters([query1], docKeys.slice(0, 50), bloomFilterProto)
         .watchSnapshots(2000)
-        // BloomFilter correctly identifies docs that deleted, skip full query.
+        // Bloom Filter correctly identifies docs that deleted, skips full query.
         .expectEvents(query1, { fromCache: true })
         .expectLimboDocs(...docKeys.slice(50))
     );
@@ -654,7 +654,7 @@ describeSpec('Existence Filters:', [], () => {
           .restoreListen(query1, 'resume-token-1000')
           .watchAcks(query1)
           // Nothing happened while this client was disconnected.
-          // Watch sends us documents that matches the query since the resume token.
+          // Bloom Filter includes the documents that match the query since the resume token.
           .watchFilters([query1], [docA.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -687,7 +687,7 @@ describeSpec('Existence Filters:', [], () => {
           .watchAcks(query1)
           // While this client was disconnected, another client added docB.
           .watchSends({ affects: [query1] }, docB)
-          // Watch sends us documents that matches the query since the resume token.
+          // Bloom Filter includes the documents that match the query since the resume token.
           .watchFilters([query1], [docA.key, docB.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -707,7 +707,7 @@ describeSpec('Existence Filters:', [], () => {
       const updatedDocB = doc('collection/b', 1000, { v: 2 });
 
       const bloomFilterProto = generateBloomFilterProto({
-        contains: [docA, docB],
+        contains: [docA, updatedDocB],
         notContains: []
       });
       return (
@@ -722,7 +722,7 @@ describeSpec('Existence Filters:', [], () => {
           .watchAcks(query1)
           // While this client was disconnected, another client updated fields in docB.
           .watchSends({ affects: [query1] }, updatedDocB)
-          // Watch sends us documents that matches the query since the resume token.
+          // Bloom Filter includes the documents that match the query since the resume token.
           .watchFilters([query1], [docA.key, updatedDocB.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -756,12 +756,12 @@ describeSpec('Existence Filters:', [], () => {
           .restoreListen(query1, 'resume-token-1000')
           .watchAcks(query1)
           // While this client was disconnected, another client modified docB to no longer match the
-          // query. Watch sends us the only document that matches the query since the resume token.
+          // query. Bloom Filter includes only docA that matches the query since the resume token.
           .watchFilters([query1], [docA.key], bloomFilterProto)
           .watchCurrents(query1, 'resume-token-2000')
           .watchSnapshots(2000)
-          // BloomFilter identify updatedDocB no longer matches the query, skip full query and put
-          // updatedDocB into limbo directly.
+          // Bloom Filter identifies that updatedDocB no longer matches the query, skips full query
+          // and puts updatedDocB into limbo directly.
           .expectLimboDocs(updatedDocB.key) // updatedDocB is now in limbo.
       );
     }
@@ -795,13 +795,13 @@ describeSpec('Existence Filters:', [], () => {
           // While this client was disconnected, another client modified docB to no longer match the
           // query, deleted docC and added docD.
           .watchSends({ affects: [query1] }, docD)
-          // Watch sends us the all documents that matches the query since the resume token.
+          // Bloom Filter includes all documents that match the query since the resume token.
           .watchFilters([query1], [docA.key, docD.key], bloomFilterProto)
           .watchCurrents(query1, 'resume-token-2000')
           .watchSnapshots(2000)
           .expectEvents(query1, { added: [docD], fromCache: true })
-          // BloomFilter identify updatedDocB and docC no longer match the query, skip full query
-          // and put them into limbo directly.
+          // Bloom Filter identifies that updatedDocB and docC no longer match the query, skips full
+          // query and puts them into limbo directly.
           .expectLimboDocs(updatedDocB.key, docC.key) // updatedDocB and docC is now in limbo.
       );
     }

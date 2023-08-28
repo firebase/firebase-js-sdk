@@ -2235,7 +2235,7 @@ apiDescribe('Queries', persistence => {
           expect(snapshot1.size, 'snapshot1.size').to.equal(20);
           const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
 
-          // Out of the 20 existing documents, leave 5 docs untouched. Delete 5 docs,
+          // Out of the 20 existing documents, leave 5 docs untouched, delete 5 docs,
           // remove 5 docs, update 5 docs, and add 15 new docs.
           const deletedDocumentIds = new Set<string>();
           const removedDocumentIds = new Set<string>();
