@@ -21,7 +21,7 @@ import { apiDescribe } from '../util/helpers';
 apiDescribe('experiment', persistence => {
   it.only('run experiment', function () {
     if (persistence.storage === 'indexeddb') {
-      return runPersistentCacheIndexPerformanceExperiment(console.log);
+      return runPersistentCacheIndexPerformanceExperiment(console.log, 'info');
     } else {
       this.skip();
     }

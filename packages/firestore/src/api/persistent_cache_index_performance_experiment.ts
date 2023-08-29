@@ -52,12 +52,14 @@ import { AutoId } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import { Timestamp } from './timestamp';
+import { QueryContext } from '../local/query_context';
 
 export async function runPersistentCacheIndexPerformanceExperiment(
-  log: (...args: unknown[]) => unknown
+  log: (...args: unknown[]) => unknown,
+  logLevel: 'info' | 'debug'
 ): Promise<void> {
   const testObjects = await createTestObjects();
-  const experiment = new AutoIndexingExperiment(log, testObjects);
+  const experiment = new AutoIndexingExperiment(log, logLevel, testObjects);
   await experiment.run();
   await testObjects.persistence.shutdown();
 }
@@ -73,7 +75,6 @@ interface TestObjects {
 }
 
 class AutoIndexingExperiment {
-  private readonly logFunc: (...args: unknown[]) => unknown;
   private readonly persistence: Persistence;
   private readonly indexManager: IndexManager;
   private readonly remoteDocumentCache: RemoteDocumentCache;
@@ -83,7 +84,8 @@ class AutoIndexingExperiment {
   private readonly documentOverlayCache: DocumentOverlayCache;
 
   constructor(
-    logFunc: (...args: unknown[]) => unknown,
+    private readonly logFunc: (...args: unknown[]) => unknown,
+    private readonly logLevel: 'info' | 'debug',
     testObjects: TestObjects
   ) {
     this.logFunc = logFunc;
@@ -100,10 +102,10 @@ class AutoIndexingExperiment {
     // Every set contains 10 documents
     const numOfSet = 100;
     // could overflow. Currently it is safe when numOfSet set to 1000 and running on macbook M1
-    const totalBeforeIndex = 0;
-    const totalAfterIndex = 0;
-    const totalDocumentCount = 0;
-    const totalResultCount = 0;
+    let totalBeforeIndex = 0;
+    let totalAfterIndex = 0;
+    let totalDocumentCount = 0;
+    let totalResultCount = 0;
 
     // Temperate heuristic, gets when setting numOfSet to 1000.
     const withoutIndex = 1;
@@ -117,7 +119,9 @@ class AutoIndexingExperiment {
       // portion stands for the percentage of documents matching query
       for (let portion = 0; portion <= 10; portion++) {
         for (let numOfFields = 1; numOfFields <= 31; numOfFields += 10) {
-          const basePath = 'documentCount' + totalSetCount;
+          const basePath =
+            `${AutoId.newId()}_totalSetCount${totalSetCount}_` +
+            `portion${portion}_numOfFields${numOfFields}`;
           const query = createQuery(basePath, 'match', Operator.EQUAL, true);
 
           // Creates a full matched index for given query.
@@ -135,6 +139,83 @@ class AutoIndexingExperiment {
             numOfFields
           );
           await this.createMutationForCollection(basePath, totalSetCount);
+
+          // runs query using full collection scan.
+          let millisecondsBeforeAuto: number;
+          let contextWithoutIndexDocumentReadCount: number;
+          {
+            const contextWithoutIndex = new QueryContext();
+            const beforeAutoStart = performance.now();
+            const beforeAutoResults = await this.persistence.runTransaction(
+              'executeFullCollectionScan',
+              'readwrite',
+              txn =>
+                this.queryEngine.executeFullCollectionScan(
+                  txn,
+                  query,
+                  contextWithoutIndex
+                )
+            );
+            const beforeAutoEnd = performance.now();
+            millisecondsBeforeAuto = beforeAutoEnd - beforeAutoStart;
+            totalBeforeIndex += millisecondsBeforeAuto;
+            totalDocumentCount += contextWithoutIndex.documentReadCount;
+            contextWithoutIndexDocumentReadCount =
+              contextWithoutIndex.documentReadCount;
+            if (portion * totalSetCount != beforeAutoResults.size) {
+              throw new Error(
+                `${
+                  portion * totalSetCount
+                }!={beforeAutoResults.size} (portion * totalSetCount != beforeAutoResults.size)`
+              );
+            }
+            this.logDebug(
+              `Running query without using the index took ${millisecondsBeforeAuto}ms`
+            );
+          }
+
+          // runs query using index look up.
+          let millisecondsAfterAuto: number;
+          let autoResultsSize: number;
+          {
+            const autoStart = performance.now();
+            const autoResults = await this.persistence.runTransaction(
+              'performQueryUsingIndex',
+              'readwrite',
+              txn => this.queryEngine.performQueryUsingIndex(txn, query)
+            );
+            if (autoResults === null) {
+              throw new Error('performQueryUsingIndex() returned null');
+            }
+            const autoEnd = performance.now();
+            millisecondsAfterAuto = autoEnd - autoStart;
+            totalAfterIndex += millisecondsAfterAuto;
+            if (portion * totalSetCount != autoResults.size) {
+              throw new Error(
+                `${
+                  portion * totalSetCount
+                }!={beforeAutoResults.size} (portion * totalSetCount != beforeAutoResults.size)`
+              );
+            }
+            this.logDebug(
+              `Running query using the index took ${millisecondsAfterAuto}ms`
+            );
+            totalResultCount += autoResults.size;
+            autoResultsSize = autoResults.size;
+          }
+
+          if (millisecondsBeforeAuto > millisecondsAfterAuto) {
+            this.log(
+              `Auto Indexing saves time when total of documents inside ` +
+                `collection is ${totalSetCount * 10}. ` +
+                `The matching percentage is ${portion}0%. ` +
+                `And each document contains ${numOfFields} fields. ` +
+                `Weight result for without auto indexing is ` +
+                `${withoutIndex * contextWithoutIndexDocumentReadCount}. ` +
+                `And weight result for auto indexing is ` +
+                `${withIndex * autoResultsSize}`
+            );
+          }
         }
       }
     }
@@ -146,7 +227,7 @@ class AutoIndexingExperiment {
     portion: number /*0 - 10*/,
     numOfFields: number /* 1 - 30*/
   ): Promise<void> {
-    this.log(
+    this.logDebug(
       `Creating test collection: "${basePath}" ` +
         `totalSetCount=${totalSetCount} ` +
         `portion=${portion} ` +
@@ -277,6 +358,12 @@ class AutoIndexingExperiment {
           );
         })
     );
+  }
+
+  logDebug(...args: unknown[]): void {
+    if (this.logLevel === 'debug') {
+      this.logFunc(...args);
+    }
   }
 
   log(...args: unknown[]): void {

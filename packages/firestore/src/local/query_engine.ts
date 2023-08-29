@@ -236,7 +236,7 @@ export class QueryEngine {
    * Performs an indexed query that evaluates the query based on a collection's
    * persisted index values. Returns `null` if an index is not available.
    */
-  private performQueryUsingIndex(
+  performQueryUsingIndex(
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
@@ -448,7 +448,7 @@ export class QueryEngine {
     );
   }
 
-  private executeFullCollectionScan(
+  public executeFullCollectionScan(
     transaction: PersistenceTransaction,
     query: Query,
     context: QueryContext
