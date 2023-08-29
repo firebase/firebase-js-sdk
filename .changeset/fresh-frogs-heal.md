@@ -3,4 +3,4 @@
 "@firebase/webchannel-wrapper": patch
 ---
 
-Fix webchannel wrapper overrides.js to pick useFetchStreams option.
+Fix an [issue](https://github.com/firebase/firebase-js-sdk/issues/7581) where Firestore was incorrectly using XHR instead of fetch for streaming response.
