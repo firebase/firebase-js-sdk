@@ -22,7 +22,6 @@ import {
   WebChannel,
   WebChannelError,
   WebChannelOptions,
-  FetchXmlHttpFactory,
   XhrIo,
   getStatEventTarget,
   EventTarget,
@@ -209,7 +208,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      request.useFetchStreams = true;
     }
 
     this.modifyHeadersForRequest(
