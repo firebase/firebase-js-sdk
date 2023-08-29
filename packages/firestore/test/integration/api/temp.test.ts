@@ -15,25 +15,15 @@
  * limitations under the License.
  */
 
-
 import { runPersistentCacheIndexPerformanceExperiment } from '../util/firebase_export';
-import {
-  apiDescribe
-} from '../util/helpers';
+import { apiDescribe } from '../util/helpers';
 
 apiDescribe('experiment', persistence => {
   it.only('run experiment', function () {
     if (persistence.storage === 'indexeddb') {
-      return runPersistentCacheIndexPerformanceExperiment(
-        {
-          documentCount: 100,
-          documentMatchCount: 5,
-          fieldCount: 31
-        },
-        console.log
-      );
+      return runPersistentCacheIndexPerformanceExperiment(console.log);
     } else {
       this.skip();
     }
-  });
+  }).timeout(60000);
 });
