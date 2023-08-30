@@ -3098,4 +3098,57 @@ function indexedDbLocalStoreTests(
       .toReturnChanged('coll/a')
       .finish();
   });
+
+  it('index auto creation does not work with multiple inequality', () => {
+    const query_ = query(
+      'coll',
+      filter('field1', '<', 5),
+      filter('field2', '<', 5)
+    );
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query_)
+        .toReturnTargetId(2)
+        .afterIndexAutoCreationConfigure({
+          isEnabled: true,
+          indexAutoCreationMinCollectionSize: 0,
+          relativeIndexReadCostPerDocument: 2
+        })
+        .afterRemoteEvents([
+          docAddedRemoteEvent(
+            doc('coll/a', 10, { field1: 1, field2: 2 }),
+            [2],
+            []
+          ),
+          docAddedRemoteEvent(
+            doc('coll/b', 10, { field1: 8, field2: 2 }),
+            [2],
+            []
+          ),
+          docAddedRemoteEvent(
+            doc('coll/c', 10, { field1: 'string', field2: 2 }),
+            [2],
+            []
+          ),
+          docAddedRemoteEvent(doc('coll/d', 10, { field1: 1 }), [2], []),
+          docAddedRemoteEvent(
+            doc('coll/e', 10, { field1: 4, field2: 4 }),
+            [2],
+            []
+          )
+        ])
+        // First time query runs without indexes.
+        // Based on current heuristic, collection document counts (5) >
+        // 2 * resultSize (2).
+        // Full matched index will not be created since FieldIndex does not support multiple inequality.
+        .afterExecutingQuery(query_)
+        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
+        .toReturnChanged('coll/a', 'coll/e')
+        .afterBackfillIndexes()
+        .afterExecutingQuery(query_)
+        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
+        .toReturnChanged('coll/a', 'coll/e')
+        .finish()
+    );
+  });
 }

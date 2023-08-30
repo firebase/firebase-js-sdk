@@ -83,6 +83,10 @@ export class TargetIndexMatcher {
     }
   }
 
+  hasMultipleInequality(): boolean {
+    return this.inequalityFilters.size > 1;
+  }
+
   /**
    * Returns whether the index can be used to serve the TargetIndexMatcher's
    * target.
@@ -109,6 +113,11 @@ export class TargetIndexMatcher {
       index.collectionGroup === this.collectionId,
       'Collection IDs do not match'
     );
+
+    if (this.hasMultipleInequality()) {
+      // Only single inequality is supported for now.
+      return false;
+    }
 
     // If there is an array element, find a matching filter.
     const arraySegment = fieldIndexGetArraySegment(index);
@@ -148,11 +157,6 @@ export class TargetIndexMatcher {
     }
 
     if (this.inequalityFilters.size > 0) {
-      if (this.inequalityFilters.size > 1) {
-        // Only single inequality is supported for now.
-        return false;
-      }
-
       // Only a single inequality is currently supported. Get the only entry in the set.
       const inequalityFilter = this.inequalityFilters.getIterator().getNext();
       // If there is an inequality filter and the field was not in one of the
@@ -187,8 +191,15 @@ export class TargetIndexMatcher {
     return true;
   }
 
-  /** Returns a full matched field index for this target. */
-  buildTargetIndex(): FieldIndex {
+  /**
+   * Returns a full matched field index for this target. Currently multiple
+   * inequality query is not supported so function returns null.
+   */
+  buildTargetIndex(): FieldIndex | null {
+    if (this.hasMultipleInequality()) {
+      return null;
+    }
+
     // We want to make sure only one segment created for one field. For example,
     // in case like a == 3 and a > 2, Index {a ASCENDING} will only be created
     // once.
