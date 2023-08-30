@@ -32,6 +32,7 @@ import { ensureFirestoreConfigured, Firestore } from './database';
  * To use, call `getPersistentCacheIndexManager()` to get an instance.
  */
 export class PersistentCacheIndexManager {
+  /** A type string to uniquely identify instances of this class. */
   readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
 
   /** @hideconstructor */
