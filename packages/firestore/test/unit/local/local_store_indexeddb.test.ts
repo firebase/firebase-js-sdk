@@ -548,4 +548,34 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
+  it.only('does not auto create indexes when index lookup is expensive', async () => {
+    const query_ = query('coll', filter('array', 'array-contains-any', [0, 7]));
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 5
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId]));
+
+    // SDK will not create indexes since relative read cost is too large.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.backfillIndexes();
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 3);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
+  });
+
+
 });

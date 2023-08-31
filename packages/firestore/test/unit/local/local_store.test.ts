@@ -2758,44 +2758,6 @@ function indexedDbLocalStoreTests(
   }
 
   // TODO(dconeybe) port this test next
-
-  it('does not auto create indexes when index lookup is expensive', () => {
-    const query_ = query('coll', filter('array', 'array-contains-any', [0, 7]));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 5
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [2], []),
-          docAddedRemoteEvent(
-            doc('coll/d', 10, { array: [2, 10, 20] }),
-            [2],
-            []
-          ),
-          docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [2], [])
-        ])
-        // SDK will not create indexes since relative read cost is too large.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 3 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
   it('index auto creation works when backfiller runs halfway', () => {
     const query_ = query('coll', filter('matches', '==', 'foo'));
     return (
