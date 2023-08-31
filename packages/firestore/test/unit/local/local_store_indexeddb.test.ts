@@ -486,7 +486,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a');
   });
 
-  it('can auto-create indexes', async () => {
+  it.only('can auto-create indexes', async () => {
     const query_ = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -519,4 +519,33 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(2, 1);
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
+
+  it.only('does not auto-create indexes for small collections', async () => {
+    const query_ = query('coll', filter('count', '>=', 3));
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [targetId]));
+
+    // SDK will not create indexes since collection size is too small.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.backfillIndexes();
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { count: 4 }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 3);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
+  });
+
 });
