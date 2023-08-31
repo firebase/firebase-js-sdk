@@ -2758,42 +2758,6 @@ function indexedDbLocalStoreTests(
   }
 
   // TODO(dconeybe) port this test next
-  it('index auto creation works when backfiller runs halfway', () => {
-    const query_ = query('coll', filter('matches', '==', 'foo'));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes({ maxDocumentsToProcess: 2 })
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 1, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
   it('index created by index auto creation exists after turn off auto creation', () => {
     const query_ = query('coll', filter('value', 'not-in', [3]));
     return (

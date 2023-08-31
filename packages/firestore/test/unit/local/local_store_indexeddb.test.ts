@@ -204,8 +204,8 @@ class AsyncLocalStoreTester {
     }
   }
 
-  async backfillIndexes(): Promise<void> {
-    await this.indexBackfiller.backfill();
+  async backfillIndexes(config?: { maxDocumentsToProcess?: 2 }): Promise<void> {
+    await this.indexBackfiller.backfill(config?.maxDocumentsToProcess);
   }
 }
 
@@ -486,7 +486,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a');
   });
 
-  it.only('can auto-create indexes', async () => {
+  it('can auto-create indexes', async () => {
     const query_ = query('coll', filter('matches', '==', true));
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -520,7 +520,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
-  it.only('does not auto-create indexes for small collections', async () => {
+  it('does not auto-create indexes for small collections', async () => {
     const query_ = query('coll', filter('count', '>=', 3));
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -548,7 +548,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
-  it.only('does not auto create indexes when index lookup is expensive', async () => {
+  it('does not auto create indexes when index lookup is expensive', async () => {
     const query_ = query('coll', filter('array', 'array-contains-any', [0, 7]));
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -574,6 +574,38 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 3);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
+  });
+
+  it.only('index auto creation works when backfiller runs halfway', async () => {
+    const query_ = query('coll', filter('matches', '==', 'foo'));
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [targetId]));
+
+    // First time query runs without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.backfillIndexes({ maxDocumentsToProcess: 2 });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(1, 2);
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
