@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,20 @@
  */
 
 /**
- * See:
- * - https://mochajs.org/#usage for more information on usage of mocha flags.
- * - https://github.com/karma-runner/karma-mocha for more information on all mocha flags which the
- *   karma runner supports.
+ * A tracker to keep a record of important details during database local query
+ * execution.
  */
+export class QueryContext {
+  /**
+   * Counts the number of documents passed through during local query execution.
+   */
+  private _documentReadCount = 0;
 
-const config = {
-  require: 'ts-node/register',
-  timeout: 5000,
-  retries: 5,
-  exit: true
-};
+  get documentReadCount(): number {
+    return this._documentReadCount;
+  }
 
-// Firestore uses babel to compile tests in Nodejs
-if (process.env.NO_TS_NODE) {
-  delete config.require;
+  incrementDocumentReadCount(amount: number): void {
+    this._documentReadCount += amount;
+  }
 }
-
-module.exports = config;
