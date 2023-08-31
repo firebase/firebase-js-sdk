@@ -965,8 +965,8 @@ describe('Target Bounds', () => {
         const target = queryToTarget(q);
         const targetIndexMatcher = new TargetIndexMatcher(target);
         expect(targetIndexMatcher.hasMultipleInequality).is.true;
-        const expectedIndex = targetIndexMatcher.buildTargetIndex();
-        expect(expectedIndex).is.null;
+        const actualIndex = targetIndexMatcher.buildTargetIndex();
+        expect(actualIndex).is.null;
       });
     });
 
