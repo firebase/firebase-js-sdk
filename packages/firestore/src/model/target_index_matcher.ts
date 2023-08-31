@@ -83,7 +83,7 @@ export class TargetIndexMatcher {
     }
   }
 
-  hasMultipleInequality(): boolean {
+  get hasMultipleInequality(): boolean {
     return this.inequalityFilters.size > 1;
   }
 
@@ -114,8 +114,9 @@ export class TargetIndexMatcher {
       'Collection IDs do not match'
     );
 
-    if (this.hasMultipleInequality()) {
+    if (this.hasMultipleInequality) {
       // Only single inequality is supported for now.
+      // TODO(Add support for multiple inequality query): b/298441043
       return false;
     }
 
@@ -196,7 +197,7 @@ export class TargetIndexMatcher {
    * inequality query is not supported so function returns null.
    */
   buildTargetIndex(): FieldIndex | null {
-    if (this.hasMultipleInequality()) {
+    if (this.hasMultipleInequality) {
       return null;
     }
 

@@ -964,7 +964,7 @@ describe('Target Bounds', () => {
         );
         const target = queryToTarget(q);
         const targetIndexMatcher = new TargetIndexMatcher(target);
-        expect(targetIndexMatcher.hasMultipleInequality()).is.true;
+        expect(targetIndexMatcher.hasMultipleInequality).is.true;
         const expectedIndex = targetIndexMatcher.buildTargetIndex();
         expect(expectedIndex).is.null;
       });
@@ -973,13 +973,13 @@ describe('Target Bounds', () => {
     function validateBuildTargetIndexCreateFullMatchIndex(q: Query): void {
       const target = queryToTarget(q);
       const targetIndexMatcher = new TargetIndexMatcher(target);
-      expect(targetIndexMatcher.hasMultipleInequality()).is.false;
-      const expectedIndex = targetIndexMatcher.buildTargetIndex();
-      expect(expectedIndex).is.not.null;
-      expect(targetIndexMatcher.servedByIndex(expectedIndex as FieldIndex)).is
+      expect(targetIndexMatcher.hasMultipleInequality).is.false;
+      const actualIndex = targetIndexMatcher.buildTargetIndex();
+      expect(actualIndex).is.not.null;
+      expect(targetIndexMatcher.servedByIndex(actualIndex as FieldIndex)).is
         .true;
       expect(
-        (expectedIndex as FieldIndex).fields.length >=
+        (actualIndex as FieldIndex).fields.length >=
           targetGetSegmentCount(target)
       );
     }
