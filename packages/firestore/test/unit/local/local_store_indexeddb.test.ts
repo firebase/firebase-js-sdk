@@ -577,7 +577,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
-  it.only('index auto creation works when backfiller runs halfway', async () => {
+  it('index auto creation works when backfiller runs halfway', async () => {
     const query_ = query('coll', filter('matches', '==', 'foo'));
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -609,5 +609,37 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
+  it('index created by index auto creation exists after turn off auto creation', async () => {
+    const query_ = query('coll', filter('value', 'not-in', [3]));
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId]));
+
+    // First time query runs without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    test.configureIndexAutoCreation({isEnabled: false,});
+    await test.backfillIndexes();
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(2, 1);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
+  });
 
 });
