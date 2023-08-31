@@ -2757,42 +2757,7 @@ function indexedDbLocalStoreTests(
     );
   }
 
-  it('can auto-create indexes', () => {
-    const query_ = query('coll', filter('matches', '==', true));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 1 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
+  // TODO(dconeybe) port this test next
   it('does not auto-create indexes for small collections', () => {
     const query_ = query('coll', filter('count', '>=', 3));
     return (

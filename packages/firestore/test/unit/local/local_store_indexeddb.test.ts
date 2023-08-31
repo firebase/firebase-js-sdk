@@ -36,8 +36,10 @@ import {
   localStoreApplyRemoteEventToLocalCache,
   localStoreConfigureFieldIndexes,
   localStoreExecuteQuery,
+  localStoreSetIndexAutoCreationEnabled,
   localStoreWriteLocally,
-  newLocalStore
+  newLocalStore,
+  TestingHooks as LocalStoreTestingHooks
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
@@ -124,6 +126,25 @@ class AsyncLocalStoreTester {
       new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
     );
     this.lastChanges = result.changes;
+  }
+
+  configureIndexAutoCreation(config: {
+    isEnabled?: boolean;
+    indexAutoCreationMinCollectionSize?: number;
+    relativeIndexReadCostPerDocument?: number;
+  }): void {
+    this.prepareNextStep();
+
+    if (config.isEnabled !== undefined) {
+      localStoreSetIndexAutoCreationEnabled(
+        this.localStore,
+        config.isEnabled
+      );
+    }
+    LocalStoreTestingHooks.setIndexAutoCreationSettings(
+      this.localStore,
+      config
+    );
   }
 
   async configureAndAssertFieldsIndexes(
@@ -463,5 +484,39 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       [key('coll/a').toString()]: MutationType.Set
     });
     test.assertQueryReturned('coll/a');
+  });
+
+  it('can auto-create indexes', async () => {
+    const query_ = query('coll', filter('matches', '==', true));
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId]));
+
+    // First time query runs without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.backfillIndexes();
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(2, 1);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 });
