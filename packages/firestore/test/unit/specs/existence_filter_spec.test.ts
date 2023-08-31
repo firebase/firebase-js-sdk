@@ -654,7 +654,7 @@ describeSpec('Existence Filters:', [], () => {
           .restoreListen(query1, 'resume-token-1000')
           .watchAcks(query1)
           // Nothing happened while this client was disconnected.
-          // Bloom Filter includes the documents that match the query since the resume token.
+          // Bloom Filter includes docA as there are no changes since the resume token.
           .watchFilters([query1], [docA.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -687,7 +687,8 @@ describeSpec('Existence Filters:', [], () => {
           .watchAcks(query1)
           // While this client was disconnected, another client added docB.
           .watchSends({ affects: [query1] }, docB)
-          // Bloom Filter includes the documents that match the query since the resume token.
+          // Bloom Filter includes all the documents that match the query, both
+          // those that haven't changed since the resume token and those newly added.
           .watchFilters([query1], [docA.key, docB.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -701,7 +702,7 @@ describeSpec('Existence Filters:', [], () => {
     'Resume a query with bloom filter when existing docs are updated',
     [],
     () => {
-      const query1 = query('collection');
+      const query1 = query('collection', filter('v', '>=', 1));
       const docA = doc('collection/a', 1000, { v: 1 });
       const docB = doc('collection/b', 1000, { v: 1 });
       const updatedDocB = doc('collection/b', 1000, { v: 2 });
@@ -722,7 +723,8 @@ describeSpec('Existence Filters:', [], () => {
           .watchAcks(query1)
           // While this client was disconnected, another client updated fields in docB.
           .watchSends({ affects: [query1] }, updatedDocB)
-          // Bloom Filter includes the documents that match the query since the resume token.
+          // Bloom Filter includes all the documents that match the query, both
+          // those that have changed since the resume token and those that have not.
           .watchFilters([query1], [docA.key, updatedDocB.key], bloomFilterProto)
           // Expected count equals to documents in cache. Existence Filter matches.
           .watchCurrents(query1, 'resume-token-2000')
@@ -743,7 +745,7 @@ describeSpec('Existence Filters:', [], () => {
 
       const bloomFilterProto = generateBloomFilterProto({
         contains: [docA],
-        notContains: []
+        notContains: [docB]
       });
       return (
         spec()
@@ -795,7 +797,7 @@ describeSpec('Existence Filters:', [], () => {
           // While this client was disconnected, another client modified docB to no longer match the
           // query, deleted docC and added docD.
           .watchSends({ affects: [query1] }, docD)
-          // Bloom Filter includes all documents that match the query since the resume token.
+          // Bloom Filter includes all the documents that match the query.
           .watchFilters([query1], [docA.key, docD.key], bloomFilterProto)
           .watchCurrents(query1, 'resume-token-2000')
           .watchSnapshots(2000)

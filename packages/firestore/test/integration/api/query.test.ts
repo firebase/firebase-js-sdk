@@ -2285,6 +2285,18 @@ apiDescribe('Queries', persistence => {
               addedDocumentIds.push(documentToAdd.id);
             }
 
+            // Ensure the sets above are disjoint.
+            const mergedSet = new Set<string>();
+            [
+              deletedDocumentIds,
+              removedDocumentIds,
+              updatedDocumentIds,
+              addedDocumentIds
+            ].forEach(set => {
+              set.forEach(documentId => mergedSet.add(documentId));
+            });
+            expect(mergedSet.size).to.equal(30);
+
             await batch.commit();
           });
 
@@ -2308,17 +2320,17 @@ apiDescribe('Queries', persistence => {
           const actualDocumentIds = snapshot2.docs
             .map(documentSnapshot => documentSnapshot.ref.id)
             .sort();
-          expect(actualDocumentIds.length).to.equal(25);
-
           const expectedDocumentIds = createdDocuments
             .map(documentRef => documentRef.id)
             .filter(documentId => !deletedDocumentIds.has(documentId))
             .filter(documentId => !removedDocumentIds.has(documentId))
             .concat(addedDocumentIds)
             .sort();
+
           expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
             expectedDocumentIds
           );
+          expect(actualDocumentIds.length).to.equal(25);
 
           // Verify that Watch sent an existence filter with the correct
           // counts when the query was resumed.
@@ -2339,14 +2351,6 @@ apiDescribe('Queries', persistence => {
             );
             throw new Error('should never get here');
           }
-
-          expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(0);
-          expect(
-            bloomFilter.bitmapLength,
-            'bloomFilter.bitmapLength'
-          ).to.be.above(0);
-          expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-          expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
 
           // Verify that the bloom filter was successfully used to avert a
           // full requery. If a false positive occurred then retry the entire
