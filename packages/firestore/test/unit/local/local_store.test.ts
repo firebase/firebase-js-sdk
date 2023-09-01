@@ -31,7 +31,6 @@ import {
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
-import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -39,8 +38,6 @@ import {
   localStoreAllocateTarget,
   localStoreApplyBundledDocuments,
   localStoreApplyRemoteEventToLocalCache,
-  localStoreConfigureFieldIndexes,
-  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
@@ -55,8 +52,7 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore,
-  TestingHooks as LocalStoreTestingHooks
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -66,12 +62,6 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
-import {
-  FieldIndex,
-  IndexKind,
-  IndexSegment,
-  IndexState
-} from '../../../src/model/field_index';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
   FieldTransform,
@@ -86,7 +76,6 @@ import {
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
 import { ObjectValue } from '../../../src/model/object_value';
-import { FieldPath } from '../../../src/model/path';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import { ServerTimestampTransform } from '../../../src/model/transform_operation';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
@@ -146,7 +135,6 @@ class LocalStoreTester {
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
   private bundleConverter: BundleConverterImpl;
-  private indexBackfiller: IndexBackfiller;
 
   private queryExecutionCount = 0;
 
@@ -157,7 +145,6 @@ class LocalStoreTester {
     readonly gcIsEager: boolean
   ) {
     this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
-    this.indexBackfiller = new IndexBackfiller(localStore, persistence);
   }
 
   private prepareNextStep(): void {
@@ -192,10 +179,6 @@ class LocalStoreTester {
     }
   }
 
-  afterMutation(mutation: Mutation): LocalStoreTester {
-    return this.afterMutations([mutation]);
-  }
-
   afterMutations(mutations: Mutation[]): LocalStoreTester {
     this.prepareNextStep();
 
@@ -220,11 +203,6 @@ class LocalStoreTester {
       .then((result: DocumentMap) => {
         this.lastChanges = result;
       });
-    return this;
-  }
-
-  afterRemoteEvents(remoteEvents: RemoteEvent[]): LocalStoreTester {
-    remoteEvents.forEach(remoteEvent => this.afterRemoteEvent(remoteEvent));
     return this;
   }
 
@@ -353,59 +331,6 @@ class LocalStoreTester {
     return this;
   }
 
-  afterIndexAutoCreationConfigure(config: {
-    isEnabled?: boolean;
-    indexAutoCreationMinCollectionSize?: number;
-    relativeIndexReadCostPerDocument?: number;
-  }): LocalStoreTester {
-    this.prepareNextStep();
-
-    this.promiseChain = this.promiseChain.then(() => {
-      if (config.isEnabled !== undefined) {
-        localStoreSetIndexAutoCreationEnabled(
-          this.localStore,
-          config.isEnabled
-        );
-      }
-      LocalStoreTestingHooks.setIndexAutoCreationSettings(
-        this.localStore,
-        config
-      );
-    });
-
-    return this;
-  }
-
-  afterDeleteAllFieldIndexes(): LocalStoreTester {
-    this.prepareNextStep();
-    this.promiseChain = this.promiseChain.then(() =>
-      localStoreDeleteAllFieldIndexes(this.localStore)
-    );
-    return this;
-  }
-
-  afterConfigureFieldIndexes(fieldIndexes: FieldIndex[]): LocalStoreTester {
-    this.prepareNextStep();
-    this.promiseChain = this.promiseChain.then(() =>
-      localStoreConfigureFieldIndexes(this.localStore, fieldIndexes)
-    );
-    return this;
-  }
-
-  afterBackfillIndexes(options?: {
-    maxDocumentsToProcess?: number;
-  }): LocalStoreTester {
-    this.prepareNextStep();
-
-    this.promiseChain = this.promiseChain.then(() =>
-      this.indexBackfiller
-        .backfill(options?.maxDocumentsToProcess)
-        .then(() => {})
-    );
-
-    return this;
-  }
-
   /**
    * Asserts the expected number of mutations and documents read by
    * the MutationQueue and the RemoteDocumentCache.
@@ -485,7 +410,7 @@ class LocalStoreTester {
   }
 
   toReturnChangedInternal(
-    docsOrKeyStrs: Document[] | string[],
+    docs: Document[],
     isEqual?: (lhs: Document | null, rhs: Document | null) => boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
@@ -493,21 +418,14 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnChanged() without prior after()'
       );
-      expect(this.lastChanges.size).to.equal(
-        docsOrKeyStrs.length,
-        'number of changes'
-      );
-      for (const docOrKeyStr of docsOrKeyStrs) {
-        const docKey =
-          typeof docOrKeyStr === 'string' ? key(docOrKeyStr) : docOrKeyStr.key;
-        const returned = this.lastChanges.get(docKey);
+      expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
+      for (const doc of docs) {
+        const returned = this.lastChanges.get(doc.key);
         const message = `Expected '${returned}' to equal '${doc}'.`;
-        if (typeof docOrKeyStr === 'string') {
-          expect(returned?.isValidDocument()).to.equal(true, message);
-        } else if (isEqual) {
-          expect(isEqual(docOrKeyStr, returned)).to.equal(true, message);
+        if (isEqual) {
+          expect(isEqual(doc, returned)).to.equal(true, message);
         } else {
-          expectEqual(docOrKeyStr, returned, message);
+          expectEqual(doc, returned, message);
         }
       }
       this.lastChanges = null;
@@ -515,10 +433,8 @@ class LocalStoreTester {
     return this;
   }
 
-  toReturnChanged(...docs: Document[]): LocalStoreTester;
-  toReturnChanged(...docKeyStrs: string[]): LocalStoreTester;
-  toReturnChanged(...docsOrKeyStrs: Document[] | string[]): LocalStoreTester {
-    return this.toReturnChangedInternal(docsOrKeyStrs);
+  toReturnChanged(...docs: Document[]): LocalStoreTester {
+    return this.toReturnChangedInternal(docs);
   }
 
   toReturnChangedWithDocComparator(
@@ -673,18 +589,6 @@ function compareDocsWithCreateTime(
   );
 }
 
-function fieldIndex(
-  collectionGroup: string,
-  indexId: number,
-  indexState: IndexState,
-  field: string,
-  kind: IndexKind
-): FieldIndex {
-  const fieldPath = new FieldPath(field.split('.'));
-  const segments = [new IndexSegment(fieldPath, kind)];
-  return new FieldIndex(indexId, collectionGroup, segments, indexState);
-}
-
 describe('LocalStore w/ Memory Persistence', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine();
@@ -725,8 +629,6 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   addEqualityMatcher();
   describe('genericLocalStoreTests', () =>
     genericLocalStoreTests(initialize, /* gcIsEager= */ false));
-  describe('indexedDbLocalStoreTests', () =>
-    indexedDbLocalStoreTests(initialize, /* gcIsEager= */ false));
 });
 
 function genericLocalStoreTests(
@@ -2726,63 +2628,4 @@ function genericLocalStoreTests(
       );
     }
   );
-}
-
-function indexedDbLocalStoreTests(
-  getComponents: () => Promise<LocalStoreComponents>,
-  gcIsEager: boolean
-): void {
-  let persistence: Persistence;
-  let localStore: LocalStore;
-  let queryEngine: CountingQueryEngine;
-
-  beforeEach(async () => {
-    const components = await getComponents();
-    persistence = components.persistence;
-    localStore = components.localStore;
-    queryEngine = components.queryEngine;
-  });
-
-  afterEach(async () => {
-    await persistence.shutdown();
-    await persistenceHelpers.clearTestPersistence();
-  });
-
-  function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(
-      localStore,
-      persistence,
-      queryEngine,
-      gcIsEager
-    );
-  }
-
-  // TODO(dconeybe) port this test next
-  it('delete all indexes works with manual added indexes', () => {
-    const query_ = query('coll', filter('matches', '==', true));
-    return expectLocalStore()
-      .afterConfigureFieldIndexes([
-        fieldIndex(
-          'coll',
-          0,
-          IndexState.empty(),
-          'matches',
-          IndexKind.ASCENDING
-        )
-      ])
-      .afterAllocatingQuery(query_)
-      .toReturnTargetId(2)
-      .afterRemoteEvents([
-        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [2], [])
-      ])
-      .afterBackfillIndexes()
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 1, documentsByCollection: 0 })
-      .toReturnChanged('coll/a')
-      .afterDeleteAllFieldIndexes()
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 0, documentsByCollection: 1 })
-      .toReturnChanged('coll/a')
-      .finish();
-  });
 }

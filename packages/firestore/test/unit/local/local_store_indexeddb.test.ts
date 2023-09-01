@@ -760,4 +760,26 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e');
   });
   
+  it('delete all indexes works with manual added indexes', async () => {
+    const query_ = query('coll', filter('matches', '==', true));
+    
+    await test.configureFieldsIndexes(fieldIndex('coll', {
+      fields: [['matches', IndexKind.ASCENDING]]
+    }));
+
+    const targetId = await test.allocateQuery(query_);
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]));
+    await test.backfillIndexes();
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(1, 0);
+    test.assertQueryReturned('coll/a');
+
+    await test.deleteAllFieldIndexes();
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 1);
+    test.assertQueryReturned('coll/a');
+  });
+
 });
