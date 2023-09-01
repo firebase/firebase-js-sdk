@@ -4,7 +4,7 @@ on: pull_request
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
-  DETECT_CHROMEDRIVER_VERSION: false
+  DETECT_CHROMEDRIVER_VERSION: true
   CHROMEDRIVER_CDNURL: https://npmmirror.com/metadata
   CHROMEDRIVER_CDNBINARIESURL: https://npmmirror.com/binaries
 
@@ -54,7 +54,7 @@ jobs:
           sudo apt-get install firefox
           sudo apt-get install wget
           npx @puppeteer/browsers install chrome@stable
-
+          npx @puppeteer/browsers install chromedriver@stable
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
