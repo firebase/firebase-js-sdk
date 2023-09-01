@@ -66,6 +66,9 @@ goog.net.WebChannel.Options.forceLongPolling;
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.detectBufferingProxy;
 
+/** @type {boolean|undefined} */
+goog.net.WebChannel.Options.useFetchStreams;
+
 /** @type {unknown} */
 goog.net.WebChannel.Options.xmlHttpFactory;
 
