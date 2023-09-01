@@ -219,6 +219,15 @@ class AutoIndexingExperiment {
         }
       }
     }
+
+    this.log(
+      `The time heuristic is ` +
+        `${totalBeforeIndex / totalDocumentCount} before auto indexing`
+    );
+    this.log(
+      `The time heuristic is ` +
+        `${totalAfterIndex / totalResultCount} after auto indexing`
+    );
   }
 
   async createTestingCollection(
