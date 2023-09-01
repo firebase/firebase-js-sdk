@@ -181,7 +181,7 @@ class AsyncLocalStoreTester {
   assertOverlaysRead(
     byKey: number,
     byCollection: number,
-    overlayTypes: { [k: string]: MutationType }
+    overlayTypes?: { [k: string]: MutationType }
   ): void {
     expect(this.queryEngine.overlaysReadByCollection).to.equal(
       byCollection,
@@ -191,10 +191,12 @@ class AsyncLocalStoreTester {
       byKey,
       'Overlays read (by key)'
     );
-    expect(this.queryEngine.overlayTypes).to.deep.equal(
-      overlayTypes,
-      'Overlay types read'
-    );
+    if (overlayTypes) {
+      expect(this.queryEngine.overlayTypes).to.deep.equal(
+        overlayTypes,
+        'Overlay types read'
+      );
+    }
   }
 
   assertQueryReturned(...keys: string[]): void {
@@ -687,4 +689,33 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
   });
 
+  it('index auto creation works with mutation', async () => {
+    const query_ = query('coll', filter('value', 'array-contains-any', [8, 1, 'string']));
+
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [targetId]));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.writeMutations(deleteMutation('coll/e'));
+    await test.backfillIndexes();
+    await test.writeMutations(setMutation('coll/f', { value: [1] }));
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(1, 0);
+    test.assertOverlaysRead(1, 1);
+    test.assertQueryReturned('coll/a', 'coll/f');
+  });
 });

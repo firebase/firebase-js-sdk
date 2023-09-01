@@ -2758,47 +2758,6 @@ function indexedDbLocalStoreTests(
   }
 
   // TODO(dconeybe) port this test next
-  it('index auto creation works with mutation', () => {
-    const query_ = query(
-      'coll',
-      filter('value', 'array-contains-any', [8, 1, 'string'])
-    );
-    return expectLocalStore()
-      .afterAllocatingQuery(query_)
-      .toReturnTargetId(2)
-      .afterIndexAutoCreationConfigure({
-        isEnabled: true,
-        indexAutoCreationMinCollectionSize: 0,
-        relativeIndexReadCostPerDocument: 2
-      })
-      .afterRemoteEvents([
-        docAddedRemoteEvent(
-          doc('coll/a', 10, { value: [8, 1, 'string'] }),
-          [2],
-          []
-        ),
-        docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [2], []),
-        docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [2], []),
-        docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [2], []),
-        docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [2], [])
-      ])
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-      .toReturnChanged('coll/a', 'coll/e')
-      .afterMutation(deleteMutation('coll/e'))
-      .afterBackfillIndexes()
-      .afterMutation(setMutation('coll/f', { value: [1] }))
-      .afterExecutingQuery(query_)
-      .toHaveRead({
-        documentsByKey: 1,
-        documentsByCollection: 0,
-        overlaysByKey: 1,
-        overlaysByCollection: 1
-      })
-      .toReturnChanged('coll/a', 'coll/f')
-      .finish();
-  });
-
   it('delete all indexes works with index auto creation', () => {
     const query_ = query('coll', filter('value', '==', 'match'));
     return (
