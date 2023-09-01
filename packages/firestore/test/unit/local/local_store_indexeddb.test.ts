@@ -112,6 +112,12 @@ class AsyncLocalStoreTester {
     return this.lastTargetId;
   }
 
+  async applyRemoteEvents(...remoteEvents: RemoteEvent[]): Promise<void> {
+    for (const remoteEvent of remoteEvents) {
+      await this.applyRemoteEvent(remoteEvent);
+    }
+  }
+
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.prepareNextStep();
     this.lastChanges = await localStoreApplyRemoteEventToLocalCache(
@@ -499,21 +505,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]);
-
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId])
     );
 
@@ -544,19 +540,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [targetId])
     );
 
@@ -585,19 +573,13 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 5
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [
+        targetId
+      ]),
       docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId])
     );
 
@@ -626,19 +608,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [targetId])
     );
 
@@ -670,19 +644,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId])
     );
 
@@ -717,19 +683,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1]),
+      docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1]),
+      docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1]),
+      docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1]),
       docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1])
     );
 
@@ -748,19 +706,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e');
 
     const targetId2 = await test.allocateQuery(query2);
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2]),
+      docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2]),
+      docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2]),
+      docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2]),
       docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2])
     );
 
@@ -784,21 +734,13 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
       docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [
         targetId
-      ])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId])
-    );
-    await test.applyRemoteEvent(
+      ]),
+      docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [targetId])
     );
 
@@ -826,19 +768,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId])
-    );
-    await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId])
-    );
-    await test.applyRemoteEvent(
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId]),
       docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId])
     );
 
