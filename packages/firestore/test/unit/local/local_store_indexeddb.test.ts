@@ -214,7 +214,9 @@ class AsyncLocalStoreTester {
     }
   }
 
-  async backfillIndexes(config?: { maxDocumentsToProcess?: 2 }): Promise<void> {
+  async backfillIndexes(config?: {
+    maxDocumentsToProcess?: number;
+  }): Promise<void> {
     await this.indexBackfiller.backfill(config?.maxDocumentsToProcess);
   }
 }
