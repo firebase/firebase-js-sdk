@@ -19,7 +19,9 @@ jobs:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
-      run: npx @puppeteer/browsers install chromedriver@stable
+      run: |
+        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chromedriver@stable
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
