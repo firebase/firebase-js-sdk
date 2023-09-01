@@ -26,8 +26,8 @@ import { logDebug, logWarn } from '../util/log';
 import { ensureFirestoreConfigured, Firestore } from './database';
 
 /**
- * A `PersistentCacheIndexManager` which you can config persistent cache indexes
- * used for local query execution.
+ * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
+ * for local query execution.
  *
  * To use, call `getPersistentCacheIndexManager()` to get an instance.
  */
