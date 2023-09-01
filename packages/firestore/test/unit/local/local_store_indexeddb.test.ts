@@ -137,10 +137,7 @@ class AsyncLocalStoreTester {
     this.prepareNextStep();
 
     if (config.isEnabled !== undefined) {
-      localStoreSetIndexAutoCreationEnabled(
-        this.localStore,
-        config.isEnabled
-      );
+      localStoreSetIndexAutoCreationEnabled(this.localStore, config.isEnabled);
     }
     LocalStoreTestingHooks.setIndexAutoCreationSettings(
       this.localStore,
@@ -149,7 +146,7 @@ class AsyncLocalStoreTester {
   }
 
   deleteAllFieldIndexes(): Promise<void> {
-    return localStoreDeleteAllFieldIndexes(this.localStore)
+    return localStoreDeleteAllFieldIndexes(this.localStore);
   }
 
   async configureAndAssertFieldsIndexes(
@@ -502,13 +499,23 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+    docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]);
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [targetId])
+    );
 
     // First time query runs without indexes.
     // Based on current heuristic, collection document counts (5) >
@@ -520,7 +527,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.backfillIndexes();
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(2, 1);
@@ -535,11 +544,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [targetId])
+    );
 
     // SDK will not create indexes since collection size is too small.
     await test.executeQuery(query_);
@@ -548,7 +567,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.backfillIndexes();
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { count: 4 }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { count: 4 }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 3);
@@ -564,11 +585,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 5
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { array: [2, 10, 20] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [targetId])
+    );
 
     // SDK will not create indexes since relative read cost is too large.
     await test.executeQuery(query_);
@@ -577,7 +608,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.backfillIndexes();
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 3);
@@ -593,11 +626,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [targetId])
+    );
 
     // First time query runs without indexes.
     // Based on current heuristic, collection document counts (5) >
@@ -609,7 +652,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.backfillIndexes({ maxDocumentsToProcess: 2 });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(1, 2);
@@ -625,11 +670,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [targetId])
+    );
 
     // First time query runs without indexes.
     // Based on current heuristic, collection document counts (5) >
@@ -639,10 +694,12 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
 
-    test.configureIndexAutoCreation({isEnabled: false,});
+    test.configureIndexAutoCreation({ isEnabled: false });
     await test.backfillIndexes();
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(2, 1);
@@ -660,11 +717,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1])
+    );
 
     // First time query runs without indexes.
     // Based on current heuristic, collection document counts (5) >
@@ -674,18 +741,28 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
 
-    test.configureIndexAutoCreation({isEnabled: false,});
+    test.configureIndexAutoCreation({ isEnabled: false });
     await test.backfillIndexes();
     await test.executeQuery(query1);
     test.assertRemoteDocumentsRead(2, 0);
     test.assertQueryReturned('coll/a', 'coll/e');
 
     const targetId2 = await test.allocateQuery(query2);
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2])
+    );
 
     await test.executeQuery(query2);
     test.assertRemoteDocumentsRead(0, 2);
@@ -695,7 +772,10 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   });
 
   it('index auto creation works with mutation', async () => {
-    const query_ = query('coll', filter('value', 'array-contains-any', [8, 1, 'string']));
+    const query_ = query(
+      'coll',
+      filter('value', 'array-contains-any', [8, 1, 'string'])
+    );
 
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
@@ -704,11 +784,23 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: [8, 1, 'string'] }), [
+        targetId
+      ])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [targetId])
+    );
 
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 2);
@@ -723,7 +815,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertOverlaysRead(1, 1);
     test.assertQueryReturned('coll/a', 'coll/f');
   });
-  
+
   it('delete all indexes works with index auto creation', async () => {
     const query_ = query('coll', filter('value', '==', 'match'));
 
@@ -734,11 +826,21 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       relativeIndexReadCostPerDocument: 2
     });
 
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId]));
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId])
+    );
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId])
+    );
 
     // First time query is running without indexes.
     // Based on current heuristic, collection document counts (5) >
@@ -748,7 +850,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
 
-    test.configureIndexAutoCreation({isEnabled: false})
+    test.configureIndexAutoCreation({ isEnabled: false });
     await test.backfillIndexes();
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(2, 0);
@@ -759,16 +861,20 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
   });
-  
+
   it('delete all indexes works with manual added indexes', async () => {
     const query_ = query('coll', filter('matches', '==', true));
-    
-    await test.configureFieldsIndexes(fieldIndex('coll', {
-      fields: [['matches', IndexKind.ASCENDING]]
-    }));
+
+    await test.configureFieldsIndexes(
+      fieldIndex('coll', {
+        fields: [['matches', IndexKind.ASCENDING]]
+      })
+    );
 
     const targetId = await test.allocateQuery(query_);
-    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId]));
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [targetId])
+    );
     await test.backfillIndexes();
 
     await test.executeQuery(query_);
@@ -781,5 +887,4 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 1);
     test.assertQueryReturned('coll/a');
   });
-
 });
