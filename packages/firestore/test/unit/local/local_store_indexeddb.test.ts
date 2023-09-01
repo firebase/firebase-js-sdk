@@ -35,6 +35,7 @@ import {
   localStoreAllocateTarget,
   localStoreApplyRemoteEventToLocalCache,
   localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreSetIndexAutoCreationEnabled,
   localStoreWriteLocally,
@@ -145,6 +146,10 @@ class AsyncLocalStoreTester {
       this.localStore,
       config
     );
+  }
+
+  deleteAllFieldIndexes(): Promise<void> {
+    return localStoreDeleteAllFieldIndexes(this.localStore)
   }
 
   async configureAndAssertFieldsIndexes(
@@ -718,4 +723,41 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertOverlaysRead(1, 1);
     test.assertQueryReturned('coll/a', 'coll/f');
   });
+  
+  it('delete all indexes works with index auto creation', async () => {
+    const query_ = query('coll', filter('value', '==', 'match'));
+
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: Number.NaN }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: 'mismatch' }), [targetId]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [targetId]));
+
+    // First time query is running without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    test.configureIndexAutoCreation({isEnabled: false})
+    await test.backfillIndexes();
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(2, 0);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.deleteAllFieldIndexes();
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+  });
+  
 });
