@@ -7,8 +7,6 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
-  CHROMEDRIVER_CDNURL: https://npmmirror.com/metadata
-  CHROMEDRIVER_CDNBINARIESURL: https://npmmirror.com/binaries
   artifactRetentionDays: 14
 
 jobs:
@@ -19,7 +17,7 @@ jobs:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
-      run: npx @puppeteer/browsers install chrome@stable
+      run: npx @puppeteer/browsers install chromedriver@stable
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3

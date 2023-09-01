@@ -5,8 +5,6 @@ on: pull_request
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
-  CHROMEDRIVER_CDNURL: https://npmmirror.com/metadata
-  CHROMEDRIVER_CDNBINARIESURL: https://npmmirror.com/binaries
 
 jobs:
   test-chrome:
@@ -17,7 +15,7 @@ jobs:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
       - name: install Chrome stable
-        run: npx @puppeteer/browsers install chrome@stable
+        run: npx @puppeteer/browsers install chromedriver@stable
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
