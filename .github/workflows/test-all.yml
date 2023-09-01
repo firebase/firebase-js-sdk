@@ -7,6 +7,8 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
+  CHROMEDRIVER_CDNURL: https://npmmirror.com/metadata
+  CHROMEDRIVER_CDNBINARIESURL: https://npmmirror.com/binaries
   artifactRetentionDays: 14
 
 jobs:
