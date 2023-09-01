@@ -38,7 +38,7 @@ export {
  * A single field element in an index configuration.
  *
  * @deprecated Instead of creating cache indexes manually, consider using
- * `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
  * create cache indexes for queries running locally.
  *
  * @beta
@@ -68,7 +68,7 @@ export interface IndexField {
  * The SDK definition of a Firestore index.
  *
  * @deprecated Instead of creating cache indexes manually, consider using
- * `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
  * create cache indexes for queries running locally.
  *
  * @beta
@@ -89,7 +89,7 @@ export interface Index {
  * for a description of the format of the index definition.
  *
  * @deprecated Instead of creating cache indexes manually, consider using
- * `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
  * create cache indexes for queries running locally.
  *
  * @beta
@@ -121,7 +121,7 @@ export interface IndexConfiguration {
  * configured.
  *
  * @deprecated Instead of creating cache indexes manually, consider using
- * `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
  * create cache indexes for queries running locally.
  *
  * @beta
@@ -157,7 +157,7 @@ export function setIndexConfiguration(
  * configured.
  *
  * @deprecated Instead of creating cache indexes manually, consider using
- * `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
  * create cache indexes for queries running locally.
  *
  * @beta
