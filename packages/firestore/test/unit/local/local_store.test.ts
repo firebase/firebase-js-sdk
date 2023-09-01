@@ -627,8 +627,7 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  describe('genericLocalStoreTests', () =>
-    genericLocalStoreTests(initialize, /* gcIsEager= */ false));
+  genericLocalStoreTests(initialize, /* gcIsEager= */ false);
 });
 
 function genericLocalStoreTests(
