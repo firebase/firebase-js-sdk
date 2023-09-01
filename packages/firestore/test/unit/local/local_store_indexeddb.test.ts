@@ -642,4 +642,49 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
+  it('disable index auto creation works', async () => {
+    const query1 = query('coll', filter('value', 'in', [0, 1]));
+    const query2 = query('foo', filter('value', '!=', Number.NaN));
+
+    const targetId1 = await test.allocateQuery(query1);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [targetId1]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [targetId1]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [targetId1]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [targetId1]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [targetId1]));
+
+    // First time query runs without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query1);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    test.configureIndexAutoCreation({isEnabled: false,});
+    await test.backfillIndexes();
+    await test.executeQuery(query1);
+    test.assertRemoteDocumentsRead(2, 0);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    const targetId2 = await test.allocateQuery(query2);
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [targetId2]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [targetId2]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [targetId2]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [targetId2]));
+    await test.applyRemoteEvent(docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [targetId2]));
+
+    await test.executeQuery(query2);
+    test.assertRemoteDocumentsRead(0, 2);
+    await test.backfillIndexes();
+    await test.executeQuery(query2);
+    test.assertRemoteDocumentsRead(0, 2);
+  });
+
 });

@@ -2758,55 +2758,6 @@ function indexedDbLocalStoreTests(
   }
 
   // TODO(dconeybe) port this test next
-  it('disable index auto creation works', () => {
-    const query1 = query('coll', filter('value', 'in', [0, 1]));
-    const query2 = query('foo', filter('value', '!=', Number.NaN));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query1)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query1)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ isEnabled: false })
-        .afterBackfillIndexes()
-        .afterExecutingQuery(query1)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterAllocatingQuery(query2)
-        .toReturnTargetId(4)
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [2], []),
-          docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [2], [])
-        ])
-        .afterExecutingQuery(query2)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .afterBackfillIndexes()
-        .afterExecutingQuery(query2)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .finish()
-    );
-  });
-
   it('index auto creation works with mutation', () => {
     const query_ = query(
       'coll',
