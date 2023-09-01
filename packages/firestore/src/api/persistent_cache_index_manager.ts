@@ -67,8 +67,9 @@ export function getPersistentCacheIndexManager(
 }
 
 /**
- * Enables SDK to create persistent cache indexes automatically for local query
- * execution when SDK believes cache indexes can help improves performance.
+ * Enables the SDK to create persistent cache indexes automatically for local
+ * query execution when the SDK believes cache indexes can help improve
+ * performance.
  *
  * This feature is disabled by default.
  */
