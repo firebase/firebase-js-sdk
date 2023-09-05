@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PersistentCacheIndexManager class
-A `PersistentCacheIndexManager` which you can config persistent cache indexes used for local query execution.
+A `PersistentCacheIndexManager` for configuring persistent cache indexes used for local query execution.
 
 To use, call `getPersistentCacheIndexManager()` to get an instance.
 

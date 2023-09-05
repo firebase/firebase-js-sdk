@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 > Warning: This API is now obsolete.
 > 
-> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let SDK decide whether to create cache indexes for queries running locally.
+> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally.
 > 
 
 A single field element in an index configuration.
