@@ -31,7 +31,6 @@ import {
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
-import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -39,8 +38,6 @@ import {
   localStoreAllocateTarget,
   localStoreApplyBundledDocuments,
   localStoreApplyRemoteEventToLocalCache,
-  localStoreConfigureFieldIndexes,
-  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
@@ -55,8 +52,7 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore,
-  TestingHooks as LocalStoreTestingHooks
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -66,12 +62,6 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
-import {
-  FieldIndex,
-  IndexKind,
-  IndexSegment,
-  IndexState
-} from '../../../src/model/field_index';
 import { FieldMask } from '../../../src/model/field_mask';
 import {
   FieldTransform,
@@ -86,7 +76,6 @@ import {
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
 import { ObjectValue } from '../../../src/model/object_value';
-import { FieldPath } from '../../../src/model/path';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import { ServerTimestampTransform } from '../../../src/model/transform_operation';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
@@ -146,7 +135,6 @@ class LocalStoreTester {
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
   private bundleConverter: BundleConverterImpl;
-  private indexBackfiller: IndexBackfiller;
 
   private queryExecutionCount = 0;
 
@@ -157,7 +145,6 @@ class LocalStoreTester {
     readonly gcIsEager: boolean
   ) {
     this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
-    this.indexBackfiller = new IndexBackfiller(localStore, persistence);
   }
 
   private prepareNextStep(): void {
@@ -192,10 +179,6 @@ class LocalStoreTester {
     }
   }
 
-  afterMutation(mutation: Mutation): LocalStoreTester {
-    return this.afterMutations([mutation]);
-  }
-
   afterMutations(mutations: Mutation[]): LocalStoreTester {
     this.prepareNextStep();
 
@@ -220,11 +203,6 @@ class LocalStoreTester {
       .then((result: DocumentMap) => {
         this.lastChanges = result;
       });
-    return this;
-  }
-
-  afterRemoteEvents(remoteEvents: RemoteEvent[]): LocalStoreTester {
-    remoteEvents.forEach(remoteEvent => this.afterRemoteEvent(remoteEvent));
     return this;
   }
 
@@ -353,59 +331,6 @@ class LocalStoreTester {
     return this;
   }
 
-  afterIndexAutoCreationConfigure(config: {
-    isEnabled?: boolean;
-    indexAutoCreationMinCollectionSize?: number;
-    relativeIndexReadCostPerDocument?: number;
-  }): LocalStoreTester {
-    this.prepareNextStep();
-
-    this.promiseChain = this.promiseChain.then(() => {
-      if (config.isEnabled !== undefined) {
-        localStoreSetIndexAutoCreationEnabled(
-          this.localStore,
-          config.isEnabled
-        );
-      }
-      LocalStoreTestingHooks.setIndexAutoCreationSettings(
-        this.localStore,
-        config
-      );
-    });
-
-    return this;
-  }
-
-  afterDeleteAllFieldIndexes(): LocalStoreTester {
-    this.prepareNextStep();
-    this.promiseChain = this.promiseChain.then(() =>
-      localStoreDeleteAllFieldIndexes(this.localStore)
-    );
-    return this;
-  }
-
-  afterConfigureFieldIndexes(fieldIndexes: FieldIndex[]): LocalStoreTester {
-    this.prepareNextStep();
-    this.promiseChain = this.promiseChain.then(() =>
-      localStoreConfigureFieldIndexes(this.localStore, fieldIndexes)
-    );
-    return this;
-  }
-
-  afterBackfillIndexes(options?: {
-    maxDocumentsToProcess?: number;
-  }): LocalStoreTester {
-    this.prepareNextStep();
-
-    this.promiseChain = this.promiseChain.then(() =>
-      this.indexBackfiller
-        .backfill(options?.maxDocumentsToProcess)
-        .then(() => {})
-    );
-
-    return this;
-  }
-
   /**
    * Asserts the expected number of mutations and documents read by
    * the MutationQueue and the RemoteDocumentCache.
@@ -485,7 +410,7 @@ class LocalStoreTester {
   }
 
   toReturnChangedInternal(
-    docsOrKeyStrs: Document[] | string[],
+    docs: Document[],
     isEqual?: (lhs: Document | null, rhs: Document | null) => boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
@@ -493,21 +418,14 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnChanged() without prior after()'
       );
-      expect(this.lastChanges.size).to.equal(
-        docsOrKeyStrs.length,
-        'number of changes'
-      );
-      for (const docOrKeyStr of docsOrKeyStrs) {
-        const docKey =
-          typeof docOrKeyStr === 'string' ? key(docOrKeyStr) : docOrKeyStr.key;
-        const returned = this.lastChanges.get(docKey);
+      expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
+      for (const doc of docs) {
+        const returned = this.lastChanges.get(doc.key);
         const message = `Expected '${returned}' to equal '${doc}'.`;
-        if (typeof docOrKeyStr === 'string') {
-          expect(returned?.isValidDocument()).to.equal(true, message);
-        } else if (isEqual) {
-          expect(isEqual(docOrKeyStr, returned)).to.equal(true, message);
+        if (isEqual) {
+          expect(isEqual(doc, returned)).to.equal(true, message);
         } else {
-          expectEqual(docOrKeyStr, returned, message);
+          expectEqual(doc, returned, message);
         }
       }
       this.lastChanges = null;
@@ -515,10 +433,8 @@ class LocalStoreTester {
     return this;
   }
 
-  toReturnChanged(...docs: Document[]): LocalStoreTester;
-  toReturnChanged(...docKeyStrs: string[]): LocalStoreTester;
-  toReturnChanged(...docsOrKeyStrs: Document[] | string[]): LocalStoreTester {
-    return this.toReturnChangedInternal(docsOrKeyStrs);
+  toReturnChanged(...docs: Document[]): LocalStoreTester {
+    return this.toReturnChangedInternal(docs);
   }
 
   toReturnChangedWithDocComparator(
@@ -673,18 +589,6 @@ function compareDocsWithCreateTime(
   );
 }
 
-function fieldIndex(
-  collectionGroup: string,
-  indexId: number,
-  indexState: IndexState,
-  field: string,
-  kind: IndexKind
-): FieldIndex {
-  const fieldPath = new FieldPath(field.split('.'));
-  const segments = [new IndexSegment(fieldPath, kind)];
-  return new FieldIndex(indexId, collectionGroup, segments, indexState);
-}
-
 describe('LocalStore w/ Memory Persistence', () => {
   async function initialize(): Promise<LocalStoreComponents> {
     const queryEngine = new CountingQueryEngine();
@@ -723,10 +627,7 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  describe('genericLocalStoreTests', () =>
-    genericLocalStoreTests(initialize, /* gcIsEager= */ false));
-  describe('indexedDbLocalStoreTests', () =>
-    indexedDbLocalStoreTests(initialize, /* gcIsEager= */ false));
+  genericLocalStoreTests(initialize, /* gcIsEager= */ false);
 });
 
 function genericLocalStoreTests(
@@ -2726,376 +2627,4 @@ function genericLocalStoreTests(
       );
     }
   );
-}
-
-function indexedDbLocalStoreTests(
-  getComponents: () => Promise<LocalStoreComponents>,
-  gcIsEager: boolean
-): void {
-  let persistence: Persistence;
-  let localStore: LocalStore;
-  let queryEngine: CountingQueryEngine;
-
-  beforeEach(async () => {
-    const components = await getComponents();
-    persistence = components.persistence;
-    localStore = components.localStore;
-    queryEngine = components.queryEngine;
-  });
-
-  afterEach(async () => {
-    await persistence.shutdown();
-    await persistenceHelpers.clearTestPersistence();
-  });
-
-  function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(
-      localStore,
-      persistence,
-      queryEngine,
-      gcIsEager
-    );
-  }
-
-  it('can auto-create indexes', () => {
-    const query_ = query('coll', filter('matches', '==', true));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { matches: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { matches: true }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { matches: true }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 1 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
-  it('does not auto-create indexes for small collections', () => {
-    const query_ = query('coll', filter('count', '>=', 3));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [2], [])
-        ])
-        // SDK will not create indexes since collection size is too small.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { count: 4 }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 3 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
-  it('does not auto create indexes when index lookup is expensive', () => {
-    const query_ = query('coll', filter('array', 'array-contains-any', [0, 7]));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 5
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { array: [2, 7] }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { array: [] }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { array: [3] }), [2], []),
-          docAddedRemoteEvent(
-            doc('coll/d', 10, { array: [2, 10, 20] }),
-            [2],
-            []
-          ),
-          docAddedRemoteEvent(doc('coll/e', 10, { array: [2, 0, 8] }), [2], [])
-        ])
-        // SDK will not create indexes since relative read cost is too large.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { array: [0] }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 3 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
-  it('index auto creation works when backfiller runs halfway', () => {
-    const query_ = query('coll', filter('matches', '==', 'foo'));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterBackfillIndexes({ maxDocumentsToProcess: 2 })
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 1, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
-  it('index created by index auto creation exists after turn off auto creation', () => {
-    const query_ = query('coll', filter('value', 'not-in', [3]));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { value: 5 }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { value: 3 }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { value: 3 }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { value: 3 }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { value: 2 }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ isEnabled: false })
-        .afterBackfillIndexes()
-        .afterRemoteEvent(
-          docAddedRemoteEvent(doc('coll/f', 20, { value: 7 }), [2], [])
-        )
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 1 })
-        .toReturnChanged('coll/a', 'coll/e', 'coll/f')
-        .finish()
-    );
-  });
-
-  it('disable index auto creation works', () => {
-    const query1 = query('coll', filter('value', 'in', [0, 1]));
-    const query2 = query('foo', filter('value', '!=', Number.NaN));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query1)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { value: 1 }), [2], []),
-          docAddedRemoteEvent(doc('coll/b', 10, { value: 8 }), [2], []),
-          docAddedRemoteEvent(doc('coll/c', 10, { value: 'string' }), [2], []),
-          docAddedRemoteEvent(doc('coll/d', 10, { value: false }), [2], []),
-          docAddedRemoteEvent(doc('coll/e', 10, { value: 0 }), [2], [])
-        ])
-        // First time query runs without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query1)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ isEnabled: false })
-        .afterBackfillIndexes()
-        .afterExecutingQuery(query1)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterAllocatingQuery(query2)
-        .toReturnTargetId(4)
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('foo/a', 10, { value: 5 }), [2], []),
-          docAddedRemoteEvent(doc('foo/b', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/c', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/d', 10, { value: Number.NaN }), [2], []),
-          docAddedRemoteEvent(doc('foo/e', 10, { value: 'string' }), [2], [])
-        ])
-        .afterExecutingQuery(query2)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .afterBackfillIndexes()
-        .afterExecutingQuery(query2)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .finish()
-    );
-  });
-
-  it('index auto creation works with mutation', () => {
-    const query_ = query(
-      'coll',
-      filter('value', 'array-contains-any', [8, 1, 'string'])
-    );
-    return expectLocalStore()
-      .afterAllocatingQuery(query_)
-      .toReturnTargetId(2)
-      .afterIndexAutoCreationConfigure({
-        isEnabled: true,
-        indexAutoCreationMinCollectionSize: 0,
-        relativeIndexReadCostPerDocument: 2
-      })
-      .afterRemoteEvents([
-        docAddedRemoteEvent(
-          doc('coll/a', 10, { value: [8, 1, 'string'] }),
-          [2],
-          []
-        ),
-        docAddedRemoteEvent(doc('coll/b', 10, { value: [] }), [2], []),
-        docAddedRemoteEvent(doc('coll/c', 10, { value: [3] }), [2], []),
-        docAddedRemoteEvent(doc('coll/d', 10, { value: [0, 5] }), [2], []),
-        docAddedRemoteEvent(doc('coll/e', 10, { value: ['string'] }), [2], [])
-      ])
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-      .toReturnChanged('coll/a', 'coll/e')
-      .afterMutation(deleteMutation('coll/e'))
-      .afterBackfillIndexes()
-      .afterMutation(setMutation('coll/f', { value: [1] }))
-      .afterExecutingQuery(query_)
-      .toHaveRead({
-        documentsByKey: 1,
-        documentsByCollection: 0,
-        overlaysByKey: 1,
-        overlaysByCollection: 1
-      })
-      .toReturnChanged('coll/a', 'coll/f')
-      .finish();
-  });
-
-  it('delete all indexes works with index auto creation', () => {
-    const query_ = query('coll', filter('value', '==', 'match'));
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query_)
-        .toReturnTargetId(2)
-        .afterIndexAutoCreationConfigure({
-          isEnabled: true,
-          indexAutoCreationMinCollectionSize: 0,
-          relativeIndexReadCostPerDocument: 2
-        })
-        .afterRemoteEvents([
-          docAddedRemoteEvent(doc('coll/a', 10, { value: 'match' }), [2], []),
-          docAddedRemoteEvent(
-            doc('coll/b', 10, { value: Number.NaN }),
-            [2],
-            []
-          ),
-          docAddedRemoteEvent(doc('coll/c', 10, { value: null }), [2], []),
-          docAddedRemoteEvent(
-            doc('coll/d', 10, { value: 'mismatch' }),
-            [2],
-            []
-          ),
-          docAddedRemoteEvent(doc('coll/e', 10, { value: 'match' }), [2], [])
-        ])
-        // First time query is running without indexes.
-        // Based on current heuristic, collection document counts (5) >
-        // 2 * resultSize (2).
-        // Full matched index should be created.
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterIndexAutoCreationConfigure({ isEnabled: false })
-        .afterBackfillIndexes()
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 2, documentsByCollection: 0 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .afterDeleteAllFieldIndexes()
-        .afterExecutingQuery(query_)
-        .toHaveRead({ documentsByKey: 0, documentsByCollection: 2 })
-        .toReturnChanged('coll/a', 'coll/e')
-        .finish()
-    );
-  });
-
-  it('delete all indexes works with manual added indexes', () => {
-    const query_ = query('coll', filter('matches', '==', true));
-    return expectLocalStore()
-      .afterConfigureFieldIndexes([
-        fieldIndex(
-          'coll',
-          0,
-          IndexState.empty(),
-          'matches',
-          IndexKind.ASCENDING
-        )
-      ])
-      .afterAllocatingQuery(query_)
-      .toReturnTargetId(2)
-      .afterRemoteEvents([
-        docAddedRemoteEvent(doc('coll/a', 10, { matches: true }), [2], [])
-      ])
-      .afterBackfillIndexes()
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 1, documentsByCollection: 0 })
-      .toReturnChanged('coll/a')
-      .afterDeleteAllFieldIndexes()
-      .afterExecutingQuery(query_)
-      .toHaveRead({ documentsByKey: 0, documentsByCollection: 1 })
-      .toReturnChanged('coll/a')
-      .finish();
-  });
 }
