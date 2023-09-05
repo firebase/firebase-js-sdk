@@ -36,6 +36,11 @@ export {
 
 /**
  * A single field element in an index configuration.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface IndexField {
@@ -61,6 +66,11 @@ export interface IndexField {
 
 /**
  * The SDK definition of a Firestore index.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface Index {
@@ -77,6 +87,11 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface IndexConfiguration {
@@ -104,6 +119,11 @@ export interface IndexConfiguration {
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export function setIndexConfiguration(
@@ -135,6 +155,11 @@ export function setIndexConfiguration(
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export function setIndexConfiguration(
