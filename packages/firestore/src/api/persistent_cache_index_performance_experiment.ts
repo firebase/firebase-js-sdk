@@ -57,11 +57,12 @@ import { QueryContext } from '../local/query_context';
 export async function runPersistentCacheIndexPerformanceExperiment(
   log: (...args: unknown[]) => unknown,
   logLevel: 'info' | 'debug'
-): Promise<void> {
+): Promise<number> {
   const testObjects = await createTestObjects();
   const experiment = new AutoIndexingExperiment(log, logLevel, testObjects);
-  await experiment.run();
+  const heuristic = await experiment.run();
   await testObjects.persistence.shutdown();
+  return heuristic;
 }
 
 interface TestObjects {
@@ -98,7 +99,7 @@ class AutoIndexingExperiment {
     this.documentOverlayCache = testObjects.documentOverlayCache;
   }
 
-  async run(): Promise<void> {
+  async run(): Promise<number> {
     // Every set contains 10 documents
     const numOfSet = 100;
     // could overflow. Currently it is safe when numOfSet set to 1000 and running on macbook M1
@@ -227,6 +228,12 @@ class AutoIndexingExperiment {
     this.log(
       `The time heuristic is ` +
         `${totalAfterIndex / totalResultCount} after auto indexing`
+    );
+
+    return (
+      totalAfterIndex /
+      totalResultCount /
+      (totalBeforeIndex / totalDocumentCount)
     );
   }
 
