@@ -19,6 +19,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { debugAssert, fail } from '../util/assert';
 
 import { DocumentKey } from './document_key';
+import { FieldMask } from './field_mask';
 import { ObjectValue } from './object_value';
 import { FieldPath } from './path';
 import { valueCompare } from './values';
@@ -320,6 +321,20 @@ export class MutableDocument implements Document {
     return this;
   }
 
+  withMaskApplied(mask: FieldMask | undefined): MutableDocument {
+    if (!mask) {
+      return this;
+    }
+
+    const newData = ObjectValue.empty();
+    for (const path of mask.fields) {
+      newData.set(path, this.data.field(path)!);
+    }
+
+    this.data = newData;
+    return this;
+  }
+
   get hasLocalMutations(): boolean {
     return this.documentState === DocumentState.HAS_LOCAL_MUTATIONS;
   }
@@ -352,6 +367,7 @@ export class MutableDocument implements Document {
     return (
       other instanceof MutableDocument &&
       this.key.isEqual(other.key) &&
+      this.createTime.isEqual(other.createTime) &&
       this.version.isEqual(other.version) &&
       this.documentType === other.documentType &&
       this.documentState === other.documentState &&

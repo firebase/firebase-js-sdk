@@ -89,7 +89,8 @@ export class AggregateQuerySnapshot<
   constructor(
     query: Query<AppModelType, DbModelType>,
     private readonly _userDataWriter: AbstractUserDataWriter,
-    private readonly _data: ApiClientObjectMap<Value>
+    private readonly _data: ApiClientObjectMap<Value>,
+    private readonly _delta?: ApiClientObjectMap<number>
   ) {
     this.query = query;
   }
@@ -106,6 +107,7 @@ export class AggregateQuerySnapshot<
    * query.
    */
   data(): AggregateSpecData<AggregateSpecType> {
+    // TODO streaming-count need to add this._delta to this._data
     return this._userDataWriter.convertObjectMap(
       this._data
     ) as AggregateSpecData<AggregateSpecType>;

@@ -36,6 +36,7 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchTargetChange
 } from '../../../src/remote/watch_change';
 import { TimerId } from '../../../src/util/async_queue';
@@ -111,6 +112,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     watchChange:
       | DocumentWatchChange
       | WatchTargetChange
+      | WatchAggregateChange
       | ExistenceFilterChange,
     snapshot: SnapshotVersion
   ): Promise<void> {

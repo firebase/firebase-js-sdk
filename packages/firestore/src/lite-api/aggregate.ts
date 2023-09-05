@@ -213,6 +213,7 @@ export function aggregateQuerySnapshotEqual<
   right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 ): boolean {
   return (
-    queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())
+    queryEqual(left.query!, right.query!) &&
+    deepEqual(left.data(), right.data())
   );
 }

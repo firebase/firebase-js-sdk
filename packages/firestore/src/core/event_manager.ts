@@ -18,12 +18,27 @@
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
-import { OnlineState } from './types';
-import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import {
+  AggregateQuery,
+  aggregateQueryEquals,
+  canonifyAggregateQuery,
+  canonifyQuery,
+  Query,
+  queryEquals,
+  stringifyQuery
+} from './query';
+import { AggregateSnapshotAndDiscountedKeys } from './sync_engine_impl';
+import { OnlineState, TargetId } from './types';
+import {
+  AggregateViewSnapshot,
+  ChangeType,
+  DocumentViewChange,
+  ViewSnapshot
+} from './view_snapshot';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -54,16 +69,31 @@ export interface Observer<T> {
 export interface EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   onUnlisten?: (query: Query) => Promise<void>;
+
+  onListenAggregate?: (
+    query: AggregateQuery
+  ) => Promise<AggregateSnapshotAndDiscountedKeys>;
+  onUnlistenAggregate?: (targetId: TargetId) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
   return new EventManagerImpl();
 }
 
+interface AggregateView {
+  view: AggregateViewSnapshot;
+  observer: Observer<AggregateViewSnapshot>;
+}
+
 export class EventManagerImpl implements EventManager {
   queries = new ObjectMap<Query, QueryListenersInfo>(
     q => canonifyQuery(q),
     queryEquals
+  );
+
+  aggregateQueries = new ObjectMap<AggregateQuery, AggregateView>(
+    q => canonifyAggregateQuery(q),
+    aggregateQueryEquals
   );
 
   onlineState = OnlineState.Unknown;
@@ -74,6 +104,12 @@ export class EventManagerImpl implements EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query) => Promise<void>;
+
+  onListenAggregate?: (
+    query: AggregateQuery
+  ) => Promise<AggregateSnapshotAndDiscountedKeys>;
+
+  onUnlistenAggregate?: (targetId: TargetId) => Promise<void>;
 }
 
 export async function eventManagerListen(
@@ -125,6 +161,74 @@ export async function eventManagerListen(
   }
 }
 
+export async function eventManagerUnlistenAggregate(
+  eventManager: EventManager,
+  targetId: TargetId,
+  query: AggregateQuery
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  eventManagerImpl.aggregateQueries.delete(query);
+
+  // TODO streaming-count ensure this unlisten is implemented correctly
+  await eventManagerImpl.onUnlistenAggregate!(targetId);
+}
+
+export async function eventManagerListenAggregate(
+  eventManager: EventManager,
+  query: AggregateQuery,
+  observer: Observer<AggregateViewSnapshot>
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  debugAssert(
+    !!eventManagerImpl.onListenAggregate,
+    'onListenAggregate not set'
+  );
+
+  try {
+    const countSnap = await eventManagerImpl.onListenAggregate(query);
+    const view: AggregateView = {
+      observer,
+      view: {
+        snapshot: countSnap,
+        query,
+        fromCache: true,
+        initialDiscountedKeys: countSnap.cachedDiscountedKeys.toArray()
+      }
+    };
+
+    const case5Delta = Math.min(
+      countSnap.discountedKeys.size - view.view.initialDiscountedKeys!.length,
+      0
+    );
+    logDebug(
+      'COUNT',
+      `case5 delta is min(${countSnap.discountedKeys.size} - ${
+        view.view.initialDiscountedKeys!.length
+      }) = ${case5Delta}`
+    );
+
+    // delta is applied in API layer when proto Values are converted
+    // to numeric data types
+    view.view.snapshot.delta = {
+      count:
+        case5Delta +
+        (view.view.snapshot.delta ? view.view.snapshot.delta['count'] : 0)
+    };
+
+    eventManagerImpl.aggregateQueries.set(query, view);
+    observer.next(view.view);
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Initialization of aggregate query '${JSON.stringify(
+        query._baseQuery
+      )}' failed`
+    );
+    observer.error(firestoreError);
+    return;
+  }
+}
+
 export async function eventManagerUnlisten(
   eventManager: EventManager,
   listener: QueryListener
@@ -147,6 +251,52 @@ export async function eventManagerUnlisten(
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
     return eventManagerImpl.onUnlisten(query);
+  }
+}
+
+export function eventManagerOnWatchAggregateChange(
+  eventManager: EventManager,
+  snapshots: AggregateViewSnapshot[]
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  for (const snapshot of snapshots) {
+    const existingView = eventManagerImpl.aggregateQueries.get(snapshot.query);
+
+    // TODO streaming-count implement fan-out for multiple observers
+    const observer = existingView!.observer;
+    const newSnap = snapshot.snapshot;
+
+    if (!!snapshot.initialDiscountedKeys) {
+      existingView!.view.initialDiscountedKeys = snapshot.initialDiscountedKeys;
+    }
+
+    const case5Delta = Math.min(
+      newSnap.discountedKeys.size -
+        existingView!.view.initialDiscountedKeys!.length,
+      0
+    );
+    logDebug(
+      'COUNT',
+      `case5 delta is min(${newSnap.discountedKeys.size} - ${
+        existingView!.view.initialDiscountedKeys!.length
+      }) = ${case5Delta}`
+    );
+
+    existingView!.view.snapshot.snapshot = newSnap.snapshot;
+
+    // delta is applied in API layer when proto Values are converted
+    // to numeric data types
+    existingView!.view.snapshot.delta = {
+      count:
+        case5Delta +
+        (existingView!.view.snapshot.delta
+          ? existingView!.view.snapshot.delta['count']
+          : 0)
+    };
+
+    // TODO(COUNT): Dude...
+    observer?.next(existingView!.view);
   }
 }
 

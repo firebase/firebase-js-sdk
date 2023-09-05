@@ -32,11 +32,13 @@ import {
   DocumentMap
 } from '../model/collections';
 import { Document } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import {
   IndexOffset,
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { debugAssert } from '../util/assert';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
@@ -58,6 +60,13 @@ const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
  * TODO: Enter PR experiment URL above.
  */
 const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 2;
+
+export interface AggregateContext {
+  // TODO(COUNT): This should be able to handle multiple queries.
+  query: Query;
+  processingMask: FieldMask;
+  remoteMatches: DocumentKey[];
+}
 
 /**
  * The Firestore query engine.
@@ -129,8 +138,9 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
-  ): PersistencePromise<DocumentMap> {
+    remoteKeys: DocumentKeySet,
+    aggregateContext: AggregateContext | undefined
+  ): PersistencePromise<DocumentMap /*TODO(COUNT), remoteMatches*/> {
     debugAssert(this.initialized, 'initialize() not called');
 
     // Stores the result from executing the query; using this object is more
@@ -138,7 +148,7 @@ export class QueryEngine {
     // transaction and improves readability comparatively.
     const queryResult: { result: DocumentMap | null } = { result: null };
 
-    return this.performQueryUsingIndex(transaction, query)
+    return this.performQueryUsingIndex(transaction, query, aggregateContext)
       .next(result => {
         queryResult.result = result;
       })
@@ -150,7 +160,8 @@ export class QueryEngine {
           transaction,
           query,
           remoteKeys,
-          lastLimboFreeSnapshotVersion
+          lastLimboFreeSnapshotVersion,
+          aggregateContext
         ).next(result => {
           queryResult.result = result;
         });
@@ -160,19 +171,22 @@ export class QueryEngine {
           return;
         }
         const context = new QueryContext();
-        return this.executeFullCollectionScan(transaction, query, context).next(
-          result => {
-            queryResult.result = result;
-            if (this.indexAutoCreationEnabled) {
-              return this.createCacheIndexes(
-                transaction,
-                query,
-                context,
-                result.size
-              );
-            }
+        return this.executeFullCollectionScan(
+          transaction,
+          query,
+          context,
+          aggregateContext
+        ).next(result => {
+          queryResult.result = result;
+          if (this.indexAutoCreationEnabled) {
+            return this.createCacheIndexes(
+              transaction,
+              query,
+              context,
+              result.size
+            );
           }
-        );
+        });
       })
       .next(() => queryResult.result!);
   }
@@ -238,7 +252,8 @@ export class QueryEngine {
    */
   private performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap | null> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -277,7 +292,7 @@ export class QueryEngine {
             );
             const sortedKeys = documentKeySet(...keys);
             return this.localDocumentsView
-              .getDocuments(transaction, sortedKeys)
+              .getDocuments(transaction, sortedKeys, context)
               .next(indexedDocuments => {
                 return this.indexManager
                   .getMinOffset(transaction, target)
@@ -327,7 +342,8 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     remoteKeys: DocumentKeySet,
-    lastLimboFreeSnapshotVersion: SnapshotVersion
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
+    aggregateContext: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap | null> {
     if (queryMatchesAllDocuments(query)) {
       // Queries that match all documents don't benefit from using
@@ -342,43 +358,45 @@ export class QueryEngine {
       return PersistencePromise.resolve<DocumentMap | null>(null);
     }
 
-    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
-      documents => {
-        const previousResults = this.applyQuery(query, documents);
+    return this.localDocumentsView!.getDocuments(
+      transaction,
+      remoteKeys,
+      aggregateContext
+    ).next(documents => {
+      const previousResults = this.applyQuery(query, documents);
 
-        if (
-          this.needsRefill(
-            query,
-            previousResults,
-            remoteKeys,
-            lastLimboFreeSnapshotVersion
-          )
-        ) {
-          return PersistencePromise.resolve<DocumentMap | null>(null);
-        }
-
-        if (getLogLevel() <= LogLevel.DEBUG) {
-          logDebug(
-            'QueryEngine',
-            'Re-using previous result from %s to execute query: %s',
-            lastLimboFreeSnapshotVersion.toString(),
-            stringifyQuery(query)
-          );
-        }
-
-        // Retrieve all results for documents that were updated since the last
-        // limbo-document free remote snapshot.
-        return this.appendRemainingResults(
-          transaction,
-          previousResults,
+      if (
+        this.needsRefill(
           query,
-          newIndexOffsetSuccessorFromReadTime(
-            lastLimboFreeSnapshotVersion,
-            INITIAL_LARGEST_BATCH_ID
-          )
-        ).next<DocumentMap | null>(results => results);
+          previousResults,
+          remoteKeys,
+          lastLimboFreeSnapshotVersion
+        )
+      ) {
+        return PersistencePromise.resolve<DocumentMap | null>(null);
       }
-    );
+
+      if (getLogLevel() <= LogLevel.DEBUG) {
+        logDebug(
+          'QueryEngine',
+          'Re-using previous result from %s to execute query: %s',
+          lastLimboFreeSnapshotVersion.toString(),
+          stringifyQuery(query)
+        );
+      }
+
+      // Retrieve all results for documents that were updated since the last
+      // limbo-document free remote snapshot.
+      return this.appendRemainingResults(
+        transaction,
+        previousResults,
+        query,
+        newIndexOffsetSuccessorFromReadTime(
+          lastLimboFreeSnapshotVersion,
+          INITIAL_LARGEST_BATCH_ID
+        )
+      ).next<DocumentMap | null>(results => results);
+    });
   }
 
   /** Applies the query filter and sorting to the provided documents.  */
@@ -451,7 +469,8 @@ export class QueryEngine {
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
     query: Query,
-    context: QueryContext
+    context: QueryContext,
+    aggregateContext: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
@@ -465,7 +484,8 @@ export class QueryEngine {
       transaction,
       query,
       IndexOffset.min(),
-      context
+      context,
+      aggregateContext
     );
   }
 
@@ -477,11 +497,13 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     indexedResults: Iterable<Document>,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     // Retrieve all results for documents that were updated since the offset.
+
     return this.localDocumentsView
-      .getDocumentsMatchingQuery(transaction, query, offset)
+      .getDocumentsMatchingQuery(transaction, query, offset, undefined, context)
       .next(remainingResults => {
         // Merge with existing results
         indexedResults.forEach(d => {

@@ -371,7 +371,7 @@ apiDescribe('Aggregation queries', persistence => {
 
 // TODO (sum/avg) enable these tests when sum/avg is supported by the backend
 apiDescribe.skip('Aggregation queries - sum / average', persistence => {
-  it('can run sum query getAggregationFromServer', () => {
+  it('can run sum query getAggregateFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA', pages: 100 },
       b: { author: 'authorB', title: 'titleB', pages: 50 }
@@ -384,7 +384,7 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
     });
   });
 
-  it('can run average query getAggregationFromServer', () => {
+  it('can run average query getAggregateFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA', pages: 100 },
       b: { author: 'authorB', title: 'titleB', pages: 50 }
@@ -397,7 +397,7 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
     });
   });
 
-  it('can get multiple aggregations using getAggregationFromServer', () => {
+  it('can get multiple aggregations using getAggregateFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA', pages: 100 },
       b: { author: 'authorB', title: 'titleB', pages: 50 }

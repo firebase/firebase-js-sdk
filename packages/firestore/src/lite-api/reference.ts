@@ -21,9 +21,11 @@ import {
   newQueryForCollectionGroup,
   newQueryForPath,
   Query as InternalQuery,
-  queryEquals
+  queryEquals,
+  QueryImpl
 } from '../core/query';
 import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -265,6 +267,35 @@ export class DocumentReference<
       converter,
       this._key
     );
+  }
+
+  // countQuery(): AggregateQuery {
+  //   return new AggregateQuery(this);
+  // }
+}
+
+// TODO: Make this more generic
+export class AggregateQuery {
+  constructor(readonly _baseQuery: Query) {}
+
+  getHoldingMask(): FieldMask {
+    return FieldMask.empty();
+  }
+
+  getProcessingMask(): FieldMask {
+    let result = FieldMask.empty();
+
+    for (const filter of (this._baseQuery._query as QueryImpl).filters) {
+      // getFlattenedFilters will return all FieldFilters within a composite
+      // filter or return a FieldFilter itself.
+      for (const fieldFilter of filter.getFlattenedFilters()) {
+        result = result.unionWith([fieldFilter.field]);
+      }
+    }
+    result = result.unionWith(
+      this._baseQuery._query.explicitOrderBy.map(o => o.field)
+    );
+    return result;
   }
 }
 

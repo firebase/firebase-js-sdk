@@ -22,7 +22,7 @@ import { IndexManager } from '../../../src/local/index_manager';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { QueryEngine } from '../../../src/local/query_engine';
+import { AggregateContext, QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MutationType } from '../../../src/model/mutation';
@@ -71,13 +71,15 @@ export class CountingQueryEngine extends QueryEngine {
     transaction: PersistenceTransaction,
     query: Query,
     lastLimboFreeSnapshotVersion: SnapshotVersion,
-    remoteKeys: DocumentKeySet
+    remoteKeys: DocumentKeySet,
+    context: AggregateContext
   ): PersistencePromise<DocumentMap> {
     return super.getDocumentsMatchingQuery(
       transaction,
       query,
       lastLimboFreeSnapshotVersion,
-      remoteKeys
+      remoteKeys,
+      context
     );
   }
 
@@ -114,7 +116,8 @@ export class CountingQueryEngine extends QueryEngine {
             query,
             sinceReadTime,
             overlays,
-            context
+            context,
+            undefined
           )
           .next(result => {
             this.documentsReadByCollection += result.size;
@@ -140,14 +143,16 @@ export class CountingQueryEngine extends QueryEngine {
           });
       },
       getEntries: (transaction, documentKeys) => {
-        return subject.getEntries(transaction, documentKeys).next(result => {
-          result.forEach((key, doc) => {
-            if (doc.isValidDocument()) {
-              this.documentsReadByKey++;
-            }
+        return subject
+          .getEntries(transaction, documentKeys, undefined)
+          .next(result => {
+            result.forEach((key, doc) => {
+              if (doc.isValidDocument()) {
+                this.documentsReadByKey++;
+              }
+            });
+            return result;
           });
-          return result;
-        });
       },
       getEntry: (transaction, documentKey) => {
         return subject.getEntry(transaction, documentKey).next(result => {

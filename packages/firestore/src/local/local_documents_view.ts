@@ -61,6 +61,7 @@ import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
@@ -115,15 +116,25 @@ export class LocalDocumentsView {
    */
   getDocuments(
     transaction: PersistenceTransaction,
-    keys: DocumentKeySet
+    keys: DocumentKeySet,
+    context: AggregateContext | undefined = undefined
   ): PersistencePromise<DocumentMap> {
     return this.remoteDocumentCache
-      .getEntries(transaction, keys)
-      .next(docs =>
-        this.getLocalViewOfDocuments(transaction, docs, documentKeySet()).next(
-          () => docs as DocumentMap
-        )
-      );
+      .getEntries(transaction, keys, context?.processingMask)
+      .next(docs => {
+        if (!!context) {
+          docs.forEach((k, doc) => {
+            if (queryMatches(context.query, doc)) {
+              context.remoteMatches = context.remoteMatches.concat(k);
+            }
+          });
+        }
+        return this.getLocalViewOfDocuments(
+          transaction,
+          docs,
+          documentKeySet()
+        ).next(() => docs as DocumentMap);
+      });
   }
 
   /**
@@ -142,6 +153,7 @@ export class LocalDocumentsView {
     existenceStateChanged: DocumentKeySet = documentKeySet()
   ): PersistencePromise<DocumentMap> {
     const overlays = newOverlayMap();
+    // TODO(COUNT): Add mask
     return this.populateOverlays(transaction, overlays, docs).next(() => {
       return this.computeViews(
         transaction,
@@ -346,7 +358,7 @@ export class LocalDocumentsView {
     documentKeys: DocumentKeySet
   ): PersistencePromise<DocumentKeyMap<FieldMask | null>> {
     return this.remoteDocumentCache
-      .getEntries(transaction, documentKeys)
+      .getEntries(transaction, documentKeys, undefined)
       .next(docs => this.recalculateAndSaveOverlays(transaction, docs));
   }
 
@@ -363,23 +375,30 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
-      return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+      return this.getDocumentsMatchingDocumentQuery(
+        transaction,
+        query.path,
+        aggregateContext
+      );
     } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
         offset,
-        context
+        context,
+        aggregateContext
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
         offset,
-        context
+        context,
+        aggregateContext
       );
     }
   }
@@ -451,24 +470,34 @@ export class LocalDocumentsView {
                 documentKeySet()
               )
             )
-            .next(localDocs => ({
-              batchId: largestBatchId,
-              changes: convertOverlayedDocumentMapToDocumentMap(localDocs)
-            }));
+            .next(localDocs => {
+              return {
+                batchId: largestBatchId,
+                changes: convertOverlayedDocumentMapToDocumentMap(localDocs),
+                remoteAggregateMatches: undefined,
+                localAggregateMatches: undefined
+              } as LocalWriteResult;
+            });
         });
       });
   }
 
   private getDocumentsMatchingDocumentQuery(
     transaction: PersistenceTransaction,
-    docPath: ResourcePath
+    docPath: ResourcePath,
+    context: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Just do a simple document lookup.
     return this.getDocument(transaction, new DocumentKey(docPath)).next(
       document => {
         let result = documentMap();
         if (document.isFoundDocument()) {
-          result = result.insert(document.key, document);
+          result = result.insert(
+            document.key,
+            (document as MutableDocument).withMaskApplied(
+              context?.processingMask
+            )
+          );
         }
         return result;
       }
@@ -479,7 +508,8 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -501,7 +531,8 @@ export class LocalDocumentsView {
             transaction,
             collectionQuery,
             offset,
-            context
+            context,
+            aggregateContext
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -515,12 +546,17 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let overlays: OverlayMap;
     return this.documentOverlayCache
-      .getOverlaysForCollection(transaction, query.path, offset.largestBatchId)
+      .getOverlaysForCollection(
+        transaction,
+        query.path,
+        offset.largestBatchId /* TODO(COUNT): add mask */
+      )
       .next(result => {
         overlays = result;
         return this.remoteDocumentCache.getDocumentsMatchingQuery(
@@ -528,10 +564,22 @@ export class LocalDocumentsView {
           query,
           offset,
           overlays,
-          context
+          context,
+          aggregateContext
         );
       })
       .next(remoteDocuments => {
+        if (!!aggregateContext) {
+          remoteDocuments.forEach((k, doc) => {
+            // TODO (streaming-count) why does this next line match on `context.query` and not the `query` argument?
+            // TODO (streaming-count) do we still need to call queryMatches(...) here, or does `remoteDocumentCache.getDocumentsMatchingQuery(...)` already do the same thing?
+            if (queryMatches(aggregateContext.query, doc)) {
+              aggregateContext.remoteMatches =
+                aggregateContext.remoteMatches.concat(k);
+            }
+          });
+        }
+
         // As documents might match the query because of their overlay we need to
         // include documents for all overlays in the initial document set.
         overlays.forEach((_, overlay) => {

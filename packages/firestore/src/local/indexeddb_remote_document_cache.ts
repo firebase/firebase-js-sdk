@@ -27,6 +27,7 @@ import {
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { IndexOffset } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { ResourcePath } from '../model/path';
 import { debugAssert, hardAssert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
@@ -56,6 +57,7 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDbStore } from './simple_db';
@@ -179,14 +181,15 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
 
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined = undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
     return this.forEachDbEntry(
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        const doc = this.maybeDecodeDocument(key, dbRemoteDoc);
+        const doc = this.maybeDecodeDocument(key, dbRemoteDoc, projectionMask);
         results = results.insert(key, doc);
       }
     ).next(() => results);
@@ -281,7 +284,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     query: Query,
     offset: IndexOffset,
     mutatedDocs: OverlayMap,
-    context?: QueryContext
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey = [
@@ -312,7 +316,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
                 dbRemoteDoc.documentId
               )
             ),
-            dbRemoteDoc
+            dbRemoteDoc,
+            aggregateContext?.processingMask
           );
           if (
             document.isFoundDocument() &&
@@ -399,7 +404,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
    */
   private maybeDecodeDocument(
     documentKey: DocumentKey,
-    dbRemoteDoc: DbRemoteDocument | null
+    dbRemoteDoc: DbRemoteDocument | null,
+    mask: FieldMask | undefined = undefined
   ): MutableDocument {
     if (dbRemoteDoc) {
       const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
@@ -408,6 +414,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       const isSentinelRemoval =
         doc.isNoDocument() && doc.version.isEqual(SnapshotVersion.min());
       if (!isSentinelRemoval) {
+        doc.withMaskApplied(mask);
         return doc;
       }
     }

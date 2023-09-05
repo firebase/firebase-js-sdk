@@ -30,12 +30,15 @@ import {
   indexOffsetComparator,
   newIndexOffsetFromDocument
 } from '../model/field_index';
+import { FieldMask } from '../model/field_mask';
 import { debugAssert, fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
+import { AggregateContext } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -145,7 +148,8 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
 
   getEntries(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: DocumentKeySet,
+    projectionMask: FieldMask | undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
     documentKeys.forEach(documentKey => {
@@ -164,7 +168,9 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    mutatedDocs: OverlayMap
+    mutatedDocs: OverlayMap,
+    context: QueryContext | undefined,
+    aggregateContext: AggregateContext | undefined
   ): PersistencePromise<MutableDocumentMap> {
     let results = mutableDocumentMap();
 
@@ -278,6 +284,6 @@ class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutableDocumentMap> {
-    return this.documentCache.getEntries(transaction, documentKeys);
+    return this.documentCache.getEntries(transaction, documentKeys, undefined);
   }
 }

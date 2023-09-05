@@ -17,15 +17,17 @@
 
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldMask } from '../model/field_mask';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
 
+import { Aggregate } from './aggregate';
 import {
   Bound,
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { Filter } from './filter';
+import { FieldFilter, Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -55,6 +57,26 @@ export interface Query {
   readonly limitType: LimitType;
   readonly startAt: Bound | null;
   readonly endAt: Bound | null;
+}
+
+// TODO (streaming-count) update for aggregation operation
+export class AggregateQuery {
+  constructor(readonly _baseQuery: Query, readonly _aggregates: Aggregate[]) {}
+
+  getHoldingMask(): FieldMask {
+    return FieldMask.empty();
+  }
+
+  getProcessingMask(): FieldMask {
+    let result = FieldMask.empty();
+    for (const f of (this._baseQuery as QueryImpl).filters) {
+      result = result.unionWith([(f as FieldFilter).field]);
+    }
+    result = result.unionWith(
+      this._baseQuery.explicitOrderBy.map(o => o.field)
+    );
+    return result;
+  }
 }
 
 /**
@@ -452,6 +474,21 @@ export function queryEquals(left: Query, right: Query): boolean {
 // collisions. Make it collision-free.
 export function canonifyQuery(query: Query): string {
   return `${canonifyTarget(queryToTarget(query))}|lt:${query.limitType}`;
+}
+
+export function aggregateQueryEquals(
+  left: AggregateQuery,
+  right: AggregateQuery
+): boolean {
+  // TODO: This should be updated to include the type of aggregation as well as
+  //  the relevant masks.
+  return queryEquals(left._baseQuery, right._baseQuery);
+}
+
+export function canonifyAggregateQuery(query: AggregateQuery): string {
+  // TODO (streaming-count): This should be updated to include the type of aggregation as well as
+  //  the relevant masks.
+  return `countOn:${canonifyQuery(query._baseQuery)}`;
 }
 
 export function stringifyQuery(query: Query): string {

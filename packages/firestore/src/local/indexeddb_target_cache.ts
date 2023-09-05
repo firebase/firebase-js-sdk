@@ -22,16 +22,25 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { AggregationResult as ProtoAggregationResult } from '../protos/firestore_proto_api';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 
 import {
   decodeResourcePath,
+  EncodedResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
 import { IndexedDbLruDelegate } from './indexeddb_lru_delegate';
-import { DbTarget, DbTargetDocument, DbTargetGlobal } from './indexeddb_schema';
 import {
+  DbTarget,
+  DbTargetDocument,
+  DbTargetGlobal,
+  DbTargetAggregation
+} from './indexeddb_schema';
+import {
+  DbTargetAggregationKey,
+  DbTargetAggregationStore,
   DbTargetDocumentDocumentTargetsIndex,
   DbTargetDocumentKey,
   DbTargetDocumentStore,
@@ -47,7 +56,7 @@ import { ActiveTargets } from './lru_garbage_collector';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
-import { TargetCache } from './target_cache';
+import { TargetAggregationResult, TargetCache } from './target_cache';
 import { TargetData } from './target_data';
 
 export class IndexedDbTargetCache implements TargetCache {
@@ -379,6 +388,67 @@ export class IndexedDbTargetCache implements TargetCache {
       .next(() => count > 0);
   }
 
+  getTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<TargetAggregationResult | undefined> {
+    return targetAggregationStore(transaction)
+      .get(targetId)
+      .next(result => {
+        if (!result) {
+          return undefined;
+        }
+        return {
+          result: result!.result,
+          readTime: SnapshotVersion.fromTimestamp(
+            new Timestamp(
+              result!.readTime.seconds,
+              result!.readTime.nanoseconds
+            )
+          ),
+          localAggregateMatches: result?.localAggregateMatches || undefined
+        } as TargetAggregationResult;
+      });
+  }
+
+  saveTargetAggregation(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    result: ProtoAggregationResult,
+    readTime: SnapshotVersion,
+    localAggregateMatches?: EncodedResourcePath[]
+  ): PersistencePromise<void> {
+    return targetAggregationStore(transaction).put({
+      targetId,
+      readTime: {
+        seconds: readTime.toTimestamp().seconds,
+        nanoseconds: readTime.toTimestamp().nanoseconds
+      },
+      localAggregateMatches,
+      result
+    });
+  }
+
+  updateDiscountedKeys(
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    localAggregateMatches: DocumentKey[]
+  ): PersistencePromise<void> {
+    return targetAggregationStore(transaction)
+      .get(targetId)
+      .next(result => {
+        hardAssert(result !== null, 'Expect aggregate result to exist');
+        return targetAggregationStore(transaction).put({
+          targetId,
+          readTime: result.readTime,
+          localAggregateMatches: localAggregateMatches.map(key =>
+            encodeResourcePath(key.path)
+          ),
+          result: result.result
+        });
+      });
+  }
+
   /**
    * Looks up a TargetData entry by target ID.
    *
@@ -430,5 +500,14 @@ export function documentTargetStore(
   return getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
     DbTargetDocumentStore
+  );
+}
+
+export function targetAggregationStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbTargetAggregationKey, DbTargetAggregation> {
+  return getStore<DbTargetAggregationKey, DbTargetAggregation>(
+    txn,
+    DbTargetAggregationStore
   );
 }

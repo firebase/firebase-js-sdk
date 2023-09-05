@@ -26,7 +26,10 @@ import {
 } from '../../../src/core/component_provider';
 import { Observer } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import {
+  AggregateViewSnapshot,
+  ViewSnapshot
+} from '../../../src/core/view_snapshot';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
@@ -455,6 +458,23 @@ export class EventAggregator implements Observer<ViewSnapshot> {
   }
 }
 
+export class AggregateEventAggregator
+  implements Observer<AggregateViewSnapshot>
+{
+  constructor(private pushEvent: (e: AggregateQueryEvent) => void) {}
+
+  next(view: AggregateViewSnapshot): void {
+    this.pushEvent({
+      view
+    });
+  }
+
+  error(error: Error): void {
+    expect(error.name).to.equal('FirebaseError');
+    this.pushEvent({ error: error as FirestoreError });
+  }
+}
+
 /**
  * FIFO queue that tracks all outstanding mutations for a single test run.
  * As these mutations are shared among the set of active clients, any client can
@@ -486,5 +506,10 @@ export class SharedWriteTracker {
 export interface QueryEvent {
   query: Query;
   view?: ViewSnapshot;
+  error?: FirestoreError;
+}
+
+export interface AggregateQueryEvent {
+  view?: AggregateViewSnapshot;
   error?: FirestoreError;
 }

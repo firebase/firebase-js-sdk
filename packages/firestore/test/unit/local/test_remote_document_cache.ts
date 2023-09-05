@@ -106,7 +106,7 @@ export class TestRemoteDocumentCache {
 
   getEntries(documentKeys: DocumentKeySet): Promise<MutableDocumentMap> {
     return this.persistence.runTransaction('getEntries', 'readonly', txn => {
-      return this.cache.getEntries(txn, documentKeys);
+      return this.cache.getEntries(txn, documentKeys, undefined);
     });
   }
 
@@ -119,7 +119,14 @@ export class TestRemoteDocumentCache {
       'getAllFromCollection',
       'readonly',
       txn =>
-        this.cache.getDocumentsMatchingQuery(txn, query, offset, mutatedDocs)
+        this.cache.getDocumentsMatchingQuery(
+          txn,
+          query,
+          offset,
+          mutatedDocs,
+          undefined,
+          undefined
+        )
     );
   }
 

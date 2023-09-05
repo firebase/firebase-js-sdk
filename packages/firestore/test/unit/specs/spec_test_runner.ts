@@ -37,9 +37,12 @@ import {
   Observer,
   QueryListener,
   removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener
+  addSnapshotsInSyncListener,
+  eventManagerListenAggregate,
+  eventManagerUnlistenAggregate
 } from '../../../src/core/event_manager';
 import {
+  AggregateQuery,
   canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
@@ -59,7 +62,9 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  syncEngineListenAggregate,
+  syncEngineUnlistenAggregate
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -78,7 +83,10 @@ import {
   DbPrimaryClientStore
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
-import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
+import {
+  localStoreConfigureFieldIndexes,
+  localStoreWriteCount
+} from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
@@ -116,6 +124,7 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
@@ -150,7 +159,10 @@ import {
   validateFirestoreError,
   version
 } from '../../util/helpers';
-import { encodeWatchChange } from '../../util/spec_test_helpers';
+import {
+  encodeWatchAggregateChange,
+  encodeWatchChange
+} from '../../util/spec_test_helpers';
 import {
   FakeDocument,
   SharedFakeWebStorage,
@@ -168,6 +180,8 @@ import {
 import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
 import {
+  AggregateEventAggregator,
+  AggregateQueryEvent,
   EventAggregator,
   MockConnection,
   MockIndexedDbPersistence,
@@ -227,6 +241,7 @@ abstract class TestRunner {
   private syncEngine!: SyncEngine;
 
   private eventList: QueryEvent[] = [];
+  private aggregateEventList: AggregateQueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
   private waitForPendingWritesEvents = 0;
@@ -348,7 +363,15 @@ abstract class TestRunner {
     this.eventManager = onlineComponentProvider.eventManager;
 
     this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
+    this.eventManager.onListenAggregate = syncEngineListenAggregate.bind(
+      null,
+      this.syncEngine
+    );
     this.eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      this.syncEngine
+    );
+    this.eventManager.onUnlistenAggregate = syncEngineUnlistenAggregate.bind(
       null,
       this.syncEngine
     );
@@ -389,6 +412,7 @@ abstract class TestRunner {
     await this.doStep(step);
     await this.queue.drain();
     this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
+    this.validateExpectedCountSnapshotEvents(step.expectedCountSnapshotEvents!);
     await this.validateExpectedState(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.validateWaitForPendingWritesEvents(
@@ -406,6 +430,12 @@ abstract class TestRunner {
       return this.doUnlisten(step.userUnlisten!);
     } else if ('userSet' in step) {
       return this.doSet(step.userSet!);
+    } else if ('setCount' in step) {
+      return this.doSetCount(step.setCount!);
+    } else if ('userListenCount' in step) {
+      return this.doUserListenCount(step.userListenCount!);
+    } else if ('userUnlistenCount' in step) {
+      return this.doUserUnlistenCount(step.userUnlistenCount!);
     } else if ('userPatch' in step) {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
@@ -420,6 +450,8 @@ abstract class TestRunner {
       return this.doSetIndexConfiguration(step.setIndexConfiguration!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
+    } else if ('watchAckCount' in step) {
+      return this.doWatchAckCount(step.watchAckCount!);
     } else if ('watchCurrent' in step) {
       return this.doWatchCurrent(step.watchCurrent!);
     } else if ('watchRemove' in step) {
@@ -529,6 +561,28 @@ abstract class TestRunner {
     );
   }
 
+  private doSetCount(setSpec: SpecSetCount): Promise<void> {
+    return localStoreWriteCount(
+      this.localStore,
+      setSpec[0],
+      setSpec[1],
+      version(setSpec[2])
+    );
+  }
+
+  private doUserListenCount(spec: SpecUserListenCount): Promise<void> {
+    const aggregator = new AggregateEventAggregator(e => {
+      this.pushAggregateEvent(e);
+    });
+    return eventManagerListenAggregate(this.eventManager, spec, aggregator);
+  }
+
+  private async doUserUnlistenCount(
+    spec: SpecUserUnlistenCount
+  ): Promise<void> {
+    return eventManagerUnlistenAggregate(this.eventManager, spec[0], spec[1]);
+  }
+
   private doSet(setSpec: SpecUserSet): Promise<void> {
     return this.doMutations([setMutation(setSpec[0], setSpec[1])]);
   }
@@ -611,6 +665,13 @@ abstract class TestRunner {
       WatchTargetChangeState.Added,
       ackedTargets
     );
+    return this.doWatchEvent(change);
+  }
+
+  private doWatchAckCount(ackedTargets: SpecWatchAckCount): Promise<void> {
+    const change = new WatchTargetChange(WatchTargetChangeState.Added, [
+      ackedTargets[1]
+    ]);
     return this.doWatchEvent(change);
   }
 
@@ -705,6 +766,14 @@ abstract class TestRunner {
         null
       );
       return this.doWatchEvent(change);
+    } else if (watchEntity.aggregates) {
+      return this.doWatchCountEvent(
+        new WatchAggregateChange(
+          watchEntity.aggregates.count,
+          watchEntity.targets![0],
+          version(watchEntity.aggregates.readTime)
+        )
+      );
     } else {
       return fail('Either doc or docs must be set');
     }
@@ -742,6 +811,15 @@ abstract class TestRunner {
 
   private async doWatchEvent(watchChange: WatchChange): Promise<void> {
     const protoJSON = encodeWatchChange(watchChange);
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    // Put a no-op in the queue so that we know when any outstanding RemoteStore
+    // writes on the network are complete.
+    return this.queue.enqueue(async () => {});
+  }
+
+  private async doWatchCountEvent(change: WatchAggregateChange): Promise<void> {
+    const protoJSON = encodeWatchAggregateChange(change);
     this.connection.watchStream!.callOnMessage(protoJSON);
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
@@ -911,6 +989,32 @@ abstract class TestRunner {
     this.persistence.injectFailures = [];
   }
 
+  private validateExpectedCountSnapshotEvents(
+    expectedEvents: CountSnapshotEvent[]
+  ): void {
+    if (expectedEvents) {
+      expect(this.aggregateEventList.length).to.equal(
+        expectedEvents.length,
+        'Number of expected and actual events mismatch'
+      );
+
+      for (let i = 0; i < expectedEvents.length; i++) {
+        const actual = this.aggregateEventList[i];
+        const expected = expectedEvents[i];
+        expect({
+          count: actual.view?.snapshot.snapshot['count'].integerValue
+        }).to.deep.equal(expected);
+      }
+
+      this.aggregateEventList = [];
+    } else {
+      expect(this.aggregateEventList.length).to.equal(
+        0,
+        'Unexpected events: ' + JSON.stringify(this.aggregateEventList)
+      );
+    }
+  }
+
   private validateExpectedSnapshotEvents(
     expectedEvents: SnapshotEvent[]
   ): void {
@@ -936,7 +1040,7 @@ abstract class TestRunner {
     } else {
       expect(this.eventList.length).to.equal(
         0,
-        'Unexpected events: ' + JSON.stringify(this.eventList)
+        'Unexpected events: ' + JSON.stringify(this.eventList, undefined, 2)
       );
     }
   }
@@ -1237,6 +1341,10 @@ abstract class TestRunner {
     this.eventList.push(e);
   }
 
+  private pushAggregateEvent(e: AggregateQueryEvent): void {
+    this.aggregateEventList.push(e);
+  }
+
   private parseChange(
     type: ChangeType,
     change: SpecDocument
@@ -1434,6 +1542,9 @@ export interface SpecStep {
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
   userUnlisten?: SpecUserUnlisten;
+  setCount?: SpecSetCount;
+  userListenCount?: SpecUserListenCount;
+  userUnlistenCount?: SpecUserUnlistenCount;
   /** Perform a user initiated set */
   userSet?: SpecUserSet;
   /** Perform a user initiated patch */
@@ -1449,6 +1560,7 @@ export interface SpecStep {
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
+  watchAckCount?: SpecWatchAckCount;
   /** Marks the query results as current */
   watchCurrent?: SpecWatchCurrent;
   /** Reset the results of a query */
@@ -1520,6 +1632,7 @@ export interface SpecStep {
    * If not provided, the test will fail if the step causes events to be raised.
    */
   expectedSnapshotEvents?: SnapshotEvent[];
+  expectedCountSnapshotEvents?: CountSnapshotEvent[];
 
   /**
    * Optional dictionary of expected states.
@@ -1547,6 +1660,9 @@ export interface SpecUserListen {
 /** [<target-id>, <query-path>] */
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];
 
+export type SpecSetCount = [number, number, number];
+export type SpecUserListenCount = AggregateQuery;
+export type SpecUserUnlistenCount = [TargetId, AggregateQuery];
 /** [<key>, <value>] */
 export type SpecUserSet = [string, JsonObject<unknown>];
 
@@ -1558,6 +1674,7 @@ export type SpecUserDelete = string;
 
 /** [<target-id>, ...] */
 export type SpecWatchAck = TargetId[];
+export type SpecWatchAckCount = [AggregateQuery, TargetId];
 
 /** [[<target-id>, ...], <resume-token>] */
 export type SpecWatchCurrent = [TargetId[], string];
@@ -1614,12 +1731,13 @@ export interface SpecWriteFailure {
 }
 
 export interface SpecWatchEntity {
-  // exactly one of key, doc or docs is set
+  // exactly one of key, doc or docs or count is set
   key?: string;
   /** [<key>, <version>, <value>] */
   doc?: SpecDocument;
   /** [<key>, <version>, <value>][] */
   docs?: SpecDocument[];
+  aggregates?: SpecAggregates;
   /** [<target-id>, ...] */
   targets?: TargetId[];
   /** [<target-id>, ...] */
@@ -1683,8 +1801,15 @@ export interface SpecDocument {
   options?: DocumentOptions;
 }
 
+export interface SpecAggregates {
+  readTime: TestSnapshotVersion;
+  // TODO streaming-aggregation make this generic for multiple aggregations
+  count: number;
+}
+
 export interface SnapshotEvent {
   query: SpecQuery;
+  count?: number;
   errorCode?: number;
   fromCache?: boolean;
   hasPendingWrites?: boolean;
@@ -1692,6 +1817,11 @@ export interface SnapshotEvent {
   removed?: SpecDocument[];
   modified?: SpecDocument[];
   metadata?: SpecDocument[];
+}
+
+export interface CountSnapshotEvent {
+  count?: number;
+  fromCache?: boolean;
 }
 
 export interface StateExpectation {

@@ -26,6 +26,7 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  WatchAggregateChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
@@ -101,6 +102,20 @@ export function encodeWatchChange(
     };
   }
   return fail('Unrecognized watch change: ' + JSON.stringify(watchChange));
+}
+
+export function encodeWatchAggregateChange(
+  change: WatchAggregateChange
+): api.ListenResponse {
+  return {
+    aggregationView: {
+      targetId: change.targetId,
+      aggregationResult: {
+        aggregateFields: { count: { integerValue: change.count } }
+      },
+      readTime: toVersion(serializer, change.readTime)
+    }
+  };
 }
 
 function encodeTargetChangeTargetChangeType(

@@ -398,7 +398,7 @@ export function fromDbDocumentOverlay(
     fromMutation(
       localSerializer.remoteSerializer,
       dbDocumentOverlay.overlayMutation
-    )
+    ) // TODO(Count): Implement .withMaskApplied(mask)
   );
 }
 

@@ -28,6 +28,8 @@ import { ByteString } from '../util/byte_string';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 
+import { WatchAggregateChange } from './watch_change';
+
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
  * state or the set of documents in our watched targets) and documentUpdates
@@ -57,7 +59,9 @@ export class RemoteEvent {
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
-    readonly resolvedLimboDocuments: DocumentKeySet
+    readonly resolvedLimboDocuments: DocumentKeySet,
+
+    readonly aggregateChanges: WatchAggregateChange[]
   ) {}
 
   /**
@@ -86,7 +90,8 @@ export class RemoteEvent {
       targetChanges,
       new SortedMap<TargetId, TargetPurpose>(primitiveComparator),
       mutableDocumentMap(),
-      documentKeySet()
+      documentKeySet(),
+      []
     );
   }
 }
