@@ -959,10 +959,10 @@ describeSpec('Limbo Documents:', [], () => {
           // While this client was disconnected, another client deleted all the
           // docAs replaced them with docBs. If Watch has to re-run the
           // underlying query when this client re-listens, Watch won't be able
-          // to tell that docAs were deleted and will only send us existing
-          // documents that changed since the resume token. This will cause it
-          // to just send the docBs with an existence filter with a count of 3.
+          // to tell that docAs were deleted and will only send us watch change
+          // for new docs added since the resume token.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
+          // The existence filter will include the docBs with a count of 3.
           .watchFilters(
             [query1],
             [docB1.key, docB2.key, docB3.key],
