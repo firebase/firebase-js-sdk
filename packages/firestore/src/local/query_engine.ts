@@ -55,9 +55,10 @@ const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
  * (([index, docKey] + [docKey, docContent]) per document in the result set)
  * / ([docKey, docContent] per documents in full collection scan) coming from
  * experiment [enter PR experiment URL here].
- * TODO: Enter PR experiment URL above.
+ * TODO(b/299284287) Choose a value appropriate for the browser/OS combination,
+ *  as determined by more data points from running the experiment.
  */
-const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 2;
+const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
 
 /**
  * The Firestore query engine.
