@@ -19,7 +19,7 @@
     "@changesets/types": "3.3.0",
     "@changesets/get-github-info": "0.5.2",
     "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.2"
+    "@types/node-fetch": "2.6.4"
   },
   "license": "Apache-2.0",
   "devDependencies": {
