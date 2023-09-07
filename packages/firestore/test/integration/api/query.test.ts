@@ -1877,7 +1877,7 @@ apiDescribe('Queries', persistence => {
           );
 
           // explicit AND: a < 3 && b not-in [2, 3]
-          // Implicitly ordered by: a asc, __name__ asc
+          // Implicitly ordered by: a asc, b asc, __name__ asc
           await checkOnlineAndOfflineResultsMatch(
             query(coll, and(where('a', '<', 3), where('b', 'not-in', [2, 3]))),
             'doc1',
