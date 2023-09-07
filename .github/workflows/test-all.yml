@@ -7,6 +7,8 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
+  # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
+  # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
   artifactRetentionDays: 14
