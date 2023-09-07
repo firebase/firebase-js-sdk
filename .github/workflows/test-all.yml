@@ -102,7 +102,6 @@ jobs:
       - name: install Chrome stable
         run: |
           npx @puppeteer/browsers install chrome@stable
-          npx @puppeteer/browsers install chromedriver@stable
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:

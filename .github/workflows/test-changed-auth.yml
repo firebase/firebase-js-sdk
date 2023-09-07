@@ -19,7 +19,6 @@ jobs:
       - name: install Chrome stable
         run: |
           npx @puppeteer/browsers install chrome@stable
-          npx @puppeteer/browsers install chromedriver@stable
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
