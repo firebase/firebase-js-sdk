@@ -63,6 +63,7 @@ import {
   filter,
   key,
   orderBy,
+  orFilter,
   query,
   setMutation,
   version
@@ -534,8 +535,51 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
   });
 
+  it('can auto-create indexes works with or query', async () => {
+    const query_ = query(
+      'coll',
+      orFilter(filter('a', '==', 3), filter('b', '==', true))
+    );
+    const targetId = await test.allocateQuery(query_);
+    test.configureIndexAutoCreation({
+      isEnabled: true,
+      indexAutoCreationMinCollectionSize: 0,
+      relativeIndexReadCostPerDocument: 2
+    });
+
+    await test.applyRemoteEvents(
+      docAddedRemoteEvent(doc('coll/a', 10, { b: true }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { b: false }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { a: 5, b: false }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { a: true }), [targetId]),
+      docAddedRemoteEvent(doc('coll/e', 10, { a: 3, b: true }), [targetId])
+    );
+
+    // First time query runs without indexes.
+    // Based on current heuristic, collection document counts (5) >
+    // 2 * resultSize (2).
+    // Full matched index should be created.
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    await test.backfillIndexes();
+
+    await test.applyRemoteEvent(
+      docAddedRemoteEvent(doc('coll/f', 20, { a: 3, b: false }), [targetId])
+    );
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(2, 1);
+    test.assertQueryReturned('coll/a', 'coll/e', 'coll/f');
+  });
+
   it('does not auto-create indexes for small collections', async () => {
-    const query_ = query('coll', filter('count', '>=', 3));
+    const query_ = query(
+      'coll',
+      filter('foo', '==', 9),
+      filter('count', '>=', 3)
+    );
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
       isEnabled: true,
@@ -543,11 +587,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     });
 
     await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { count: 5 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { count: 1 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { count: 0 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { count: 1 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { count: 3 }), [targetId])
+      docAddedRemoteEvent(doc('coll/a', 10, { foo: 9, count: 5 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/b', 10, { foo: 8, count: 6 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/c', 10, { foo: 9, count: 0 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { count: 4 }), [targetId]),
+      docAddedRemoteEvent(doc('coll/e', 10, { foo: 9, count: 3 }), [targetId])
     );
 
     // SDK will not create indexes since collection size is too small.
@@ -558,7 +602,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.backfillIndexes();
 
     await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { count: 4 }), [targetId])
+      docAddedRemoteEvent(doc('coll/f', 20, { foo: 9, count: 4 }), [targetId])
     );
 
     await test.executeQuery(query_);
@@ -602,7 +646,11 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   });
 
   it('index auto creation works when backfiller runs halfway', async () => {
-    const query_ = query('coll', filter('matches', '==', 'foo'));
+    const query_ = query(
+      'coll',
+      filter('matches', '==', 'foo'),
+      filter('count', '>', 10)
+    );
     const targetId = await test.allocateQuery(query_);
     test.configureIndexAutoCreation({
       isEnabled: true,
@@ -611,11 +659,19 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     });
 
     await test.applyRemoteEvents(
-      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/b', 10, { matches: '' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'bar' }), [targetId]),
-      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7 }), [targetId]),
-      docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo' }), [targetId])
+      docAddedRemoteEvent(doc('coll/a', 10, { matches: 'foo', count: 11 }), [
+        targetId
+      ]),
+      docAddedRemoteEvent(doc('coll/b', 10, { matches: 'foo', count: 9 }), [
+        targetId
+      ]),
+      docAddedRemoteEvent(doc('coll/c', 10, { matches: 'foo' }), [targetId]),
+      docAddedRemoteEvent(doc('coll/d', 10, { matches: 7, count: 11 }), [
+        targetId
+      ]),
+      docAddedRemoteEvent(doc('coll/e', 10, { matches: 'foo', count: 21 }), [
+        targetId
+      ])
     );
 
     // First time query runs without indexes.
@@ -629,7 +685,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.backfillIndexes({ maxDocumentsToProcess: 2 });
 
     await test.applyRemoteEvent(
-      docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo' }), [targetId])
+      docAddedRemoteEvent(doc('coll/f', 20, { matches: 'foo', count: 15 }), [
+        targetId
+      ])
     );
 
     await test.executeQuery(query_);
@@ -718,9 +776,14 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
 
     await test.executeQuery(query2);
     test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('foo/a', 'foo/e');
+
     await test.backfillIndexes();
+
+    // Run the query in second time, test index won't be created
     await test.executeQuery(query2);
     test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('foo/a', 'foo/e');
   });
 
   it('index auto creation works with mutation', async () => {
@@ -786,7 +849,6 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
 
-    test.configureIndexAutoCreation({ isEnabled: false });
     await test.backfillIndexes();
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(2, 0);
@@ -795,6 +857,13 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.deleteAllFieldIndexes();
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 2);
+    test.assertQueryReturned('coll/a', 'coll/e');
+
+    // Field index is created again.
+    await test.backfillIndexes();
+
+    await test.executeQuery(query_);
+    test.assertRemoteDocumentsRead(2, 0);
     test.assertQueryReturned('coll/a', 'coll/e');
   });
 

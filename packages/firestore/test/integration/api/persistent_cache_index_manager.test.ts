@@ -72,6 +72,19 @@ apiDescribe('PersistentCacheIndexManager', persistence => {
     return;
   }
 
+  it(
+    'getPersistentCacheIndexManager() should return distinct instances ' +
+      'for distinct Firestore objects',
+    () =>
+      withTestDb(persistence, db1 =>
+        withTestDb(persistence, async db2 => {
+          const indexManager1 = getPersistentCacheIndexManager(db1);
+          const indexManager2 = getPersistentCacheIndexManager(db2);
+          expect(indexManager1).to.not.equal(indexManager2);
+        })
+      )
+  );
+
   describe('enable/disable persistent index auto creation', () => {
     it('enable on new instance should succeed', () =>
       withTestDb(persistence, async db => {
