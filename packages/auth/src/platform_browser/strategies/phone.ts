@@ -52,6 +52,19 @@ interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
+// interfaces added to provide typescript support for webOTP autofill
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
+
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
     readonly verificationId: string,
