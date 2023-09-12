@@ -323,6 +323,8 @@ export type UserCredential = {
 export interface UserMetadata {
   creationTime?: string;
   lastSignInTime?: string;
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export type Persistence = string;
