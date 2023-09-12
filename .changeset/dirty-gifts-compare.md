@@ -4,4 +4,4 @@
 '@firebase/auth': patch
 ---
 
-Added createdAt and lastLoginAt fields to UserMetadata type
+Added createdAt and lastSignInAt fields to UserMetadata type
