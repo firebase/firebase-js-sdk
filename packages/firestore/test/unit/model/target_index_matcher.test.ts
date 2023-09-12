@@ -747,7 +747,7 @@ describe('Target Bounds', () => {
         validateBuildTargetIndexCreateFullMatchIndex
       ));
 
-    it('queries with order by', () =>
+    it('queries with order bys', () =>
       queriesWithOrderBy.forEach(validateBuildTargetIndexCreateFullMatchIndex));
 
     it('queries with inequalities uses single field index', () =>
