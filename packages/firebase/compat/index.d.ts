@@ -4773,8 +4773,8 @@ declare namespace firebase.auth {
   interface UserMetadata {
     creationTime?: string;
     lastSignInTime?: string;
-    createdAt?: string;
-    lastLoginAt?: string;
+    createdAt?: string | number;
+    lastLoginAt?: string | number;
   }
 }
 

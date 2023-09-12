@@ -1110,9 +1110,9 @@ export interface UserMetadata {
   /** Time the user last signed in as UTC string. */
   readonly lastSignInTime?: string;
   /** Time the user was created as ms since epoch. */
-  readonly creationAt?: string;
+  readonly createdAt?: string | number;
   /** Time the user last signed in as ms since epoch. */
-  readonly lastSignInAt?: string;
+  readonly lastLoginAt?: string | number;
 }
 
 /**
