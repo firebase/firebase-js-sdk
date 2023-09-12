@@ -42,6 +42,7 @@ import {
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
+  localStoreSetIndexAutoCreationEnabled,
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
@@ -134,6 +135,8 @@ class LocalStoreTester {
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
   private bundleConverter: BundleConverterImpl;
+
+  private queryExecutionCount = 0;
 
   constructor(
     public localStore: LocalStore,
@@ -321,6 +324,7 @@ class LocalStoreTester {
         query,
         /* usePreviousResults= */ true
       ).then(({ documents }) => {
+        this.queryExecutionCount++;
         this.lastChanges = documents;
       })
     );
@@ -348,36 +352,28 @@ class LocalStoreTester {
     overlayTypes?: { [k: string]: MutationType };
   }): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
+      const actualCount: typeof expectedCount = {};
       if (expectedCount.overlaysByCollection !== undefined) {
-        expect(this.queryEngine.overlaysReadByCollection).to.be.eq(
-          expectedCount.overlaysByCollection,
-          'Overlays read (by collection)'
-        );
+        actualCount.overlaysByCollection =
+          this.queryEngine.overlaysReadByCollection;
       }
       if (expectedCount.overlaysByKey !== undefined) {
-        expect(this.queryEngine.overlaysReadByKey).to.be.eq(
-          expectedCount.overlaysByKey,
-          'Overlays read (by key)'
-        );
+        actualCount.overlaysByKey = this.queryEngine.overlaysReadByKey;
       }
       if (expectedCount.overlayTypes !== undefined) {
-        expect(this.queryEngine.overlayTypes).to.deep.equal(
-          expectedCount.overlayTypes,
-          'Overlay types read'
-        );
+        actualCount.overlayTypes = this.queryEngine.overlayTypes;
       }
       if (expectedCount.documentsByCollection !== undefined) {
-        expect(this.queryEngine.documentsReadByCollection).to.be.eq(
-          expectedCount.documentsByCollection,
-          'Remote documents read (by collection)'
-        );
+        actualCount.documentsByCollection =
+          this.queryEngine.documentsReadByCollection;
       }
       if (expectedCount.documentsByKey !== undefined) {
-        expect(this.queryEngine.documentsReadByKey).to.be.eq(
-          expectedCount.documentsByKey,
-          'Remote documents read (by key)'
-        );
+        actualCount.documentsByKey = this.queryEngine.documentsReadByKey;
       }
+      expect(actualCount).to.deep.eq(
+        expectedCount,
+        `query execution #${this.queryExecutionCount}`
+      );
     });
     return this;
   }
@@ -662,6 +658,17 @@ function genericLocalStoreTests(
       gcIsEager
     );
   }
+
+  it('localStoreSetIndexAutoCreationEnabled()', () => {
+    localStoreSetIndexAutoCreationEnabled(localStore, true);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(localStore, false);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(localStore, true);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(localStore, false);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+  });
 
   it('handles SetMutation', () => {
     return expectLocalStore()

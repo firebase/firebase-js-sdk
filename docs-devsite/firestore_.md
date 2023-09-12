@@ -29,6 +29,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Persistence cannot be used in a Node.js environment. |
 |  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
 |  [enableNetwork(firestore)](./firestore_.md#enablenetwork) | Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork)<!-- -->. |
+|  [getPersistentCacheIndexManager(firestore)](./firestore_.md#getpersistentcacheindexmanager) | Returns the PersistentCache Index Manager used by the given <code>Firestore</code> object. The <code>PersistentCacheIndexManager</code> instance, or <code>null</code> if local persistent storage is not in use. |
 |  [loadBundle(firestore, bundleData)](./firestore_.md#loadbundle) | Loads a Firestore bundle into the local cache. |
 |  [namedQuery(firestore, name)](./firestore_.md#namedquery) | Reads a Firestore [Query](./firestore_.query.md#query_class) from local cache, identified by the given name.<!-- -->The named queries are packaged into bundles on the server side (along with resulting documents), and loaded to local cache using <code>loadBundle</code>. Once in local cache, use this method to extract a [Query](./firestore_.query.md#query_class) by name. |
 |  [onSnapshotsInSync(firestore, observer)](./firestore_.md#onsnapshotsinsync) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
@@ -59,6 +60,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [endBefore(fieldValues)](./firestore_.md#endbefore) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAfter(fieldValues)](./firestore_.md#startafter) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAt(fieldValues)](./firestore_.md#startat) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  <b>function(indexManager...)</b> |
+|  [deleteAllPersistentCacheIndexes(indexManager)](./firestore_.md#deleteallpersistentcacheindexes) | Removes all persistent cache indexes.<!-- -->Please note this function will also deletes indexes generated by <code>setIndexConfiguration()</code>, which is deprecated. |
+|  [disablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#disablepersistentcacheindexautocreation) | Stops creating persistent cache indexes automatically for local query execution. The indexes which have been created by calling <code>enablePersistentCacheIndexAutoCreation()</code> still take effect. |
+|  [enablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#enablepersistentcacheindexautocreation) | Enables the SDK to create persistent cache indexes automatically for local query execution when the SDK believes cache indexes can help improve performance.<!-- -->This feature is disabled by default. |
 |  <b>function(left...)</b> |
 |  [aggregateQuerySnapshotEqual(left, right)](./firestore_.md#aggregatequerysnapshotequal) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
 |  [queryEqual(left, right)](./firestore_.md#queryequal) | Returns true if the provided queries point to the same collection and apply the same constraints. |
@@ -130,6 +135,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
 |  [GeoPoint](./firestore_.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
 |  [LoadBundleTask](./firestore_.loadbundletask.md#loadbundletask_class) | Represents the task of loading a Firestore bundle. It provides progress of bundle loading, as well as task completion and error events.<!-- -->The API is compatible with <code>Promise&lt;LoadBundleTaskProgress&gt;</code>. |
+|  [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) | A <code>PersistentCacheIndexManager</code> for configuring persistent cache indexes used for local query execution.<!-- -->To use, call <code>getPersistentCacheIndexManager()</code> to get an instance. |
 |  [Query](./firestore_.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or) or [and()](./firestore_.md#and) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
 |  [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where)<!-- -->, [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->, [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryConstraint</code>. |
@@ -526,6 +532,28 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved once the network has been enabled.
 
+## getPersistentCacheIndexManager()
+
+Returns the PersistentCache Index Manager used by the given `Firestore` object.
+
+ The `PersistentCacheIndexManager` instance, or `null` if local persistent storage is not in use.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getPersistentCacheIndexManager(firestore: Firestore): PersistentCacheIndexManager | null;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  firestore | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+
+<b>Returns:</b>
+
+[PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) \| null
+
 ## loadBundle()
 
 Loads a Firestore bundle into the local cache.
@@ -659,6 +687,11 @@ If the transaction completed successfully or was explicitly aborted (the `update
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+> Warning: This API is now obsolete.
+> 
+> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally.
+> 
+
 Configures indexing for local query execution. Any previous index configuration is overridden. The `Promise` resolves once the index configuration has been persisted.
 
 The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.
@@ -691,6 +724,11 @@ FirestoreError if the JSON format is invalid.
 ## setIndexConfiguration()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+> Warning: This API is now obsolete.
+> 
+> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally.
 > 
 
 Configures indexing for local query execution. Any previous index configuration is overridden. The `Promise` resolves once the index configuration has been persisted.
@@ -1089,6 +1127,70 @@ export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstrai
 [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class)
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
+
+## deleteAllPersistentCacheIndexes()
+
+Removes all persistent cache indexes.
+
+Please note this function will also deletes indexes generated by `setIndexConfiguration()`<!-- -->, which is deprecated.
+
+<b>Signature:</b>
+
+```typescript
+export declare function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
+
+## disablePersistentCacheIndexAutoCreation()
+
+Stops creating persistent cache indexes automatically for local query execution. The indexes which have been created by calling `enablePersistentCacheIndexAutoCreation()` still take effect.
+
+<b>Signature:</b>
+
+```typescript
+export declare function disablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
+
+## enablePersistentCacheIndexAutoCreation()
+
+Enables the SDK to create persistent cache indexes automatically for local query execution when the SDK believes cache indexes can help improve performance.
+
+This feature is disabled by default.
+
+<b>Signature:</b>
+
+```typescript
+export declare function enablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
 
 ## aggregateQuerySnapshotEqual()
 

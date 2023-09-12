@@ -19,14 +19,17 @@ import { FieldFilter, Operator } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
 import { Target } from '../core/target';
 import { debugAssert, hardAssert } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 
 import {
   FieldIndex,
   fieldIndexGetArraySegment,
   fieldIndexGetDirectionalSegments,
   IndexKind,
-  IndexSegment
+  IndexSegment,
+  IndexState
 } from './field_index';
+import { FieldPath } from './path';
 
 /**
  * A light query planner for Firestore.
@@ -177,6 +180,69 @@ export class TargetIndexMatcher {
     }
 
     return true;
+  }
+
+  /** Returns a full matched field index for this target. */
+  buildTargetIndex(): FieldIndex {
+    // We want to make sure only one segment created for one field. For example,
+    // in case like a == 3 and a > 2, Index {a ASCENDING} will only be created
+    // once.
+    let uniqueFields = new SortedSet<FieldPath>(FieldPath.comparator);
+    const segments: IndexSegment[] = [];
+
+    for (const filter of this.equalityFilters) {
+      if (filter.field.isKeyField()) {
+        continue;
+      }
+      const isArrayOperator =
+        filter.op === Operator.ARRAY_CONTAINS ||
+        filter.op === Operator.ARRAY_CONTAINS_ANY;
+      if (isArrayOperator) {
+        segments.push(new IndexSegment(filter.field, IndexKind.CONTAINS));
+      } else {
+        if (uniqueFields.has(filter.field)) {
+          continue;
+        }
+        uniqueFields = uniqueFields.add(filter.field);
+        segments.push(new IndexSegment(filter.field, IndexKind.ASCENDING));
+      }
+    }
+
+    // Note: We do not explicitly check `this.inequalityFilter` but rather rely
+    // on the target defining an appropriate "order by" to ensure that the
+    // required index segment is added. The query engine would reject a query
+    // with an inequality filter that lacks the required order-by clause.
+    for (const orderBy of this.orderBys) {
+      // Stop adding more segments if we see a order-by on key. Typically this
+      // is the default implicit order-by which is covered in the index_entry
+      // table as a separate column. If it is not the default order-by, the
+      // generated index will be missing some segments optimized for order-bys,
+      // which is probably fine.
+      if (orderBy.field.isKeyField()) {
+        continue;
+      }
+
+      if (uniqueFields.has(orderBy.field)) {
+        continue;
+      }
+      uniqueFields = uniqueFields.add(orderBy.field);
+
+      segments.push(
+        new IndexSegment(
+          orderBy.field,
+          orderBy.dir === Direction.ASCENDING
+            ? IndexKind.ASCENDING
+            : IndexKind.DESCENDING
+        )
+      );
+    }
+
+    return new FieldIndex(
+      FieldIndex.UNKNOWN_ID,
+      this.collectionId,
+      segments,
+      IndexState.empty()
+    );
   }
 
   private hasMatchingEqualityFilter(segment: IndexSegment): boolean {
