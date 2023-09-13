@@ -19,13 +19,14 @@ import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 
 import {
   Bound,
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { Filter } from './filter';
+import { FieldFilter, Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -172,21 +173,18 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
-export function getFirstOrderByField(query: Query): FieldPath | null {
-  return query.explicitOrderBy.length > 0
-    ? query.explicitOrderBy[0].field
-    : null;
-}
-
-export function getInequalityFilterField(query: Query): FieldPath | null {
-  for (const filter of query.filters) {
-    const result = filter.getFirstInequalityField();
-    if (result !== null) {
-      return result;
-    }
-  }
-
-  return null;
+// Returns the sorted set of inequality filter fields used in this query.
+export function getInequalityFilterFields(query: Query): SortedSet<FieldPath> {
+  let result = new SortedSet<FieldPath>(FieldPath.comparator);
+  query.filters.forEach((filter: Filter) => {
+    const subFilters = filter.getFlattenedFilters();
+    subFilters.forEach((filter: FieldFilter) => {
+      if (filter.isInequality()) {
+        result = result.add(filter.field);
+      }
+    });
+  });
+  return result;
 }
 
 /**
@@ -228,45 +226,43 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedNormalizedOrderBy === null) {
     queryImpl.memoizedNormalizedOrderBy = [];
+    const fieldsNormalized = new Set<string>();
 
-    const inequalityField = getInequalityFilterField(queryImpl);
-    const firstOrderByField = getFirstOrderByField(queryImpl);
-    if (inequalityField !== null && firstOrderByField === null) {
-      // In order to implicitly add key ordering, we must also add the
-      // inequality filter field for it to be a valid query.
-      // Note that the default inequality field and key ordering is ascending.
-      if (!inequalityField.isKeyField()) {
-        queryImpl.memoizedNormalizedOrderBy.push(new OrderBy(inequalityField));
-      }
-      queryImpl.memoizedNormalizedOrderBy.push(
-        new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-      );
-    } else {
-      debugAssert(
-        inequalityField === null ||
-          (firstOrderByField !== null &&
-            inequalityField.isEqual(firstOrderByField)),
-        'First orderBy should match inequality field.'
-      );
-      let foundKeyOrdering = false;
-      for (const orderBy of queryImpl.explicitOrderBy) {
-        queryImpl.memoizedNormalizedOrderBy.push(orderBy);
-        if (orderBy.field.isKeyField()) {
-          foundKeyOrdering = true;
-        }
-      }
-      if (!foundKeyOrdering) {
-        // The order of the implicit key ordering always matches the last
-        // explicit order-by
-        const lastDirection =
-          queryImpl.explicitOrderBy.length > 0
-            ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1]
-                .dir
-            : Direction.ASCENDING;
-        queryImpl.memoizedNormalizedOrderBy.push(
-          new OrderBy(FieldPath.keyField(), lastDirection)
+    // Any explicit order by fields should be added as is.
+    for (const orderBy of queryImpl.explicitOrderBy) {
+      queryImpl.memoizedNormalizedOrderBy.push(orderBy);
+      fieldsNormalized.add(orderBy.field.canonicalString());
+    }
+
+    // The order of the implicit ordering always matches the last explicit order by.
+    const lastDirection =
+      queryImpl.explicitOrderBy.length > 0
+        ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1].dir
+        : Direction.ASCENDING;
+
+    // Any inequality fields not explicitly ordered should be implicitly ordered in a lexicographical
+    // order. When there are multiple inequality filters on the same field, the field should be added
+    // only once.
+    // Note: `SortedSet<FieldPath>` sorts the key field before other fields. However, we want the key
+    // field to be sorted last.
+    const inequalityFields: SortedSet<FieldPath> =
+      getInequalityFilterFields(queryImpl);
+    inequalityFields.forEach(field => {
+      if (
+        !fieldsNormalized.has(field.canonicalString()) &&
+        !field.isKeyField()
+      ) {
+        queryImpl.memoizedNormalizedOrderBy!.push(
+          new OrderBy(field, lastDirection)
         );
       }
+    });
+
+    // Add the document key field to the last if it is not explicitly ordered.
+    if (!fieldsNormalized.has(FieldPath.keyField().canonicalString())) {
+      queryImpl.memoizedNormalizedOrderBy.push(
+        new OrderBy(FieldPath.keyField(), lastDirection)
+      );
     }
   }
   return queryImpl.memoizedNormalizedOrderBy;
@@ -350,16 +346,6 @@ function _queryToTarget(queryImpl: QueryImpl, orderBys: OrderBy[]): Target {
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
-  const newInequalityField = filter.getFirstInequalityField();
-  const queryInequalityField = getInequalityFilterField(query);
-
-  debugAssert(
-    queryInequalityField == null ||
-      newInequalityField == null ||
-      newInequalityField.isEqual(queryInequalityField),
-    'Query must only have one inequality field.'
-  );
-
   debugAssert(
     !isDocumentQuery(query),
     'No filtering allowed for document query'
