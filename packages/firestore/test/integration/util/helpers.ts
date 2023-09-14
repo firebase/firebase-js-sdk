@@ -48,6 +48,7 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
+import { AutoId } from '../../../src/util/misc';
 
 /* eslint-disable no-restricted-globals */
 
@@ -442,6 +443,23 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
+  const collectionId = AutoId.newId();
+  return batchCommitDocsToCollection(
+    persistence,
+    settings,
+    docs,
+    collectionId,
+    fn
+  );
+}
+
+export function batchCommitDocsToCollection<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  collectionId: string,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
@@ -449,7 +467,6 @@ export function withTestCollectionSettings<T>(
     2,
     ([testDb, setupDb]) => {
       // Abuse .doc() to get a random ID.
-      const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
 
