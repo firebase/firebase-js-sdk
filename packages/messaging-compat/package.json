@@ -28,7 +28,7 @@
     "build:deps": "lerna run --scope @firebase/'messaging-compat' --include-dependencies build",
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
-    "test": "run-p test:karma",
+    "test": "run-p --npm-path npm test:karma",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",

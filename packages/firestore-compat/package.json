@@ -36,9 +36,9 @@
     "build:console": "node tools/console.build.js",
     "build:deps": "lerna run --scope @firebase/firestore-compat --include-dependencies build",
     "build:release": "yarn build && yarn add-compat-overloads",
-    "test": "run-s lint test:all",
+    "test": "run-s --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p test:browser test:node",
+    "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "mocha --require babel-register.js --require src/index.node.ts --timeout 5000 'test/*.test.ts'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../firestore/dist/index.d.ts -o dist/src/index.d.ts -a -r Firestore:types.FirebaseFirestore -r CollectionReference:types.CollectionReference -r DocumentReference:types.DocumentReference -r Query:types.Query -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/firestore"

@@ -22,10 +22,10 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
-    - name: Set up Node (14)
+    - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
