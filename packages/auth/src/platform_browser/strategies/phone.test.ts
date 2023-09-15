@@ -541,7 +541,7 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
 
-    context('WebOTP', () => {
+    /*context('WebOTP', () => {
       let idTokenResponse: IdTokenResponse;
       // This endpoint is called from within the callback, in
       // signInWithCredential
@@ -697,7 +697,7 @@ describe('platform_browser/strategies/phone', () => {
           });
         }
       });
-    });
+    });*/
 
     it('throws if the verifier does not return a string', async () => {
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
