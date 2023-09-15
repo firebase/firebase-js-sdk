@@ -43,6 +43,9 @@ export class FetchProvider {
     if (typeof self !== 'undefined' && 'fetch' in self) {
       return self.fetch;
     }
+    if (typeof globalThis !== 'undefined' && 'fetch' in globalThis) {
+      return globalThis.fetch;
+    }
     debugFail(
       'Could not find fetch implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill'
     );
@@ -55,6 +58,9 @@ export class FetchProvider {
     if (typeof self !== 'undefined' && 'Headers' in self) {
       return self.Headers;
     }
+    if (typeof globalThis !== 'undefined' && 'Headers' in globalThis) {
+      return globalThis.Headers;
+    }
     debugFail(
       'Could not find Headers implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill'
     );
@@ -66,6 +72,9 @@ export class FetchProvider {
     }
     if (typeof self !== 'undefined' && 'Response' in self) {
       return self.Response;
+    }
+    if (typeof globalThis !== 'undefined' && 'Response' in globalThis) {
+      return globalThis.Response;
     }
     debugFail(
       'Could not find Response implementation, make sure you call FetchProvider.initialize() with an appropriate polyfill'
