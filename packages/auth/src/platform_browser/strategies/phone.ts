@@ -265,6 +265,91 @@ export async function signInWithPhoneNumber(
 }
 
 /**
+ * Listens for an OTP code through WebOTP API until the provided timeout.
+ *
+ * @remarks
+ * This method does not work in a Node.js environment.
+ * 
+ * @example
+ * ```javascript
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const webOTPPromise = listenForWebOTP(auth, 10);
+ * try {
+ *   const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+ *   try {
+ *     const code = await webOTPPromise;
+ *     await confirmationResult.confirm(code);
+ *   } catch (e) {
+ *       // Obtain a verificationCode from the user.
+ *       await confirmationResult.confirm(verificationCode);
+ *   }
+ * } catch(e) {
+ *     clearApplicationVerifier();
+ *     onAuthError(e);
+ * };
+ * ```
+ *
+ *
+ * @param auth - The auth instance.
+ * @param webOTPTimeoutSeconds - The timeout for the WebOTP API.
+ *
+ * @public
+ */
+export async function listenForWebOTP(
+    auth: Auth,
+    webOTPTimeoutSeconds: number): Promise<string> {
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+
+        const myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        ) as WebOTPError;
+        throw myErr;
+      }, webOTPTimeoutSeconds * 1000);
+
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            const myErr = _errorWithCustomMessage(
+              auth,
+              AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+              `the auto-retrieved credential or code is not defined`
+            ) as WebOTPError;
+            throw myErr;
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          const myErr = _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP get method failed to retrieve the code`
+          ) as WebOTPError;
+          throw myErr;
+        });
+        return code;
+  }
+
+
+/**
  * Links the user account with the given phone number.
  *
  * @remarks

@@ -455,6 +455,9 @@ export function linkWithPopup(user: User, provider: AuthProvider, resolver?: Pop
 export function linkWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 
 // @public
+export function listenForWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<string>;
+
+// @public
 export function multiFactor(user: User): MultiFactorUser;
 
 // @public

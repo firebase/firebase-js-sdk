@@ -74,6 +74,7 @@ import {
   connectAuthEmulator,
   initializeRecaptchaConfig,
   signInWithPhoneNumber,
+  listenForWebOTP,
   AuthErrorCodes,
   validatePassword
 } from '@firebase/auth';
@@ -713,6 +714,7 @@ function clearApplicationVerifier() {
 
 /**
  * Sends a phone number verification code for sign-in.
+ * Auto-logs in if the OTP code can be obtained using the WebOTP API.
  */
 async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
@@ -721,19 +723,23 @@ async function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
-    .then(userCredential => {
-      onAuthUserCredentialSuccess(userCredential);
-    })
-    .catch(e => {
+  const webOTPPromise = listenForWebOTP(auth, 10);
+  try {
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+    try {
+      const code = await webOTPPromise;
+      await confirmationResult.confirm(code);
+    } catch (e) {
+        console.log("Failed to auto-fetch otp code, using the value from the input box. Erorr - " + e);
+        const verificationCode = $('#signin-phone-verification-code').val();
+        await confirmationResult.confirm(verificationCode);
+    }
+  } catch(e) {
       clearApplicationVerifier();
       onAuthError(e);
-      if (e.code === `auth/${AuthErrorCodes.WEB_OTP_NOT_RETRIEVED}`) {
-        const verificationCode = $('#signin-phone-verification-code').val();
-        e.confirmationResult.confirm(verificationCode);
-      }
-    });
+  };
 }
+
 
 /**
  * Confirms a phone number verification for sign-in.
