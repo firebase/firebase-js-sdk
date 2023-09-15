@@ -108,9 +108,9 @@ export class CompositeIndexTestHelper {
   }
 
   // set doc with test-id
-  setDoc<AppModelType, DbModelType extends DocumentData>(
-    reference: DocumentReference<AppModelType, DbModelType>,
-    data: WithFieldValue<AppModelType>
+  setDoc<T, DbModelType extends DocumentData>(
+    reference: DocumentReference<T, DbModelType>,
+    data: WithFieldValue<T>
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (data as Record<string, any>)[this.TEST_ID_FIELD] = this.testId;

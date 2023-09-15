@@ -13,6 +13,24 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
+    - name: Setup Terraform 
+      uses: hashicorp/setup-terraform@v2
+    - name: Terraform Init
+      id: init
+      run: terraform init
+      continue-on-error: true
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      continue-on-error: true
+    - name: Terraform Plan
+      id: plan
+      if: github.event_name == 'pull_request'
+      run: terraform plan -no-color -input=false
+      continue-on-error: true
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:

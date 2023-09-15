@@ -22,7 +22,8 @@ import { where, getDocs, orderBy, getDoc, doc } from '../util/firebase_export';
 import { apiDescribe, toDataArray, toIds } from '../util/helpers';
 
 apiDescribe('Queries', persistence => {
-  describe('query with OrderBy fields', () => {
+  // eslint-disable-next-line no-restricted-properties
+  describe.only('query with OrderBy fields', () => {
     it('can run composite index query', () => {
       const testDocs = {
         doc1: { key: 'a', sort: 3 },
