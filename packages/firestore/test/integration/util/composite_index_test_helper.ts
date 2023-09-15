@@ -1,9 +1,22 @@
+/**
+ * @license
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { AutoId } from '../../../src/util/misc';
-import {
-  batchCommitDocsToCollection,
-  PERSISTENCE_MODE_UNSPECIFIED,
-  PersistenceMode,
-} from './helpers';
+
 import {
   query,
   CollectionReference,
@@ -12,21 +25,33 @@ import {
   Query,
   QueryConstraint,
   where,
-} from '../../../src';
+  WithFieldValue,
+  DocumentReference,
+  addDoc as addDocument,
+  setDoc as setDocument
+} from './firebase_export';
 import {
-  COMPOSITE_INDEX_TEST_COLLECTION,
-  DEFAULT_SETTINGS
-} from './settings';
+  batchCommitDocsToCollection,
+  PERSISTENCE_MODE_UNSPECIFIED,
+  PersistenceMode
+} from './helpers';
+import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
 
 export class CompositeIndexTestHelper {
-  private readonly testId: string = 'test-id-' + AutoId.newId();
+  private readonly testId: string;
+  private readonly TEST_ID_FIELD: string = 'testId';
+
+  constructor() {
+    // Initialize the testId when an instance of the class is created.
+    this.testId = 'test-id-' + AutoId.newId();
+  }
 
   async withTestDocs<T>(
     persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
     docs: { [key: string]: DocumentData },
     fn: (collection: CollectionReference, db: Firestore) => Promise<T>
   ): Promise<T> {
-    this.addTestId(docs);
+    this.addTestIdToDocs(docs);
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
@@ -34,36 +59,30 @@ export class CompositeIndexTestHelper {
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
-
-    // return withTestDbsSettings(
-    //   persistence,
-    //   DEFAULT_PROJECT_ID,
-    //   DEFAULT_SETTINGS,
-    //   2,
-    //   ([testDb, setupDb]) => {
-    //     const testCollection = collection(
-    //       testDb,
-    //       COMPOSITE_INDEX_TEST_COLLECTION
-    //     );
-    //
-    //     return Promise.all(
-    //       batchCommitDocsToCollection(
-    //         setupDb,
-    //         COMPOSITE_INDEX_TEST_COLLECTION,
-    //         docs
-    //       )
-    //     ).then(() => fn(testCollection, testDb));
-    //   }
-    // );
+  }
+  async withEmptyCollection<T>(
+    persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+    fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+  ): Promise<T> {
+    return batchCommitDocsToCollection(
+      persistence,
+      DEFAULT_SETTINGS,
+      {},
+      COMPOSITE_INDEX_TEST_COLLECTION,
+      fn
+    );
   }
 
   // Add test-id to docs created under a specific test.
-  private addTestId(docs: { [key: string]: DocumentData }): void {
-    for (const key in docs) {
-      if (docs.hasOwnProperty(key)) {
-        docs[key]['test-id'] = this.testId;
-      }
+  // Docs are modified instead of deep copy for convenience of equality check in tests.
+  private addTestIdToDocs(docs: { [key: string]: DocumentData }): void {
+    for (const doc of Object.values(docs)) {
+      doc[this.TEST_ID_FIELD] = this.testId;
     }
+  }
+
+  private addTestIdToDoc(doc: DocumentData): void {
+    doc[this.TEST_ID_FIELD] = this.testId;
   }
 
   // add filter on test id
@@ -73,62 +92,28 @@ export class CompositeIndexTestHelper {
   ): Query<AppModelType, DbModelType> {
     return query(
       query_,
-      where('test-id', '==', this.testId),
+      where(this.TEST_ID_FIELD, '==', this.testId),
       ...queryConstraints
     );
   }
 
   // add doc with test id
-  // set doc with test-id
-}
+  addDoc<T, DbModelType extends DocumentData>(
+    reference: CollectionReference<T, DbModelType>,
+    data: WithFieldValue<T>
+  ): Promise<DocumentReference<T, DbModelType>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (data as Record<string, any>)[this.TEST_ID_FIELD] = this.testId;
+    return addDocument(reference, data);
+  }
 
-// export function batchCommitDocsToCollection(collectionId: string){
-//   return withTestDbsSettings(
-//     persistence,
-//     DEFAULT_PROJECT_ID,
-//     settings,
-//     2,
-//     ([testDb, setupDb]) => {
-//       // Abuse .doc() to get a random ID.
-//       const testCollection = collection(testDb, collectionId);
-//
-//       return Promise.all(
-//         batchCommitDocs(setupDb, collectionId, docs)
-//       ).then(() => fn(testCollection, testDb));
-//     }
-//   );
-//
-// }
-//
-// export function batchCommitDocs(
-//   db: Firestore,
-//   collectionId: string,
-//   docs: { [key: string]: DocumentData }
-// ): Array<Promise<void>> {
-//   const collectionRef = collection(db, collectionId);
-//
-//   const writeBatchCommits: Array<Promise<void>> = [];
-//   let writeBatch_: WriteBatch | null = null;
-//
-//   let writeBatchSize = 0;
-//   for (const key of Object.keys(docs)) {
-//     if (writeBatch_ === null) {
-//       writeBatch_ = writeBatch(db);
-//     }
-//     writeBatch_.set(doc(collectionRef, key), docs[key]);
-//     writeBatchSize++;
-//
-//     // Write batches are capped at 500 writes. Use 400 just to be safe.
-//     if (writeBatchSize === 400) {
-//       writeBatchCommits.push(writeBatch_.commit());
-//       writeBatch_ = null;
-//       writeBatchSize = 0;
-//     }
-//   }
-//
-//   if (writeBatch_ !== null) {
-//     writeBatchCommits.push(writeBatch_.commit());
-//   }
-//
-//   return writeBatchCommits;
-// }
+  // set doc with test-id
+  setDoc<AppModelType, DbModelType extends DocumentData>(
+    reference: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (data as Record<string, any>)[this.TEST_ID_FIELD] = this.testId;
+    return setDocument(reference, data);
+  }
+}

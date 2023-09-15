@@ -17,36 +17,67 @@
 
 import { expect } from 'chai';
 
-import { apiDescribe, toIds } from '../util/helpers';
-import { where, getDocs, orderBy } from '../util/firebase_export';
 import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
+import { where, getDocs, orderBy, getDoc, doc } from '../util/firebase_export';
+import { apiDescribe, toDataArray, toIds } from '../util/helpers';
 
-apiDescribe.skip('Queries', persistence => {
+apiDescribe('Queries', persistence => {
   describe('query with OrderBy fields', () => {
-    it('can query by field and use order by', () => {
+    it('can run composite index query', () => {
       const testDocs = {
         doc1: { key: 'a', sort: 3 },
-        doc2: { key: 'b', sort: 2 },
-        doc3: { key: 'c', sort: 1 }
+        doc2: { key: 'a', sort: 2 },
+        doc3: { key: 'b', sort: 1 }
       };
       const testHelper = new CompositeIndexTestHelper();
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
-        const filteredQuery = testHelper.query(coll, where('key', '!=', 'c'));
+        const filteredQuery = testHelper.query(
+          coll,
+          where('key', '==', 'a'),
+          orderBy('sort')
+        );
+        const result = await getDocs(filteredQuery);
+        expect(toIds(result)).to.deep.equal(['doc2', 'doc1']);
+      });
+    });
+
+    it('data isolation is working', () => {
+      const testDocs = {
+        doc1: { key: 'a', sort: 1 },
+        doc2: { key: 'a', sort: 2 }
+      };
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        const filteredQuery = testHelper.query(
+          coll,
+          where('key', '==', 'a'),
+          orderBy('sort')
+        );
         const result = await getDocs(filteredQuery);
         expect(toIds(result)).to.deep.equal(['doc1', 'doc2']);
       });
     });
 
-    it('can query by field and use order by', () => {
-      const testDocs = {
-        doc1: { key: 'a', sort: 1 },
-        doc2: { key: 'b', sort: 2, v: 1 }
-      };
+    it('can do addDoc and setDoc', () => {
       const testHelper = new CompositeIndexTestHelper();
-      return testHelper.withTestDocs(persistence, testDocs, async coll => {
-        const filteredQuery = testHelper.query(coll, where('key', '!=', 'd'));
+      return testHelper.withEmptyCollection(persistence, async coll => {
+        const docRef1 = await testHelper.addDoc(coll, { key: 'a', sort: 1 });
+        const docRef2 = doc(coll, 'setDoc');
+        await testHelper.setDoc(docRef2, { key: 'a', sort: 2 });
+
+        const docSnap1 = await getDoc(docRef1);
+        const docSnap2 = await getDoc(docRef2);
+
+        const filteredQuery = testHelper.query(
+          coll,
+          where('key', '==', 'a'),
+          orderBy('sort')
+        );
         const result = await getDocs(filteredQuery);
-        expect(toIds(result)).to.deep.equal(['doc1', 'doc2']);
+        expect(toDataArray(result)).to.deep.equal([
+          docSnap1.data(),
+          docSnap2.data()
+        ]);
       });
     });
   });

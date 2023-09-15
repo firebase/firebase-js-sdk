@@ -17,6 +17,8 @@
 
 import { isIndexedDBAvailable } from '@firebase/util';
 
+import { AutoId } from '../../../src/util/misc';
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -48,7 +50,6 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
-import { AutoId } from '../../../src/util/misc';
 
 /* eslint-disable no-restricted-globals */
 
@@ -466,7 +467,6 @@ export function batchCommitDocsToCollection<T>(
     settings,
     2,
     ([testDb, setupDb]) => {
-      // Abuse .doc() to get a random ID.
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
 
