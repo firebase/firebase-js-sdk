@@ -2,9 +2,12 @@ locals {
     data = jsondecode(file("config/project.json"))
 }
 
-resource "google_firestore_index" "my-index" {
-  provider = google
+provider "google" {
+  project     = local.data.projectId
+  region      = "us-central1"
+}
 
+resource "google_firestore_index" "my-index" {
   project = local.data.projectId
   collection = "composite-index-test-collection"
 
