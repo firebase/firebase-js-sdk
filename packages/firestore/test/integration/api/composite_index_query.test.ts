@@ -32,6 +32,7 @@ apiDescribe('Queries', persistence => {
       };
       const testHelper = new CompositeIndexTestHelper();
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        console.log("=========="+JSON.stringify(coll.firestore))
         const filteredQuery = testHelper.query(
           coll,
           where('key', '==', 'a'),
