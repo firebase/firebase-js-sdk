@@ -25,6 +25,7 @@ jobs:
     - name: Terraform Plan
       if: github.event_name == 'pull_request'
       run: |
+        echo "${{secrets.GCP_SA_KEY}}"
         cp config/ci.config.json config/project.json
         terraform plan
       continue-on-error: true
