@@ -21,7 +21,9 @@ jobs:
       continue-on-error: true
     - name: Terraform Validate
       id: validate
-      run: terraform validate -no-color
+      run: |
+        cp config/ci.config.json config/project.json
+        terraform validate -no-color
       continue-on-error: true
     - name: Terraform Plan
       id: plan
@@ -29,7 +31,6 @@ jobs:
       run: terraform plan -no-color -input=false
       continue-on-error: true
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
     - name: Set up Node (16)
       uses: actions/setup-node@v3
