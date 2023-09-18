@@ -33,6 +33,7 @@ Firebase Authentication
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
 |  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
+|  [listenForWebOTP(auth, webOTPTimeoutSeconds)](./auth.md#listenforwebotp) | Listens for an OTP code through WebOTP API until the provided timeout. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. |
@@ -44,7 +45,6 @@ Firebase Authentication
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink) | Asynchronously signs in using an email and sign-in email link. |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
-|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier, webOTPTimeoutSeconds)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect) | Authenticates a Firebase client using a full-page redirect flow. |
 |  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
@@ -549,6 +549,52 @@ export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): bo
 
 boolean
 
+## listenForWebOTP()
+
+Listens for an OTP code through WebOTP API until the provided timeout.
+
+This method does not work in a Node.js environment.
+
+<b>Signature:</b>
+
+```typescript
+export declare function listenForWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<string>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The auth instance. |
+|  webOTPTimeoutSeconds | number | The timeout for the WebOTP API. |
+
+<b>Returns:</b>
+
+Promise&lt;string&gt;
+
+### Example
+
+
+```javascript
+// 'recaptcha-container' is the ID of an element in the DOM.
+const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+const webOTPPromise = listenForWebOTP(auth, 10);
+try {
+  const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+  try {
+    const code = await webOTPPromise;
+    await confirmationResult.confirm(code);
+  } catch (e) {
+      // Obtain a verificationCode from the user.
+      await confirmationResult.confirm(verificationCode);
+  }
+} catch(e) {
+    clearApplicationVerifier();
+    onAuthError(e);
+};
+
+```
+
 ## onAuthStateChanged()
 
 Adds an observer for changes to the user's sign-in state.
@@ -915,45 +961,6 @@ const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-conta
 const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
 // Obtain a verificationCode from the user.
 const credential = await confirmationResult.confirm(verificationCode);
-
-```
-
-## signInWithPhoneNumber()
-
-Asynchronously signs in using a phone number.
-
-This method sends a code via SMS to the given phone number. Then, the method will try to autofill the SMS code for the user and sign the user in. A [UserCredential](./auth.usercredential.md#usercredential_interface) is then returned if the process is successful. If the process failed,  is thrown.
-
-For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
-
-This method does not work in a Node.js environment.
-
-<b>Signature:</b>
-
-```typescript
-export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier, webOTPTimeoutSeconds: number): Promise<UserCredential>;
-```
-
-### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
-|  appVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | The [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. |
-|  webOTPTimeoutSeconds | number |  |
-
-<b>Returns:</b>
-
-Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
-
-### Example
-
-
-```javascript
-// 'recaptcha-container' is the ID of an element in the DOM.
-const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
-const userCredential = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 10);
 
 ```
 
