@@ -1,5 +1,5 @@
 locals {
-    data = jsondecode(file("../../config/project.json"))
+    data = jsondecode(file("./config/project.json"))
 }
 
 resource "google_firestore_index" "my-index" {
