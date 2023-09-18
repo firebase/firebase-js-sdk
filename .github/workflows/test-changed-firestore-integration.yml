@@ -13,7 +13,6 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
-
     # create composite indexes with Terraform
     - name: Setup Terraform 
       uses: hashicorp/setup-terraform@v2
@@ -26,7 +25,7 @@ jobs:
         cp config/ci.config.json config/project.json
         terraform plan
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.FIREBASE_CLI_TOKEN}}
+        GOOGLE_APPLICATION_CREDENTIALS: '${{ secrets.GCP_SA_KEY }}'
       continue-on-error: true
     - name: Terraform Apply
       run: terraform apply -auto-approve
