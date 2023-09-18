@@ -6,11 +6,6 @@ locals {
     project = local.data.projectId
  }
 
-resource "google_project_service" "firestore" {
-  project = local.data.projectId
-  service = "firestore.googleapis.com"
-}
-
 resource "google_firestore_index" "default-db-index" {
   collection = "composite-index-test-collection"
 
