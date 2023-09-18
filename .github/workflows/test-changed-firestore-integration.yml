@@ -13,25 +13,25 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
+
+    # create composite indexes with Terraform
     - name: Setup Terraform 
       uses: hashicorp/setup-terraform@v2
     - name: Terraform Init
-      id: init
       run: terraform init
       continue-on-error: true
-    - name: Terraform Validate
-      id: validate
+    - name: Terraform Plan
+      if: github.event_name == 'pull_request'
       run: |
         cp config/ci.config.json config/project.json
-        terraform validate -no-color
-      continue-on-error: true
-    - name: Terraform Plan
-      id: plan
-      if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false
+        terraform plan
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.FIREBASE_CLI_TOKEN}}
       continue-on-error: true
     - name: Terraform Apply
-      run: terraform apply -auto-approve -input=false
+      run: terraform apply -auto-approve
+      continue-on-error: true
+
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
