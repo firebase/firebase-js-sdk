@@ -15,7 +15,7 @@ jobs:
         fetch-depth: 0
     - uses: 'google-github-actions/auth@v0'
       with:
-        credentials_json: '${{ secrets.FIREBASE_CLI_TOKEN }}'
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
     # create composite indexes with Terraform
     - name: Setup Terraform 
       uses: hashicorp/setup-terraform@v2
