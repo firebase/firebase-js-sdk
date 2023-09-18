@@ -102,25 +102,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - uses: 'google-github-actions/auth@v0'
-        with:
-          credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
-      # create composite indexes with Terraform
-      - name: Setup Terraform 
-        uses: hashicorp/setup-terraform@v2
-      - name: Terraform Init
-        run: terraform init
-        continue-on-error: true
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        run: |
-          cp config/ci.config.json config/project.json
-          terraform plan
-        continue-on-error: true
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        continue-on-error: true
-
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -192,26 +173,6 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-
-      - uses: 'google-github-actions/auth@v0'
-        with:
-          credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
-      # create composite indexes with Terraform
-      - name: Setup Terraform 
-        uses: hashicorp/setup-terraform@v2
-      - name: Terraform Init
-        run: terraform init
-        continue-on-error: true
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        run: |
-          cp config/ci.config.json config/project.json
-          terraform plan
-        continue-on-error: true
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        continue-on-error: true
-
       - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
