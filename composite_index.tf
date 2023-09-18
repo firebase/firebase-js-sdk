@@ -3,6 +3,8 @@ locals {
 }
 
 resource "google_firestore_index" "my-index" {
+  provider = google
+
   project = local.data.projectId
   collection = "composite-index-test-collection"
 
