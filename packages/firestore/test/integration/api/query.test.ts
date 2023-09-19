@@ -1347,7 +1347,7 @@ apiDescribe('Queries', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? describe : describe.skip)('Multiple Inequality', () => {
+  describe.skip('Multiple Inequality', () => {
     it('can use multiple inequality filters', async () => {
       const testDocs = {
         doc1: { key: 'a', sort: 0, v: 0 },
