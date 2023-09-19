@@ -43,14 +43,11 @@ import {
   getAggregateFromServer,
   getCountFromServer,
   getDocs,
-  getDocsFromCache,
-  getDocsFromServer,
   limit,
   limitToLast,
   onSnapshot,
   or,
   orderBy,
-  Query,
   query,
   QuerySnapshot,
   setDoc,
@@ -72,7 +69,8 @@ import {
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
@@ -3093,26 +3091,4 @@ function verifyDocumentChange<T>(
   expect(change.type).to.equal(type);
   expect(change.oldIndex).to.equal(oldIndex);
   expect(change.newIndex).to.equal(newIndex);
-}
-
-/**
- * Checks that running the query while online (against the backend/emulator) results in the same
- * documents as running the query while offline. If `expectedDocs` is provided, it also checks
- * that both online and offline query result is equal to the expected documents.
- *
- * @param query The query to check
- * @param expectedDocs Ordered list of document keys that are expected to match the query
- */
-async function checkOnlineAndOfflineResultsMatch(
-  query: Query,
-  ...expectedDocs: string[]
-): Promise<void> {
-  const docsFromServer = await getDocsFromServer(query);
-
-  if (expectedDocs.length !== 0) {
-    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
-  }
-
-  const docsFromCache = await getDocsFromCache(query);
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

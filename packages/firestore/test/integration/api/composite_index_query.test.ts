@@ -18,11 +18,27 @@
 import { expect } from 'chai';
 
 import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
-import { where, getDocs, orderBy, getDoc, doc } from '../util/firebase_export';
-import { apiDescribe, toDataArray, toIds } from '../util/helpers';
+import {
+  where,
+  getDocs,
+  orderBy,
+  getDoc,
+  doc,
+  and,
+  limit,
+  limitToLast,
+  or
+} from '../util/firebase_export';
+import {
+  apiDescribe,
+  checkOnlineAndOfflineResultsMatch,
+  toDataArray,
+  toIds
+} from '../util/helpers';
 
 apiDescribe('Queries', persistence => {
-  describe('query with OrderBy fields', () => {
+  // TODO(Mila): Remove these tests once helper is validated
+  describe('testing composite index helper', () => {
     it('can run composite index query', () => {
       const testDocs = {
         doc1: { key: 'a', sort: 3 },
@@ -81,4 +97,207 @@ apiDescribe('Queries', persistence => {
       });
     });
   });
+
+  // OR Query tests only run when the SDK's local cache is configured to use
+  // LRU garbage collection (rather than eager garbage collection) because
+  // they validate that the result from server and cache match. Additionally,
+  // these tests must be skipped if running against production because it
+  // results in a 'missing index' error. The Firestore Emulator, however, does
+  // serve these queries.
+  // eslint-disable-next-line no-restricted-properties
+  (persistence.gc === 'lru' ? describe.only : describe.skip)(
+    'OR Queries',
+    () => {
+      it('can use query overloads', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          // a == 1, limit 2, b - desc
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.query(
+              coll,
+              where('a', '==', 1),
+              limit(2),
+              orderBy('b', 'desc')
+            ),
+            'doc4',
+            'doc5'
+          );
+        });
+      });
+
+      it('can use or queries', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { a: 2, b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1, b: 1 }
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          // with one inequality: a>2 || b==1.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', '>', 2), where('b', '==', 1))
+            ),
+            'doc5',
+            'doc2',
+            'doc3'
+          );
+
+          // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', '==', 1), where('b', '>', 0)),
+              limit(2)
+            ),
+            'doc1',
+            'doc2'
+          );
+
+          // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
+          // Note: The public query API does not allow implicit ordering when limitToLast is used.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', '==', 1), where('b', '>', 0)),
+              limitToLast(2),
+              orderBy('b')
+            ),
+            'doc3',
+            'doc4'
+          );
+
+          // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limit(1),
+              orderBy('a')
+            ),
+            'doc5'
+          );
+
+          // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', '==', 2), where('b', '==', 1)),
+              limitToLast(1),
+              orderBy('a')
+            ),
+            'doc2'
+          );
+        });
+      });
+
+      // eslint-disable-next-line no-restricted-properties
+      it('supports multiple in ops', () => {
+        const testDocs = {
+          doc1: { a: 1, b: 0 },
+          doc2: { b: 1 },
+          doc3: { a: 3, b: 2 },
+          doc4: { a: 1, b: 3 },
+          doc5: { a: 1 },
+          doc6: { a: 2 }
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          // Two IN operations on different fields with disjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc1',
+            'doc6',
+            'doc3'
+          );
+
+          // Two IN operations on different fields with conjunction.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
+              orderBy('a')
+            ),
+            'doc3'
+          );
+
+          // Two IN operations on the same field.
+          // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
+            ),
+            'doc1',
+            'doc4',
+            'doc5'
+          );
+
+          // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
+          // empty set.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
+            )
+          );
+
+          // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))
+            ),
+            'doc3',
+            'doc6'
+          );
+
+          // Nested composite filter on the same field.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              and(
+                where('a', 'in', [1, 3]),
+                or(
+                  where('a', 'in', [0, 2]),
+                  and(where('b', '>=', 1), where('a', 'in', [1, 3]))
+                )
+              )
+            ),
+            'doc3',
+            'doc4'
+          );
+
+          // Nested composite filter on the different fields.
+          await checkOnlineAndOfflineResultsMatch(
+            testHelper.compositeQuery(
+              coll,
+              and(
+                where('b', 'in', [0, 3]),
+                or(
+                  where('b', 'in', [1]),
+                  and(where('b', 'in', [2, 3]), where('a', 'in', [1, 3]))
+                )
+              )
+            ),
+            'doc4'
+          );
+        });
+      });
+    }
+  );
 });

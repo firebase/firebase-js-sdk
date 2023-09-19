@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
+import { and } from '../../../src/lite-api/query';
 import { AutoId } from '../../../src/util/misc';
 
 import {
-  query,
+  query as _query,
   CollectionReference,
   DocumentData,
   Firestore,
@@ -28,7 +29,9 @@ import {
   WithFieldValue,
   DocumentReference,
   addDoc as addDocument,
-  setDoc as setDocument
+  setDoc as setDocument,
+  QueryCompositeFilterConstraint,
+  QueryNonFilterConstraint
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -85,14 +88,26 @@ export class CompositeIndexTestHelper {
     doc[this.TEST_ID_FIELD] = this.testId;
   }
 
-  // add filter on test id
+  //add filter on test id
   query<AppModelType, DbModelType extends DocumentData>(
     query_: Query<AppModelType, DbModelType>,
     ...queryConstraints: QueryConstraint[]
   ): Query<AppModelType, DbModelType> {
-    return query(
+    return _query(
       query_,
       where(this.TEST_ID_FIELD, '==', this.testId),
+      ...queryConstraints
+    );
+  }
+
+  compositeQuery<AppModelType, DbModelType extends DocumentData>(
+    query_: Query<AppModelType, DbModelType>,
+    compositeFilter: QueryCompositeFilterConstraint,
+    ...queryConstraints: QueryNonFilterConstraint[]
+  ): Query<AppModelType, DbModelType> {
+    return _query(
+      query_,
+      and(where(this.TEST_ID_FIELD, '==', this.testId), compositeFilter),
       ...queryConstraints
     );
   }
