@@ -1515,10 +1515,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    // TODO(orquery) enable this test when the backend supports
-    // one in per disjunction
-    // eslint-disable-next-line no-restricted-properties
-    it.skip('supports multiple in ops', () => {
+    it('supports multiple in ops', () => {
       const testDocs = {
         doc1: { a: 1, b: 0 },
         doc2: { b: 1 },
@@ -1546,10 +1543,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     });
 
-    // TODO(orquery) enable this test when the backend supports
-    // one in or array-contains-any per disjunction
-    // eslint-disable-next-line no-restricted-properties
-    it.skip('supports using in with array contains any', () => {
+    it('supports using in with array contains any', () => {
       const testDocs = {
         doc1: { a: 1, b: [0] },
         doc2: { b: [1] },
@@ -1729,27 +1723,6 @@ apiDescribe('Queries', (persistence: boolean) => {
             limitToLast(1),
             orderBy('a')
           ),
-          'doc2'
-        );
-      });
-    });
-
-    it('can use or queries with not-in', () => {
-      const testDocs = {
-        doc1: { a: 1, b: 0 },
-        doc2: { b: 1 },
-        doc3: { a: 3, b: 2 },
-        doc4: { a: 1, b: 3 },
-        doc5: { a: 1 },
-        doc6: { a: 2 }
-      };
-
-      return withTestCollection(persistence, testDocs, async coll => {
-        // a==2 || b not-in [2,3]
-        // Has implicit orderBy b.
-        await checkOnlineAndOfflineResultsMatch(
-          query(coll, or(where('a', '==', 2), where('b', 'not-in', [2, 3]))),
-          'doc1',
           'doc2'
         );
       });
