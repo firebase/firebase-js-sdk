@@ -115,11 +115,11 @@ jobs:
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
-        run: |
-          export EXPERIMENTAL_MODE=true
-          cp config/ci.config.json config/project.json
+        run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          EXPERIMENTAL_MODE: true
 
   compat-test-firefox:
     name: Test Firestore Compatible on Firefox
@@ -182,13 +182,12 @@ jobs:
       - name: Bump Node memory limit
         run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
-        run: |
-          export EXPERIMENTAL_MODE=true
-          cp config/ci.config.json config/project.json
+        run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
           BROWSERS: 'Firefox'
+          EXPERIMENTAL_MODE: true
 
   # A job that fails if any required job in the test matrix fails,
   # to be used as a required check for merging.
