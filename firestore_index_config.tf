@@ -3,7 +3,7 @@ locals {
   indexes = {
     index1 = [
       {
-        field_path = "key"
+        field_path = "b"
         order      = "ASCENDING"
       },
       {
@@ -11,13 +11,13 @@ locals {
         order      = "ASCENDING"
       },
       {
-        field_path = "sort"
+        field_path = "a"
         order      = "ASCENDING"
       },
     ]
     index2 = [
       {
-        field_path = "b"
+        field_path = "a"
         order      = "ASCENDING"
       },
       {
@@ -25,21 +25,7 @@ locals {
         order      = "ASCENDING"
       },
       {
-        field_path = "a"
-        order      = "ASCENDING"
-      },
-    ]
-    index9 = [
-      {
         field_path = "b"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "testId"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "a"
         order      = "DESCENDING"
       },
     ]
@@ -54,7 +40,7 @@ locals {
       },
       {
         field_path = "b"
-        order      = "DESCENDING"
+        order      = "ASCENDING"
       },
     ]
     index4 = [
@@ -67,22 +53,18 @@ locals {
         order      = "ASCENDING"
       },
       {
-        field_path = "b"
-        order      = "ASCENDING"
+        field_path = "a"
+        order      = "DESCENDING"
       },
     ]
     index5 = [
-      {
-        field_path = "a"
-        order      = "ASCENDING"
-      },
       {
         field_path = "testId"
         order      = "ASCENDING"
       },
       {
         field_path = "a"
-        order      = "DESCENDING"
+        order      = "ASCENDING"
       },
     ]
     index6 = [
@@ -91,7 +73,7 @@ locals {
         order      = "ASCENDING"
       },
       {
-        field_path = "a"
+        field_path = "b"
         order      = "ASCENDING"
       },
     ]
@@ -102,19 +84,22 @@ locals {
       },
       {
         field_path = "b"
-        order      = "ASCENDING"
+        order      = "DESCENDING"
       },
     ]
     index8 = [
+      {
+        field_path = "b"
+        order      = "ASCENDING"
+      },
       {
         field_path = "testId"
         order      = "ASCENDING"
       },
       {
-        field_path = "b"
+        field_path = "a"
         order      = "DESCENDING"
       },
     ]
-
   }
 }
