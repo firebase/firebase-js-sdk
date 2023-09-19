@@ -825,15 +825,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'with different inequality fields fail', db => {
+    validationIt(persistence, 'can have different inequality fields', db => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('x', '>=', 32).where('y', '<', 'cat')
-      ).to.throw(
-        'Invalid query. All where filters with an ' +
-          'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-          ` But you have inequality filters on 'x' and 'y'`
-      );
+      ).not.to.throw();
     });
 
     validationIt(persistence, 'with more than one != query fail', db => {
@@ -845,59 +841,46 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'with != and inequality queries on different fields fail',
+      'can have != and inequality queries on different fields',
       db => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', '!=', 33)
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
+        ).not.to.throw();
       }
     );
 
     validationIt(
       persistence,
-      'with != and inequality queries on different fields fail',
+      'can have NOT-IN and inequality queries on different fields',
       db => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', 'not-in', [33])
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
+        ).not.to.throw();
       }
     );
 
     validationIt(
       persistence,
-      'with inequality different than first orderBy fail.',
+      'can have inequality different than first orderBy',
       db => {
         const collection = db.collection('test');
-        const reason =
-          `Invalid query. You have a where filter with an ` +
-          `inequality (<, <=, !=, not-in, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first argument to Query.orderBy(), but your first ` +
-          `orderBy() is on field 'y' instead.`;
-        expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(
-          reason
-        );
-        expect(() => collection.orderBy('y').where('x', '>', 32)).to.throw(
-          reason
-        );
+        expect(() =>
+          collection.where('x', '>', 32).orderBy('y')
+        ).not.to.throw();
+        expect(() =>
+          collection.orderBy('y').where('x', '>', 32)
+        ).not.to.throw();
         expect(() =>
           collection.where('x', '>', 32).orderBy('y').orderBy('x')
-        ).to.throw(reason);
+        ).not.to.throw();
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
-        ).to.throw(reason);
-        expect(() => collection.where('x', '!=', 32).orderBy('y')).to.throw(
-          reason
-        );
+        ).not.to.throw();
+        expect(() =>
+          collection.where('x', '!=', 32).orderBy('y')
+        ).not.to.throw();
       }
     );
 

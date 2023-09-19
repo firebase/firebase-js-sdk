@@ -17,6 +17,7 @@
 
 import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
+import '@firebase/auth-compat';
 import { Provider } from '@firebase/component';
 import '../..';
 

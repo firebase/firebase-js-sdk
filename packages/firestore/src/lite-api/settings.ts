@@ -68,7 +68,10 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 }
 
-/** Undocumented, private additional settings not exposed in our public API. */
+/**
+ * @internal
+ * Undocumented, private additional settings not exposed in our public API.
+ */
 export interface PrivateSettings extends FirestoreSettings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
@@ -104,7 +107,7 @@ export class FirestoreSettingsImpl {
   readonly ignoreUndefinedProperties: boolean;
 
   readonly useFetchStreams: boolean;
-  readonly cache?: FirestoreLocalCache;
+  readonly localCache?: FirestoreLocalCache;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,7 +130,7 @@ export class FirestoreSettingsImpl {
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
-    this.cache = settings.localCache;
+    this.localCache = settings.localCache;
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;

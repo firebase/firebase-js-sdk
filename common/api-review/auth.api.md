@@ -81,6 +81,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 // @public
 export interface Auth {
     readonly app: FirebaseApp;
+    authStateReady(): Promise<void>;
     beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
     readonly config: Config;
     readonly currentUser: User | null;
@@ -550,7 +551,7 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
 export interface ParsedToken {
-    [key: string]: any;
+    [key: string]: unknown;
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {
@@ -560,6 +561,33 @@ export interface ParsedToken {
     };
     'iat'?: string;
     'sub'?: string;
+}
+
+// @public
+export interface PasswordPolicy {
+    readonly allowedNonAlphanumericCharacters: string;
+    readonly customStrengthOptions: {
+        readonly minPasswordLength?: number;
+        readonly maxPasswordLength?: number;
+        readonly containsLowercaseLetter?: boolean;
+        readonly containsUppercaseLetter?: boolean;
+        readonly containsNumericCharacter?: boolean;
+        readonly containsNonAlphanumericCharacter?: boolean;
+    };
+    readonly enforcementState: string;
+    readonly forceUpgradeOnSignin: boolean;
+}
+
+// @public
+export interface PasswordValidationStatus {
+    readonly containsLowercaseLetter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
+    readonly isValid: boolean;
+    readonly meetsMaxPasswordLength?: boolean;
+    readonly meetsMinPasswordLength?: boolean;
+    readonly passwordPolicy: PasswordPolicy;
 }
 
 // @public
@@ -681,7 +709,7 @@ export interface RecaptchaParameters {
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
-    constructor(containerOrId: HTMLElement | string, parameters: RecaptchaParameters, authExtern: Auth);
+    constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
@@ -867,6 +895,9 @@ export interface UserMetadata {
 
 // @public
 export type UserProfile = Record<string, unknown>;
+
+// @public
+export function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
 
 // @public
 export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;

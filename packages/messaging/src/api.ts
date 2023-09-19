@@ -92,15 +92,15 @@ export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
 }
 
 /**
- * Subscribes the {@link Messaging} instance to push notifications. Returns an Firebase Cloud
+ * Subscribes the {@link Messaging} instance to push notifications. Returns a Firebase Cloud
  * Messaging registration token that can be used to send push messages to that {@link Messaging}
  * instance.
  *
- * If a notification permission isn't already granted, this method asks the user for permission. The
+ * If notification permission isn't already granted, this method asks the user for permission. The
  * returned promise rejects if the user does not allow the app to show notifications.
  *
  * @param messaging - The {@link Messaging} instance.
- * @param options - Provides an optional vapid key and an optinoal service worker registration
+ * @param options - Provides an optional vapid key and an optional service worker registration.
  *
  * @returns The promise resolves with an FCM registration token.
  *

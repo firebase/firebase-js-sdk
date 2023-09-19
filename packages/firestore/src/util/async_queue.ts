@@ -115,6 +115,10 @@ export class DelayedOperation<T extends unknown> implements PromiseLike<T> {
     this.deferred.promise.catch(err => {});
   }
 
+  get promise(): Promise<T> {
+    return this.deferred.promise;
+  }
+
   /**
    * Creates and returns a DelayedOperation that has been scheduled to be
    * executed on the provided asyncQueue after the provided delayMs.

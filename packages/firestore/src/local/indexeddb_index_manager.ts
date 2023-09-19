@@ -252,6 +252,39 @@ export class IndexedDbIndexManager implements IndexManager {
       );
   }
 
+  deleteAllFieldIndexes(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const indexes = indexConfigurationStore(transaction);
+    const entries = indexEntriesStore(transaction);
+    const states = indexStateStore(transaction);
+
+    return indexes
+      .deleteAll()
+      .next(() => entries.deleteAll())
+      .next(() => states.deleteAll());
+  }
+
+  createTargetIndexes(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<void> {
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (subTarget: Target) => {
+        return this.getIndexType(transaction, subTarget).next(type => {
+          if (type === IndexType.NONE || type === IndexType.PARTIAL) {
+            const targetIndexMatcher = new TargetIndexMatcher(subTarget);
+            const fieldIndex = targetIndexMatcher.buildTargetIndex();
+            if (fieldIndex != null) {
+              return this.addFieldIndex(transaction, fieldIndex);
+            }
+          }
+        });
+      }
+    );
+  }
+
   getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
     target: Target

@@ -1,5 +1,47 @@
 # @firebase/app
 
+## 0.9.19
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.18
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.17
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.16
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.15
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.14
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.13
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.9.12
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,4 +15,21 @@
  * limitations under the License.
  */
 
-export * from '@firebase/auth/react-native';
+/**
+ * A tracker to keep a record of important details during database local query
+ * execution.
+ */
+export class QueryContext {
+  /**
+   * Counts the number of documents passed through during local query execution.
+   */
+  private _documentReadCount = 0;
+
+  get documentReadCount(): number {
+    return this._documentReadCount;
+  }
+
+  incrementDocumentReadCount(amount: number): void {
+    this._documentReadCount += amount;
+  }
+}
