@@ -2315,16 +2315,16 @@ apiDescribe('Queries', persistence => {
         });
       });
 
-    // eslint-disable-next-line no-restricted-properties
-    it('supports order by equality', () => {
-      const testDocs = {
-        doc1: { a: 1, b: [0] },
-        doc2: { b: [1] },
-        doc3: { a: 3, b: [2, 7], c: 10 },
-        doc4: { a: 1, b: [3, 7] },
-        doc5: { a: 1 },
-        doc6: { a: 2, c: 20 }
-      };
+      // eslint-disable-next-line no-restricted-properties
+      it('supports order by equality', () => {
+        const testDocs = {
+          doc1: { a: 1, b: [0] },
+          doc2: { b: [1] },
+          doc3: { a: 3, b: [2, 7], c: 10 },
+          doc4: { a: 1, b: [3, 7] },
+          doc5: { a: 1 },
+          doc6: { a: 2, c: 20 }
+        };
 
         return withTestCollection(persistence, testDocs, async coll => {
           await checkOnlineAndOfflineResultsMatch(
