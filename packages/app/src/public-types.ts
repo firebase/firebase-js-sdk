@@ -72,6 +72,22 @@ export interface FirebaseApp {
 }
 
 /**
+ * A {@link @firebase/app#FirebaseServerApp} holds the initialization information
+ * for a collection of services running in server enviornments.
+ *
+ * Do not call this constructor directly. Instead, use
+ * {@link (initializeServerAppInstance:1) | initializeServerAppInstance()} to create
+ * an app.
+ *
+ * @public
+ */
+export interface FirebaseServerApp extends FirebaseApp {
+  // An object originating from the API endpoint or Server Side Rendering
+  // request which contains the browser cookies of the HTTP request.
+  readonly headers: object;
+ }
+
+/**
  * @public
  *
  * Firebase configuration object. Contains a set of parameters required by
@@ -137,6 +153,24 @@ export interface FirebaseAppSettings {
    * The settable config flag for GDPR opt-in/opt-out
    */
   automaticDataCollectionEnabled?: boolean;
+}
+
+/**
+ * @public
+ *
+ * Configuration options given to {@link (initializeServerApp:1) | initializeServerApp()}
+ */
+export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+  /**
+   * An object containing the client's HTTP request headers.
+   */
+  headers: object;
+
+  /**
+   * An optional function callback the Firebase SDK may call to request that a cookie be
+   * added to the server response cookie object.
+   */
+  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
 }
 
 /**

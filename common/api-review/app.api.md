@@ -97,6 +97,13 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
+export function initializeServerAppInstance(options: FirebaseOptions, config?:
+  FirebaseAppSettings): FirebaseServerApp;
+
+// @public
+export function initializeServerAppInstance(): FirebaseServerApp;
+
+// @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 
 // @internal (undocumented)

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
+import { 
+  FirebaseAppImpl,
+} from './firebaseApp';
 import {
-  FirebaseApp,
+  FirebaseServerApp,
   FirebaseOptions,
-  FirebaseAppSettings
+  FirebaseServerAppSettings
 } from './public-types';
 import {
   ComponentContainer,
@@ -27,19 +30,23 @@ import {
 } from '@firebase/component';
 import { ERROR_FACTORY, AppError } from './errors';
 
-export class FirebaseAppImpl implements FirebaseApp {
-  protected readonly _options: FirebaseOptions;
-  protected readonly _name: string;
+export class FirebaseServerAppImpl implements FirebaseServerApp {
   /**
    * Original config values passed in as a constructor parameter.
-   * It is only used to compare with another config object to support idempotent initializeApp().
+   * It is only used to compare with another config object to support idempotent
+   * initializeServerAppInstance().
    *
-   * Updating automaticDataCollectionEnabled on the App instance will not change its value in _config.
+   * Updating automaticDataCollectionEnabled on the App instance will not change its value in
+   * _config.
    */
   private readonly _config: Required<FirebaseAppSettings>;
-  protected _automaticDataCollectionEnabled: boolean;
-  protected _isDeleted = false;
-  protected readonly _container: ComponentContainer;
+  private readonly _options: FirebaseOptions;
+  private readonly _name: string;
+  private _automaticDataCollectionEnabled: boolean;
+  private readonly _headers: object;
+  private readonly _setCookieCallback: (name: string, value: string) => void): FirebaseServerApp;
+  private _isDeleted = false;
+  private readonly _container: ComponentContainer;
 
   constructor(
     options: FirebaseOptions,
@@ -51,6 +58,8 @@ export class FirebaseAppImpl implements FirebaseApp {
     this._name = config.name;
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled;
+    this._headers = config.headers;
+    this._setCookieCallback = config.setCookieCallback;
     this._container = container;
     this.container.addComponent(
       new Component('app', () => this, ComponentType.PUBLIC)
@@ -77,7 +86,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     return this._options;
   }
 
-  get config(): Required<FirebaseAppSettings> {
+  get config(): Required<FirebaseServerAppSettings> {
     this.checkDestroyed();
     return this._config;
   }
@@ -94,11 +103,21 @@ export class FirebaseAppImpl implements FirebaseApp {
     this._isDeleted = val;
   }
 
+  get headers(): object {
+    return this._headers;
+  }
+
+  callSetCookieCallback(cookieName: string, cookieValue: string) : void {
+    if(this._setCookieCallback !== undefined) {
+      this._setCookieCallback(cookieName, cookieValue);
+    }
+  }
+
   /**
    * This function will throw an Error if the App has already been deleted -
    * use before performing API actions on the App.
    */
-  protected checkDestroyed(): void {
+  private checkDestroyed(): void {
     if (this.isDeleted) {
       throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this._name });
     }

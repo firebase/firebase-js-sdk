@@ -32,6 +32,11 @@ export interface FirebaseAppConfig {
   automaticDataCollectionEnabled?: boolean;
 }
 
+export interface FirebaseServerAppConfig extends FirebaseAppConfig {
+  headers: object;
+  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
+}
+
 export class FirebaseApp {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
@@ -55,6 +60,19 @@ export class FirebaseApp {
   delete(): Promise<void>;
 }
 
+export class FirebaseServerApp extends FirebaseApp {
+  /**
+   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
+   * App.
+   */
+  headers: object;
+
+  /**
+   * The (read-only) configuration options from the app initialization.
+   */
+  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
+}
+
 export interface FirebaseNamespace {
   /**
    * Create (and initialize) a FirebaseApp.
@@ -66,6 +84,7 @@ export interface FirebaseNamespace {
     options: FirebaseOptions,
     config?: FirebaseAppConfig
   ): FirebaseApp;
+
   /**
    * Create (and initialize) a FirebaseApp.
    *
@@ -74,6 +93,17 @@ export interface FirebaseNamespace {
    * omitted)
    */
   initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
+
+  /**
+   * Create (and initialize) a FirebaseServerApp.
+   *
+   * @param options Options to configure the services used in the App.
+   * @param config The optional config for your firebase server app
+   */
+  initializeServerAppInstance(
+    options: FirebaseOptions,
+    config?: FirebaseServerAppConfig
+  ): FirebaseServerApp;
 
   app: {
     /**
@@ -94,10 +124,34 @@ export interface FirebaseNamespace {
     App: typeof FirebaseApp;
   };
 
+  serverApp: {
+    /**
+     * Retrieve an instance of a FirebaseServerApp.
+     *
+     * Usage: firebase.serverApp()
+     *
+     * @param name The optional name of the server app to return ('[DEFAULT]' if omitted)
+     */
+    (name?: string): FirebaseServerApp;
+
+    /**
+     * For testing FirebaseApp instances:
+     *  app() instanceof firebase.app.App
+     *
+     * DO NOT call this constuctor directly (use firebase.app() instead).
+     */
+    serverApp: typeof FirebaseServerApp;
+  };
+
   /**
    * A (read-only) array of all the initialized Apps.
    */
   apps: FirebaseApp[];
+
+  /**
+   * A (read-only) array of all the initialized Server Apps.
+   */
+  serverApps: FirebaseServerApp[];
 
   /**
    * Registers a library's name and version for platform logging purposes.
