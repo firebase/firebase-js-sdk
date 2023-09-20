@@ -29,6 +29,19 @@ import {
   checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
 
+/*
+ * Guidance for Creating Tests:
+ * ----------------------------
+ * When creating tests that require composite indexes, it is recommended to utilize the
+ * "CompositeIndexTestHelper" class. This utility class provides methods for creating
+ * and setting test documents and running queries with ease, ensuring proper data
+ * isolation and query construction.
+ *
+ * Please remember to update the main index configuration file (firestore_index_config.tf)
+ * with any new composite indexes required by the test cases to maintain synchronization
+ * of other testing environments, including CI.
+ */
+
 apiDescribe('Queries', persistence => {
   // OR Query tests only run when the SDK's local cache is configured to use
   // LRU garbage collection (rather than eager garbage collection) because

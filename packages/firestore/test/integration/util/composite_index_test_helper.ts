@@ -19,7 +19,7 @@ import { and } from '../../../src/lite-api/query';
 import { AutoId } from '../../../src/util/misc';
 
 import {
-  query as _query,
+  query as internalQuery,
   CollectionReference,
   DocumentData,
   Firestore,
@@ -40,6 +40,15 @@ import {
 } from './helpers';
 import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
 
+/**
+ * This helper class is designed to facilitate integration testing of Firestore
+ * queries that require composite indexes within a controlled testing environment.
+ *
+ * Key Features:
+ * - Runs tests against the dedicated test collection with predefined composite indexes.
+ * - Automatically associates a test ID with documents for data isolation.
+ * - Constructs Firestore queries with test ID filters.
+ */
 export class CompositeIndexTestHelper {
   private readonly testId: string;
   private readonly TEST_ID_FIELD: string = 'testId';
@@ -76,43 +85,43 @@ export class CompositeIndexTestHelper {
     );
   }
 
-  // Add test-id to docs created under a specific test.
-  // Docs are modified instead of deep copy for convenience of equality check in tests.
-  private addTestIdToDocs(docs: { [key: string]: DocumentData }): void {
-    for (const doc of Object.values(docs)) {
-      doc[this.TEST_ID_FIELD] = this.testId;
-    }
+  // Add testId to documents created under a specific test.
+  private addTestIdToDocs(docs: { [key: string]: DocumentData }): {
+    [key: string]: DocumentData;
+  } {
+    return Object.keys(docs).reduce((result, key) => {
+      const doc = { ...docs[key], [this.TEST_ID_FIELD]: this.testId };
+      result[key] = doc;
+      return result;
+    }, {} as { [key: string]: DocumentData });
   }
 
-  private addTestIdToDoc(doc: DocumentData): void {
-    doc[this.TEST_ID_FIELD] = this.testId;
-  }
-
-  //add filter on test id
+  // Adds a filter on test id for a query.
   query<AppModelType, DbModelType extends DocumentData>(
     query_: Query<AppModelType, DbModelType>,
     ...queryConstraints: QueryConstraint[]
   ): Query<AppModelType, DbModelType> {
-    return _query(
+    return internalQuery(
       query_,
       where(this.TEST_ID_FIELD, '==', this.testId),
       ...queryConstraints
     );
   }
 
+  // Adds a filter on test id for a composite query,
   compositeQuery<AppModelType, DbModelType extends DocumentData>(
     query_: Query<AppModelType, DbModelType>,
     compositeFilter: QueryCompositeFilterConstraint,
     ...queryConstraints: QueryNonFilterConstraint[]
   ): Query<AppModelType, DbModelType> {
-    return _query(
+    return internalQuery(
       query_,
       and(where(this.TEST_ID_FIELD, '==', this.testId), compositeFilter),
       ...queryConstraints
     );
   }
 
-  // add doc with test id
+  // Add a document with test id.
   addDoc<T, DbModelType extends DocumentData>(
     reference: CollectionReference<T, DbModelType>,
     data: WithFieldValue<T>
@@ -122,7 +131,7 @@ export class CompositeIndexTestHelper {
     return addDocument(reference, data);
   }
 
-  // set doc with test-id
+  // Set a document with test id.
   setDoc<T, DbModelType extends DocumentData>(
     reference: DocumentReference<T, DbModelType>,
     data: WithFieldValue<T>
