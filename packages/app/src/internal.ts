@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from './public-types';
+import { FirebaseApp, FirebaseServerApp } from './public-types';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 import { DEFAULT_ENTRY_NAME } from './constants';
@@ -25,6 +25,7 @@ import { FirebaseAppImpl } from './firebaseApp';
  * @internal
  */
 export const _apps = new Map<string, FirebaseApp>();
+export const _serverApps = new Map<string, FirebaseServerApp>();
 
 /**
  * Registered components.

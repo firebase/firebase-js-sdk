@@ -170,7 +170,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * An optional function callback the Firebase SDK may call to request that a cookie be
    * added to the server response cookie object.
    */
-  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
+  setCookieCallback?: (name: string, value: string) => void;
 }
 
 /**

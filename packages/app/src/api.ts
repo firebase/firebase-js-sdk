@@ -17,8 +17,10 @@
 
 import {
   FirebaseApp,
+  FirebaseServerApp,
   FirebaseOptions,
-  FirebaseAppSettings
+  FirebaseAppSettings,
+  FirebaseServerAppSettings
 } from './public-types';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
@@ -30,7 +32,8 @@ import {
 } from '@firebase/component';
 import { version } from '../../firebase/package.json';
 import { FirebaseAppImpl } from './firebaseApp';
-import { _apps, _components, _registerComponent } from './internal';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
+import { _apps, _components, _registerComponent, _serverApps } from './internal';
 import { logger } from './logger';
 import {
   LogLevelString,
@@ -179,94 +182,74 @@ export function initializeApp(
  *
  * See
  * {@link
-*   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
-*   | Add Firebase to your app} and
-* {@link
-*   https://firebase.google.com/docs/web/setup#multiple-projects
-*   | Initialize multiple projects} for detailed documentation.
-*
-* @example
-* ```javascript
-*
-* // Initialize default app
-* // Retrieve your own options values by adding a web app on
-* // https://console.firebase.google.com
-* initializeServerAppInstance({
-*     apiKey: "AIza....",                             // Auth / General Use
-*     authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
-*     databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
-*     storageBucket: "YOUR_APP.appspot.com",          // Storage
-*     messagingSenderId: "123456789"                  // Cloud Messaging
-*   },
-*   {
-*    headers: requestHeaders
-*   });
-* ```
-*
-* @example
-* ```javascript
-*
-* // Initialize another server app
-* const otherApp = initializeServerAppInstance({
-*   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
-*   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
-* },
-* {
-*  name: "otherApp",
-*  headers: requestHeaders
-* });
-* ```
-*
-* @param options - Options to configure the app's services.
-* @param config - FirebaseServerApp configuration.
-*
-* @returns The initialized FirebaseServerApp.
-*
-* @public
-*/
+ *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
+ *   | Add Firebase to your app} and
+ * {@link
+ *   https://firebase.google.com/docs/web/setup#multiple-projects
+ *   | Initialize multiple projects} for detailed documentation.
+ *
+ * @example
+ * ```javascript
+ *
+ * // Initialize default app
+ * // Retrieve your own options values by adding a web app on
+ * // https://console.firebase.google.com
+ * initializeServerAppInstance({
+ *     apiKey: "AIza....",                             // Auth / General Use
+ *     authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
+ *     databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
+ *     storageBucket: "YOUR_APP.appspot.com",          // Storage
+ *     messagingSenderId: "123456789"                  // Cloud Messaging
+ *   },
+ *   {
+ *    headers: requestHeaders
+ *   });
+ * ```
+ *
+ * @example
+ * ```javascript
+ *
+ * // Initialize another server app
+ * const otherApp = initializeServerAppInstance({
+ *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
+ *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
+ * },
+ * {
+ *  name: "otherApp",
+ *  headers: requestHeaders
+ * });
+ * ```
+ *
+ * @param options - Options to configure the app's services.
+ * @param config - FirebaseServerApp configuration.
+ *
+ * @returns The initialized FirebaseServerApp.
+ *
+ * @public
+ */
 export function initializeServerAppInstance(
- options: FirebaseOptions,
- config: FirebaseServerAppSettings): FirebaseServerApp;
+ _options: FirebaseOptions,
+ _config: FirebaseServerAppSettings): FirebaseServerApp {
 
-
-/**
-* Creates and initializes a FirebaseServerApp instance.
-*
-* @public
-*/
-export function initializeServerAppInstance(config: FirebaseServerAppSettings):
- FirebaseServerApp;
-export function initializeServerAppInstance(
-  _serverAppSettings: FirebaseServerAppSettings,
-  _options?: FirebaseOptions)
-): FirebaseServerApp {
-
- let options = _options;
-
- const serverAppSettings: Required<FirebaseServerAppSettings> = {
+ const serverAppSettings: FirebaseServerAppSettings = {
    name: DEFAULT_ENTRY_NAME,
-   ..._serverAppSettings
+   automaticDataCollectionEnabled: false,
+   ..._config
  };
- const name = config.name;
 
+ const name = _config.name;
  if (typeof name !== 'string' || !name) {
    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
      appName: String(name)
    });
  }
 
- options ||= getDefaultAppConfig();
-
- if (!options) {
-   throw ERROR_FACTORY.create(AppError.NO_OPTIONS);
- }
-
- const existingApp = _serverApps.get(name) as FirebaseAppImpl;
+ const existingApp = _serverApps.get(name) as FirebaseServerAppImpl;
  if (existingApp) {
    // return the existing app if options and config deep equal the ones in the existing app.
    if (
-     deepEqual(options, existingApp.options) &&
-     deepEqual(serverAppSettings, existingApp.serverAppSettings)
+     deepEqual(_options, existingApp.options) &&
+     deepEqual(serverAppSettings, existingApp.config)
    ) {
      return existingApp;
    } else {
@@ -279,7 +262,7 @@ export function initializeServerAppInstance(
    container.addComponent(component);
  }
 
- const newApp = new FirebaseAppImpl(options, config, container);
+ const newApp = new FirebaseServerAppImpl(_options, serverAppSettings, container);
 
  _apps.set(name, newApp);
 

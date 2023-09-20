@@ -34,7 +34,7 @@ export interface FirebaseAppConfig {
 
 export interface FirebaseServerAppConfig extends FirebaseAppConfig {
   headers: object;
-  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
+  setCookieCallback?: (name: string, value: string) => void;
 }
 
 export class FirebaseApp {
@@ -70,7 +70,7 @@ export class FirebaseServerApp extends FirebaseApp {
   /**
    * The (read-only) configuration options from the app initialization.
    */
-  setCookieCallback?: (name: string, value: string) => void): FirebaseServerApp;
+  setCookieCallback?: (name: string, value: string) => void;
 }
 
 export interface FirebaseNamespace {

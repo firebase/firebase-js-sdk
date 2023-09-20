@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { 
-  FirebaseAppImpl,
-} from './firebaseApp';
 import {
   FirebaseServerApp,
   FirebaseOptions,
@@ -39,18 +36,18 @@ export class FirebaseServerAppImpl implements FirebaseServerApp {
    * Updating automaticDataCollectionEnabled on the App instance will not change its value in
    * _config.
    */
-  private readonly _config: Required<FirebaseAppSettings>;
+  private readonly _config: Required<FirebaseServerAppSettings>;
   private readonly _options: FirebaseOptions;
   private readonly _name: string;
   private _automaticDataCollectionEnabled: boolean;
   private readonly _headers: object;
-  private readonly _setCookieCallback: (name: string, value: string) => void): FirebaseServerApp;
+  private readonly _setCookieCallback: (name: string, value: string) => void;
   private _isDeleted = false;
   private readonly _container: ComponentContainer;
 
   constructor(
     options: FirebaseOptions,
-    config: Required<FirebaseAppSettings>,
+    config: FirebaseServerAppSettings,
     container: ComponentContainer
   ) {
     this._options = { ...options };
@@ -60,6 +57,7 @@ export class FirebaseServerAppImpl implements FirebaseServerApp {
       config.automaticDataCollectionEnabled;
     this._headers = config.headers;
     this._setCookieCallback = config.setCookieCallback;
+    
     this._container = container;
     this.container.addComponent(
       new Component('app', () => this, ComponentType.PUBLIC)
