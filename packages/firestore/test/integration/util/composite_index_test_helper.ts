@@ -63,11 +63,10 @@ export class CompositeIndexTestHelper {
     docs: { [key: string]: DocumentData },
     fn: (collection: CollectionReference, db: Firestore) => Promise<T>
   ): Promise<T> {
-    this.addTestIdToDocs(docs);
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
-      docs,
+      this.addTestIdToDocs(docs),
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
