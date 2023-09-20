@@ -101,9 +101,9 @@ jobs:
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
-      - name: install Chrome stable
-        run: |
-          npx @puppeteer/browsers install chrome@stable
+    - name: install Chrome stable
+      run: |
+        npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
