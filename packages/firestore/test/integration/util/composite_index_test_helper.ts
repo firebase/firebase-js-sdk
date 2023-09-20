@@ -35,6 +35,7 @@ import {
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
+  checkOnlineAndOfflineResultsMatch,
   PERSISTENCE_MODE_UNSPECIFIED,
   PersistenceMode
 } from './helpers';
@@ -58,6 +59,7 @@ export class CompositeIndexTestHelper {
     this.testId = 'test-id-' + AutoId.newId();
   }
 
+  // Runs a test with specified documents in the COMPOSITE_INDEX_TEST_COLLECTION.
   async withTestDocs<T>(
     persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
     docs: { [key: string]: DocumentData },
@@ -66,11 +68,13 @@ export class CompositeIndexTestHelper {
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
-      this.addTestIdToDocs(docs),
+      this.hashDocs(docs),
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
   }
+
+  // Runs a test without pre-created documents in the COMPOSITE_INDEX_TEST_COLLECTION.
   async withEmptyCollection<T>(
     persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
     fn: (collection: CollectionReference, db: Firestore) => Promise<T>
@@ -84,15 +88,34 @@ export class CompositeIndexTestHelper {
     );
   }
 
-  // Add testId to documents created under a specific test.
-  private addTestIdToDocs(docs: { [key: string]: DocumentData }): {
+  // Hash the document key and add testId to documents created under a specific test to support data
+  // isolation in parallel testing.
+  private hashDocs(docs: { [key: string]: DocumentData }): {
     [key: string]: DocumentData;
   } {
     return Object.keys(docs).reduce((result, key) => {
       const doc = { ...docs[key], [this.TEST_ID_FIELD]: this.testId };
-      result[key] = doc;
+      result[key + '-' + this.testId] = doc;
       return result;
     }, {} as { [key: string]: DocumentData });
+  }
+
+  // Hash the document keys with testId.
+  toHashedIds(docs: string[]): string[] {
+    return docs.map(docId => docId + '-' + this.testId);
+  }
+
+  // Checks that running the query while online (against the backend/emulator) results in the same
+  // as running it while offline. The expected document Ids are hashed to match the actual document
+  // IDs created by the test helper.
+  async checkOnlineAndOfflineResultsMatch(
+    query: Query,
+    ...expectedDocs: string[]
+  ): Promise<void> {
+    return checkOnlineAndOfflineResultsMatch(
+      query,
+      ...this.toHashedIds(expectedDocs)
+    );
   }
 
   // Adds a filter on test id for a query.
