@@ -12,6 +12,7 @@ env:
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
   artifactRetentionDays: 14
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   build:
@@ -28,8 +29,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -69,8 +68,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -113,8 +110,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -155,8 +150,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -201,8 +194,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
