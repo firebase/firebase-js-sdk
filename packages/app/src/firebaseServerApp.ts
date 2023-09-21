@@ -26,6 +26,7 @@ import {
   ComponentType
 } from '@firebase/component';
 import { ERROR_FACTORY, AppError } from './errors';
+import { DEFAULT_ENTRY_NAME } from './constants';
 
 export class FirebaseServerAppImpl implements FirebaseServerApp {
   /**
@@ -51,17 +52,29 @@ export class FirebaseServerAppImpl implements FirebaseServerApp {
     container: ComponentContainer
   ) {
     this._options = { ...options };
-    this._config = { ...config };
-    this._name = config.name;
+    this._config = {
+      
+      name: DEFAULT_ENTRY_NAME,
+      automaticDataCollectionEnabled: false,
+      setCookieCallback: this.defaultSetCookieCallback,
+      ...config
+    };
+    this._name = this._config.name;
     this._automaticDataCollectionEnabled =
-      config.automaticDataCollectionEnabled;
-    this._headers = config.headers;
-    this._setCookieCallback = config.setCookieCallback;
+      this._config.automaticDataCollectionEnabled;
+    this._headers = this._config.headers;
+    this._setCookieCallback = this._config.setCookieCallback;
+    
     
     this._container = container;
     this.container.addComponent(
       new Component('app', () => this, ComponentType.PUBLIC)
     );
+  }
+  
+  private defaultSetCookieCallback(name: string, value: string): void {
+    console.log(name);
+    console.log(value);
   }
 
   get automaticDataCollectionEnabled(): boolean {
