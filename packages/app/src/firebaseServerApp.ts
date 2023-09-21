@@ -16,60 +16,52 @@
  */
 
 import {
+  FirebaseAppSettings,
   FirebaseServerApp,
-  FirebaseOptions,
-  FirebaseServerAppSettings
+  FirebaseServerAppSettings,
+  FirebaseOptions
 } from './public-types';
 import {
-  ComponentContainer,
-  Component,
-  ComponentType
+  ComponentContainer
 } from '@firebase/component';
-import { ERROR_FACTORY, AppError } from './errors';
+import {FirebaseAppImpl} from './firebaseApp';
 import { DEFAULT_ENTRY_NAME } from './constants';
 
-export class FirebaseServerAppImpl implements FirebaseServerApp {
-  /**
-   * Original config values passed in as a constructor parameter.
-   * It is only used to compare with another config object to support idempotent
-   * initializeServerAppInstance().
-   *
-   * Updating automaticDataCollectionEnabled on the App instance will not change its value in
-   * _config.
-   */
-  private readonly _config: Required<FirebaseServerAppSettings>;
-  private readonly _options: FirebaseOptions;
-  private readonly _name: string;
-  private _automaticDataCollectionEnabled: boolean;
+export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseServerApp {
+  private readonly _serverConfig: Required<FirebaseServerAppSettings>;
   private readonly _headers: object;
   private readonly _setCookieCallback: (name: string, value: string) => void;
-  private _isDeleted = false;
-  private readonly _container: ComponentContainer;
-
+  
   constructor(
     options: FirebaseOptions,
-    config: FirebaseServerAppSettings,
+    serverConfig: FirebaseServerAppSettings,
     container: ComponentContainer
   ) {
-    this._options = { ...options };
-    this._config = {
-      
-      name: DEFAULT_ENTRY_NAME,
-      automaticDataCollectionEnabled: false,
-      setCookieCallback: this.defaultSetCookieCallback,
-      ...config
+
+    let name:string = DEFAULT_ENTRY_NAME;
+    if(serverConfig.name !== undefined) {
+      name = serverConfig.name;
+    }
+
+    let automaticDataCollectionEnabled = false;
+    if(serverConfig.automaticDataCollectionEnabled !== undefined) {
+      automaticDataCollectionEnabled = serverConfig.automaticDataCollectionEnabled;
+    }
+
+    const config:Required<FirebaseAppSettings> = {
+      name,
+      automaticDataCollectionEnabled
     };
-    this._name = this._config.name;
-    this._automaticDataCollectionEnabled =
-      this._config.automaticDataCollectionEnabled;
-    this._headers = this._config.headers;
-    this._setCookieCallback = this._config.setCookieCallback;
     
-    
-    this._container = container;
-    this.container.addComponent(
-      new Component('app', () => this, ComponentType.PUBLIC)
-    );
+    super(options, config, container);
+    this._serverConfig = {
+      name,
+      automaticDataCollectionEnabled,
+      setCookieCallback: this.defaultSetCookieCallback,
+      ...serverConfig
+    };
+    this._headers = this._serverConfig.headers;
+    this._setCookieCallback = this._serverConfig.setCookieCallback;
   }
   
   private defaultSetCookieCallback(name: string, value: string): void {
@@ -99,7 +91,7 @@ export class FirebaseServerAppImpl implements FirebaseServerApp {
 
   get config(): Required<FirebaseServerAppSettings> {
     this.checkDestroyed();
-    return this._config;
+    return this._serverConfig;
   }
 
   get container(): ComponentContainer {
@@ -121,16 +113,6 @@ export class FirebaseServerAppImpl implements FirebaseServerApp {
   callSetCookieCallback(cookieName: string, cookieValue: string) : void {
     if(this._setCookieCallback !== undefined) {
       this._setCookieCallback(cookieName, cookieValue);
-    }
-  }
-
-  /**
-   * This function will throw an Error if the App has already been deleted -
-   * use before performing API actions on the App.
-   */
-  private checkDestroyed(): void {
-    if (this.isDeleted) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this._name });
     }
   }
 }
