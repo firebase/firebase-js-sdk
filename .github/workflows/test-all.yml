@@ -173,7 +173,6 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        echo $NODE_OPTIONS
         xvfb-run yarn lerna run --concurrency 2 test:ci --scope '@firebase/firestore*'
         node scripts/print_test_logs.js
       env:
