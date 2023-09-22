@@ -18,7 +18,7 @@ jobs:
     name: Build the SDK
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_OPTIONS: "--max_old_space_size=8192"
     steps:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
@@ -30,8 +30,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -57,7 +55,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_OPTIONS: "--max_old_space_size=8192"
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -73,8 +71,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -102,7 +98,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_OPTIONS: "--max_old_space_size=8192"
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
@@ -119,8 +115,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -147,7 +141,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_OPTIONS: "--max_old_space_size=8192"
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -163,8 +157,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -173,7 +165,7 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       run: |
-        xvfb-run yarn lerna run --concurrency 2 test:ci --scope '@firebase/firestore*'
+        xvfb-run yarn lerna run --concurrency 4 test:ci --scope '@firebase/firestore*'
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
@@ -185,7 +177,6 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
-
   test-firestore-integration:
     strategy:
       fail-fast: false
@@ -195,7 +186,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_OPTIONS: "--max_old_space_size=8192"
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -211,8 +202,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
