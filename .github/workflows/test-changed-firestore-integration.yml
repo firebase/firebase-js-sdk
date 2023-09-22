@@ -26,7 +26,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         cp config/ci.config.json config/project.json
-        terraform apply -auto-approve
+        terraform apply -var-file=config/project.json -auto-approve
       continue-on-error: true
     - name: Set up Node (16)
       uses: actions/setup-node@v3

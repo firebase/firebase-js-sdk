@@ -1,5 +1,7 @@
+variable "projectId" {}
+
 provider "google" {
-  project = local.project.projectId
+  project = var.projectId
 }
 
 resource "google_firestore_index" "default-db-index" {

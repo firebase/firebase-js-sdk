@@ -1,5 +1,4 @@
 locals {
-  project = jsondecode(file("config/project.json"))
   indexes = {
     index1 = [
       {
