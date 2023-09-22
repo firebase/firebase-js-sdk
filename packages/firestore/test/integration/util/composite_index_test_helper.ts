@@ -68,41 +68,37 @@ export class CompositeIndexTestHelper {
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
-      this.hashDocs(docs),
+      this.hashDocIdsAndAddTestIdField(docs),
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
   }
 
-  // Runs a test without pre-created documents in the COMPOSITE_INDEX_TEST_COLLECTION.
-  async withEmptyCollection<T>(
-    persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
-    fn: (collection: CollectionReference, db: Firestore) => Promise<T>
-  ): Promise<T> {
-    return batchCommitDocsToCollection(
-      persistence,
-      DEFAULT_SETTINGS,
-      {},
-      COMPOSITE_INDEX_TEST_COLLECTION,
-      fn
-    );
+  // Hash the document key with testId.
+  toHashedId(docId: string): string {
+    return docId + '-' + this.testId;
+  }
+
+  toHashedIds(docs: string[]): string[] {
+    return docs.map(docId => this.toHashedId(docId));
+  }
+
+  addTestIdFieldToDoc(doc: DocumentData): DocumentData {
+    return { ...doc, [this.TEST_ID_FIELD]: this.testId };
   }
 
   // Hash the document key and add testId to documents created under a specific test to support data
   // isolation in parallel testing.
-  private hashDocs(docs: { [key: string]: DocumentData }): {
+  private hashDocIdsAndAddTestIdField(docs: { [key: string]: DocumentData }): {
     [key: string]: DocumentData;
   } {
-    return Object.keys(docs).reduce((result, key) => {
-      const doc = { ...docs[key], [this.TEST_ID_FIELD]: this.testId };
-      result[key + '-' + this.testId] = doc;
-      return result;
-    }, {} as { [key: string]: DocumentData });
-  }
-
-  // Hash the document keys with testId.
-  toHashedIds(docs: string[]): string[] {
-    return docs.map(docId => docId + '-' + this.testId);
+    const result: { [key: string]: DocumentData } = {};
+    for (const key in docs) {
+      if (docs.hasOwnProperty(key)) {
+        result[this.toHashedId(key)] = this.addTestIdFieldToDoc(docs[key]);
+      }
+    }
+    return result;
   }
 
   // Checks that running the query while online (against the backend/emulator) results in the same
@@ -130,7 +126,7 @@ export class CompositeIndexTestHelper {
     );
   }
 
-  // Adds a filter on test id for a composite query,
+  // Adds a filter on test id for a composite query.
   compositeQuery<AppModelType, DbModelType extends DocumentData>(
     query_: Query<AppModelType, DbModelType>,
     compositeFilter: QueryCompositeFilterConstraint,
