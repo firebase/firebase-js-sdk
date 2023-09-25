@@ -31,7 +31,8 @@ import {
   addDoc as addDocument,
   setDoc as setDocument,
   QueryCompositeFilterConstraint,
-  QueryNonFilterConstraint
+  QueryNonFilterConstraint,
+  Timestamp
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -68,7 +69,7 @@ export class CompositeIndexTestHelper {
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
-      this.hashDocIdsAndAddTestIdField(docs),
+      this.hashDocIdsAndAddCompositeTestFields(docs),
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
@@ -83,19 +84,30 @@ export class CompositeIndexTestHelper {
     return docs.map(docId => this.toHashedId(docId));
   }
 
-  addTestIdFieldToDoc(doc: DocumentData): DocumentData {
-    return { ...doc, [this.TEST_ID_FIELD]: this.testId };
+  addCompositeTestFieldsToDoc(doc: DocumentData): DocumentData {
+    return {
+      ...doc,
+      [this.TEST_ID_FIELD]: this.testId,
+      expireAt: new Timestamp( // Expire test data after 24 hours
+        Timestamp.now().seconds + 24 * 60 * 60,
+        Timestamp.now().nanoseconds
+      )
+    };
   }
 
   // Hash the document key and add testId to documents created under a specific test to support data
   // isolation in parallel testing.
-  private hashDocIdsAndAddTestIdField(docs: { [key: string]: DocumentData }): {
+  private hashDocIdsAndAddCompositeTestFields(docs: {
+    [key: string]: DocumentData;
+  }): {
     [key: string]: DocumentData;
   } {
     const result: { [key: string]: DocumentData } = {};
     for (const key in docs) {
       if (docs.hasOwnProperty(key)) {
-        result[this.toHashedId(key)] = this.addTestIdFieldToDoc(docs[key]);
+        result[this.toHashedId(key)] = this.addCompositeTestFieldsToDoc(
+          docs[key]
+        );
       }
     }
     return result;
@@ -139,21 +151,25 @@ export class CompositeIndexTestHelper {
     );
   }
 
-  // Add a document with test id.
+  // Add a document with test id and expire date.
   addDoc<T, DbModelType extends DocumentData>(
     reference: CollectionReference<T, DbModelType>,
     data: object
   ): Promise<DocumentReference<T, DbModelType>> {
-    const docWithTestId = this.addTestIdFieldToDoc(data) as WithFieldValue<T>;
+    const docWithTestId = this.addCompositeTestFieldsToDoc(
+      data
+    ) as WithFieldValue<T>;
     return addDocument(reference, docWithTestId);
   }
 
-  // Set a document with test id.
+  // Set a document with test id and expire date.
   setDoc<T, DbModelType extends DocumentData>(
     reference: DocumentReference<T, DbModelType>,
     data: object
   ): Promise<void> {
-    const docWithTestId = this.addTestIdFieldToDoc(data) as WithFieldValue<T>;
+    const docWithTestId = this.addCompositeTestFieldsToDoc(
+      data
+    ) as WithFieldValue<T>;
     return setDocument(reference, docWithTestId);
   }
 }
