@@ -142,20 +142,18 @@ export class CompositeIndexTestHelper {
   // Add a document with test id.
   addDoc<T, DbModelType extends DocumentData>(
     reference: CollectionReference<T, DbModelType>,
-    data: WithFieldValue<T>
+    data: object
   ): Promise<DocumentReference<T, DbModelType>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (data as Record<string, any>)[this.TEST_ID_FIELD] = this.testId;
-    return addDocument(reference, data);
+    const docWithTestId = this.addTestIdFieldToDoc(data) as WithFieldValue<T>;
+    return addDocument(reference, docWithTestId);
   }
 
   // Set a document with test id.
   setDoc<T, DbModelType extends DocumentData>(
     reference: DocumentReference<T, DbModelType>,
-    data: WithFieldValue<T>
+    data: object
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (data as Record<string, any>)[this.TEST_ID_FIELD] = this.testId;
-    return setDocument(reference, data);
+    const docWithTestId = this.addTestIdFieldToDoc(data) as WithFieldValue<T>;
+    return setDocument(reference, docWithTestId);
   }
 }
