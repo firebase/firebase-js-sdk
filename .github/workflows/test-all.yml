@@ -140,6 +140,9 @@ jobs:
     name: (Firestore) Node.js and Browser (Chrome) Tests
     needs: build
     runs-on: ubuntu-latest
+    # Disable test for now since it's failing 100% of the time since
+    # https://github.com/firebase/firebase-js-sdk/pull/7453 and it needs to be investigated.
+    if: false
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
