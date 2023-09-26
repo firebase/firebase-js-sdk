@@ -18,7 +18,7 @@ jobs:
     name: Build the SDK
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=8192"
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
@@ -55,7 +55,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=8192"
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -98,7 +98,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=8192"
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
@@ -141,7 +141,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=8192"
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -186,7 +186,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: "--max_old_space_size=8192"
+      NODE_OPTIONS: "--max_old_space_size=4096"
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
