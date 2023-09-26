@@ -17,9 +17,6 @@ jobs:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
-      # Pin Chrome version 114.0.5735.90-1 to avoid install failures like "No such object: chromedriver/LATEST_RELEASE_115.0.5790".
-      # The failure happens because https://chromedriver.chromium.org/downloads only goes up to version 114.
-      # TODO(b/297380444) Update script to install the latest Chrome and ChromeDriver.
       run: |
         sudo apt-get update
         sudo apt-get install wget
