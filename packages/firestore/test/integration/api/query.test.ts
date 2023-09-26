@@ -2153,10 +2153,7 @@ apiDescribe('Queries', persistence => {
             coll,
             and(
               where('a', 'in', [2, 3]),
-              or(
-                where('b', 'array-contains-any', [0, 7]),
-                where('c', '==', 20)
-              )
+              or(where('b', 'array-contains-any', [0, 7]), where('c', '==', 20))
             )
           ),
           'doc3',
@@ -2259,10 +2256,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // Two IN operations on different fields with disjunction.
         await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-          ),
+          query(coll, or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc1',
           'doc3',
           'doc6'
@@ -2270,10 +2264,7 @@ apiDescribe('Queries', persistence => {
 
         // Two IN operations on different fields with conjunction.
         await checkOnlineAndOfflineResultsMatch(
-          query(
-            coll,
-            and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2])),
-          ),
+          query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc3'
         );
 
