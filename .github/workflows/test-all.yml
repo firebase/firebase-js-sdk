@@ -7,6 +7,10 @@ on:
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
+  # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
+  # the beahvior to use the new URLs.
+  CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
+  CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
   artifactRetentionDays: 14
 
 jobs:
@@ -17,14 +21,8 @@ jobs:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
-      # Pin Chrome version 114.0.5735.90-1 to avoid install failures like "No such object: chromedriver/LATEST_RELEASE_115.0.5790".
-      # The failure happens because https://chromedriver.chromium.org/downloads only goes up to version 114.
-      # TODO(b/297380444) Update script to install the latest Chrome and ChromeDriver.
       run: |
-        sudo apt-get update
-        sudo apt-get install wget
-        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
-        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
+        npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
@@ -101,16 +99,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
-    - name: install Chrome stable
-      # Pin Chrome version 114.0.5735.90-1 to avoid install failures like "No such object: chromedriver/LATEST_RELEASE_115.0.5790".
-      # The failure happens because https://chromedriver.chromium.org/downloads only goes up to version 114.
-      # TODO(b/297380444) Update script to install the latest Chrome and ChromeDriver.
-      run: |
-        sudo apt-get update
-        sudo apt-get install wget
-        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
-        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
+      # install Chrome first, so the correct version of webdriver can be installed by chromedriver
+      # when setting up the repo
+      - name: install Chrome stable
+        run: |
+          npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:

@@ -25,7 +25,7 @@ import {
   newQueryForCollectionGroup
 } from '../../../src/core/query';
 import { targetGetSegmentCount } from '../../../src/core/target';
-import { IndexKind } from '../../../src/model/field_index';
+import { FieldIndex, IndexKind } from '../../../src/model/field_index';
 import { TargetIndexMatcher } from '../../../src/model/target_index_matcher';
 import { fieldIndex, filter, orderBy, query } from '../../util/helpers';
 
@@ -956,12 +956,32 @@ describe('Target Bounds', () => {
         ));
     });
 
+    describe('query with multiple inequality', () => {
+      it('returns null', () => {
+        const q = queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 1)),
+          filter('b', '<=', 10)
+        );
+        const target = queryToTarget(q);
+        const targetIndexMatcher = new TargetIndexMatcher(target);
+        expect(targetIndexMatcher.hasMultipleInequality).is.true;
+        const actualIndex = targetIndexMatcher.buildTargetIndex();
+        expect(actualIndex).is.null;
+      });
+    });
+
     function validateBuildTargetIndexCreateFullMatchIndex(q: Query): void {
       const target = queryToTarget(q);
       const targetIndexMatcher = new TargetIndexMatcher(target);
-      const expectedIndex = targetIndexMatcher.buildTargetIndex();
-      expect(targetIndexMatcher.servedByIndex(expectedIndex)).is.true;
-      expect(expectedIndex.fields.length >= targetGetSegmentCount(target));
+      expect(targetIndexMatcher.hasMultipleInequality).is.false;
+      const actualIndex = targetIndexMatcher.buildTargetIndex();
+      expect(actualIndex).is.not.null;
+      expect(targetIndexMatcher.servedByIndex(actualIndex as FieldIndex)).is
+        .true;
+      expect(
+        (actualIndex as FieldIndex).fields.length >=
+          targetGetSegmentCount(target)
+      );
     }
   });
 

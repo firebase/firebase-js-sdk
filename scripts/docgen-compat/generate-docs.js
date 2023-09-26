@@ -20,7 +20,6 @@ const yargs = require('yargs');
 const fs = require('mz/fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const typescript = require('typescript');
 
 const repoPath = path.resolve(`${__dirname}/../..`);
 
@@ -202,35 +201,21 @@ function checkForUnlistedFiles(filenamesFromToc) {
     const htmlFiles = files
       .filter(filename => filename.slice(-4) === 'html')
       .map(filename => filename.slice(0, -5));
-    const removePromises = [];
     htmlFiles.forEach(filename => {
       if (
         !filenamesFromToc.includes(filename) &&
         filename !== 'index' &&
         filename !== 'globals'
       ) {
-        if (shouldRemove) {
-          console.log(
-            `REMOVING ${docPath}/${filename}.html - not listed in toc.yaml.`
-          );
-          removePromises.push(fs.unlink(`${docPath}/${filename}.html`));
-        } else {
-          // This is just a warning, it doesn't need to finish before
-          // the process continues.
-          console.warn(
-            `Unlisted file: ${filename} generated ` +
-              `but not listed in toc.yaml.`
-          );
-        }
+        // This is just a warning, it doesn't need to finish before
+        // the process continues.
+        console.warn(
+          `Unlisted file: ${filename} generated ` +
+            `but not listed in toc.yaml.`
+        );
       }
     });
-    if (shouldRemove) {
-      return Promise.all(removePromises).then(() =>
-        htmlFiles.filter(filename => filenamesFromToc.includes(filename))
-      );
-    } else {
-      return htmlFiles;
-    }
+    return htmlFiles;
   });
 }
 

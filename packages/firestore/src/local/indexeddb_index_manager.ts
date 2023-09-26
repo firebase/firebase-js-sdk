@@ -275,10 +275,10 @@ export class IndexedDbIndexManager implements IndexManager {
         return this.getIndexType(transaction, subTarget).next(type => {
           if (type === IndexType.NONE || type === IndexType.PARTIAL) {
             const targetIndexMatcher = new TargetIndexMatcher(subTarget);
-            return this.addFieldIndex(
-              transaction,
-              targetIndexMatcher.buildTargetIndex()
-            );
+            const fieldIndex = targetIndexMatcher.buildTargetIndex();
+            if (fieldIndex != null) {
+              return this.addFieldIndex(transaction, fieldIndex);
+            }
           }
         });
       }

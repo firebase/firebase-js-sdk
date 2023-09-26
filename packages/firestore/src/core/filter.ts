@@ -56,8 +56,6 @@ export abstract class Filter {
   abstract getFlattenedFilters(): readonly FieldFilter[];
 
   abstract getFilters(): Filter[];
-
-  abstract getFirstInequalityField(): FieldPath | null;
 }
 
 export class FieldFilter extends Filter {
@@ -194,13 +192,6 @@ export class FieldFilter extends Filter {
   getFilters(): Filter[] {
     return [this];
   }
-
-  getFirstInequalityField(): FieldPath | null {
-    if (this.isInequality()) {
-      return this.field;
-    }
-    return null;
-  }
 }
 
 export class CompositeFilter extends Filter {
@@ -245,30 +236,6 @@ export class CompositeFilter extends Filter {
   // Returns a mutable copy of `this.filters`
   getFilters(): Filter[] {
     return Object.assign([], this.filters);
-  }
-
-  getFirstInequalityField(): FieldPath | null {
-    const found = this.findFirstMatchingFilter(filter => filter.isInequality());
-
-    if (found !== null) {
-      return found.field;
-    }
-    return null;
-  }
-
-  // Performs a depth-first search to find and return the first FieldFilter in the composite filter
-  // that satisfies the predicate. Returns `null` if none of the FieldFilters satisfy the
-  // predicate.
-  private findFirstMatchingFilter(
-    predicate: (filter: FieldFilter) => boolean
-  ): FieldFilter | null {
-    for (const fieldFilter of this.getFlattenedFilters()) {
-      if (predicate(fieldFilter)) {
-        return fieldFilter;
-      }
-    }
-
-    return null;
   }
 }
 
