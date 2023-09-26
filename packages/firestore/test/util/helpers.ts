@@ -227,7 +227,7 @@ export function path(path: string, offset?: number): ResourcePath {
 }
 
 export function field(path: string): FieldPath {
-  return new FieldPath(path.split('.'));
+  return FieldPath.fromServerFormat(path);
 }
 
 export function fieldIndex(

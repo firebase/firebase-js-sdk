@@ -813,81 +813,12 @@ apiDescribe('Validation:', persistence => {
       }
     );
 
-    validationIt(persistence, 'with different inequality fields fail', db => {
-      const coll = collection(db, 'test');
-      expect(() =>
-        query(coll, where('x', '>=', 32), where('y', '<', 'cat'))
-      ).to.throw(
-        'Invalid query. All where filters with an ' +
-          'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-          ` But you have inequality filters on 'x' and 'y'`
-      );
-    });
-
     validationIt(persistence, 'with more than one != query fail', db => {
       const coll = collection(db, 'test');
       expect(() =>
         query(coll, where('x', '!=', 32), where('x', '!=', 33))
       ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
     });
-
-    validationIt(
-      persistence,
-      'with != and inequality queries on different fields fail',
-      db => {
-        const coll = collection(db, 'test');
-        expect(() =>
-          query(coll, where('y', '>', 32), where('x', '!=', 33))
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'with != and inequality queries on different fields fail',
-      db => {
-        const coll = collection(db, 'test');
-        expect(() =>
-          query(coll, where('y', '>', 32), where('x', 'not-in', [33]))
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'with inequality different than first orderBy fail.',
-      db => {
-        const coll = collection(db, 'test');
-        const reason =
-          `Invalid query. You have a where filter with an ` +
-          `inequality (<, <=, !=, not-in, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first argument to orderBy(), but your first ` +
-          `orderBy() is on field 'y' instead.`;
-        expect(() => query(coll, where('x', '>', 32), orderBy('y'))).to.throw(
-          reason
-        );
-        expect(() => query(coll, orderBy('y'), where('x', '>', 32))).to.throw(
-          reason
-        );
-        expect(() =>
-          query(coll, where('x', '>', 32), orderBy('y'), orderBy('x'))
-        ).to.throw(reason);
-        expect(() =>
-          query(coll, orderBy('y'), orderBy('x'), where('x', '>', 32))
-        ).to.throw(reason);
-        expect(() => query(coll, where('x', '!=', 32), orderBy('y'))).to.throw(
-          reason
-        );
-      }
-    );
 
     validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
@@ -1136,36 +1067,7 @@ apiDescribe('Validation:', persistence => {
     });
 
     validationIt(persistence, 'invalid query filters fail', db => {
-      // Multiple inequalities, one of which is inside a nested composite filter.
       const coll = collection(db, 'test');
-      expect(() =>
-        query(
-          coll,
-          and(
-            or(
-              and(where('a', '==', 'b'), where('c', '>', 'd')),
-              and(where('e', '==', 'f'), where('g', '==', 'h'))
-            ),
-            where('r', '>', 's')
-          )
-        )
-      ).to.throw(
-        "Invalid query. All where filters with an inequality (<, <=, !=, not-in, >, or >=) must be on the same field. But you have inequality filters on 'c' and 'r'"
-      );
-
-      // OrderBy and inequality on different fields. Inequality inside a nested composite filter.
-      expect(() =>
-        query(
-          coll,
-          or(
-            and(where('a', '==', 'b'), where('c', '>', 'd')),
-            and(where('e', '==', 'f'), where('g', '==', 'h'))
-          ),
-          orderBy('r')
-        )
-      ).to.throw(
-        "Invalid query. You have a where filter with an inequality (<, <=, !=, not-in, >, or >=) on field 'c' and so you must also use 'c' as your first argument to orderBy(), but your first orderBy() is on field 'r' instead."
-      );
 
       // Conflicting operations within a composite filter.
       expect(() =>
@@ -1274,6 +1176,66 @@ apiDescribe('Validation:', persistence => {
             );
           }
         }
+      }
+    );
+
+    validationIt(
+      persistence,
+      'conflicting operators inside a nested composite filter',
+      db => {
+        const coll = collection(db, 'test');
+        // Composite queries can validate conflicting operators.
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '!=', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', '<', 'p'))
+              )
+            )
+          )
+        ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
+
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', '!=', 'h'))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', 'not-in', ['p']))
+              )
+            )
+          )
+        ).to.throw(
+          "Invalid query. You cannot use 'not-in' filters with '!=' filters."
+        );
+
+        expect(() =>
+          query(
+            coll,
+            and(
+              or(
+                and(where('a', '==', 'b'), where('c', '>=', 'd')),
+                and(where('e', '==', 'f'), where('g', 'not-in', ['h']))
+              ),
+              or(
+                and(where('i', '==', 'j'), where('k', '>', 'l')),
+                and(where('m', '<=', 'n'), where('o', 'not-in', ['p']))
+              )
+            )
+          )
+        ).to.throw(
+          "Invalid query. You cannot use more than one 'not-in' filter."
+        );
       }
     );
   });

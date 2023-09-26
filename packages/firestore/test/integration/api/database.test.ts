@@ -658,10 +658,64 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('inequality on multiple fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('y', '!=', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality with key fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where(documentId(), '>=', 'aa'), where('x', '>=', 32))
+        ).not.to.throw();
+      });
+    });
+
     it('inequality and array-contains on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, where('x', '>=', 32), where('y', 'array-contains', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and array-contains-any on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains-any', [1, 2])
+          )
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality and array-contains on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains', 'cat'),
+            where('z', '<=', 42)
+          )
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality and array-contains-any on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'array-contains-any', [1, 2]),
+            where('z', '<=', 42)
+          )
         ).not.to.throw();
       });
     });
@@ -674,13 +728,35 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('inequality and array-contains-any on different fields works', () => {
+    it('multiple inequality and IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(
             coll,
             where('x', '>=', 32),
-            where('y', 'array-contains-any', [1, 2])
+            where('y', 'in', [1, 2]),
+            where('z', '<=', 42)
+          )
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and NOT IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>=', 32), where('y', 'not-in', [1, 2]))
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality and NOT IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>=', 32),
+            where('y', 'not-in', [1, 2]),
+            where('z', '<=', 42)
           )
         ).not.to.throw();
       });
@@ -708,32 +784,48 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('inequality same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '>', 32), orderBy('x'), orderBy('y'))
-        ).not.to.throw();
-        expect(() =>
-          query(coll, orderBy('x'), where('x', '>', 32), orderBy('y'))
-        ).not.to.throw();
-      });
-    });
-
-    it('!= same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          query(coll, where('x', '!=', 32), orderBy('x'), orderBy('y'))
-        ).not.to.throw();
-        expect(() =>
-          query(coll, orderBy('x'), where('x', '!=', 32), orderBy('y'))
-        ).not.to.throw();
-      });
-    });
-
     it('equality different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           query(coll, orderBy('x'), where('y', '==', 'cat'))
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality different than orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('y'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('y'), where('x', '>', 32))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, where('x', '>', 32), orderBy('y'), orderBy('z'))
+        ).not.to.throw();
+        expect(() =>
+          query(coll, orderBy('y'), where('x', '>', 32), orderBy('x'))
+        ).not.to.throw();
+      });
+    });
+
+    it('multiple inequality different from orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          query(
+            coll,
+            where('x', '>', 32),
+            where('y', '!=', 'cat'),
+            orderBy('z')
+          )
+        ).not.to.throw();
+        expect(() =>
+          query(
+            coll,
+            orderBy('z'),
+            where('x', '>', 32),
+            where('y', '!=', 'cat')
+          )
         ).not.to.throw();
       });
     });
@@ -798,9 +890,11 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.hasPendingWrites).to.be.false;
-        })
-        .then(() => storeEvent.assertNoAdditionalEvents());
+          // This event could be a metadata change for fromCache as well.
+          // We comment this line out to reduce flakiness.
+          // TODO(b/295872012): Figure out a way to check for all scenarios.
+          // expect(snap.metadata.hasPendingWrites).to.be.false;
+        });
     });
   });
 
@@ -827,9 +921,11 @@ apiDescribe('Database', persistence => {
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.hasPendingWrites).to.be.false;
-        })
-        .then(() => storeEvent.assertNoAdditionalEvents());
+          // This event could be a metadata change for fromCache as well.
+          // We comment this line out to reduce flakiness.
+          // TODO(b/295872012): Figure out a way to check for all scenarios.
+          // expect(snap.metadata.hasPendingWrites).to.be.false;
+        });
     });
   });
 
@@ -1044,6 +1140,33 @@ apiDescribe('Database', persistence => {
         );
         expect(queryEqual(query4, query1)).to.be.false;
       });
+    });
+  });
+
+  it('can compare multiple inequality Query instances with isEqual().', () => {
+    return withTestDb(persistence, async firestore => {
+      const query1 = query(
+        collection(firestore, 'foo'),
+        where('x', '>=', 42),
+        where('y', '!=', 42),
+        orderBy('z')
+      );
+      const query2 = query(
+        collection(firestore, 'foo'),
+        where('x', '>=', 42),
+        where('y', '!=', 42),
+        orderBy('z')
+      );
+      expect(queryEqual(query1, query2)).to.be.true;
+
+      // Inequality fields in different order
+      const query3 = query(
+        collection(firestore, 'foo'),
+        where('y', '!=', 42),
+        where('x', '>=', 42),
+        orderBy('z')
+      );
+      expect(queryEqual(query1, query3)).to.be.false;
     });
   });
 

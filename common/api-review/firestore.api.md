@@ -115,6 +115,9 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 export function count(): AggregateField<number>;
 
 // @public
+export function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
+
+// @public
 export function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 
 // @public
@@ -122,6 +125,9 @@ export function deleteField(): FieldValue;
 
 // @public
 export function disableNetwork(firestore: Firestore): Promise<void>;
+
+// @public
+export function disablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
 
 // @public
 export function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
@@ -184,6 +190,9 @@ export function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promis
 
 // @public
 export function enableNetwork(firestore: Firestore): Promise<void>;
+
+// @public
+export function enablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
 
 // @public
 export function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
@@ -303,9 +312,12 @@ export function getFirestore(): Firestore;
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 
 // @public
+export function getPersistentCacheIndexManager(firestore: Firestore): PersistentCacheIndexManager | null;
+
+// @public
 export function increment(n: number): FieldValue;
 
-// @beta
+// @beta @deprecated
 export interface Index {
     // (undocumented)
     [key: string]: unknown;
@@ -313,14 +325,14 @@ export interface Index {
     readonly fields?: IndexField[];
 }
 
-// @beta
+// @beta @deprecated
 export interface IndexConfiguration {
     // (undocumented)
     [key: string]: unknown;
     readonly indexes?: Index[];
 }
 
-// @beta
+// @beta @deprecated
 export interface IndexField {
     // (undocumented)
     [key: string]: unknown;
@@ -474,6 +486,11 @@ export interface PersistenceSettings {
 }
 
 // @public
+export class PersistentCacheIndexManager {
+    readonly type: 'PersistentCacheIndexManager';
+}
+
+// @public
 export interface PersistentCacheSettings {
     cacheSizeBytes?: number;
     tabManager?: PersistentTabManager;
@@ -612,10 +629,10 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(reference
 // @public
 export function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 
-// @beta
+// @beta @deprecated
 export function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
 
-// @beta
+// @beta @deprecated
 export function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 
 // @public
