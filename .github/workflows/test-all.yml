@@ -144,7 +144,6 @@ jobs:
     # https://github.com/firebase/firebase-js-sdk/pull/7453 and it needs to be investigated.
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
-      EXPERIMENTAL_MODE: true
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -172,6 +171,7 @@ jobs:
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+        EXPERIMENTAL_MODE: true
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage
