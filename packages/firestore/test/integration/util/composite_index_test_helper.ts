@@ -49,6 +49,7 @@ import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
  * Key Features:
  * - Runs tests against the dedicated test collection with predefined composite indexes.
  * - Automatically associates a test ID with documents for data isolation.
+ * - Utilizes TTL policy for automatic test data cleanup.
  * - Constructs Firestore queries with test ID filters.
  */
 export class CompositeIndexTestHelper {
@@ -155,10 +156,10 @@ export class CompositeIndexTestHelper {
     reference: CollectionReference<T, DbModelType>,
     data: object
   ): Promise<DocumentReference<T, DbModelType>> {
-    const docWithTestId = this.addTestSpecificFieldsToDoc(
+    const processedData = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
-    return addDocument(reference, docWithTestId);
+    return addDocument(reference, processedData);
   }
 
   // Sets a document in Firestore with test-specific fields.
@@ -166,9 +167,9 @@ export class CompositeIndexTestHelper {
     reference: DocumentReference<T, DbModelType>,
     data: object
   ): Promise<void> {
-    const docWithTestId = this.addTestSpecificFieldsToDoc(
+    const processedData = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
-    return setDocument(reference, docWithTestId);
+    return setDocument(reference, processedData);
   }
 }
