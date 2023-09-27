@@ -1,5 +1,11 @@
 # @firebase/rules-unit-testing
 
+## 3.0.1
+
+### Patch Changes
+
+- [`2d0a9f5fd`](https://github.com/firebase/firebase-js-sdk/commit/2d0a9f5fd921568bc76fcdee325b9ab5e6be8a58) [#7592](https://github.com/firebase/firebase-js-sdk/pull/7592) - Updated minor dependencies grpc (firestore) and firebase-admin (rules-unit-testing).
+
 ## 3.0.0
 
 ### Patch Changes

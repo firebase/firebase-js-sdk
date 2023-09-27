@@ -198,25 +198,38 @@ describe('BloomFilter', () => {
         TEST_DATA.count5000Rate0001TestResult
       );
     });
-    it('mightContain result for 50000 documents with 1 false positive rate', () => {
+
+    // Skip large sized golden tests as they slow down unit test runs without significantly
+    // improving coverage compared to other golden tests.
+    // These tests can be run manually if needed.
+    // eslint-disable-next-line no-restricted-properties
+    it.skip('mightContain result for 50000 documents with 1 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
         TEST_DATA.count50000Rate1TestData,
         TEST_DATA.count50000Rate1TestResult
       );
     });
-    it('mightContain result for 50000 documents with 0.01 false positive rate', () => {
-      testBloomFilterAgainstExpectedResult(
-        TEST_DATA.count50000Rate01TestData,
-        TEST_DATA.count50000Rate01TestResult
-      );
-      //Extend default timeout(2000)
-    }).timeout(10_000);
-    it('mightContain result for 50000 documents with 0.0001 false positive rate', () => {
-      testBloomFilterAgainstExpectedResult(
-        TEST_DATA.count50000Rate0001TestData,
-        TEST_DATA.count50000Rate0001TestResult
-      );
-      //Extend default timeout(2000)
-    }).timeout(10_000);
+    // eslint-disable-next-line no-restricted-properties
+    it.skip(
+      'mightContain result for 50000 documents with 0.01 false positive rate',
+      () => {
+        testBloomFilterAgainstExpectedResult(
+          TEST_DATA.count50000Rate01TestData,
+          TEST_DATA.count50000Rate01TestResult
+        );
+        // Extend the default timeout to 10000ms
+      }
+    ).timeout(10_000);
+    // eslint-disable-next-line no-restricted-properties
+    it.skip(
+      'mightContain result for 50000 documents with 0.0001 false positive rate',
+      () => {
+        testBloomFilterAgainstExpectedResult(
+          TEST_DATA.count50000Rate0001TestData,
+          TEST_DATA.count50000Rate0001TestResult
+        );
+        // Extend the default timeout to 10000ms
+      }
+    ).timeout(10_000);
   });
 });
