@@ -252,7 +252,10 @@ export class DocumentReference<
    * @param converter - Converts objects to and from Firestore.
    * @returns A `DocumentReference` that uses the provided converter.
    */
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): DocumentReference<NewAppModelType, NewDbModelType>;
   /**
@@ -263,7 +266,10 @@ export class DocumentReference<
    * use a converter.
    */
   withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
   ): DocumentReference<NewAppModelType, NewDbModelType> {
     return new DocumentReference<NewAppModelType, NewDbModelType>(
@@ -334,7 +340,10 @@ export class CollectionReference<
    * @param converter - Converts objects to and from Firestore.
    * @returns A `CollectionReference` that uses the provided converter.
    */
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
   ): CollectionReference<NewAppModelType, NewDbModelType>;
   /**
@@ -347,7 +356,10 @@ export class CollectionReference<
   withConverter(
     converter: null
   ): CollectionReference<DocumentData, DocumentData>;
-  withConverter<NewAppModelType, NewDbModelType extends DocumentData>(
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
     converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
   ): CollectionReference<NewAppModelType, NewDbModelType> {
     return new CollectionReference<NewAppModelType, NewDbModelType>(
