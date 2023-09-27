@@ -34,7 +34,7 @@ import { apiDescribe } from '../util/helpers';
  * isolation and query construction.
  *
  * Please remember to update the main index configuration file (firestore_index_config.tf)
- *  with any new composite indexes needed for the tests. This ensures synchronization with
+ * with any new composite indexes needed for the tests. This ensures synchronization with
  * other testing environments, including CI. You can generate the required index link by
  * clicking on the Firebase console link in the error message while running tests locally.
  */
