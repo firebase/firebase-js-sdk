@@ -55,8 +55,9 @@ export class CompositeIndexTestHelper {
   private readonly testId: string;
   private readonly TEST_ID_FIELD: string = 'testId';
 
+  // Creates a new instance of the CompositeIndexTestHelper class, with a unique test
+  // identifier for data isolation.
   constructor() {
-    // Initialize the testId when an instance of the class is created.
     this.testId = 'test-id-' + AutoId.newId();
   }
 
@@ -69,7 +70,7 @@ export class CompositeIndexTestHelper {
     return batchCommitDocsToCollection(
       persistence,
       DEFAULT_SETTINGS,
-      this.hashDocIdsAndAddCompositeTestFields(docs),
+      this.prepareTestDocuments(docs),
       COMPOSITE_INDEX_TEST_COLLECTION,
       fn
     );
@@ -84,7 +85,8 @@ export class CompositeIndexTestHelper {
     return docs.map(docId => this.toHashedId(docId));
   }
 
-  addCompositeTestFieldsToDoc(doc: DocumentData): DocumentData {
+  // Adds test-specific fields to a document, including the testId and expiration date.
+  addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
@@ -95,17 +97,14 @@ export class CompositeIndexTestHelper {
     };
   }
 
-  // Hash the document key and add testId to documents created under a specific test to support data
-  // isolation in parallel testing.
-  private hashDocIdsAndAddCompositeTestFields(docs: {
-    [key: string]: DocumentData;
-  }): {
+  // Helper method to hash document keys and add test-specific fields for the provided documents.
+  private prepareTestDocuments(docs: { [key: string]: DocumentData }): {
     [key: string]: DocumentData;
   } {
     const result: { [key: string]: DocumentData } = {};
     for (const key in docs) {
       if (docs.hasOwnProperty(key)) {
-        result[this.toHashedId(key)] = this.addCompositeTestFieldsToDoc(
+        result[this.toHashedId(key)] = this.addTestSpecificFieldsToDoc(
           docs[key]
         );
       }
@@ -113,10 +112,10 @@ export class CompositeIndexTestHelper {
     return result;
   }
 
-  // Checks that running the query while online (against the backend/emulator) results in the same
-  // as running it while offline. The expected document Ids are hashed to match the actual document
-  // IDs created by the test helper.
-  async checkOnlineAndOfflineResultsMatch(
+  // Asserts that the result of running the query while online (against the backend/emulator) is
+  // the same as running it while offline. The expected document Ids are hashed to match the
+  // actual document IDs created by the test helper.
+  async assertOnlineAndOfflineResultsMatch(
     query: Query,
     ...expectedDocs: string[]
   ): Promise<void> {
@@ -151,23 +150,23 @@ export class CompositeIndexTestHelper {
     );
   }
 
-  // Add a document with test id and expire date.
+  // Adds a document to a Firestore collection with test-specific fields.
   addDoc<T, DbModelType extends DocumentData>(
     reference: CollectionReference<T, DbModelType>,
     data: object
   ): Promise<DocumentReference<T, DbModelType>> {
-    const docWithTestId = this.addCompositeTestFieldsToDoc(
+    const docWithTestId = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
     return addDocument(reference, docWithTestId);
   }
 
-  // Set a document with test id and expire date.
+  // Sets a document in Firestore with test-specific fields.
   setDoc<T, DbModelType extends DocumentData>(
     reference: DocumentReference<T, DbModelType>,
     data: object
   ): Promise<void> {
-    const docWithTestId = this.addCompositeTestFieldsToDoc(
+    const docWithTestId = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
     return setDocument(reference, docWithTestId);
