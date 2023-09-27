@@ -1865,9 +1865,9 @@ apiDescribe('Database', persistence => {
       };
       const testDocs = { doc1: { value: 42 } };
       return withTestCollection(persistence, testDocs, async collectionRef => {
+        const query_ = query(collectionRef, where('value', '==', 42));
         // The line below should compile since the DbModelType type parameter of
         // Query.withConverter() has a default value.
-        const query_ = query(collectionRef, where('value', '==', 42));
         const typedQuery = query_.withConverter<number>(converter);
         const snapshot = await getDocs(typedQuery);
         expect(snapshot.size).to.equal(1);
