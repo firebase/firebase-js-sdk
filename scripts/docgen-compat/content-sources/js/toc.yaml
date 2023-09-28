@@ -146,6 +146,8 @@ toc:
     path: /docs/reference/js/v8/firebase.database.DataSnapshot
   - title: "Database"
     path: /docs/reference/js/v8/firebase.database.Database
+  - title: "IteratedDataSnapshot"
+    path: /docs/reference/js/v8/firebase.database.IteratedDataSnapshot
   - title: "OnDisconnect"
     path: /docs/reference/js/v8/firebase.database.OnDisconnect
   - title: "Query"
