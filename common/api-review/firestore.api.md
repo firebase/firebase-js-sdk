@@ -92,7 +92,7 @@ export class CollectionReference<AppModelType = DocumentData, DbModelType extend
     get parent(): DocumentReference<DocumentData, DocumentData> | null;
     get path(): string;
     readonly type = "collection";
-    withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
     withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
 }
 
@@ -152,7 +152,7 @@ export class DocumentReference<AppModelType = DocumentData, DbModelType extends 
     get parent(): CollectionReference<AppModelType, DbModelType>;
     get path(): string;
     readonly type = "document";
-    withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
     withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
 }
 
@@ -525,7 +525,7 @@ export class Query<AppModelType = DocumentData, DbModelType extends DocumentData
     readonly firestore: Firestore;
     readonly type: 'query' | 'collection';
     withConverter(converter: null): Query<DocumentData, DocumentData>;
-    withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
+    withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
 }
 
 // @public

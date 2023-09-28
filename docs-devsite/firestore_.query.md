@@ -108,7 +108,7 @@ Applies a custom data converter to this query, allowing you to use your own cust
 <b>Signature:</b>
 
 ```typescript
-withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
+withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): Query<NewAppModelType, NewDbModelType>;
 ```
 
 ### Parameters
