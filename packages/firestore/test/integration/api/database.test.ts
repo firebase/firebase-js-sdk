@@ -1813,6 +1813,67 @@ apiDescribe('Database', persistence => {
         expect(refEqual(untypedDocRef, ref)).to.be.true;
       });
     });
+
+    it('DocumentReference.withConverter() default DbModelType', () => {
+      const converter = {
+        toFirestore: (value: number) => {
+          return { value };
+        },
+        fromFirestore: (snapshot: QueryDocumentSnapshot) => {
+          return snapshot.data()['value'] as number;
+        }
+      };
+      return withTestDoc(persistence, async docRef => {
+        // The line below should compile since the DbModelType type parameter of
+        // DocumentReference.withConverter() has a default value.
+        const typedDocRef = docRef.withConverter<number>(converter);
+        await setDoc(typedDocRef, 42);
+        const snapshot = await getDoc(typedDocRef);
+        expect(snapshot.data()).to.equal(42);
+      });
+    });
+
+    it('CollectionReference.withConverter() default DbModelType', () => {
+      const converter = {
+        toFirestore: (value: number) => {
+          return { value };
+        },
+        fromFirestore: (snapshot: QueryDocumentSnapshot) => {
+          return snapshot.data()['value'] as number;
+        }
+      };
+      const testDocs = { doc1: { value: 42 } };
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        // The line below should compile since the DbModelType type parameter of
+        // CollectionReference.withConverter() has a default value.
+        const typedCollectionRef =
+          collectionRef.withConverter<number>(converter);
+        const snapshot = await getDocs(typedCollectionRef);
+        expect(snapshot.size).to.equal(1);
+        expect(snapshot.docs[0].data()).to.equal(42);
+      });
+    });
+
+    it('Query.withConverter() default DbModelType', () => {
+      const converter = {
+        toFirestore: (value: number) => {
+          return { value };
+        },
+        fromFirestore: (snapshot: QueryDocumentSnapshot) => {
+          return snapshot.data()['value'] as number;
+        }
+      };
+      const testDocs = { doc1: { value: 42 } };
+      return withTestCollection(persistence, testDocs, async collectionRef => {
+        const query_ = query(collectionRef, where('value', '==', 42));
+        // The line below should compile since the DbModelType type parameter of
+        // Query.withConverter() has a default value.
+        const typedQuery = query_.withConverter<number>(converter);
+        const snapshot = await getDocs(typedQuery);
+        expect(snapshot.size).to.equal(1);
+        expect(snapshot.docs[0].data()).to.equal(42);
+      });
+    });
   });
 
   // TODO(b/196858864): This test regularly times out on CI.

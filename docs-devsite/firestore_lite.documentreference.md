@@ -103,7 +103,7 @@ Applies a custom data converter to this `DocumentReference`<!-- -->, allowing yo
 <b>Signature:</b>
 
 ```typescript
-withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
+withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
 ```
 
 ### Parameters
