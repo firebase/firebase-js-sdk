@@ -27,12 +27,13 @@ import {
   onChildAdded,
   onValue,
   orderByChild,
-  query,
   refFromURL,
   set,
   startAt,
   update,
-  orderByKey
+  orderByKey,
+  query,
+  limitToLast
 } from '../../src/api/Reference_impl';
 import {
   getDatabase,
@@ -60,7 +61,7 @@ export function createTestApp() {
 }
 
 // Note: these run in parallel with the node environment. If you use the same paths in parallel, you may experience race conditions.
-describe('Database@exp Tests', () => {
+describe.only('Database@exp Tests', () => {
   let defaultApp;
 
   beforeEach(() => {
@@ -76,6 +77,27 @@ describe('Database@exp Tests', () => {
   it('Can get database', () => {
     const db = getDatabase(defaultApp);
     expect(db).to.be.ok;
+  });
+  it.only('can use `toString` as parameter to refFromUrl', () => {
+    const app2 = initializeApp(
+      {
+        apiKey: 'AIzaSyAVya8asBa3HkmWFDG2SdNuljlcgTGqMq4',
+        authDomain: 'movie-picker-729bb.firebaseapp.com',
+        databaseURL:
+          'https://movie-picker-729bb.europe-west1.firebasedatabase.app/',
+        projectId: 'movie-picker-729bb',
+        storageBucket: 'movie-picker-729bb.appspot.com',
+        messagingSenderId: '592198782208',
+        appId: '1:592198782208:web:cc1d88c2a2d53b20ea77e5'
+      },
+      'app2'
+    );
+    const db = getDatabase(app2);
+    const q = ref(db, 'posts');
+    const url = q.toString();
+    const r = refFromURL(db, url);
+    const limitConstraint = limitToLast(100);
+    console.log(limitConstraint);
   });
   it("doesn't try to connect to emulator after database has already started", async () => {
     const db = getDatabase(defaultApp);
@@ -146,6 +168,7 @@ describe('Database@exp Tests', () => {
     await set(root, {});
 
     const q = query(root, orderByChild('testIndex'), limitToFirst(2));
+    console.log(q.toString());
 
     const i1 = child(root, 'i1');
     await set(root, {

@@ -156,7 +156,9 @@ export async function generateApi(
     /* apiReportEnabled= */ false
   );
   Extractor.invoke(extractorConfig, {
-    localBuild: true
+    localBuild: true,
+    showDiagnostics: true,
+    showVerboseMessages: true
   });
 
   console.log('Generated rollup DTS');

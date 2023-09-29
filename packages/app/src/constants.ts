@@ -24,6 +24,7 @@ import { name as appCheckName } from '../../../packages/app-check/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as authCompatName } from '../../../packages/auth-compat/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
+import { name as dataconnectName } from '../../../packages/data-connect/package.json';
 import { name as databaseCompatName } from '../../../packages/database-compat/package.json';
 import { name as functionsName } from '../../../packages/functions/package.json';
 import { name as functionsCompatName } from '../../../packages/functions-compat/package.json';
@@ -58,6 +59,7 @@ export const PLATFORM_LOG_STRING = {
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
   [databaseName]: 'fire-rtdb',
+  [dataconnectName]: 'fire-connect',
   [databaseCompatName]: 'fire-rtdb-compat',
   [functionsName]: 'fire-fn',
   [functionsCompatName]: 'fire-fn-compat',

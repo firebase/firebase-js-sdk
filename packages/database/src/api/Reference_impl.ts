@@ -1985,6 +1985,7 @@ class QueryLimitToLastConstraint extends QueryConstraint {
 
   constructor(private readonly _limit: number) {
     super();
+    console.log(this.type);
   }
 
   _apply<T>(query: QueryImpl): QueryImpl {
