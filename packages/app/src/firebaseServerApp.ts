@@ -23,7 +23,7 @@ import {
 } from './public-types';
 import {
   deleteApp
-} from 'firebase/app';
+} from './api';
 import {
   ComponentContainer
 } from '@firebase/component';
@@ -71,12 +71,12 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
       new FinalizationRegistry(this.automaticCleanup);
 
     if (this._deleteOnDeref !== undefined) {
-      this._finalizationRegistry.register(this._deleteOnDeref.deref, this)
+      this._finalizationRegistry.register(this._deleteOnDeref.deref, this);
     }
   }
 
   private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
-    deleteApp(serverApp);
+    void deleteApp(serverApp);
   }
 
   get serverAppConfig(): FirebaseServerAppSettings {
