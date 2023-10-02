@@ -20,13 +20,16 @@ jobs:
     - name: Setup Terraform 
       uses: hashicorp/setup-terraform@v2
     - name: Terraform Init
-      run: terraform init
+      run: |
+        cd packages/firestore
+        terraform init
       continue-on-error: true
     - name: Terraform Apply
       if: github.event_name == 'pull_request'
       run: |
-        cp config/ci.config.json config/project.json
-        terraform apply -var-file=config/project.json -auto-approve
+        cp ../../config/ci.config.json config/project.json
+        terraform apply -var-file=../../config/project.json -auto-approve
+        cd ../..
       continue-on-error: true
     - name: Set up Node (16)
       uses: actions/setup-node@v3

@@ -17,6 +17,7 @@
 
 import { and } from '../../../src/lite-api/query';
 import { AutoId } from '../../../src/util/misc';
+import { field } from '../../util/helpers';
 
 import {
   query as internalQuery,
@@ -32,7 +33,13 @@ import {
   setDoc as setDocument,
   QueryCompositeFilterConstraint,
   QueryNonFilterConstraint,
-  Timestamp
+  Timestamp,
+  DocumentSnapshot,
+  getDoc as getDocument,
+  updateDoc as updateDocument,
+  UpdateData,
+  getDocs as getDocuments,
+  QuerySnapshot
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -55,6 +62,7 @@ import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
 export class CompositeIndexTestHelper {
   private readonly testId: string;
   private readonly TEST_ID_FIELD: string = 'testId';
+  private readonly TTL_FIELD: string = 'expireAt';
 
   // Creates a new instance of the CompositeIndexTestHelper class, with a unique test
   // identifier for data isolation.
@@ -91,11 +99,18 @@ export class CompositeIndexTestHelper {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
-      expireAt: new Timestamp( // Expire test data after 24 hours
+      [this.TTL_FIELD]: new Timestamp( // Expire test data after 24 hours
         Timestamp.now().seconds + 24 * 60 * 60,
         Timestamp.now().nanoseconds
       )
     };
+  }
+
+  // Remove test-specific fields from a document, including the testId and expiration date.
+  removeTestSpecificFieldsFromDoc(doc: DocumentData): DocumentData {
+    doc._document?.data?.delete(field(this.TTL_FIELD));
+    doc._document?.data?.delete(field(this.TEST_ID_FIELD));
+    return doc;
   }
 
   // Helper method to hash document keys and add test-specific fields for the provided documents.
@@ -171,5 +186,35 @@ export class CompositeIndexTestHelper {
       data
     ) as WithFieldValue<T>;
     return setDocument(reference, processedData);
+  }
+
+  // This is is the same as making the update on the doc directly with merge=true.
+  updateDoc<T, DbModelType extends DocumentData>(
+    reference: DocumentReference<T, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): Promise<void> {
+    const processedData = this.addTestSpecificFieldsToDoc(
+      data
+    ) as UpdateData<DbModelType>;
+    return updateDocument(reference, processedData);
+  }
+
+  
+  async getDoc<T, DbModelType extends DocumentData>(
+    reference: DocumentReference<T, DbModelType>
+  ): Promise<DocumentSnapshot<T, DbModelType>> {
+    const docSnapshot = await getDocument<T, DbModelType>(reference);
+    this.removeTestSpecificFieldsFromDoc(docSnapshot);
+    return docSnapshot;
+  }
+
+  async getDocs<T, DbModelType extends DocumentData>(
+    query_: Query<T, DbModelType>
+  ): Promise<QuerySnapshot<T, DbModelType>> {
+    const querySnapshot = await getDocuments(this.query(query_));
+    querySnapshot.forEach(doc => {
+      this.removeTestSpecificFieldsFromDoc(doc);
+    });
+    return querySnapshot;
   }
 }
