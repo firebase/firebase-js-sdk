@@ -82,9 +82,22 @@ export interface FirebaseApp {
  * @public
  */
 export interface FirebaseServerApp extends FirebaseApp {
-  // An object originating from the API endpoint or Server Side Rendering
-  // request which contains the browser cookies of the HTTP request.
-  readonly headers: object;
+  /**
+   * Invokes a callback into the App to retrieve cookie data from the server request object.
+   */
+  invokeGetCookieCallback: (name: string) => string|undefined;
+
+  /**
+   * Invokes a callback into the App to set cookie data within the server response object. If
+   * no callback was configured when the FirebaseServerApp was created then this operation is a
+   * no-op.
+   */
+  invokeSetCookieCallback: (name: string, value: string) => void;
+
+  /**
+   * Invokes a callback into the App to retrieve header data from the server request object.
+   */
+  invokeGetHeaderCallback: (name: string) => string|undefined;
  }
 
 /**
@@ -162,15 +175,23 @@ export interface FirebaseAppSettings {
  */
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
   /**
-   * An object containing the client's HTTP request headers.
+   * A function callback the Firebase SDK may call to query a cookie value from the server request
+   * object.
    */
-  headers: object;
+  getCookieCallback: (name: string) => string|undefined;
 
   /**
-   * An optional function callback the Firebase SDK may call to request that a cookie be
-   * added to the server response cookie object.
+   * An optional function callback the Firebase SDK may call to request that a cookie be added to
+   * the server response cookie object. If this callback is not provided then there will be no
+   * automatic data propagation to the Firebase SDK running on sthe client.
    */
   setCookieCallback?: (name: string, value: string) => void;
+
+  /**
+   * A function callback the Firebase SDK may call to query a header value from the server request
+   * object.
+   */
+  getHeaderCallback: (name: string) => string|undefined;
 }
 
 /**

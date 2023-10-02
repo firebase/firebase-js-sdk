@@ -29,8 +29,9 @@ import { DEFAULT_ENTRY_NAME } from './constants';
 
 export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseServerApp {
   private readonly _serverConfig: Required<FirebaseServerAppSettings>;
-  private readonly _headers: object;
   private readonly _setCookieCallback: (name: string, value: string) => void;
+  private readonly _getCookieCallback: (name: string) => string|undefined;
+  private readonly _getHeaderCallback: (name: string) => string|undefined;
   
   constructor(
     options: FirebaseOptions,
@@ -60,14 +61,13 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
       setCookieCallback: this.defaultSetCookieCallback,
       ...serverConfig
     };
-    this._headers = this._serverConfig.headers;
+
     this._setCookieCallback = this._serverConfig.setCookieCallback;
+    this._getCookieCallback = this._serverConfig.getCookieCallback;
+    this._getHeaderCallback = this._serverConfig.getHeaderCallback;
   }
   
-  private defaultSetCookieCallback(name: string, value: string): void {
-    console.log(name);
-    console.log(value);
-  }
+  private defaultSetCookieCallback(name: string, value: string): void { }
 
   get automaticDataCollectionEnabled(): boolean {
     this.checkDestroyed();
@@ -106,13 +106,20 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     this._isDeleted = val;
   }
 
-  get headers(): object {
-    return this._headers;
-  }
-
-  callSetCookieCallback(cookieName: string, cookieValue: string) : void {
+  invokeSetCookieCallback(cookieName: string, cookieValue: string) : void {
+    this.checkDestroyed();
     if(this._setCookieCallback !== undefined) {
       this._setCookieCallback(cookieName, cookieValue);
     }
+  }
+
+  invokeGetCookieCallback(cookieName: string) : string|undefined {
+    this.checkDestroyed();
+    return this._getCookieCallback(cookieName);
+  }
+
+  invokeGetHeaderCallback(headerName: string) : string|undefined {
+    this.checkDestroyed();
+    return this._getHeaderCallback(headerName);
   }
 }

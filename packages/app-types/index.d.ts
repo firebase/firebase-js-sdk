@@ -33,8 +33,9 @@ export interface FirebaseAppConfig {
 }
 
 export interface FirebaseServerAppConfig extends FirebaseAppConfig {
-  headers: object;
+  getCookieCallback: (name: string) => string|undefined;
   setCookieCallback?: (name: string, value: string) => void;
+  getHeaderCallback: (name: string) => string|undefined;
 }
 
 export class FirebaseApp {
@@ -62,15 +63,21 @@ export class FirebaseApp {
 
 export class FirebaseServerApp extends FirebaseApp {
   /**
-   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
-   * App.
+   * A callback that may be invoked by the Firebase SDKs to retrieve cookie data from the server
+   * request object.
    */
-  headers: object;
+  getCookieCallback: (name: string) => string|undefined;
 
   /**
-   * The (read-only) configuration options from the app initialization.
+   * A callback that may be invoked by the Firebase SDKs to set a cookie in the SSR response object.
    */
   setCookieCallback?: (name: string, value: string) => void;
+
+  /**
+   * A callback that may be invoked by the Firebase SDKs to query a header value from the server
+   * request object.
+   */
+  getHeaderCallback: (name: string) => string|undefined;
 }
 
 export interface FirebaseNamespace {

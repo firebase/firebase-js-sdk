@@ -73,13 +73,15 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    // (undocumented)
-    readonly headers: object;
+    invokeGetCookieCallback: (name: string) => string | undefined;
+    invokeGetHeaderCallback: (name: string) => string | undefined;
+    invokeSetCookieCallback: (name: string, value: string) => void;
 }
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
-    headers: object;
+    getCookieCallback: (name: string) => string | undefined;
+    getHeaderCallback: (name: string) => string | undefined;
     setCookieCallback?: (name: string, value: string) => void;
 }
 
