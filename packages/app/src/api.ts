@@ -229,15 +229,15 @@ export function initializeApp(
  */
 export function initializeServerAppInstance(
  _options: FirebaseOptions,
- _config: FirebaseServerAppSettings): FirebaseServerApp {
+ _serverAppConfig: FirebaseServerAppSettings): FirebaseServerApp {
 
  const serverAppSettings: FirebaseServerAppSettings = {
    name: DEFAULT_ENTRY_NAME,
    automaticDataCollectionEnabled: false,
-   ..._config
+   ..._serverAppConfig
  };
 
- const name = _config.name;
+ const name = _serverAppConfig.name;
  if (typeof name !== 'string' || !name) {
    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
      appName: String(name)
@@ -249,7 +249,7 @@ export function initializeServerAppInstance(
    // return the existing app if options and config deep equal the ones in the existing app.
    if (
      deepEqual(_options, existingApp.options) &&
-     deepEqual(serverAppSettings, existingApp.config)
+     deepEqual(serverAppSettings, existingApp.serverAppConfig)
    ) {
      return existingApp;
    } else {
@@ -263,8 +263,7 @@ export function initializeServerAppInstance(
  }
 
  const newApp = new FirebaseServerAppImpl(_options, serverAppSettings, container);
-
- _apps.set(name, newApp);
+ _serverApps.set(name, newApp);
 
  return newApp;
 }
@@ -319,6 +318,14 @@ export function getApps(): FirebaseApp[] {
 }
 
 /**
+ * A (read-only) array of all initialized server apps.
+ * @public
+ */
+export function getServerApps(): FirebaseServerApp[] {
+  return Array.from(_serverApps.values());
+}
+
+/**
  * Renders this app unusable and frees the resources of all associated
  * services.
  *
@@ -336,9 +343,16 @@ export function getApps(): FirebaseApp[] {
  * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
+  var foundApp = false;
   const name = app.name;
   if (_apps.has(name)) {
+    foundApp = true;
     _apps.delete(name);
+  } else if (_serverApps.has(name)) {
+    foundApp = true;
+    _serverApps.delete(name);
+  }
+  if (foundApp) {
     await Promise.all(
       (app as FirebaseAppImpl).container
         .getProviders()

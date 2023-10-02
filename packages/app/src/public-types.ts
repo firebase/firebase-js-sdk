@@ -192,6 +192,17 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * object.
    */
   getHeaderCallback: (name: string) => string|undefined;
+
+  /**
+   * An optional WeakRef. If provided, the Firebase SDK will cleanup and destroy
+   * itself when the object pointed to by the WeakRef is destroyed. This field is
+   * used to help reduce memory overhead for long-running cloud functions executing SSR
+   * fulfillment.
+   *
+   * If a WeakRef is not provided then the application must clean up the
+   * FirebaseServerApp instance through it's own standard mechanisms.
+   */
+  deleteOnDeref?: WeakRef<object>;
 }
 
 /**

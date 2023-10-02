@@ -20,6 +20,7 @@ import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { FirebaseAppImpl } from './firebaseApp';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
 
 /**
  * @internal
@@ -89,6 +90,10 @@ export function _registerComponent<T extends Name>(
   // add the component to existing app instances
   for (const app of _apps.values()) {
     _addComponent(app as FirebaseAppImpl, component);
+  }
+
+  for (const serverApp of _serverApps.values()) {
+    _addComponent(serverApp as FirebaseServerAppImpl, component);
   }
 
   return true;

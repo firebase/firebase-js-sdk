@@ -22,104 +22,86 @@ import {
   FirebaseOptions
 } from './public-types';
 import {
+  deleteApp
+} from 'firebase/app';
+import {
   ComponentContainer
 } from '@firebase/component';
-import {FirebaseAppImpl} from './firebaseApp';
+import { FirebaseAppImpl } from './firebaseApp';
 import { DEFAULT_ENTRY_NAME } from './constants';
 
 export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseServerApp {
-  private readonly _serverConfig: Required<FirebaseServerAppSettings>;
-  private readonly _setCookieCallback: (name: string, value: string) => void;
-  private readonly _getCookieCallback: (name: string) => string|undefined;
-  private readonly _getHeaderCallback: (name: string) => string|undefined;
-  
+  private readonly _serverConfig: FirebaseServerAppSettings;
+  private readonly _setCookieCallback?: (name: string, value: string) => void;
+  private readonly _getCookieCallback?: (name: string) => string | undefined;
+  private readonly _getHeaderCallback?: (name: string) => string | undefined;
+  private readonly _deleteOnDeref?: WeakRef<object>;
+  private _finalizationRegistry: FinalizationRegistry<object>;
+
   constructor(
     options: FirebaseOptions,
     serverConfig: FirebaseServerAppSettings,
     container: ComponentContainer
   ) {
+    // Build configuration parameters for the FirebaseAppImpl base class.
+    const name: string = (serverConfig.name !== undefined) ? serverConfig.name : DEFAULT_ENTRY_NAME;
+    const automaticDataCollectionEnabled =
+      (serverConfig.automaticDataCollectionEnabled !== undefined) ? serverConfig.automaticDataCollectionEnabled : false;
 
-    let name:string = DEFAULT_ENTRY_NAME;
-    if(serverConfig.name !== undefined) {
-      name = serverConfig.name;
-    }
-
-    let automaticDataCollectionEnabled = false;
-    if(serverConfig.automaticDataCollectionEnabled !== undefined) {
-      automaticDataCollectionEnabled = serverConfig.automaticDataCollectionEnabled;
-    }
-
-    const config:Required<FirebaseAppSettings> = {
-      name,
-      automaticDataCollectionEnabled
+    // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
+    const config: Required<FirebaseAppSettings> = {
+      name, automaticDataCollectionEnabled
     };
-    
+
+    // Construct the parent FirebaseAppImp object.
     super(options, config, container);
+
+    // Now construct the data for the FirebaseServerAppImpl.
     this._serverConfig = {
-      name,
-      automaticDataCollectionEnabled,
-      setCookieCallback: this.defaultSetCookieCallback,
+      name, automaticDataCollectionEnabled,
       ...serverConfig
     };
 
     this._setCookieCallback = this._serverConfig.setCookieCallback;
     this._getCookieCallback = this._serverConfig.getCookieCallback;
     this._getHeaderCallback = this._serverConfig.getHeaderCallback;
-  }
-  
-  private defaultSetCookieCallback(name: string, value: string): void { }
+    this._deleteOnDeref = this._serverConfig.deleteOnDeref;
 
-  get automaticDataCollectionEnabled(): boolean {
-    this.checkDestroyed();
-    return this._automaticDataCollectionEnabled;
-  }
+    this._finalizationRegistry =
+      new FinalizationRegistry(this.automaticCleanup);
 
-  set automaticDataCollectionEnabled(val: boolean) {
-    this.checkDestroyed();
-    this._automaticDataCollectionEnabled = val;
+    if (this._deleteOnDeref !== undefined) {
+      this._finalizationRegistry.register(this._deleteOnDeref.deref, this)
+    }
   }
 
-  get name(): string {
-    this.checkDestroyed();
-    return this._name;
+  private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
+    deleteApp(serverApp);
   }
 
-  get options(): FirebaseOptions {
-    this.checkDestroyed();
-    return this._options;
-  }
-
-  get config(): Required<FirebaseServerAppSettings> {
+  get serverAppConfig(): FirebaseServerAppSettings {
     this.checkDestroyed();
     return this._serverConfig;
   }
 
-  get container(): ComponentContainer {
-    return this._container;
-  }
-
-  get isDeleted(): boolean {
-    return this._isDeleted;
-  }
-
-  set isDeleted(val: boolean) {
-    this._isDeleted = val;
-  }
-
-  invokeSetCookieCallback(cookieName: string, cookieValue: string) : void {
+  invokeSetCookieCallback(cookieName: string, cookieValue: string): void {
     this.checkDestroyed();
-    if(this._setCookieCallback !== undefined) {
+    if (this._setCookieCallback !== undefined) {
       this._setCookieCallback(cookieName, cookieValue);
     }
   }
 
-  invokeGetCookieCallback(cookieName: string) : string|undefined {
+  invokeGetCookieCallback(cookieName: string): string | undefined {
     this.checkDestroyed();
-    return this._getCookieCallback(cookieName);
+    if (this._getCookieCallback !== undefined) {
+      return this._getCookieCallback(cookieName);
+    }
   }
 
-  invokeGetHeaderCallback(headerName: string) : string|undefined {
+  invokeGetHeaderCallback(headerName: string): string | undefined {
     this.checkDestroyed();
-    return this._getHeaderCallback(headerName);
+    if (this._getHeaderCallback !== undefined) {
+      return this._getHeaderCallback(headerName);
+    }
   }
 }

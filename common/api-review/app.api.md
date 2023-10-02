@@ -80,6 +80,7 @@ export interface FirebaseServerApp extends FirebaseApp {
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+    deleteOnDeref?: WeakRef<object>;
     getCookieCallback: (name: string) => string | undefined;
     getHeaderCallback: (name: string) => string | undefined;
     setCookieCallback?: (name: string, value: string) => void;
@@ -102,6 +103,9 @@ export function getApps(): FirebaseApp[];
 export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
 
 // @public
+export function getServerApps(): FirebaseServerApp[];
+
+// @public
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
 
 // @public
@@ -111,7 +115,7 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
-export function initializeServerAppInstance(_options: FirebaseOptions, _config: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerAppInstance(_options: FirebaseOptions, _serverAppConfig: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
