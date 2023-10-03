@@ -52,14 +52,17 @@ import {
 import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
 
 /**
- * This helper class is designed to facilitate integration testing of Firestore
- * queries that require composite indexes within a controlled testing environment.
+ * This helper class is designed to facilitate integration testing of Firestore queries that
+ * require composite indexes within a controlled testing environment.
  *
- * Key Features:
- * - Runs tests against the dedicated test collection with predefined composite indexes.
- * - Automatically associates a test ID with documents for data isolation.
- * - Utilizes TTL policy for automatic test data cleanup.
- * - Constructs Firestore queries with test ID filters.
+ * <p>Key Features:
+ *
+ * <ul>
+ *   <li>Runs tests against the dedicated test collection with predefined composite indexes.
+ *   <li>Automatically associates a test ID with documents for data isolation.
+ *   <li>Utilizes TTL policy for automatic test data cleanup.
+ *   <li>Constructs Firestore queries with test ID filters.
+ * </ul>
  */
 export class CompositeIndexTestHelper {
   private readonly testId: string;
