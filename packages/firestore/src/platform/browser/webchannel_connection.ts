@@ -19,6 +19,7 @@ import {
   createWebChannelTransport,
   ErrorCode,
   EventType,
+  FetchXmlHttpFactory,
   WebChannel,
   WebChannelError,
   WebChannelOptions,
@@ -209,6 +210,9 @@ export class WebChannelConnection extends RestConnection {
 
     if (this.useFetchStreams) {
       request.useFetchStreams = true;
+      request.xmlHttpFactory = new FetchXmlHttpFactory({
+        streamBinaryChunks: true
+      });
     }
 
     this.modifyHeadersForRequest(
