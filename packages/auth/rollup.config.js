@@ -112,6 +112,49 @@ const browserBuilds = [
   }
 ];
 
+const browserExtensionBuilds = [
+  {
+    input: {
+      index: 'index.extension.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/extension-esm5', format: 'es', sourcemap: true }],
+    plugins: [
+      ...es5BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 5))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: {
+      index: 'index.extension.ts',
+      internal: 'internal/index.ts'
+    },
+    output: {
+      dir: 'dist/extension-esm2017',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: {
+      index: 'index.extension.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/extension-cjs', format: 'cjs', sourcemap: true }],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
 const nodeBuilds = [
   {
     input: {
@@ -198,8 +241,9 @@ const webWorkerBuild = {
 
 export default [
   ...browserBuilds,
+  ...browserExtensionBuilds,
   ...nodeBuilds,
   cordovaBuild,
   rnBuild,
-  webWorkerBuild
+  webWorkerBuild,
 ];

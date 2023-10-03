@@ -30,7 +30,6 @@ import { MockReCaptcha } from './recaptcha_mock';
 // to be kept around
 export const _JSLOAD_CALLBACK = jsHelpers._generateCallbackName('rcb');
 const NETWORK_TIMEOUT_DELAY = new Delay(30000, 60000);
-const RECAPTCHA_BASE = 'https://www.google.com/recaptcha/api.js?';
 
 /**
  * We need to mark this interface as internal explicitly to exclude it in the public typings, because
@@ -91,7 +90,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         resolve(recaptcha);
       };
 
-      const url = `${RECAPTCHA_BASE}?${querystring({
+      const url = `${jsHelpers._recaptchaScriptUrl()}?${querystring({
         onload: _JSLOAD_CALLBACK,
         render: 'explicit',
         hl

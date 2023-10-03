@@ -104,7 +104,7 @@ function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
       };
       // Load GApi loader.
       return js
-        ._loadJS(`https://apis.google.com/js/api.js?onload=${cbName}`)
+        ._loadJS(`${js._gapiScriptUrl()}?onload=${cbName}`)
         .catch(e => reject(e));
     }
   }).catch(error => {
