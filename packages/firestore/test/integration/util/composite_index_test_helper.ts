@@ -39,7 +39,9 @@ import {
   updateDoc as updateDocument,
   UpdateData,
   getDocs as getDocuments,
-  QuerySnapshot
+  QuerySnapshot,
+  deleteDoc as deleteDocument,
+  doc
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -86,16 +88,16 @@ export class CompositeIndexTestHelper {
   }
 
   // Hash the document key with testId.
-  toHashedId(docId: string): string {
+  private toHashedId(docId: string): string {
     return docId + '-' + this.testId;
   }
 
-  toHashedIds(docs: string[]): string[] {
+  private toHashedIds(docs: string[]): string[] {
     return docs.map(docId => this.toHashedId(docId));
   }
 
   // Adds test-specific fields to a document, including the testId and expiration date.
-  addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
+  private addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
@@ -107,7 +109,7 @@ export class CompositeIndexTestHelper {
   }
 
   // Remove test-specific fields from a document, including the testId and expiration date.
-  removeTestSpecificFieldsFromDoc(doc: DocumentData): DocumentData {
+  private removeTestSpecificFieldsFromDoc(doc: DocumentData): DocumentData {
     doc._document?.data?.delete(field(this.TTL_FIELD));
     doc._document?.data?.delete(field(this.TEST_ID_FIELD));
     return doc;
@@ -142,10 +144,7 @@ export class CompositeIndexTestHelper {
   }
 
   // Adds a filter on test id for a query.
-  query<AppModelType, DbModelType extends DocumentData>(
-    query_: Query<AppModelType, DbModelType>,
-    ...queryConstraints: QueryConstraint[]
-  ): Query<AppModelType, DbModelType> {
+  query<T>(query_: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T> {
     return internalQuery(
       query_,
       where(this.TEST_ID_FIELD, '==', this.testId),
@@ -154,23 +153,33 @@ export class CompositeIndexTestHelper {
   }
 
   // Adds a filter on test id for a composite query.
-  compositeQuery<AppModelType, DbModelType extends DocumentData>(
-    query_: Query<AppModelType, DbModelType>,
+  compositeQuery<T>(
+    query_: Query<T>,
     compositeFilter: QueryCompositeFilterConstraint,
     ...queryConstraints: QueryNonFilterConstraint[]
-  ): Query<AppModelType, DbModelType> {
+  ): Query<T> {
     return internalQuery(
       query_,
       and(where(this.TEST_ID_FIELD, '==', this.testId), compositeFilter),
       ...queryConstraints
     );
   }
+  // Get document reference from a document key.
+  getDocRef<T>(
+    coll: CollectionReference<T>,
+    docId: string
+  ): DocumentReference<T> {
+    if (!docId.includes('test-id-')) {
+      docId = this.toHashedId(docId);
+    }
+    return doc(coll, docId);
+  }
 
   // Adds a document to a Firestore collection with test-specific fields.
-  addDoc<T, DbModelType extends DocumentData>(
-    reference: CollectionReference<T, DbModelType>,
+  addDoc<T>(
+    reference: CollectionReference<T>,
     data: object
-  ): Promise<DocumentReference<T, DbModelType>> {
+  ): Promise<DocumentReference<T>> {
     const processedData = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
@@ -178,39 +187,33 @@ export class CompositeIndexTestHelper {
   }
 
   // Sets a document in Firestore with test-specific fields.
-  setDoc<T, DbModelType extends DocumentData>(
-    reference: DocumentReference<T, DbModelType>,
-    data: object
-  ): Promise<void> {
+  setDoc<T>(reference: DocumentReference<T>, data: object): Promise<void> {
     const processedData = this.addTestSpecificFieldsToDoc(
       data
     ) as WithFieldValue<T>;
     return setDocument(reference, processedData);
   }
 
-  // This is is the same as making the update on the doc directly with merge=true.
   updateDoc<T, DbModelType extends DocumentData>(
     reference: DocumentReference<T, DbModelType>,
     data: UpdateData<DbModelType>
   ): Promise<void> {
-    const processedData = this.addTestSpecificFieldsToDoc(
-      data
-    ) as UpdateData<DbModelType>;
-    return updateDocument(reference, processedData);
+    return updateDocument(reference, data);
   }
 
-  
-  async getDoc<T, DbModelType extends DocumentData>(
-    reference: DocumentReference<T, DbModelType>
-  ): Promise<DocumentSnapshot<T, DbModelType>> {
-    const docSnapshot = await getDocument<T, DbModelType>(reference);
+  deleteDoc<T>(reference: DocumentReference<T>): Promise<void> {
+    return deleteDocument(reference);
+  }
+
+  // Retrieves a single document from Firestore with test-specific fields removed.
+  async getDoc<T>(docRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
+    const docSnapshot = await getDocument(docRef);
     this.removeTestSpecificFieldsFromDoc(docSnapshot);
     return docSnapshot;
   }
 
-  async getDocs<T, DbModelType extends DocumentData>(
-    query_: Query<T, DbModelType>
-  ): Promise<QuerySnapshot<T, DbModelType>> {
+  // Retrieves multiple documents from Firestore with test-specific fields removed.
+  async getDocs<T>(query_: Query<T>): Promise<QuerySnapshot<T>> {
     const querySnapshot = await getDocuments(this.query(query_));
     querySnapshot.forEach(doc => {
       this.removeTestSpecificFieldsFromDoc(doc);
