@@ -47,6 +47,34 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * storing and retrieving objects from Firestore.
  *
  * @example
+ *
+ * Simple Example
+ *
+ * ```typescript
+ * const numberConverter = {
+ *   toFirestore(value: WithFieldValue<number>) {
+ *     return { value };
+ *   },
+ *   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
+ *     return snapshot.data(options).value as number;
+ *   }
+ * };
+ *
+ * async function simpleDemo(db: Firestore): Promise<void> {
+ *   const documentRef = doc(db, 'values/value123').withConverter(numberConverter);
+ *
+ *   await setDoc(documentRef, 42);
+ *   const snapshot1 = await getDoc(documentRef);
+ *   assertEqual(snapshot1.data(), 42);
+ *
+ *   await updateDoc(documentRef, { value: 999 });
+ *   const snapshot2 = await getDoc(documentRef);
+ *   assertEqual(snapshot2.data(), 999);
+ * }
+ * ```
+ *
+ * Advanced Example
+ *
  * ```typescript
  * class Post {
  *   constructor(
@@ -103,7 +131,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *   }
  * };
  *
- * async function demo(db: Firestore): Promise<void> {
+ * async function advancedDemo(db: Firestore): Promise<void> {
  *   // Create a `DocumentReference` with a `FirestoreDataConverter`.
  *   const documentRef = doc(db, 'posts/post123').withConverter(postConverter);
  *
@@ -123,18 +151,19 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *   // `setDoc()` is _not_ be compatible with `WithFieldValue<Post>`. This
  *   // type checking prevents the caller from specifying objects with incorrect
  *   // properties or property values.
- *   // @ts-expect-error "Argument of type { ttl: string; } is not assignable to
- *   // parameter of type WithFieldValue<Post>"
+ *   // @ts-expect-error "Argument of type { ttl: string; } is not assignable
+ *   // to parameter of type WithFieldValue<Post>"
  *   await setDoc(documentRef, { ttl: 'The Title' });
  *
  *   // When retrieving a document with `getDoc()` the `DocumentSnapshot`
  *   // object's `data()` method returns a `Post`, rather than a generic object,
  *   // which is returned if the `DocumentReference` did _not_ have a
  *   // `FirestoreDataConverter` attached to it.
- *   const postSnap: DocumentSnapshot<Post> = await getDoc(documentRef);
- *   const post: Post | undefined = postSnap.data();
- *   if (post) {
- *     console.log(`Post ${documentRef.path} has title=${post.title}`);
+ *   const snapshot1: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *   const post1: Post = snapshot1.data()!;
+ *   if (post1) {
+ *     assertEqual(post1.title, 'My Life');
+ *     assertEqual(post1.author, 'Foo Bar');
  *   }
  *
  *   // The `data` argument specified to `updateDoc()` is type checked by the
@@ -158,6 +187,13 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *   // @ts-expect-error "Argument of type { title: string; } is not assignable
  *   // to parameter of type WithFieldValue<PostDbModel>"
  *   await updateDoc(documentRef, { title: 'New Title' });
+ *
+ *   const snapshot2: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *   const post2: Post = snapshot2.data()!;
+ *   if (post2) {
+ *     assertEqual(post2.title, 'My Life');
+ *     assertEqual(post2.author, 'NewFirstName Bar');
+ *   }
  * }
  * ```
  */
