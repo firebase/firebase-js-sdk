@@ -125,7 +125,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *   // `setDoc()` is _not_ be compatible with `WithFieldValue<Post>`. This
  *   // type checking prevents the caller from specifying objects with incorrect
  *   // properties or property values.
- *   // @ts-expect-error "Argument of type { ttl: String; } is not assignable to
+ *   // @ts-expect-error "Argument of type { ttl: string; } is not assignable to
  *   // parameter of type WithFieldValue<Post>"
  *   await setDoc(documentRef, { ttl: 'The Title' });
  *
@@ -157,7 +157,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *   // `updateDoc()` is _not_ be compatible with `WithFieldValue<PostDbModel>`.
  *   // This type checking prevents the caller from specifying objects with
  *   // incorrect properties or property values.
- *   // @ts-expect-error "Argument of type { title: String; } is not assignable
+ *   // @ts-expect-error "Argument of type { title: string; } is not assignable
  *   // to parameter of type WithFieldValue<PostDbModel>"
  *   await updateDoc(documentRef, { title: 'New Title' });
  * }
