@@ -28,14 +28,15 @@ export const enum AppError {
   IDB_OPEN = 'idb-open',
   IDB_GET = 'idb-get',
   IDB_WRITE = 'idb-set',
-  IDB_DELETE = 'idb-delete'
+  IDB_DELETE = 'idb-delete',
+  FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported'
 }
 
 const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
     "No Firebase App '{$appName}' has been created - " +
     'call initializeApp() first',
-  [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}",
+  [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}'",
   [AppError.DUPLICATE_APP]:
     "Firebase App named '{$appName}' already exists with different options or config",
   [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
@@ -53,7 +54,9 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.IDB_WRITE]:
     'Error thrown when writing to IndexedDB. Original error: {$originalErrorMessage}.',
   [AppError.IDB_DELETE]:
-    'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.'
+    'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.',
+  [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]:
+    "FirebaseServerApp '{$appName}' deleteOnDeref field defined but the runtime does not support the FinalizationRegistry."
 };
 
 interface ErrorParams {
@@ -66,6 +69,7 @@ interface ErrorParams {
   [AppError.IDB_GET]: { originalErrorMessage?: string };
   [AppError.IDB_WRITE]: { originalErrorMessage?: string };
   [AppError.IDB_DELETE]: { originalErrorMessage?: string };
+  [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]: { appName?: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(

@@ -35,7 +35,6 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
   private readonly _setCookieCallback?: (name: string, value: string) => void;
   private readonly _getCookieCallback?: (name: string) => string | undefined;
   private readonly _getHeaderCallback?: (name: string) => string | undefined;
-  private readonly _deleteOnDeref?: WeakRef<object>;
   private _finalizationRegistry: FinalizationRegistry<object>;
 
   constructor(
@@ -65,13 +64,13 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     this._setCookieCallback = this._serverConfig.setCookieCallback;
     this._getCookieCallback = this._serverConfig.getCookieCallback;
     this._getHeaderCallback = this._serverConfig.getHeaderCallback;
-    this._deleteOnDeref = this._serverConfig.deleteOnDeref;
 
     this._finalizationRegistry =
       new FinalizationRegistry(this.automaticCleanup);
 
-    if (this._deleteOnDeref !== undefined) {
-      this._finalizationRegistry.register(this._deleteOnDeref.deref, this);
+    if (this._serverConfig.deleteOnDeref !== undefined) {
+      this._finalizationRegistry.register(this._serverConfig.deleteOnDeref, this);
+      this._serverConfig.deleteOnDeref = undefined; // Don't keep a strong reference to the object.
     }
   }
 

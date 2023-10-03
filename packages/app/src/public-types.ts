@@ -202,7 +202,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * If a WeakRef is not provided then the application must clean up the
    * FirebaseServerApp instance through it's own standard mechanisms.
    */
-  deleteOnDeref?: WeakRef<object>;
+  deleteOnDeref?: object;
 }
 
 /**

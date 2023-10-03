@@ -257,6 +257,14 @@ export function initializeServerAppInstance(
    }
  }
 
+ if(serverAppSettings.deleteOnDeref !== undefined) {
+  if(FinalizationRegistry === undefined) {
+    throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, {
+      appName: String(name)
+    });
+  }
+ }
+
  const container = new ComponentContainer(name);
  for (const component of _components.values()) {
    container.addComponent(component);
@@ -343,7 +351,7 @@ export function getServerApps(): FirebaseServerApp[] {
  * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
-  var foundApp = false;
+  let foundApp = false;
   const name = app.name;
   if (_apps.has(name)) {
     foundApp = true;

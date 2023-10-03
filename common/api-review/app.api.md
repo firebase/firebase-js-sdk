@@ -80,7 +80,7 @@ export interface FirebaseServerApp extends FirebaseApp {
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
-    deleteOnDeref?: WeakRef<object>;
+    deleteOnDeref?: object;
     getCookieCallback: (name: string) => string | undefined;
     getHeaderCallback: (name: string) => string | undefined;
     setCookieCallback?: (name: string, value: string) => void;
