@@ -49,37 +49,115 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * @example
  * ```typescript
  * class Post {
- *   constructor(readonly title: string, readonly author: string) {}
+ *   constructor(
+ *     readonly title: string,
+ *     readonly author: string,
+ *     readonly lastUpdatedMillis: number
+ *   ) {}
  *
  *   toString(): string {
- *     return this.title + ', by ' + this.author;
+ *     return `${this.title} by ${this.author}`;
  *   }
  * }
  *
  * interface PostDbModel {
- *   title: string;
- *   author: string;
+ *   ttl: string;
+ *   aut: { firstName: string; lastName: string };
+ *   lut: Timestamp;
  * }
  *
  * const postConverter = {
- *   toFirestore(post: WithFieldValue<Post>): PostDbModel {
- *     return {title: post.title, author: post.author};
+ *   toFirestore(post: WithFieldValue<Post>) {
+ *     return {
+ *       ttl: post.title,
+ *       aut: this._autFromAuthor(post.author),
+ *       lut: this._lutFromLastUpdatedMillis(post.lastUpdatedMillis)
+ *     };
  *   },
- *   fromFirestore(snapshot: QueryDocumentSnapshot): Post {
+ *
+ *   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
  *     const data = snapshot.data(options) as PostDbModel;
- *     return new Post(data.title, data.author);
+ *     const author = `${data.aut.firstName} ${data.aut.lastName}`;
+ *     return new Post(data.ttl, author, data.lut.toMillis());
+ *   },
+ *
+ *   _autFromAuthor(
+ *     author: string | FieldValue
+ *   ): { firstName: string; lastName: string } | FieldValue {
+ *     if (typeof author !== 'string') {
+ *       // `author` is a FieldValue, so just return it.
+ *       return author;
+ *     }
+ *     const [firstName, lastName] = author.split(' ');
+ *     return { firstName, lastName };
+ *   },
+ *
+ *   _lutFromLastUpdatedMillis(
+ *     lastUpdatedMillis: number | FieldValue
+ *   ): Timestamp | FieldValue {
+ *     if (typeof lastUpdatedMillis !== 'number') {
+ *       // `lastUpdatedMillis` must be a FieldValue, so just return it.
+ *       return lastUpdatedMillis;
+ *     }
+ *     return Timestamp.fromMillis(lastUpdatedMillis);
  *   }
  * };
  *
- * const postSnap = await firebase.firestore()
- *   .collection('posts')
- *   .withConverter(postConverter)
- *   .doc().get();
- * const post = postSnap.data();
- * if (post !== undefined) {
- *   post.title; // string
- *   post.toString(); // Should be defined
- *   post.someNonExistentProperty; // TS error
+ * async function demo(db: Firestore): Promise<void> {
+ *   // Create a `DocumentReference` with a `FirestoreDataConverter`.
+ *   const documentRef = doc(db, 'posts/post123').withConverter(postConverter);
+ *
+ *   // The `data` argument specified to `setDoc()` is type checked by the
+ *   // TypeScript compiler to be compatible with `Post`. Since the `data`
+ *   // argument is typed as `WithFieldValue<Post>` rather than just `Post`,
+ *   // this allows properties of the `data` argument to also be special
+ *   // Firestore values that perform server-side mutations, such as
+ *   // `arrayRemove()`, `deleteField()`, and `serverTimestamp()`.
+ *   await setDoc(documentRef, {
+ *     title: 'My Life',
+ *     author: 'Foo Bar',
+ *     lastUpdatedMillis: serverTimestamp()
+ *   });
+ *
+ *   // The TypeScript compiler will fail to compile if the `data` argument to
+ *   // `setDoc()` is _not_ be compatible with `WithFieldValue<Post>`. This
+ *   // type checking prevents the caller from specifying objects with incorrect
+ *   // properties or property values.
+ *   // @ts-expect-error "Argument of type { ttl: String; } is not assignable to
+ *   // parameter of type WithFieldValue<Post>"
+ *   await setDoc(documentRef, { ttl: 'The Title' });
+ *
+ *   // When retrieving a document with `getDoc()` the `DocumentSnapshot`
+ *   // object's `data()` method returns a `Post`, rather than a generic object,
+ *   // which is returned if the `DocumentReference` did _not_ have a
+ *   // `FirestoreDataConverter` attached to it.
+ *   const postSnap: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *   const post: Post | undefined = postSnap.data();
+ *   if (post) {
+ *     console.log(`Post ${documentRef.path} has title=${post.title}`);
+ *   }
+ *
+ *   // The `data` argument specified to `updateDoc()` is type checked by the
+ *   // TypeScript compiler to be compatible with `PostDbModel`. Note that
+ *   // unlike `setDoc()`, whose `data` argument must be compatible with `Post`,
+ *   // the `data` argument to `updateDoc()` must be compatible with
+ *   // `PostDbModel`. Similar to `setDoc()`, since the `data` argument is typed
+ *   // as `WithFieldValue<PostDbModel>` rather than just `PostDbModel`, this
+ *   // allows properties of the `data` argument to also be those special
+ *   // Firestore values, like as `arrayRemove()`, `deleteField()`, and
+ *   // `serverTimestamp()`.
+ *   await updateDoc(documentRef, {
+ *     'aut.firstName': 'NewFirstName',
+ *     lut: serverTimestamp()
+ *   });
+ *
+ *   // The TypeScript compiler will fail to compile if the `data` argument to
+ *   // `updateDoc()` is _not_ be compatible with `WithFieldValue<PostDbModel>`.
+ *   // This type checking prevents the caller from specifying objects with
+ *   // incorrect properties or property values.
+ *   // @ts-expect-error "Argument of type { title: String; } is not assignable
+ *   // to parameter of type WithFieldValue<PostDbModel>"
+ *   await updateDoc(documentRef, { title: 'New Title' });
  * }
  * ```
  */
