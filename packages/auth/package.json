@@ -8,6 +8,7 @@
   "browser": "dist/esm2017/index.js",
   "module": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.js",
+  "extension": "dist/extension-esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "esm5": "dist/esm5/index.js",
   "exports": {
@@ -35,11 +36,19 @@
         "require": "./dist/browser-cjs/index.js",
         "import": "./dist/esm2017/index.js"
       },
+      "extension": {
+        "require": "./dist/extension-cjs/index.js",
+        "import": "./dist/extension-esm2017/index.js"
+      },
       "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
+    },
+    "./extension": {
+      "types:": "./dist/extension-esm2017/index.extension.d.ts",
+      "default": "./dist/extension-esm2017/index.js"
     },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
@@ -60,6 +69,10 @@
       "browser": {
         "require": "./dist/browser-cjs/internal.js",
         "import": "./dist/esm2017/internal.js"
+      },
+      "extension": {
+        "require": "./dist/extension-cjs/internal.js",
+        "import": "./dist/extension-esm2017/internal.js"
       },
       "default": "./dist/esm2017/internal.js"
     },

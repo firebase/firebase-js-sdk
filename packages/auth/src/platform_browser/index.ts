@@ -31,6 +31,9 @@ import { indexedDBLocalPersistence } from './persistence/indexed_db';
 import { browserPopupRedirectResolver } from './popup_redirect';
 import { Auth, User } from '../model/public_types';
 import { getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
+import { _setExternalJSProvider } from './load_js';
+import { _createError } from '../core/util/assert';
+import { AuthErrorCode } from '../core/errors';
 
 const DEFAULT_ID_TOKEN_MAX_AGE = 5 * 60;
 const authIdTokenMaxAge =
@@ -102,5 +105,31 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
 
   return auth;
 }
+
+function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
+  return document.getElementsByTagName('head')?.[0] ?? document;
+}
+
+_setExternalJSProvider({
+  loadJS(url: string): Promise<Event> {
+    // TODO: consider adding timeout support & cancellation
+    return new Promise((resolve, reject) => {
+      const el = document.createElement('script');
+      el.setAttribute('src', url);
+      el.onload = resolve;
+      el.onerror = e => {
+        const error = _createError(AuthErrorCode.INTERNAL_ERROR);
+        error.customData = e as unknown as Record<string, unknown>;
+        reject(error);
+      };
+      el.type = 'text/javascript';
+      el.charset = 'UTF-8';
+      getScriptParentElement().appendChild(el);
+    });
+  },
+
+  gapiScript: 'https://apis.google.com/js/api.js',
+  reCAPTCHAScript: 'https://www.google.com/recaptcha/api.js',
+})
 
 registerAuth(ClientPlatform.BROWSER);
