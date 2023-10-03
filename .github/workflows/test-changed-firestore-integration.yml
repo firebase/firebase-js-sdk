@@ -22,18 +22,14 @@ jobs:
     - name: Terraform Init
       run: |
         cp config/ci.config.json config/project.json
-        pwd
-        ls
         cd packages/firestore
         terraform init
       continue-on-error: true
     - name: Terraform Apply
       if: github.event_name == 'pull_request'
       run: |
-        pwd
-        ls
-        terraform apply -var-file=config/project.json -auto-approve
-        cd ../..
+        cd packages/firestore
+        terraform apply -var-file=../../config/project.json -auto-approve
       continue-on-error: true
     - name: Set up Node (16)
       uses: actions/setup-node@v3
