@@ -112,10 +112,9 @@ export class CompositeIndexTestHelper {
   }
 
   // Remove test-specific fields from a document, including the testId and expiration date.
-  private removeTestSpecificFieldsFromDoc(doc: DocumentData): DocumentData {
+  private removeTestSpecificFieldsFromDoc(doc: DocumentData): void {
     doc._document?.data?.delete(field(this.TTL_FIELD));
     doc._document?.data?.delete(field(this.TEST_ID_FIELD));
-    return doc;
   }
 
   // Helper method to hash document keys and add test-specific fields for the provided documents.
