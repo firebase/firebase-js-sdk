@@ -13,6 +13,24 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
+    - uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
+    # create composite indexes with Terraform
+    - name: Setup Terraform 
+      uses: hashicorp/setup-terraform@v2
+    - name: Terraform Init
+      run: |
+        cp config/ci.config.json config/project.json
+        cd packages/firestore
+        terraform init
+      continue-on-error: true
+    - name: Terraform Apply
+      if: github.event_name == 'pull_request'
+      run: |
+        cd packages/firestore
+        terraform apply -var-file=../../config/project.json -auto-approve
+      continue-on-error: true
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:
@@ -24,9 +42,7 @@ jobs:
     - name: Bump Node memory limit
       run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+      run: yarn
     - name: build
       run: yarn build:changed firestore-integration
     - name: Run tests if firestore or its dependencies has changed

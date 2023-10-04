@@ -16,6 +16,9 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
+import { expect } from 'chai';
+
+import { AutoId } from '../../../src/util/misc';
 
 import {
   clearIndexedDbPersistence,
@@ -39,7 +42,10 @@ import {
   SnapshotListenOptions,
   terminate,
   WriteBatch,
-  writeBatch
+  writeBatch,
+  Query,
+  getDocsFromServer,
+  getDocsFromCache
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -442,14 +448,29 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
+  const collectionId = AutoId.newId();
+  return batchCommitDocsToCollection(
+    persistence,
+    settings,
+    docs,
+    collectionId,
+    fn
+  );
+}
+
+export function batchCommitDocsToCollection<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  collectionId: string,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
     settings,
     2,
     ([testDb, setupDb]) => {
-      // Abuse .doc() to get a random ID.
-      const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
 
@@ -516,4 +537,26 @@ export function partitionedTestDocs(partitions: {
   }
 
   return testDocs;
+}
+
+/**
+ * Checks that running the query while online (against the backend/emulator) results in the same
+ * documents as running the query while offline. If `expectedDocs` is provided, it also checks
+ * that both online and offline query result is equal to the expected documents.
+ *
+ * @param query The query to check
+ * @param expectedDocs Ordered list of document keys that are expected to match the query
+ */
+export async function checkOnlineAndOfflineResultsMatch(
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  const docsFromServer = await getDocsFromServer(query);
+
+  if (expectedDocs.length !== 0) {
+    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+  }
+
+  const docsFromCache = await getDocsFromCache(query);
+  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }
