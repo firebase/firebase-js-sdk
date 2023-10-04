@@ -56,7 +56,7 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.IDB_DELETE]:
     'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.',
   [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]:
-    "FirebaseServerApp '{$appName}' deleteOnDeref field defined but the runtime does not support the FinalizationRegistry."
+    "FirebaseServerApp '{$appName}' deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry."
 };
 
 interface ErrorParams {

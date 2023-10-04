@@ -73,17 +73,17 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    invokeGetCookieCallback: (name: string) => string | undefined;
-    invokeGetHeaderCallback: (name: string) => string | undefined;
-    invokeSetCookieCallback: (name: string, value: string) => void;
+    invokeGetCookie: (name: string) => string | undefined;
+    invokeGetHeader: (name: string) => string | undefined;
+    invokeSetCookie: (name: string, value: string | undefined, options: object) => void;
 }
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
     deleteOnDeref?: object;
-    getCookieCallback: (name: string) => string | undefined;
-    getHeaderCallback: (name: string) => string | undefined;
-    setCookieCallback?: (name: string, value: string) => void;
+    getCookie: (name: string) => string | undefined;
+    getHeader: (name: string) => string | undefined;
+    setCookie?: (name: string, value: string | undefined, options: object) => void;
 }
 
 // @internal (undocumented)

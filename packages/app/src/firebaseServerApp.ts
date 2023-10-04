@@ -32,9 +32,9 @@ import { DEFAULT_ENTRY_NAME } from './constants';
 
 export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseServerApp {
   private readonly _serverConfig: FirebaseServerAppSettings;
-  private readonly _setCookieCallback?: (name: string, value: string) => void;
-  private readonly _getCookieCallback?: (name: string) => string | undefined;
-  private readonly _getHeaderCallback?: (name: string) => string | undefined;
+  private readonly _setCookie?: (name: string, value: string|undefined, options: object) => void;
+  private readonly _getCookie: (name: string) => string | undefined;
+  private readonly _getHeader: (name: string) => string | undefined;
   private _finalizationRegistry: FinalizationRegistry<object>;
 
   constructor(
@@ -61,9 +61,9 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
       ...serverConfig
     };
 
-    this._setCookieCallback = this._serverConfig.setCookieCallback;
-    this._getCookieCallback = this._serverConfig.getCookieCallback;
-    this._getHeaderCallback = this._serverConfig.getHeaderCallback;
+    this._setCookie = this._serverConfig.setCookie;
+    this._getCookie = this._serverConfig.getCookie;
+    this._getHeader = this._serverConfig.getHeader;
 
     this._finalizationRegistry =
       new FinalizationRegistry(this.automaticCleanup);
@@ -83,24 +83,20 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     return this._serverConfig;
   }
 
-  invokeSetCookieCallback(cookieName: string, cookieValue: string): void {
+  invokeSetCookie(cookieName: string, cookieValue: string|undefined, options: object): void {
     this.checkDestroyed();
-    if (this._setCookieCallback !== undefined) {
-      this._setCookieCallback(cookieName, cookieValue);
+    if (this._setCookie !== undefined) {
+      this._setCookie(cookieName, cookieValue, options);
     }
   }
 
-  invokeGetCookieCallback(cookieName: string): string | undefined {
+  invokeGetCookie(cookieName: string): string | undefined {
     this.checkDestroyed();
-    if (this._getCookieCallback !== undefined) {
-      return this._getCookieCallback(cookieName);
-    }
+    return this._getCookie(cookieName);
   }
 
-  invokeGetHeaderCallback(headerName: string): string | undefined {
+  invokeGetHeader(headerName: string): string | undefined {
     this.checkDestroyed();
-    if (this._getHeaderCallback !== undefined) {
-      return this._getHeaderCallback(headerName);
-    }
+    return this._getHeader(headerName);
   }
 }

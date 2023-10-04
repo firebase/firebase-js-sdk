@@ -258,7 +258,7 @@ export function initializeServerAppInstance(
  }
 
  if(serverAppSettings.deleteOnDeref !== undefined) {
-  if(FinalizationRegistry === undefined) {
+  if (typeof FinalizationRegistry === "undefined") {
     throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, {
       appName: String(name)
     });
