@@ -18,8 +18,6 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { AutoId } from '../../../src/util/misc';
-
 import {
   clearIndexedDbPersistence,
   collection,
@@ -45,7 +43,8 @@ import {
   writeBatch,
   Query,
   getDocsFromServer,
-  getDocsFromCache
+  getDocsFromCache,
+  _AutoId
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -448,7 +447,7 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  const collectionId = AutoId.newId();
+  const collectionId = _AutoId.newId();
   return batchCommitDocsToCollection(
     persistence,
     settings,
