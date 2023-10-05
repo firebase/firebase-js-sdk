@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { and } from '../../../src/lite-api/query';
-import { AutoId } from '../../../src/util/misc';
 import { field } from '../../util/helpers';
 
 import {
@@ -41,7 +39,9 @@ import {
   getDocs as getDocuments,
   QuerySnapshot,
   deleteDoc as deleteDocument,
-  doc
+  doc,
+  and,
+  _AutoId
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -72,7 +72,7 @@ export class CompositeIndexTestHelper {
   // Creates a new instance of the CompositeIndexTestHelper class, with a unique test
   // identifier for data isolation.
   constructor() {
-    this.testId = 'test-id-' + AutoId.newId();
+    this.testId = 'test-id-' + _AutoId.newId();
   }
 
   // Runs a test with specified documents in the COMPOSITE_INDEX_TEST_COLLECTION.
