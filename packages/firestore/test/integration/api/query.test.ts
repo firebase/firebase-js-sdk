@@ -43,14 +43,11 @@ import {
   getAggregateFromServer,
   getCountFromServer,
   getDocs,
-  getDocsFromCache,
-  getDocsFromServer,
   limit,
   limitToLast,
   onSnapshot,
   or,
   orderBy,
-  Query,
   query,
   QuerySnapshot,
   setDoc,
@@ -72,7 +69,8 @@ import {
   withEmptyTestCollection,
   withRetry,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
@@ -2329,99 +2327,6 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // OR Query tests only run when the SDK's local cache is configured to use
-  // LRU garbage collection (rather than eager garbage collection) because
-  // they validate that the result from server and cache match. Additionally,
-  // these tests must be skipped if running against production because it
-  // results in a 'missing index' error. The Firestore Emulator, however, does
-  // serve these queries.
-  // eslint-disable-next-line no-restricted-properties
-  (persistence.gc === 'lru' && USE_EMULATOR ? describe : describe.skip)(
-    'OR Queries That Need Composite Indexes',
-    () => {
-      it('can use query overloads', () => {
-        const testDocs = {
-          doc1: { a: 1, b: 0 },
-          doc2: { a: 2, b: 1 },
-          doc3: { a: 3, b: 2 },
-          doc4: { a: 1, b: 3 },
-          doc5: { a: 1, b: 1 }
-        };
-
-        return withTestCollection(persistence, testDocs, async coll => {
-          // a == 1, limit 2, b - desc
-          await checkOnlineAndOfflineResultsMatch(
-            query(coll, where('a', '==', 1), limit(2), orderBy('b', 'desc')),
-            'doc4',
-            'doc5'
-          );
-        });
-      });
-
-      it('can use or queries', () => {
-        const testDocs = {
-          doc1: { a: 1, b: 0 },
-          doc2: { a: 2, b: 1 },
-          doc3: { a: 3, b: 2 },
-          doc4: { a: 1, b: 3 },
-          doc5: { a: 1, b: 1 }
-        };
-
-        return withTestCollection(persistence, testDocs, async coll => {
-          // with one inequality: a>2 || b==1.
-          await checkOnlineAndOfflineResultsMatch(
-            query(coll, or(where('a', '>', 2), where('b', '==', 1))),
-            'doc5',
-            'doc2',
-            'doc3'
-          );
-
-          // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
-          await checkOnlineAndOfflineResultsMatch(
-            query(coll, or(where('a', '==', 1), where('b', '>', 0)), limit(2)),
-            'doc1',
-            'doc2'
-          );
-
-          // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
-          // Note: The public query API does not allow implicit ordering when limitToLast is used.
-          await checkOnlineAndOfflineResultsMatch(
-            query(
-              coll,
-              or(where('a', '==', 1), where('b', '>', 0)),
-              limitToLast(2),
-              orderBy('b')
-            ),
-            'doc3',
-            'doc4'
-          );
-
-          // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
-          await checkOnlineAndOfflineResultsMatch(
-            query(
-              coll,
-              or(where('a', '==', 2), where('b', '==', 1)),
-              limit(1),
-              orderBy('a')
-            ),
-            'doc5'
-          );
-
-          // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
-          await checkOnlineAndOfflineResultsMatch(
-            query(
-              coll,
-              or(where('a', '==', 2), where('b', '==', 1)),
-              limitToLast(1),
-              orderBy('a')
-            ),
-            'doc2'
-          );
-        });
-      });
-    }
-  );
-
   // Reproduces https://github.com/firebase/firebase-js-sdk/issues/5873
   describe('Caching empty results', () => {
     it('can raise initial snapshot from cache, even if it is empty', () => {
@@ -2899,26 +2804,4 @@ function verifyDocumentChange<T>(
   expect(change.type).to.equal(type);
   expect(change.oldIndex).to.equal(oldIndex);
   expect(change.newIndex).to.equal(newIndex);
-}
-
-/**
- * Checks that running the query while online (against the backend/emulator) results in the same
- * documents as running the query while offline. If `expectedDocs` is provided, it also checks
- * that both online and offline query result is equal to the expected documents.
- *
- * @param query The query to check
- * @param expectedDocs Ordered list of document keys that are expected to match the query
- */
-async function checkOnlineAndOfflineResultsMatch(
-  query: Query,
-  ...expectedDocs: string[]
-): Promise<void> {
-  const docsFromServer = await getDocsFromServer(query);
-
-  if (expectedDocs.length !== 0) {
-    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
-  }
-
-  const docsFromCache = await getDocsFromCache(query);
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }
