@@ -33,7 +33,7 @@ import {
   writeBatch,
   count,
   sum,
-  average
+  average, getDocFromServer, startAt, AggregateSpec, setLogLevel
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -42,6 +42,7 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
+import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -368,6 +369,123 @@ apiDescribe('Aggregation queries', persistence => {
       });
     }
   );
+});
+
+
+apiDescribe.only('Aggregation query permutations', persistence => {
+
+  const tests: Array<Array<string|number>> = [
+    ["sum(a)","-","-","-", 3],
+    ["sum(a)","a = 1","-","-", 1],
+    ["sum(a)","a = 1","a ASC","-", 1],
+    ["sum(a)","a > 1","-","-", 2],
+    ["sum(a)","a > 1","a ASC","-", 2],
+    ["sum(a)","a > 1","a ASC b ASC","-", 2],
+    ["sum(a)","b = 1","-","-", 2],
+    ["sum(a)","b = 1","b ASC","-", 2],
+    ["sum(a)","b > 1","-","-", 1],
+    ["sum(a)","b > 1","b ASC","-", 1],
+    ["sum(a)","b > 1","b ASC a ASC","-", 1],
+    ["sum(a)","-","-","snap(col/a)", 150],
+    ["sum(a)","a = 1","-","snap(col/a)", 150],
+    ["sum(a)","a = 1","a ASC","snap(col/a)", 150],
+    ["sum(a)","a > 1","-","snap(col/a)", 100],
+    ["sum(a)","a > 1","a ASC","snap(col/a)", 100],
+    ["sum(a)","a > 1","b ASC","snap(col/a)", 100],
+    ["sum(a)","b = 1","-","snap(col/a)", 100],
+    ["sum(a)","b = 1","b ASC","snap(col/a)", 100],
+    ["sum(a)","b > 1","-","snap(col/a)", 100],
+    ["sum(a)","b > 1","b ASC","snap(col/a)", 100],
+    ["sum(a)","b > 1","a ASC","snap(col/a)", 100],
+    ["sum(a)","-","-","ref(col/a)", 3],
+    ["sum(a)","a = 1","-","ref(col/a)", 1],
+    ["sum(a)","a = 1","a ASC","ref(col/a)", 1],
+    ["sum(a)","a > 1","-","ref(col/a)", 2],
+    ["sum(a)","a > 1","a ASC","ref(col/a)", 2],
+    ["sum(a)","b = 1","-","ref(col/a)", 2],
+    ["sum(a)","b = 1","b ASC","ref(col/a)", 2],
+    ["sum(a)","b > 1","-","ref(col/a)", 1],
+    ["sum(a)","b > 1","b ASC","ref(col/a)", 1],
+    ["sum(a)","b > 1","b ASC a ASC","ref(col/a)", 1],
+    ["sum(a)","-","-",2, 3],
+    ["sum(a)","a = 1","-",2, 1],
+    ["sum(a)","a = 1","a ASC",2, 1],
+    ["sum(a)","a > 1","-",2, 2],
+    ["sum(a)","a > 1","a ASC",2, 2],
+    ["sum(a)","b = 1","-",2, 2],
+    ["sum(a)","b = 1","b ASC",2, 2],
+    ["sum(a)","b > 1","-",2, 1],
+    ["sum(a)","b > 1","b ASC",2, 1],
+  ];
+
+  tests.forEach(testCase => {
+    const [aggregateOp, whereOp, orderByOp, startAtOp, result] = testCase;
+
+    it(`aggregate: SELECT ${aggregateOp} FROM coll WHERE ${whereOp} ORDER BY ${orderByOp} START AT ${startAtOp}`, () => {
+      const testDocs = {
+        a: {a: 1, b: 2},
+        b: {a: 2, b: 1}
+      };
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        let q = query(coll, where("testId", "==", testHelper.testId));
+
+        // whereOp
+        if (whereOp === "a > 1") {
+          q = query(q, where("a", ">", 1));
+        }
+        else if (whereOp === "a = 1") {
+          q = query(q, where("a", "==", 1));
+        }
+        else if (whereOp === "b > 1") {
+          q = query(q, where("b", ">", 1));
+        }
+        else if (whereOp === "b = 1") {
+          q = query(q, where("b", "==", 1));
+        }
+
+        // orderByOp
+        if (orderByOp === "a ASC") {
+          q = query(q, orderBy("a", "asc"));
+        }
+        else if (orderByOp === "b ASC") {
+          q = query(q, orderBy("b", "asc"));
+        }
+        else if (orderByOp === "a ASC b ASC") {
+          q = query(q, orderBy("a", "asc"), orderBy("b", "asc"));
+        }
+        else if (orderByOp === "b ASC a ASC") {
+          q = query(q, orderBy("b", "asc"), orderBy("a", "asc"));
+        }
+
+        // startAtOp
+        if (startAtOp === "snap(col/a)") {
+          const snap = await testHelper.getDoc(testHelper.getDocRef(coll, "a"))
+          q = query(q, startAt(snap));
+        }
+        else if (orderByOp === "ref(col/a)") {
+          q = query(q, startAt(doc(coll, "a")));
+        }
+        else if (startAtOp === "snap(col/b)") {
+          const snap = await getDocFromServer(doc(coll, "b"))
+          q = query(q, startAt(snap));
+        }
+        else if (orderByOp === "ref(col/b)") {
+          q = query(q, startAt(doc(coll, "b")));
+        }
+
+        let aggregateSpec: AggregateSpec = {};
+        if (aggregateOp === "sum(a)") {
+          aggregateSpec.totalPages = sum('a')
+        }
+
+        const snapshot = await getAggregateFromServer(
+          q, aggregateSpec
+        );
+        expect(snapshot.data().totalPages).to.equal(result);
+      });
+    });
+  })
 });
 
 apiDescribe('Aggregation queries - sum / average', persistence => {
