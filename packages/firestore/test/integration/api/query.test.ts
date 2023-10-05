@@ -1927,7 +1927,7 @@ apiDescribe('Queries', persistence => {
       });
     });
 
-    it('inequality query will reject if document key appears only in equality conditions', () => {
+    it('inequality query will reject if document key appears only in equality filter', () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
           coll,
