@@ -55,12 +55,6 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
-export class _AutoId {
-    // (undocumented)
-    static newId(): string;
-}
-
 // @public
 export class Bytes {
     static fromBase64String(base64: string): Bytes;
