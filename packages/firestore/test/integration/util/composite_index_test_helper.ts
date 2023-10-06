@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import {
   query as internalQuery,
   CollectionReference,
