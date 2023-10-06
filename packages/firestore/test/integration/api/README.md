@@ -11,17 +11,19 @@ replaced via the gulpfile in 'integration/firestore' and should not be
 modified.
 
 
-### Testing composite index query against production
+## Testing composite index query against production
+
+### Setting Up the Environment:
 1. Create a `project.json` file in the `firebase-js-sdk/packages/firestore` directory. This file should contain your target Firebase project's configuration.
-2. If not already done, log in to your Google Cloud Platform (GCP) account using `gcloud auth application-default login`. You can check your logged-in accounts with `gcloud auth list`.
-3. In the `firebase-js-sdk/packages/firestore`, run:
+2. If not already logged in, authenticate with your Google Cloud Platform (GCP) account using `gcloud auth application-default login`. You can check your logged-in accounts by running `gcloud auth list`.
+3. Navigate to the `firebase-js-sdk/packages/firestore` directory, run:
 ```
 terraform init
 terraform apply -var-file=project.json -auto-approve
 ```
-Note: Index creation may occasionally encounter issues. If it fails due to concurrent operations, consider running the index creation process a second time. You can safely disregard error messages indicating that indexes have already been created.
+Note: If the index creation encounters issues, such as concurrent operations, consider running the index creation process again. Error messages indicating that indexes have already been created can be safely disregarded.
 
 
 ### Adding new composite index query tests
-1. create the new composite index by clicking on the link to firebase console in the error message.
-2. Add the new composite index to the `firestore_index_config.tf` file. The "__name__" field is not required to be explicitly added to the file as the index creation will auto complete it on behalf.
+1. To create a new composite index for local development, click on the provided link in the test error message, which will direct you to the Firebase Console.
+2. Add the newly created composite index to the `firestore_index_config.tf` file. The "__name__" field is not required to be explicitly added to the file, as the index creation will auto complete it on behalf.
