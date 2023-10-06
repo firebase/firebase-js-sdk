@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { field } from '../../util/helpers';
-
 import {
   query as internalQuery,
   CollectionReference,
@@ -41,7 +39,8 @@ import {
   deleteDoc as deleteDocument,
   doc,
   and,
-  _AutoId
+  _AutoId,
+  _FieldPath
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -113,8 +112,8 @@ export class CompositeIndexTestHelper {
 
   // Remove test-specific fields from a document, including the testId and expiration date.
   private removeTestSpecificFieldsFromDoc(doc: DocumentData): void {
-    doc._document?.data?.delete(field(this.TTL_FIELD));
-    doc._document?.data?.delete(field(this.TEST_ID_FIELD));
+    doc._document?.data?.delete(new _FieldPath([this.TEST_ID_FIELD]));
+    doc._document?.data?.delete(new _FieldPath([this.TEST_ID_FIELD]));
   }
 
   // Helper method to hash document keys and add test-specific fields for the provided documents.
