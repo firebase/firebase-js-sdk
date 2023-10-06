@@ -32,7 +32,7 @@ import { apiDescribe } from '../util/helpers';
  * "CompositeIndexTestHelper" class. This utility class provides methods for creating
  * and setting test documents and running queries with ease, ensuring proper data
  * isolation and query construction.
- * 
+ *
  * To get started, please refer to the instructions provided in the README file. This will guide you
  * through setting up your local testing environment and updating the Terraform configuration with
  * any new composite indexes required for your testing scenarios.
