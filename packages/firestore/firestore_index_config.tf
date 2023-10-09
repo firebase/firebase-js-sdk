@@ -100,5 +100,33 @@ locals {
         order      = "DESCENDING"
       },
     ]
+    index9 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "a"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "b"
+        order      = "ASCENDING"
+      },
+    ]
+    index10 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "b"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "a"
+        order      = "ASCENDING"
+      },
+    ]
   }
 }
