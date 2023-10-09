@@ -48,7 +48,7 @@ interface GetRecaptchaConfigRequest {
   version?: RecaptchaVersion;
 }
 
-interface RecaptchaEnforcementState {
+export interface RecaptchaEnforcementState {
   provider: string;
   enforcementState: string;
 }

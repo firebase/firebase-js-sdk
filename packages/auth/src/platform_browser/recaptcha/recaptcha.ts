@@ -16,7 +16,15 @@
  */
 
 import { RecaptchaParameters } from '../../model/public_types';
-import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
+import {
+  GetRecaptchaConfigResponse,
+  RecaptchaEnforcementState
+} from '../../api/authentication/recaptcha';
+import {
+  EnforcementState,
+  RecaptchaProvider,
+  _parseEnforcementState
+} from '../../api/index';
 
 // reCAPTCHA v2 interface
 export interface Recaptcha {
@@ -78,9 +86,9 @@ export class RecaptchaConfig {
   siteKey: string = '';
 
   /**
-   * The reCAPTCHA enablement status of the {@link EmailAuthProvider} for the current tenant.
+   * The list of providers and their enablement status for reCAPTCHA.
    */
-  emailPasswordEnabled: boolean = false;
+  recaptchaEnforcementStateList: RecaptchaEnforcementState[] = [];
 
   constructor(response: GetRecaptchaConfigResponse) {
     if (response.recaptchaKey === undefined) {
@@ -88,10 +96,51 @@ export class RecaptchaConfig {
     }
     // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
     this.siteKey = response.recaptchaKey.split('/')[3];
-    this.emailPasswordEnabled = response.recaptchaEnforcementState.some(
-      enforcementState =>
-        enforcementState.provider === 'EMAIL_PASSWORD_PROVIDER' &&
-        enforcementState.enforcementState !== 'OFF'
-    );
+    this.recaptchaEnforcementStateList = response.recaptchaEnforcementState;
+  }
+
+  /**
+   * Returns the reCAPTCHA enforcement state for the given provider.
+   *
+   * @param providerStr - The provider whose enforcement state is to be returned.
+   * @returns The reCAPTCHA enforcement state for the given provider.
+   */
+  getProviderEnforcementState(providerStr: string): EnforcementState | null {
+    if (
+      !this.recaptchaEnforcementStateList ||
+      this.recaptchaEnforcementStateList.length === 0
+    ) {
+      return null;
+    }
+
+    for (const recaptchaEnforcementState of this
+      .recaptchaEnforcementStateList) {
+      if (
+        recaptchaEnforcementState.provider &&
+        recaptchaEnforcementState.provider === providerStr
+      ) {
+        return _parseEnforcementState(
+          recaptchaEnforcementState.enforcementState
+        );
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if the reCAPTCHA enforcement state for the provider is set to ENFORCE or AUDIT.
+   *
+   * @param providerStr - The provider whose enablement state is to be returned.
+   * @returns Whether or not reCAPTCHA protection is enabled for the given provider.
+   */
+  isProviderEnabled(providerStr: string): boolean {
+    if (
+      this.getProviderEnforcementState(providerStr) ===
+        EnforcementState.ENFORCE ||
+      this.getProviderEnforcementState(providerStr) === EnforcementState.AUDIT
+    ) {
+      return true;
+    }
+    return false;
   }
 }
