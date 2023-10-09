@@ -20,10 +20,7 @@ import {
   GetRecaptchaConfigResponse,
   RecaptchaEnforcementState
 } from '../../api/authentication/recaptcha';
-import {
-  EnforcementState,
-  _parseEnforcementState
-} from '../../api/index';
+import { EnforcementState, _parseEnforcementState } from '../../api/index';
 
 // reCAPTCHA v2 interface
 export interface Recaptcha {
