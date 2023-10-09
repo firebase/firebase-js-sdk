@@ -22,7 +22,6 @@ import {
 } from '../../api/authentication/recaptcha';
 import {
   EnforcementState,
-  RecaptchaProvider,
   _parseEnforcementState
 } from '../../api/index';
 
