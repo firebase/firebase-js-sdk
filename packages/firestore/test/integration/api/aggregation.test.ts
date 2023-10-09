@@ -374,7 +374,7 @@ apiDescribe('Aggregation queries', persistence => {
   );
 });
 
-apiDescribe.only(
+apiDescribe(
   'Aggregation query with order-by and cursor permutations',
   persistence => {
     // Test definitions:
