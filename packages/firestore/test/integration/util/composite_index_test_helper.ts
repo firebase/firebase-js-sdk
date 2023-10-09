@@ -65,9 +65,9 @@ import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
  * </ul>
  */
 export class CompositeIndexTestHelper {
-  public readonly testId: string;
-  public readonly TEST_ID_FIELD: string = 'testId';
-  public readonly TTL_FIELD: string = 'expireAt';
+  readonly testId: string;
+  readonly TEST_ID_FIELD: string = 'testId';
+  readonly TTL_FIELD: string = 'expireAt';
 
   // Creates a new instance of the CompositeIndexTestHelper class, with a unique test
   // identifier for data isolation.

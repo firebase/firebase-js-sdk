@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
 import {
   collection,
   collectionGroup,
@@ -33,7 +34,10 @@ import {
   writeBatch,
   count,
   sum,
-  average, getDocFromServer, startAt, AggregateSpec, setLogLevel
+  average,
+  startAt,
+  AggregateSpec,
+  documentId
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -42,7 +46,6 @@ import {
   withTestDb
 } from '../util/helpers';
 import { USE_EMULATOR } from '../util/settings';
-import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -371,122 +374,225 @@ apiDescribe('Aggregation queries', persistence => {
   );
 });
 
+apiDescribe.only(
+  'Aggregation query with order-by and cursor permutations',
+  persistence => {
+    // Test definitions:
+    // [aggregate, filter, order-by, cursor, expected result]
+    const tests: Array<Array<string | number>> = [
+      // When we don't use a cursor, we can aggregate with or without
+      // order-bys. There are no special concerns in this case.
+      ['sum(a)', '-', '-', '-', 5],
+      ['sum(a)', 'a = 1', '-', '-', 1],
+      ['sum(a)', 'a = 1', 'a ASC', '-', 1],
+      ['sum(a)', 'a > 1', '-', '-', 4],
+      ['sum(a)', 'a > 1', 'a ASC', '-', 4],
+      ['sum(a)', 'a > 1', 'a ASC b ASC', '-', 4],
+      ['sum(a)', 'b = 1', '-', '-', 2],
+      ['sum(a)', 'b = 1', 'b ASC', '-', 2],
+      ['sum(a)', 'b > 1', '-', '-', 3],
+      ['sum(a)', 'b > 1', 'b ASC', '-', 3],
+      ['sum(a)', 'b > 1', 'b ASC a ASC', '-', 3],
 
-apiDescribe.only('Aggregation query permutations', persistence => {
+      // When we use a value-based cursor (no document reference or snapshot),
+      // then we only need to ensure that our order-by specifies the field
+      // the cursor will reference. This is the same as non-aggregate queries,
+      // except that we also must explicity specify the order-by field when
+      // using inequalities.
+      ['sum(a)', 'a = 1', 'a ASC', 2, 0],
+      ['sum(a)', 'a > 1', 'a ASC', 2, 4],
+      ['sum(a)', 'b > 1', 'b ASC', 2, 3],
+      ['sum(a)', 'b > 1', 'b ASC', 3, 2],
+      ['sum(a)', '-', 'a ASC', 2, 4],
+      ['sum(a)', '-', 'b ASC', 3, 2],
 
-  const tests: Array<Array<string|number>> = [
-    ["sum(a)","-","-","-", 3],
-    ["sum(a)","a = 1","-","-", 1],
-    ["sum(a)","a = 1","a ASC","-", 1],
-    ["sum(a)","a > 1","-","-", 2],
-    ["sum(a)","a > 1","a ASC","-", 2],
-    ["sum(a)","a > 1","a ASC b ASC","-", 2],
-    ["sum(a)","b = 1","-","-", 2],
-    ["sum(a)","b = 1","b ASC","-", 2],
-    ["sum(a)","b > 1","-","-", 1],
-    ["sum(a)","b > 1","b ASC","-", 1],
-    ["sum(a)","b > 1","b ASC a ASC","-", 1],
-    ["sum(a)","-","-","snap(col/a)", 150],
-    ["sum(a)","a = 1","-","snap(col/a)", 150],
-    ["sum(a)","a = 1","a ASC","snap(col/a)", 150],
-    ["sum(a)","a > 1","-","snap(col/a)", 100],
-    ["sum(a)","a > 1","a ASC","snap(col/a)", 100],
-    ["sum(a)","a > 1","b ASC","snap(col/a)", 100],
-    ["sum(a)","b = 1","-","snap(col/a)", 100],
-    ["sum(a)","b = 1","b ASC","snap(col/a)", 100],
-    ["sum(a)","b > 1","-","snap(col/a)", 100],
-    ["sum(a)","b > 1","b ASC","snap(col/a)", 100],
-    ["sum(a)","b > 1","a ASC","snap(col/a)", 100],
-    ["sum(a)","-","-","ref(col/a)", 3],
-    ["sum(a)","a = 1","-","ref(col/a)", 1],
-    ["sum(a)","a = 1","a ASC","ref(col/a)", 1],
-    ["sum(a)","a > 1","-","ref(col/a)", 2],
-    ["sum(a)","a > 1","a ASC","ref(col/a)", 2],
-    ["sum(a)","b = 1","-","ref(col/a)", 2],
-    ["sum(a)","b = 1","b ASC","ref(col/a)", 2],
-    ["sum(a)","b > 1","-","ref(col/a)", 1],
-    ["sum(a)","b > 1","b ASC","ref(col/a)", 1],
-    ["sum(a)","b > 1","b ASC a ASC","ref(col/a)", 1],
-    ["sum(a)","-","-",2, 3],
-    ["sum(a)","a = 1","-",2, 1],
-    ["sum(a)","a = 1","a ASC",2, 1],
-    ["sum(a)","a > 1","-",2, 2],
-    ["sum(a)","a > 1","a ASC",2, 2],
-    ["sum(a)","b = 1","-",2, 2],
-    ["sum(a)","b = 1","b ASC",2, 2],
-    ["sum(a)","b > 1","-",2, 1],
-    ["sum(a)","b > 1","b ASC",2, 1],
-  ];
+      // For aggregate queries with a cursor using a document snapshot,
+      // these are allowed only if the order-by is explicit for all fields.
+      ['sum(a)', '-', 'a ASC __name__ ASC', 'snap(col/a)', 5],
+      ['sum(a)', '-', 'a ASC __name__ ASC', 'snap(col/b)', 4],
+      ['sum(a)', '-', 'a ASC __name__ ASC', 'snap(col/c)', 2],
+      ['sum(a)', 'a > 1', 'a ASC __name__ ASC', 'snap(col/a)', 4],
+      ['sum(a)', 'a > 1', 'a ASC __name__ ASC', 'snap(col/b)', 4],
+      ['sum(a)', 'a > 1', 'a ASC __name__ ASC', 'snap(col/c)', 2],
+      // The inequality field "b", must come before the aggregate field "a"
+      ['sum(a)', 'b > 1', 'b ASC a ASC __name__ ASC', 'snap(col/a)', 3],
+      ['sum(a)', 'b > 1', 'b ASC a ASC __name__ ASC', 'snap(col/c)', 2],
 
-  tests.forEach(testCase => {
-    const [aggregateOp, whereOp, orderByOp, startAtOp, result] = testCase;
+      // For aggregate queries with a cursor using a document reference,
+      // these are allowed only if the order-by is explicit for all fields.
+      // Note that your cursor must include all fields in the order-by
+      ['sum(a)', 'a = 1', '__name__ ASC', 'ref(col/a)', 1],
+      ['sum(a)', 'a > 1', 'a ASC __name__ ASC', '1 ref(col/a)', 4],
+      ['sum(a)', 'b > 1', 'b ASC a ASC __name__ ASC', '1 1 ref(col/a)', 3]
+    ];
 
-    it(`aggregate: SELECT ${aggregateOp} FROM coll WHERE ${whereOp} ORDER BY ${orderByOp} START AT ${startAtOp}`, () => {
-      const testDocs = {
-        a: {a: 1, b: 2},
-        b: {a: 2, b: 1}
-      };
-      const testHelper = new CompositeIndexTestHelper();
-      return testHelper.withTestDocs(persistence, testDocs, async coll => {
-        let q = query(coll, where("testId", "==", testHelper.testId));
+    // Aggregate queries over a field (sum, avg, etc) do not support
+    // usage of cursors with document reference or document snapshot,
+    // unless the aggregated field(s), in-equality field(s),
+    // and cursor field(s) are explicity set in the order-by(s).
+    // Some of these cases may be supported in a later release.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const unsupportedCases: Array<Array<string | number>> = [
+      // For aggregate queries with cursor using a document snapshot,
+      // the query must use an explicit order by of fields in
+      // this order: "inequality-field(s), aggregate-field(s), docId".
+      // Hint: the following do not have complete explicit order-bys.
+      ['sum(a)', '-', '-', 'snap(col/a)', 150],
+      ['sum(a)', 'a = 1', '-', 'snap(col/a)', 150],
+      ['sum(a)', 'a = 1', 'a ASC', 'snap(col/a)', 1],
+      ['sum(a)', 'a > 1', '-', 'snap(col/a)', 4],
+      ['sum(a)', 'a > 1', 'a ASC', 'snap(col/a)', 4],
+      ['sum(a)', 'a > 1', 'b ASC', 'snap(col/a)', 4],
+      ['sum(a)', 'b = 1', '-', 'snap(col/a)', 100],
+      ['sum(a)', 'b = 1', 'b ASC', 'snap(col/a)', 100],
+      ['sum(a)', 'b > 1', '-', 'snap(col/a)', 100],
+      ['sum(a)', 'b > 1', '__name__ ASC', 'snap(col/a)', 100],
+      ['sum(a)', 'b > 1', 'b ASC', 'snap(col/a)', 100],
+      ['sum(a)', 'b > 1', 'a ASC', 'snap(col/a)', 100],
 
-        // whereOp
-        if (whereOp === "a > 1") {
-          q = query(q, where("a", ">", 1));
-        }
-        else if (whereOp === "a = 1") {
-          q = query(q, where("a", "==", 1));
-        }
-        else if (whereOp === "b > 1") {
-          q = query(q, where("b", ">", 1));
-        }
-        else if (whereOp === "b = 1") {
-          q = query(q, where("b", "==", 1));
-        }
+      // Hint: the order-by is missing the aggregate field "a".
+      // This may pass against the emulator but not against prod.
+      ['sum(a)', 'b > 1', 'b ASC __name__ ASC', 'snap(col/a)', 3],
 
-        // orderByOp
-        if (orderByOp === "a ASC") {
-          q = query(q, orderBy("a", "asc"));
-        }
-        else if (orderByOp === "b ASC") {
-          q = query(q, orderBy("b", "asc"));
-        }
-        else if (orderByOp === "a ASC b ASC") {
-          q = query(q, orderBy("a", "asc"), orderBy("b", "asc"));
-        }
-        else if (orderByOp === "b ASC a ASC") {
-          q = query(q, orderBy("b", "asc"), orderBy("a", "asc"));
-        }
+      // Inequality field must come before the aggregate field.
+      ['sum(a)', 'b > 1', 'a ASC b ASC __name__ ASC', 'snap(col/c)', 2],
 
-        // startAtOp
-        if (startAtOp === "snap(col/a)") {
-          const snap = await testHelper.getDoc(testHelper.getDocRef(coll, "a"))
-          q = query(q, startAt(snap));
-        }
-        else if (orderByOp === "ref(col/a)") {
-          q = query(q, startAt(doc(coll, "a")));
-        }
-        else if (startAtOp === "snap(col/b)") {
-          const snap = await getDocFromServer(doc(coll, "b"))
-          q = query(q, startAt(snap));
-        }
-        else if (orderByOp === "ref(col/b)") {
-          q = query(q, startAt(doc(coll, "b")));
-        }
+      // Aggregate queries with using a document reference will not work
+      // without an explicit order-by on
+      // "inequality-fields, aggregate-fields, docId"
+      ['sum(a)', '-', '-', 'ref(col/a)', 5],
+      ['sum(a)', 'a = 1', '-', 'ref(col/a)', 1],
+      ['sum(a)', 'a > 1', '-', 'ref(col/a)', 2],
+      ['sum(a)', 'a > 1', '__name__ ASC', 'ref(col/a)', 2], //3 INVALID_ARGUMENT: inequality filter property and first sort order must be the same: a and __key__
+      ['sum(a)', 'b > 1', '__name__ ASC', 'ref(col/a)', 3], // 3 INVALID_ARGUMENT: This query requires an index that has fields [a] after __name__ and Firestore does not currently support such an index.
+      ['sum(a)', 'b > 1', 'b ASC __name__ ASC', 'ref(col/a)', 3], // 3 INVALID_ARGUMENT: This query requires an index that has fields [a] after __name__ and Firestore does not currently support such an index.
+      ['sum(a)', 'b > 1', 'b ASC __name__ ASC', 'ref(col/c)', 1], // 3 INVALID_ARGUMENT: This query requires an index that has fields [a] after __name__ and Firestore does not currently support such an index.
 
-        let aggregateSpec: AggregateSpec = {};
-        if (aggregateOp === "sum(a)") {
-          aggregateSpec.totalPages = sum('a')
-        }
+      // When using a document reference in a cursor with an inequality,
+      // THE ORDER-BY AND THE CURSOR must both specify the inequality and
+      // document id fields. Hint: in these cases the order-by is correct
+      // but the cursor is not.
+      ['sum(a)', 'a > 1', 'a ASC __name__ ASC', 'ref(col/a)', 4],
+      ['sum(a)', 'b > 1', 'b ASC a ASC __name__ ASC', 'ref(col/a)', 3],
 
-        const snapshot = await getAggregateFromServer(
-          q, aggregateSpec
-        );
-        expect(snapshot.data().totalPages).to.equal(result);
-      });
+      // Aggregate queries with an inequality and a cursor require an order-by.
+      // The same behavior is seen in non-aggregate queries.
+      ['sum(a)', 'a > 1', '-', 2, 4],
+      ['sum(a)', 'a > 0', '-', 2, 5],
+      ['sum(a)', 'b > 1', '-', 2, 3],
+      ['sum(a)', 'b > 1', '-', 3, 2]
+    ];
+
+    tests.forEach(testCase => {
+      const [aggregateOp, whereOp, orderByOp, startAtOp, result] = testCase;
+
+      it(`aggregate: SELECT ${aggregateOp} FROM coll WHERE ${whereOp} ORDER BY ${orderByOp} START AT ${startAtOp}`, () => {
+        const testDocs = {
+          a: { a: 1, b: 2 },
+          b: { a: 2, b: 1 },
+          c: { a: 2, b: 3 }
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          let q = query(coll, where('testId', '==', testHelper.testId));
+
+          // whereOp
+          if (whereOp === 'a > 0') {
+            q = query(q, where('a', '>', 0));
+          }
+          if (whereOp === 'a > 1') {
+            q = query(q, where('a', '>', 1));
+          } else if (whereOp === 'a = 1') {
+            q = query(q, where('a', '==', 1));
+          } else if (whereOp === 'b > 1') {
+            q = query(q, where('b', '>', 1));
+          } else if (whereOp === 'b = 1') {
+            q = query(q, where('b', '==', 1));
+          }
+
+          // orderByOp
+          if (orderByOp === 'a ASC') {
+            q = query(q, orderBy('a', 'asc'));
+          } else if (orderByOp === 'b ASC') {
+            q = query(q, orderBy('b', 'asc'));
+          } else if (orderByOp === 'a ASC b ASC') {
+            q = query(q, orderBy('a', 'asc'), orderBy('b', 'asc'));
+          } else if (orderByOp === 'b ASC a ASC') {
+            q = query(q, orderBy('b', 'asc'), orderBy('a', 'asc'));
+          } else if (orderByOp === '__name__ ASC') {
+            q = query(q, orderBy(documentId(), 'asc'));
+          } else if (orderByOp === 'a ASC __name__ ASC') {
+            q = query(q, orderBy('a', 'asc'), orderBy(documentId(), 'asc'));
+          } else if (orderByOp === 'b ASC __name__ ASC') {
+            q = query(q, orderBy('b', 'asc'), orderBy(documentId(), 'asc'));
+          } else if (orderByOp === 'a ASC b ASC __name__ ASC') {
+            q = query(
+              q,
+              orderBy('a', 'asc'),
+              orderBy('b', 'asc'),
+              orderBy(documentId(), 'asc')
+            );
+          } else if (orderByOp === 'b ASC a ASC __name__ ASC') {
+            q = query(
+              q,
+              orderBy('b', 'asc'),
+              orderBy('a', 'asc'),
+              orderBy(documentId(), 'asc')
+            );
+          }
+
+          // startAtOp
+          if (startAtOp === 'snap(col/a)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'a')
+            );
+            q = query(q, startAt(snap));
+          } else if (startAtOp === 'ref(col/a)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'a')
+            );
+            q = query(q, startAt(snap.id));
+          } else if (startAtOp === '1 ref(col/a)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'a')
+            );
+            q = query(q, startAt(1, snap.id));
+          } else if (startAtOp === '1 1 ref(col/a)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'a')
+            );
+            q = query(q, startAt(1, 1, snap.id));
+          } else if (startAtOp === 'snap(col/b)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'b')
+            );
+            q = query(q, startAt(snap));
+          } else if (startAtOp === 'snap(col/c)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'c')
+            );
+            q = query(q, startAt(snap));
+          } else if (startAtOp === 'ref(col/b)') {
+            const snap = await testHelper.getDoc(
+              testHelper.getDocRef(coll, 'b')
+            );
+            q = query(q, startAt(snap.id));
+          } else if (startAtOp !== '-') {
+            q = query(q, startAt(startAtOp));
+          }
+
+          const aggregateSpec: AggregateSpec = {};
+          if (aggregateOp === 'sum(a)') {
+            aggregateSpec.totalPages = sum('a');
+          }
+
+          const snapshot = await getAggregateFromServer(q, aggregateSpec);
+          expect(snapshot.data().totalPages).to.equal(result);
+        });
+      }).timeout(20000);
     });
-  })
-});
+  }
+);
 
 apiDescribe('Aggregation queries - sum / average', persistence => {
   it('can run sum query getAggregationFromServer', () => {
