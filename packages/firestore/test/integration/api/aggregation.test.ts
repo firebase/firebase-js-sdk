@@ -499,8 +499,7 @@ apiDescribe(
           // whereOp
           if (whereOp === 'a > 0') {
             q = query(q, where('a', '>', 0));
-          }
-          if (whereOp === 'a > 1') {
+          } else if (whereOp === 'a > 1') {
             q = query(q, where('a', '>', 1));
           } else if (whereOp === 'a = 1') {
             q = query(q, where('a', '==', 1));
@@ -589,7 +588,7 @@ apiDescribe(
           const snapshot = await getAggregateFromServer(q, aggregateSpec);
           expect(snapshot.data().totalPages).to.equal(result);
         });
-      }).timeout(20000);
+      });
     });
   }
 );
