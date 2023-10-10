@@ -82,7 +82,7 @@ Applies a custom data converter to this `CollectionReference`<!-- -->, allowing 
 <b>Signature:</b>
 
 ```typescript
-withConverter<NewAppModelType, NewDbModelType extends DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
+withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
 ```
 
 ### Parameters

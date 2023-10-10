@@ -22,7 +22,18 @@ export declare class AggregateField<T>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [aggregateType](./firestore_.aggregatefield.md#aggregatefieldaggregatetype) |  | [AggregateType](./firestore_.md#aggregatetype) | Indicates the aggregation operation of this AggregateField. |
 |  [type](./firestore_.aggregatefield.md#aggregatefieldtype) |  | (not declared) | A type string to uniquely identify instances of this class. |
+
+## AggregateField.aggregateType
+
+Indicates the aggregation operation of this AggregateField.
+
+<b>Signature:</b>
+
+```typescript
+readonly aggregateType: AggregateType;
+```
 
 ## AggregateField.type
 
