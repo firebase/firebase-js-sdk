@@ -237,7 +237,7 @@ export function initializeServerAppInstance(
    ..._serverAppConfig
  };
 
- const name = _serverAppConfig.name;
+ const name = serverAppSettings.name;
  if (typeof name !== 'string' || !name) {
    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
      appName: String(name)
