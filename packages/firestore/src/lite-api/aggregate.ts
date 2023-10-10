@@ -70,7 +70,7 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
  * set of the given query, without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
- * final aggregation values, not the documents' data, is downloaded. This
+ * final aggregation values, not the documents' data, are downloaded. This
  * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
@@ -90,7 +90,6 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
  * const totalHours: number = aggregateSnapshot.data().totalHours;
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
- * @internal TODO (sum/avg) remove when public
  */
 export function getAggregate<
   AggregateSpecType extends AggregateSpec,
@@ -108,7 +107,7 @@ export function getAggregate<
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
-      aggregate._aggregateType,
+      aggregate.aggregateType,
       aggregate._internalFieldPath
     );
   });
@@ -145,7 +144,6 @@ function convertToAggregateQuerySnapshot<
  * Create an AggregateField object that can be used to compute the sum of
  * a specified field over a range of documents in the result set of a query.
  * @param field Specifies the field to sum across the result set.
- * @internal TODO (sum/avg) remove when public
  */
 export function sum(field: string | FieldPath): AggregateField<number> {
   return new AggregateField('sum', fieldPathFromArgument('sum', field));
@@ -155,7 +153,6 @@ export function sum(field: string | FieldPath): AggregateField<number> {
  * Create an AggregateField object that can be used to compute the average of
  * a specified field over a range of documents in the result set of a query.
  * @param field Specifies the field to average across the result set.
- * @internal TODO (sum/avg) remove when public
  */
 export function average(
   field: string | FieldPath
@@ -166,7 +163,6 @@ export function average(
 /**
  * Create an AggregateField object that can be used to compute the count of
  * documents in the result set of a query.
- * @internal TODO (sum/avg) remove when public
  */
 export function count(): AggregateField<number> {
   return new AggregateField('count');
@@ -177,7 +173,6 @@ export function count(): AggregateField<number> {
  *
  * @param left Compare this AggregateField to the `right`.
  * @param right Compare this AggregateField to the `left`.
- * @internal TODO (sum/avg) remove when public
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,
@@ -186,7 +181,7 @@ export function aggregateFieldEqual(
   return (
     left instanceof AggregateField &&
     right instanceof AggregateField &&
-    left._aggregateType === right._aggregateType &&
+    left.aggregateType === right.aggregateType &&
     left._internalFieldPath?.canonicalString() ===
       right._internalFieldPath?.canonicalString()
   );

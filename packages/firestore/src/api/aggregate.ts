@@ -80,7 +80,7 @@ export function getCountFromServer<
  * set of the given query, without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
- * final aggregation values, not the documents' data, is downloaded. This
+ * final aggregation values, not the documents' data, are downloaded. This
  * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
@@ -107,7 +107,6 @@ export function getCountFromServer<
  * const totalHours: number = aggregateSnapshot.data().totalHours;
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
- * @internal TODO (sum/avg) remove when public
  */
 export function getAggregateFromServer<
   AggregateSpecType extends AggregateSpec,
@@ -125,7 +124,7 @@ export function getAggregateFromServer<
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
-      aggregate._aggregateType,
+      aggregate.aggregateType,
       aggregate._internalFieldPath
     );
   });
