@@ -1913,15 +1913,47 @@ apiDescribe('Queries', persistence => {
       }
     );
 
+    it('inequality query will reject if document key is not the last orderBy field', () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const queryForRejection = query(
+          coll,
+          where('key', '!=', 42),
+          orderBy(documentId())
+        );
+
+        getDocs(queryForRejection).then(
+          () => {
+            expect.fail('Promise resolved even though error was expected.');
+          },
+          err => {
+            expect(err.name).to.exist;
+            expect(err.message).to.exist;
+            expect(err.message).to.equal(
+              'order by clause cannot contain more fields after the key'
+            );
+          }
+        );
+      });
+    });
+
     it('inequality query will reject if document key appears only in equality filter', () => {
       return withEmptyTestCollection(persistence, async coll => {
-        const query_ = query(
+        const queryForRejection = query(
           coll,
           where('key', '!=', 42),
           where(documentId(), '==', 'doc1')
         );
-        await expect(getDocs(query_)).to.be.rejectedWith(
-          'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
+
+        getDocs(queryForRejection).then(
+          () => {
+            expect.fail('Promise resolved even though error was expected.');
+          },
+          err => {
+            expect(err.message).to.exist;
+            expect(err.message).to.equal(
+              'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
+            );
+          }
         );
       });
     });
