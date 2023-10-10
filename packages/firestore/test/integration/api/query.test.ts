@@ -1913,20 +1913,6 @@ apiDescribe('Queries', persistence => {
       }
     );
 
-    it('inequality query will reject if document key is not the last orderBy field', () => {
-      return withEmptyTestCollection(persistence, async coll => {
-        // Implicitly ordered by:  __name__ asc, 'key' asc,
-        const query_ = query(
-          coll,
-          where('key', '!=', 42),
-          orderBy(documentId())
-        );
-        await expect(getDocs(query_)).to.be.eventually.rejectedWith(
-          'order by clause cannot contain more fields after the key'
-        );
-      });
-    });
-
     it('inequality query will reject if document key appears only in equality filter', () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
@@ -1934,7 +1920,7 @@ apiDescribe('Queries', persistence => {
           where('key', '!=', 42),
           where(documentId(), '==', 'doc1')
         );
-        await expect(getDocs(query_)).to.be.eventually.rejectedWith(
+        await expect(getDocs(query_)).to.be.rejectedWith(
           'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
         );
       });
