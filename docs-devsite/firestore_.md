@@ -41,6 +41,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [waitForPendingWrites(firestore)](./firestore_.md#waitforpendingwrites) | Waits until all currently pending writes for the active user have been acknowledged by the backend.<!-- -->The returned promise resolves immediately if there are no outstanding writes. Otherwise, the promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call <code>waitForPendingWrites()</code> again.<!-- -->Any outstanding <code>waitForPendingWrites()</code> promises are rejected during user changes. |
 |  [writeBatch(firestore)](./firestore_.md#writebatch) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single [WriteBatch](./firestore_.writebatch.md#writebatch_class) is 500.<!-- -->Unlike transactions, write batches are persisted offline and therefore are preferable when you don't need to condition your writes on read data. |
 |  <b>function()</b> |
+|  [count()](./firestore_.md#count) | Create an AggregateField object that can be used to compute the count of documents in the result set of a query. |
 |  [deleteField()](./firestore_.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
@@ -52,6 +53,9 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(elements...)</b> |
 |  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_.md#arrayunion) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
+|  <b>function(field...)</b> |
+|  [average(field)](./firestore_.md#average) | Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query. |
+|  [sum(field)](./firestore_.md#sum) | Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query. |
 |  <b>function(fieldPath...)</b> |
 |  [orderBy(fieldPath, directionStr)](./firestore_.md#orderby) | Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.<!-- -->Note: Documents that do not contain the specified field will not be present in the query result. |
 |  [where(fieldPath, opStr, value)](./firestore_.md#where) | Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
@@ -65,6 +69,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [disablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#disablepersistentcacheindexautocreation) | Stops creating persistent cache indexes automatically for local query execution. The indexes which have been created by calling <code>enablePersistentCacheIndexAutoCreation()</code> still take effect. |
 |  [enablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#enablepersistentcacheindexautocreation) | Enables the SDK to create persistent cache indexes automatically for local query execution when the SDK believes cache indexes can help improve performance.<!-- -->This feature is disabled by default. |
 |  <b>function(left...)</b> |
+|  [aggregateFieldEqual(left, right)](./firestore_.md#aggregatefieldequal) | Compares two 'AggregateField<!-- -->\` instances for equality. |
 |  [aggregateQuerySnapshotEqual(left, right)](./firestore_.md#aggregatequerysnapshotequal) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
 |  [queryEqual(left, right)](./firestore_.md#queryequal) | Returns true if the provided queries point to the same collection and apply the same constraints. |
 |  [refEqual(left, right)](./firestore_.md#refequal) | Returns true if the provided references are equal. |
@@ -77,6 +82,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(n...)</b> |
 |  [increment(n)](./firestore_.md#increment) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
 |  <b>function(query...)</b> |
+|  [getAggregateFromServer(query, aggregateSpec)](./firestore_.md#getaggregatefromserver) | Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server. |
 |  [getCountFromServer(query)](./firestore_.md#getcountfromserver) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server. |
 |  [getDocs(query)](./firestore_.md#getdocs) | Executes the query and returns the results as a <code>QuerySnapshot</code>.<!-- -->Note: <code>getDocs()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache) or [getDocsFromServer()](./firestore_.md#getdocsfromserver)<!-- -->. |
 |  [getDocsFromCache(query)](./firestore_.md#getdocsfromcache) | Executes the query and returns the results as a <code>QuerySnapshot</code> from cache. Returns an empty result set if no documents matching the query are currently cached. |
@@ -193,6 +199,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [AddPrefixToKeys](./firestore_.md#addprefixtokeys) | Returns a new map where every key is prefixed with the outer key appended to a dot. |
 |  [AggregateFieldType](./firestore_.md#aggregatefieldtype) | The union of all <code>AggregateField</code> types that are supported by Firestore. |
 |  [AggregateSpecData](./firestore_.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
+|  [AggregateType](./firestore_.md#aggregatetype) | Union type representing the aggregate type to be performed. |
 |  [ChildUpdateFields](./firestore_.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
@@ -842,6 +849,19 @@ export declare function writeBatch(firestore: Firestore): WriteBatch;
 
 A [WriteBatch](./firestore_.writebatch.md#writebatch_class) that can be used to atomically execute multiple writes.
 
+## count()
+
+Create an AggregateField object that can be used to compute the count of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function count(): AggregateField<number>;
+```
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
+
 ## deleteField()
 
 Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with `{merge: true}` to mark a field for deletion.
@@ -990,6 +1010,46 @@ export declare function arrayUnion(...elements: unknown[]): FieldValue;
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`<!-- -->.
+
+## average()
+
+Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function average(field: string | FieldPath): AggregateField<number | null>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | Specifies the field to average across the result set. |
+
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number \| null&gt;
+
+## sum()
+
+Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function sum(field: string | FieldPath): AggregateField<number>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | Specifies the field to sum across the result set. |
+
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
 
 ## orderBy()
 
@@ -1192,6 +1252,27 @@ export declare function enablePersistentCacheIndexAutoCreation(indexManager: Per
 
 void
 
+## aggregateFieldEqual()
+
+Compares two 'AggregateField<!-- -->\` instances for equality.
+
+<b>Signature:</b>
+
+```typescript
+export declare function aggregateFieldEqual(left: AggregateField<unknown>, right: AggregateField<unknown>): boolean;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;unknown&gt; | Compare this AggregateField to the <code>right</code>. |
+|  right | [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;unknown&gt; | Compare this AggregateField to the <code>left</code>. |
+
+<b>Returns:</b>
+
+boolean
+
 ## aggregateQuerySnapshotEqual()
 
 Compares two `AggregateQuerySnapshot` instances for equality.
@@ -1377,6 +1458,47 @@ export declare function increment(n: number): FieldValue;
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+## getAggregateFromServer()
+
+Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.
+
+Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+
+The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getAggregateFromServer<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set to aggregate over. |
+|  aggregateSpec | AggregateSpecType | An <code>AggregateSpec</code> object that specifies the aggregates to perform over the result set. The AggregateSpec specifies aliases for each aggregate, which can be used to retrieve the aggregate result. |
+
+<b>Returns:</b>
+
+Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt;&gt;
+
+### Example
+
+
+```typescript
+const aggregateSnapshot = await getAggregateFromServer(query, {
+  countOfDocs: count(),
+  totalHours: sum('hours'),
+  averageScore: average('score')
+});
+
+const countOfDocs: number = aggregateSnapshot.data().countOfDocs;
+const totalHours: number = aggregateSnapshot.data().totalHours;
+const averageScore: number | null = aggregateSnapshot.data().averageScore;
+
+```
 
 ## getCountFromServer()
 
@@ -2322,7 +2444,7 @@ The union of all `AggregateField` types that are supported by Firestore.
 <b>Signature:</b>
 
 ```typescript
-export declare type AggregateFieldType = AggregateField<number | null>;
+export declare type AggregateFieldType = ReturnType<typeof sum> | ReturnType<typeof average> | ReturnType<typeof count>;
 ```
 
 ## AggregateSpecData
@@ -2335,6 +2457,16 @@ A type whose keys are taken from an `AggregateSpec`<!-- -->, and whose values ar
 export declare type AggregateSpecData<T extends AggregateSpec> = {
     [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
+```
+
+## AggregateType
+
+Union type representing the aggregate type to be performed.
+
+<b>Signature:</b>
+
+```typescript
+export declare type AggregateType = 'count' | 'avg' | 'sum';
 ```
 
 ## ChildUpdateFields
