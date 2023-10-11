@@ -29,6 +29,7 @@ import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
+import { AuthErrorCode } from '../../core/errors';
 
 const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js?render=';
