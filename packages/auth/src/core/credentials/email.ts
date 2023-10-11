@@ -17,7 +17,9 @@
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 
-import { updateEmailPassword } from '../../api/account_management/email_and_password';
+import {
+  linkEmailPassword,
+} from '../../api/account_management/email_and_password';
 import {
   signInWithPassword,
   SignInWithPasswordRequest
@@ -146,7 +148,7 @@ export class EmailAuthCredential extends AuthCredential {
   ): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
-        return updateEmailPassword(auth, {
+        return linkEmailPassword(auth, {
           idToken,
           returnSecureToken: true,
           email: this._email,

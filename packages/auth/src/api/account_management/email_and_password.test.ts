@@ -27,6 +27,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import {
   applyActionCode,
+  linkEmailPassword,
   resetPassword,
   updateEmailPassword
 } from './email_and_password';
@@ -86,6 +87,65 @@ describe('api/account_management/resetPassword', () => {
     await expect(resetPassword(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  });
+});
+
+describe('api/account_management/linkEmailPassword', () => {
+  const request = {
+    idToken: 'id-token',
+    returnSecureToken: true,
+    email: 'test@foo.com',
+    password: 'new-password'
+  };
+
+  let auth: TestAuth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
+  afterEach(mockFetch.tearDown);
+
+  it('should POST to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.SIGN_UP, {
+      idToken: 'id-token'
+    });
+
+    const response = await linkEmailPassword(auth, request);
+    expect(response.idToken).to.eq('id-token');
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
+  });
+
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SIGN_UP,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL,
+          errors: [
+            {
+              message: ServerError.INVALID_EMAIL
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(linkEmailPassword(auth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });

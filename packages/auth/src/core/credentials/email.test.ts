@@ -288,8 +288,8 @@ describe('core/credentials/email', () => {
     });
 
     describe('#_linkToIdToken', () => {
-      it('calls update email password', async () => {
-        apiMock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
+      it('calls sign up with email password', async () => {
+        apiMock = mockEndpoint(Endpoint.SIGN_UP, {
           idToken: 'id-token',
           refreshToken: 'refresh-token',
           expiresIn: '1234',

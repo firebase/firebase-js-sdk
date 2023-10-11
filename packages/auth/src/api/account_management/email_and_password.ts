@@ -69,6 +69,18 @@ export async function updateEmailPassword(
   >(auth, HttpMethod.POST, Endpoint.SET_ACCOUNT_INFO, request);
 }
 
+// Used for linking an email/password account to an existing idToken. Uses the same request/response
+// format as updateEmailPassword.
+export async function linkEmailPassword(
+  auth: Auth,
+  request: UpdateEmailPasswordRequest
+): Promise<UpdateEmailPasswordResponse> {
+  return _performApiRequest<
+    UpdateEmailPasswordRequest,
+    UpdateEmailPasswordResponse
+  >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+}
+
 export interface ApplyActionCodeRequest {
   oobCode: string;
   tenantId?: string;
