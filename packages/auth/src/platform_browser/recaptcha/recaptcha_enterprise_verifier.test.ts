@@ -20,23 +20,16 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import {
-  Endpoint,
-  RecaptchaClientType,
-  RecaptchaVersion,
-  RecaptchaActionName
-} from '../../api';
+import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../../api/errors';
-import { AuthInternal } from '../../model/auth';
 
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 import {
   RecaptchaEnterpriseVerifier,
-  FAKE_TOKEN,
-  handleRecaptchaFlow
+  FAKE_TOKEN
 } from './recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
@@ -122,88 +115,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         .stub(recaptcha.enterprise, 'execute')
         .returns(Promise.reject(Error('retrieve-recaptcha-token-error')));
       expect(await verifier.verify()).to.eq(FAKE_TOKEN);
-    });
-  });
-
-  context('handleRecaptchaFlow', () => {
-    let mockAuthInstance: AuthInternal;
-    let mockRequest: any;
-    let mockActionMethod: sinon.SinonStub;
-
-    beforeEach(async () => {
-      mockAuthInstance = await testAuth();
-      mockRequest = {};
-      mockActionMethod = sinon.stub();
-    });
-
-    afterEach(() => {
-      sinon.restore();
-    });
-
-    it('should handle recaptcha when emailPasswordEnabled is true', async () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-        emailPasswordEnabled: true,
-        siteKey: 'mock_site_key'
-      });
-      mockActionMethod.resolves('success');
-
-      const result = await handleRecaptchaFlow(
-        mockAuthInstance,
-        mockRequest,
-        RecaptchaActionName.GET_OOB_CODE,
-        mockActionMethod
-      );
-
-      expect(result).to.equal('success');
-      expect(mockActionMethod).to.have.been.calledOnce;
-    });
-
-    it('should handle action without recaptcha when emailPasswordEnabled is false and no error', async () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-        emailPasswordEnabled: false,
-        siteKey: 'mock_site_key'
-      });
-      mockActionMethod.resolves('success');
-
-      const result = await handleRecaptchaFlow(
-        mockAuthInstance,
-        mockRequest,
-        RecaptchaActionName.GET_OOB_CODE,
-        mockActionMethod
-      );
-
-      expect(result).to.equal('success');
-      expect(mockActionMethod).to.have.been.calledOnce;
-    });
-
-    it('should handle MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-        emailPasswordEnabled: false,
-        siteKey: 'mock_site_key'
-      });
-      mockActionMethod.onFirstCall().rejects({
-        code: 'auth/MISSING_RECAPTCHA_TOKEN'
-      });
-      mockActionMethod.onSecondCall().resolves('success-after-recaptcha');
-
-      const result = await handleRecaptchaFlow(
-        mockAuthInstance,
-        mockRequest,
-        RecaptchaActionName.GET_OOB_CODE,
-        mockActionMethod
-      );
-
-      expect(result).to.equal('success-after-recaptcha');
-      expect(mockActionMethod).to.have.been.calledTwice;
     });
   });
 });

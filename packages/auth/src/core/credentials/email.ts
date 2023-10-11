@@ -31,7 +31,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
-import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
@@ -123,12 +123,32 @@ export class EmailAuthCredential extends AuthCredential {
           password: this._password,
           clientType: RecaptchaClientType.WEB
         };
-        return handleRecaptchaFlow(
-          auth,
-          request,
-          RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
-          signInWithPassword
-        );
+        if (auth._getRecaptchaConfig()?.emailPasswordEnabled) {
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            auth,
+            request,
+            RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+          );
+          return signInWithPassword(auth, requestWithRecaptcha);
+        } else {
+          return signInWithPassword(auth, request).catch(async error => {
+            if (
+              error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`
+            ) {
+              console.log(
+                'Sign-in with email address and password is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
+              );
+              const requestWithRecaptcha = await injectRecaptchaFields(
+                auth,
+                request,
+                RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+              );
+              return signInWithPassword(auth, requestWithRecaptcha);
+            } else {
+              return Promise.reject(error);
+            }
+          });
+        }
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
           email: this._email,
