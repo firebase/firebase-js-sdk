@@ -17,9 +17,7 @@
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 
-import {
-  linkEmailPassword,
-} from '../../api/account_management/email_and_password';
+import { linkEmailPassword } from '../../api/account_management/email_and_password';
 import {
   signInWithPassword,
   SignInWithPasswordRequest

@@ -25,6 +25,7 @@ import {
 } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from './mfa';
+import { SignUpRequest, SignUpResponse } from '../authentication/sign_up';
 
 export interface ResetPasswordRequest {
   oobCode: string;
@@ -73,12 +74,14 @@ export async function updateEmailPassword(
 // format as updateEmailPassword.
 export async function linkEmailPassword(
   auth: Auth,
-  request: UpdateEmailPasswordRequest
-): Promise<UpdateEmailPasswordResponse> {
-  return _performApiRequest<
-    UpdateEmailPasswordRequest,
-    UpdateEmailPasswordResponse
-  >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+  request: SignUpRequest
+): Promise<SignUpResponse> {
+  return _performApiRequest<SignUpRequest, SignUpResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SIGN_UP,
+    request
+  );
 }
 
 export interface ApplyActionCodeRequest {
