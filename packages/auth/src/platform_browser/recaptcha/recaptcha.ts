@@ -82,7 +82,7 @@ export class RecaptchaConfig {
   siteKey: string = '';
 
   /**
-   * The list of providers and their enablement status for reCAPTCHA.
+   * The list of providers and their enablement status for reCAPTCHA Enterprise.
    */
   recaptchaEnforcementStateList: RecaptchaEnforcementState[] = [];
 
@@ -96,10 +96,10 @@ export class RecaptchaConfig {
   }
 
   /**
-   * Returns the reCAPTCHA enforcement state for the given provider.
+   * Returns the reCAPTCHA Enterprise enforcement state for the given provider.
    *
    * @param providerStr - The provider whose enforcement state is to be returned.
-   * @returns The reCAPTCHA enforcement state for the given provider.
+   * @returns The reCAPTCHA Enterprise enforcement state for the given provider.
    */
   getProviderEnforcementState(providerStr: string): EnforcementState | null {
     if (
@@ -124,19 +124,16 @@ export class RecaptchaConfig {
   }
 
   /**
-   * Returns true if the reCAPTCHA enforcement state for the provider is set to ENFORCE or AUDIT.
+   * Returns true if the reCAPTCHA Enterprise enforcement state for the provider is set to ENFORCE or AUDIT.
    *
    * @param providerStr - The provider whose enablement state is to be returned.
-   * @returns Whether or not reCAPTCHA protection is enabled for the given provider.
+   * @returns Whether or not reCAPTCHA Enterprise protection is enabled for the given provider.
    */
   isProviderEnabled(providerStr: string): boolean {
-    if (
+    return (
       this.getProviderEnforcementState(providerStr) ===
         EnforcementState.ENFORCE ||
       this.getProviderEnforcementState(providerStr) === EnforcementState.AUDIT
-    ) {
-      return true;
-    }
-    return false;
+    );
   }
 }
