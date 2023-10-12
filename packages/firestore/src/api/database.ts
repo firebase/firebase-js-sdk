@@ -224,7 +224,7 @@ export function getFirestore(databaseId: string): Firestore;
  */
 export function getFirestore(): Firestore;
 /**
- * Returns the existing default {@link Firestore} instance that is associated with the
+ * Returns the existing {@link Firestore} instance that is associated with the
  * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
