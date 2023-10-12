@@ -14,12 +14,12 @@ modified.
 ## Testing composite index query against production
 
 ### Setting Up the Environment:
-1. Create a `project.json` file in the `firebase-js-sdk/packages/firestore` directory. This file should contain your target Firebase project's configuration.
+1. Create a `project.json` file in the `firebase-js-sdk/config` directory. This file should contain your target Firebase project's configuration.
 2. If not already logged in, authenticate with your Google Cloud Platform (GCP) account using `gcloud auth application-default login`. You can check your logged-in accounts by running `gcloud auth list`.
 3. Navigate to the `firebase-js-sdk/packages/firestore` directory, run:
 ```
 terraform init
-terraform apply -var-file=project.json -auto-approve
+terraform apply -var-file=../../config/project.json -auto-approve
 ```
 Note: If the index creation encounters issues, such as concurrent operations, consider running the index creation process again. Error messages indicating that indexes have already been created can be safely disregarded.
 

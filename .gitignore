@@ -98,4 +98,3 @@ toc/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.*
-*/project.json
