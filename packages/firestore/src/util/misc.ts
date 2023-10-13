@@ -24,6 +24,12 @@ export interface Indexable {
   [k: string]: unknown;
 }
 
+/**
+ * A utility class for generating unique alphanumeric IDs of a specified length.
+ *
+ * @internal
+ * Exported internally for testing purposes.
+ */
 export class AutoId {
   static newId(): string {
     // Alphanumeric characters
