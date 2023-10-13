@@ -29,7 +29,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         cd packages/firestore
-        terraform apply -var-file=../../config/project.json -auto-approve
+        terraform apply -var-file=../../config/project.json -auto-approve &> /dev/null
       continue-on-error: true
     - name: Set up Node (16)
       uses: actions/setup-node@v3
