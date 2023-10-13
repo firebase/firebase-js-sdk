@@ -32,7 +32,7 @@ import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
-import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
@@ -101,37 +101,13 @@ export async function sendSignInLinkToEmail(
       );
     }
   }
-  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInternal,
-      request,
-      RecaptchaActionName.GET_OOB_CODE,
-      true
-    );
-    setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-    await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
-  } else {
-    setActionCodeSettings(request, actionCodeSettings);
-    await api
-      .sendSignInLinkToEmail(authInternal, request)
-      .catch(async error => {
-        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-          console.log(
-            'Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
-          );
-          const requestWithRecaptcha = await injectRecaptchaFields(
-            authInternal,
-            request,
-            RecaptchaActionName.GET_OOB_CODE,
-            true
-          );
-          setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-          await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
-        } else {
-          return Promise.reject(error);
-        }
-      });
-  }
+  setActionCodeSettings(request, actionCodeSettings);
+  await handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.GET_OOB_CODE,
+    api.sendSignInLinkToEmail
+  );
 }
 
 /**
