@@ -188,7 +188,11 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
   actionName: RecaptchaActionName,
   actionMethod: ActionMethod<TRequest, TResponse>
 ): Promise<TResponse> {
-  if (authInstance._getRecaptchaConfig()?.emailPasswordEnabled) {
+  if (
+    authInstance
+      ._getRecaptchaConfig()
+      ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
+  ) {
     const requestWithRecaptcha = await injectRecaptchaFields(
       authInstance,
       request,
