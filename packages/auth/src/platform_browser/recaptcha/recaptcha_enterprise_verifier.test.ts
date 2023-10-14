@@ -149,6 +149,9 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         siteKey: 'mock_site_key'
       });
       mockActionMethod.resolves('success');
+      mockEndpointWithParams(Endpoint.SEND_OOB_CODE, mockRequest, {
+        email: 'test@foo.com'
+      });
 
       const result = await handleRecaptchaFlow(
         mockAuthInstance,
