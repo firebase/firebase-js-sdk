@@ -140,29 +140,47 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon.restore();
     });
 
-    it('should handle recaptcha when emailPasswordEnabled is true', async () => {
+    it('should call actionMethod with request if emailPasswordEnabled is true', async () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-        emailPasswordEnabled: true,
-        siteKey: 'mock_site_key'
-      });
-      mockActionMethod.resolves('success');
-      mockEndpointWithParams(Endpoint.SEND_OOB_CODE, mockRequest, {
-        email: 'test@foo.com'
-      });
 
-      const result = await handleRecaptchaFlow(
+      const authInstance = {
+        _getRecaptchaConfig: () => ({ emailPasswordEnabled: true })
+      };
+      const request = { foo: 'bar' };
+      const actionName = RecaptchaActionName.SIGN_IN_WITH_PASSWORD;
+      const actionMethod = sinon.stub().resolves('testResponse');
+      const response = await handleRecaptchaFlow(
         mockAuthInstance,
-        mockRequest,
-        RecaptchaActionName.GET_OOB_CODE,
-        mockActionMethod
+        request,
+        actionName,
+        actionMethod
       );
-
-      expect(result).to.equal('success');
-      expect(mockActionMethod).to.have.been.calledOnce;
+      expect(actionMethod).to.have.been.calledWith(authInstance, request);
+      expect(response).to.equal('testResponse');
     });
+
+    // it('should handle recaptcha when emailPasswordEnabled is true', async () => {
+    //   if (typeof window === 'undefined') {
+    //     return;
+    //   }
+    //   mockActionMethod.resolves('success');
+    //   sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
+    //     emailPasswordEnabled: true,
+    //     siteKey: 'mock_site_key'
+    //   });
+
+    //   const result = await handleRecaptchaFlow(
+    //     mockAuthInstance,
+    //     mockRequest,
+    //     RecaptchaActionName.GET_OOB_CODE,
+    //     mockActionMethod
+    //   );
+
+    //   expect(result).to.equal('success');
+    //   expect(mockActionMethod).to.have.been.calledOnce;
+    // });
 
     // it('should handle action without recaptcha when emailPasswordEnabled is false and no error', async () => {
     //   if (typeof window === 'undefined') {
