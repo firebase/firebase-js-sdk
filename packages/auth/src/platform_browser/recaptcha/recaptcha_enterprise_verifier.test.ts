@@ -140,26 +140,26 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon.restore();
     });
 
-    // it('should handle recaptcha when emailPasswordEnabled is true', async () => {
-    //   if (typeof window === 'undefined') {
-    //     return;
-    //   }
-    //   sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-    //     emailPasswordEnabled: true,
-    //     siteKey: 'mock_site_key'
-    //   });
-    //   mockActionMethod.resolves('success');
+    it('should handle recaptcha when emailPasswordEnabled is true', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
+        emailPasswordEnabled: true,
+        siteKey: 'mock_site_key'
+      });
+      mockActionMethod.resolves('success');
 
-    //   const result = await handleRecaptchaFlow(
-    //     mockAuthInstance,
-    //     mockRequest,
-    //     RecaptchaActionName.GET_OOB_CODE,
-    //     mockActionMethod
-    //   );
+      const result = await handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.GET_OOB_CODE,
+        mockActionMethod
+      );
 
-    //   expect(result).to.equal('success');
-    //   expect(mockActionMethod).to.have.been.calledOnce;
-    // });
+      expect(result).to.equal('success');
+      expect(mockActionMethod).to.have.been.calledOnce;
+    });
 
     // it('should handle action without recaptcha when emailPasswordEnabled is false and no error', async () => {
     //   if (typeof window === 'undefined') {
