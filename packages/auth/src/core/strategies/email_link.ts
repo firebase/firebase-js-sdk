@@ -33,11 +33,7 @@ import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import {
-  RecaptchaActionName,
-  RecaptchaClientType,
-  RecaptchaProvider
-} from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Sends a sign-in email link to the user with the specified email.

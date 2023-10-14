@@ -38,11 +38,7 @@ import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
-import {
-  RecaptchaActionName,
-  RecaptchaClientType,
-  RecaptchaProvider
-} from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Updates the password policy cached in the {@link Auth} instance if a policy is already

@@ -32,11 +32,7 @@ import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import {
-  RecaptchaActionName,
-  RecaptchaClientType,
-  RecaptchaProvider
-} from '../../api';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
  * {@link ProviderId}.PASSWORD
