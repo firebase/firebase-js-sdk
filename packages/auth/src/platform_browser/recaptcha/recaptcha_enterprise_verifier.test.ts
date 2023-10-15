@@ -38,6 +38,10 @@ import {
   FAKE_TOKEN,
   handleRecaptchaFlow
 } from './recaptcha_enterprise_verifier';
+import { error } from 'console';
+import { AuthErrorCode } from '../../core/errors';
+import { _createError } from '../../core/util/assert';
+import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -45,6 +49,16 @@ use(sinonChai);
 describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   let auth: TestAuth;
   let verifier: RecaptchaEnterpriseVerifier;
+
+  const recaptchaConfigResponseEnforce = {
+    recaptchaKey: 'foo/bar/to/site-key',
+    recaptchaEnforcementState: [
+      {
+        provider: 'EMAIL_PASSWORD_PROVIDER',
+        enforcementState: 'ENFORCE'
+      }
+    ]
+  };
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -58,16 +72,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   });
 
   context('#verify', () => {
-    const recaptchaConfigResponseEnforce = {
-      recaptchaKey: 'foo/bar/to/site-key',
-      recaptchaEnforcementState: [
-        {
-          provider: 'EMAIL_PASSWORD_PROVIDER',
-          enforcementState: 'ENFORCE'
-        }
-      ]
-    };
-
     const request = {
       clientType: RecaptchaClientType.WEB,
       version: RecaptchaVersion.ENTERPRISE
@@ -144,87 +148,89 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       if (typeof window === 'undefined') {
         return;
       }
-
-      const authInstance = {
-        _getRecaptchaConfig: () => ({ emailPasswordEnabled: true })
-      };
-      const request = { foo: 'bar' };
-      const actionName = RecaptchaActionName.SIGN_IN_WITH_PASSWORD;
-      const actionMethod = sinon.stub().resolves('testResponse');
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns({ emailPasswordEnabled: true, siteKey: 'mock_site_key' });
+      sinon
+        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
+        .resolves('recaptcha-response');
+      mockRequest = { foo: 'bar' };
+      mockActionMethod = sinon.stub().resolves('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
-        request,
-        actionName,
-        actionMethod
+        mockRequest,
+        RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
+        mockActionMethod
       );
-      expect(actionMethod).to.have.been.calledWith(authInstance, request);
+      expect(mockActionMethod).to.have.been.calledOnce;
       expect(response).to.equal('testResponse');
     });
 
-    // it('should handle recaptcha when emailPasswordEnabled is true', async () => {
-    //   if (typeof window === 'undefined') {
-    //     return;
-    //   }
-    //   mockActionMethod.resolves('success');
-    //   sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-    //     emailPasswordEnabled: true,
-    //     siteKey: 'mock_site_key'
-    //   });
+    it('should handle MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns({ emailPasswordEnabled: false, siteKey: 'mock_site_key' });
+      sinon
+        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
+        .resolves('recaptcha-response');
+      mockRequest = { foo: 'bar' };
+      let callCount = 0;
+      mockActionMethod = sinon.stub().callsFake(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(
+            _createError(AuthErrorCode.MISSING_RECAPTCHA_TOKEN)
+          );
+        } else {
+          return Promise.resolve('testResponse');
+        }
+      });
+      const response = await handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
+        mockActionMethod
+      );
+      expect(mockActionMethod).to.have.been.calledTwice;
+      expect(response).to.equal('testResponse');
+    });
 
-    //   const result = await handleRecaptchaFlow(
-    //     mockAuthInstance,
-    //     mockRequest,
-    //     RecaptchaActionName.GET_OOB_CODE,
-    //     mockActionMethod
-    //   );
+    it('should handle non MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns({ emailPasswordEnabled: false, siteKey: 'mock_site_key' });
+      sinon
+        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
+        .resolves('recaptcha-response');
+      mockRequest = { foo: 'bar' };
+      let callCount = 0;
+      mockActionMethod = sinon.stub().callsFake(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(
+            _createError(AuthErrorCode.RECAPTCHA_NOT_ENABLED)
+          );
+        } else {
+          return Promise.resolve('testResponse');
+        }
+      });
 
-    //   expect(result).to.equal('success');
-    //   expect(mockActionMethod).to.have.been.calledOnce;
-    // });
-
-    // it('should handle action without recaptcha when emailPasswordEnabled is false and no error', async () => {
-    //   if (typeof window === 'undefined') {
-    //     return;
-    //   }
-    //   sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-    //     emailPasswordEnabled: false,
-    //     siteKey: 'mock_site_key'
-    //   });
-    //   mockActionMethod.resolves('success');
-
-    //   const result = await handleRecaptchaFlow(
-    //     mockAuthInstance,
-    //     mockRequest,
-    //     RecaptchaActionName.GET_OOB_CODE,
-    //     mockActionMethod
-    //   );
-
-    //   expect(result).to.equal('success');
-    //   expect(mockActionMethod).to.have.been.calledOnce;
-    // });
-
-    // it('should handle MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
-    //   if (typeof window === 'undefined') {
-    //     return;
-    //   }
-    //   sinon.stub(mockAuthInstance, '_getRecaptchaConfig').returns({
-    //     emailPasswordEnabled: false,
-    //     siteKey: 'mock_site_key'
-    //   });
-    //   mockActionMethod.onFirstCall().rejects({
-    //     code: 'auth/MISSING_RECAPTCHA_TOKEN'
-    //   });
-    //   mockActionMethod.onSecondCall().resolves('success-after-recaptcha');
-
-    //   const result = await handleRecaptchaFlow(
-    //     mockAuthInstance,
-    //     mockRequest,
-    //     RecaptchaActionName.GET_OOB_CODE,
-    //     mockActionMethod
-    //   );
-
-    //   expect(result).to.equal('success-after-recaptcha');
-    //   expect(mockActionMethod).to.have.been.calledTwice;
-    // });
+      const response = handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
+        mockActionMethod
+      );
+      await expect(response).to.be.rejectedWith(
+        AuthErrorCode.RECAPTCHA_NOT_ENABLED
+      );
+      expect(mockActionMethod).to.have.been.calledOnce;
+    });
   });
 });
