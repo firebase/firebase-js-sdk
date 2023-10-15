@@ -38,10 +38,8 @@ import {
   FAKE_TOKEN,
   handleRecaptchaFlow
 } from './recaptcha_enterprise_verifier';
-import { error } from 'console';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
-import { FirebaseError } from '@firebase/util';
 
 use(chaiAsPromised);
 use(sinonChai);
