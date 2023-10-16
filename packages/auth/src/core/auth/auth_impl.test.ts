@@ -710,7 +710,7 @@ describe('core/auth/auth_impl', () => {
       ]
     };
     const cachedRecaptchaConfigEnforce = {
-      recaptchaEnforcementStateList: [
+      recaptchaEnforcementState: [
         {
           'enforcementState': 'ENFORCE',
           'provider': 'EMAIL_PASSWORD_PROVIDER'
@@ -719,7 +719,7 @@ describe('core/auth/auth_impl', () => {
       siteKey: 'site-key'
     };
     const cachedRecaptchaConfigOFF = {
-      recaptchaEnforcementStateList: [
+      recaptchaEnforcementState: [
         {
           'enforcementState': 'OFF',
           'provider': 'EMAIL_PASSWORD_PROVIDER'

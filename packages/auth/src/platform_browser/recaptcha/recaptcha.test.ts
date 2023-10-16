@@ -80,7 +80,7 @@ describe('platform_browser/recaptcha/recaptcha', () => {
 
     it('should construct the recaptcha config from the backend response', () => {
       expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
-      expect(recaptchaConfig.recaptchaEnforcementStateList[0]).to.eql({
+      expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
         provider: 'EMAIL_PASSWORD_PROVIDER',
         enforcementState: 'ENFORCE'
       });

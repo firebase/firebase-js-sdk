@@ -18,7 +18,7 @@
 import { RecaptchaParameters } from '../../model/public_types';
 import {
   GetRecaptchaConfigResponse,
-  RecaptchaEnforcementState
+  RecaptchaEnforcementProviderState
 } from '../../api/authentication/recaptcha';
 import { EnforcementState, _parseEnforcementState } from '../../api/index';
 
@@ -84,7 +84,7 @@ export class RecaptchaConfig {
   /**
    * The list of providers and their enablement status for reCAPTCHA Enterprise.
    */
-  recaptchaEnforcementStateList: RecaptchaEnforcementState[] = [];
+  recaptchaEnforcementState: RecaptchaEnforcementProviderState[] = [];
 
   constructor(response: GetRecaptchaConfigResponse) {
     if (response.recaptchaKey === undefined) {
@@ -92,7 +92,7 @@ export class RecaptchaConfig {
     }
     // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
     this.siteKey = response.recaptchaKey.split('/')[3];
-    this.recaptchaEnforcementStateList = response.recaptchaEnforcementState;
+    this.recaptchaEnforcementState = response.recaptchaEnforcementState;
   }
 
   /**
@@ -103,14 +103,13 @@ export class RecaptchaConfig {
    */
   getProviderEnforcementState(providerStr: string): EnforcementState | null {
     if (
-      !this.recaptchaEnforcementStateList ||
-      this.recaptchaEnforcementStateList.length === 0
+      !this.recaptchaEnforcementState ||
+      this.recaptchaEnforcementState.length === 0
     ) {
       return null;
     }
 
-    for (const recaptchaEnforcementState of this
-      .recaptchaEnforcementStateList) {
+    for (const recaptchaEnforcementState of this.recaptchaEnforcementState) {
       if (
         recaptchaEnforcementState.provider &&
         recaptchaEnforcementState.provider === providerStr
