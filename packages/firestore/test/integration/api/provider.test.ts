@@ -66,6 +66,13 @@ describe('Firestore Provider', () => {
     const fs3 = getFirestore(app);
     const fs4 = getFirestore(app, 'name1');
     const fs5 = getFirestore(app, 'name2');
+
+    expect(fs1._databaseId.database).to.be.equal('init1');
+    expect(fs2._databaseId.database).to.be.equal('init2');
+    expect(fs3._databaseId.database).to.be.equal('(default)');
+    expect(fs4._databaseId.database).to.be.equal('name1');
+    expect(fs5._databaseId.database).to.be.equal('name2');
+
     expect(fs1).to.not.be.equal(fs2);
     expect(fs1).to.not.be.equal(fs3);
     expect(fs1).to.not.be.equal(fs4);
