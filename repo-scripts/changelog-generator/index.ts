@@ -95,7 +95,8 @@ async function getFixedIssueLink(
   prNumber: number,
   repo: string
 ): Promise<string> {
-  const { body }: { body: string } = await fetch(
+  var body:string;
+  await fetch(
     `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
     {
       method: 'GET',
@@ -103,14 +104,17 @@ async function getFixedIssueLink(
         'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
       }
     }
-  ).then(data => data.json());
-
-  const match = fixedIssueRegex.exec(body);
-  if (!match) {
-    return '';
-  }
-  const issueNumber = match[3];
-  return `(fixes [#${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber}))`;
+  ).then(response => {
+    response.text().then(text => {
+      const match = fixedIssueRegex.exec(text);
+      if (!match) {
+        return '';
+      }
+      const issueNumber = match[3];
+      return `(fixes [#${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber}))`;
+      });
+   });
+  return '';
 }
 
 exports.default = changelogFunctions;
