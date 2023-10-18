@@ -153,7 +153,7 @@ export class EmailAuthCredential extends AuthCredential {
           email: this._email,
           password: this._password,
           clientType: RecaptchaClientType.WEB
-        }
+        };
         return handleRecaptchaFlow(
           auth,
           request,
