@@ -12,6 +12,6 @@
     "firebase-functions": "3.24.1"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   }
 }
