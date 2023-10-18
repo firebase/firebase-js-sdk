@@ -27,7 +27,9 @@ import {
   MockGreCAPTCHA
 } from './recaptcha_mock';
 
-import { isV2, isEnterprise } from './recaptcha';
+import { isV2, isEnterprise, RecaptchaConfig } from './recaptcha';
+import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
+import { EnforcementState } from '../../api/index';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -37,6 +39,16 @@ describe('platform_browser/recaptcha/recaptcha', () => {
   let recaptchaV2: MockReCaptcha;
   let recaptchaV3: MockGreCAPTCHA;
   let recaptchaEnterprise: MockGreCAPTCHATopLevel;
+  let recaptchaConfig: RecaptchaConfig;
+
+  const TEST_SITE_KEY = 'test-site-key';
+
+  const GET_RECAPTCHA_CONFIG_RESPONSE: GetRecaptchaConfigResponse = {
+    recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
+    recaptchaEnforcementState: [
+      { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+    ]
+  };
 
   context('#verify', () => {
     beforeEach(async () => {
@@ -58,6 +70,34 @@ describe('platform_browser/recaptcha/recaptcha', () => {
       expect(isEnterprise(recaptchaV2)).to.be.false;
       expect(isEnterprise(recaptchaV3)).to.be.false;
       expect(isEnterprise(recaptchaEnterprise)).to.be.true;
+    });
+  });
+
+  context('#RecaptchaConfig', () => {
+    beforeEach(async () => {
+      recaptchaConfig = new RecaptchaConfig(GET_RECAPTCHA_CONFIG_RESPONSE);
+    });
+
+    it('should construct the recaptcha config from the backend response', () => {
+      expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
+      expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
+        provider: 'EMAIL_PASSWORD_PROVIDER',
+        enforcementState: 'ENFORCE'
+      });
+    });
+
+    it('#getProviderEnforcementState should return the correct enforcement state of the provider', () => {
+      expect(
+        recaptchaConfig.getProviderEnforcementState('EMAIL_PASSWORD_PROVIDER')
+      ).to.eq(EnforcementState.ENFORCE);
+      expect(recaptchaConfig.getProviderEnforcementState('invalid-provider')).to
+        .be.null;
+    });
+
+    it('#isProviderEnabled should return the enablement state of the provider', () => {
+      expect(recaptchaConfig.isProviderEnabled('EMAIL_PASSWORD_PROVIDER')).to.be
+        .true;
+      expect(recaptchaConfig.isProviderEnabled('invalid-provider')).to.be.false;
     });
   });
 });
