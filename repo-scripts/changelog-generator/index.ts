@@ -103,7 +103,7 @@ async function getFixedIssueLink(
         'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
       }
     }
-  ).then(data => data.json() as Promise<{ body: string}>);
+  ).then(data => data.json() as Promise<{ body: string }>);
 
   const match = fixedIssueRegex.exec(body);
   if (!match) {
