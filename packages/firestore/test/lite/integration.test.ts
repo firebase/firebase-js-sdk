@@ -2731,8 +2731,7 @@ describe('Aggregate queries', () => {
   );
 });
 
-// TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe.skip('Aggregation queries - sum / average', () => {
+describe('Aggregate queries - sum / average', () => {
   it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA', rating: 1 },
@@ -2741,9 +2740,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
-      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
+      const snapshot1 = await getAggregate(coll, { sum: sum('rating') });
+      const snapshot2 = await getAggregate(coll, { avg: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2761,9 +2759,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
+      const snapshot1 = await getAggregate(coll, { foo: average('rating') });
+      const snapshot2 = await getAggregate(coll, { bar: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2781,12 +2778,11 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, {
+      const snapshot1 = await getAggregate(coll, {
         foo: average('rating'),
         bar: sum('rating')
       });
-      const snapshot2 = await getAggregate(query1, {
+      const snapshot2 = await getAggregate(coll, {
         bar: sum('rating'),
         foo: average('rating')
       });
@@ -2859,24 +2855,31 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
     });
   });
 
-  it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
-      { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
-      { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
-      { author: 'authorD', title: 'titleD', pages: 50 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const snapshot = await getAggregate(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        averageYear: average('year'),
-        count: count()
+  // Only run tests that require indexes against the emulator, because we don't
+  // have a way to dynamically create the indexes when running the tests.
+  (USE_EMULATOR ? apiDescribe : apiDescribe.skip)(
+    'queries requiring indexes',
+    () => {
+      it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
+        const testDocs = [
+          { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+          { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+          { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+          { author: 'authorD', title: 'titleD', pages: 50 }
+        ];
+        return withTestCollectionAndInitialData(testDocs, async coll => {
+          const snapshot = await getAggregate(coll, {
+            totalPages: sum('pages'),
+            averagePages: average('pages'),
+            averageYear: average('year'),
+            count: count()
+          });
+          expect(snapshot.data().totalPages).to.equal(300);
+          expect(snapshot.data().averagePages).to.equal(100);
+          expect(snapshot.data().averageYear).to.equal(2007);
+          expect(snapshot.data().count).to.equal(3);
+        });
       });
-      expect(snapshot.data().totalPages).to.equal(300);
-      expect(snapshot.data().averagePages).to.equal(100);
-      expect(snapshot.data().averageYear).to.equal(2007);
-      expect(snapshot.data().count).to.equal(3);
-    });
-  });
+    }
+  );
 });
