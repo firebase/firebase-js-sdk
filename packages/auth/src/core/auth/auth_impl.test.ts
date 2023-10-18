@@ -710,11 +710,21 @@ describe('core/auth/auth_impl', () => {
       ]
     };
     const cachedRecaptchaConfigEnforce = {
-      emailPasswordEnabled: true,
+      recaptchaEnforcementState: [
+        {
+          'enforcementState': 'ENFORCE',
+          'provider': 'EMAIL_PASSWORD_PROVIDER'
+        }
+      ],
       siteKey: 'site-key'
     };
     const cachedRecaptchaConfigOFF = {
-      emailPasswordEnabled: false,
+      recaptchaEnforcementState: [
+        {
+          'enforcementState': 'OFF',
+          'provider': 'EMAIL_PASSWORD_PROVIDER'
+        }
+      ],
       siteKey: 'site-key'
     };
 

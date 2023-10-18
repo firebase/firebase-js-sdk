@@ -48,14 +48,14 @@ interface GetRecaptchaConfigRequest {
   version?: RecaptchaVersion;
 }
 
-interface RecaptchaEnforcementState {
+export interface RecaptchaEnforcementProviderState {
   provider: string;
   enforcementState: string;
 }
 
 export interface GetRecaptchaConfigResponse {
   recaptchaKey: string;
-  recaptchaEnforcementState: RecaptchaEnforcementState[];
+  recaptchaEnforcementState: RecaptchaEnforcementProviderState[];
 }
 
 export async function getRecaptchaConfig(
