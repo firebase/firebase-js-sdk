@@ -146,8 +146,6 @@ apiDescribe('Composite Index Queries', persistence => {
     });
   });
 
-  // Only run tests that require indexes against the emulator, because we don't
-  // have a way to dynamically create the indexes when running the tests.
   describe('Aggregation queries - sum / average', () => {
     it('aggregate query supports collection groups - multi-aggregate', () => {
       const testHelper = new CompositeIndexTestHelper();
