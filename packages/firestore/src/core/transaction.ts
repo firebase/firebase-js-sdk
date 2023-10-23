@@ -64,8 +64,7 @@ export class Transaction {
     this.ensureCommitNotCalled();
 
     if (this.mutations.length > 0) {
-      this.lastTransactionError = null;
-      throw new FirestoreError(
+      this.lastTransactionError = new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Firestore transactions require all reads to be executed before all writes.'
       );
