@@ -4,7 +4,7 @@ provider "google" {
   project = var.projectId
 }
 
-resource "google_firestore_index" "default-db-index" {
+resource "google_firestore_index" "default_db_index" {
   collection = "composite-index-test-collection"
 
   for_each = local.indexes
@@ -23,7 +23,7 @@ resource "google_firestore_index" "default-db-index" {
   }
 }
 
-resource "google_firestore_index" "default-db-collection-group-index" {
+resource "google_firestore_index" "default_db_collection_group_index" {
   collection  = "composite-index-test-collection"
   query_scope = "COLLECTION_GROUP"
 
@@ -43,7 +43,7 @@ resource "google_firestore_index" "default-db-collection-group-index" {
   }
 }
 
-resource "google_firestore_index" "named-db-index" {
+resource "google_firestore_index" "named_db_index" {
   collection = "composite-index-test-collection"
   database   = "test-db"
 
@@ -63,7 +63,7 @@ resource "google_firestore_index" "named-db-index" {
   }
 }
 
-resource "google_firestore_index" "named-db-collection-group-index" {
+resource "google_firestore_index" "named_db_collection_group_index" {
   collection  = "composite-index-test-collection"
   database    = "test-db"
   query_scope = "COLLECTION_GROUP"
