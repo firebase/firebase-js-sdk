@@ -506,10 +506,11 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  it('cannot read after writing', () => {
-    return withTestDb(persistence, db => {
-      return runTransaction(db, transaction => {
-        const docRef = doc(collection(db, 'anything'));
+  it('cannot read after writing and does not commit', () => {
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, '00000-anything'));
+      await setDoc(docRef, { foo: 'baz' });
+      await runTransaction(db, async transaction => {
         transaction.set(docRef, { foo: 'bar' });
         return transaction.get(docRef);
       })
@@ -523,6 +524,64 @@ apiDescribe('Database transactions', persistence => {
             'Firestore transactions require all reads to be executed'
           );
         });
+
+      const postSnap = await getDoc(docRef);
+      expect(postSnap.get('foo')).to.equal('baz');
+    });
+  });
+
+  it('cannot read after writing and does not commit - get is awaited', () => {
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, '00000-anything'));
+      await setDoc(docRef, { foo: 'baz' });
+      await runTransaction(db, async transaction => {
+        transaction.set(docRef, { foo: 'bar' });
+        return transaction.get(docRef);
+      })
+        .then(() => {
+          expect.fail('transaction should fail');
+        })
+        .catch((err: FirestoreError) => {
+          expect(err).to.exist;
+          expect(err.code).to.equal('invalid-argument');
+          expect(err.message).to.contain(
+            'Firestore transactions require all reads to be executed'
+          );
+        });
+
+      const postSnap = await getDoc(docRef);
+      expect(postSnap.get('foo')).to.equal('baz');
+    });
+  });
+
+  it('cannot read after writing and does not commit, even if the user transaction does not bubble up the error', () => {
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, '00000-anything'));
+      await setDoc(docRef, { foo: 'baz' });
+      await runTransaction(db, async transaction => {
+        transaction.set(docRef, { foo: 'bar' });
+
+        // Is this valid, a `transaction.get(...)` without an await or return?
+        // `transaction.get(...)` returns a promise that must
+        // be awaited to get the result. If not awaited, then, you haven't done
+        // anything with the result of the get and the caller's code is invalid.
+        // If awaited, then the transaction will fail and not commit as expected.
+        // eslint-disable-next-line
+        transaction.get(docRef);
+      })
+        .then(() => {
+          expect.fail('transaction should fail');
+        })
+        .catch((err: FirestoreError) => {
+          expect(err).to.exist;
+          expect(err.code).to.equal('invalid-argument');
+          expect(err.message).to.contain(
+            'Firestore transactions require all reads to be executed'
+          );
+        });
+
+      const postSnap = await getDoc(docRef);
+      expect(postSnap.get('foo')).to.equal('baz');
     });
   });
 
