@@ -29,7 +29,7 @@ export async function discoverEmulators(
   hub: HostAndPort,
   fetch: typeof nodeFetch = nodeFetch
 ): Promise<DiscoveredEmulators> {
-  const res = await fetch(makeUrl(hub, '/emulators').toString());
+  const res = await fetch(makeUrl(hub, '/emulators'));
   if (!res.ok) {
     throw new Error(
       `HTTP Error ${res.status} when attempting to reach Emulator Hub at ${res.url}, are you sure it is running?`
