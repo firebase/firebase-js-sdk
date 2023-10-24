@@ -47,7 +47,10 @@ export {
 
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
-export {TotpMultiFactorGenerator, TotpSecret} from './src/mfa/assertions/totp';
+export {
+  TotpMultiFactorGenerator,
+  TotpSecret
+} from './src/mfa/assertions/totp';
 
 export { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 
