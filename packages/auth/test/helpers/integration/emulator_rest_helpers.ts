@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as fetchImpl from 'node-fetch';
+import * as fetchImpl from 'node-fetch-cjs';
 import { getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {

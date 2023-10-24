@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { registerFunctions } from './config';
-import nodeFetch from 'node-fetch';
+import nodeFetch from 'node-fetch-cjs';
 
 export * from './api';
 

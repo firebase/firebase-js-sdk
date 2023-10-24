@@ -21,7 +21,7 @@ import {
   ErrorCode
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch, { Headers } from 'node-fetch';
+import nodeFetch, { Headers } from 'node-fetch-cjs';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
