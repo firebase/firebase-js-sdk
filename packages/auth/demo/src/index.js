@@ -75,7 +75,7 @@ import {
   initializeRecaptchaConfig,
   validatePassword,
   enrollPasskey,
-  signInWithPasskey,
+  signInWithPasskey
 } from '@firebase/auth';
 
 import { config } from './config';
