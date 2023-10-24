@@ -30,7 +30,6 @@ import {
   finalizePasskeySignIn,
   FinalizePasskeySignInRequest,
   FinalizePasskeySignInResponse,
-  PublicKeyCredentialJSON,
   publicKeyCredentialToJSON
 } from '../../api/account_management/passkey';
 import { UserInternal } from '../../model/user';
@@ -69,10 +68,8 @@ export async function signInWithPasskey(
       name,
       displayName: name
     };
-    const finalizeSignInResponse = await finalizePasskeySignIn(
-      authInternal,
-      finalizeSignInRequest
-    );
+    const finalizeSignInResponse: FinalizePasskeySignInResponse =
+      await finalizePasskeySignIn(authInternal, finalizeSignInRequest);
 
     const operationType = OperationType.SIGN_IN;
     const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -142,10 +139,8 @@ export async function enrollPasskey(
       name,
       displayName: name
     };
-    const finalizeEnrollmentResponse = await finalizePasskeyEnrollment(
-      authInternal,
-      finalizeEnrollmentRequest
-    );
+    const finalizeEnrollmentResponse: FinalizePasskeyEnrollmentResponse =
+      await finalizePasskeyEnrollment(authInternal, finalizeEnrollmentRequest);
 
     const operationType = OperationType.LINK;
     const userCredential = await UserCredentialImpl._fromIdTokenResponse(
