@@ -155,7 +155,7 @@ export declare function onTokenChanged(appCheckInstance: AppCheck, onNext: (toke
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  appCheckInstance | [AppCheck](./app-check.appcheck.md#appcheck_interface) | The App Check service instance. |
-|  onNext | (tokenResult: [AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->) =&gt; void | When the token changes, this function is called with aa [AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->. |
+|  onNext | (tokenResult: [AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->) =&gt; void | When the token changes, this function is called with an [AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->. |
 |  onError | (error: Error) =&gt; void | Optional. Called if there is an error thrown by the listener (the <code>onNext</code> function). |
 |  onCompletion | () =&gt; void | Currently unused, as the token stream is unending. |
 

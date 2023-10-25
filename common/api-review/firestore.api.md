@@ -300,13 +300,13 @@ export function getDocsFromCache<AppModelType, DbModelType extends DocumentData>
 export function getDocsFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 // @public
+export function getFirestore(): Firestore;
+
+// @public
 export function getFirestore(app: FirebaseApp): Firestore;
 
 // @beta
 export function getFirestore(databaseId: string): Firestore;
-
-// @public
-export function getFirestore(): Firestore;
 
 // @beta
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
