@@ -221,22 +221,22 @@ describe('api/authentication/startPasskeySignIn', () => {
 });
 
 describe('api/authentication/finalizePasskeySignIn', () => {
-const request: FinalizePasskeySignInRequest = {
-  tenantId: 'tenant-id',
-  authenticatorAuthenticationResponse: {
+  const request: FinalizePasskeySignInRequest = {
+    tenantId: 'tenant-id',
+    authenticatorAuthenticationResponse: {
       id: 'test-id',
       rawId: 'test-raw-id',
-    response: {
-      authenticatorData: Buffer.from(new ArrayBuffer(16)).toString(),
-      clientDataJSON: Buffer.from(new ArrayBuffer(16)).toString(),
-      signature: Buffer.from(new ArrayBuffer(16)).toString(),
-      userHandle: Buffer.from(new ArrayBuffer(16)).toString()
+      response: {
+        authenticatorData: Buffer.from(new ArrayBuffer(16)).toString(),
+        clientDataJSON: Buffer.from(new ArrayBuffer(16)).toString(),
+        signature: Buffer.from(new ArrayBuffer(16)).toString(),
+        userHandle: Buffer.from(new ArrayBuffer(16)).toString()
+      },
+      type: 'public-key'
     },
-    type: 'public-key'
-  },
-  name: 'test-name',
-  displayName: 'test-display-name'
-};
+    name: 'test-name',
+    displayName: 'test-display-name'
+  };
 
   let auth: TestAuth;
 
