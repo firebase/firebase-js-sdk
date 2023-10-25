@@ -21,7 +21,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FunctionsService } from '../src/service';
 import { connectFunctionsEmulator } from '../src/api';
-import { fetch } from 'undici';
+import { fetch as undiciFetch } from 'undici';
 import { MessagingInternalComponentName } from '../../../packages/messaging-interop-types';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
@@ -58,13 +58,15 @@ export function createTestService(
     new ComponentContainer('test')
   )
 ): FunctionsService {
+  const fetchImpl: typeof fetch =
+    typeof window !== 'undefined' ? fetch.bind(window) : (undiciFetch as any);
   const functions = new FunctionsService(
     app,
     authProvider,
     messagingProvider,
     appCheckProvider,
     region,
-    fetch as any
+    fetchImpl
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {

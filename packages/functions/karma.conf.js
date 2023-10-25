@@ -32,7 +32,7 @@ module.exports = function (config) {
       resolve: {
         ...webpackBase.resolve,
         alias: {
-          '../test/utils': '../test/utils-web'
+          'undici': false
         }
       }
     }
