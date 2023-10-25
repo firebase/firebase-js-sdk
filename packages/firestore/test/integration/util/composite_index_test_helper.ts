@@ -40,7 +40,10 @@ import {
   doc,
   and,
   _AutoId,
-  _FieldPath
+  _FieldPath,
+  newTestFirestore,
+  newTestApp,
+  collection
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -48,7 +51,12 @@ import {
   PERSISTENCE_MODE_UNSPECIFIED,
   PersistenceMode
 } from './helpers';
-import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
+import {
+  COMPOSITE_INDEX_TEST_COLLECTION,
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS,
+  TARGET_DB_ID
+} from './settings';
 
 /**
  * This helper class is designed to facilitate integration testing of Firestore queries that
@@ -89,6 +97,23 @@ export class CompositeIndexTestHelper {
     );
   }
 
+  // Runs a test on COMPOSITE_INDEX_TEST_COLLECTION.
+  async withTestCollection<T>(
+    persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+    fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+  ): Promise<T> {
+    const settings = { ...DEFAULT_SETTINGS };
+    if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
+      settings.localCache = persistence.asLocalCacheFirestoreSettings();
+    }
+    const db = newTestFirestore(
+      newTestApp(DEFAULT_PROJECT_ID),
+      settings,
+      TARGET_DB_ID
+    );
+    return fn(collection(db, COMPOSITE_INDEX_TEST_COLLECTION), db);
+  }
+
   // Hash the document key with testId.
   private toHashedId(docId: string): string {
     return docId + '-' + this.testId;
@@ -99,7 +124,7 @@ export class CompositeIndexTestHelper {
   }
 
   // Adds test-specific fields to a document, including the testId and expiration date.
-  private addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
+  addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
