@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as fetchImpl from 'node-fetch-cjs';
+import { fetch as undiciFetch } from 'undici';
 import { getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {
@@ -89,8 +89,8 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
     return fetch(url, request);
   }
 
-  return fetchImpl.default(
+  return fetch(
     url,
-    request as fetchImpl.RequestInit
+    request as RequestInit
   ) as unknown as ReturnType<typeof fetch>;
 }

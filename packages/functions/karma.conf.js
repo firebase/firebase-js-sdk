@@ -16,6 +16,7 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const webpackBase = require('../../config/webpack.test');
 
 const files = [`src/**/*.test.ts`];
 
@@ -25,7 +26,16 @@ module.exports = function (config) {
     files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+    webpack: {
+      ...webpackBase,
+      resolve: {
+        ...webpackBase.resolve,
+        alias: {
+          'undici': false
+        }
+      }
+    }
   });
 
   config.set(karmaConfig);
