@@ -159,15 +159,15 @@ function convertExcludeCredentials(
     | PublicKeyCredentialCreationOptions
     | PublicKeyCredentialRequestOptions
 ): void {
-function base64ToBuffer(base64: string): ArrayBuffer {
-  const binaryStr = atob(base64);
-  const len = binaryStr.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryStr.charCodeAt(i);
+  function base64ToBuffer(base64: string): ArrayBuffer {
+    const binaryStr = atob(base64);
+    const len = binaryStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return bytes.buffer;
   }
-  return bytes.buffer;
-}
 
   if ('excludeCredentials' in options && options.excludeCredentials) {
     for (const cred of options.excludeCredentials) {
