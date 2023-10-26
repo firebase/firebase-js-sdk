@@ -25,7 +25,7 @@ import {
 } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 
-export interface AuthenticatorResponseJSON {
+interface AuthenticatorResponseJSON {
   clientDataJSON: string;
   attestationObject?: string;
   authenticatorData?: string;
@@ -33,24 +33,21 @@ export interface AuthenticatorResponseJSON {
   userHandle?: string;
 }
 
-export interface PublicKeyCredentialJSON {
+interface PublicKeyCredentialJSON {
   id: string;
   type: string;
   rawId: string;
   response: AuthenticatorResponseJSON;
 }
 
-// Convert ArrayBuffer to Base64
-function bufferToBase64(buffer: ArrayBuffer): string {
-  const byteArray = Array.from(new Uint8Array(buffer));
-  return btoa(String.fromCharCode.apply(null, byteArray));
-}
-
 export function publicKeyCredentialToJSON(
   pubKeyCred: PublicKeyCredential
 ): PublicKeyCredentialJSON {
-  console.log('pubKeyCredentialToJSON-before');
-  console.log(pubKeyCred);
+  // Convert ArrayBuffer to Base64
+  function bufferToBase64(buffer: ArrayBuffer): string {
+    const byteArray = Array.from(new Uint8Array(buffer));
+    return btoa(String.fromCharCode.apply(null, byteArray));
+  }
 
   const clientDataJSON = bufferToBase64(pubKeyCred.response.clientDataJSON);
 
@@ -93,9 +90,6 @@ export function publicKeyCredentialToJSON(
       }
     };
   }
-
-  console.log('pubKeyCredentialToJSON-after');
-  console.log(result);
 
   return result as PublicKeyCredentialJSON;
 }

@@ -154,6 +154,11 @@ export async function enrollPasskey(
   }
 }
 
+function convertExcludeCredentials(
+  options:
+    | PublicKeyCredentialCreationOptions
+    | PublicKeyCredentialRequestOptions
+): void {
 function base64ToBuffer(base64: string): ArrayBuffer {
   const binaryStr = atob(base64);
   const len = binaryStr.length;
@@ -164,12 +169,6 @@ function base64ToBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-function convertExcludeCredentials(
-  options:
-    | PublicKeyCredentialCreationOptions
-    | PublicKeyCredentialRequestOptions
-): void {
-  // First, check if the excludeCredentials property exists on the provided options
   if ('excludeCredentials' in options && options.excludeCredentials) {
     for (const cred of options.excludeCredentials) {
       if (typeof cred.id === 'string') {
@@ -185,7 +184,6 @@ function getPasskeyCredentialCreationOptions(
   name: string = ''
 ): PublicKeyCredentialCreationOptions {
   const options = response.credentialCreationOptions!;
-  console.log(options);
 
   if (name === '') {
     name = 'Unnamed account (Web)';
@@ -208,7 +206,6 @@ function getPasskeyCredentialCreationOptions(
 
   convertExcludeCredentials(options);
 
-  console.log(options);
   return options;
 }
 
