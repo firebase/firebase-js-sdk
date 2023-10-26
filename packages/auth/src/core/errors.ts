@@ -61,6 +61,7 @@ export const enum AuthErrorCode {
   INVALID_EMAIL = 'invalid-email',
   INVALID_EMULATOR_SCHEME = 'invalid-emulator-scheme',
   INVALID_IDP_RESPONSE = 'invalid-credential',
+  INVALID_LOGIN_CREDENTIALS = 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
   INVALID_MFA_SESSION = 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
@@ -219,6 +220,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The SHA-1 certificate hash provided is invalid.',
     [AuthErrorCode.INVALID_IDP_RESPONSE]:
       'The supplied auth credential is malformed or has expired.',
+    [AuthErrorCode.INVALID_LOGIN_CREDENTIALS]:
+      'The supplied login credentials are invalid.',
     [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
       'The email template corresponding to this action contains invalid characters in its message. ' +
       'Please fix by going to the Auth email templates section in the Firebase Console.',
@@ -528,6 +531,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   INVALID_EMAIL: 'auth/invalid-email',
   INVALID_EMULATOR_SCHEME: 'auth/invalid-emulator-scheme',
   INVALID_IDP_RESPONSE: 'auth/invalid-credential',
+  INVALID_LOGIN_CREDENTIALS: 'auth/invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'auth/invalid-message-payload',
   INVALID_MFA_SESSION: 'auth/invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID: 'auth/invalid-oauth-client-id',
