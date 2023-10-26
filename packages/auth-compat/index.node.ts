@@ -23,7 +23,7 @@
  */
 export * from './index';
 import { FetchProvider } from '@firebase/auth/internal';
-import * as fetchImpl from 'node-fetch';
+import * as fetchImpl from 'node-fetch-cjs';
 import './index';
 
 FetchProvider.initialize(
