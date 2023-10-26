@@ -209,8 +209,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      // When b/307942499 is fixed, revert to the following line:
-      // request.useFetchStreams = true;
+      // TODO(b/307942499): switch to `useFetchStreams` once WebChannel is fixed.
       request.xmlHttpFactory = new FetchXmlHttpFactory({});
     }
 
