@@ -59,6 +59,9 @@ describe('passkey', async () => {
   });
 
   it('should sign in with passkey', async () => {
+    if (typeof navigator === 'undefined') {
+      return;
+    }
     const mockCredential: PublicKeyCredential = {
       id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
       type: 'public-key',
@@ -89,6 +92,9 @@ describe('passkey', async () => {
   });
 
   it('should sign in with manualSignUp set to false', async () => {
+    if (typeof navigator === 'undefined') {
+      return;
+    }
     sinon
       .stub(navigator.credentials, 'get')
       .throws(new Error('The operation either timed out or was not allowed.'));
@@ -166,6 +172,9 @@ describe('passkey', async () => {
   });
 
   it('should failed with no passkey found locally', async () => {
+    if (typeof navigator === 'undefined') {
+      return;
+    }
     sinon
       .stub(navigator.credentials, 'get')
       .throws(new Error('The operation either timed out or was not allowed.'));
@@ -196,6 +205,9 @@ describe('passkey', async () => {
   });
 
   it('should enroll passkey', async () => {
+    if (typeof navigator === 'undefined') {
+      return;
+    }
     const mockCredential: PublicKeyCredential = {
       id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
       type: 'public-key',
@@ -247,6 +259,9 @@ describe('passkey', async () => {
   });
 
   it('should enroll passkey failed if failed to create passkey', async () => {
+    if (typeof navigator === 'undefined') {
+      return;
+    }
     sinon
       .stub(navigator.credentials, 'create')
       .throws(new Error('The operation either timed out or was not allowed.'));
