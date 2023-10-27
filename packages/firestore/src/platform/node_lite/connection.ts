@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import nodeFetch from 'undici';
+import { fetch as nodeFetch } from 'undici';
+
 
 import { DatabaseInfo } from '../../core/database_info';
 import { Connection } from '../../remote/connection';
