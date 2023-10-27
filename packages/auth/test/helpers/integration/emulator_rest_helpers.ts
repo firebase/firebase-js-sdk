@@ -91,6 +91,6 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
 
   return undici.fetch(
     url,
-    request as undici.RequestInit,
+    request as undici.RequestInit
   ) as unknown as ReturnType<typeof fetch>;
 }
