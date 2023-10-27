@@ -115,7 +115,7 @@
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
-    "node-fetch-cjs": "3.3.2",
+    "undici": "5.26.5",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

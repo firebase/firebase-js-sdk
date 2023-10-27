@@ -21,7 +21,7 @@ import {
   ErrorCode
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch, { Headers } from 'node-fetch-cjs';
+import { fetch, Headers } from 'undici';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -41,7 +41,7 @@ abstract class FetchConnection<T extends ConnectionType>
   protected errorText_ = '';
   protected headers_: Headers | undefined;
   protected sent_: boolean = false;
-  protected fetch_ = nodeFetch;
+  protected fetch_ = fetch;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;

@@ -12497,11 +12497,6 @@ node-emoji@^1.11.0:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch-cjs@3.3.2:
-  version "3.3.2"
-  resolved "https://registry.npmjs.org/node-fetch-cjs/-/node-fetch-cjs-3.3.2.tgz#7fd07fac52e61959c1031540a767636b9b290b9e"
-  integrity sha512-JvvyTiDcLnHvPmbxj6uxj4LaamCfZLlzlRNBZp+H82ECMLz4OQjI9Jc6YjjjycipeMk1Aq4xo90ejEUMKJeTjw==
-
 node-fetch@2.6.7, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"

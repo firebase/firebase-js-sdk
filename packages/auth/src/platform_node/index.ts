@@ -27,7 +27,7 @@ import { ClientPlatform } from '../core/util/version';
 import { AuthImpl } from '../core/auth/auth_impl';
 
 import { FetchProvider } from '../core/util/fetch_provider';
-import * as fetchImpl from 'node-fetch-cjs';
+import * as fetchImpl from 'undici';
 import { getDefaultEmulatorHost } from '@firebase/util';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
