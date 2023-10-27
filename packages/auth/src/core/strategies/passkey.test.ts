@@ -36,6 +36,16 @@ describe('passkey', async () => {
   let auth: TestAuth;
   let user: UserInternal;
 
+  const mockCredential: PublicKeyCredential = {
+    id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
+    type: 'public-key',
+    rawId: new Uint8Array([1, 2, 3]),
+    response: {
+      clientDataJSON: new Uint8Array([4, 5, 6]),
+      attestationObject: new Uint8Array([7, 8, 9])
+    }
+  } as unknown as PublicKeyCredential;
+
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'mock-uid', '', true);
@@ -47,7 +57,6 @@ describe('passkey', async () => {
         operationType: 'mock-operation-type'
       })
     };
-
     sinon
       .stub(UserCredentialImpl, '_fromIdTokenResponse')
       .callsFake(mockUserCredentialImpl._fromIdTokenResponse);
@@ -62,16 +71,6 @@ describe('passkey', async () => {
     if (typeof navigator === 'undefined') {
       return;
     }
-    const mockCredential: PublicKeyCredential = {
-      id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
-      type: 'public-key',
-      rawId: new Uint8Array([1, 2, 3]),
-      response: {
-        clientDataJSON: new Uint8Array([4, 5, 6]),
-        attestationObject: new Uint8Array([7, 8, 9])
-      }
-    } as unknown as PublicKeyCredential;
-
     sinon.stub(navigator.credentials, 'get').resolves(mockCredential);
 
     mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
@@ -98,16 +97,6 @@ describe('passkey', async () => {
     sinon
       .stub(navigator.credentials, 'get')
       .throws(new Error('The operation either timed out or was not allowed.'));
-
-    const mockCredential: PublicKeyCredential = {
-      id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
-      type: 'public-key',
-      rawId: new Uint8Array([1, 2, 3]),
-      response: {
-        clientDataJSON: new Uint8Array([4, 5, 6]),
-        attestationObject: new Uint8Array([7, 8, 9])
-      }
-    } as unknown as PublicKeyCredential;
 
     sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
 
@@ -208,16 +197,6 @@ describe('passkey', async () => {
     if (typeof navigator === 'undefined') {
       return;
     }
-    const mockCredential: PublicKeyCredential = {
-      id: 'vnl7UPdoJi-ETJi6_obUejdIuc1eIXfUWa1rs5tmacQ',
-      type: 'public-key',
-      rawId: new Uint8Array([1, 2, 3]),
-      response: {
-        clientDataJSON: new Uint8Array([4, 5, 6]),
-        attestationObject: new Uint8Array([7, 8, 9])
-      }
-    } as unknown as PublicKeyCredential;
-
     sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
 
     mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {

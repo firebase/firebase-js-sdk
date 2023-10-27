@@ -776,7 +776,7 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 // @public
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
-// @public (undocumented)
+// @public
 export function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
 
 // @public

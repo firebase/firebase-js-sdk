@@ -144,10 +144,10 @@ describe('api/account_management/finalizeEnrollPasskey', () => {
       {
         error: {
           code: 400,
-          message: ServerError.INVALID_SESSION_INFO,
+          message: ServerError.INVALID_ID_TOKEN,
           errors: [
             {
-              message: ServerError.INVALID_SESSION_INFO
+              message: ServerError.INVALID_ID_TOKEN
             }
           ]
         }
@@ -157,7 +157,7 @@ describe('api/account_management/finalizeEnrollPasskey', () => {
 
     await expect(finalizePasskeyEnrollment(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      'auth/invalid-verification-id'
+      'auth/invalid-user-token'
     );
     expect(mock.calls[0].request).to.eql(request);
   });

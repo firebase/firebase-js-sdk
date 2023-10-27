@@ -39,6 +39,17 @@ import { OperationType } from '../../model/enums';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signInAnonymously } from './anonymous';
 
+const DEFAULT_PASSKEY_ACCOUNT_NAME = 'Unnamed account (Web)';
+const PASSKEY_LOOK_UP_ERROR_MESSAGE =
+  'The operation either timed out or was not allowed.';
+
+/**
+ * Signs in a user with a passkey.
+ * @param auth - The Firebase Auth instance.
+ * @param name - The user's name for passkey.
+ * @param manualSignUp - Whether to manually sign up the user if they do not exist. Default to false.
+ * @returns A promise that resolves with a `UserCredential` object.
+ */
 export async function signInWithPasskey(
   auth: Auth,
   name: string,
@@ -55,7 +66,7 @@ export async function signInWithPasskey(
 
   const options = getPasskeyCredentialRequestOptions(startSignInResponse, name);
 
-  // Get the crendential
+  // Get the credential
   let credential;
   try {
     credential = (await navigator.credentials.get({
@@ -81,9 +92,7 @@ export async function signInWithPasskey(
     return userCredential;
   } catch (error) {
     if (
-      (error as Error).message.includes(
-        'The operation either timed out or was not allowed.'
-      ) &&
+      (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE) &&
       !manualSignUp
     ) {
       // If the user is not signed up, sign them up anonymously
@@ -96,10 +105,10 @@ export async function signInWithPasskey(
 }
 
 /**
- * Links the user account with the given phone number.
- *
- * @param user - The user.
- *
+ * Enrolls a passkey for the user account.
+ * @param user - The user to enroll the passkey for.
+ * @param name - The name associated with the passkey.
+ * @returns A promise that resolves with a `UserCredential` object.
  * @public
  */
 export async function enrollPasskey(
@@ -110,7 +119,7 @@ export async function enrollPasskey(
   const authInternal = _castAuth(userInternal.auth);
 
   if (name === '') {
-    name = 'Unnamed account (Web)';
+    name = DEFAULT_PASSKEY_ACCOUNT_NAME;
   }
 
   // Start Passkey Enrollment
@@ -142,6 +151,7 @@ export async function enrollPasskey(
     const finalizeEnrollmentResponse: FinalizePasskeyEnrollmentResponse =
       await finalizePasskeyEnrollment(authInternal, finalizeEnrollmentRequest);
 
+    // "The passkey provider is linked with the user's current providers".
     const operationType = OperationType.LINK;
     const userCredential = await UserCredentialImpl._fromIdTokenResponse(
       userInternal.auth,
@@ -154,6 +164,7 @@ export async function enrollPasskey(
   }
 }
 
+// Converts an array of credential IDs of `excludeCrednetials` field to an array of `PublicKeyCredentialDescriptor` objects.
 function convertExcludeCredentials(
   options:
     | PublicKeyCredentialCreationOptions
