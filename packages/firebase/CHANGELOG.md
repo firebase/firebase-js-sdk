@@ -1,5 +1,17 @@
 # firebase
 
+## 10.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`f27baf423`](https://github.com/firebase/firebase-js-sdk/commit/f27baf423b3c9834b94aed13a93a5385813fd7dd), [`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5)]:
+  - @firebase/app@0.9.22
+  - @firebase/firestore@4.3.2
+  - @firebase/auth@1.3.2
+  - @firebase/app-compat@0.2.22
+  - @firebase/firestore-compat@0.3.21
+  - @firebase/auth-compat@0.4.8
+
 ## 10.5.1
 
 ### Patch Changes

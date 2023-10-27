@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.3.2
+
+### Patch Changes
+
+- [`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5) [#7720](https://github.com/firebase/firebase-js-sdk/pull/7720) - fixes github issue https://github.com/firebase/firebase-js-sdk/issues/7701.
+
 ## 1.3.1
 
 ### Patch Changes
