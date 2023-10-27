@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { fetch } from 'node-fetch';
+const fetch = require('node-fetch');
 const FCM_SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
 // Rotatable fcm server key. It's generally a bad idea to expose server keys. The reason is to
 // simplify testing process (no need to implement server side decryption of git secret). The
