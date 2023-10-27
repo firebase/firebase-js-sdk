@@ -164,6 +164,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       expect(response).to.equal('testResponse');
     });
 
+    // "Errors like "MISSING_RECAPTCHA_TOKEN" will be handled irrespective of the enablement status of "emailPasswordEnabled", but this test verifies the more likely scenario where emailPasswordEnabled is false"
     it('should handle MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
       if (typeof window === 'undefined') {
         return;
