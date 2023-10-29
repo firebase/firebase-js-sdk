@@ -87,10 +87,10 @@ function buildEmulatorUrlForPath(endpoint: string): string {
 function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
   if (typeof document !== 'undefined') {
     return fetch(url, request);
+  } else {
+    return undiciFetch(
+      url,
+      request as undiciRequestInit
+    ) as unknown as ReturnType<typeof fetch>;
   }
-
-  return undiciFetch(
-    url,
-    request as undiciRequestInit
-  ) as unknown as ReturnType<typeof fetch>;
 }
