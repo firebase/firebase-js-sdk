@@ -23,7 +23,11 @@
  */
 export * from './index';
 import { FetchProvider } from '@firebase/auth/internal';
-import { fetch as undiciFetch, Headers as undiciHeaders, Response as undiciResponse} from 'undici';
+import {
+  fetch as undiciFetch,
+  Headers as undiciHeaders,
+  Response as undiciResponse
+} from 'undici';
 import './index';
 
 FetchProvider.initialize(

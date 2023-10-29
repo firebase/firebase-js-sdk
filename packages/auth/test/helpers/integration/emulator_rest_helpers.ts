@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { fetch as undiciFetch, RequestInit as undiciRequestInit} from 'undici';
+import { fetch as undiciFetch, RequestInit as undiciRequestInit } from 'undici';
 import { getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { registerFunctions } from './config';
-import nodeFetch from 'undici';
+import { fetch } from 'undici';
 
 export * from './api';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-registerFunctions(nodeFetch as any, 'node');
+registerFunctions(fetch as any, 'node');

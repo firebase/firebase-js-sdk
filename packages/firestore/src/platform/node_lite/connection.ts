@@ -16,8 +16,6 @@
  */
 
 import { fetch as nodeFetch } from 'undici';
-
-
 import { DatabaseInfo } from '../../core/database_info';
 import { Connection } from '../../remote/connection';
 import { FetchConnection } from '../browser_lite/fetch_connection';
