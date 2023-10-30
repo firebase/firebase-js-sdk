@@ -167,7 +167,7 @@ export class IndexState {
      * Indicates when the index was last updated (relative to other indexes).
      */
     readonly sequenceNumber: number,
-    /** The the latest indexed read time, document and batch id. */
+    /** The latest indexed read time, document and batch id. */
     readonly offset: IndexOffset
   ) {}
 
