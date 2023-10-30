@@ -1651,19 +1651,19 @@ apiDescribe('Database', (persistence: boolean) => {
     it('for DocumentReference.withConverter() that returns undefined', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
-            .collection('posts')
-            .doc()
-            .withConverter({
-              toFirestore(post: Post): firestore.DocumentData {
-                return {title: post.title, author: post.author};
-              },
-              fromFirestore(
-                  snapshot: firestore.QueryDocumentSnapshot,
-                  options: firestore.SnapshotOptions
-              ): Post | undefined {
-                return undefined;
-              }
-            });
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post | undefined {
+              return undefined;
+            }
+          });
 
         await docRef.set(new Post('post', 'author'));
         const postData = await docRef.get();

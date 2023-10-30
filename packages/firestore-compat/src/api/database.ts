@@ -977,8 +977,8 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
       return data as T;
     } else {
       _debugAssert(
-          data !== undefined,
-          'Document in a QueryDocumentSnapshot should exist'
+        data !== undefined,
+        'Document in a QueryDocumentSnapshot should exist'
       );
       return data;
     }
