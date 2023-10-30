@@ -38,6 +38,7 @@ import {
   FAKE_TOKEN,
   handleRecaptchaFlow
 } from './recaptcha_enterprise_verifier';
+import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
 
@@ -57,6 +58,19 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       }
     ]
   };
+  const recaptchaConfigEnforce = new RecaptchaConfig(
+    recaptchaConfigResponseEnforce
+  );
+  const recaptchaConfigResponseOff = {
+    recaptchaKey: 'foo/bar/to/site-key',
+    recaptchaEnforcementState: [
+      {
+        provider: 'EMAIL_PASSWORD_PROVIDER',
+        enforcementState: 'ENFORCE'
+      }
+    ]
+  };
+  const recaptchaConfigOff = new RecaptchaConfig(recaptchaConfigResponseOff);
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -148,7 +162,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns({ emailPasswordEnabled: true, siteKey: 'mock_site_key' });
+        .returns(recaptchaConfigEnforce);
       sinon
         .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
         .resolves('recaptcha-response');
@@ -171,7 +185,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns({ emailPasswordEnabled: false, siteKey: 'mock_site_key' });
+        .returns(recaptchaConfigOff);
       sinon
         .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
         .resolves('recaptcha-response');
@@ -203,7 +217,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
-        .returns({ emailPasswordEnabled: false, siteKey: 'mock_site_key' });
+        .returns(recaptchaConfigOff);
       sinon
         .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
         .resolves('recaptcha-response');
