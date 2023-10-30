@@ -66,7 +66,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaEnforcementState: [
       {
         provider: 'EMAIL_PASSWORD_PROVIDER',
-        enforcementState: 'ENFORCE'
+        enforcementState: 'OFF'
       }
     ]
   };
