@@ -972,11 +972,16 @@ export class QueryDocumentSnapshot<T = PublicDocumentData>
 {
   data(options?: PublicSnapshotOptions): T {
     const data = this._delegate.data(options);
-    _debugAssert(
-      data !== undefined,
-      'Document in a QueryDocumentSnapshot should exist'
-    );
-    return data;
+    if (this._delegate._converter) {
+      // Undefined is a possible valid value from converter.
+      return data as T;
+    } else {
+      _debugAssert(
+          data !== undefined,
+          'Document in a QueryDocumentSnapshot should exist'
+      );
+      return data;
+    }
   }
 }
 
