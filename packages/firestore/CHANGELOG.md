@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 4.3.2
+
+### Patch Changes
+
+- [`f27baf423`](https://github.com/firebase/firebase-js-sdk/commit/f27baf423b3c9834b94aed13a93a5385813fd7dd) [#7729](https://github.com/firebase/firebase-js-sdk/pull/7729) - Rolling back the use of useFetchStreams, which has lead to hanging and incomplete queries.
+
+## 4.3.1
+
+### Patch Changes
+
+- [`12f25592c`](https://github.com/firebase/firebase-js-sdk/commit/12f25592c02de8d899926d215b0ffd383b1f3aa0) [#7696](https://github.com/firebase/firebase-js-sdk/pull/7696) - Clarify method documentation.
+
 ## 4.3.0
 
 ### Minor Changes
