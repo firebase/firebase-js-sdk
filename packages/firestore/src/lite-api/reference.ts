@@ -389,7 +389,7 @@ export function collection(
 ): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -406,7 +406,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
 ): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
