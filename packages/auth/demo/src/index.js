@@ -1762,7 +1762,6 @@ function revokeAppleTokenAndDeleteUser() {
   const auth = getAuth();
   signInWithPopup(auth, provider).then(result => {
     // The signed-in user info.
-    const user = result.user;
     const credential = OAuthProvider.credentialFromResult(result);
     const accessToken = credential.accessToken;
 
@@ -1780,7 +1779,39 @@ function revokeAppleTokenAndDeleteUser() {
           }, onAuthError);
       })
       .catch(error => {
-        console.log(error.message);
+        alertError('Failed to revoke token: ', error.message);
+        log('Failed to revoke token: ', error.message);
+      });
+  });
+}
+
+function onRevokeGoogleToken(_event) {
+  log('Starting Google token revocation.');
+  const provider = new GoogleAuthProvider();
+
+  const auth = getAuth();
+  signInWithPopup(auth, provider).then(result => {
+    // The signed-in user info.
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const accessToken = credential.accessToken;
+
+    revokeAccessToken(auth, accessToken)
+      .then(() => {
+        log('Token successfully revoked.');
+        alertSuccess('Token successfully revoked.');
+
+        // Usual user deletion
+        activeUser()
+          ['delete']()
+          .then(() => {
+            log('User successfully deleted.');
+            alertSuccess('User successfully deleted.');
+            refreshUserData();
+          }, onAuthError);
+      })
+      .catch(error => {
+        log('Failed to revoke Google access token. ', error.message);
+        alertError('Failed to revoke token. ', error.message);
       });
   });
 }
@@ -2341,6 +2372,7 @@ function initApp() {
   $('#action-code-settings-reset').click(onActionCodeSettingsReset);
 
   $('#delete').click(onDelete);
+  $('#revoke-google-token').click(onRevokeGoogleToken);
 
   $('#set-persistence').click(onSetPersistence);
 
