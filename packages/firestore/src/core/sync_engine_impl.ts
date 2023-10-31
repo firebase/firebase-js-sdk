@@ -1081,13 +1081,13 @@ async function applyDocChanges(
 
   const targetChange =
     remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
-  const isPendingForRequeryResult =
+  const waitForRequeryResult =
     remoteEvent && remoteEvent.targetMismatches.get(queryView.targetId) != null;
   const viewChange = queryView.view.applyChanges(
     viewDocChanges,
     /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
     targetChange,
-    isPendingForRequeryResult
+    waitForRequeryResult
   );
   updateTrackedLimbos(
     syncEngineImpl,
