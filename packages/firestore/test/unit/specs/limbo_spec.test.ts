@@ -889,6 +889,7 @@ describeSpec('Limbo Documents:', [], () => {
           // to just send the docBs with an existence filter with a count of 3.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
           .watchFilters([query1], [docB1.key, docB2.key, docB3.key])
+          .watchCurrents(query1, 'resume-token-1001')
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -968,6 +969,7 @@ describeSpec('Limbo Documents:', [], () => {
             [docB1.key, docB2.key, docB3.key],
             bloomFilterProto
           )
+          .watchCurrents(query1, 'resume-token-1001')
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -978,8 +980,6 @@ describeSpec('Limbo Documents:', [], () => {
           // existence filter mismatch. Bloom filter checks membership of the
           // docs, and filters out docAs, while docBs returns true. Number of
           // existing docs matches the expected count, so skip the re-query.
-          .watchCurrents(query1, 'resume-token-1002')
-          .watchSnapshots(1002)
           // The docAs are now in limbo; the client begins limbo resolution.
           .expectLimboDocs(docA1.key, docA2.key)
           .expectEnqueuedLimboDocs(docA3.key)
