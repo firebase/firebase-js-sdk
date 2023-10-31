@@ -284,7 +284,7 @@ export class View {
     docChanges: ViewDocumentChanges,
     updateLimboDocuments: boolean,
     targetChange?: TargetChange,
-    isPendingForRequeryResult: boolean = false,
+    isPendingForRequeryResult?: boolean
   ): ViewChange {
     debugAssert(
       !docChanges.needsRefill,
@@ -303,15 +303,18 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = !isPendingForRequeryResult && updateLimboDocuments
-      ? this.updateLimboDocuments()
-      : [];
+    const limboChanges =
+      !isPendingForRequeryResult && updateLimboDocuments
+        ? this.updateLimboDocuments()
+        : [];
 
     // We are at synced state if there is no limbo docs are waiting to be resolved, view is current
     // with the backend, and the query is not pending for full re-query result due to existence
     // filter mismatch.
-      const synced =
-        this.limboDocuments.size === 0 && this.current && !isPendingForRequeryResult;
+    const synced =
+      this.limboDocuments.size === 0 &&
+      this.current &&
+      !isPendingForRequeryResult;
 
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
