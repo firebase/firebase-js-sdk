@@ -273,6 +273,8 @@ export class View {
    * @param docChanges - The set of changes to make to the view's docs.
    * @param updateLimboDocuments - Whether to update limbo documents based on
    *        this change.
+   * @param isPendingForRequeryResult - Whether the target is pending to run a full
+   *        re-query due to existence filter mismatch.
    * @param targetChange - A target change to apply for computing limbo docs and
    *        sync state.
    * @returns A new ViewChange with the given docs, changes, and sync state.
@@ -281,7 +283,8 @@ export class View {
   applyChanges(
     docChanges: ViewDocumentChanges,
     updateLimboDocuments: boolean,
-    targetChange?: TargetChange
+    targetChange?: TargetChange,
+    isPendingForRequeryResult: boolean = false,
   ): ViewChange {
     debugAssert(
       !docChanges.needsRefill,
@@ -300,10 +303,16 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = updateLimboDocuments
+    const limboChanges = !isPendingForRequeryResult && updateLimboDocuments
       ? this.updateLimboDocuments()
       : [];
-    const synced = this.limboDocuments.size === 0 && this.current;
+
+    // We are at synced state if there is no limbo docs are waiting to be resolved, view is current
+    // with the backend, and the query is not pending for full re-query result due to existence
+    // filter mismatch.
+      const synced =
+        this.limboDocuments.size === 0 && this.current && !isPendingForRequeryResult;
+
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
     this.syncState = newSyncState;
