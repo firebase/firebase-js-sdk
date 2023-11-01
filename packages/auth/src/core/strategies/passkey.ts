@@ -47,7 +47,7 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
  * Signs in a user with a passkey.
  * @param auth - The Firebase Auth instance.
  * @param name - The user's name for passkey.
- * @param manualSignUp - Whether to manually sign up the user if they do not exist. Default to false.
+ * @param manualSignUp - Creates an anonymous user if a user does not exist. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
  */
 export async function signInWithPasskey(
@@ -151,7 +151,7 @@ export async function enrollPasskey(
     const finalizeEnrollmentResponse: FinalizePasskeyEnrollmentResponse =
       await finalizePasskeyEnrollment(authInternal, finalizeEnrollmentRequest);
 
-    // "The passkey provider is linked with the user's current providers".
+    // The passkey provider is linked with the user's current providers.
     const operationType = OperationType.LINK;
     const userCredential = await UserCredentialImpl._fromIdTokenResponse(
       userInternal.auth,

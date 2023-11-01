@@ -160,7 +160,7 @@ describe('passkey', async () => {
     expect(auth.currentUser?.uid).to.eq('mock-uid');
   });
 
-  it('should failed with no passkey found locally', async () => {
+  it('should fail with no passkey found locally', async () => {
     if (typeof navigator === 'undefined') {
       return;
     }
