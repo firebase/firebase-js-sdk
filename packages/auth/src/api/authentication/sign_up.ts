@@ -27,6 +27,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '../../model/public_types';
 
 export interface SignUpRequest {
+  idToken?: string;
   returnSecureToken?: boolean;
   email?: string;
   password?: string;
