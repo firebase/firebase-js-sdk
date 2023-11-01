@@ -316,6 +316,9 @@ function onAuthError(error) {
     if (error.code === 'auth/user-token-expired') {
       alertError('Token expired, please reauthenticate.');
     }
+    if (error.code === 'auth/invalid-credential') {
+      alertError('login credentials invalid. It is possible that the email/password combination does not exist.');
+    }
   }
 }
 
