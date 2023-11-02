@@ -47,7 +47,7 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
  * Signs in a user with a passkey.
  * @param auth - The Firebase Auth instance.
  * @param name - The user's name for passkey.
- * @param manualSignUp - Creates an anonymous user if a user does not exist. Defaults to false.
+ * @param manualSignUp - When false, automatically creates an anonymous user if a user does not exist. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
  */
 export async function signInWithPasskey(
@@ -164,7 +164,7 @@ export async function enrollPasskey(
   }
 }
 
-// Converts an array of credential IDs of `excludeCrednetials` field to an array of `PublicKeyCredentialDescriptor` objects.
+// Converts an array of credential IDs of `excludeCredentials` field to an array of `PublicKeyCredentialDescriptor` objects.
 function convertExcludeCredentials(
   options:
     | PublicKeyCredentialCreationOptions
