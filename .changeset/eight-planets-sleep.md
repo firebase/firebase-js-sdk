@@ -1,5 +1,6 @@
 ---
 '@firebase/auth': minor
+'firebase': minor
 ---
 
-Add sign-in with Apple token revocation support.
+[feature] Add sign-in with Apple token revocation support.
