@@ -1731,7 +1731,7 @@ function logAdditionalUserInfo(response) {
  * Deletes the user account.
  */
 function onDelete() {
-  var isAppleProviderLinked = false;
+  let isAppleProviderLinked = false;
 
   for (const provider of activeUser().providerData) {
     if (provider.providerId == 'apple.com') {
@@ -1762,7 +1762,6 @@ function revokeAppleTokenAndDeleteUser() {
   const auth = getAuth();
   signInWithPopup(auth, provider).then(result => {
     // The signed-in user info.
-    const user = result.user;
     const credential = OAuthProvider.credentialFromResult(result);
     const accessToken = credential.accessToken;
 
@@ -1780,7 +1779,8 @@ function revokeAppleTokenAndDeleteUser() {
           }, onAuthError);
       })
       .catch(error => {
-        console.log(error.message);
+        log('Failed to revoke token. ', error.message);
+        alertError('Failed to revoke token. ', error.message);
       });
   });
 }
