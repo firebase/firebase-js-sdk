@@ -73,6 +73,9 @@ import {
   browserPopupRedirectResolver,
   connectAuthEmulator,
   initializeRecaptchaConfig,
+  signInWithPhoneNumber,
+  listenForWebOTP,
+  AuthErrorCodes,
   validatePassword
 } from '@firebase/auth';
 
@@ -118,6 +121,7 @@ const providersIcons = {
  * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
+
 function activeUser() {
   const type = $('input[name=toggle-user-selection]:checked').val();
   if (type === 'lastUser') {
@@ -710,27 +714,32 @@ function clearApplicationVerifier() {
 
 /**
  * Sends a phone number verification code for sign-in.
+ * Auto-logs in if the OTP code can be obtained using the WebOTP API.
  */
-function onSignInVerifyPhoneNumber() {
+async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
-  const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
   // link/re-auth operation.
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    verificationId => {
-      clearApplicationVerifier();
-      $('#signin-phone-verification-id').val(verificationId);
-      alertSuccess('Phone verification sent!');
-    },
-    error => {
-      clearApplicationVerifier();
-      onAuthError(error);
+  const webOTPPromise = listenForWebOTP(auth, 10);
+  try {
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+    try {
+      const code = await webOTPPromise;
+      await confirmationResult.confirm(code);
+    } catch (e) {
+        console.log("Failed to auto-fetch otp code, using the value from the input box. Erorr - " + e);
+        const verificationCode = $('#signin-phone-verification-code').val();
+        await confirmationResult.confirm(verificationCode);
     }
-  );
+  } catch(e) {
+      clearApplicationVerifier();
+      onAuthError(e);
+  };
 }
+
 
 /**
  * Confirms a phone number verification for sign-in.

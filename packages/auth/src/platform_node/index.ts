@@ -90,6 +90,7 @@ export const indexedDBLocalPersistence = inMemoryPersistence;
 export const browserPopupRedirectResolver = NOT_AVAILABLE_ERROR;
 export const PhoneAuthProvider = FailClass;
 export const signInWithPhoneNumber = fail;
+export const listenForWebOTP = fail;
 export const linkWithPhoneNumber = fail;
 export const reauthenticateWithPhoneNumber = fail;
 export const updatePhoneNumber = fail;

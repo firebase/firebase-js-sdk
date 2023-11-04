@@ -47,6 +47,11 @@ import {
 use(chaiAsPromised);
 use(sinonChai);
 
+//interfaces added to provide typescript support for webopt autofill
+interface OTPCredential extends Credential {
+  code?: string;
+}
+
 describe('platform_browser/strategies/phone', () => {
   let auth: TestAuth;
   let verifier: ApplicationVerifierInternal;
@@ -80,12 +85,12 @@ describe('platform_browser/strategies/phone', () => {
     });
 
     context('ConfirmationResult', () => {
-      it('result contains verification id baked in', async () => {
+      it('result contains verification id baked in when webOTP autofill is not used', async () => {
         const result = await signInWithPhoneNumber(auth, 'number', verifier);
         expect(result.verificationId).to.eq('session-info');
       });
 
-      it('calling #confirm finishes the sign in flow', async () => {
+      it('calling #confirm finishes the sign in flow when webOTP autofill is not used', async () => {
         const idTokenResponse: IdTokenResponse = {
           idToken: 'my-id-token',
           refreshToken: 'my-refresh-token',
@@ -112,6 +117,165 @@ describe('platform_browser/strategies/phone', () => {
           sessionInfo: 'session-info',
           code: '6789'
         });
+      });
+    });
+
+    context('UserCredential', () => {
+      let idTokenResponse: IdTokenResponse;
+      // This endpoint is called from within the callback, in
+      // signInWithCredential
+      let signInEndpoint: fetch.Route;
+
+      beforeEach(() => {
+        idTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: IdTokenResponseKind.CreateAuthUri
+        };
+
+        signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+      });
+
+      it('finishes the sign in flow without calling #confirm if webOTP is used and supported by browser', async () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            const otpCred: OTPCredential = {
+              id: 'uid',
+              type: 'signIn',
+              code: '6789'
+            };
+            return Promise.resolve(otpCred);
+          });
+
+          const userCred = await signInWithPhoneNumber(
+            auth,
+            'number',
+            verifier,
+            10
+          );
+          expect(userCred.user.uid).to.eq('uid');
+          expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+          expect(signInEndpoint.calls[0].request).to.eql({
+            sessionInfo: 'session-info',
+            code: '6789'
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if browser does not support web OTP', async () => {
+        if (!('OTPCredential' in window)) {
+          signInWithPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(`Web OTP is not supported`);
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if web OTP code is not fetched before timeout', () => {
+        if ('OTPCredential' in window) {
+          sinon
+            .stub(window.navigator['credentials'], 'get')
+            .callsFake(async () => {
+              await setTimeout(() => {}, 10 * 1000);
+              return Promise.resolve(null);
+            });
+
+          signInWithPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP code is not fetched before timeout`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the code failed to be retrieved', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            throw new Error('get method failed!');
+          });
+
+          signInWithPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP get method failed to retrieve the code`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the retrieved code is null', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            return Promise.resolve(null);
+          });
+
+          signInWithPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `the auto-retrieved credential or code is not defined`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the code is incorrect', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            const otpCred: OTPCredential = {
+              id: 'uid',
+              type: 'signIn',
+              code: 'wrongcode'
+            };
+            return Promise.resolve(otpCred);
+          });
+
+          signInWithPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP get method failed to retrieve the code`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
       });
     });
   });
@@ -376,6 +540,164 @@ describe('platform_browser/strategies/phone', () => {
         });
       });
     });
+
+    /*context('WebOTP', () => {
+      let idTokenResponse: IdTokenResponse;
+      // This endpoint is called from within the callback, in
+      // signInWithCredential
+      let signInEndpoint: fetch.Route;
+
+      beforeEach(() => {
+        idTokenResponse = {
+          idToken: 'my-id-token',
+          refreshToken: 'my-refresh-token',
+          expiresIn: '1234',
+          localId: 'uid',
+          kind: IdTokenResponseKind.CreateAuthUri
+        };
+
+        signInEndpoint = mockEndpoint(
+          Endpoint.SIGN_IN_WITH_PHONE_NUMBER,
+          idTokenResponse
+        );
+
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ localId: 'uid' }]
+        });
+      });
+
+      it('finishes the sign in flow without calling #confirm if webOTP autofill is used', async () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            const otpCred: OTPCredential = {
+              id: 'uid',
+              type: 'signIn',
+              code: '6789'
+            };
+            return Promise.resolve(otpCred);
+          });
+          const userCred = await _verifyPhoneNumber(
+            auth,
+            'number',
+            verifier,
+            10
+          );
+          expect(userCred.user.uid).to.eq('uid');
+          expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+          expect(signInEndpoint.calls[0].request).to.eql({
+            sessionInfo: 'session-info',
+            code: '6789'
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if browser does not support web OTP', async () => {
+        if (!('OTPCredential' in window)) {
+          _verifyPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(`Web OTP is not supported`);
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if web OTP code is not fetched before timeout', () => {
+        if ('OTPCredential' in window) {
+          sinon
+            .stub(window.navigator['credentials'], 'get')
+            .callsFake(async () => {
+              await setTimeout(() => {}, 10 * 1000);
+              return Promise.resolve(null);
+            });
+
+          _verifyPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP code is not fetched before timeout`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the code failed to be retrieved', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            throw new Error('get method failed!');
+          });
+
+          _verifyPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP get method failed to retrieve the code`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the retrieved code is null', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            return Promise.resolve(null);
+          });
+
+          _verifyPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `the auto-retrieved credential or code is not defined`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+
+      it('throws error and allows user to sign-in via #confirm if the code is incorrect', () => {
+        if ('OTPCredential' in window) {
+          sinon.stub(window.navigator['credentials'], 'get').callsFake(() => {
+            const otpCred: OTPCredential = {
+              id: 'uid',
+              type: 'signIn',
+              code: 'wrongcode'
+            };
+            return Promise.resolve(otpCred);
+          });
+
+          _verifyPhoneNumber(auth, 'number', verifier, 3).catch(error => {
+            expect(error.code).to.eq(
+              `Web OTP get method failed to retrieve the code`
+            );
+            const userCred = error.confirmationResult.confirm('6789');
+            expect(userCred.user.uid).to.eq('uid');
+            expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
+            expect(signInEndpoint.calls[0].request).to.eql({
+              sessionInfo: 'session-info',
+              code: '6789'
+            });
+          });
+        }
+      });
+    });*/
 
     it('throws if the verifier does not return a string', async () => {
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));

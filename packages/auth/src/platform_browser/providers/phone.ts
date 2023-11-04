@@ -98,9 +98,11 @@ export class PhoneAuthProvider {
    * @param applicationVerifier - For abuse prevention, this method also requires a
    * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (in seconds).
    *
    * @returns A Promise for a verification ID that can be passed to
    * {@link PhoneAuthProvider.credential} to identify this flow..
+   *
    */
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,

@@ -31,7 +31,7 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -50,6 +50,19 @@ import { ProviderId } from '../../model/enums';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
+}
+
+// interfaces added to provide typescript support for webOTP autofill
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential {
+  code?: string;
 }
 
 class ConfirmationResultImpl implements ConfirmationResult {
@@ -71,8 +84,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given
- * phone number, and returns a {@link ConfirmationResult}. After the user
+ * This method sends a code via SMS to the given phone number,
+ * and returns a {@link ConfirmationResult}. After the user
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
@@ -105,15 +118,97 @@ export async function signInWithPhoneNumber(
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   const authInternal = _castAuth(auth);
-  const verificationId = await _verifyPhoneNumber(
-    authInternal,
-    phoneNumber,
-    getModularInstance(appVerifier as ApplicationVerifierInternal)
-  );
-  return new ConfirmationResultImpl(verificationId, cred =>
-    signInWithCredential(authInternal, cred)
-  );
+    const verificationId = await _verifyPhoneNumber(
+      authInternal,
+      phoneNumber,
+      getModularInstance(appVerifier as ApplicationVerifierInternal)
+    );
+    return new ConfirmationResultImpl(verificationId, cred =>
+      signInWithCredential(authInternal, cred)
+    );
 }
+
+/**
+ * Listens for an OTP code through WebOTP API until the provided timeout.
+ *
+ * @remarks
+ * This method does not work in a Node.js environment.
+ * 
+ * @example
+ * ```javascript
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const webOTPPromise = listenForWebOTP(auth, 10);
+ * try {
+ *   const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+ *   try {
+ *     const code = await webOTPPromise;
+ *     await confirmationResult.confirm(code);
+ *   } catch (e) {
+ *       // Obtain a verificationCode from the user.
+ *       await confirmationResult.confirm(verificationCode);
+ *   }
+ * } catch(e) {
+ *     clearApplicationVerifier();
+ *     onAuthError(e);
+ * };
+ * ```
+ *
+ *
+ * @param auth - The auth instance.
+ * @param webOTPTimeoutSeconds - The timeout for the WebOTP API.
+ *
+ * @public
+ */
+export async function listenForWebOTP(
+    auth: Auth,
+    webOTPTimeoutSeconds: number): Promise<string> {
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+
+        throw _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        );
+      }, webOTPTimeoutSeconds * 1000);
+
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            throw _errorWithCustomMessage(
+              auth,
+              AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+              `the auto-retrieved credential or code is not defined`
+            );
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          throw _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP get method failed to retrieve the code`
+          );
+        });
+        return code;
+  }
+
 
 /**
  * Links the user account with the given phone number.
@@ -206,7 +301,6 @@ export async function _verifyPhoneNumber(
     } else {
       phoneInfoOptions = options;
     }
-
     if ('session' in phoneInfoOptions) {
       const session = phoneInfoOptions.session as MultiFactorSessionImpl;
 

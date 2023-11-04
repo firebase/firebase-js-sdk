@@ -33,6 +33,7 @@ Firebase Authentication
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
 |  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
+|  [listenForWebOTP(auth, webOTPTimeoutSeconds)](./auth.md#listenforwebotp) | Listens for an OTP code through WebOTP API until the provided timeout. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. |
@@ -547,6 +548,52 @@ export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): bo
 <b>Returns:</b>
 
 boolean
+
+## listenForWebOTP()
+
+Listens for an OTP code through WebOTP API until the provided timeout.
+
+This method does not work in a Node.js environment.
+
+<b>Signature:</b>
+
+```typescript
+export declare function listenForWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<string>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The auth instance. |
+|  webOTPTimeoutSeconds | number | The timeout for the WebOTP API. |
+
+<b>Returns:</b>
+
+Promise&lt;string&gt;
+
+### Example
+
+
+```javascript
+// 'recaptcha-container' is the ID of an element in the DOM.
+const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+const webOTPPromise = listenForWebOTP(auth, 10);
+try {
+  const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+  try {
+    const code = await webOTPPromise;
+    await confirmationResult.confirm(code);
+  } catch (e) {
+      // Obtain a verificationCode from the user.
+      await confirmationResult.confirm(verificationCode);
+  }
+} catch(e) {
+    clearApplicationVerifier();
+    onAuthError(e);
+};
+
+```
 
 ## onAuthStateChanged()
 
@@ -1899,6 +1946,7 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly WEB_OTP_NOT_RETRIEVED: "auth/web-otp-not-retrieved";
 }
 ```
 

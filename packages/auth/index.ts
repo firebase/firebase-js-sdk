@@ -52,6 +52,7 @@ import { PhoneAuthProvider } from './src/platform_browser/providers/phone';
 // strategies
 import {
   signInWithPhoneNumber,
+  listenForWebOTP,
   linkWithPhoneNumber,
   reauthenticateWithPhoneNumber,
   updatePhoneNumber
@@ -88,6 +89,7 @@ export {
   PhoneAuthProvider,
   signInWithPhoneNumber,
   linkWithPhoneNumber,
+  listenForWebOTP,
   reauthenticateWithPhoneNumber,
   updatePhoneNumber,
   signInWithPopup,

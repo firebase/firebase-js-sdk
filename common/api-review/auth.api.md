@@ -235,6 +235,7 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly WEB_OTP_NOT_RETRIEVED: "auth/web-otp-not-retrieved";
 };
 
 // @public
@@ -451,6 +452,9 @@ export function linkWithPopup(user: User, provider: AuthProvider, resolver?: Pop
 
 // @public
 export function linkWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
+
+// @public
+export function listenForWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<string>;
 
 // @public
 export function multiFactor(user: User): MultiFactorUser;
