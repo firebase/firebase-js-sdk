@@ -21,7 +21,7 @@ import {
   ErrorCode
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import { fetch, Headers } from 'undici';
+import { fetch as undiciFetch, Headers as undiciHeaders } from 'undici';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -39,9 +39,9 @@ abstract class FetchConnection<T extends ConnectionType>
   protected statusCode_: number | undefined;
   protected body_: ArrayBuffer | undefined;
   protected errorText_ = '';
-  protected headers_: Headers | undefined;
+  protected headers_: undiciHeaders | undefined;
   protected sent_: boolean = false;
-  protected fetch_ = fetch;
+  protected fetch_ = undiciFetch;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
