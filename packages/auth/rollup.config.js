@@ -118,18 +118,6 @@ const browserExtensionBuilds = [
       index: 'index.extension.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/extension-esm5', format: 'es', sourcemap: true }],
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: {
-      index: 'index.extension.ts',
-      internal: 'internal/index.ts'
-    },
     output: {
       dir: 'dist/extension-esm2017',
       format: 'es',

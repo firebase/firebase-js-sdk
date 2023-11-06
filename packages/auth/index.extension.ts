@@ -24,13 +24,6 @@ import { browserSessionPersistence } from './src/platform_browser/persistence/se
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import {
-  signInWithRedirect,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  getRedirectResult
-} from './src/platform_browser/strategies/redirect';
-
-import {
   TotpMultiFactorGenerator,
   TotpSecret
 } from './src/mfa/assertions/totp';
@@ -71,10 +64,6 @@ registerAuth(ClientPlatform.EXTENSION);
 export {
   browserSessionPersistence,
   indexedDBLocalPersistence,
-  signInWithRedirect,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  getRedirectResult,
   TotpMultiFactorGenerator,
   TotpSecret,
   getAuth
