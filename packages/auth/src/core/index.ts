@@ -246,7 +246,12 @@ export function signOut(auth: Auth): Promise<void> {
 }
 
 /**
- * Revokes the given access token. Currently only supports Apple OAuth Access token.
+ * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param token - The Apple OAuth access token.
+ *
+ * @public
  */
 export function revokeAccessToken(auth: Auth, token: string): Promise<void> {
   const authInternal = _castAuth(auth);

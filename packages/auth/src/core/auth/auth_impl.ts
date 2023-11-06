@@ -520,7 +520,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   /**
-   * Revokes the given access token. Currently only supports Apple OAuth Access token.
+   * Revokes the given access token. Currently only supports Apple OAuth access tokens.
    */
   async revokeAccessToken(token: string): Promise<void> {
     if (this.currentUser) {
