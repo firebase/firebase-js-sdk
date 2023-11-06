@@ -129,7 +129,9 @@ _setExternalJSProvider({
   },
 
   gapiScript: 'https://apis.google.com/js/api.js',
-  reCAPTCHAScript: 'https://www.google.com/recaptcha/api.js',
-})
+  recaptchaV2Script: 'https://www.google.com/recaptcha/api.js',
+  recaptchaEnterpriseScript:
+    'https://www.google.com/recaptcha/enterprise.js?render='
+});
 
 registerAuth(ClientPlatform.BROWSER);

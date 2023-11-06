@@ -31,7 +31,8 @@ export const enum ClientPlatform {
   NODE = 'Node',
   REACT_NATIVE = 'ReactNative',
   CORDOVA = 'Cordova',
-  WORKER = 'Worker'
+  WORKER = 'Worker',
+  EXTENSION = 'Extension'
 }
 
 /*

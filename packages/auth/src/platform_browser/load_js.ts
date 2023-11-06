@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { _createError } from '../core/util/assert';
-
 interface ExternalJSProvider {
   loadJS(url: string): Promise<Event>;
-  reCAPTCHAScript: string;
+  recaptchaV2Script: string;
+  recaptchaEnterpriseScript: string;
   gapiScript: string;
 }
 
@@ -28,11 +27,12 @@ let externalJSProvider: ExternalJSProvider = {
     throw new Error('Unable to load external scripts');
   },
 
-  reCAPTCHAScript: '',
-  gapiScript: '',
-}
+  recaptchaV2Script: '',
+  recaptchaEnterpriseScript: '',
+  gapiScript: ''
+};
 
-export function _setExternalJSProvider(p: ExternalJSProvider) {
+export function _setExternalJSProvider(p: ExternalJSProvider): void {
   externalJSProvider = p;
 }
 
@@ -40,8 +40,12 @@ export function _loadJS(url: string): Promise<Event> {
   return externalJSProvider.loadJS(url);
 }
 
-export function _recaptchaScriptUrl(): string {
-  return externalJSProvider.reCAPTCHAScript;
+export function _recaptchaV2ScriptUrl(): string {
+  return externalJSProvider.recaptchaV2Script;
+}
+
+export function _recaptchaEnterpriseScriptUrl(): string {
+  return externalJSProvider.recaptchaEnterpriseScript;
 }
 
 export function _gapiScriptUrl(): string {

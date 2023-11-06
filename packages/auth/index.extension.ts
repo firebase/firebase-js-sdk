@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,31 +18,11 @@
 // Core functionality shared by all clients
 export * from './src';
 
-// Additional DOM dependend functionality; we need to import and then
-// export separately so that the rollup alias will work (for aliasing these
-// imports in node environments to no-ops and errors... see
-// src/platform_node/index.ts).
+import { ClientPlatform } from './src/core/util/version';
 
-// persistence
-import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
-// providers
-import { PhoneAuthProvider } from './src/platform_browser/providers/phone';
-
-// strategies
-import {
-  signInWithPhoneNumber,
-  linkWithPhoneNumber,
-  reauthenticateWithPhoneNumber,
-  updatePhoneNumber
-} from './src/platform_browser/strategies/phone';
-import {
-  signInWithPopup,
-  linkWithPopup,
-  reauthenticateWithPopup
-} from './src/platform_browser/strategies/popup';
 import {
   signInWithRedirect,
   linkWithRedirect,
@@ -50,11 +30,6 @@ import {
   getRedirectResult
 } from './src/platform_browser/strategies/redirect';
 
-import { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';
-import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
-
-// MFA
-import { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 import {
   TotpMultiFactorGenerator,
   TotpSecret
@@ -80,12 +55,7 @@ function getAuth(app: FirebaseApp = getApp()): Auth {
   }
 
   const auth = initializeAuth(app, {
-    popupRedirectResolver: browserPopupRedirectResolver,
-    persistence: [
-      indexedDBLocalPersistence,
-      browserLocalPersistence,
-      browserSessionPersistence
-    ]
+    persistence: [indexedDBLocalPersistence, browserSessionPersistence]
   });
 
   const authEmulatorHost = getDefaultEmulatorHost('auth');
@@ -96,27 +66,15 @@ function getAuth(app: FirebaseApp = getApp()): Auth {
   return auth;
 }
 
-registerAuth('browser' as any);
+registerAuth(ClientPlatform.EXTENSION);
 
 export {
-  browserLocalPersistence,
   browserSessionPersistence,
   indexedDBLocalPersistence,
-  PhoneAuthProvider,
-  signInWithPhoneNumber,
-  linkWithPhoneNumber,
-  reauthenticateWithPhoneNumber,
-  updatePhoneNumber,
-  signInWithPopup,
-  linkWithPopup,
-  reauthenticateWithPopup,
   signInWithRedirect,
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult,
-  RecaptchaVerifier,
-  browserPopupRedirectResolver,
-  PhoneMultiFactorGenerator,
   TotpMultiFactorGenerator,
   TotpSecret,
   getAuth

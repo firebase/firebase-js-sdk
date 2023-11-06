@@ -31,9 +31,6 @@ import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
 import { AuthErrorCode } from '../../core/errors';
 
-const RECAPTCHA_ENTERPRISE_URL =
-  'https://www.google.com/recaptcha/enterprise.js?render=';
-
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
 
@@ -134,8 +131,12 @@ export class RecaptchaEnterpriseVerifier {
               );
               return;
             }
+            let url = jsHelpers._recaptchaEnterpriseScriptUrl();
+            if (url.length !== 0) {
+              url += siteKey;
+            }
             jsHelpers
-              ._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
+              ._loadJS(url)
               .then(() => {
                 retrieveRecaptchaToken(siteKey, resolve, reject);
               })

@@ -245,5 +245,5 @@ export default [
   ...nodeBuilds,
   cordovaBuild,
   rnBuild,
-  webWorkerBuild,
+  webWorkerBuild
 ];

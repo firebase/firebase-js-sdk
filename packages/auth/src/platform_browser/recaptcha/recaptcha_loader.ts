@@ -90,7 +90,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         resolve(recaptcha);
       };
 
-      const url = `${jsHelpers._recaptchaScriptUrl()}?${querystring({
+      const url = `${jsHelpers._recaptchaV2ScriptUrl()}?${querystring({
         onload: _JSLOAD_CALLBACK,
         render: 'explicit',
         hl

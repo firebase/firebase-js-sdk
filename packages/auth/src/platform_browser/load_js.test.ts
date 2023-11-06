@@ -19,7 +19,13 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { _generateCallbackName, _loadJS } from './load_js';
+import {
+  _generateCallbackName,
+  _loadJS,
+  _setExternalJSProvider
+} from './load_js';
+import { _createError } from '../core/util/assert';
+import { AuthErrorCode } from '../core/errors';
 
 use(sinonChai);
 
@@ -34,6 +40,22 @@ describe('platform-browser/load_js', () => {
 
   describe('_loadJS', () => {
     it('sets the appropriate properties', () => {
+      _setExternalJSProvider({
+        loadJS(url: string): Promise<Event> {
+          return new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            el.setAttribute('src', url);
+            el.onload = resolve;
+            el.onerror = e => {
+              const error = _createError(AuthErrorCode.INTERNAL_ERROR);
+              error.customData = e as unknown as Record<string, unknown>;
+              reject(error);
+            };
+            el.type = 'text/javascript';
+            el.charset = 'UTF-8';
+          });
+        }
+      });
       const el = document.createElement('script');
       sinon.stub(el); // Prevent actually setting the src attribute
       sinon.stub(document, 'createElement').returns(el);
