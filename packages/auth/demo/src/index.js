@@ -73,7 +73,8 @@ import {
   browserPopupRedirectResolver,
   connectAuthEmulator,
   initializeRecaptchaConfig,
-  validatePassword
+  validatePassword,
+  revokeAccessToken
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -1730,13 +1731,58 @@ function logAdditionalUserInfo(response) {
  * Deletes the user account.
  */
 function onDelete() {
-  activeUser()
-    ['delete']()
-    .then(() => {
-      log('User successfully deleted.');
-      alertSuccess('User successfully deleted.');
-      refreshUserData();
-    }, onAuthError);
+  let isAppleProviderLinked = false;
+
+  for (const provider of activeUser().providerData) {
+    if (provider.providerId == 'apple.com') {
+      isAppleProviderLinked = true;
+      break;
+    }
+  }
+
+  if (isAppleProviderLinked) {
+    revokeAppleTokenAndDeleteUser();
+  } else {
+    activeUser()
+      ['delete']()
+      .then(() => {
+        log('User successfully deleted.');
+        alertSuccess('User successfully deleted.');
+        refreshUserData();
+      }, onAuthError);
+  }
+}
+
+function revokeAppleTokenAndDeleteUser() {
+  // Re-auth then revoke the token
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+
+  const auth = getAuth();
+  signInWithPopup(auth, provider).then(result => {
+    // The signed-in user info.
+    const credential = OAuthProvider.credentialFromResult(result);
+    const accessToken = credential.accessToken;
+
+    revokeAccessToken(auth, accessToken)
+      .then(() => {
+        log('Token successfully revoked.');
+
+        // Usual user deletion
+        activeUser()
+          ['delete']()
+          .then(() => {
+            log('User successfully deleted.');
+            alertSuccess('User successfully deleted.');
+            refreshUserData();
+          }, onAuthError);
+      })
+      .catch(error => {
+        log('Failed to revoke token. ', error.message);
+        alertError('Failed to revoke token. ', error.message);
+      });
+  });
 }
 
 /**

@@ -35,6 +35,7 @@ Firebase Authentication
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
+|  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
 |  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
@@ -597,6 +598,27 @@ export declare function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObser
 <b>Returns:</b>
 
 [Unsubscribe](./util.md#unsubscribe)
+
+## revokeAccessToken()
+
+Revokes the given access token. Currently only supports Apple OAuth access tokens.
+
+<b>Signature:</b>
+
+```typescript
+export declare function revokeAccessToken(auth: Auth, token: string): Promise<void>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+|  token | string | The Apple OAuth access token. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
 
 ## sendPasswordResetEmail()
 

@@ -63,6 +63,11 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import {
+  RevokeTokenRequest,
+  TokenType,
+  revokeToken
+} from '../../api/authentication/token';
 import { AuthMiddlewareQueue } from './middleware';
 import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
 import { _logWarn } from '../util/log';
@@ -512,6 +517,26 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         }, reject);
       }
     });
+  }
+
+  /**
+   * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+   */
+  async revokeAccessToken(token: string): Promise<void> {
+    if (this.currentUser) {
+      const idToken = await this.currentUser.getIdToken();
+      // Generalize this to accept other providers once supported.
+      const request: RevokeTokenRequest = {
+        providerId: 'apple.com',
+        tokenType: TokenType.ACCESS_TOKEN,
+        token,
+        idToken
+      };
+      if (this.tenantId != null) {
+        request.tenantId = this.tenantId;
+      }
+      await revokeToken(this, request);
+    }
   }
 
   toJSON(): object {
