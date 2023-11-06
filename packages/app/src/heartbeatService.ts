@@ -127,8 +127,10 @@ export class HeartbeatServiceImpl implements HeartbeatService {
       await this._heartbeatsCachePromise;
     }
     // If it's still null or the array is empty, there is no data to send.
-    if (this._heartbeatsCache?.heartbeats == null ||
-      this._heartbeatsCache.heartbeats.length === 0) {
+    if (
+      this._heartbeatsCache?.heartbeats == null ||
+      this._heartbeatsCache.heartbeats.length === 0
+    ) {
       return '';
     }
     const date = getUTCDateString();
