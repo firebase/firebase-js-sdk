@@ -928,6 +928,48 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
+  // Reproduce the bug in b/238823695
+  specTest(
+    'Limbo resolution should wait for full re-query result if there is an existence filter mismatch ',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // Simulate that the client loses network connection.
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key])
+          // Bugged behavior: Missing watchCurrent here will move
+          // all the docs to limbo unnecessarily.
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+          })
+          .watchRemoves(query1)
+          .watchAcksFull(query1, 3000, docA)
+          // Only the deleted doc is moved to limbo after re-query result.
+          .expectLimboDocs(docB.key)
+          .ackLimbo(3000, deletedDoc('collection/b', 3000))
+          .expectLimboDocs()
+          .expectEvents(query1, {
+            removed: [docB]
+          })
+      );
+    }
+  );
   specTest(
     'Limbo resolution throttling with bloom filter application',
     [],
