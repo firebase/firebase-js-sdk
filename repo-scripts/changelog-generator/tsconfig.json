@@ -3,8 +3,7 @@
     "strict": true,
     "outDir": "dist",
     "lib": [
-      "ESNext",
-      "DOM"
+      "ESNext"
     ],
     "module": "CommonJS",
     "moduleResolution": "node",
