@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { registerFunctions } from './config';
-import { fetch as undiciFetch} from 'undici';
+import { fetch as undiciFetch } from 'undici';
 
 export * from './api';
 
