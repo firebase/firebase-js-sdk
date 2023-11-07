@@ -88,7 +88,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     // service, not the browser user agent.
     const agent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
-    if (this._heartbeatsCache === null) {
+    if (this._heartbeatsCache?.heartbeats == null) {
       this._heartbeatsCache = await this._heartbeatsCachePromise;
     }
     // Do not store a heartbeat if one is already stored for this day
@@ -128,7 +128,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     }
     // If it's still null or the array is empty, there is no data to send.
     if (
-      this._heartbeatsCache === null ||
+      this._heartbeatsCache?.heartbeats == null ||
       this._heartbeatsCache.heartbeats.length === 0
     ) {
       return '';
