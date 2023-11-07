@@ -43,7 +43,7 @@ Firebase Authentication
 |  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken) | Asynchronously signs in using a custom token. |
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink) | Asynchronously signs in using an email and sign-in email link. |
-|  [signInWithPasskey(auth, name, manualSignUp)](./auth.md#signinwithpasskey) | Signs in a user with a passkey. |
+|  [signInWithPasskey(auth, name, manualSignUp)](./auth.md#signinwithpasskey) | Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user. |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect) | Authenticates a Firebase client using a full-page redirect flow. |
@@ -881,7 +881,7 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ## signInWithPasskey()
 
-Signs in a user with a passkey.
+Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
 
 <b>Signature:</b>
 
@@ -895,7 +895,7 @@ export declare function signInWithPasskey(auth: Auth, name: string, manualSignUp
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The Firebase Auth instance. |
 |  name | string | The user's name for passkey. |
-|  manualSignUp | boolean | When false, automatically creates an anonymous user if a user does not exist. Defaults to false. |
+|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false. |
 
 <b>Returns:</b>
 

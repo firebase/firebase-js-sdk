@@ -44,10 +44,10 @@ const PASSKEY_LOOK_UP_ERROR_MESSAGE =
   'The operation either timed out or was not allowed.';
 
 /**
- * Signs in a user with a passkey.
+ * Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
  * @param auth - The Firebase Auth instance.
  * @param name - The user's name for passkey.
- * @param manualSignUp - When false, automatically creates an anonymous user if a user does not exist. Defaults to false.
+ * @param manualSignUp - When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false.
  * @returns A promise that resolves with a `UserCredential` object.
  */
 export async function signInWithPasskey(
