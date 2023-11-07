@@ -152,10 +152,7 @@ export class PhoneAuthProvider {
         return _verifyPhoneNumber(
           this.auth,
           phoneOptions,
-          getModularInstance(
-            applicationVerifier as ApplicationVerifierInternal
-          ),
-          webOTPTimeoutSeconds
+          getModularInstance(applicationVerifier as ApplicationVerifierInternal)
         );
       } catch (error) {
         throw error;

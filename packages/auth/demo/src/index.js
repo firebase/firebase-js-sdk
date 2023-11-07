@@ -76,8 +76,8 @@ import {
   revokeAccessToken,
   AuthErrorCodes,
   validatePassword,
-  signInWithPhoneNumber,
-  } from '@firebase/auth';
+  signInWithPhoneNumber
+} from '@firebase/auth';
 
 import { config } from './config';
 import {
@@ -717,9 +717,6 @@ function clearApplicationVerifier() {
   }
 }
 
-/**
- * Sends a phone number verification code for sign-in.
- */
 async function onSignInVerifyPhoneNumber() {
   const phoneNumber = $('#signin-phone-number').val();
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
@@ -727,26 +724,70 @@ async function onSignInVerifyPhoneNumber() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
-  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
-    .then(userCredential => {
-      onAuthUserCredentialSuccess(userCredential);
-    })
-    .catch(e => {
+  signInWithPhoneNumber(auth, phoneNumber, applicationVerifier).then(
+    confirmationResult => {
+      window.confirmationResult = confirmationResult;
+    }
+  );
+}
+
+async function onSignInVerifyPhoneNumberWebOTP() {
+  const phoneNumber = $('#signin-phone-number').val();
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // link/re-auth operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('signin-verify-phone-number');
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier).then(
+    confirmationResult => {
+      window.confirmationResult = confirmationResult;
+      confirmationResult
+        .confirmed(auth)
+        .then(onAuthUserCredentialSuccess, onAuthError);
+    }
+  );
+}
+
+function onSignInConfirmPhoneVerification() {
+  const verificationCode = $('#signin-phone-verification-code').val();
+  const confirmationResult = window.confirmationResult;
+  confirmationResult
+    .confirm(verificationCode)
+    .then(onAuthUserCredentialSuccess, onAuthError);
+}
+
+/**
+ * Sends a phone number verification code for sign-in.
+ */
+async function onSignInVerifyPhoneNumberAuthProvider() {
+  const phoneNumber = $('#signin-phone-number-auth-provider').val();
+  const provider = new PhoneAuthProvider(auth);
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // link/re-auth operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('signin-verify-phone-number-auth-provider');
+  provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
+    verificationId => {
       clearApplicationVerifier();
-      onAuthError(e);
-      if (e.code === `auth/${AuthErrorCodes.WEB_OTP_NOT_RETRIEVED}`) {
-        const verificationCode = $('#signin-phone-verification-code').val();
-        e.confirmationResult.confirm(verificationCode);
-      }
-    });
+      $('#signin-phone-verification-id-auth-provider').val(verificationId);
+      alertSuccess('Phone verification sent!');
+    },
+    error => {
+      clearApplicationVerifier();
+      onAuthError(error);
+    }
+  );
 }
 
 /**
  * Confirms a phone number verification for sign-in.
  */
-function onSignInConfirmPhoneVerification() {
-  const verificationId = $('#signin-phone-verification-id').val();
-  const verificationCode = $('#signin-phone-verification-code').val();
+function onSignInConfirmPhoneVerificationAuthProvider() {
+  const verificationId = $('#signin-phone-verification-id-auth-provider').val();
+  const verificationCode = $(
+    '#signin-phone-verification-code-auth-provider'
+  ).val();
   const credential = PhoneAuthProvider.credential(
     verificationId,
     verificationCode
@@ -2277,10 +2318,21 @@ function initApp() {
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
+
   $('#signin-verify-phone-number').click(onSignInVerifyPhoneNumber);
+  $('#signin-verify-phone-number-webotp').click(
+    onSignInVerifyPhoneNumberWebOTP
+  );
   $('#signin-confirm-phone-verification').click(
     onSignInConfirmPhoneVerification
   );
+  $('#signin-verify-phone-number-auth-provider').click(
+    onSignInVerifyPhoneNumberAuthProvider
+  );
+  $('#signin-confirm-phone-verification-auth-provider').click(
+    onSignInConfirmPhoneVerificationAuthProvider
+  );
+
   // On enter click in verification code, complete phone sign-in. This prevents
   // reCAPTCHA from being re-rendered (default behavior on enter).
   $('#signin-phone-verification-code').keypress(e => {

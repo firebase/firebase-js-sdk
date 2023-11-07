@@ -71,12 +71,59 @@ class ConfirmationResultImpl implements ConfirmationResult {
     private readonly onConfirmation: OnConfirmationCallback
   ) {}
 
-  confirm(verificationCode: string): Promise<UserCredential> {
-    const authCredential = PhoneAuthCredential._fromVerification(
-      this.verificationId,
-      verificationCode
-    );
-    return this.onConfirmation(authCredential);
+  private confirmInProgress = false;
+  private confirmResolve: (
+    value: UserCredential | PromiseLike<UserCredential>
+  ) => void = () => {};
+  private confirmReject: (reason: Error) => void = () => {};
+
+  // confirm method with minimal changes
+  async confirm(verificationCode: string): Promise<UserCredential> {
+    this.confirmInProgress = true;
+    try {
+      const authCredential = PhoneAuthCredential._fromVerification(
+        this.verificationId,
+        verificationCode
+      );
+      const userCredential = await this.onConfirmation(authCredential);
+      this.confirmResolve(userCredential); // Resolve any waiting confirmed promise
+      return userCredential;
+    } catch (error) {
+      this.confirmReject(error as Error); // Reject any waiting confirmed promise
+      throw error;
+    } finally {
+      this.confirmInProgress = false;
+    }
+  }
+
+  // New confirmed method
+  confirmed(auth: Auth): Promise<UserCredential> {
+    // If confirm is already in progress, we return a promise that will be resolved
+    // or rejected by the ongoing confirm operation.
+    if (this.confirmInProgress) {
+      return new Promise<UserCredential>((resolve, reject) => {
+        this.confirmResolve = resolve;
+        this.confirmReject = reject;
+      });
+    } else {
+      // If confirm is not in progress, we race confirmWithWebOTP with a promise
+      // that can be resolved or rejected by a future confirm call.
+      const manualConfirmationPromise = new Promise<UserCredential>(
+        (resolve, reject) => {
+          this.confirmResolve = resolve;
+          this.confirmReject = reject;
+        }
+      );
+
+      // Immediately invoke confirmWithWebOTP to start the WebOTP process
+      const webOTPConfirmationPromise = this.confirmWithWebOTP(auth, 30);
+
+      // Race the manual confirmation promise against the WebOTP confirmation promise
+      return Promise.race([
+        manualConfirmationPromise,
+        webOTPConfirmationPromise
+      ]);
+    }
   }
 
   async confirmWithWebOTP(
@@ -186,42 +233,6 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
- *
- * @public
- */
-export async function signInWithPhoneNumber(
-  auth: Auth,
-  phoneNumber: string,
-  appVerifier: ApplicationVerifier
-): Promise<ConfirmationResult>;
-
-/**
- * Asynchronously signs in using a phone number.
- *
- * @remarks
- * This method sends a code via SMS to the given phone number.
- * Then, the method will try to autofill the SMS code for the user and
- * sign the user in. A {@link UserCredential} is then returned if the process is successful.
- * If the process failed, {@link FirebaseError} is thrown.
- *
- * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
- * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
- * This function can work on other platforms that do not support the
- * {@link RecaptchaVerifier} (like React Native), but you need to use a
- * third-party {@link ApplicationVerifier} implementation.
- *
- * This method does not work in a Node.js environment.
- *
- * @example
- * ```javascript
- * // 'recaptcha-container' is the ID of an element in the DOM.
- * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
- * const userCredential = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 10);
- * ```
- *
- * @param auth - The {@link Auth} instance.
- * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
- * @param appVerifier - The {@link ApplicationVerifier}.
  * @param webOTPTimtout - Errors would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
  *
  * @public
@@ -229,39 +240,17 @@ export async function signInWithPhoneNumber(
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier: ApplicationVerifier,
-  webOTPTimeoutSeconds: number
-): Promise<UserCredential>;
-
-export async function signInWithPhoneNumber(
-  auth: Auth,
-  phoneNumber: string,
-  appVerifier: ApplicationVerifier,
-  webOTPTimeoutSeconds?: number
-): Promise<UserCredential | ConfirmationResult> {
+  appVerifier: ApplicationVerifier
+): Promise<ConfirmationResult> {
   const authInternal = _castAuth(auth);
-  if (webOTPTimeoutSeconds) {
-    try {
-      const userCred = await _verifyPhoneNumber(
-        authInternal,
-        phoneNumber,
-        getModularInstance(appVerifier as ApplicationVerifierInternal),
-        webOTPTimeoutSeconds
-      );
-      return userCred;
-    } catch (error) {
-      throw error;
-    }
-  } else {
-    const verificationId = await _verifyPhoneNumber(
-      authInternal,
-      phoneNumber,
-      getModularInstance(appVerifier as ApplicationVerifierInternal)
-    );
-    return new ConfirmationResultImpl(verificationId, cred =>
-      signInWithCredential(authInternal, cred)
-    );
-  }
+  const verificationId = await _verifyPhoneNumber(
+    authInternal,
+    phoneNumber,
+    getModularInstance(appVerifier as ApplicationVerifierInternal)
+  );
+  return new ConfirmationResultImpl(verificationId, cred =>
+    signInWithCredential(authInternal, cred)
+  );
 }
 
 /**
@@ -331,21 +320,7 @@ export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
   verifier: ApplicationVerifierInternal
-): Promise<string>;
-
-export async function _verifyPhoneNumber(
-  auth: AuthInternal,
-  options: PhoneInfoOptions | string,
-  verifier: ApplicationVerifierInternal,
-  webOTPTimeoutSeconds: number
-): Promise<UserCredential>;
-
-export async function _verifyPhoneNumber(
-  auth: AuthInternal,
-  options: PhoneInfoOptions | string,
-  verifier: ApplicationVerifierInternal,
-  webOTPTimeoutSeconds?: number
-): Promise<string | UserCredential> {
+): Promise<string> {
   const recaptchaToken = await verifier.verify();
 
   try {
@@ -412,20 +387,6 @@ export async function _verifyPhoneNumber(
         recaptchaToken
       });
       verificationId = sessionInfo;
-    }
-    const authInternal = _castAuth(auth);
-    const confirmationRes = new ConfirmationResultImpl(verificationId, cred =>
-      signInWithCredential(authInternal, cred)
-    );
-    if (webOTPTimeoutSeconds) {
-      try {
-        return confirmationRes.confirmWithWebOTP(
-          authInternal,
-          webOTPTimeoutSeconds
-        );
-      } catch (error) {
-        throw error;
-      }
     }
     return verificationId;
   } finally {
