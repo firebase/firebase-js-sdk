@@ -76,8 +76,8 @@ import {
   revokeAccessToken,
   AuthErrorCodes,
   validatePassword,
-  signInWithPhoneNumber,
-  } from '@firebase/auth';
+  signInWithPhoneNumber
+} from '@firebase/auth';
 
 import { config } from './config';
 import {
