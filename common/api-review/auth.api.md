@@ -353,6 +353,9 @@ export interface EmulatorConfig {
     readonly protocol: string;
 }
 
+// @public
+export function enrollPasskey(user: User, name: string): Promise<UserCredential>;
+
 export { ErrorFn }
 
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
@@ -772,6 +775,9 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 
 // @public
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
+
+// @public
+export function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
 
 // @public
 export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
