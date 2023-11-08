@@ -70,7 +70,11 @@ export const enum Endpoint {
   GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
   GET_PASSWORD_POLICY = '/v2/passwordPolicy',
   TOKEN = '/v1/token',
-  REVOKE_TOKEN = '/v2/accounts:revokeToken'
+  REVOKE_TOKEN = '/v2/accounts:revokeToken',
+  START_PASSKEY_ENROLLMENT = '/v2/accounts/passkeyEnrollment:start',
+  FINALIZE_PASSKEY_ENROLLMENT = '/v2/accounts/passkeyEnrollment:finalize',
+  START_PASSKEY_SIGNIN = '/v2/accounts/passkeySignIn:start',
+  FINALIZE_PASSKEY_SIGNIN = '/v2/accounts/passkeySignIn:finalize'
 }
 
 export const enum RecaptchaClientType {
