@@ -17,7 +17,7 @@
 
 import { HostAndPort } from '../public_types';
 import { makeUrl } from './url';
-import { fetch as undiciFetch } from 'undici';
+import fetch from 'node-fetch';
 
 /**
  * @private
@@ -29,7 +29,7 @@ export async function loadDatabaseRules(
 ): Promise<void> {
   const url = makeUrl(hostAndPort, '/.settings/rules.json');
   url.searchParams.append('ns', databaseName);
-  const resp = await undiciFetch(url, {
+  const resp = await fetch(url, {
     method: 'PUT',
     headers: { Authorization: 'Bearer owner' },
     body: rules
@@ -48,7 +48,7 @@ export async function loadFirestoreRules(
   projectId: string,
   rules: string
 ): Promise<void> {
-  const resp = await undiciFetch(
+  const resp = await fetch(
     makeUrl(hostAndPort, `/emulator/v1/projects/${projectId}:securityRules`),
     {
       method: 'PUT',
@@ -72,7 +72,7 @@ export async function loadStorageRules(
   hostAndPort: HostAndPort,
   rules: string
 ): Promise<void> {
-  const resp = await undiciFetch(makeUrl(hostAndPort, '/internal/setRules'), {
+  const resp = await fetch(makeUrl(hostAndPort, '/internal/setRules'), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'

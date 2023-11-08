@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { fetch as undiciFetch } from 'undici';
+import fetch from 'node-fetch';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/database';
@@ -106,7 +106,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     this.checkNotDestroyed();
     assertEmulatorRunning(this.emulators, 'firestore');
 
-    const resp = await undiciFetch(
+    const resp = await fetch(
       makeUrl(
         this.emulators.firestore,
         `/emulator/v1/projects/${this.projectId}/databases/(default)/documents`
