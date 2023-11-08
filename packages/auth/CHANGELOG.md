@@ -1,5 +1,22 @@
 # @firebase/auth
 
+## 1.3.2
+
+### Patch Changes
+
+- [`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5) [#7720](https://github.com/firebase/firebase-js-sdk/pull/7720) - fixes github issue https://github.com/firebase/firebase-js-sdk/issues/7701.
+
+## 1.3.1
+
+### Patch Changes
+
+- [`f002ef36a`](https://github.com/firebase/firebase-js-sdk/commit/f002ef36a6b427fd526696f9cd6077a217ccc6ef) [#7634](https://github.com/firebase/firebase-js-sdk/pull/7634) (fixes [#7633](https://github.com/firebase/firebase-js-sdk/issues/7633)) - Fix FetchProvider in non-browser environments, by trying to get the `fetch` implementation from not only `self` but also standard `globalThis`.
+
+- [`68927ced1`](https://github.com/firebase/firebase-js-sdk/commit/68927ced1159d9b79407c7823d7f48d30ccb591e) [#7685](https://github.com/firebase/firebase-js-sdk/pull/7685) - Create getProviderEnforcementState method to get reCAPTCHA Enterprise enforcement state of a provider.
+  This is an internal code change preparing for future features.
+
+- [`3533b32b1`](https://github.com/firebase/firebase-js-sdk/commit/3533b32b1be6a9800b1b58a6a2b08f50fae18eeb) [#7666](https://github.com/firebase/firebase-js-sdk/pull/7666) - Create handleRecaptchaFlow helper method
+
 ## 1.3.0
 
 ### Minor Changes

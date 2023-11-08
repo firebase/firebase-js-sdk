@@ -16,6 +16,7 @@ jobs:
     - uses: 'google-github-actions/auth@v0'
       with:
         credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
+    
     # create composite indexes with Terraform
     - name: Setup Terraform 
       uses: hashicorp/setup-terraform@v2
@@ -29,8 +30,21 @@ jobs:
       if: github.event_name == 'pull_request'
       run: |
         cd packages/firestore
-        terraform apply -var-file=../../config/project.json -auto-approve &> /dev/null
+
+        # Define a temporary file, redirect both stdout and stderr to it
+        output_file=$(mktemp)
+        if ! terraform apply -var-file=../../config/project.json -auto-approve > "$output_file" 2>&1 ; then
+          cat "$output_file"
+          if cat "$output_file" | grep -q "index already exists"; then
+            echo "==================================================================================="
+            echo -e "\e[93m\e[1mTerraform apply failed due to index already exists; We can safely ignore this error.\e[0m"
+            echo "==================================================================================="
+          fi
+          exit 1
+        fi
+        rm -f "$output_file"
       continue-on-error: true
+
     - name: Set up Node (16)
       uses: actions/setup-node@v3
       with:

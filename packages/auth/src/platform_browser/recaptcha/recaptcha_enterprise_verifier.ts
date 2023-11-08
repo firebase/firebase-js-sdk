@@ -21,7 +21,8 @@ import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import {
   RecaptchaClientType,
   RecaptchaVersion,
-  RecaptchaActionName
+  RecaptchaActionName,
+  RecaptchaProvider
 } from '../../api';
 
 import { Auth } from '../../model/public_types';
@@ -187,7 +188,11 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
   actionName: RecaptchaActionName,
   actionMethod: ActionMethod<TRequest, TResponse>
 ): Promise<TResponse> {
-  if (authInstance._getRecaptchaConfig()?.emailPasswordEnabled) {
+  if (
+    authInstance
+      ._getRecaptchaConfig()
+      ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
+  ) {
     const requestWithRecaptcha = await injectRecaptchaFields(
       authInstance,
       request,
@@ -230,7 +235,7 @@ export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
     authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
   }
 
-  if (config.emailPasswordEnabled) {
+  if (config.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)) {
     const verifier = new RecaptchaEnterpriseVerifier(authInternal);
     void verifier.verify();
   }
