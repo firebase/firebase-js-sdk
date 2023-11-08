@@ -372,12 +372,25 @@
                 <button class="btn btn-block btn-primary" id="signin-verify-phone-number">
                   Verify Phone Number
                 </button>
-                <input type="text" id="signin-phone-verification-id"
-                       class="form-control" placeholder="Phone Verification ID" />
                 <input type="text" id="signin-phone-verification-code"
                        class="form-control" placeholder="Phone Verification Code" />
                 <button class="btn btn-block btn-primary" id="signin-confirm-phone-verification">
-                  Sign in by Confirming Phone Verification
+                  Sign in
+                </button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="tel" id="signin-phone-number-auth-provider"
+                       class="form-control" placeholder="Phone Number" />
+                <button class="btn btn-block btn-primary" id="signin-verify-phone-number-auth-provider">
+                  Verify Phone Number (PhoneAuthProvider)
+                </button>
+                <input type="text" id="signin-phone-verification-id-auth-provider"
+                       class="form-control" placeholder="Phone Verification ID" />
+                <input type="text" id="signin-phone-verification-code-auth-provider"
+                       class="form-control" placeholder="Phone Verification Code" />
+                <button class="btn btn-block btn-primary" id="signin-confirm-phone-verification-auth-provider">
+                  Sign in (PhoneAuthProvider)
                 </button>
               </form>
 
