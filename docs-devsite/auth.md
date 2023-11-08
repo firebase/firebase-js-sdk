@@ -412,7 +412,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  email | string | The user's email address. |
+|  email | string | The user's email address.<!-- -->Deprecated Migrating off of this method is recommended as a security best-practice. |
 
 <b>Returns:</b>
 
