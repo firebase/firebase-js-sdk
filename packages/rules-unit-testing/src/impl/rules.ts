@@ -48,7 +48,7 @@ export async function loadFirestoreRules(
   projectId: string,
   rules: string
 ): Promise<void> {
-  const resp = await fetch(
+  const resp = await undiciFetch(
     makeUrl(hostAndPort, `/emulator/v1/projects/${projectId}:securityRules`),
     {
       method: 'PUT',
@@ -72,7 +72,7 @@ export async function loadStorageRules(
   hostAndPort: HostAndPort,
   rules: string
 ): Promise<void> {
-  const resp = await fetch(makeUrl(hostAndPort, '/internal/setRules'), {
+  const resp = await undiciFetch(makeUrl(hostAndPort, '/internal/setRules'), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'

@@ -106,7 +106,7 @@ async function getFixedIssueLink(
   ).then(data => data.json());
 
   const body = (response as undiciResponse).body;
-  if(!body) {
+  if (!body) {
     return '';
   }
   const match = fixedIssueRegex.exec(body.toString());
