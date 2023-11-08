@@ -726,6 +726,27 @@ async function onSignInVerifyPhoneNumber() {
   );
 }
 
+async function onSignInVerifyPhoneNumberWebOTP() {
+  const phoneNumber = $('#signin-phone-number').val();
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // link/re-auth operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('signin-verify-phone-number');
+  await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 30)
+    .then(userCredential => {
+      onAuthUserCredentialSuccess(userCredential);
+    })
+    .catch(e => {
+      clearApplicationVerifier();
+      onAuthError(e);
+      if (e.code === `auth/${AuthErrorCodes.WEB_OTP_NOT_RETRIEVED}`) {
+        const verificationCode = $('#signin-phone-verification-code').val();
+        e.confirmationResult.confirm(verificationCode);
+      }
+    });
+}
+
 function onSignInConfirmPhoneVerification() {
   const verificationCode = $('#signin-phone-verification-code').val();
   const confirmationResult = window.confirmationResult;
@@ -2298,6 +2319,7 @@ function initApp() {
   );
 
   $('#signin-verify-phone-number').click(onSignInVerifyPhoneNumber);
+  $('#signin-verify-phone-number-webotp').click(onSignInVerifyPhoneNumberWebOTP);
   $('#signin-confirm-phone-verification').click(
     onSignInConfirmPhoneVerification
   );
