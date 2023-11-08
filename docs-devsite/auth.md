@@ -918,6 +918,31 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 ```
 
 ### signInWithPhoneNumber(auth, phoneNumber, appVerifier) {:#signinwithphonenumber_75b2560}
+## signInWithPasskey()
+
+Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
+
+<b>Signature:</b>
+
+```typescript
+export declare function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The Firebase Auth instance. |
+|  name | string | The user's name for passkey. |
+|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
+
+## signInWithPhoneNumber()
 
 Asynchronously signs in using a phone number.
 
@@ -1227,6 +1252,30 @@ export declare function deleteUser(user: User): Promise<void>;
 Promise&lt;void&gt;
 
 ### getIdToken(user, forceRefresh) {:#getidtoken_ce7d429}
+## enrollPasskey()
+
+Enrolls a passkey for the user account.
+
+<b>Signature:</b>
+
+```typescript
+export declare function enrollPasskey(user: User, name: string): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  user | [User](./auth.user.md#user_interface) | The user to enroll the passkey for. |
+|  name | string | The name associated with the passkey. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
+
+## getIdToken()
 
 Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
 
