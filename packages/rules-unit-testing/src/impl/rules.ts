@@ -17,7 +17,7 @@
 
 import { HostAndPort } from '../public_types';
 import { makeUrl } from './url';
-import fetch from 'node-fetch';
+import { fetch as undiciFetch } from 'undici';
 
 /**
  * @private
@@ -29,7 +29,7 @@ export async function loadDatabaseRules(
 ): Promise<void> {
   const url = makeUrl(hostAndPort, '/.settings/rules.json');
   url.searchParams.append('ns', databaseName);
-  const resp = await fetch(url, {
+  const resp = await undiciFetch(url, {
     method: 'PUT',
     headers: { Authorization: 'Bearer owner' },
     body: rules

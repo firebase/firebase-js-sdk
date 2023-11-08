@@ -21,7 +21,7 @@ import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import fetch from 'node-fetch';
+import { fetch as undiciFetch } from 'node-fetch';
 // @ts-ignore
 import * as tmp from 'tmp';
 
@@ -57,7 +57,7 @@ export abstract class Emulator {
         const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
 
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        fetch(this.binaryUrl).then(resp => {
+        undiciFetch(this.binaryUrl).then(resp => {
           resp.body
             .pipe(writeStream)
             .on('finish', () => {

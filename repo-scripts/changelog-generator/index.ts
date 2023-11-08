@@ -95,7 +95,7 @@ async function getFixedIssueLink(
   prNumber: number,
   repo: string
 ): Promise<string> {
-  let response = await undiciFetch(
+  const response = await undiciFetch(
     `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
     {
       method: 'GET',
