@@ -44,6 +44,7 @@ Firebase Authentication
 |  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken_32af683) | Asynchronously signs in using a custom token. |
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword_21ad33b) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink_ed14c53) | Asynchronously signs in using an email and sign-in email link. |
+|  [signInWithPasskey(auth, name, manualSignUp)](./auth.md#signinwithpasskey_d080044) | Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user. |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber_75b2560) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup_770f816) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect_770f816) | Authenticates a Firebase client using a full-page redirect flow. |
@@ -56,6 +57,7 @@ Firebase Authentication
 |  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl_51293c3) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
 |  <b>function(user, ...)</b> |
 |  [deleteUser(user)](./auth.md#deleteuser_52b2e2e) | Deletes and signs out the user. |
+|  [enrollPasskey(user, name)](./auth.md#enrollpasskey_746f229) | Enrolls a passkey for the user account. |
 |  [getIdToken(user, forceRefresh)](./auth.md#getidtoken_ce7d429) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult_ce7d429) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [linkWithCredential(user, credential)](./auth.md#linkwithcredential_60f8043) | Links the user account with the given credentials. |
@@ -940,6 +942,30 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ```
 
+### signInWithPasskey(auth, name, manualSignUp) {:#signinwithpasskey_d080044}
+
+Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
+
+<b>Signature:</b>
+
+```typescript
+export declare function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The Firebase Auth instance. |
+|  name | string | The user's name for passkey. |
+|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
+
 ### signInWithPhoneNumber(auth, phoneNumber, appVerifier) {:#signinwithphonenumber_75b2560}
 
 Asynchronously signs in using a phone number.
@@ -1250,6 +1276,29 @@ export declare function deleteUser(user: User): Promise<void>;
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+### enrollPasskey(user, name) {:#enrollpasskey_746f229}
+
+Enrolls a passkey for the user account.
+
+<b>Signature:</b>
+
+```typescript
+export declare function enrollPasskey(user: User, name: string): Promise<UserCredential>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  user | [User](./auth.user.md#user_interface) | The user to enroll the passkey for. |
+|  name | string | The name associated with the passkey. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
 
 ### getIdToken(user, forceRefresh) {:#getidtoken_ce7d429}
 
