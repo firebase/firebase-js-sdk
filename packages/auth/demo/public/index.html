@@ -154,6 +154,13 @@
                 Action Code Settings
               </a>
             </li>
+            <li role="presentation">
+              <a href="#debugging-section"
+                 aria-controls="debugging-section"
+                 data-toggle="tab" role="tab">
+                Debugging
+              </a>
+            </li>
             <li role="presentation" class="visible-xs">
               <a href="#logs-section"
                  aria-controls="logs-section"
@@ -169,6 +176,17 @@
               <!-- Development mode APIs -->
               <div class="group">Development mode APIs</div>
               <form class="form form-bordered no-submit">
+              <div class="btn-group radio-block" id="api-host-selection"
+                   data-toggle="buttons">
+                <label class="btn btn-primary active">
+                  <input type="radio" name="api-host" value="prod"
+                         autocomplete="off" checked> Prod
+                </label>
+                <label class="btn btn-primary">
+                  <input type="radio" name="api-host" value="staging"
+                         autocomplete="off"> Staging
+                </label>
+              </div>
                 <div class="btn-group radio-block" id="enable-app-verification-selection"
                      data-toggle="buttons">
                   <label class="btn btn-primary active">
@@ -851,6 +869,86 @@
                         id="action-code-settings-reset">Reset</button>
               </form>
             </div>
+            <div class="tab-pane" id="debugging-section">
+              <div class="group">Enroll</div>
+              <form class="form form-bordered no-submit">
+                <textarea name="Start Enroll Request" id="start-enroll-request"
+                          class="form-control" placeholder="Request"></textarea>
+                <button class="btn btn-block btn-primary" id="prepare-start-enroll-request">
+                  Prepare Start Enroll Request
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Start Enroll Response" id="start-enroll-response"
+                          class="form-control" placeholder="Response"></textarea>
+                <button class="btn btn-block btn-primary" id="get-start-enroll-response">
+                  Get Start Enroll Response
+                </button>
+              </form>   
+              <form class="form form-bordered no-submit">
+                <input type="text" name="Name" id="name-enroll"
+                       class="form-control" placeholder="Name" />
+                <textarea type="text" name="Credential" id="credential-enroll"
+                          class="form-control" placeholder="Credential"></textarea>
+                <button class="btn btn-block btn-primary" id="create-credential-enroll">
+                  Create Credential
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Finalize Enroll Request" id="finalize-enroll-request"
+                          class="form-control" placeholder="Request"></textarea>
+                <button class="btn btn-block btn-primary" id="prepare-finalize-enroll-request">
+                  Prepare Finalize Enroll Request
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Finalize Enroll Response" id="finalize-enroll-response"
+                          class="form-control" placeholder="Response"></textarea>
+                <button class="btn btn-block btn-primary" id="get-finalize-enroll-response">
+                  Get Finalize Enroll Response
+                </button>
+            </form>
+
+            <div class="group">Sign In</div>
+              <form class="form form-bordered no-submit">
+                <textarea name="Start Sign In Request" id="start-signin-request"
+                          class="form-control" placeholder="Request"></textarea>
+                <button class="btn btn-block btn-primary" id="prepare-start-signin-request">
+                  Prepare Start Sign In Request
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Start Sign In Response" id="start-signin-response"
+                          class="form-control" placeholder="Response"></textarea>
+                <button class="btn btn-block btn-primary" id="get-start-signin-response">
+                  Get Start Sign In Response
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" name="Name" id="name-signin"
+                       class="form-control" placeholder="Name" />
+                <textarea type="text" name="Credential" id="credential-signin"
+                          class="form-control" placeholder="Credential"></textarea>
+                <button class="btn btn-block btn-primary" id="get-credential-signin">
+                  Get Credential
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Finalize Sign In Request" id="finalize-signin-request"
+                          class="form-control" placeholder="Request"></textarea>
+                <button class="btn btn-block btn-primary" id="prepare-finalize-signin-request">
+                  Prepare Finalize Sign In Request
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <textarea name="Finalize Sign In Response" id="finalize-signin-response"
+                          class="form-control" placeholder="Response"></textarea>
+                <button class="btn btn-block btn-primary" id="get-finalize-signin-response">
+                  Get Finalize Sign In Response
+                </button>
+              </form>
+            </div>
+
             <div class="tab-pane" id="logs-section">
               <pre class="well logs"></pre>
               <button class="btn btn-xs btn-default pull-right clear-logs">

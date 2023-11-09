@@ -210,6 +210,10 @@ export function onAuthStateChanged(
 export function useDeviceLanguage(auth: Auth): void {
   getModularInstance(auth).useDeviceLanguage();
 }
+export function updateApiHost(auth: Auth, apiHost: string): void {
+  getModularInstance(auth).updateApiHost(apiHost);
+}
+
 /**
  * Asynchronously sets the provided user as {@link Auth.currentUser} on the
  * {@link Auth} instance.
@@ -297,7 +301,17 @@ export {
 export {
   signInWithPasskey,
   enrollPasskey,
-  unenrollPasskey
+  unenrollPasskey,
+  debugCreateCredential,
+  debugGetCredential,
+  debugPrepareStartPasskeyEnrollmentRequest,
+  debugGetStartPasskeyEnrollmentResponse,
+  debugPrepareFinalizePasskeyEnrollmentRequest,
+  debugGetFinalizePasskeyEnrollmentResponse,
+  debugPrepareStartPasskeySignInRequest,
+  debugGetStartPasskeySignInResponse,
+  debugPrepareFinalizePasskeySignInRequest,
+  debugGetFinalizePasskeySignInResponse
 } from './strategies/passkey';
 
 // core

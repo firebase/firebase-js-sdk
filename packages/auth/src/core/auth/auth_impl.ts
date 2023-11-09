@@ -336,6 +336,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
+  updateApiHost(apiHost: string): void {
+    console.log('!!!!!' + apiHost);
+    this.config.apiHost = apiHost;
+  }
+
   async _delete(): Promise<void> {
     this._deleted = true;
   }

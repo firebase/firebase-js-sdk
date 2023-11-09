@@ -103,6 +103,7 @@ export interface AuthInternal extends Auth {
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams>;
 
   useDeviceLanguage(): void;
+  updateApiHost(apiHost: string): void;
   signOut(): Promise<void>;
   validatePassword(password: string): Promise<PasswordValidationStatus>;
 }

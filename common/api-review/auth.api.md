@@ -94,6 +94,8 @@ export interface Auth {
     readonly settings: AuthSettings;
     signOut(): Promise<void>;
     tenantId: string | null;
+    // (undocumented)
+    updateApiHost(apiHost: string): void;
     updateCurrentUser(user: User | null): Promise<void>;
     useDeviceLanguage(): void;
 }
@@ -298,8 +300,38 @@ export function createUserWithEmailAndPassword(auth: Auth, email: string, passwo
 // @public
 export type CustomParameters = Record<string, string>;
 
+// @public (undocumented)
+export function debugCreateCredential(name: string, responseStr: string): Promise<string>;
+
 // @public
 export const debugErrorMap: AuthErrorMap;
+
+// @public (undocumented)
+export function debugGetCredential(name: string, responseStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugGetFinalizePasskeyEnrollmentResponse(user: User, requestStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugGetFinalizePasskeySignInResponse(auth: Auth, requestStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugGetStartPasskeyEnrollmentResponse(user: User, requestStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugGetStartPasskeySignInResponse(auth: Auth, requestStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugPrepareFinalizePasskeyEnrollmentRequest(user: User, name: string, credentialStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugPrepareFinalizePasskeySignInRequest(credentialStr: string): Promise<string>;
+
+// @public (undocumented)
+export function debugPrepareStartPasskeyEnrollmentRequest(user: User): Promise<string>;
+
+// @public (undocumented)
+export function debugPrepareStartPasskeySignInRequest(): Promise<string>;
 
 // @public
 export function deleteUser(user: User): Promise<void>;
@@ -848,6 +880,9 @@ export function unenrollPasskey(user: User, credentialId: string): Promise<void>
 export function unlink(user: User, providerId: string): Promise<User>;
 
 export { Unsubscribe }
+
+// @public (undocumented)
+export function updateApiHost(auth: Auth, apiHost: string): void;
 
 // @public
 export function updateCurrentUser(auth: Auth, user: User | null): Promise<void>;
