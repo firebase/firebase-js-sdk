@@ -973,6 +973,9 @@ export interface User extends UserInfo {
    * Additional per provider such as displayName and profile information.
    */
   readonly providerData: UserInfo[];
+
+  readonly enrolledPasskeys: PasskeyInfo[];
+
   /**
    * Refresh token used to reauthenticate the user. Avoid using this directly and prefer
    * {@link User.getIdToken} to refresh the ID token instead.
@@ -1097,6 +1100,11 @@ export interface UserInfo {
    * The user's unique ID, scoped to the project.
    */
   readonly uid: string;
+}
+
+export interface PasskeyInfo {
+  readonly credentialId: string;
+  readonly name?: string;
 }
 
 /**

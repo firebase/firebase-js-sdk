@@ -94,6 +94,11 @@ export function publicKeyCredentialToJSON(
   return result as PublicKeyCredentialJSON;
 }
 
+export interface PasskeyInfo {
+  credentialId: string;
+  name?: string;
+}
+
 // Enrollment types.
 export interface StartPasskeyEnrollmentRequest {
   idToken?: string;
@@ -196,5 +201,23 @@ export async function finalizePasskeySignIn(
     HttpMethod.POST,
     Endpoint.FINALIZE_PASSKEY_SIGNIN,
     _addTidIfNecessary(auth, request)
+  );
+}
+
+export interface PasskeyUnenrollRequest {
+  deletePasskey: string[];
+}
+
+export interface PasskeyUnenrollResponse {}
+
+export async function passkeyUnenroll(
+  auth: Auth,
+  request: PasskeyUnenrollRequest
+): Promise<PasskeyUnenrollResponse> {
+  return _performApiRequest<PasskeyUnenrollRequest, PasskeyUnenrollResponse>(
+    auth,
+    HttpMethod.POST,
+    Endpoint.SET_ACCOUNT_INFO,
+    request
   );
 }
