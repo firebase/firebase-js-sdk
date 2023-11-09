@@ -40,9 +40,7 @@ export function isNativeBlob(p: unknown): p is Blob {
 }
 
 export function isNativeBlobDefined(): boolean {
-  // Note: The `isNode()` check can be removed when `node-fetch` adds native Blob support
-  // PR: https://github.com/node-fetch/node-fetch/pull/1664
-  return typeof Blob !== 'undefined' && !isNode();
+  return typeof Blob !== 'undefined';
 }
 
 export function validateNumber(
