@@ -21,7 +21,6 @@ import {
 } from './impl/discovery';
 import { fixHostname, makeUrl } from './impl/url';
 import { HostAndPort } from './public_types';
-import fetch from 'node-fetch';
 import { fetch as undiciFetch } from 'undici';
 
 /**
