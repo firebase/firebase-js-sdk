@@ -403,7 +403,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
   reference: CollectionReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData>;
+): CollectionReference<AppModelType, DbModelType>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -420,7 +420,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData>;
+): CollectionReference<AppModelType, DbModelType>;
 export function collection<AppModelType, DbModelType extends DocumentData>(
   parent:
     | Firestore
@@ -428,7 +428,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
     | CollectionReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData, DocumentData> {
+): CollectionReference<AppModelType, DbModelType> {
   parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
@@ -548,7 +548,7 @@ export function doc<AppModelType, DbModelType extends DocumentData>(
   reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData, DocumentData>;
+): DocumentReference<AppModelType, DbModelType>;
 export function doc<AppModelType, DbModelType extends DocumentData>(
   parent:
     | Firestore

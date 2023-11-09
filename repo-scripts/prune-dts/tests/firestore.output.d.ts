@@ -164,11 +164,11 @@ export declare function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export declare function collection(
-  reference: CollectionReference<unknown>,
+export declare function collection<T>(
+  reference: CollectionReference<T>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<T>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -182,7 +182,7 @@ export declare function collection(
  * @returns The `CollectionReference` instance.
  */
 export declare function collection(
-  reference: DocumentReference,
+  reference: DocumentReference<unknown>,
   path: string,
   ...pathSegments: string[]
 ): CollectionReference<DocumentData>;
