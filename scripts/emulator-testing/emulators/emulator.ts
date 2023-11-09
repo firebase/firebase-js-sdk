@@ -21,7 +21,7 @@ import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import fetch from 'node-fetch';
+import { fetch as undiciFetch} from 'undici';
 // @ts-ignore
 import * as tmp from 'tmp';
 
@@ -57,7 +57,7 @@ export abstract class Emulator {
         const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
 
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        fetch(this.binaryUrl).then(resp => {
+        undiciFetch(this.binaryUrl).then(resp => {
           resp.body
             .pipe(writeStream)
             .on('finish', () => {
@@ -120,7 +120,7 @@ export abstract class Emulator {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
           console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
-          fetch(`http://localhost:${this.port}`).then(
+          undiciFetch(`http://localhost:${this.port}`).then(
             () => {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.
