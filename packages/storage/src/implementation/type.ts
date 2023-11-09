@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { isNode } from '@firebase/util';
 import { invalidArgument } from './error';
 
 export function isJustDef<T>(p: T | null | undefined): p is T | null {
