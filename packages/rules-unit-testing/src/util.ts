@@ -21,7 +21,7 @@ import {
 } from './impl/discovery';
 import { fixHostname, makeUrl } from './impl/url';
 import { HostAndPort } from './public_types';
-import fetch from 'node-fetch';
+import { fetch as undiciFetch } from 'undici';
 
 /**
  * Run a setup function with background Cloud Functions triggers disabled. This can be used to
@@ -79,7 +79,7 @@ export async function withFunctionTriggersDisabled<TResult>(
   hub.host = fixHostname(hub.host);
   makeUrl(hub, '/functions/disableBackgroundTriggers');
   // Disable background triggers
-  const disableRes = await fetch(
+  const disableRes = await undiciFetch(
     makeUrl(hub, '/functions/disableBackgroundTriggers'),
     {
       method: 'PUT'
@@ -98,7 +98,7 @@ export async function withFunctionTriggersDisabled<TResult>(
     result = await maybeFn();
   } finally {
     // Re-enable background triggers
-    const enableRes = await fetch(
+    const enableRes = await undiciFetch(
       makeUrl(hub, '/functions/enableBackgroundTriggers'),
       {
         method: 'PUT'
