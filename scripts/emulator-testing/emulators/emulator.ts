@@ -58,8 +58,7 @@ export abstract class Emulator {
 
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
         undiciFetch(this.binaryUrl).then(resp => {
-          const body = resp.body();
-          writeStream.write(body);
+          writeStream.write(resp.body);
           writeStream.end();
 
           console.log(`Saved emulator binary file to [${filepath}].`);
@@ -68,9 +67,7 @@ export abstract class Emulator {
           // with 'java -jar'.
           fs.chmod(filepath, 0o755, err => {
             if (err) reject(err);
-            console.log(
-              `Changed emulator file permissions to 'rwxr-xr-x'.`
-            );
+            console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
             this.binaryPath = filepath;
 
             if (this.copyToCache()) {
