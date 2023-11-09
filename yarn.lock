@@ -8877,10 +8877,9 @@ google-closure-compiler@20230228.0.0:
     google-closure-compiler-osx "^20230228.0.0"
     google-closure-compiler-windows "^20230228.0.0"
 
-google-closure-library@20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20230228.0.0.tgz#8ef2f9de391c69e8b8e26e7c0bcd413b0b6bb605"
-  integrity sha512-yIe7gpacdmfM8n6Cvswajw7MgiWYwr46/1HHVCYKthyrfEBabDa1zCH6BPJJi07cnN7ImCyKtOGZXz6EAwtXBg==
+"google-closure-library@git://github.com/google/closure-library.git#7818ff7":
+  version "20230802.0.0"
+  resolved "git://github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
 
 google-gax@^3.0.1:
   version "3.1.3"
