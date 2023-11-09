@@ -58,7 +58,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.22",
+    "@firebase/app-compat": "0.2.23",
     "typescript": "4.7.4"
   },
   "repository": {
