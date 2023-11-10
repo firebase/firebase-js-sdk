@@ -55,26 +55,35 @@ export abstract class Emulator {
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
         const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
+        const writableStream = new WritableStream({
+          write(chunk) {
+            writeStream.write(chunk);
+          },
+        });
 
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
         undiciFetch(this.binaryUrl).then(resp => {
-          writeStream.write(resp.body);
-          writeStream.end();
+          resp.body
+            .pipeTo(writableStream)
+            .on('finish', () => {
+              console.log(`Saved emulator binary file to [${filepath}].`);
+              // Change emulator binary file permission to 'rwxr-xr-x'.
+              // The execute permission is required for it to be able to start
+              // with 'java -jar'.
+              fs.chmod(filepath, 0o755, err => {
+                if (err) reject(err);
+                console.log(
+                  `Changed emulator file permissions to 'rwxr-xr-x'.`
+                );
+                this.binaryPath = filepath;
 
-          console.log(`Saved emulator binary file to [${filepath}].`);
-          // Change emulator binary file permission to 'rwxr-xr-x'.
-          // The execute permission is required for it to be able to start
-          // with 'java -jar'.
-          fs.chmod(filepath, 0o755, err => {
-            if (err) reject(err);
-            console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
-            this.binaryPath = filepath;
-
-            if (this.copyToCache()) {
-              console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-            }
-            resolve();
-          });
+                if (this.copyToCache()) {
+                  console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+                }
+                resolve();
+              });
+            })
+            .on('error', reject);
         });
       });
     });
