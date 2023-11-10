@@ -21,7 +21,7 @@ import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { fetch as undiciFetch } from 'undici';
+import fetch from 'node-fetch';
 // @ts-ignore
 import * as tmp from 'tmp';
 
@@ -55,16 +55,11 @@ export abstract class Emulator {
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
         const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
-        const writableStream = new WritableStream({
-          write(chunk) {
-            writeStream.write(chunk);
-          },
-        });
 
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        undiciFetch(this.binaryUrl).then(resp => {
+        fetch(this.binaryUrl).then(resp => {
           resp.body
-            .pipeTo(writableStream)
+            .pipe(writeStream)
             .on('finish', () => {
               console.log(`Saved emulator binary file to [${filepath}].`);
               // Change emulator binary file permission to 'rwxr-xr-x'.
@@ -125,7 +120,7 @@ export abstract class Emulator {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
           console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
-          undiciFetch(`http://localhost:${this.port}`).then(
+          fetch(`http://localhost:${this.port}`).then(
             () => {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.
