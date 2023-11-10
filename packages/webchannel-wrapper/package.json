@@ -28,7 +28,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "21.1.0",
     "google-closure-compiler": "20230228.0.0",
-    "google-closure-library": "git://github.com/google/closure-library.git#7818ff7",
+    "google-closure-library": "git+https://github.com/google/closure-library.git#7818ff7",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "rollup": "2.79.1",
