@@ -1809,11 +1809,11 @@
     "@firebase/util" "1.9.3"
     "tslib" "^2.1.0"
 
-"@firebase/app-compat@0.2.20", "@firebase/app-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/app-compat":
+"@firebase/app-compat@0.2.22", "@firebase/app-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/app-compat":
   "resolved" "file:packages/app-compat"
-  "version" "0.2.20"
+  "version" "0.2.22"
   dependencies:
-    "@firebase/app" "0.9.20"
+    "@firebase/app" "0.9.22"
     "@firebase/component" "0.6.4"
     "@firebase/logger" "0.4.0"
     "@firebase/util" "1.9.3"
@@ -1823,9 +1823,9 @@
   "resolved" "file:packages/app-types"
   "version" "0.9.0"
 
-"@firebase/app@0.9.20", "@firebase/app@file:/Users/markduckworth/projects/firebase-js-sdk/packages/app":
+"@firebase/app@0.9.22", "@firebase/app@file:/Users/markduckworth/projects/firebase-js-sdk/packages/app":
   "resolved" "file:packages/app"
-  "version" "0.9.20"
+  "version" "0.9.22"
   dependencies:
     "@firebase/component" "0.6.4"
     "@firebase/logger" "0.4.0"
@@ -1833,11 +1833,11 @@
     "idb" "7.1.1"
     "tslib" "^2.1.0"
 
-"@firebase/auth-compat@0.4.6", "@firebase/auth-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/auth-compat":
+"@firebase/auth-compat@0.4.8", "@firebase/auth-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/auth-compat":
   "resolved" "file:packages/auth-compat"
-  "version" "0.4.6"
+  "version" "0.4.8"
   dependencies:
-    "@firebase/auth" "1.3.0"
+    "@firebase/auth" "1.3.2"
     "@firebase/auth-types" "0.12.0"
     "@firebase/component" "0.6.4"
     "@firebase/util" "1.9.3"
@@ -1852,9 +1852,9 @@
   "resolved" "file:packages/auth-types"
   "version" "0.12.0"
 
-"@firebase/auth@1.3.0", "@firebase/auth@file:/Users/markduckworth/projects/firebase-js-sdk/packages/auth":
+"@firebase/auth@1.3.2", "@firebase/auth@file:/Users/markduckworth/projects/firebase-js-sdk/packages/auth":
   "resolved" "file:packages/auth"
-  "version" "1.3.0"
+  "version" "1.3.2"
   dependencies:
     "@firebase/component" "0.6.4"
     "@firebase/logger" "0.4.0"
@@ -1907,12 +1907,12 @@
     "faye-websocket" "0.11.4"
     "tslib" "^2.1.0"
 
-"@firebase/firestore-compat@0.3.19", "@firebase/firestore-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firestore-compat":
+"@firebase/firestore-compat@0.3.21", "@firebase/firestore-compat@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firestore-compat":
   "resolved" "file:packages/firestore-compat"
-  "version" "0.3.19"
+  "version" "0.3.21"
   dependencies:
     "@firebase/component" "0.6.4"
-    "@firebase/firestore" "4.3.0"
+    "@firebase/firestore" "4.3.2"
     "@firebase/firestore-types" "3.0.0"
     "@firebase/util" "1.9.3"
     "tslib" "^2.1.0"
@@ -1921,14 +1921,14 @@
   "resolved" "file:packages/firestore-types"
   "version" "3.0.0"
 
-"@firebase/firestore@4.3.0", "@firebase/firestore@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firestore":
+"@firebase/firestore@4.3.2", "@firebase/firestore@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firestore":
   "resolved" "file:packages/firestore"
-  "version" "4.3.0"
+  "version" "4.3.2"
   dependencies:
     "@firebase/component" "0.6.4"
     "@firebase/logger" "0.4.0"
     "@firebase/util" "1.9.3"
-    "@firebase/webchannel-wrapper" "0.10.3"
+    "@firebase/webchannel-wrapper" "0.10.4"
     "@grpc/grpc-js" "~1.9.0"
     "@grpc/proto-loader" "^0.7.8"
     "node-fetch" "2.6.7"
@@ -2109,9 +2109,9 @@
   dependencies:
     "tslib" "^2.1.0"
 
-"@firebase/webchannel-wrapper@0.10.3", "@firebase/webchannel-wrapper@file:/Users/markduckworth/projects/firebase-js-sdk/packages/webchannel-wrapper":
+"@firebase/webchannel-wrapper@0.10.4", "@firebase/webchannel-wrapper@file:/Users/markduckworth/projects/firebase-js-sdk/packages/webchannel-wrapper":
   "resolved" "file:packages/webchannel-wrapper"
-  "version" "0.10.3"
+  "version" "0.10.4"
 
 "@gar/promisify@^1.0.1":
   "integrity" "sha512-82cpyJyKRoQoRi+14ibCeGPu0CwypgtBAdBhq1WfvagpCZNKqwXbKwXllYSMG91DhmG4jt9gN8eP6lGOtozuaw=="
@@ -8691,10 +8691,10 @@
   dependencies:
     "@firebase/analytics" "0.10.0"
     "@firebase/analytics-compat" "0.2.6"
-    "@firebase/app" "0.9.20"
-    "@firebase/app-compat" "0.2.20"
-    "@firebase/auth" "1.3.0"
-    "@firebase/auth-compat" "0.4.6"
+    "@firebase/app" "0.9.22"
+    "@firebase/app-compat" "0.2.22"
+    "@firebase/auth" "1.3.2"
+    "@firebase/auth-compat" "0.4.8"
     "@firebase/functions" "0.10.0"
     "@firebase/functions-compat" "0.3.5"
     "@firebase/messaging" "0.12.4"
@@ -8714,8 +8714,8 @@
   "resolved" "file:integration/firestore"
   "version" "1.0.1"
   dependencies:
-    "@firebase/app" "0.9.20"
-    "@firebase/firestore" "4.3.0"
+    "@firebase/app" "0.9.22"
+    "@firebase/firestore" "4.3.2"
 
 "firebase-messaging-integration-test@file:/Users/markduckworth/projects/firebase-js-sdk/integration/messaging":
   "resolved" "file:integration/messaging"
@@ -8823,23 +8823,23 @@
     "winston-transport" "^4.4.0"
     "ws" "^7.2.3"
 
-"firebase@*", "firebase@^10.0.0", "firebase@10.5.0", "firebase@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firebase":
+"firebase@*", "firebase@^10.0.0", "firebase@10.5.2", "firebase@file:/Users/markduckworth/projects/firebase-js-sdk/packages/firebase":
   "resolved" "file:packages/firebase"
-  "version" "10.5.0"
+  "version" "10.5.2"
   dependencies:
     "@firebase/analytics" "0.10.0"
     "@firebase/analytics-compat" "0.2.6"
-    "@firebase/app" "0.9.20"
+    "@firebase/app" "0.9.22"
     "@firebase/app-check" "0.8.0"
     "@firebase/app-check-compat" "0.3.7"
-    "@firebase/app-compat" "0.2.20"
+    "@firebase/app-compat" "0.2.22"
     "@firebase/app-types" "0.9.0"
-    "@firebase/auth" "1.3.0"
-    "@firebase/auth-compat" "0.4.6"
+    "@firebase/auth" "1.3.2"
+    "@firebase/auth-compat" "0.4.8"
     "@firebase/database" "1.0.1"
     "@firebase/database-compat" "1.0.1"
-    "@firebase/firestore" "4.3.0"
-    "@firebase/firestore-compat" "0.3.19"
+    "@firebase/firestore" "4.3.2"
+    "@firebase/firestore-compat" "0.3.21"
     "@firebase/functions" "0.10.0"
     "@firebase/functions-compat" "0.3.5"
     "@firebase/installations" "0.6.4"
@@ -9740,9 +9740,9 @@
     "google-closure-compiler-osx" "^20230228.0.0"
     "google-closure-compiler-windows" "^20230228.0.0"
 
-"google-closure-library@git://github.com/google/closure-library.git#7818ff7":
-  version "20230802.0.0"
-  resolved "git://github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
+"google-closure-library@git+https://github.com/google/closure-library.git#7818ff7":
+  "resolved" "git+ssh://git@github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
+  "version" "20230802.0.0"
 
 "google-gax@^3.0.1":
   "integrity" "sha512-hWF2WbfD3o1Fnfq3qf0Wnr3DuQczC/5ebGYGB5swUZXl8sT5y5mhDbxOKAg+xUzhiPgnQADNyFk0uIsA+NKRIw=="
@@ -17442,6 +17442,7 @@
   "version" "1.2.0"
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
+  "resolved" "git+ssh://git@github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
   "version" "1.0.1"
 
 "table@^6.0.9":
@@ -18836,6 +18837,7 @@
   "version" "0.1.4"
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure3":
+  "resolved" "git+ssh://git@github.com/brettz9/node-websql.git#73f7e4051cda5e58de7669a54ab184d387b2f98d"
   "version" "2.0.1"
   dependencies:
     "argsarray" "^0.0.1"
