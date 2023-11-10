@@ -38,7 +38,7 @@ export async function discoverEmulators(
 
   const emulators: DiscoveredEmulators = {};
 
-  const data = (await res.json()) as any;
+  const data = await res.json();
 
   if (data.database) {
     emulators.database = {

@@ -21,7 +21,7 @@ import {
 } from './impl/discovery';
 import { fixHostname, makeUrl } from './impl/url';
 import { HostAndPort } from './public_types';
-import { fetch as undiciFetch } from 'undici';
+import fetch from 'node-fetch';
 
 /**
  * Run a setup function with background Cloud Functions triggers disabled. This can be used to
@@ -79,13 +79,12 @@ export async function withFunctionTriggersDisabled<TResult>(
   hub.host = fixHostname(hub.host);
   makeUrl(hub, '/functions/disableBackgroundTriggers');
   // Disable background triggers
-  const disableRes = await undiciFetch(
+  const disableRes = await fetch(
     makeUrl(hub, '/functions/disableBackgroundTriggers'),
     {
       method: 'PUT'
     }
   );
-
   if (!disableRes.ok) {
     throw new Error(
       `HTTP Error ${disableRes.status} when disabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
@@ -98,7 +97,7 @@ export async function withFunctionTriggersDisabled<TResult>(
     result = await maybeFn();
   } finally {
     // Re-enable background triggers
-    const enableRes = await undiciFetch(
+    const enableRes = await fetch(
       makeUrl(hub, '/functions/enableBackgroundTriggers'),
       {
         method: 'PUT'

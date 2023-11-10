@@ -54,7 +54,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "dependencies": {
-    "undici": "5.26.5",
     "node-fetch": "2.6.7",
     "@types/node-fetch": "2.6.4"
   }
