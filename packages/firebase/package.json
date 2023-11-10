@@ -83,6 +83,18 @@
       },
       "default": "./auth/cordova/dist/esm/index.esm.js"
     },
+    "./auth/extension": {
+      "types": "./auth/extension/dist/auth/extension/index.d.ts",
+      "node": {
+        "require": "./auth/extension/dist/index.cjs.js",
+        "import": "./auth/extension/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./auth/extension/dist/index.cjs.js",
+        "import": "./auth/extension/dist/esm/index.esm.js"
+      },
+      "default": "./auth/extension/dist/esm/index.esm.js"
+    },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
       "node": {

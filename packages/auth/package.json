@@ -36,10 +36,6 @@
         "require": "./dist/browser-cjs/index.js",
         "import": "./dist/esm2017/index.js"
       },
-      "extension": {
-        "require": "./dist/extension-cjs/index.js",
-        "import": "./dist/extension-esm2017/index.js"
-      },
       "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
@@ -48,6 +44,8 @@
     },
     "./extension": {
       "types:": "./dist/extension-esm2017/index.extension.d.ts",
+      "import": "./dist/extension-esm2017/index.js",
+      "require": "./dist/extension-cjs/index.js",
       "default": "./dist/extension-esm2017/index.js"
     },
     "./internal": {
@@ -71,8 +69,10 @@
         "import": "./dist/esm2017/internal.js"
       },
       "extension": {
+        "types:": "./dist/extension-cjs/internal/index.d.ts",
+        "import": "./dist/extension-esm2017/internal.js",
         "require": "./dist/extension-cjs/internal.js",
-        "import": "./dist/extension-esm2017/internal.js"
+        "default": "./dist/extension-esm2017/internal.js"
       },
       "default": "./dist/esm2017/internal.js"
     },
@@ -81,7 +81,8 @@
   "files": [
     "dist",
     "cordova/package.json",
-    "internal/package.json"
+    "internal/package.json",
+    "extension/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
