@@ -240,6 +240,12 @@ class TargetState {
 
   recordTargetResponse(): void {
     this.pendingResponses -= 1;
+    hardAssert(
+      this.pendingResponses >= 0,
+      'Unexpected state, `pendingResponses` is less than 0. This ' +
+        'indicates that the SDK received more target acks from the server than ' +
+        'expected. The SDK should not continue to operate.'
+    );
   }
 
   markCurrent(): void {
