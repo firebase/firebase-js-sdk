@@ -421,6 +421,7 @@
     "app-check",
     "auth",
     "auth/cordova",
+    "auth/extension",
     "functions",
     "firestore",
     "firestore/lite",

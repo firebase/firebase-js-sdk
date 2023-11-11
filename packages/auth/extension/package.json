@@ -1,7 +1,7 @@
 {
     "name": "@firebase/auth/extension",
     "description": "A Manifest-v3-specific build of the Firebase Auth JS SDK",
-    "main": "dist/index.cjs.js",
+    "main": "../dist/extension-cjs/index.js",
     "browser": "../dist/extension-esm2017/index.js",
     "module": "../dist/extension-esm2017/index.js",
     "typings": "../dist/extension-esm2017/index.extension.d.ts"
