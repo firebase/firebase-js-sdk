@@ -876,7 +876,6 @@ export function useDeviceLanguage(auth: Auth): void;
 export interface User extends UserInfo {
     delete(): Promise<void>;
     readonly emailVerified: boolean;
-    // (undocumented)
     readonly enrolledPasskeys: PasskeyInfo[];
     getIdToken(forceRefresh?: boolean): Promise<string>;
     getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
