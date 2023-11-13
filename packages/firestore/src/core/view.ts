@@ -271,20 +271,21 @@ export class View {
    * Updates the view with the given ViewDocumentChanges and optionally updates
    * limbo docs and sync state from the provided target change.
    * @param docChanges - The set of changes to make to the view's docs.
-   * @param updateLimboDocuments - Whether to update limbo documents based on
+   * @param limboResolutionEnabled - Whether to update limbo documents based on
    *        this change.
    * @param targetChange - A target change to apply for computing limbo docs and
    *        sync state.
-   * @param waitForRequeryResult - Whether the target is pending to run a full
-   *        re-query due to existence filter mismatch.
+   * @param targetIsPendingReset - Whether the target is pending to reset due to
+   *        existence filter mismatch. If not explicitly specified, it is treated
+   *        equivalently to false.
    * @returns A new ViewChange with the given docs, changes, and sync state.
    */
   // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
-    updateLimboDocuments: boolean,
+    limboResolutionEnabled: boolean,
     targetChange?: TargetChange,
-    waitForRequeryResult?: boolean
+    targetIsPendingReset?: boolean
   ): ViewChange {
     debugAssert(
       !docChanges.needsRefill,
@@ -303,15 +304,17 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = updateLimboDocuments
-      ? this.updateLimboDocuments(waitForRequeryResult ?? false)
-      : [];
+
+    targetIsPendingReset = targetIsPendingReset ?? false;
+    const limboChanges =
+      limboResolutionEnabled && !targetIsPendingReset
+        ? this.updateLimboDocuments()
+        : [];
 
     // We are at synced state if there is no limbo docs are waiting to be resolved, view is current
-    // with the backend, and the query is not pending for full re-query result due to existence
-    // filter mismatch.
+    // with the backend, and the query is not pending to reset due to existence filter mismatch.
     const synced =
-      this.limboDocuments.size === 0 && this.current && !waitForRequeryResult;
+      this.limboDocuments.size === 0 && this.current && !targetIsPendingReset;
 
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
@@ -359,7 +362,7 @@ export class View {
           mutatedKeys: this.mutatedKeys,
           needsRefill: false
         },
-        /* updateLimboDocuments= */ false
+        /* limboResolutionEnabled= */ false
       );
     } else {
       // No effect, just return a no-op ViewChange.
@@ -412,11 +415,9 @@ export class View {
     }
   }
 
-  private updateLimboDocuments(
-    waitForRequeryResult: boolean
-  ): LimboDocumentChange[] {
+  private updateLimboDocuments(): LimboDocumentChange[] {
     // We can only determine limbo documents when we're in-sync with the server.
-    if (waitForRequeryResult || !this.current) {
+    if (!this.current) {
       return [];
     }
 
@@ -469,7 +470,7 @@ export class View {
     this._syncedDocuments = queryResult.remoteKeys;
     this.limboDocuments = documentKeySet();
     const docChanges = this.computeDocChanges(queryResult.documents);
-    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
+    return this.applyChanges(docChanges, /* limboResolutionEnabled= */ true);
   }
 
   /**

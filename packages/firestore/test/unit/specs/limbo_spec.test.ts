@@ -928,7 +928,7 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
-  // Reproduce the bug in b/238823695
+  // Regression test for the bug in https://github.com/firebase/firebase-android-sdk/issues/5357
   specTest(
     'Limbo resolution should wait for full re-query result if there is an existence filter mismatch ',
     [],
@@ -949,8 +949,6 @@ describeSpec('Limbo Documents:', [], () => {
           .watchAcks(query1)
           // DocB is deleted in the next sync.
           .watchFilters([query1], [docA.key])
-          // Bugged behavior: Missing watchCurrent here will move
-          // all the docs to limbo unnecessarily.
           .watchCurrents(query1, 'resume-token-2000')
           .watchSnapshots(2000)
           .expectActiveTargets({
@@ -962,7 +960,7 @@ describeSpec('Limbo Documents:', [], () => {
           .watchAcksFull(query1, 3000, docA)
           // Only the deleted doc is moved to limbo after re-query result.
           .expectLimboDocs(docB.key)
-          .ackLimbo(3000, deletedDoc('collection/b', 3000))
+          .ackLimbo(3000, deletedDoc(docB.key.toString(), 3000))
           .expectLimboDocs()
           .expectEvents(query1, {
             removed: [docB]

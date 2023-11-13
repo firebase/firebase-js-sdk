@@ -368,7 +368,7 @@ async function initializeViewAndComputeSnapshot(
     );
   const viewChange = view.applyChanges(
     viewDocChanges,
-    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
+    /* limboResolutionEnabled= */ syncEngineImpl.isPrimaryClient,
     synthesizedTargetChange
   );
   updateTrackedLimbos(syncEngineImpl, targetId, viewChange.limboChanges);
@@ -1081,13 +1081,13 @@ async function applyDocChanges(
 
   const targetChange =
     remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
-  const waitForRequeryResult =
+  const targetIsPendingReset =
     remoteEvent && remoteEvent.targetMismatches.get(queryView.targetId) != null;
   const viewChange = queryView.view.applyChanges(
     viewDocChanges,
-    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
+    /* limboResolutionEnabled= */ syncEngineImpl.isPrimaryClient,
     targetChange,
-    waitForRequeryResult
+    targetIsPendingReset
   );
   updateTrackedLimbos(
     syncEngineImpl,
