@@ -32,7 +32,6 @@ import {
   FinalizePasskeySignInResponse,
   publicKeyCredentialToJSON,
   PasskeyUnenrollRequest,
-  PasskeyUnenrollResponse,
   passkeyUnenroll
 } from '../../api/account_management/passkey';
 import { UserInternal } from '../../model/user';
@@ -181,7 +180,9 @@ export async function unenrollPasskey(
   const userInternal = getModularInstance(user) as UserInternal;
   const authInternal = _castAuth(userInternal.auth);
 
+  const idToken = await userInternal.getIdToken();
   const request: PasskeyUnenrollRequest = {
+    idToken,
     deletePasskey: [credentialId]
   };
   await passkeyUnenroll(authInternal, request);

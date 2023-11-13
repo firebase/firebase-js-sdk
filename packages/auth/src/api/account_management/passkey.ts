@@ -205,6 +205,7 @@ export async function finalizePasskeySignIn(
 }
 
 export interface PasskeyUnenrollRequest {
+  idToken?: string;
   deletePasskey: string[];
 }
 
