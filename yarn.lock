@@ -8872,7 +8872,7 @@ google-closure-compiler@20230228.0.0:
 
 "google-closure-library@git+https://github.com/google/closure-library.git#7818ff7":
   version "20230802.0.0"
-  resolved "git+ssh://git@github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
+  resolved "git+https://git@github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
 
 google-gax@^3.0.1:
   version "3.1.3"
@@ -16069,7 +16069,7 @@ symbol-observable@^1.1.0:
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
-  resolved "git+ssh://git@github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
+  resolved "git+https://git@github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 table@^6.0.9:
   version "6.7.1"
@@ -17406,7 +17406,7 @@ websocket-extensions@>=0.1.1:
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure3":
   version "2.0.1"
-  resolved "git+ssh://git@github.com/brettz9/node-websql.git#73f7e4051cda5e58de7669a54ab184d387b2f98d"
+  resolved "git+https://git@github.com/brettz9/node-websql.git#73f7e4051cda5e58de7669a54ab184d387b2f98d"
   dependencies:
     argsarray "^0.0.1"
     immediate "^3.2.2"
