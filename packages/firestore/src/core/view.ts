@@ -277,7 +277,7 @@ export class View {
    *        sync state.
    * @param targetIsPendingReset - Whether the target is pending to reset due to
    *        existence filter mismatch. If not explicitly specified, it is treated
-   *        equivalently to false.
+   *        equivalently to `false`.
    * @returns A new ViewChange with the given docs, changes, and sync state.
    */
   // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
