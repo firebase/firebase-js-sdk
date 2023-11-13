@@ -2904,7 +2904,8 @@ apiDescribe('Hanging query issue - #7652', persistence => {
 
   // Before all test iterations, create a collection that produces the
   // hanging query issue.
-  before(() => {
+  before(function () {
+    this.timeout('90s');
     return withTestCollection(persistence, {}, async (testCollection, db) => {
       collPath = testCollection.path;
       await generateTestData(db, testCollection);
