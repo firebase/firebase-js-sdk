@@ -62,6 +62,7 @@ async function recachePasswordPolicy(auth: Auth): Promise<void> {
 
 /**
  * Sends a password reset email to the given email address. This method does not throw an error when
+ * there's no user account with the given email address and
  * [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
  *
  * @remarks
