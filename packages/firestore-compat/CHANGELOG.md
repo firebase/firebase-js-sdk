@@ -1,5 +1,25 @@
 # @firebase/firestore-compat
 
+## 0.3.22
+
+### Patch Changes
+
+- [`67c5a9088`](https://github.com/firebase/firebase-js-sdk/commit/67c5a9088b3e65ebb858a6fb779a358fa8ccbf27) [#7738](https://github.com/firebase/firebase-js-sdk/pull/7738) - Allow converter return value of undefined.
+
+## 0.3.21
+
+### Patch Changes
+
+- Updated dependencies [[`f27baf423`](https://github.com/firebase/firebase-js-sdk/commit/f27baf423b3c9834b94aed13a93a5385813fd7dd)]:
+  - @firebase/firestore@4.3.2
+
+## 0.3.20
+
+### Patch Changes
+
+- Updated dependencies [[`12f25592c`](https://github.com/firebase/firebase-js-sdk/commit/12f25592c02de8d899926d215b0ffd383b1f3aa0)]:
+  - @firebase/firestore@4.3.1
+
 ## 0.3.19
 
 ### Patch Changes

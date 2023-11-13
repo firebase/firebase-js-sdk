@@ -15,13 +15,22 @@
  * limitations under the License.
  */
 
+import { expect } from 'chai';
+
 import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
 import {
   where,
   orderBy,
   limit,
   limitToLast,
-  or
+  or,
+  getAggregateFromServer,
+  sum,
+  average,
+  count,
+  doc,
+  writeBatch,
+  collectionGroup
 } from '../util/firebase_export';
 import { apiDescribe } from '../util/helpers';
 
@@ -36,6 +45,10 @@ import { apiDescribe } from '../util/helpers';
  * To get started, please refer to the instructions provided in the README file. This will guide you
  * through setting up your local testing environment and updating the Terraform configuration with
  * any new composite indexes required for your testing scenarios.
+ *
+ * Note: Whenever feasible, make use of the current document fields (such as 'a,' 'b,' 'author,'
+ * 'title') to avoid introducing new composite indexes and surpassing the limit. Refer to the
+ * guidelines at https://firebase.google.com/docs/firestore/quotas#indexes for further information.
  */
 apiDescribe('Composite Index Queries', persistence => {
   // OR Query tests only run when the SDK's local cache is configured to use
@@ -133,6 +146,159 @@ apiDescribe('Composite Index Queries', persistence => {
           ),
           'doc2'
         );
+      });
+    });
+  });
+
+  describe('Aggregation queries - sum / average', () => {
+    it('aggregate query supports collection groups - multi-aggregate', () => {
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestCollection(persistence, async (coll, db) => {
+        const collectionGroupId = coll.id;
+        const docPaths = [
+          `${collectionGroupId}/cg-doc1`,
+          `abc/123/${collectionGroupId}/cg-doc2`,
+          `zzz${collectionGroupId}/cg-doc3`,
+          `abc/123/zzz${collectionGroupId}/cg-doc4`,
+          `abc/123/zzz/${collectionGroupId}`
+        ];
+        const batch = writeBatch(db);
+        for (const docPath of docPaths) {
+          // Add test specific fields to the document value
+          batch.set(
+            doc(db, docPath),
+            testHelper.addTestSpecificFieldsToDoc({ a: 2 })
+          );
+        }
+        await batch.commit();
+        const snapshot = await getAggregateFromServer(
+          testHelper.query(collectionGroup(db, collectionGroupId)),
+          {
+            count: count(),
+            sum: sum('a'),
+            avg: average('a')
+          }
+        );
+        expect(snapshot.data().count).to.equal(2);
+        expect(snapshot.data().sum).to.equal(4);
+        expect(snapshot.data().avg).to.equal(2);
+      });
+    });
+
+    it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
+      const testDocs = {
+        a: { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+        b: { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+        c: { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+        d: { author: 'authorD', title: 'titleD', pages: 50 }
+      };
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        const snapshot = await getAggregateFromServer(testHelper.query(coll), {
+          totalPages: sum('pages'),
+          averagePages: average('pages'),
+          averageYear: average('year'),
+          count: count()
+        });
+        expect(snapshot.data().totalPages).to.equal(300);
+        expect(snapshot.data().averagePages).to.equal(100);
+        expect(snapshot.data().averageYear).to.equal(2007);
+        expect(snapshot.data().count).to.equal(3);
+      });
+    });
+
+    it('performs aggregates on multiple fields where one aggregate could cause short-circuit due to NaN using getAggregationFromServer', () => {
+      const testDocs = {
+        a: {
+          author: 'authorA',
+          title: 'titleA',
+          pages: 100,
+          year: 1980,
+          rating: 5
+        },
+        b: {
+          author: 'authorB',
+          title: 'titleB',
+          pages: 50,
+          year: 2020,
+          rating: 4
+        },
+        c: {
+          author: 'authorC',
+          title: 'titleC',
+          pages: 100,
+          year: 1980,
+          rating: Number.NaN
+        },
+        d: {
+          author: 'authorD',
+          title: 'titleD',
+          pages: 50,
+          year: 2020,
+          rating: 0
+        }
+      };
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        const snapshot = await getAggregateFromServer(testHelper.query(coll), {
+          totalRating: sum('rating'),
+          totalPages: sum('pages'),
+          averageYear: average('year')
+        });
+        expect(snapshot.data().totalRating).to.be.NaN;
+        expect(snapshot.data().totalPages).to.equal(300);
+        expect(snapshot.data().averageYear).to.equal(2000);
+      });
+    });
+
+    it('performs aggregates when using `array-contains-any` operator getAggregationFromServer', () => {
+      const testDocs = {
+        a: {
+          author: 'authorA',
+          title: 'titleA',
+          pages: 100,
+          year: 1980,
+          rating: [5, 1000]
+        },
+        b: {
+          author: 'authorB',
+          title: 'titleB',
+          pages: 50,
+          year: 2020,
+          rating: [4]
+        },
+        c: {
+          author: 'authorC',
+          title: 'titleC',
+          pages: 100,
+          year: 1980,
+          rating: [2222, 3]
+        },
+        d: {
+          author: 'authorD',
+          title: 'titleD',
+          pages: 50,
+          year: 2020,
+          rating: [0]
+        }
+      };
+      const testHelper = new CompositeIndexTestHelper();
+      return testHelper.withTestDocs(persistence, testDocs, async coll => {
+        const snapshot = await getAggregateFromServer(
+          testHelper.query(coll, where('rating', 'array-contains-any', [5, 3])),
+          {
+            totalRating: sum('rating'),
+            averageRating: average('rating'),
+            totalPages: sum('pages'),
+            averagePages: average('pages'),
+            countOfDocs: count()
+          }
+        );
+        expect(snapshot.data().totalRating).to.equal(0);
+        expect(snapshot.data().averageRating).to.be.null;
+        expect(snapshot.data().totalPages).to.equal(200);
+        expect(snapshot.data().averagePages).to.equal(100);
+        expect(snapshot.data().countOfDocs).to.equal(2);
       });
     });
   });
