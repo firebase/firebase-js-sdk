@@ -319,7 +319,7 @@ function onAuthError(error) {
     }
     if (error.code === 'auth/invalid-credential') {
       alertError(
-        'login credentials invalid. It is possible that the email/password combination does not exist.'
+        'Login credentials invalid. It is possible that the email/password combination does not exist.'
       );
     }
   }

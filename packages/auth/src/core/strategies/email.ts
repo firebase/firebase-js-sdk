@@ -46,7 +46,8 @@ import { getModularInstance } from '@firebase/util';
  * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  *
- * Deprecated Migrating off of this method is recommended as a security best-practice.
+ * Deprecated. Migrating off of this method is recommended as a security best-practice.
+ * Learn more in the Identity Platform documentation for [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection).
  * @public
  */
 export async function fetchSignInMethodsForEmail(

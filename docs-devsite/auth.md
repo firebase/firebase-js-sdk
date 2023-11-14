@@ -1,4 +1,4 @@
-	Project: /docs/reference/js/_project.yaml
+Project: /docs/reference/js/_project.yaml
 Book: /docs/reference/_book.yaml
 page_type: reference
 
@@ -35,9 +35,8 @@ Firebase Authentication
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
 |  [signInAnonymously(auth)](./auth.md#signinanonymously) | Asynchronously signs in as an anonymous user. |
@@ -413,7 +412,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  email | string | The user's email address.<!-- -->Deprecated Migrating off of this method is recommended as a security best-practice. |
+|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection). |
 
 <b>Returns:</b>
 
