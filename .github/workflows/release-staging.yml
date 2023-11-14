@@ -35,6 +35,10 @@ on:
         type: boolean
         default: false
 
+env:
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
+
 jobs:
   deploy:
     name: Staging Release
@@ -46,8 +50,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    - name: Bump Node memory limit
-      run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
     - name: Merge master into release
       uses: actions/github-script@v6
       with:
