@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PasskeyInfo interface
+Represents information about a passkey.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface PasskeyInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [credentialId](./auth.passkeyinfo.md#passkeyinfocredentialid) | string |  |
-|  [name](./auth.passkeyinfo.md#passkeyinfoname) | string |  |
+|  [credentialId](./auth.passkeyinfo.md#passkeyinfocredentialid) | string | The credential ID of the passkey. |
+|  [name](./auth.passkeyinfo.md#passkeyinfoname) | string | The name associated with the passkey. |
 
 ## PasskeyInfo.credentialId
+
+The credential ID of the passkey.
 
 <b>Signature:</b>
 
@@ -32,6 +36,8 @@ readonly credentialId: string;
 ```
 
 ## PasskeyInfo.name
+
+The name associated with the passkey.
 
 <b>Signature:</b>
 

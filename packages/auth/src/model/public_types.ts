@@ -1103,11 +1103,19 @@ export interface UserInfo {
   readonly uid: string;
 }
 
+/**
+ * Represents information about a passkey.
+ */
 export interface PasskeyInfo {
+  /**
+   * The credential ID of the passkey.
+   */
   readonly credentialId: string;
+  /**
+   * The name associated with the passkey.
+   */
   readonly name?: string;
 }
-
 /**
  * Interface representing a user's metadata.
  *

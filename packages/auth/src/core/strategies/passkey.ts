@@ -167,7 +167,7 @@ export async function enrollPasskey(
 }
 
 /**
- * Unenrolls a passkey for the user account.
+ * Unenrolls the passkey corresponding to the specified credentialId.
  * @param user - The user to unenroll the passkey for.
  * @param credentialId - The ID of the passkey to unenroll.
  * @returns A promise that resolves when the passkey is successfully unenrolled.

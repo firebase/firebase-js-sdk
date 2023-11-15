@@ -70,7 +70,7 @@ Firebase Authentication
 |  [reauthenticateWithRedirect(user, provider, resolver)](./auth.md#reauthenticatewithredirect) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow. |
 |  [reload(user)](./auth.md#reload) | Reloads user account data, if signed in. |
 |  [sendEmailVerification(user, actionCodeSettings)](./auth.md#sendemailverification) | Sends a verification email to a user. |
-|  [unenrollPasskey(user, credentialId)](./auth.md#unenrollpasskey) | Unenrolls a passkey for the user account. |
+|  [unenrollPasskey(user, credentialId)](./auth.md#unenrollpasskey) | Unenrolls the passkey corresponding to the specified credentialId. |
 |  [unlink(user, providerId)](./auth.md#unlink) | Unlinks a provider from a user account. |
 |  [updateEmail(user, newEmail)](./auth.md#updateemail) | Updates the user's email address. |
 |  [updatePassword(user, newPassword)](./auth.md#updatepassword) | Updates the user's password. |
@@ -128,7 +128,7 @@ Firebase Authentication
 |  [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth.user.md#user_interface)<!-- -->. |
 |  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md#oauthcredentialoptions_interface) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [ParsedToken](./auth.parsedtoken.md#parsedtoken_interface) | Interface representing a parsed ID token. |
-|  [PasskeyInfo](./auth.passkeyinfo.md#passkeyinfo_interface) |  |
+|  [PasskeyInfo](./auth.passkeyinfo.md#passkeyinfo_interface) | Represents information about a passkey. |
 |  [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | A structure specifying password policy requirements. |
 |  [PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface) | A structure indicating which password policy requirements were met or violated and what the requirements are. |
 |  [Persistence](./auth.persistence.md#persistence_interface) | An interface covering the possible persistence mechanism types. |
@@ -1624,7 +1624,7 @@ await applyActionCode(auth, code);
 
 ## unenrollPasskey()
 
-Unenrolls a passkey for the user account.
+Unenrolls the passkey corresponding to the specified credentialId.
 
 <b>Signature:</b>
 
