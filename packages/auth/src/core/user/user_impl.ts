@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from '../../model/public_types';
+import { IdTokenResult, PasskeyInfo } from '../../model/public_types';
 import { NextFn } from '@firebase/util';
 
 import {
@@ -66,6 +66,7 @@ export class UserImpl implements UserInternal {
   tenantId: string | null;
   readonly metadata: UserMetadata;
   providerData: MutableUserInfo[];
+  enrolledPasskeys: PasskeyInfo[];
 
   // Optional fields from UserInfo
   displayName: string | null;
@@ -89,6 +90,9 @@ export class UserImpl implements UserInternal {
     this.isAnonymous = opt.isAnonymous || false;
     this.tenantId = opt.tenantId || null;
     this.providerData = opt.providerData ? [...opt.providerData] : [];
+    this.enrolledPasskeys = opt.enrolledPasskeys
+      ? [...opt.enrolledPasskeys]
+      : [];
     this.metadata = new UserMetadata(
       opt.createdAt || undefined,
       opt.lastLoginAt || undefined
@@ -135,6 +139,9 @@ export class UserImpl implements UserInternal {
     this.isAnonymous = user.isAnonymous;
     this.tenantId = user.tenantId;
     this.providerData = user.providerData.map(userInfo => ({ ...userInfo }));
+    this.enrolledPasskeys = user.enrolledPasskeys.map(passkeyInfo => ({
+      ...passkeyInfo
+    }));
     this.metadata._copy(user.metadata);
     this.stsTokenManager._assign(user.stsTokenManager);
   }

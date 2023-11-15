@@ -567,6 +567,12 @@ export interface ParsedToken {
 }
 
 // @public
+export interface PasskeyInfo {
+    readonly credentialId: string;
+    readonly name?: string;
+}
+
+// @public
 export interface PasswordPolicy {
     readonly allowedNonAlphanumericCharacters: string;
     readonly customStrengthOptions: {
@@ -836,6 +842,9 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
 }
 
 // @public
+export function unenrollPasskey(user: User, credentialId: string): Promise<void>;
+
+// @public
 export function unlink(user: User, providerId: string): Promise<User>;
 
 export { Unsubscribe }
@@ -865,6 +874,7 @@ export function useDeviceLanguage(auth: Auth): void;
 export interface User extends UserInfo {
     delete(): Promise<void>;
     readonly emailVerified: boolean;
+    readonly enrolledPasskeys: PasskeyInfo[];
     getIdToken(forceRefresh?: boolean): Promise<string>;
     getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
     readonly isAnonymous: boolean;
