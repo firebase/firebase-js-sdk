@@ -566,11 +566,9 @@ export interface ParsedToken {
     'sub'?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface PasskeyInfo {
-    // (undocumented)
     readonly credentialId: string;
-    // (undocumented)
     readonly name?: string;
 }
 
