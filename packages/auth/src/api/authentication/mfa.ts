@@ -49,7 +49,9 @@ export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;
   mfaEnrollmentId: string;
   phoneSignInInfo: {
+    // reCAPTCHA v2 token
     recaptchaToken?: string;
+    // reCAPTCHA Enterprise token
     captchaResponse?: string;
     clientType?: RecaptchaClientType;
     recaptchaVersion?: RecaptchaVersion;

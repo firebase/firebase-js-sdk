@@ -57,7 +57,9 @@ export interface StartPhoneMfaEnrollmentRequest {
   idToken: string;
   phoneEnrollmentInfo: {
     phoneNumber: string;
+    // reCAPTCHA v2 token
     recaptchaToken?: string;
+    // reCAPTCHA Enterprise token
     captchaResponse?: string;
     clientType?: RecaptchaClientType;
     recaptchaVersion?: RecaptchaVersion;

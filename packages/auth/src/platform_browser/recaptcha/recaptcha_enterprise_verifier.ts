@@ -157,13 +157,13 @@ export async function injectRecaptchaFields<T>(
   auth: AuthInternal,
   request: T,
   action: RecaptchaActionName,
-  captchaResp = false,
-  fakeToken = false
+  isCaptchaResp = false,
+  isFakeToken = false
 ): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
 
-  if (fakeToken) {
+  if (isFakeToken) {
     captchaResponse = FAKE_TOKEN;
   } else {
     try {
@@ -212,7 +212,7 @@ export async function injectRecaptchaFields<T>(
     return newRequest;
   }
 
-  if (!captchaResp) {
+  if (!isCaptchaResp) {
     Object.assign(newRequest, { captchaResponse });
   } else {
     Object.assign(newRequest, { 'captchaResp': captchaResponse });

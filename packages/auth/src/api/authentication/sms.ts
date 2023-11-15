@@ -32,8 +32,10 @@ import { Auth } from '../../model/public_types';
 
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;
+  // reCAPTCHA v2 token
   recaptchaToken?: string;
   tenantId?: string;
+  // reCAPTCHA Enterprise token
   captchaResponse?: string;
   clientType?: RecaptchaClientType;
   recaptchaVersion?: RecaptchaVersion;
