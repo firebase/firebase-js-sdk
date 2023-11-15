@@ -18,6 +18,8 @@
 import {
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary,
   _performApiRequest
 } from '../index';
@@ -55,7 +57,10 @@ export interface StartPhoneMfaEnrollmentRequest {
   idToken: string;
   phoneEnrollmentInfo: {
     phoneNumber: string;
-    recaptchaToken: string;
+    recaptchaToken?: string;
+    captchaResponse?: string;
+    clientType?: RecaptchaClientType;
+    recaptchaVersion?: RecaptchaVersion;
   };
   tenantId?: string;
 }

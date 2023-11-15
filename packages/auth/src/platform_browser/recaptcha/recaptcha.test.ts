@@ -29,7 +29,7 @@ import {
 
 import { isV2, isEnterprise, RecaptchaConfig } from './recaptcha';
 import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
-import { EnforcementState } from '../../api/index';
+import { EnforcementState, RecaptchaProvider } from '../../api/index';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -46,7 +46,14 @@ describe('platform_browser/recaptcha/recaptcha', () => {
   const GET_RECAPTCHA_CONFIG_RESPONSE: GetRecaptchaConfigResponse = {
     recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
     recaptchaEnforcementState: [
-      { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+      {
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      },
+      {
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      }
     ]
   };
 
@@ -81,23 +88,62 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     it('should construct the recaptcha config from the backend response', () => {
       expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
       expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
-        provider: 'EMAIL_PASSWORD_PROVIDER',
-        enforcementState: 'ENFORCE'
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      });
+      expect(recaptchaConfig.recaptchaEnforcementState[1]).to.eql({
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
       });
     });
 
     it('#getProviderEnforcementState should return the correct enforcement state of the provider', () => {
       expect(
-        recaptchaConfig.getProviderEnforcementState('EMAIL_PASSWORD_PROVIDER')
+        recaptchaConfig.getProviderEnforcementState(
+          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        )
       ).to.eq(EnforcementState.ENFORCE);
+      expect(
+        recaptchaConfig.getProviderEnforcementState(
+          RecaptchaProvider.PHONE_PROVIDER
+        )
+      ).to.eq(EnforcementState.AUDIT);
       expect(recaptchaConfig.getProviderEnforcementState('invalid-provider')).to
         .be.null;
     });
 
     it('#isProviderEnabled should return the enablement state of the provider', () => {
-      expect(recaptchaConfig.isProviderEnabled('EMAIL_PASSWORD_PROVIDER')).to.be
-        .true;
+      expect(
+        recaptchaConfig.isProviderEnabled(
+          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        )
+      ).to.be.true;
+      expect(
+        recaptchaConfig.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+      ).to.be.true;
       expect(recaptchaConfig.isProviderEnabled('invalid-provider')).to.be.false;
+    });
+
+    it('#isAnyProviderEnabled should return true if at least one provider is enabled', () => {
+      expect(recaptchaConfig.isAnyProviderEnabled()).to.be.true;
+
+      const getRecaptchaConfigResponse: GetRecaptchaConfigResponse = {
+        recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
+        recaptchaEnforcementState: [
+          {
+            provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+            enforcementState: EnforcementState.OFF
+          },
+          {
+            provider: RecaptchaProvider.PHONE_PROVIDER,
+            enforcementState: EnforcementState.OFF
+          }
+        ]
+      };
+      const configNoProviderEnabled = new RecaptchaConfig(
+        getRecaptchaConfigResponse
+      );
+      expect(configNoProviderEnabled.isAnyProviderEnabled()).to.be.false;
     });
   });
 });

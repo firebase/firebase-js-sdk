@@ -19,6 +19,8 @@ import {
   _performApiRequest,
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary
 } from '../index';
 import { Auth } from '../../model/public_types';
@@ -47,7 +49,10 @@ export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;
   mfaEnrollmentId: string;
   phoneSignInInfo: {
-    recaptchaToken: string;
+    recaptchaToken?: string;
+    captchaResponse?: string;
+    clientType?: RecaptchaClientType;
+    recaptchaVersion?: RecaptchaVersion;
   };
   tenantId?: string;
 }
