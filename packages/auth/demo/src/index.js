@@ -76,7 +76,8 @@ import {
   validatePassword,
   revokeAccessToken,
   enrollPasskey,
-  signInWithPasskey
+  signInWithPasskey,
+  unenrollPasskey
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -533,6 +534,17 @@ function onEnrollPasskey() {
     onAuthUserCredentialSuccess,
     onAuthError
   );
+}
+
+function onGetEnrolledPasskeys() {
+  console.log('Getting enrolled passkeys');
+  const passkeys = activeUser().enrolledPasskeys;
+  console.log(passkeys);
+}
+
+function onUnenrollPasskey() {
+  const credId = $('#unenroll-passkey-credential-id').val();
+  unenrollPasskey(activeUser(), credId);
 }
 
 function onSignInWithPasskey() {
@@ -2323,6 +2335,8 @@ function initApp() {
 
   $('#get-provider-data').click(onGetProviderData);
   $('#enroll-passkey').click(onEnrollPasskey);
+  $('#get-enrolled-passkey').click(onGetEnrolledPasskeys);
+  $('#unenroll-passkey').click(onUnenrollPasskey);
   $('#link-with-email-and-password').click(onLinkWithEmailAndPassword);
   $('#link-with-generic-idp-credential').click(onLinkWithGenericIdPCredential);
   $('#unlink-provider').click(onUnlinkProvider);

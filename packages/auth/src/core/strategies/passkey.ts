@@ -30,7 +30,9 @@ import {
   finalizePasskeySignIn,
   FinalizePasskeySignInRequest,
   FinalizePasskeySignInResponse,
-  publicKeyCredentialToJSON
+  publicKeyCredentialToJSON,
+  PasskeyUnenrollRequest,
+  passkeyUnenroll
 } from '../../api/account_management/passkey';
 import { UserInternal } from '../../model/user';
 import { _castAuth } from '../auth/auth_impl';
@@ -162,6 +164,28 @@ export async function enrollPasskey(
   } catch (err) {
     return Promise.reject(err);
   }
+}
+
+/**
+ * Unenrolls the passkey corresponding to the specified credentialId.
+ * @param user - The user to unenroll the passkey for.
+ * @param credentialId - The ID of the passkey to unenroll.
+ * @returns A promise that resolves when the passkey is successfully unenrolled.
+ * @public
+ */
+export async function unenrollPasskey(
+  user: User,
+  credentialId: string
+): Promise<void> {
+  const userInternal = getModularInstance(user) as UserInternal;
+  const authInternal = _castAuth(userInternal.auth);
+
+  const idToken = await userInternal.getIdToken();
+  const request: PasskeyUnenrollRequest = {
+    idToken,
+    deletePasskey: [credentialId]
+  };
+  await passkeyUnenroll(authInternal, request);
 }
 
 // Converts an array of credential IDs of `excludeCredentials` field to an array of `PublicKeyCredentialDescriptor` objects.
