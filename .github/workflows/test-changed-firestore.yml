@@ -18,6 +18,8 @@ on: pull_request
 
 env:
   artifactRetentionDays: 14
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   build:
@@ -41,8 +43,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -96,8 +96,6 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -126,8 +124,6 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -158,8 +154,6 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -193,8 +187,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
