@@ -86,7 +86,9 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     };
 
   const recaptchaConfig = new RecaptchaConfig(GET_RECAPTCHA_CONFIG_RESPONSE);
-  const recaptchaConfigOff = new RecaptchaConfig(GET_RECAPTCHA_CONFIG_RESPONSE_OFF);
+  const recaptchaConfigOff = new RecaptchaConfig(
+    GET_RECAPTCHA_CONFIG_RESPONSE_OFF
+  );
   const recaptchaConfigEnforceAndOff = new RecaptchaConfig(
     GET_RECAPTCHA_CONFIG_RESPONSE_ENFORCE_AND_OFF
   );
