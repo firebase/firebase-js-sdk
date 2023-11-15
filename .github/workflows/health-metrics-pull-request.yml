@@ -29,6 +29,7 @@ env:
   #     - https://github.com/actions/checkout/issues/27
   #     - https://github.com/actions/checkout/issues/237
   GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+  # Bump Node memory limit
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
