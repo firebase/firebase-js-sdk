@@ -44,6 +44,7 @@ export const enum ServerError {
   INVALID_ID_TOKEN = 'INVALID_ID_TOKEN',
   INVALID_IDP_RESPONSE = 'INVALID_IDP_RESPONSE',
   INVALID_IDENTIFIER = 'INVALID_IDENTIFIER',
+  INVALID_LOGIN_CREDENTIALS = 'INVALID_LOGIN_CREDENTIALS',
   INVALID_MESSAGE_PAYLOAD = 'INVALID_MESSAGE_PAYLOAD',
   INVALID_MFA_PENDING_CREDENTIAL = 'INVALID_MFA_PENDING_CREDENTIAL',
   INVALID_OAUTH_CLIENT_ID = 'INVALID_OAUTH_CLIENT_ID',
@@ -144,14 +145,17 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   [ServerError.INVALID_PASSWORD]: AuthErrorCode.INVALID_PASSWORD,
   // This can only happen if the SDK sends a bad request.
   [ServerError.MISSING_PASSWORD]: AuthErrorCode.MISSING_PASSWORD,
+  // Thrown if Email Enumeration Protection is enabled in the project and the email or password is
+  // invalid.
+  [ServerError.INVALID_LOGIN_CREDENTIALS]: AuthErrorCode.INVALID_CREDENTIAL,
 
   // Sign up with email and password errors.
   [ServerError.EMAIL_EXISTS]: AuthErrorCode.EMAIL_EXISTS,
   [ServerError.PASSWORD_LOGIN_DISABLED]: AuthErrorCode.OPERATION_NOT_ALLOWED,
 
   // Verify assertion for sign in with credential errors:
-  [ServerError.INVALID_IDP_RESPONSE]: AuthErrorCode.INVALID_IDP_RESPONSE,
-  [ServerError.INVALID_PENDING_TOKEN]: AuthErrorCode.INVALID_IDP_RESPONSE,
+  [ServerError.INVALID_IDP_RESPONSE]: AuthErrorCode.INVALID_CREDENTIAL,
+  [ServerError.INVALID_PENDING_TOKEN]: AuthErrorCode.INVALID_CREDENTIAL,
   [ServerError.FEDERATED_USER_ID_ALREADY_LINKED]:
     AuthErrorCode.CREDENTIAL_ALREADY_IN_USE,
 
@@ -184,7 +188,7 @@ export const SERVER_ERROR_MAP: Partial<ServerErrorMap<ServerError>> = {
   // Phone Auth related errors.
   [ServerError.INVALID_CODE]: AuthErrorCode.INVALID_CODE,
   [ServerError.INVALID_SESSION_INFO]: AuthErrorCode.INVALID_SESSION_INFO,
-  [ServerError.INVALID_TEMPORARY_PROOF]: AuthErrorCode.INVALID_IDP_RESPONSE,
+  [ServerError.INVALID_TEMPORARY_PROOF]: AuthErrorCode.INVALID_CREDENTIAL,
   [ServerError.MISSING_SESSION_INFO]: AuthErrorCode.MISSING_SESSION_INFO,
   [ServerError.SESSION_EXPIRED]: AuthErrorCode.CODE_EXPIRED,
 
