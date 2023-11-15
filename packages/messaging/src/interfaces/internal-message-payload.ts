@@ -28,6 +28,7 @@ export interface MessagePayloadInternal {
   isFirebaseMessaging?: boolean;
   from: string;
   fcmMessageId: string;
+  productId: number;
   // eslint-disable-next-line camelcase
   collapse_key: string;
 }

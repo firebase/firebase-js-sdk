@@ -22,14 +22,16 @@ import {
   FcmEvent,
   LogEvent,
   LogResponse,
-  UserResponse
+  UserResponse,
+  ComplianceData
 } from '../../interfaces/logging-types';
 
 export function getFakeLogEvent(): LogEvent {
   return {
     /* eslint-disable camelcase */
     event_time_ms: '0',
-    source_extension_json_proto3: JSON.stringify(getFakeFcmEvent())
+    source_extension_json_proto3: JSON.stringify(getFakeFcmEvent()),
+    compliance_data: getFakeComplianceData()
     /* eslint-enable camelcase */
   };
 }
@@ -48,6 +50,18 @@ function getFakeFcmEvent(): FcmEvent {
     analytics_label: 'fake-analytics-label'
     /* eslint-enable camelcase */
   };
+}
+
+function getFakeComplianceData(): ComplianceData {
+  const fakeComplianceData: ComplianceData = {
+    privacy_context: {
+      prequest: {
+        origin_associated_product_id: 123,
+      },
+    },
+  };
+
+  return fakeComplianceData;
 }
 
 export function getSuccessResponse(): LogResponse {
