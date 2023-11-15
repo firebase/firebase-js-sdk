@@ -978,6 +978,10 @@ export interface User extends UserInfo {
    */
   readonly providerData: UserInfo[];
   /**
+   * An array of PasskeyInfo objects representing the passkeys that the user has enrolled.
+   */
+  readonly enrolledPasskeys: PasskeyInfo[];
+  /**
    * Refresh token used to reauthenticate the user. Avoid using this directly and prefer
    * {@link User.getIdToken} to refresh the ID token instead.
    */
@@ -1106,6 +1110,19 @@ export interface UserInfo {
   readonly uid: string;
 }
 
+/**
+ * Represents information about a passkey.
+ */
+export interface PasskeyInfo {
+  /**
+   * The credential ID of the passkey.
+   */
+  readonly credentialId: string;
+  /**
+   * The name associated with the passkey.
+   */
+  readonly name?: string;
+}
 /**
  * Interface representing a user's metadata.
  *

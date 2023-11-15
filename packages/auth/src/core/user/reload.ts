@@ -68,7 +68,8 @@ export async function _reloadWithoutSaving(user: UserInternal): Promise<void> {
     tenantId: coreAccount.tenantId || null,
     providerData,
     metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt),
-    isAnonymous
+    isAnonymous,
+    enrolledPasskeys: coreAccount.passkeyInfo || []
   };
 
   Object.assign(user, updates);

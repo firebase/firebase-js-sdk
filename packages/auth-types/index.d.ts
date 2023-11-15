@@ -38,6 +38,7 @@ export interface User extends UserInfo {
   multiFactor: MultiFactorUser;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
+  enrolledPasskeys: PasskeyInfo[];
   reauthenticateAndRetrieveDataWithCredential(
     credential: AuthCredential
   ): Promise<UserCredential>;
@@ -467,6 +468,11 @@ export class FirebaseAuth {
   useDeviceLanguage(): void;
   useEmulator(url: string, options?: { disableWarnings?: boolean }): void;
   verifyPasswordResetCode(code: string): Promise<string>;
+}
+
+export interface PasskeyInfo {
+  readonly credentialId: string;
+  readonly name?: string;
 }
 
 declare module '@firebase/app-types' {
