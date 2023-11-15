@@ -36,7 +36,7 @@ Firebase Authentication
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
 |  [signInAnonymously(auth)](./auth.md#signinanonymously) | Asynchronously signs in as an anonymous user. |
@@ -622,7 +622,7 @@ Promise&lt;void&gt;
 
 ## sendPasswordResetEmail()
 
-Sends a password reset email to the given email address. This method does not throw an error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
+Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
 To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset) with the code supplied in the email sent to the user, along with the new password specified by the user.
 
