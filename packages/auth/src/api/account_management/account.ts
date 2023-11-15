@@ -17,6 +17,7 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { MfaEnrollment } from './mfa';
+import { PasskeyInfo } from './passkey';
 import { Auth } from '../../model/public_types';
 
 export interface DeleteAccountRequest {
@@ -76,6 +77,7 @@ export interface APIUserInfo {
   passwordHash?: string;
   providerUserInfo?: ProviderUserInfo[];
   mfaInfo?: MfaEnrollment[];
+  passkeyInfo?: PasskeyInfo[];
 }
 
 export interface GetAccountInfoRequest {
