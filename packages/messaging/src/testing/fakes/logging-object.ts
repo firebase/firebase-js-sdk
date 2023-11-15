@@ -54,11 +54,13 @@ function getFakeFcmEvent(): FcmEvent {
 
 function getFakeComplianceData(): ComplianceData {
   const fakeComplianceData: ComplianceData = {
+    /* eslint-disable camelcase */
     privacy_context: {
       prequest: {
         origin_associated_product_id: 123,
       },
     },
+    /* eslint-enable camelcase */
   };
 
   return fakeComplianceData;
