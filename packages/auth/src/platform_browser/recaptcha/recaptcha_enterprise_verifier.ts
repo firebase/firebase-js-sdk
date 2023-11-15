@@ -32,7 +32,6 @@ import * as jsHelpers from '../load_js';
 import { AuthErrorCode } from '../../core/errors';
 import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
 import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
-import { _assert } from '../../core/util/assert';
 
 const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js?render=';
