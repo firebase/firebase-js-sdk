@@ -57,9 +57,9 @@ function getFakeComplianceData(): ComplianceData {
     /* eslint-disable camelcase */
     privacy_context: {
       prequest: {
-        origin_associated_product_id: 123,
-      },
-    },
+        origin_associated_product_id: 123
+      }
+    }
     /* eslint-enable camelcase */
   };
 

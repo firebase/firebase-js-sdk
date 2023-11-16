@@ -163,7 +163,6 @@ export async function stageLog(
     await messaging.firebaseDependencies.installations.getId()
   );
 
-  
   createAndEnqueueLogEvent(messaging, fcmEvent, internalPayload.productId);
 }
 
@@ -231,9 +230,9 @@ function buildComplianceData(productId: number): ComplianceData {
   const complianceData: ComplianceData = {
     privacy_context: {
       prequest: {
-        origin_associated_product_id: productId,
-      },
-    },
+        origin_associated_product_id: productId
+      }
+    }
   };
 
   return complianceData;
