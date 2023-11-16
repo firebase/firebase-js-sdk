@@ -61,7 +61,9 @@ async function recachePasswordPolicy(auth: Auth): Promise<void> {
 }
 
 /**
- * Sends a password reset email to the given email address.
+ * Sends a password reset email to the given email address. This method does not throw an error when
+ * there's no user account with the given email address and
+ * [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
  *
  * @remarks
  * To complete the password reset, call {@link confirmPasswordReset} with the code supplied in
@@ -303,6 +305,8 @@ export async function createUserWithEmailAndPassword(
  *
  * @remarks
  * Fails with an error if the email address and password do not match.
+ * When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled,
+ * this method fails with "auth/invalid-credential" in case of an invalid email/password.
  *
  * Note: The user's password is NOT the password used to access the user's email account. The
  * email address serves as a unique identifier for the user, and the password is used to access

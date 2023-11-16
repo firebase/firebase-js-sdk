@@ -88,6 +88,9 @@ export async function updateProfile(
  * @param user - The user.
  * @param newEmail - The new email address.
  *
+ * Throws "auth/operation-not-allowed" error when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
+ * Deprecated - Use {@link verifyBeforeUpdateEmail} instead.
+ *
  * @public
  */
 export function updateEmail(user: User, newEmail: string): Promise<void> {
