@@ -1588,20 +1588,15 @@
     fs-extra "^7.0.1"
     p-filter "^2.1.0"
 
-"@changesets/types@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@changesets/types/-/types-3.3.0.tgz"
-  integrity sha512-rJamRo+OD/MQekImfIk07JZwYSB18iU6fYL8xOg0gfAiTh1a1+OlR1fPIxm55I7RsWw812is2YcPPwXdIewrhA==
+"@changesets/types@5.2.1", "@changesets/types@^5.2.1":
+  version "5.2.1"
+  resolved "https://registry.npmjs.org/@changesets/types/-/types-5.2.1.tgz"
+  integrity sha512-myLfHbVOqaq9UtUKqR/nZA/OY7xFjQMdfgfqeZIBK4d0hA6pgxArvdv8M+6NUzzBsjWLOtvApv8YHr4qM+Kpfg==
 
 "@changesets/types@^4.0.1":
   version "4.0.1"
   resolved "https://registry.npmjs.org/@changesets/types/-/types-4.0.1.tgz"
   integrity sha512-zVfv752D8K2tjyFmxU/vnntQ+dPu+9NupOSguA/2Zuym4tVxRh0ylArgKZ1bOAi2eXfGlZMxJU/kj7uCSI15RQ==
-
-"@changesets/types@^5.2.1":
-  version "5.2.1"
-  resolved "https://registry.npmjs.org/@changesets/types/-/types-5.2.1.tgz"
-  integrity sha512-myLfHbVOqaq9UtUKqR/nZA/OY7xFjQMdfgfqeZIBK4d0hA6pgxArvdv8M+6NUzzBsjWLOtvApv8YHr4qM+Kpfg==
 
 "@changesets/write@^0.2.3":
   version "0.2.3"
@@ -3497,6 +3492,13 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-10.17.13.tgz"
   integrity sha512-pMCcqU2zT4TjqYFrWtYHKal7Sl30Ims6ulZ4UFXxI4xbtQqK/qqKwkDoBFCfooRqqmRu9vY3xaJRwxSh673aYg==
 
+"@types/node@20.8.10":
+  version "20.8.10"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.10.tgz#a5448b895c753ae929c26ce85cab557c6d4a365e"
+  integrity sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==
+  dependencies:
+    undici-types "~5.26.4"
+
 "@types/node@>=12.12.47":
   version "16.9.6"
   resolved "https://registry.npmjs.org/@types/node/-/node-16.9.6.tgz"
@@ -3506,13 +3508,6 @@
   version "20.9.0"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.9.0.tgz"
   integrity sha512-nekiGu2NDb1BcVofVcEKMIwzlx4NjHlcjhoxxKBNLtz15Y1z7MYf549DFvkHSId02Ax6kGwWntIBPC3l/JZcmw==
-  dependencies:
-    undici-types "~5.26.4"
-
-"@types/node@20.8.10":
-  version "20.8.10"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.8.10.tgz#a5448b895c753ae929c26ce85cab557c6d4a365e"
-  integrity sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==
   dependencies:
     undici-types "~5.26.4"
 
