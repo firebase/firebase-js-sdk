@@ -21,7 +21,12 @@ import chaiAsPromised from 'chai-as-promised';
 import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
+import {
+  Endpoint,
+  HttpHeader,
+  RecaptchaClientType,
+  RecaptchaVersion
+} from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
@@ -38,7 +43,10 @@ use(chaiAsPromised);
 describe('api/authentication/sendPhoneVerificationCode', () => {
   const request = {
     phoneNumber: '123456789',
-    recaptchaToken: 'captchad'
+    recaptchaToken: 'captchad',
+    captchaResponse: 'captcha-response',
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
   };
 
   let auth: TestAuth;

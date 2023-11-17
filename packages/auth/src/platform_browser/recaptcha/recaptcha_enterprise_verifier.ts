@@ -30,6 +30,8 @@ import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
 import { AuthErrorCode } from '../../core/errors';
+import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
+import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
@@ -156,17 +158,62 @@ export async function injectRecaptchaFields<T>(
   auth: AuthInternal,
   request: T,
   action: RecaptchaActionName,
-  captchaResp = false
+  isCaptchaResp = false,
+  isFakeToken = false
 ): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
-  try {
-    captchaResponse = await verifier.verify(action);
-  } catch (error) {
-    captchaResponse = await verifier.verify(action, true);
+
+  if (isFakeToken) {
+    captchaResponse = FAKE_TOKEN;
+  } else {
+    try {
+      captchaResponse = await verifier.verify(action);
+    } catch (error) {
+      captchaResponse = await verifier.verify(action, true);
+    }
   }
+
   const newRequest = { ...request };
-  if (!captchaResp) {
+  if (
+    action === RecaptchaActionName.MFA_SMS_ENROLLMENT ||
+    action === RecaptchaActionName.MFA_SMS_SIGNIN
+  ) {
+    if ('phoneEnrollmentInfo' in newRequest) {
+      const phoneNumber = (
+        newRequest as unknown as StartPhoneMfaEnrollmentRequest
+      ).phoneEnrollmentInfo.phoneNumber;
+      const recaptchaToken = (
+        newRequest as unknown as StartPhoneMfaEnrollmentRequest
+      ).phoneEnrollmentInfo.recaptchaToken;
+
+      Object.assign(newRequest, {
+        'phoneEnrollmentInfo': {
+          phoneNumber,
+          recaptchaToken,
+          captchaResponse,
+          'clientType': RecaptchaClientType.WEB,
+          'recaptchaVersion': RecaptchaVersion.ENTERPRISE
+        }
+      });
+    } else if ('phoneSignInInfo' in newRequest) {
+      const recaptchaToken = (
+        newRequest as unknown as StartPhoneMfaSignInRequest
+      ).phoneSignInInfo.recaptchaToken;
+
+      Object.assign(newRequest, {
+        'phoneSignInInfo': {
+          recaptchaToken,
+          captchaResponse,
+          'clientType': RecaptchaClientType.WEB,
+          'recaptchaVersion': RecaptchaVersion.ENTERPRISE
+        }
+      });
+    }
+    return newRequest;
+  }
+
+  if (!isCaptchaResp) {
     Object.assign(newRequest, { captchaResponse });
   } else {
     Object.assign(newRequest, { 'captchaResp': captchaResponse });
@@ -236,7 +283,7 @@ export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
     authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
   }
 
-  if (config.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)) {
+  if (config.isAnyProviderEnabled()) {
     const verifier = new RecaptchaEnterpriseVerifier(authInternal);
     void verifier.verify();
   }

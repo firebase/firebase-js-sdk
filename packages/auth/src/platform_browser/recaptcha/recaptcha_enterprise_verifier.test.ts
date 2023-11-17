@@ -24,7 +24,9 @@ import {
   Endpoint,
   RecaptchaClientType,
   RecaptchaVersion,
-  RecaptchaActionName
+  RecaptchaActionName,
+  RecaptchaProvider,
+  EnforcementState
 } from '../../api';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
@@ -36,7 +38,8 @@ import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 import {
   RecaptchaEnterpriseVerifier,
   FAKE_TOKEN,
-  handleRecaptchaFlow
+  handleRecaptchaFlow,
+  injectRecaptchaFields
 } from './recaptcha_enterprise_verifier';
 import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
@@ -53,8 +56,12 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: 'EMAIL_PASSWORD_PROVIDER',
-        enforcementState: 'ENFORCE'
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      },
+      {
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
       }
     ]
   };
@@ -65,17 +72,30 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: 'EMAIL_PASSWORD_PROVIDER',
-        enforcementState: 'OFF'
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.OFF
+      },
+      {
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.OFF
       }
     ]
   };
   const recaptchaConfigOff = new RecaptchaConfig(recaptchaConfigResponseOff);
 
+  const getRecaptchaConfigRequest = {
+    clientType: RecaptchaClientType.WEB,
+    version: RecaptchaVersion.ENTERPRISE
+  };
+
+  let recaptcha: MockGreCAPTCHATopLevel;
+
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
+    recaptcha = new MockGreCAPTCHATopLevel();
+    window.grecaptcha = recaptcha;
   });
 
   afterEach(() => {
@@ -84,21 +104,10 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   });
 
   context('#verify', () => {
-    const request = {
-      clientType: RecaptchaClientType.WEB,
-      version: RecaptchaVersion.ENTERPRISE
-    };
-
-    let recaptcha: MockGreCAPTCHATopLevel;
-    beforeEach(() => {
-      recaptcha = new MockGreCAPTCHATopLevel();
-      window.grecaptcha = recaptcha;
-    });
-
     it('returns if response is available', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
-        request,
+        getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
       sinon
@@ -110,7 +119,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     it('reject if error is thrown when retrieve site key', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
-        request,
+        getRecaptchaConfigRequest,
         {
           error: {
             code: 400,
@@ -131,7 +140,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     it('return fake recaptcha token if error is thrown when retrieve recaptcha token', async () => {
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
-        request,
+        getRecaptchaConfigRequest,
         recaptchaConfigResponseEnforce
       );
       sinon
@@ -244,6 +253,148 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         AuthErrorCode.RECAPTCHA_NOT_ENABLED
       );
       expect(mockActionMethod).to.have.been.calledOnce;
+    });
+  });
+
+  context('#injectRecaptchaFields', () => {
+    it('injects recaptcha enterprise fields into SignInWithPassword request', async () => {
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        getRecaptchaConfigRequest,
+        recaptchaConfigResponseEnforce
+      );
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+
+      const request = {
+        returnSecureToken: true,
+        email: 'email',
+        password: 'password',
+        clientType: RecaptchaClientType.WEB
+      };
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        auth,
+        request,
+        RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
+        false
+      );
+      const expectedRequest = {
+        returnSecureToken: true,
+        email: 'email',
+        password: 'password',
+        clientType: RecaptchaClientType.WEB,
+        captchaResponse: 'recaptcha-response',
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      };
+
+      expect(requestWithRecaptcha).to.eql(expectedRequest);
+    });
+
+    it('injects recaptcha enterprise fields when captchaResp is true', async () => {
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        getRecaptchaConfigRequest,
+        recaptchaConfigResponseEnforce
+      );
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+
+      const request = {
+        requestType: 'requestType',
+        email: 'email',
+        clientType: RecaptchaClientType.WEB
+      };
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        auth,
+        request,
+        RecaptchaActionName.GET_OOB_CODE,
+        true
+      );
+      const expectedRequest = {
+        requestType: 'requestType',
+        email: 'email',
+        clientType: RecaptchaClientType.WEB,
+        captchaResp: 'recaptcha-response',
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      };
+
+      expect(requestWithRecaptcha).to.eql(expectedRequest);
+    });
+
+    it('injects recaptcha enterprise fields into StartPhoneMfaEnrollment request', async () => {
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        getRecaptchaConfigRequest,
+        recaptchaConfigResponseEnforce
+      );
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+
+      const request = {
+        idToken: 'idToken',
+        phoneEnrollmentInfo: {
+          phoneNumber: '123456',
+          recaptchaToken: 'recaptchaToken'
+        }
+      };
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        auth,
+        request,
+        RecaptchaActionName.MFA_SMS_ENROLLMENT,
+        false
+      );
+      const expectedRequest = {
+        idToken: 'idToken',
+        phoneEnrollmentInfo: {
+          phoneNumber: '123456',
+          recaptchaToken: 'recaptchaToken',
+          captchaResponse: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        }
+      };
+
+      expect(requestWithRecaptcha).to.eql(expectedRequest);
+    });
+
+    it('injects recaptcha enterprise fields into StartPhoneMfaSignInRequest request', async () => {
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        getRecaptchaConfigRequest,
+        recaptchaConfigResponseEnforce
+      );
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+
+      const request = {
+        mfaPendingCredential: 'mfaPendingCredential',
+        mfaEnrollmentId: 'mfaEnrollmentId',
+        phoneSignInInfo: {
+          recaptchaToken: 'recaptchaToken'
+        }
+      };
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        auth,
+        request,
+        RecaptchaActionName.MFA_SMS_SIGNIN,
+        false
+      );
+      const expectedRequest = {
+        mfaPendingCredential: 'mfaPendingCredential',
+        mfaEnrollmentId: 'mfaEnrollmentId',
+        phoneSignInInfo: {
+          recaptchaToken: 'recaptchaToken',
+          captchaResponse: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        }
+      };
+
+      expect(requestWithRecaptcha).to.eql(expectedRequest);
     });
   });
 });
