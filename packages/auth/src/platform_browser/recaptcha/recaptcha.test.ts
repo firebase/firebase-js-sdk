@@ -29,7 +29,7 @@ import {
 
 import { isV2, isEnterprise, RecaptchaConfig } from './recaptcha';
 import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
-import { EnforcementState } from '../../api/index';
+import { EnforcementState, RecaptchaProvider } from '../../api/index';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -39,16 +39,59 @@ describe('platform_browser/recaptcha/recaptcha', () => {
   let recaptchaV2: MockReCaptcha;
   let recaptchaV3: MockGreCAPTCHA;
   let recaptchaEnterprise: MockGreCAPTCHATopLevel;
-  let recaptchaConfig: RecaptchaConfig;
 
   const TEST_SITE_KEY = 'test-site-key';
 
   const GET_RECAPTCHA_CONFIG_RESPONSE: GetRecaptchaConfigResponse = {
     recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
     recaptchaEnforcementState: [
-      { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'ENFORCE' }
+      {
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      },
+      {
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      }
     ]
   };
+
+  const GET_RECAPTCHA_CONFIG_RESPONSE_OFF: GetRecaptchaConfigResponse = {
+    recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
+    recaptchaEnforcementState: [
+      {
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.OFF
+      },
+      {
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.OFF
+      }
+    ]
+  };
+
+  const GET_RECAPTCHA_CONFIG_RESPONSE_ENFORCE_AND_OFF: GetRecaptchaConfigResponse =
+    {
+      recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
+      recaptchaEnforcementState: [
+        {
+          provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+          enforcementState: EnforcementState.ENFORCE
+        },
+        {
+          provider: RecaptchaProvider.PHONE_PROVIDER,
+          enforcementState: EnforcementState.OFF
+        }
+      ]
+    };
+
+  const recaptchaConfig = new RecaptchaConfig(GET_RECAPTCHA_CONFIG_RESPONSE);
+  const recaptchaConfigOff = new RecaptchaConfig(
+    GET_RECAPTCHA_CONFIG_RESPONSE_OFF
+  );
+  const recaptchaConfigEnforceAndOff = new RecaptchaConfig(
+    GET_RECAPTCHA_CONFIG_RESPONSE_ENFORCE_AND_OFF
+  );
 
   context('#verify', () => {
     beforeEach(async () => {
@@ -74,30 +117,63 @@ describe('platform_browser/recaptcha/recaptcha', () => {
   });
 
   context('#RecaptchaConfig', () => {
-    beforeEach(async () => {
-      recaptchaConfig = new RecaptchaConfig(GET_RECAPTCHA_CONFIG_RESPONSE);
-    });
-
     it('should construct the recaptcha config from the backend response', () => {
       expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
       expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
-        provider: 'EMAIL_PASSWORD_PROVIDER',
-        enforcementState: 'ENFORCE'
+        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      });
+      expect(recaptchaConfig.recaptchaEnforcementState[1]).to.eql({
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      });
+      expect(recaptchaConfigEnforceAndOff.recaptchaEnforcementState[1]).to.eql({
+        provider: RecaptchaProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.OFF
       });
     });
 
     it('#getProviderEnforcementState should return the correct enforcement state of the provider', () => {
       expect(
-        recaptchaConfig.getProviderEnforcementState('EMAIL_PASSWORD_PROVIDER')
+        recaptchaConfig.getProviderEnforcementState(
+          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        )
       ).to.eq(EnforcementState.ENFORCE);
+      expect(
+        recaptchaConfig.getProviderEnforcementState(
+          RecaptchaProvider.PHONE_PROVIDER
+        )
+      ).to.eq(EnforcementState.AUDIT);
+      expect(
+        recaptchaConfigEnforceAndOff.getProviderEnforcementState(
+          RecaptchaProvider.PHONE_PROVIDER
+        )
+      ).to.eq(EnforcementState.OFF);
       expect(recaptchaConfig.getProviderEnforcementState('invalid-provider')).to
         .be.null;
     });
 
     it('#isProviderEnabled should return the enablement state of the provider', () => {
-      expect(recaptchaConfig.isProviderEnabled('EMAIL_PASSWORD_PROVIDER')).to.be
-        .true;
+      expect(
+        recaptchaConfig.isProviderEnabled(
+          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        )
+      ).to.be.true;
+      expect(
+        recaptchaConfig.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+      ).to.be.true;
+      expect(
+        recaptchaConfigEnforceAndOff.isProviderEnabled(
+          RecaptchaProvider.PHONE_PROVIDER
+        )
+      ).to.be.false;
       expect(recaptchaConfig.isProviderEnabled('invalid-provider')).to.be.false;
+    });
+
+    it('#isAnyProviderEnabled should return true if at least one provider is enabled', () => {
+      expect(recaptchaConfig.isAnyProviderEnabled()).to.be.true;
+      expect(recaptchaConfigEnforceAndOff.isAnyProviderEnabled()).to.be.true;
+      expect(recaptchaConfigOff.isAnyProviderEnabled()).to.be.false;
     });
   });
 });

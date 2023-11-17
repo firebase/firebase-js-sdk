@@ -20,7 +20,11 @@ import {
   GetRecaptchaConfigResponse,
   RecaptchaEnforcementProviderState
 } from '../../api/authentication/recaptcha';
-import { EnforcementState, _parseEnforcementState } from '../../api/index';
+import {
+  EnforcementState,
+  RecaptchaProvider,
+  _parseEnforcementState
+} from '../../api/index';
 
 // reCAPTCHA v2 interface
 export interface Recaptcha {
@@ -133,6 +137,19 @@ export class RecaptchaConfig {
       this.getProviderEnforcementState(providerStr) ===
         EnforcementState.ENFORCE ||
       this.getProviderEnforcementState(providerStr) === EnforcementState.AUDIT
+    );
+  }
+
+  /**
+   * Returns true if reCAPTCHA Enterprise protection is enabled in at least one provider, otherwise
+   * returns false.
+   *
+   * @returns Whether or not reCAPTCHA Enterprise protection is enabled for at least one provider.
+   */
+  isAnyProviderEnabled(): boolean {
+    return (
+      this.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER) ||
+      this.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
     );
   }
 }
