@@ -57,7 +57,10 @@ import {
   Timestamp,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
+  CollectionReference,
+  WriteBatch,
+  Firestore
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -2819,6 +2822,119 @@ apiDescribe('Queries', persistence => {
       });
     }
   ).timeout('90s');
+});
+
+apiDescribe('Hanging query issue - #7652', persistence => {
+  // Defines a collection that produces the hanging query issue.
+  const collectionDefinition = {
+    'totalDocs': 573,
+    'pageSize': 127,
+    'dataSizes': [
+      2578, 622, 3385, 0, 2525, 1084, 4192, 3940, 520, 0, 3675, 0, 2639, 1194,
+      0, 247, 0, 1618, 494, 1559, 0, 0, 2756, 250, 497, 0, 2071, 355, 3594,
+      3174, 2186, 1834, 2455, 226, 211, 2202, 3036, 0, 684, 3114, 0, 0, 1312,
+      758, 0, 0, 3582, 586, 1219, 0, 0, 3831, 2848, 1485, 4739, 0, 2632, 0,
+      1266, 2169, 0, 179, 1780, 4296, 2041, 3829, 2028, 5430, 0, 0, 5006, 2877,
+      0, 298, 538, 0, 3158, 1070, 3221, 652, 2946, 3600, 1716, 2308, 890, 784,
+      1332, 4530, 1727, 0, 653, 0, 386, 576, 0, 1908, 0, 5539, 1127, 0, 2340, 0,
+      1782, 0, 2153, 194, 0, 3432, 2881, 1016, 0, 941, 430, 5806, 1523, 3287,
+      2940, 196, 0, 418, 2012, 2616, 4264, 0, 3226, 1294, 1400, 2425, 0, 0,
+      4530, 466, 0, 1803, 2145, 1763, 0, 1190, 0, 0, 3729, 700, 3258, 132, 2307,
+      0, 1573, 38, 3209, 2564, 2835, 1554, 1035, 0, 2893, 2141, 2743, 0, 4443,
+      296, 0, 0, 576, 0, 770, 0, 3413, 694, 2779, 2541, 0, 0, 787, 3773, 862,
+      3311, 1012, 0, 0, 1924, 2511, 1512, 0, 0, 1348, 1327, 0, 0, 2629, 2933,
+      145, 457, 4270, 3629, 0, 0, 3060, 1404, 4841, 1657, 0, 1176, 0, 0, 1216,
+      1505, 449, 0, 2179, 1168, 0, 1305, 0, 2915, 2692, 1103, 2986, 1200, 1799,
+      2526, 827, 0, 2581, 6323, 400, 1377, 1306, 3043, 447, 1479, 520, 4572,
+      1883, 0, 6004, 345, 2126, 0, 1967, 3265, 1802, 0, 2986, 3979, 2493, 599,
+      3575, 86, 2062, 1596, 1676, 2026, 0, 861, 4938, 1734, 2598, 2503, 0, 0,
+      121, 0, 4068, 0, 1492, 0, 0, 0, 1947, 2352, 4353, 0, 0, 1036, 4161, 3142,
+      605, 144, 0, 2240, 0, 3382, 2947, 0, 4334, 3441, 5045, 2213, 3131, 0, 154,
+      2317, 2831, 0, 1608, 0, 2483, 0, 3992, 4915, 0, 3481, 0, 4369, 951, 2307,
+      430, 1510, 1079, 58, 0, 2752, 2782, 108, 0, 2309, 555, 2276, 1969, 0,
+      1708, 1282, 1870, 4300, 3909, 3801, 3216, 1240, 1303, 61, 3846, 0, 0,
+      3250, 203, 2969, 4053, 452, 1834, 2272, 1605, 3952, 0, 2685, 0, 773, 0,
+      2211, 0, 1049, 1076, 0, 18, 2919, 620, 2220, 1238, 0, 3557, 1879, 1264,
+      4030, 2001, 770, 1327, 0, 4036, 43, 5425, 0, 0, 1282, 1350, 1672, 1996,
+      2969, 275, 1429, 2504, 0, 160, 891, 1471, 5487, 1966, 1780, 0, 2265, 3753,
+      4226, 1710, 0, 1583, 5488, 3460, 3942, 2329, 2399, 0, 924, 1879, 0, 2476,
+      4164, 3064, 4950, 2464, 1268, 1621, 430, 0, 770, 0, 3807, 1946, 0, 1484,
+      3460, 674, 3089, 0, 0, 437, 2535, 0, 0, 2423, 1251, 2087, 2682, 2820, 239,
+      0, 1596, 34, 3823, 546, 0, 2495, 0, 3762, 887, 0, 0, 0, 3353, 0, 0, 3230,
+      5250, 3369, 4344, 50, 4180, 2033, 1475, 1498, 3402, 1, 900, 0, 4210, 1069,
+      0, 1595, 2444, 0, 3249, 3440, 0, 2572, 4686, 1586, 1395, 1890, 946, 0,
+      1052, 405, 1800, 0, 1482, 2041, 1416, 3639, 1795, 2380, 1502, 944, 3835,
+      688, 6986, 1187, 3572, 2997, 2580, 552, 52, 0, 2924, 0, 0, 1631, 283,
+      5936, 0, 3057, 2243, 45, 2944, 3417, 3645, 1800, 1958, 1428, 0, 5347, 186,
+      0, 4274, 1590, 2729, 4168, 4175, 0, 2234, 0, 2430, 0, 1751, 0, 0, 2847, 0,
+      3726, 728, 5645, 1666, 1900, 2835, 3925, 1425, 576, 0, 5067, 2202, 868,
+      2337, 4748, 2690, 0, 3289, 0, 0, 484, 1628, 0, 1195, 1883, 1114, 6103,
+      1055, 3794, 2030, 0, 0, 1124, 0, 0, 1353, 0, 3410, 0
+    ]
+  };
+  let collPath: string;
+
+  // Recreates a collection that produces the hanging query issue.
+  async function generateTestData(
+    db: Firestore,
+    coll: CollectionReference
+  ): Promise<void> {
+    let batch: WriteBatch | null = null;
+    for (let i = 1; i <= collectionDefinition.totalDocs; i++) {
+      if (batch == null) {
+        batch = writeBatch(db);
+      }
+
+      batch.set(doc(coll, i.toString()), {
+        id: i,
+        data: new Array(collectionDefinition.dataSizes[i]).fill(0).join(''),
+        createdClientTs: Date.now()
+      });
+
+      if (i % 100 === 0) {
+        await batch.commit();
+        batch = null;
+      }
+    }
+
+    if (batch != null) {
+      await batch.commit();
+    }
+  }
+
+  // Before all test iterations, create a collection that produces the
+  // hanging query issue.
+  before(function () {
+    this.timeout('90s');
+    return withTestCollection(persistence, {}, async (testCollection, db) => {
+      collPath = testCollection.path;
+      await generateTestData(db, testCollection);
+    });
+  });
+
+  // Run the test for 20 iteration to attempt to force a failure.
+  for (let i = 0; i < 20; i++) {
+    // Do not ignore timeouts for these tests. A timeout may indicate a
+    // regression. The test is attempting to reproduce hanging queries
+    // with a data set known to reproduce.
+    it(`iteration ${i}`, async () => {
+      return withTestDb(persistence, async db => {
+        const q = query(
+          collection(db, collPath)!,
+          orderBy('id'),
+          limit(collectionDefinition.pageSize)
+        );
+
+        // In issue #7652, this line will hang indefinitely.
+        // The root cause was addressed, and a hardAssert was
+        // added to catch any regressions, so this is no longer
+        // expected to hang.
+        const qSnap = await getDocs(q);
+
+        expect(qSnap.size).to.equal(collectionDefinition.pageSize);
+      });
+    });
+  }
 });
 
 function verifyDocumentChange<T>(
