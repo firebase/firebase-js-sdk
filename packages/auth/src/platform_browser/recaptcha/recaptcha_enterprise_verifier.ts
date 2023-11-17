@@ -33,6 +33,9 @@ import { AuthErrorCode } from '../../core/errors';
 import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
 import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
 
+const RECAPTCHA_ENTERPRISE_URL =
+  'https://www.google.com/recaptcha/enterprise.js?render=';
+
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
 
