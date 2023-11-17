@@ -20,7 +20,12 @@ import chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError } from '@firebase/util';
 
-import { Endpoint, HttpHeader } from '../';
+import {
+  Endpoint,
+  HttpHeader,
+  RecaptchaClientType,
+  RecaptchaVersion
+} from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
@@ -34,7 +39,10 @@ describe('api/authentication/startSignInPhoneMfa', () => {
     mfaPendingCredential: 'my-creds',
     mfaEnrollmentId: 'my-enrollment-id',
     phoneSignInInfo: {
-      recaptchaToken: 'catpcha-token'
+      recaptchaToken: 'catpcha-token',
+      captchaResponse: 'captcha-response',
+      clientType: RecaptchaClientType.WEB,
+      recaptchaVersion: RecaptchaVersion.ENTERPRISE
     }
   };
 
