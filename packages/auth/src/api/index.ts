@@ -86,7 +86,10 @@ export const enum RecaptchaVersion {
 export const enum RecaptchaActionName {
   SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
   GET_OOB_CODE = 'getOobCode',
-  SIGN_UP_PASSWORD = 'signUpPassword'
+  SIGN_UP_PASSWORD = 'signUpPassword',
+  SEND_VERIFICATION_CODE = 'sendVerificationCode',
+  MFA_SMS_ENROLLMENT = 'mfaSmsEnrollment',
+  MFA_SMS_SIGNIN = 'mfaSmsSignin'
 }
 
 export const enum EnforcementState {
@@ -98,7 +101,8 @@ export const enum EnforcementState {
 
 // Providers that have reCAPTCHA Enterprise support.
 export const enum RecaptchaProvider {
-  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER'
+  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER',
+  PHONE_PROVIDER = 'PHONE_PROVIDER'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
