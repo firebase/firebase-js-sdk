@@ -46,6 +46,21 @@ export interface LogEvent {
 
   // A stringified json proto version of source_extension.
   source_extension_json_proto3: string;
+
+  // The compliance data associated with this event.
+  compliance_data: ComplianceData;
+}
+
+export interface ComplianceData {
+  privacy_context: ExternalPrivacyContext;
+}
+
+export interface ExternalPrivacyContext {
+  prequest: ExternalPRequestContext;
+}
+
+export interface ExternalPRequestContext {
+  origin_associated_product_id: number;
 }
 /* eslint-enable camelcase */
 

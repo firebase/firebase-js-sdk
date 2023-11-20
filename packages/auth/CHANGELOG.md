@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 1.4.0
+
+### Minor Changes
+
+- [`5f496e401`](https://github.com/firebase/firebase-js-sdk/commit/5f496e401782db29afd1bd433818a3fc1ef1da3c) [#7745](https://github.com/firebase/firebase-js-sdk/pull/7745) - [feature] Add sign-in with Apple token revocation support.
+
+### Patch Changes
+
+- [`f10acb360`](https://github.com/firebase/firebase-js-sdk/commit/f10acb36009dc9d5d4f0d0880f1357330e3f1d1b) [#7692](https://github.com/firebase/firebase-js-sdk/pull/7692) - Fixes https://github.com/firebase/firebase-js-sdk/issues/7675
+
 ## 1.3.2
 
 ### Patch Changes
