@@ -51,11 +51,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
     expect(snap.uid).to.be.a('string');
   });
 
-  it('allows google redirect sign in', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('allows google redirect sign in', async () => {
     const page = await startUi();
     await page.clickGoogleSignIn();
     const widget = new IdPPage(driver.webDriver);
