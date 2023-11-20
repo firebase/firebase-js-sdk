@@ -88,6 +88,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     // service, not the browser user agent.
     const agent = platformLogger.getPlatformInfoString();
     const date = getUTCDateString();
+    // benign change.
     if (this._heartbeatsCache?.heartbeats == null) {
       this._heartbeatsCache = await this._heartbeatsCachePromise;
     }
