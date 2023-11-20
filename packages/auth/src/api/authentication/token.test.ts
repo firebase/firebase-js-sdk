@@ -199,7 +199,7 @@ describe('api/authentication/revokeToken', () => {
 
     await expect(revokeToken(auth, request)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: The supplied auth credential is malformed or has expired. (auth/invalid-credential).'
+      'Firebase: The supplied auth credential is incorrect, malformed or has expired. (auth/invalid-credential).'
     );
     expect(mock.calls[0].request).to.eql(request);
   });
