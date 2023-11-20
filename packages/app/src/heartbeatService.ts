@@ -240,7 +240,11 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
       return { heartbeats: [] };
     } else {
       const idbHeartbeatObject = await readHeartbeatsFromIndexedDB(this.app);
-      return idbHeartbeatObject || { heartbeats: [] };
+      if(idbHeartbeatObject?.heartbeats) {
+        return idbHeartbeatObject;
+      } else {
+        return { heartbeats: [] };
+      }
     }
   }
   // overwrite the storage with the provided heartbeats
