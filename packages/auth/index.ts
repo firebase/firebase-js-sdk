@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * Firebase Authentication
  *
  * @packageDocumentation
