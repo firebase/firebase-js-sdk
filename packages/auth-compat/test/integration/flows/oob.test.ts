@@ -227,7 +227,7 @@ describe('Integration test: oob codes', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-action-code');
     });
 
-    /*it('fetchSignInMethodsForEmail returns the correct values', async () => {
+    it('fetchSignInMethodsForEmail returns the correct values', async () => {
       const { user } = await firebase
         .auth()
         .signInWithEmailLink(email, oobSession.oobLink);
@@ -242,7 +242,7 @@ describe('Integration test: oob codes', () => {
       expect(updatedMethods).to.have.length(2);
       expect(updatedMethods).to.include('emailLink');
       expect(updatedMethods).to.include('password');
-    });*/
+    });
 
     it('throws an error if the wrong code is provided', async () => {
       const otherSession = await sendEmailLink(randomEmail());
