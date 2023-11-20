@@ -82,6 +82,13 @@ const argv = yargs.options({
 
     await testProcess;
     console.log('Success: ' + name);
+    console.error('Failure: ' + name);
+    console.log('==== SUCCESS START STDOUT =======');
+    console.log(stdout);
+    console.log('==== SUCCESS END STDOUT =======');
+    console.log('==== SUCCESS START STDERR =======');
+    console.error(stderr);
+    console.log('==== SUCCESS END STDERR =======');
     writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
     console.error('Failure: ' + name);
