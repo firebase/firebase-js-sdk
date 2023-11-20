@@ -85,8 +85,12 @@ const argv = yargs.options({
     writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
     console.error('Failure: ' + name);
+    console.log('==== START STDOUT =======');
     console.log(stdout);
+    console.log('==== END STDOUT =======');
+    console.log('==== START STDERR =======');
     console.error(stderr);
+    console.log('==== END STDERR =======');
     writeLogs('Failure', name, stdout + '\n' + stderr);
     process.exit(1);
   }
