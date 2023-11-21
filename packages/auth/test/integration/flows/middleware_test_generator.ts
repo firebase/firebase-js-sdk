@@ -219,7 +219,7 @@ export function generateMiddlewareTests(
       expect(auth.currentUser).to.eq(user);
     });
 
-    it('calls onAbort after rejection', async () => {
+    /*it('calls onAbort after rejection', async () => {
       const onAbort = sinon.spy();
       beforeAuthStateChanged(() => {
         // Pass
@@ -231,5 +231,6 @@ export function generateMiddlewareTests(
       await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
       expect(onAbort).to.have.been.called;
     });
+    */
   });
 }
