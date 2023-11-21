@@ -30,7 +30,7 @@ import {
 
 use(chaiAsPromised);
 
-describe('Integration test: custom auth', () => {
+describe('Integration test: custom auth compat', () => {
   let customToken: string;
   let uid: string;
 
