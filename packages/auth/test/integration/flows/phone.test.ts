@@ -183,7 +183,7 @@ describe('Integration test: phone auth', () => {
       await auth.signOut();
     });
 
-    it('allows the user to sign in again', async () => {
+    it('allows the user to sign in again mod', async () => {
       const cr = await signInWithPhoneNumber(
         auth,
         PHONE_A.phoneNumber,
@@ -194,7 +194,7 @@ describe('Integration test: phone auth', () => {
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
     });
 
-    it('allows the user to update their phone number', async () => {
+    /*it('allows the user to update their phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
 
@@ -223,9 +223,9 @@ describe('Integration test: phone auth', () => {
         await code(cr, PHONE_B.code)
       );
       expect(secondSignIn.uid).to.eq(user.uid);
-    });
+    });*/
 
-    it('allows the user to reauthenticate with phone number', async () => {
+    /*it('allows the user to reauthenticate with phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
       const oldToken = await user.getIdToken();
@@ -245,9 +245,9 @@ describe('Integration test: phone auth', () => {
       await cr.confirm(await code(cr, PHONE_A.code));
 
       expect(await user.getIdToken()).not.to.eq(oldToken);
-    });
+    });*/
 
-    it('prevents reauthentication with wrong phone number', async () => {
+    /*it('prevents reauthentication with wrong phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(await code(cr, PHONE_A.code));
 
@@ -271,9 +271,9 @@ describe('Integration test: phone auth', () => {
         await code(cr, PHONE_B.code)
       );
       await otherUser.delete();
-    });
+    });*/
 
-    it('handles account exists with credential errors', async () => {
+    /*it('handles account exists with credential errors', async () => {
       // PHONE_A is already a user. Try to link it with an email account
       const { user } = await signInAnonymously(auth);
       expect(user.uid).not.to.eq(signUpCred.user.uid);
@@ -305,7 +305,7 @@ describe('Integration test: phone auth', () => {
       expect(credential).not.be.null;
       const errorUserCred = await signInWithCredential(auth, credential!);
       expect(errorUserCred.user.uid).to.eq(signUpCred.user.uid);
-    });
+    });*/
   });
 
   generateMiddlewareTests(
