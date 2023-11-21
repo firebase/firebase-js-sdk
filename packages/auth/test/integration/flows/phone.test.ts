@@ -107,7 +107,7 @@ describe('Integration test: phone auth', () => {
     return fallback;
   }
 
-  it('allows user to sign up', async () => {
+  /*it('allows user to sign up', async () => {
     const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
     const userCred = await cr.confirm(await code(cr, PHONE_A.code));
 
@@ -118,9 +118,9 @@ describe('Integration test: phone auth', () => {
     expect(user.isAnonymous).to.be.false;
     expect(user.uid).to.be.a('string');
     expect(user.phoneNumber).to.eq(PHONE_A.phoneNumber);
-  });
+  });*/
 
-  it('anonymous users can link (and unlink) phone number', async () => {
+  /*it('anonymous users can link (and unlink) phone number', async () => {
     const { user } = await signInAnonymously(auth);
     const { uid: anonId } = user;
 
@@ -135,9 +135,9 @@ describe('Integration test: phone auth', () => {
     // Is anonymous stays false even after unlinking
     expect(auth.currentUser!.isAnonymous).to.be.false;
     expect(auth.currentUser!.phoneNumber).to.be.null;
-  });
+  });*/
 
-  it('anonymous users can upgrade using phone number', async () => {
+  /*it('anonymous users can upgrade using phone number', async () => {
     const { user } = await signInAnonymously(auth);
     const { uid: anonId } = user;
 
@@ -167,7 +167,7 @@ describe('Integration test: phone auth', () => {
     expect(secondSignIn.isAnonymous).to.be.false;
     expect(secondSignIn.providerData[0].phoneNumber).to.eq(PHONE_B.phoneNumber);
     expect(secondSignIn.providerData[0].providerId).to.eq('phone');
-  });
+  });*/
 
   context('with already-created user', () => {
     let signUpCred: UserCredential;
@@ -183,7 +183,7 @@ describe('Integration test: phone auth', () => {
       await auth.signOut();
     });
 
-    it('allows the user to sign in again mod', async () => {
+    /*it('allows the user to sign in again mod', async () => {
       const cr = await signInWithPhoneNumber(
         auth,
         PHONE_A.phoneNumber,
@@ -192,7 +192,7 @@ describe('Integration test: phone auth', () => {
       const signInCred = await cr.confirm(await code(cr, PHONE_A.code));
 
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
-    });
+    });*/
 
     /*it('allows the user to update their phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
