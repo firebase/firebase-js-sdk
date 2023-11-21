@@ -80,7 +80,7 @@ export function generateMiddlewareTests(
       expect(auth.currentUser).to.be.null;
     });
 
-    it('keeps previously-logged in user if blocked', async () => {
+   /*it('keeps previously-logged in user if blocked', async () => {
       // Use a random email/password sign in for the base user
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
@@ -94,7 +94,7 @@ export function generateMiddlewareTests(
 
       await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
       expect(auth.currentUser).to.eq(baseUser);
-    });
+    });*/
 
     /*it('can allow sign in', async () => {
       beforeAuthStateChanged(() => {
@@ -130,7 +130,7 @@ export function generateMiddlewareTests(
       expect(auth.currentUser).not.to.eq(baseUser);
     });*/
 
-    /*it('will reject if one callback fails', async () => {
+    it('will reject if one callback fails', async () => {
       // Also check that the function is called multiple
       // times
       const spy = sinon.spy();
@@ -145,7 +145,7 @@ export function generateMiddlewareTests(
       await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
       expect(auth.currentUser).to.be.null;
       expect(spy).to.have.been.calledThrice;
-    });*/
+    });
 
    /*it('keeps previously-logged in user if one rejects', async () => {
       // Use a random email/password sign in for the base user
