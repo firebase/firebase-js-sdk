@@ -42,7 +42,7 @@ import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
-describe('Integration test: email/password auth', () => {
+describe('Integration test: email/password auth mod', () => {
   let auth: Auth;
   let email: string;
   let password: string;
