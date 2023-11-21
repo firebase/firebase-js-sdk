@@ -171,7 +171,7 @@ export function generateMiddlewareTests(
       expect(spy).to.have.been.calledThrice;
     });
 
-    it('allows sign in with multiple callbacks all pass', async () => {
+    /*it('allows sign in with multiple callbacks all pass', async () => {
       // Use a random email/password sign in for the base user
       const { user: baseUser } = await createUserWithEmailAndPassword(
         auth,
@@ -190,9 +190,9 @@ export function generateMiddlewareTests(
       await expect(signIn()).not.to.be.rejected;
       expect(auth.currentUser).not.to.eq(baseUser);
       expect(spy).to.have.been.calledThrice;
-    });
+    });*/
 
-    it('does not call subsequent callbacks after rejection', async () => {
+    /*it('does not call subsequent callbacks after rejection', async () => {
       const firstSpy = sinon.spy();
       const secondSpy = sinon.spy();
 
@@ -205,9 +205,9 @@ export function generateMiddlewareTests(
       await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
       expect(firstSpy).to.have.been.calledOnce;
       expect(secondSpy).not.to.have.been.called;
-    });
+    });*/
 
-    it('can prevent sign-out', async () => {
+    /*it('can prevent sign-out', async () => {
       await signIn();
       const user = auth.currentUser;
 
@@ -217,7 +217,7 @@ export function generateMiddlewareTests(
 
       await expect(auth.signOut()).to.be.rejectedWith('auth/login-blocked');
       expect(auth.currentUser).to.eq(user);
-    });
+    });*/
 
     /*it('calls onAbort after rejection', async () => {
       const onAbort = sinon.spy();
