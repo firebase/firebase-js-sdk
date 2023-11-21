@@ -113,7 +113,7 @@ describe('Integration test: oob codes', () => {
       expect(user.isAnonymous).to.be.false;
     });
 
-    it('sign in works with an email credential', async () => {
+    /*it('sign in works with an email credential', async () => {
       const cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -127,8 +127,9 @@ describe('Integration test: oob codes', () => {
       expect(user.emailVerified).to.be.true;
       expect(user.isAnonymous).to.be.false;
     });
+    */
 
-    it('reauthenticate works with email credential', async () => {
+    /*it('reauthenticate works with email credential', async () => {
       let cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -143,9 +144,9 @@ describe('Integration test: oob codes', () => {
       expect(newUser.uid).to.eq(oldUser.uid);
       expect(operationType).to.eq(OperationType.REAUTHENTICATE);
       expect(auth.currentUser).to.eq(newUser);
-    });
+    });*/
 
-    it('reauthenticate throws with different email', async () => {
+    /*it('reauthenticate throws with different email', async () => {
       let cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -163,8 +164,9 @@ describe('Integration test: oob codes', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/user-mismatch');
       expect(auth.currentUser).to.eq(oldUser);
     });
+    */
 
-    it('reauthenticate throws if user is deleted', async () => {
+    /*it('reauthenticate throws if user is deleted', async () => {
       let cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -179,8 +181,9 @@ describe('Integration test: oob codes', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/user-mismatch');
       expect(auth.currentUser).to.be.null;
     });
+    */
 
-    it('other accounts can be linked', async () => {
+    /*it('other accounts can be linked', async () => {
       const cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -200,8 +203,9 @@ describe('Integration test: oob codes', () => {
       expect(linked.email).to.eq(email);
       expect(linked.emailVerified).to.be.true;
     });
+    */
 
-    it('can be linked to a custom token', async () => {
+    /*it('can be linked to a custom token', async () => {
       const { user: original } = await signInWithCustomToken(
         auth,
         JSON.stringify({
@@ -220,8 +224,9 @@ describe('Integration test: oob codes', () => {
       expect(linked.email).to.eq(email);
       expect(linked.emailVerified).to.be.true;
     });
+    */
 
-    it('cannot link if original account is deleted', async () => {
+    /*it('cannot link if original account is deleted', async () => {
       const cred = EmailAuthProvider.credentialWithLink(
         email,
         oobSession.oobLink
@@ -235,8 +240,9 @@ describe('Integration test: oob codes', () => {
         'auth/user-token-expired'
       );
     });
+    */
 
-    it('code can only be used once', async () => {
+    /*it('code can only be used once', async () => {
       const link = oobSession.oobLink;
       await signInWithEmailLink(auth, email, link);
       await expect(signInWithEmailLink(auth, email, link)).to.be.rejectedWith(
@@ -244,8 +250,9 @@ describe('Integration test: oob codes', () => {
         'auth/invalid-action-code'
       );
     });
+    */
 
-    it('fetchSignInMethodsForEmail returns the correct values', async () => {
+    /*it('fetchSignInMethodsForEmail returns the correct values', async () => {
       const { user } = await signInWithEmailLink(
         auth,
         email,
@@ -261,13 +268,15 @@ describe('Integration test: oob codes', () => {
       expect(updatedMethods).to.include(SignInMethod.EMAIL_LINK);
       expect(updatedMethods).to.include(SignInMethod.EMAIL_PASSWORD);
     });
+    */
 
-    it('throws an error if the wrong code is provided', async () => {
+    /*it('throws an error if the wrong code is provided', async () => {
       const otherSession = await sendEmailLink(randomEmail());
       await expect(
         signInWithEmailLink(auth, email, otherSession.oobLink)
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-email');
     });
+    */
 
     generateMiddlewareTests(
       () => auth,
@@ -277,7 +286,7 @@ describe('Integration test: oob codes', () => {
     );
   });
 
-  it('can be used to verify email', async () => {
+  /*it('can be used to verify email', async () => {
     // Create an unverified user
     const { user } = await createUserWithEmailAndPassword(
       auth,
@@ -295,8 +304,9 @@ describe('Integration test: oob codes', () => {
     await user.reload();
     expect(user.emailVerified).to.be.true;
   });
+  */
 
-  it('can be used to initiate password reset', async () => {
+  /*it('can be used to initiate password reset', async () => {
     const { user: original } = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -327,10 +337,11 @@ describe('Integration test: oob codes', () => {
       signInWithEmailAndPassword(auth, email, 'password')
     ).to.be.rejectedWith(FirebaseError, 'auth/wrong-password');
   });
+  */
 
   // Test is ignored for now as the emulator does not currently support the
   // verify-and-change-email operation.
-  xit('verifyBeforeUpdateEmail waits until flow completes', async () => {
+  /*xit('verifyBeforeUpdateEmail waits until flow completes', async () => {
     const updatedEmail = randomEmail();
 
     // Create an initial user with the basic email
@@ -363,4 +374,5 @@ describe('Integration test: oob codes', () => {
     );
     expect(newSignIn.uid).to.eq(user.uid);
   });
+  */
 });

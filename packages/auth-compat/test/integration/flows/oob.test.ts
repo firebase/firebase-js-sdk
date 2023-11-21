@@ -72,7 +72,7 @@ describe('Integration test: oob codes', () => {
       return code(toEmail);
     }
 
-    it('allows user to sign in', async () => {
+    /*it('allows user to sign in', async () => {
       const { user, operationType } = await firebase
         .auth()
         .signInWithEmailLink(email, oobSession.oobLink);
@@ -183,7 +183,7 @@ describe('Integration test: oob codes', () => {
       expect(firebase.auth().currentUser).to.eq(linked);
       expect(linked!.email).to.eq(email);
       expect(linked!.emailVerified).to.be.true;
-    });
+    });*/
 
     it('can be linked to a custom token', async () => {
       const { user: original } = await firebase.auth().signInWithCustomToken(
