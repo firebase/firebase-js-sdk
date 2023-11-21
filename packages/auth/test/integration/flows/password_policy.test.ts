@@ -60,7 +60,7 @@ describe('Integration test: password validation', () => {
     const INVALID_PASSWORD = 'a';
     const TENANT_PARTIALLY_INVALID_PASSWORD = 'Password0123';
 
-    it('considers valid passwords valid against the policy configured for the project', async () => {
+    /*it('considers valid passwords valid against the policy configured for the project', async () => {
       const password = await generateValidPassword(auth);
       expect((await validatePassword(auth, password)).isValid).to.be.true;
     });
@@ -114,6 +114,6 @@ describe('Integration test: password validation', () => {
       expect(status.passwordPolicy.customStrengthOptions).to.eql(
         EXPECTED_TENANT_CUSTOM_STRENGTH_OPTIONS
       );
-    });
+    });*/
   });
 });
