@@ -304,19 +304,19 @@ describe('View', () => {
     let changes = view.computeDocChanges(documentUpdates(doc1));
     let viewChange = view.applyChanges(
       changes,
-      /* updateLimboDocuments= */ true
+      /* limboResolutionEnabled= */ true
     );
     expect(viewChange.snapshot!.fromCache).to.be.true;
 
     // Add doc2 to generate a snapshot. Doc1 is still missing.
     changes = view.computeDocChanges(documentUpdates(doc2));
-    viewChange = view.applyChanges(changes, /* updateLimboDocuments= */ true);
+    viewChange = view.applyChanges(changes, /* limboResolutionEnabled= */ true);
     expect(viewChange.snapshot!.fromCache).to.be.true;
 
     // Add doc2 to the backend's result set.
     viewChange = view.applyChanges(
       changes,
-      /* updateLimboDocuments= */ true,
+      /* limboResolutionEnabled= */ true,
       updateMapping(version(0), [doc2], [], [], /* current= */ true)
     );
     // We are CURRENT but doc1 is in limbo.
@@ -325,7 +325,7 @@ describe('View', () => {
     // Add doc1 to the backend's result set.
     viewChange = view.applyChanges(
       changes,
-      /* updateLimboDocuments= */ true,
+      /* limboResolutionEnabled= */ true,
       updateMapping(version(0), [doc1], [], [], /* current= */ true)
     );
     expect(viewChange.snapshot!.fromCache).to.be.false;
