@@ -173,8 +173,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
 
     beforeEach(async () => {
       mockAuthInstance = await testAuth();
-      mockRequest = {};
+      mockRequest = { foo: 'bar' };
       mockActionMethod = sinon.stub();
+      sinon
+        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
+        .resolves('recaptcha-response');
     });
 
     afterEach(() => {
@@ -188,10 +191,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigEnforce);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       mockActionMethod = sinon.stub().resolves('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
@@ -212,10 +211,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigOff);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -245,10 +240,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigOff);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -281,10 +272,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigEnforce);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       mockActionMethod = sinon.stub().resolves('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
@@ -304,10 +291,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigAudit);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -337,10 +320,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigAudit);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -370,10 +349,6 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigAudit);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
