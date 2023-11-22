@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 0.10.5
+
+### Patch Changes
+
+- [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4) [#7771](https://github.com/firebase/firebase-js-sdk/pull/7771) (fixes [#6118](https://github.com/firebase/firebase-js-sdk/issues/6118)) - Fix high memory usage of Firestore in browsers.
+
 ## 0.10.3
 
 ### Patch Changes
