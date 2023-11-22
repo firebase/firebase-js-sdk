@@ -83,8 +83,8 @@ jobs:
           cp config/ci.config.json config/project.json
           yarn
       - name: build
-        run: yarn build
+        run: yarn build:changed auth
       - name: Run tests on auth changed packages
-        run: xvfb-run yarn lerna run --concurrency 4 test:ci --scope '@firebase/auth*
+        run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
