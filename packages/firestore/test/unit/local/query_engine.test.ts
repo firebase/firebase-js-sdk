@@ -253,7 +253,7 @@ function genericQueryEngineTest(
               const viewDocChanges = view.computeDocChanges(docs);
               return view.applyChanges(
                 viewDocChanges,
-                /*updateLimboDocuments=*/ true
+                /* limboResolutionEnabled= */ true
               ).snapshot!.docs;
             });
         });
