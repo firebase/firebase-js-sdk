@@ -22,7 +22,8 @@ import {
   RecaptchaClientType,
   RecaptchaVersion,
   RecaptchaActionName,
-  RecaptchaProvider
+  RecaptchaProvider,
+  EnforcementState
 } from '../../api';
 
 import { Auth } from '../../model/public_types';
@@ -229,7 +230,7 @@ export async function injectRecaptchaFields<T>(
 }
 
 type ActionMethod<TRequest, TResponse> = (
-  auth: Auth,
+  auth: AuthInternal,
   request: TRequest
 ) => Promise<TResponse>;
 
@@ -237,37 +238,102 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
   authInstance: AuthInternal,
   request: TRequest,
   actionName: RecaptchaActionName,
-  actionMethod: ActionMethod<TRequest, TResponse>
+  actionMethod: ActionMethod<TRequest, TResponse>,
+  recaptchaProvider: RecaptchaProvider
 ): Promise<TResponse> {
-  if (
-    authInstance
-      ._getRecaptchaConfig()
-      ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
-  ) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInstance,
-      request,
-      actionName,
-      actionName === RecaptchaActionName.GET_OOB_CODE
-    );
-    return actionMethod(authInstance, requestWithRecaptcha);
+  if (recaptchaProvider === RecaptchaProvider.EMAIL_PASSWORD_PROVIDER) {
+    if (
+      authInstance
+        ._getRecaptchaConfig()
+        ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
+    ) {
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName,
+        actionName === RecaptchaActionName.GET_OOB_CODE
+      );
+      return actionMethod(authInstance, requestWithRecaptcha);
+    } else {
+      return actionMethod(authInstance, request).catch(async error => {
+        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
+          console.log(
+            `${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`
+          );
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            authInstance,
+            request,
+            actionName,
+            actionName === RecaptchaActionName.GET_OOB_CODE
+          );
+          return actionMethod(authInstance, requestWithRecaptcha);
+        } else {
+          return Promise.reject(error);
+        }
+      });
+    }
+  } else if (recaptchaProvider === RecaptchaProvider.PHONE_PROVIDER) {
+    if (
+      authInstance
+        ._getRecaptchaConfig()
+        ?.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+    ) {
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName
+      );
+
+      return actionMethod(authInstance, requestWithRecaptcha).catch(
+        async error => {
+          if (
+            authInstance
+              ._getRecaptchaConfig()
+              ?.getProviderEnforcementState(
+                RecaptchaProvider.PHONE_PROVIDER
+              ) === EnforcementState.AUDIT
+          ) {
+            // AUDIT mode
+            if (
+              error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}` ||
+              error.code === `auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`
+            ) {
+              console.log(
+                `Failed to verify with reCAPTCHA Enterprise. Automatically triggering the reCAPTCHA v2 flow to complete the ${actionName} flow.`
+              );
+              // reCAPTCHA Enterprise token is missing or reCAPTCHA Enterprise token
+              // check fails.
+              // Fallback to reCAPTCHA v2 flow.
+              const requestWithRecaptchaFields = await injectRecaptchaFields(
+                authInstance,
+                request,
+                actionName,
+                false, // isCaptchaResp
+                true // isFakeToken
+              );
+              // This will call the PhoneApiCaller to fetch and inject reCAPTCHA v2 token.
+              return actionMethod(authInstance, requestWithRecaptchaFields);
+            }
+          }
+          // ENFORCE mode or AUDIT mode with any other error.
+          return Promise.reject(error);
+        }
+      );
+    } else {
+      // Do reCAPTCHA v2 flow.
+      const requestWithRecaptchaFields = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName,
+        false, // isCaptchaResp
+        true // isFakeToken
+      );
+
+      // This will call the PhoneApiCaller to fetch and inject v2 token.
+      return actionMethod(authInstance, requestWithRecaptchaFields);
+    }
   } else {
-    return actionMethod(authInstance, request).catch(async error => {
-      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log(
-          `${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`
-        );
-        const requestWithRecaptcha = await injectRecaptchaFields(
-          authInstance,
-          request,
-          actionName,
-          actionName === RecaptchaActionName.GET_OOB_CODE
-        );
-        return actionMethod(authInstance, requestWithRecaptcha);
-      } else {
-        return Promise.reject(error);
-      }
-    });
+    return Promise.reject(recaptchaProvider + ' provider is not supported.');
   }
 }
 

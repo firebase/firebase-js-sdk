@@ -18,12 +18,23 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaProvider,
+  EnforcementState
+} from '../../api';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthProvider } from './phone';
+import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
+import { MockGreCAPTCHATopLevel } from '../recaptcha/recaptcha_mock';
 
 describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
@@ -39,26 +50,102 @@ describe('platform_browser/providers/phone', () => {
   });
 
   context('#verifyPhoneNumber', () => {
-    it('calls verify on the appVerifier and then calls the server', async () => {
+    it('calls verify on the appVerifier and then calls the server when recaptcha enterprise is disabled', async () => {
+      const recaptchaConfigResponseOff = {
+        recaptchaKey: 'foo/bar/to/site-key',
+        recaptchaEnforcementState: [
+          {
+            provider: RecaptchaProvider.PHONE_PROVIDER,
+            enforcementState: EnforcementState.OFF
+          }
+        ]
+      };
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseOff
+      );
+
       const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
         sessionInfo: 'verification-id'
       });
 
-      const verifier = new RecaptchaVerifier(
+      const v2Verifier = new RecaptchaVerifier(
         auth,
         document.createElement('div'),
         {}
       );
       sinon
-        .stub(verifier, 'verify')
+        .stub(v2Verifier, 'verify')
         .returns(Promise.resolve('verification-code'));
 
       const provider = new PhoneAuthProvider(auth);
-      const result = await provider.verifyPhoneNumber('+15105550000', verifier);
+      const result = await provider.verifyPhoneNumber(
+        '+15105550000',
+        v2Verifier
+      );
       expect(result).to.eq('verification-id');
       expect(route.calls[0].request).to.eql({
         phoneNumber: '+15105550000',
-        recaptchaToken: 'verification-code'
+        recaptchaToken: 'verification-code',
+        captchaResponse: FAKE_TOKEN,
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {
+      const recaptchaConfigResponseEnforce = {
+        recaptchaKey: 'foo/bar/to/site-key',
+        recaptchaEnforcementState: [
+          {
+            provider: RecaptchaProvider.PHONE_PROVIDER,
+            enforcementState: EnforcementState.ENFORCE
+          }
+        ]
+      };
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+
+      const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
+        sessionInfo: 'verification-id'
+      });
+
+      const provider = new PhoneAuthProvider(auth);
+      const result = await provider.verifyPhoneNumber('+15105550000');
+      expect(result).to.eq('verification-id');
+      expect(route.calls[0].request).to.eql({
+        phoneNumber: '+15105550000',
+        captchaResponse: 'enterprise-token',
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
     });
   });
