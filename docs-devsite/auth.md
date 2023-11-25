@@ -88,7 +88,7 @@ Firebase Authentication
 |  [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) | Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md#emailauthcredential_class)<!-- -->. |
 |  [FacebookAuthProvider](./auth.facebookauthprovider.md#facebookauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.FACEBOOK. |
 |  [GithubAuthProvider](./auth.githubauthprovider.md#githubauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GITHUB. |
-|  [GoogleAuthProvider](./auth.googleauthprovider.md#googleauthprovider_class) | Provider for generating an an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE. |
+|  [GoogleAuthProvider](./auth.googleauthprovider.md#googleauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE. |
 |  [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) | Represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. |
 |  [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) | Provider for generating generic [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [PhoneAuthCredential](./auth.phoneauthcredential.md#phoneauthcredential_class) | Represents the credentials returned by [PhoneAuthProvider](./auth.phoneauthprovider.md#phoneauthprovider_class)<!-- -->. |
