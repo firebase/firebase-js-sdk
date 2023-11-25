@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GoogleAuthProvider class
-Provider for generating an an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE.
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE.
 
 <b>Signature:</b>
 
