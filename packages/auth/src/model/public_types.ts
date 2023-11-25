@@ -962,7 +962,7 @@ export interface User extends UserInfo {
    */
   readonly emailVerified: boolean;
   /**
-   * Whether the user is authenticated using the {@link ProviderId}.ANONYMOUS provider.
+   * Whether the user is authenticated using the {@link ProviderId.ANONYMOUS} provider.
    */
   readonly isAnonymous: boolean;
   /**
