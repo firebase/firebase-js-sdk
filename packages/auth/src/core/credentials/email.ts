@@ -36,11 +36,11 @@ import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 import { SignUpRequest } from '../../api/authentication/sign_up';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
- * {@link ProviderId}.PASSWORD
+ * {@link ProviderId.PASSWORD}
  *
  * @remarks
- * Covers both {@link SignInMethod}.EMAIL_PASSWORD and
- * {@link SignInMethod}.EMAIL_LINK.
+ * Covers both {@link SignInMethod.EMAIL_PASSWORD} and
+ * {@link SignInMethod.EMAIL_LINK}.
  *
  * @public
  */
