@@ -29,7 +29,10 @@ import {
   onSnapshot,
   setDoc,
   getDocsFromCache,
-  getDocsFromServer
+  getDocsFromServer,
+  query,
+  Firestore,
+  where
 } from '../util/firebase_export';
 import {
   toDataMap,
@@ -38,6 +41,7 @@ import {
   withTestDocAndInitialData,
   withTestDb
 } from '../util/helpers';
+import { ListenSource } from '../../../src/api/reference_impl';
 
 apiDescribe('GetOptions', persistence => {
   it('get document while online with default get options', () => {
@@ -576,5 +580,64 @@ apiDescribe('GetOptions', persistence => {
           () => {}
         );
     });
+  });
+
+  describe('onSnapshot listener from cache demo', () => {
+    async function Demo_onSnapshotListenerWithDefaultListenOptions(
+      db: Firestore
+    ) {
+      const query_ = query(
+        collection(db, 'cities'),
+        where('state', '==', 'CA')
+      );
+      const unsubscribe = onSnapshot(
+        query_,
+        {
+          includeMetadataChanges: false,
+          source: ListenSource.Default
+        },
+        querySnapshot => {
+          console.log(querySnapshot);
+        }
+      );
+      unsubscribe()
+    }
+
+    async function Demo_onSnapshotListenerFromCache(db: Firestore) {
+      const query_ = query(
+        collection(db, 'cities'),
+        where('state', '==', 'CA')
+      );
+      const unsubscribe = onSnapshot(
+        query_,
+        {
+          source: ListenSource.Cache
+        },
+        querySnapshot => {
+          console.log(querySnapshot);
+        }
+      );
+      unsubscribe()
+    }
+
+    async function Demo_onSnapshotListenerFromCacheAndIncludeMetadataChanges(
+      db: Firestore
+    ) {
+      const query_ = query(
+        collection(db, 'cities'),
+        where('state', '==', 'CA')
+      );
+      const unsubscribe = onSnapshot(
+        query_,
+        {
+          includeMetadataChanges: true,
+          source: ListenSource.Cache
+        },
+        querySnapshot => {
+          console.log(querySnapshot);
+        }
+      );
+      unsubscribe()
+    }
   });
 });

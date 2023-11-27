@@ -67,6 +67,12 @@ import { cast } from '../util/input_validation';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 
+
+export const enum ListenSource {
+  Default,
+  Cache
+}
+
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
  * QuerySnapshot.docChanges} to control which types of changes to include in the
@@ -78,6 +84,8 @@ export interface SnapshotListenOptions {
    * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
+
+  readonly source?: ListenSource
 }
 
 /**
