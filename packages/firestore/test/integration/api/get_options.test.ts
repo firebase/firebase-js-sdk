@@ -582,7 +582,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  describe('onSnapshot listener from cache demo', () => {
+  describe('Query onSnapshot listener from cache demo', () => {
     async function Demo_onSnapshotListenerWithDefaultListenOptions(
       db: Firestore
     ) {
@@ -600,7 +600,7 @@ apiDescribe('GetOptions', persistence => {
           console.log(querySnapshot);
         }
       );
-      unsubscribe()
+      unsubscribe();
     }
 
     async function Demo_onSnapshotListenerFromCache(db: Firestore) {
@@ -617,7 +617,7 @@ apiDescribe('GetOptions', persistence => {
           console.log(querySnapshot);
         }
       );
-      unsubscribe()
+      unsubscribe();
     }
 
     async function Demo_onSnapshotListenerFromCacheAndIncludeMetadataChanges(
@@ -637,7 +637,56 @@ apiDescribe('GetOptions', persistence => {
           console.log(querySnapshot);
         }
       );
-      unsubscribe()
+      unsubscribe();
+    }
+  });
+  describe('DocumentReference onSnapshot listener from cache demo', () => {
+    async function Demo_onSnapshotListenerWithDefaultListenOptions(
+      db: Firestore
+    ) {
+      const docRef = doc(collection(db, 'cities'));
+      const unsubscribe = onSnapshot(
+        docRef,
+        {
+          includeMetadataChanges: false,
+          source: ListenSource.Default
+        },
+        docSnapshot => {
+          console.log(docSnapshot);
+        }
+      );
+      unsubscribe();
+    }
+
+    async function Demo_onSnapshotListenerFromCache(db: Firestore) {
+      const docRef = doc(collection(db, 'cities'));
+      const unsubscribe = onSnapshot(
+        docRef,
+        {
+          source: ListenSource.Cache
+        },
+        docSnapshot => {
+          console.log(docSnapshot);
+        }
+      );
+      unsubscribe();
+    }
+
+    async function Demo_onSnapshotListenerFromCacheAndIncludeMetadataChanges(
+      db: Firestore
+    ) {
+      const docRef = doc(collection(db, 'cities'));
+      const unsubscribe = onSnapshot(
+        docRef,
+        {
+          includeMetadataChanges: true,
+          source: ListenSource.Cache
+        },
+        docSnapshot => {
+          console.log(docSnapshot);
+        }
+      );
+      unsubscribe();
     }
   });
 });

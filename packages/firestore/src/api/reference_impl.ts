@@ -67,7 +67,6 @@ import { cast } from '../util/input_validation';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { DocumentSnapshot, QuerySnapshot, SnapshotMetadata } from './snapshot';
 
-
 export const enum ListenSource {
   Default,
   Cache
@@ -85,7 +84,7 @@ export interface SnapshotListenOptions {
    */
   readonly includeMetadataChanges?: boolean;
 
-  readonly source?: ListenSource
+  readonly source?: ListenSource;
 }
 
 /**
