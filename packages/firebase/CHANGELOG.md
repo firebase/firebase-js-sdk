@@ -1,5 +1,32 @@
 # firebase
 
+## 10.7.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- [`0d29adc97`](https://github.com/firebase/firebase-js-sdk/commit/0d29adc974d72f93552dad53ebd8b4ecab2ce810) [#7740](https://github.com/firebase/firebase-js-sdk/pull/7740) - Fixed an issue in the local cache synchronization logic where all locally-cached documents that matched a resumed query would be unnecessarily re-downloaded; with the fix it now only downloads the documents that are known to be out-of-sync.
+
+- [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4) [#7771](https://github.com/firebase/firebase-js-sdk/pull/7771) (fixes [#6118](https://github.com/firebase/firebase-js-sdk/issues/6118)) - Fix high memory usage of Firestore in browsers.
+
+- Updated dependencies [[`e9ff107ee`](https://github.com/firebase/firebase-js-sdk/commit/e9ff107eedbb9ec695ddc35e45bdd62734735674), [`0d29adc97`](https://github.com/firebase/firebase-js-sdk/commit/0d29adc974d72f93552dad53ebd8b4ecab2ce810), [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4), [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6), [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de), [`b782bb270`](https://github.com/firebase/firebase-js-sdk/commit/b782bb2709b661e8b72bde9915352582fb820337)]:
+  - @firebase/app@0.9.24
+  - @firebase/firestore@4.4.0
+  - @firebase/auth-compat@0.5.0
+  - @firebase/functions@0.11.0
+  - @firebase/storage@0.12.0
+  - @firebase/auth@1.5.0
+  - @firebase/messaging@0.12.5
+  - @firebase/app-compat@0.2.24
+  - @firebase/firestore-compat@0.3.23
+  - @firebase/storage-compat@0.3.3
+  - @firebase/functions-compat@0.3.6
+  - @firebase/messaging-compat@0.2.5
+
 ## 10.6.0
 
 ### Minor Changes
