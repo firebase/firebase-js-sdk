@@ -369,13 +369,16 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
     const keys = [];
     const keysInResult = new Set();
-    for (const { fbase_key: key, value } of result) {
-      keysInResult.add(key);
-      if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
-        this.notifyListeners(key, value as PersistenceValue);
-        keys.push(key);
+    if (result.length !== 0) {
+      for (const { fbase_key: key, value } of result) {
+        keysInResult.add(key);
+        if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
+          this.notifyListeners(key, value as PersistenceValue);
+          keys.push(key);
+        }
       }
     }
+
     for (const localKey of Object.keys(this.localCache)) {
       if (this.localCache[localKey] && !keysInResult.has(localKey)) {
         // Deleted
