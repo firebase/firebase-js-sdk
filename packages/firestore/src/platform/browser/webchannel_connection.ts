@@ -27,8 +27,7 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  Stat,
-  FetchXmlHttpFactory
+  Stat
 } from '@firebase/webchannel-wrapper';
 
 import { Token } from '../../api/credentials';
@@ -209,8 +208,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      // TODO(b/307942499): switch to `useFetchStreams` once WebChannel is fixed.
-      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      request.useFetchStreams = true;
     }
 
     this.modifyHeadersForRequest(

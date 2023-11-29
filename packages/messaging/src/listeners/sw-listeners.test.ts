@@ -77,7 +77,8 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   // eslint-disable-next-line camelcase
   collapse_key: 'collapse',
   // eslint-disable-next-line camelcase
-  fcmMessageId: 'mid'
+  fcmMessageId: 'mid',
+  productId: 123
 };
 
 // maxActions is an experimental property and not part of the official

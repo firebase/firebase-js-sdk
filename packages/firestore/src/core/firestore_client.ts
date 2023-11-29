@@ -729,7 +729,7 @@ async function executeQueryFromCache(
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+      /* limboResolutionEnabled= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {

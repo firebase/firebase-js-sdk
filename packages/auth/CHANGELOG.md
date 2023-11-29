@@ -1,5 +1,16 @@
 # @firebase/auth
 
+## 1.5.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de) [#7772](https://github.com/firebase/firebase-js-sdk/pull/7772) - Exposed INVALID_LOGIN_CREDENTIALS as auth/invalid-credential error and updated docs for various auth SDK methods.
+
 ## 1.4.0
 
 ### Minor Changes

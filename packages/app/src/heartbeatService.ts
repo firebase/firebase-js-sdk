@@ -90,6 +90,10 @@ export class HeartbeatServiceImpl implements HeartbeatService {
     const date = getUTCDateString();
     if (this._heartbeatsCache?.heartbeats == null) {
       this._heartbeatsCache = await this._heartbeatsCachePromise;
+      // If we failed to construct a heartbeats cache, then return immediately.
+      if (this._heartbeatsCache?.heartbeats == null) {
+        return;
+      }
     }
     // Do not store a heartbeat if one is already stored for this day
     // or if a header has already been sent today.
@@ -236,7 +240,11 @@ export class HeartbeatStorageImpl implements HeartbeatStorage {
       return { heartbeats: [] };
     } else {
       const idbHeartbeatObject = await readHeartbeatsFromIndexedDB(this.app);
-      return idbHeartbeatObject || { heartbeats: [] };
+      if (idbHeartbeatObject?.heartbeats) {
+        return idbHeartbeatObject;
+      } else {
+        return { heartbeats: [] };
+      }
     }
   }
   // overwrite the storage with the provided heartbeats
