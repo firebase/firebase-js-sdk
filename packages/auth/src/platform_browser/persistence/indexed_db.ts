@@ -362,8 +362,6 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       return [];
     }
 
-    console.log('result length: ', result.length);
-
     // If we have pending writes in progress abort, we'll get picked up on the next poll
     if (this.pendingWrites !== 0) {
       return [];
