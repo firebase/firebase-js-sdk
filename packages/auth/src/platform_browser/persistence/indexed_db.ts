@@ -358,9 +358,11 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
     });
 
-    if (!result || result.length === 0) {
+    if (!result) {
       return [];
     }
+
+    console.log('result length: ', result.length);
 
     // If we have pending writes in progress abort, we'll get picked up on the next poll
     if (this.pendingWrites !== 0) {
@@ -369,13 +371,16 @@ class IndexedDBLocalPersistence implements InternalPersistence {
 
     const keys = [];
     const keysInResult = new Set();
-    for (const { fbase_key: key, value } of result) {
-      keysInResult.add(key);
-      if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
-        this.notifyListeners(key, value as PersistenceValue);
-        keys.push(key);
+    if (result.length !== 0) {
+      for (const { fbase_key: key, value } of result) {
+        keysInResult.add(key);
+        if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
+          this.notifyListeners(key, value as PersistenceValue);
+          keys.push(key);
+        }
       }
     }
+
     for (const localKey of Object.keys(this.localCache)) {
       if (this.localCache[localKey] && !keysInResult.has(localKey)) {
         // Deleted
