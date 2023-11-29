@@ -300,7 +300,7 @@ export interface ConsentSettings {
   /** Enables storage, such as cookies, related to advertising */
   ad_storage?: ConsentStatusString;
   /**  */
-  ad_user_storage?: ConsentStatusString;
+  ad_user_data?: ConsentStatusString;
   /**  */
   ad_personalization?: ConsentStatusString;
   /** Enables storage, such as cookies, related to analytics (for example, visit duration) */
