@@ -358,7 +358,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
     });
 
-    if (!result) {
+    if (!result || result.length === 0) {
       return [];
     }
 
