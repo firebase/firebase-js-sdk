@@ -52,6 +52,7 @@
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
     "@firebase/component": "0.6.4",
+    "@firebase/app-check-interop-types": "0.3.0",
     "@firebase/auth-interop-types": "0.2.1",
     "faye-websocket": "0.11.4",
     "tslib": "^2.1.0"
