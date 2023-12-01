@@ -39,7 +39,7 @@ class AuthTestServer {
   }
 
   get address(): string {
-    return `http://localhost:${PORT_NUMBER}`;
+    return `http://127.0.0.1:${PORT_NUMBER}`;
   }
 
   async start(): Promise<void> {
