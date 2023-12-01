@@ -38,7 +38,10 @@ jobs:
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
@@ -72,7 +75,10 @@ jobs:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
@@ -114,7 +120,10 @@ jobs:
       # when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
@@ -157,7 +166,10 @@ jobs:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
@@ -201,7 +213,10 @@ jobs:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        sudo apt-get update
+        sudo apt-get install wget
+        sudo wget http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+        sudo apt-get install -f ./google-chrome-stable_114.0.5735.90-1_amd64.deb --allow-downgrades
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
