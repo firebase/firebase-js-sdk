@@ -43,7 +43,7 @@ class AuthTestServer {
     We use "127.0.0.1" rather than "localhost" since emulator uses the former, 
     and we want to be on the same origin (to access session storage for redirect-based tests).
     */
-   return `http://127.0.0.1:${PORT_NUMBER}`;
+    return `http://127.0.0.1:${PORT_NUMBER}`;
   }
 
   async start(): Promise<void> {
