@@ -48,11 +48,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await driver.start('chrome');
   });
 
-  it('allows users to sign in', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('allows users to sign in', async () => {
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
 
@@ -84,10 +80,6 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
   // Redirect works with middleware for now
   it('is blocked by middleware', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
     if (driver.isCompatLayer()) {
       console.warn('Skipping middleware tests in compat');
       this.skip();
@@ -114,11 +106,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(await driver.getUserSnapshot()).to.be.null;
   });
 
-  it('can link with another account account', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('can link with another account account', async () => {
     // First, sign in anonymously
     const { user: anonUser }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
@@ -140,11 +128,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(user.email).to.eq('bob@bob.test');
   });
 
-  it('can be converted to a credential', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('can be converted to a credential', async () => {
     // Start with redirect
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
@@ -172,11 +156,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(second.providerData).to.eql(first.providerData);
   });
 
-  it('handles account exists different credential errors', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('handles account exists different credential errors', async () => {
     // Start with redirect and a verified account
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
     const widget = new IdPPage(driver.webDriver);
@@ -211,11 +191,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     ]);
   });
 
-  it('does not auto-upgrade anon accounts', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('does not auto-upgrade anon accounts', async () => {
     const { user: anonUser }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
@@ -232,11 +208,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(curUser.uid).not.to.eq(anonUser.uid);
   });
 
-  it('linking with anonymous user upgrades account', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('linking with anonymous user upgrades account', async () => {
     const { user: anonUser }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
@@ -254,11 +226,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(curUser.isAnonymous).to.be.false;
   });
 
-  it('is possible to link with different email', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('is possible to link with different email', async () => {
     const { user: emailUser }: UserCredential = await driver.call(
       EmailFunction.CREATE_USER,
       'user@test.test'
@@ -281,11 +249,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(curUser.providerData.length).to.eq(2);
   });
 
-  it('is possible to link with the same email', async function () {
-    // Test is ignored for now as it fails.
-    // TODO: Investigate and unskip the test.
-    this.skip();
-
+  it('is possible to link with the same email', async () => {
     const { user: emailUser }: UserCredential = await driver.call(
       EmailFunction.CREATE_USER,
       'same@test.test'
@@ -327,11 +291,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       await driver.call(CoreFunction.SIGN_OUT);
     });
 
-    it('a user can sign in again', async function () {
-      // Test is ignored for now as it fails.
-      // TODO: Investigate and unskip the test.
-      this.skip();
-
+    it('a user can sign in again', async () => {
       // Sign in using pre-poulated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
@@ -347,11 +307,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       expect(user.email).to.eq(user1.email);
     });
 
-    it('reauthenticate works for the correct user', async function () {
-      // Test is ignored for now as it fails.
-      // TODO: Investigate and unskip the test.
-      this.skip();
-
+    it('reauthenticate works for the correct user', async () => {
       // Sign in using pre-poulated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
