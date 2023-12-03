@@ -28,12 +28,17 @@ import {
   getMetadata,
   updateMetadata,
   getDownloadURL,
+  generateSignedURL,
   uploadBytes
 } from '../../src/reference';
 import { FirebaseStorageImpl, ref } from '../../src/service';
 import * as testShared from './testshared';
 import { newTestConnection, TestingConnection } from './connection';
-import { DEFAULT_HOST } from '../../src/implementation/constants';
+import {
+  DEFAULT_HOST,
+  DEFAULT_MAX_TIME_TO_LIVE_SECONDS,
+  DEFAULT_MIN_TIME_TO_LIVE_SECONDS
+} from '../../src/implementation/constants';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
@@ -333,6 +338,33 @@ describe('Firebase Storage > Reference', () => {
         );
       });
     });
+    describe('generateSignedURL', () => {
+      it('throws on ttlSeconds less than allowed minimum', async () => {
+        expect(() =>
+          generateSignedURL(child, {
+            ttlSeconds: DEFAULT_MIN_TIME_TO_LIVE_SECONDS - 1
+          })
+        ).to.throw('storage/invalid-argument');
+      });
+      it('throws on ttlSeconds greater than allowed maximum', async () => {
+        expect(() =>
+          generateSignedURL(child, {
+            ttlSeconds: DEFAULT_MAX_TIME_TO_LIVE_SECONDS + 1
+          })
+        ).to.throw('storage/invalid-argument');
+      });
+      it('throws on non-integer ttlSeconds within valid range', async () => {
+        expect(() =>
+          generateSignedURL(child, {
+            ttlSeconds:
+              Math.random() *
+                (DEFAULT_MAX_TIME_TO_LIVE_SECONDS -
+                  DEFAULT_MIN_TIME_TO_LIVE_SECONDS) +
+              DEFAULT_MIN_TIME_TO_LIVE_SECONDS
+          })
+        ).to.throw('storage/invalid-argument');
+      });
+    });
   });
 
   describe('root operations', () => {
@@ -368,6 +400,11 @@ describe('Firebase Storage > Reference', () => {
     });
     it('getDownloadURL throws', async () => {
       expect(() => getDownloadURL(root)).to.throw(
+        'storage/invalid-root-operation'
+      );
+    });
+    it('generateSignedURL throws', async () => {
+      expect(() => generateSignedURL(root)).to.throw(
         'storage/invalid-root-operation'
       );
     });

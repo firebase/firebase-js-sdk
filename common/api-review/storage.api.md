@@ -114,6 +114,9 @@ export interface FullMetadata extends UploadMetadata {
 }
 
 // @public
+export function generateSignedURL(ref: StorageReference, options?: SignedURLOptions): Promise<string>;
+
+// @public
 export function getBlob(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<Blob>;
 
 // @public
@@ -215,6 +218,11 @@ export interface SettableMetadata {
 }
 
 // @public
+export interface SignedURLOptions {
+    ttlSeconds: number;
+}
+
+// @public
 export class StorageError extends FirebaseError {
     constructor(code: StorageErrorCode, message: string, status_?: number);
     _codeEquals(code: StorageErrorCode): boolean;
@@ -260,6 +268,8 @@ export enum StorageErrorCode {
     NO_DEFAULT_BUCKET = "no-default-bucket",
     // (undocumented)
     NO_DOWNLOAD_URL = "no-download-url",
+    // (undocumented)
+    NO_SIGNED_URL = "no-signed-url",
     // (undocumented)
     OBJECT_NOT_FOUND = "object-not-found",
     // (undocumented)

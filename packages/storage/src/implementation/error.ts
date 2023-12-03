@@ -106,6 +106,7 @@ export enum StorageErrorCode {
   CANNOT_SLICE_BLOB = 'cannot-slice-blob',
   SERVER_FILE_WRONG_SIZE = 'server-file-wrong-size',
   NO_DOWNLOAD_URL = 'no-download-url',
+  NO_SIGNED_URL = 'no-signed-url',
   INVALID_ARGUMENT = 'invalid-argument',
   INVALID_ARGUMENT_COUNT = 'invalid-argument-count',
   APP_DELETED = 'app-deleted',
@@ -258,6 +259,13 @@ export function noDownloadURL(): StorageError {
   return new StorageError(
     StorageErrorCode.NO_DOWNLOAD_URL,
     'The given file does not have any download URLs.'
+  );
+}
+
+export function noSignedURL(): StorageError {
+  return new StorageError(
+    StorageErrorCode.NO_SIGNED_URL,
+    'The given file does not have any signed URLs.'
   );
 }
 

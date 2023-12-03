@@ -30,7 +30,9 @@ import {
   getMetadata,
   updateMetadata,
   listAll,
-  getBytes
+  getBytes,
+  generateSignedURL,
+  connectStorageEmulator
 } from '../../src';
 
 import { use, expect } from 'chai';
@@ -48,13 +50,19 @@ export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
 export const API_KEY = PROJECT_CONFIG.apiKey;
 export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 
-export async function createApp(): Promise<FirebaseApp> {
-  const app = initializeApp({
-    apiKey: API_KEY,
-    projectId: PROJECT_ID,
-    storageBucket: STORAGE_BUCKET,
-    authDomain: AUTH_DOMAIN
-  });
+// TODO - remove param + unused imports when backend complete
+export async function createApp(
+  localEmulatorAppName?: string
+): Promise<FirebaseApp> {
+  const app = initializeApp(
+    {
+      apiKey: API_KEY,
+      projectId: PROJECT_ID,
+      storageBucket: STORAGE_BUCKET,
+      authDomain: AUTH_DOMAIN
+    },
+    localEmulatorAppName
+  );
   await signInAnonymously(getAuth(app));
   return app;
 }
@@ -66,6 +74,11 @@ export function createStorage(app: FirebaseApp): types.FirebaseStorage {
 describe('FirebaseStorage Exp', () => {
   let app: FirebaseApp;
   let storage: types.FirebaseStorage;
+
+  // TODO - remove this block when backend complete
+  let localEmulatorApp: FirebaseApp;
+  let localStorage: types.FirebaseStorage;
+  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   beforeEach(async () => {
     app = await createApp();
@@ -157,6 +170,24 @@ describe('FirebaseStorage Exp', () => {
     expect(url).to.satisfy((v: string) =>
       v.match(
         /https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/.*\/o\/public%2Fexp-downloadurl/
+      )
+    );
+  });
+
+  it('can get signed URL', async () => {
+    // TODO - remove this block when backend complete
+    localEmulatorApp = await createApp('emulator-test-app');
+    localStorage = createStorage(localEmulatorApp);
+    connectStorageEmulator(localStorage, 'localhost', 9199);
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    const reference = ref(localStorage, 'public/exp-signedurl');
+    await uploadBytes(reference, new Uint8Array([0, 1, 3]));
+    const url = await generateSignedURL(reference);
+    await deleteApp(localEmulatorApp); // TODO - remove this line when backend complete
+    expect(url).to.satisfy((v: string) =>
+      v.match(
+        // TODO - update url below when backend complete
+        /http:\/\/localhost:.*\/v0\/b\/.*\/o\/public%2Fexp-signedurl\?alt=media&X-Firebase-Date=.*&X-Firebase-Expires=.*&X-Firebase-Signature=.*/
       )
     );
   });

@@ -188,6 +188,20 @@ export function downloadUrlFromResourceString(
   return urls[0];
 }
 
+export function signedURLFromResourceString(
+  resourceString: string
+): string | null {
+  const obj = jsonObjectOrNull(resourceString);
+  if (obj === null) {
+    return null;
+  }
+  if (!isString(obj['signed_url'])) {
+    return null;
+  }
+  const signedURL = obj['signed_url'] as string;
+  return signedURL;
+}
+
 export function toResourceString(
   metadata: Partial<Metadata>,
   mappings: Mappings

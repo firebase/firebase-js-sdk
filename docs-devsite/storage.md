@@ -23,6 +23,7 @@ Cloud Storage for Firebase
 |  [ref(storage, url)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
 |  <b>function(ref...)</b> |
 |  [deleteObject(ref)](./storage.md#deleteobject) | Deletes the object at this location. |
+|  [generateSignedURL(ref, options)](./storage.md#generatesignedurl) | Returns the signed URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
 |  [getBlob(ref, maxDownloadSizeBytes)](./storage.md#getblob) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors<!-- -->This API is not available in Node. |
 |  [getBytes(ref, maxDownloadSizeBytes)](./storage.md#getbytes) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors |
 |  [getDownloadURL(ref)](./storage.md#getdownloadurl) | Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
@@ -58,6 +59,7 @@ Cloud Storage for Firebase
 |  [ListOptions](./storage.listoptions.md#listoptions_interface) | The options <code>list()</code> accepts. |
 |  [ListResult](./storage.listresult.md#listresult_interface) | Result returned by list(). |
 |  [SettableMetadata](./storage.settablemetadata.md#settablemetadata_interface) | Object metadata that can be set at any time. |
+|  [SignedURLOptions](./storage.signedurloptions.md#signedurloptions_interface) | Options for expressing signed URL expiry date/time. |
 |  [StorageObserver](./storage.storageobserver.md#storageobserver_interface) | A stream observer for Firebase Storage. |
 |  [StorageReference](./storage.storagereference.md#storagereference_interface) | Represents a reference to a Google Cloud Storage object. Developers can upload, download, and delete objects, as well as get/set object metadata. |
 |  [UploadMetadata](./storage.uploadmetadata.md#uploadmetadata_interface) | Object metadata that can be set at upload. |
@@ -169,6 +171,29 @@ export declare function deleteObject(ref: StorageReference): Promise<void>;
 Promise&lt;void&gt;
 
 A `Promise` that resolves if the deletion succeeds.
+
+## generateSignedURL()
+
+Returns the signed URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function generateSignedURL(ref: StorageReference, options?: SignedURLOptions): Promise<string>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  ref | [StorageReference](./storage.storagereference.md#storagereference_interface) | [StorageReference](./storage.storagereference.md#storagereference_interface) to get the signed URL for. |
+|  options | [SignedURLOptions](./storage.signedurloptions.md#signedurloptions_interface) | specifies when the URL will expire. |
+
+<b>Returns:</b>
+
+Promise&lt;string&gt;
+
+A `Promise` that resolves with the signed URL for this object.
 
 ## getBlob()
 
@@ -537,6 +562,7 @@ export declare enum StorageErrorCode
 |  INVALID\_URL | <code>&quot;invalid-url&quot;</code> |  |
 |  NO\_DEFAULT\_BUCKET | <code>&quot;no-default-bucket&quot;</code> |  |
 |  NO\_DOWNLOAD\_URL | <code>&quot;no-download-url&quot;</code> |  |
+|  NO\_SIGNED\_URL | <code>&quot;no-signed-url&quot;</code> |  |
 |  OBJECT\_NOT\_FOUND | <code>&quot;object-not-found&quot;</code> |  |
 |  PROJECT\_NOT\_FOUND | <code>&quot;project-not-found&quot;</code> |  |
 |  QUOTA\_EXCEEDED | <code>&quot;quota-exceeded&quot;</code> |  |
