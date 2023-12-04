@@ -535,68 +535,68 @@ describe('SimpleDb', () => {
   // eslint-disable-next-line no-restricted-properties
   (isIndexedDbMock() ? it.skip : it)(
     'correctly sorts keys with nested arrays',
-    async function (this: Context
-  ){
-    // This test verifies that the sorting in IndexedDb matches
-    // `dbKeyComparator()`
+    async function (this: Context) {
+      // This test verifies that the sorting in IndexedDb matches
+      // `dbKeyComparator()`
 
-    const keys = [
-      'a/a/a/a/a/a/a/a/a/a',
-      'a/b/a/a/a/a/a/a/a/b',
-      'b/a/a/a/a/a/a/a/a/a',
-      'b/b/a/a/a/a/a/a/a/b',
-      'b/b/a/a/a/a/a/a',
-      'b/b/b/a/a/a/a/b',
-      'c/c/a/a/a/a',
-      'd/d/a/a',
-      'e/e'
-    ].map(k => DocumentKey.fromPath(k));
+      const keys = [
+        'a/a/a/a/a/a/a/a/a/a',
+        'a/b/a/a/a/a/a/a/a/b',
+        'b/a/a/a/a/a/a/a/a/a',
+        'b/b/a/a/a/a/a/a/a/b',
+        'b/b/a/a/a/a/a/a',
+        'b/b/b/a/a/a/a/b',
+        'c/c/a/a/a/a',
+        'd/d/a/a',
+        'e/e'
+      ].map(k => DocumentKey.fromPath(k));
 
-    interface ValueType {
-      prefixPath: string[];
-      collectionId: string;
-      documentId: string;
-    }
-
-    const expectedOrder = [...keys];
-    expectedOrder.sort(dbKeyComparator);
-
-    const actualOrder = await db.runTransaction(
-      this.test!.fullTitle(),
-      'readwrite',
-      ['docs'],
-      txn => {
-        const store = txn.store<string[], ValueType>('docs');
-
-        const writes = keys.map(k => {
-          const path = k.path.toArray();
-          return store.put(k.path.toArray(), {
-            prefixPath: path.slice(0, path.length - 2),
-            collectionId: path[path.length - 2],
-            documentId: path[path.length - 1]
-          });
-        });
-
-        return PersistencePromise.waitFor(writes).next(() =>
-          store
-            .loadAll('path')
-            .next(keys =>
-              keys.map(k =>
-                DocumentKey.fromSegments([
-                  ...k.prefixPath,
-                  k.collectionId,
-                  k.documentId
-                ])
-              )
-            )
-        );
+      interface ValueType {
+        prefixPath: string[];
+        collectionId: string;
+        documentId: string;
       }
-    );
 
-    expect(actualOrder.map(k => k.toString())).to.deep.equal(
-      expectedOrder.map(k => k.toString())
-    );
-  });
+      const expectedOrder = [...keys];
+      expectedOrder.sort(dbKeyComparator);
+
+      const actualOrder = await db.runTransaction(
+        this.test!.fullTitle(),
+        'readwrite',
+        ['docs'],
+        txn => {
+          const store = txn.store<string[], ValueType>('docs');
+
+          const writes = keys.map(k => {
+            const path = k.path.toArray();
+            return store.put(k.path.toArray(), {
+              prefixPath: path.slice(0, path.length - 2),
+              collectionId: path[path.length - 2],
+              documentId: path[path.length - 1]
+            });
+          });
+
+          return PersistencePromise.waitFor(writes).next(() =>
+            store
+              .loadAll('path')
+              .next(keys =>
+                keys.map(k =>
+                  DocumentKey.fromSegments([
+                    ...k.prefixPath,
+                    k.collectionId,
+                    k.documentId
+                  ])
+                )
+              )
+          );
+        }
+      );
+
+      expect(actualOrder.map(k => k.toString())).to.deep.equal(
+        expectedOrder.map(k => k.toString())
+      );
+    }
+  );
 
   it('retries transactions', async function (this: Context) {
     let attemptCount = 0;
