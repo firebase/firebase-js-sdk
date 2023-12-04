@@ -69,7 +69,6 @@ import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 import {
   RecaptchaEnterpriseVerifier,
-  RECAPTCHA_ENTERPRISE_VERIFIER_TYPE,
   FAKE_TOKEN,
   handleRecaptchaFlow
 } from '../recaptcha/recaptcha_enterprise_verifier';
