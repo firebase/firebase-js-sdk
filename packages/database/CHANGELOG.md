@@ -1,5 +1,11 @@
 # Unreleased
 
+## 1.0.2
+
+### Patch Changes
+
+- [`0ecaf6c9f`](https://github.com/firebase/firebase-js-sdk/commit/0ecaf6c9fa14b40d32c52215d9e1c912bcc52bef) [#7827](https://github.com/firebase/firebase-js-sdk/pull/7827) - Add `@firebase/app-check-interop-types` dependency to `database` package
+
 ## 1.0.1
 
 ### Patch Changes
