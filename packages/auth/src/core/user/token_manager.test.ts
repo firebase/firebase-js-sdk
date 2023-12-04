@@ -23,11 +23,11 @@ import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
+import { Endpoint } from '../../api';
 
 use(chaiAsPromised);
 

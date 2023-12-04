@@ -165,6 +165,7 @@ export const AuthErrorCodes: {
     readonly INVALID_EMAIL: "auth/invalid-email";
     readonly INVALID_EMULATOR_SCHEME: "auth/invalid-emulator-scheme";
     readonly INVALID_IDP_RESPONSE: "auth/invalid-credential";
+    readonly INVALID_LOGIN_CREDENTIALS: "auth/invalid-credential";
     readonly INVALID_MESSAGE_PAYLOAD: "auth/invalid-message-payload";
     readonly INVALID_MFA_SESSION: "auth/invalid-multi-factor-session";
     readonly INVALID_OAUTH_CLIENT_ID: "auth/invalid-oauth-client-id";
@@ -724,6 +725,9 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
 
 // @public
 export function reload(user: User): Promise<void>;
+
+// @public
+export function revokeAccessToken(auth: Auth, token: string): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.d.ts
 //

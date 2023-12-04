@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "test": "run-p lint test:node",
+    "test": "run-p --npm-path npm lint test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:node",
     "pretest:node": "tsc -p test/test-inputs && rollup -c",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js --timeout 60000",
@@ -42,7 +42,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.4.0",
-    "@firebase/app": "0.9.18"
+    "@firebase/app": "0.9.24"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",

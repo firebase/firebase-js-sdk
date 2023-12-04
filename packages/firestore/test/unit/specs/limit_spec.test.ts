@@ -343,6 +343,7 @@ describeSpec('Limits:', [], () => {
           // out of sync.
           .watchSends({ affects: [limitQuery] }, secondDocument)
           .watchFilters([limitQuery], [secondDocument.key])
+          .watchCurrents(limitQuery, 'resume-token-1004')
           .watchSnapshots(1004)
           .expectActiveTargets({
             query: limitQuery,

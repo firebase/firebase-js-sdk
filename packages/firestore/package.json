@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.1.3",
+  "version": "4.4.0",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -9,7 +9,7 @@
   "scripts": {
     "bundle": "rollup -c",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
-    "build": "run-p build:lite build:main",
+    "build": "run-p --npm-path npm build:lite build:main",
     "build:release": "yarn build && yarn typings:public",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
@@ -27,10 +27,10 @@
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:nameddb": "karma start --single-run --lite --databaseId=test-db",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
-    "test": "run-s lint test:all",
+    "test": "run-s --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
-    "test:all:ci": "run-s test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
-    "test:all": "run-p test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
+    "test:all:ci": "run-s --npm-path npm test:browser test:travis test:lite:browser test:browser:prod:nameddb test:lite:browser:nameddb",
+    "test:all": "run-p --npm-path npm test:browser test:lite:browser test:travis test:minified test:browser:prod:nameddb test:lite:browser:nameddb",
     "test:browser": "karma start --single-run",
     "test:browser:emulator:debug": "karma start --browsers=Chrome --targetBackend=emulator",
     "test:browser:emulator": "karma start --single-run --targetBackend=emulator",
@@ -49,7 +49,7 @@
     "api-report:main": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore --packageRoot . --typescriptDts ./dist/firestore/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index.d.ts",
     "api-report:lite": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package firestore-lite --packageRoot . --typescriptDts ./dist/firestore/lite/index.d.ts --rollupDts ./dist/lite/private.d.ts --untrimmedRollupDts ./dist/lite/internal.d.ts --publicDts ./dist/lite/index.d.ts",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
-    "api-report": "run-s api-report:main api-report:lite && yarn api-report:api-json",
+    "api-report": "run-s --npm-path npm api-report:main api-report:lite && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts"
   },
@@ -99,19 +99,19 @@
     "@firebase/component": "0.6.4",
     "@firebase/logger": "0.4.0",
     "@firebase/util": "1.9.3",
-    "@firebase/webchannel-wrapper": "0.10.2",
+    "@firebase/webchannel-wrapper": "0.10.5",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
-    "node-fetch": "2.6.7",
+    "undici": "5.26.5",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.9.18",
-    "@firebase/app-compat": "0.2.18",
-    "@firebase/auth": "1.3.0",
+    "@firebase/app": "0.9.24",
+    "@firebase/app-compat": "0.2.24",
+    "@firebase/auth": "1.5.0",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",

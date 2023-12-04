@@ -92,3 +92,9 @@ tsdoc-metadata.json
 docs-rut/
 docs/
 toc/
+
+# generated Terraform docs
+.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*

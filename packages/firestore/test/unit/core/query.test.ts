@@ -778,6 +778,144 @@ describe('Query', () => {
     );
   });
 
+  it("generates the correct implicit order by's for multiple inequality", () => {
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('a', '>=', 5),
+        filter('aa', '>', 5),
+        filter('b', '>', 5),
+        filter('A', '>', 5)
+      ),
+      orderBy('A'),
+      orderBy('a'),
+      orderBy('aa'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // numbers
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('1', '>', 5),
+        filter('19', '>', 5),
+        filter('2', '>', 5)
+      ),
+      orderBy('1'),
+      orderBy('19'),
+      orderBy('2'),
+      orderBy('a'),
+
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // nested fields
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('aa', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy('aa'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // special characters
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('_a', '>', 5),
+        filter('a.a', '>', 5)
+      ),
+      orderBy('_a'),
+      orderBy('a'),
+      orderBy('a.a'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // field name with dot
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        filter('a.z', '>', 5), // nested field
+        filter('`a.a`', '>', 5) // field name with dot
+      ),
+      orderBy('a'),
+      orderBy('a.z'),
+      orderBy('`a.a`'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // composite filter
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('a', '<', 5),
+        andFilter(
+          orFilter(filter('b', '>=', 1), filter('c', '<=', 1)),
+          orFilter(filter('d', '>', 1), filter('e', '==', 1))
+        )
+      ),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy('c'),
+      orderBy('d'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // OrderBy
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        filter('z', '>', 5),
+        orderBy('z')
+      ),
+      orderBy('z'),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+
+    // last explicit order by direction
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        orderBy('z', 'desc')
+      ),
+      orderBy('z', 'desc'),
+      orderBy('a', 'desc'),
+      orderBy('b', 'desc'),
+      orderBy(DOCUMENT_KEY_NAME, 'desc')
+    );
+
+    assertImplicitOrderBy(
+      query(
+        'foo',
+        filter('b', '<', 5),
+        filter('a', '>', 5),
+        orderBy('z', 'desc'),
+        orderBy('c')
+      ),
+      orderBy('z', 'desc'),
+      orderBy('c'),
+      orderBy('a'),
+      orderBy('b'),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+  });
+
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
     expect(queryMatchesAllDocuments(baseQuery)).to.be.true;
@@ -851,6 +989,41 @@ describe('Query', () => {
       )
     );
     assertQueryMatches(query5, [doc3], [doc1, doc2, doc4, doc5]);
+  });
+
+  it('matches composite queries with multiple inequality', () => {
+    const doc1 = doc('collection/1', 0, { a: 1, b: 0 });
+    const doc2 = doc('collection/2', 0, { a: 2, b: 1 });
+    const doc3 = doc('collection/3', 0, { a: 3, b: 2 });
+    const doc4 = doc('collection/4', 0, { a: 1, b: 3 });
+    const doc5 = doc('collection/5', 0, { a: 1, b: 1 });
+
+    // a>1 || b!=1.
+    const query1 = query(
+      'collection',
+      orFilter(filter('a', '>', 1), filter('b', '!=', 1))
+    );
+    assertQueryMatches(query1, [doc1, doc2, doc3, doc4], [doc5]);
+
+    // (a>=1 && b==0) || (a==1 && b!=1)
+    const query2 = query(
+      'collection',
+      orFilter(
+        andFilter(filter('a', '>=', 1), filter('b', '==', 0)),
+        andFilter(filter('a', '==', 1), filter('b', '!=', 1))
+      )
+    );
+    assertQueryMatches(query2, [doc1, doc4], [doc2, doc3, doc5]);
+
+    // a<=2 && (a!=1 || b<3).
+    const query3 = query(
+      'collection',
+      andFilter(
+        filter('a', '<=', 2),
+        orFilter(filter('a', '!=', 1), filter('b', '<', 3))
+      )
+    );
+    assertQueryMatches(query3, [doc1, doc2, doc5], [doc3, doc4]);
   });
 
   it('generates appropriate order-bys for aggregate and non-aggregate targets', () => {

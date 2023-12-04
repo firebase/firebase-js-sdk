@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const fetch = require('node-fetch');
+const undici = require('undici');
 const FCM_SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
 // Rotatable fcm server key. It's generally a bad idea to expose server keys. The reason is to
 // simplify testing process (no need to implement server side decryption of git secret). The
@@ -28,7 +28,7 @@ module.exports = async payload => {
     'Requesting to send an FCM message with payload: ' + JSON.stringify(payload)
   );
 
-  const response = await fetch(FCM_SEND_ENDPOINT, {
+  const response = await undici.fetch(FCM_SEND_ENDPOINT, {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: {

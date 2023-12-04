@@ -26,7 +26,7 @@
     "build:release": "yarn build && yarn add-compat-overloads",
     "build:deps": "lerna run --scope @firebase/app-check-compat --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser",
+    "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run --nocache",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../app-check/dist/app-check-public.d.ts -o dist/src/index.d.ts -a -r AppCheck:FirebaseAppCheck -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/app-check"
@@ -44,7 +44,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.18",
+    "@firebase/app-compat": "0.2.24",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",

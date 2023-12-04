@@ -532,7 +532,6 @@ export function firestoreClientRunAggregateQuery(
   const deferred = new Deferred<ApiClientObjectMap<Value>>();
 
   client.asyncQueue.enqueueAndForget(async () => {
-    // TODO (sum/avg) should we update this to use the event manager?
     // Implement and call executeAggregateQueryViaSnapshotListener, similar
     // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
     // above
@@ -730,7 +729,7 @@ async function executeQueryFromCache(
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+      /* limboResolutionEnabled= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {

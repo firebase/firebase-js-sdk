@@ -1,9 +1,25 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Test Firestore
 
 on: pull_request
 
 env:
   artifactRetentionDays: 14
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   build:
@@ -19,16 +35,14 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (14)
+      - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -68,10 +82,10 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (14)
+      - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -82,8 +96,6 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -98,10 +110,10 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (14)
+      - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -112,12 +124,12 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          EXPERIMENTAL_MODE: true
 
   compat-test-firefox:
     name: Test Firestore Compatible on Firefox
@@ -132,18 +144,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Set up Node (14)
+      - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Download build archive
         uses: actions/download-artifact@v3
         with:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -173,18 +183,17 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Set up Node (14)
+      - name: Set up Node (16)
         uses: actions/setup-node@v3
         with:
-          node-version: 14.x
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+          node-version: 16.x
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
           BROWSERS: 'Firefox'
+          EXPERIMENTAL_MODE: true
 
   # A job that fails if any required job in the test matrix fails,
   # to be used as a required check for merging.

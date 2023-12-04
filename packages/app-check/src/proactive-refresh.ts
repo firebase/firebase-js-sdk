@@ -64,6 +64,9 @@ export class Refresher {
     this.stop();
     try {
       this.pending = new Deferred();
+      this.pending.promise.catch(_e => {
+        /* ignore */
+      });
       await sleep(this.getNextRun(hasSucceeded));
 
       // Why do we resolve a promise, then immediate wait for it?
@@ -74,6 +77,9 @@ export class Refresher {
       this.pending.resolve();
       await this.pending.promise;
       this.pending = new Deferred();
+      this.pending.promise.catch(_e => {
+        /* ignore */
+      });
       await this.operation();
 
       this.pending.resolve();
