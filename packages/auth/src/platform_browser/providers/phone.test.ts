@@ -42,6 +42,7 @@ describe('platform_browser/providers/phone', () => {
   beforeEach(async () => {
     fetch.setUp();
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
   });
 
   afterEach(() => {

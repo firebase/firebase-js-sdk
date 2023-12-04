@@ -131,6 +131,7 @@ describe('platform_browser/strategies/phone', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
     fetch.setUp();
 
     sendCodeEndpoint = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {

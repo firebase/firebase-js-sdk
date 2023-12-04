@@ -227,19 +227,10 @@ export async function _verifyPhoneNumber(
   options: PhoneInfoOptions | string,
   verifier?: ApplicationVerifierInternal
 ): Promise<string> {
-  const enterpriseVerifier = new RecaptchaEnterpriseVerifier(auth);
-  const recaptchaEnterpriseToken = await enterpriseVerifier.verify();
-
-  _assert(
-    typeof recaptchaEnterpriseToken === 'string',
-    auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-  _assert(
-    enterpriseVerifier.type === RECAPTCHA_ENTERPRISE_VERIFIER_TYPE,
-    auth,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
+  if (!auth._getRecaptchaConfig()) {
+    const enterpriseVerifier = new RecaptchaEnterpriseVerifier(auth);
+    await enterpriseVerifier.verify();
+  }
 
   try {
     let phoneInfoOptions: PhoneInfoOptions;

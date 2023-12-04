@@ -33,6 +33,7 @@ import * as jsHelpers from '../load_js';
 import { AuthErrorCode } from '../../core/errors';
 import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
 import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
+import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 
 const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js?render=';
@@ -123,6 +124,12 @@ export class RecaptchaEnterpriseVerifier {
       } else {
         reject(Error('No reCAPTCHA enterprise script loaded.'));
       }
+    }
+
+    // Returns Promise for a mock token when appVerificationDisabledForTesting is true.
+    if (this.auth.settings.appVerificationDisabledForTesting) {
+      const mockRecaptcha = new MockGreCAPTCHATopLevel();
+      return mockRecaptcha.execute('siteKey', { action: 'verify' });
     }
 
     return new Promise<string>((resolve, reject) => {
