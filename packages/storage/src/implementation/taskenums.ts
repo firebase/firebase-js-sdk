@@ -62,7 +62,7 @@ export const enum InternalTaskState {
  * Represents the current state of a running upload.
  * @internal
  */
-export type TaskState = typeof TaskState[keyof typeof TaskState];
+export type TaskState = (typeof TaskState)[keyof typeof TaskState];
 
 // type keys = keyof TaskState
 /**

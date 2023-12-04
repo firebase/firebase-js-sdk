@@ -238,7 +238,8 @@ describe('core/strategies/redirect', () => {
     it('returns false if sessionStorage is permission denied', async () => {
       _getInstance<PopupRedirectResolverInternal>(
         resolver
-      )._redirectPersistence = ErroringUnavailablePersistence as unknown as Persistence;
+      )._redirectPersistence =
+        ErroringUnavailablePersistence as unknown as Persistence;
       expect(
         await _getAndClearPendingRedirectStatus(_getInstance(resolver), auth)
       ).to.be.false;

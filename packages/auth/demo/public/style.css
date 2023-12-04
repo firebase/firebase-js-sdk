@@ -76,6 +76,21 @@ body.user-info-displayed {
   border: none;
 }
 
+.password-validation-requirements {
+  margin: 5px 0;
+  display: none;
+}
+
+.password-validation-requirements .list-group-item {
+  display: none;
+}
+
+.password-validation-contains-non-alphanumeric-character .tooltip {
+  font-family: 'Courier New', Courier;
+  font-size: 1.1em;
+  letter-spacing: 5px;
+}
+
 .logs {
   color: #555;
   font-family: 'Courier New', Courier;
@@ -142,7 +157,11 @@ input + .form,
 
 .form + button,
 .form-control + .btn-block,
-.form-control + .form-control {
+.form-control + .form-control,
+.form-control + .input-group,
+.form-control + .list-group,
+.input-group + .btn-block,
+.list-group + .btn-block {
   margin-top: 5px;
 }
 
@@ -175,6 +194,23 @@ input + .form,
   float: left;
   height: 30px;
   margin-right: 10px;
+}
+
+.totp-text {
+  font-family: 'Courier New', Courier;
+}
+
+.totp-deadline {
+  font-family: 'Courier New', Courier;
+  color: #d9534f;
+}
+
+.totp-qr-image {
+  height: 120px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 120px;
 }
 
 .profile-email-not-verified {

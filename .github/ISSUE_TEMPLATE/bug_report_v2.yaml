@@ -1,0 +1,99 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 🐞 Bug Report
+description: File a bug report
+title: 'Title for the bug'
+labels: 'question, new'
+body:
+  - type: markdown
+    id: before-you-start
+    attributes:
+      value: |
+        *[READ THIS]:* to evaluate if you are in the right place?
+        - For issues or feature requests related to __the code in this repository__, file a Github issue.
+        - If this is a __feature request__, make sure the issue title starts with "FR:".
+        - For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) with the firebase tag.
+        - For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) google group.
+        - For help troubleshooting your application that does not fall under one of the above categories, reach out to the personalized [Firebase support channel](https://firebase.google.com/support/).
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: Describe your operating system
+      placeholder: ex. iOS 16.4
+    validations:
+      required: true
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser Version
+      description: Describe your browser version
+      placeholder: ex. Safari/604.1
+    validations:
+      required: true
+  - type: input
+    id: firebase-sdk-version
+    attributes:
+      label: Firebase SDK Version
+      description: Describe your Firebase SDK Version
+      placeholder: ex. 9.16.0
+    validations:
+      required: true
+  - type: dropdown
+    id: firebase-sdk-products
+    attributes:
+      label: 'Firebase SDK Product:'
+      description: Which Firebase Products are used in your app?
+      multiple: true
+      options:
+        - Analytics
+        - AppCheck
+        - Auth
+        - Component
+        - Database
+        - Firestore
+        - Functions
+        - Installations
+        - Logger
+        - Messaging
+        - Performance
+        - Remote-Config
+        - Storage
+    validations:
+      required: true
+  - type: textarea
+    id: project-tooling
+    attributes:
+      label: Describe your project's tooling
+      description: Describe the tooling your app is built with
+      placeholder: React app with Webpack and Jest
+    validations:
+      required: true
+  - type: textarea
+    id: describe-your-problem
+    attributes:
+      label: Describe the problem
+      description: Describe what you were trying to do and what occurred
+      placeholder: |
+        What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-code
+    attributes:
+      label: Steps and code to reproduce issue
+      description: Please provide a description of how to replicate your issue. Copy and paste any relevant code here to reproduce the problem or links to code to reproduce it.
+    validations:
+      required: true

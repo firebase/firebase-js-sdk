@@ -29,11 +29,6 @@ const config = {
   exit: true
 };
 
-// use min reporter in CI to make it easy to spot failed tests
-if (process.env.CI) {
-  config.reporter = 'min';
-}
-
 // Firestore uses babel to compile tests in Nodejs
 if (process.env.NO_TS_NODE) {
   delete config.require;

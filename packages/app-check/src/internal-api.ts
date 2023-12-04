@@ -205,6 +205,32 @@ export async function getToken(
   return interopTokenResult;
 }
 
+/**
+ * Internal API for limited use tokens. Skips all FAC state and simply calls
+ * the underlying provider.
+ */
+export async function getLimitedUseToken(
+  appCheck: AppCheckService
+): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
+  ensureActivated(app);
+
+  const { provider } = getStateReference(app);
+
+  if (isDebugMode()) {
+    const debugToken = await getDebugToken();
+    const { token } = await exchangeToken(
+      getExchangeDebugTokenRequest(app, debugToken),
+      appCheck.heartbeatServiceProvider
+    );
+    return { token };
+  } else {
+    // provider is definitely valid since we ensure AppCheck was activated
+    const { token } = await provider!.getToken();
+    return { token };
+  }
+}
+
 export function addTokenListener(
   appCheck: AppCheckService,
   type: ListenerType,

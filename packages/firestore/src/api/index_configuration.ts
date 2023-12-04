@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { getLocalStore } from '../core/firestore_client';
+import { firestoreClientSetIndexConfiguration } from '../core/firestore_client';
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
-import { localStoreConfigureFieldIndexes } from '../local/local_store_impl';
 import {
   FieldIndex,
   IndexKind,
@@ -37,6 +36,11 @@ export {
 
 /**
  * A single field element in an index configuration.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface IndexField {
@@ -62,6 +66,11 @@ export interface IndexField {
 
 /**
  * The SDK definition of a Firestore index.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface Index {
@@ -78,6 +87,11 @@ export interface Index {
  *
  * See {@link https://firebase.google.com/docs/reference/firestore/indexes/#json_format | JSON Format}
  * for a description of the format of the index definition.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export interface IndexConfiguration {
@@ -97,16 +111,19 @@ export interface IndexConfiguration {
  * Query execution will automatically start using the index once the index
  * entries have been written.
  *
- * Indexes are only supported with IndexedDb persistence. Invoke either
- * `enableIndexedDbPersistence()` or `enableMultiTabIndexedDbPersistence()`
- * before setting an index configuration. If IndexedDb is not enabled, any
- * index configuration is ignored.
+ * Indexes are only supported with IndexedDb persistence. If IndexedDb is not
+ * enabled, any index configuration is ignored.
  *
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param configuration -The index definition.
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export function setIndexConfiguration(
@@ -138,6 +155,11 @@ export function setIndexConfiguration(
  * @throws FirestoreError if the JSON format is invalid.
  * @returns A `Promise` that resolves once all indices are successfully
  * configured.
+ *
+ * @deprecated Instead of creating cache indexes manually, consider using
+ * `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to
+ * create cache indexes for queries running locally.
+ *
  * @beta
  */
 export function setIndexConfiguration(
@@ -151,17 +173,17 @@ export function setIndexConfiguration(
 ): Promise<void> {
   firestore = cast(firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-
-  // PORTING NOTE: We don't return an error if the user has not enabled
-  // persistence since `enableIndexeddbPersistence()` can fail on the Web.
-  if (!client.offlineComponents?.indexBackfillerScheduler) {
+  if (
+    !client._uninitializedComponentsProvider ||
+    client._uninitializedComponentsProvider?._offlineKind === 'memory'
+  ) {
+    // PORTING NOTE: We don't return an error if the user has not enabled
+    // persistence since `enableIndexeddbPersistence()` can fail on the Web.
     logWarn('Cannot enable indexes when persistence is disabled');
     return Promise.resolve();
   }
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
-  return getLocalStore(client).then(localStore =>
-    localStoreConfigureFieldIndexes(localStore, parsedIndexes)
-  );
+  return firestoreClientSetIndexConfiguration(client, parsedIndexes);
 }
 
 export function parseIndexes(

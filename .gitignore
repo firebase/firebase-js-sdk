@@ -89,6 +89,12 @@ packages/**/docs
 tsdoc-metadata.json
 
 # generated html docs
-docs-*/
+docs-rut/
 docs/
 toc/
+
+# generated Terraform docs
+.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*

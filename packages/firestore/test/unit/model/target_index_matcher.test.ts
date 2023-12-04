@@ -24,7 +24,8 @@ import {
   Query,
   newQueryForCollectionGroup
 } from '../../../src/core/query';
-import { IndexKind } from '../../../src/model/field_index';
+import { targetGetSegmentCount } from '../../../src/core/target';
+import { FieldIndex, IndexKind } from '../../../src/model/field_index';
 import { TargetIndexMatcher } from '../../../src/model/target_index_matcher';
 import { fieldIndex, filter, orderBy, query } from '../../util/helpers';
 
@@ -48,6 +49,23 @@ describe('Target Bounds', () => {
     queryWithAddedFilter(
       query('collId'),
       filter('a', 'array-contains-any', ['a'])
+    )
+  ];
+
+  const queriesWithOrderBy = [
+    queryWithAddedOrderBy(query('collId'), orderBy('a')),
+    queryWithAddedOrderBy(query('collId'), orderBy('a', 'asc')),
+    queryWithAddedOrderBy(query('collId'), orderBy('a', 'desc')),
+    queryWithAddedOrderBy(
+      queryWithAddedOrderBy(query('collId'), orderBy('a', 'desc')),
+      orderBy('__name__')
+    ),
+    queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        query('collId'),
+        filter('a', 'array-contains-any', ['a'])
+      ),
+      orderBy('b')
     )
   ];
 
@@ -637,6 +655,334 @@ describe('Target Bounds', () => {
       orderBy('a')
     );
     validateServesTarget(q, 'a', IndexKind.ASCENDING);
+  });
+
+  it('with equality and inequality on the same field', () => {
+    let q = queryWithAddedFilter(
+      queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+      filter('a', '==', 0)
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedFilter(
+        queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+        filter('a', '==', 0)
+      ),
+      orderBy('a')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedOrderBy(
+          queryWithAddedFilter(
+            queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+            filter('a', '==', 0)
+          ),
+          orderBy('a')
+        ),
+        orderBy('b')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(
+      q,
+      'a',
+      IndexKind.ASCENDING,
+      'b',
+      IndexKind.DESCENDING
+    );
+
+    q = queryWithAddedOrderBy(
+      queryWithAddedOrderBy(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 5)),
+          filter('a', '==', 0)
+        ),
+        orderBy('a')
+      ),
+      orderBy('__name__', 'desc')
+    );
+    validateServesTarget(q, 'a', IndexKind.ASCENDING);
+  });
+
+  describe('buildTargetIndex()', () => {
+    it('queries with equalities', () =>
+      queriesWithEqualities.forEach(
+        validateBuildTargetIndexCreateFullMatchIndex
+      ));
+
+    it('queries with inequalities', () =>
+      queriesWithInequalities.forEach(
+        validateBuildTargetIndexCreateFullMatchIndex
+      ));
+
+    it('queries with array contains', () =>
+      queriesWithArrayContains.forEach(
+        validateBuildTargetIndexCreateFullMatchIndex
+      ));
+
+    it('queries with order bys', () =>
+      queriesWithOrderBy.forEach(validateBuildTargetIndexCreateFullMatchIndex));
+
+    it('queries with inequalities uses single field index', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>', 1)),
+          filter('a', '<', 10)
+        )
+      ));
+
+    it('query of a collection', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(query('collId')));
+
+    it('query with array contains and order by', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedOrderBy(
+          queryWithAddedFilter(
+            queryWithAddedFilter(
+              query('collId'),
+              filter('a', 'array-contains', 'a')
+            ),
+            filter('a', '>', 'b')
+          ),
+          orderBy('a', 'asc')
+        )
+      ));
+
+    it('query with equality and descending order', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedOrderBy(
+          queryWithAddedFilter(query('collId'), filter('a', '==', 1)),
+          orderBy('__name__', 'desc')
+        )
+      ));
+
+    it('query with multiple equalities', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a1', '==', 'a')),
+          filter('a2', '==', 'b')
+        )
+      ));
+
+    describe('query with multiple equalities and inequality', () => {
+      it('inequality last', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedFilter(
+            queryWithAddedFilter(
+              queryWithAddedFilter(
+                query('collId'),
+                filter('equality1', '==', 'a')
+              ),
+              filter('equality2', '==', 'b')
+            ),
+            filter('inequality', '>=', 'c')
+          )
+        ));
+
+      it('inequality in middle', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedFilter(
+            queryWithAddedFilter(
+              queryWithAddedFilter(
+                query('collId'),
+                filter('equality1', '==', 'a')
+              ),
+              filter('inequality', '>=', 'c')
+            ),
+            filter('equality2', '==', 'b')
+          )
+        ));
+    });
+
+    describe('query with multiple filters', () => {
+      it('== and > on different fields', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedFilter(
+              queryWithAddedFilter(query('collId'), filter('a1', '==', 'a')),
+              filter('a2', '>', 'b')
+            ),
+            orderBy('a2', 'asc')
+          )
+        ));
+
+      it('>=, ==, and <= filters on the same field', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedFilter(
+            queryWithAddedFilter(
+              queryWithAddedFilter(query('collId'), filter('a', '>=', 1)),
+              filter('a', '==', 5)
+            ),
+            filter('a', '<=', 10)
+          )
+        ));
+
+      it('not-in and >= on the same field', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedFilter(
+            queryWithAddedFilter(
+              query('collId'),
+              filter('a', 'not-in', [1, 2, 3])
+            ),
+            filter('a', '>=', 2)
+          )
+        ));
+    });
+
+    describe('query with multiple order-bys', () => {
+      it('order by fff, bar desc, __name__', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedOrderBy(
+              queryWithAddedOrderBy(query('collId'), orderBy('fff')),
+              orderBy('bar', 'desc')
+            ),
+            orderBy('__name__')
+          )
+        ));
+
+      it('order by foo, bar, __name__ desc', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedOrderBy(
+              queryWithAddedOrderBy(query('collId'), orderBy('foo')),
+              orderBy('bar')
+            ),
+            orderBy('__name__', 'desc')
+          )
+        ));
+    });
+
+    it('query with in and not in filters', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedFilter(
+          queryWithAddedFilter(
+            query('collId'),
+            filter('a', 'not-in', [1, 2, 3])
+          ),
+          filter('b', 'in', [1, 2, 3])
+        )
+      ));
+
+    describe('query with equality and different order-by', () => {
+      it('filter on foo and bar, order by qux', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedFilter(
+              queryWithAddedFilter(query('collId'), filter('foo', '==', '')),
+              filter('bar', '==', '')
+            ),
+            orderBy('qux')
+          )
+        ));
+
+      it('filter on aaa, qqq, ccc, order by fff, bbb', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedOrderBy(
+              queryWithAddedFilter(
+                queryWithAddedFilter(
+                  queryWithAddedFilter(
+                    query('collId'),
+                    filter('aaa', '==', '')
+                  ),
+                  filter('qqq', '==', '')
+                ),
+                filter('ccc', '==', '')
+              ),
+              orderBy('fff', 'desc')
+            ),
+            orderBy('bbb')
+          )
+        ));
+    });
+
+    it('query with equals and not-in filters', () =>
+      validateBuildTargetIndexCreateFullMatchIndex(
+        queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '==', '1')),
+          filter('b', 'not-in', [1, 2, 3])
+        )
+      ));
+
+    describe('query with in and order-by', () => {
+      it('on different fields', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedOrderBy(
+              queryWithAddedFilter(
+                query('collId'),
+                filter('a', 'not-in', [1, 2, 3])
+              ),
+              orderBy('a')
+            ),
+            orderBy('b')
+          )
+        ));
+
+      it('on the same field', () =>
+        validateBuildTargetIndexCreateFullMatchIndex(
+          queryWithAddedOrderBy(
+            queryWithAddedFilter(query('collId'), filter('a', 'in', [1, 2, 3])),
+            orderBy('a')
+          )
+        ));
+    });
+
+    describe('query with multiple inequality', () => {
+      it('returns null', () => {
+        const q = queryWithAddedFilter(
+          queryWithAddedFilter(query('collId'), filter('a', '>=', 1)),
+          filter('b', '<=', 10)
+        );
+        const target = queryToTarget(q);
+        const targetIndexMatcher = new TargetIndexMatcher(target);
+        expect(targetIndexMatcher.hasMultipleInequality).is.true;
+        const actualIndex = targetIndexMatcher.buildTargetIndex();
+        expect(actualIndex).is.null;
+      });
+    });
+
+    function validateBuildTargetIndexCreateFullMatchIndex(q: Query): void {
+      const target = queryToTarget(q);
+      const targetIndexMatcher = new TargetIndexMatcher(target);
+      expect(targetIndexMatcher.hasMultipleInequality).is.false;
+      const actualIndex = targetIndexMatcher.buildTargetIndex();
+      expect(actualIndex).is.not.null;
+      expect(targetIndexMatcher.servedByIndex(actualIndex as FieldIndex)).is
+        .true;
+      expect(
+        (actualIndex as FieldIndex).fields.length >=
+          targetGetSegmentCount(target)
+      );
+    }
   });
 
   function validateServesTarget(

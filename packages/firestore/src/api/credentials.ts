@@ -37,12 +37,17 @@ import { Deferred } from '../util/promise';
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
 
+/**
+ * @internal
+ */
 export type AuthTokenFactory = () => string;
 
+/**
+ * @internal
+ */
 export interface FirstPartyCredentialsSettings {
   // These are external types. Prevent minification.
-  ['type']: 'gapi';
-  ['client']: unknown;
+  ['type']: 'firstParty';
   ['sessionIndex']: string;
   ['iamToken']: string | null;
   ['authTokenFactory']: AuthTokenFactory | null;
@@ -379,15 +384,6 @@ export class FirebaseAuthCredentialsProvider
   }
 }
 
-// Manual type definition for the subset of Gapi we use.
-interface Gapi {
-  auth: {
-    getAuthHeaderValueForFirstParty: (
-      userIdentifiers: Array<{ [key: string]: string }>
-    ) => string | null;
-  };
-}
-
 /*
  * FirstPartyToken provides a fresh token each time its value
  * is requested, because if the token is too old, requests will be rejected.
@@ -401,28 +397,20 @@ export class FirstPartyToken implements Token {
   private _headers = new Map();
 
   constructor(
-    private readonly gapi: Gapi | null,
     private readonly sessionIndex: string,
     private readonly iamToken: string | null,
     private readonly authTokenFactory: AuthTokenFactory | null
   ) {}
 
-  /** Gets an authorization token, using a provided factory function, or falling back to First Party GAPI. */
+  /**
+   * Gets an authorization token, using a provided factory function, or return
+   * null.
+   */
   private getAuthToken(): string | null {
     if (this.authTokenFactory) {
       return this.authTokenFactory();
     } else {
-      // Make sure this really is a Gapi client.
-      hardAssert(
-        !!(
-          typeof this.gapi === 'object' &&
-          this.gapi !== null &&
-          this.gapi['auth'] &&
-          this.gapi['auth']['getAuthHeaderValueForFirstParty']
-        ),
-        'unexpected gapi interface'
-      );
-      return this.gapi!['auth']['getAuthHeaderValueForFirstParty']([]);
+      return null;
     }
   }
 
@@ -450,7 +438,6 @@ export class FirstPartyAuthCredentialsProvider
   implements CredentialsProvider<User>
 {
   constructor(
-    private gapi: Gapi | null,
     private sessionIndex: string,
     private iamToken: string | null,
     private authTokenFactory: AuthTokenFactory | null
@@ -459,7 +446,6 @@ export class FirstPartyAuthCredentialsProvider
   getToken(): Promise<Token | null> {
     return Promise.resolve(
       new FirstPartyToken(
-        this.gapi,
         this.sessionIndex,
         this.iamToken,
         this.authTokenFactory
@@ -668,12 +654,9 @@ export function makeAuthCredentialsProvider(
   if (!credentials) {
     return new EmptyAuthCredentialsProvider();
   }
-
   switch (credentials['type']) {
-    case 'gapi':
-      const client = credentials['client'] as Gapi;
+    case 'firstParty':
       return new FirstPartyAuthCredentialsProvider(
-        client,
         credentials['sessionIndex'] || '0',
         credentials['iamToken'] || null,
         credentials['authTokenFactory'] || null

@@ -2,6 +2,7 @@
   "name": "@firebase/changelog-generator",
   "version": "0.1.0",
   "private": true,
+  "type": "commonjs",
   "description": "A package for generating changelog",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -17,9 +18,9 @@
   },
   "dependencies": {
     "@changesets/types": "3.3.0",
-    "@changesets/get-github-info": "0.5.1",
-    "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.2"
+    "@changesets/get-github-info": "0.5.2",
+    "@types/node": "20.8.10",
+    "undici": "5.26.5"
   },
   "license": "Apache-2.0",
   "devDependencies": {

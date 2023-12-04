@@ -31,6 +31,9 @@ import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
+import { _castAuth } from '../auth/auth_impl';
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -75,21 +78,36 @@ export async function sendSignInLinkToEmail(
   email: string,
   actionCodeSettings: ActionCodeSettings
 ): Promise<void> {
-  const authModular = getModularInstance(auth);
+  const authInternal = _castAuth(auth);
   const request: api.EmailSignInRequest = {
     requestType: ActionCodeOperation.EMAIL_SIGNIN,
-    email
+    email,
+    clientType: RecaptchaClientType.WEB
   };
-  _assert(
-    actionCodeSettings.handleCodeInApp,
-    authModular,
-    AuthErrorCode.ARGUMENT_ERROR
-  );
-  if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
+  function setActionCodeSettings(
+    request: api.EmailSignInRequest,
+    actionCodeSettings: ActionCodeSettings
+  ): void {
+    _assert(
+      actionCodeSettings.handleCodeInApp,
+      authInternal,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    if (actionCodeSettings) {
+      _setActionCodeSettingsOnRequest(
+        authInternal,
+        request,
+        actionCodeSettings
+      );
+    }
   }
-
-  await api.sendSignInLinkToEmail(authModular, request);
+  setActionCodeSettings(request, actionCodeSettings);
+  await handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.GET_OOB_CODE,
+    api.sendSignInLinkToEmail
+  );
 }
 
 /**

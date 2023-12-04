@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging-compat",
-  "version": "0.2.0",
+  "version": "0.2.5",
   "license": "Apache-2.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -11,7 +11,7 @@
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "node": "./dist/index.cjs.js",
+      "require": "./dist/index.cjs.js",
       "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
@@ -28,7 +28,7 @@
     "build:deps": "lerna run --scope @firebase/'messaging-compat' --include-dependencies build",
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
-    "test": "run-p test:karma",
+    "test": "run-p --npm-path npm test:karma",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
@@ -39,13 +39,13 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/messaging": "0.12.0",
-    "@firebase/component": "0.6.0",
-    "@firebase/util": "1.8.0",
+    "@firebase/messaging": "0.12.5",
+    "@firebase/component": "0.6.4",
+    "@firebase/util": "1.9.3",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.0",
+    "@firebase/app-compat": "0.2.24",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "ts-essentials": "9.3.0",

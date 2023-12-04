@@ -37,6 +37,12 @@ export function _logDebug(msg: string, ...args: string[]): void {
   }
 }
 
+export function _logWarn(msg: string, ...args: string[]): void {
+  if (logClient.logLevel <= LogLevel.WARN) {
+    logClient.warn(`Auth (${SDK_VERSION}): ${msg}`, ...args);
+  }
+}
+
 export function _logError(msg: string, ...args: string[]): void {
   if (logClient.logLevel <= LogLevel.ERROR) {
     logClient.error(`Auth (${SDK_VERSION}): ${msg}`, ...args);

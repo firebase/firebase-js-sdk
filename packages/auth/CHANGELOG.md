@@ -1,5 +1,169 @@
 # @firebase/auth
 
+## 1.5.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de) [#7772](https://github.com/firebase/firebase-js-sdk/pull/7772) - Exposed INVALID_LOGIN_CREDENTIALS as auth/invalid-credential error and updated docs for various auth SDK methods.
+
+## 1.4.0
+
+### Minor Changes
+
+- [`5f496e401`](https://github.com/firebase/firebase-js-sdk/commit/5f496e401782db29afd1bd433818a3fc1ef1da3c) [#7745](https://github.com/firebase/firebase-js-sdk/pull/7745) - [feature] Add sign-in with Apple token revocation support.
+
+### Patch Changes
+
+- [`f10acb360`](https://github.com/firebase/firebase-js-sdk/commit/f10acb36009dc9d5d4f0d0880f1357330e3f1d1b) [#7692](https://github.com/firebase/firebase-js-sdk/pull/7692) - Fixes https://github.com/firebase/firebase-js-sdk/issues/7675
+
+## 1.3.2
+
+### Patch Changes
+
+- [`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5) [#7720](https://github.com/firebase/firebase-js-sdk/pull/7720) - fixes github issue https://github.com/firebase/firebase-js-sdk/issues/7701.
+
+## 1.3.1
+
+### Patch Changes
+
+- [`f002ef36a`](https://github.com/firebase/firebase-js-sdk/commit/f002ef36a6b427fd526696f9cd6077a217ccc6ef) [#7634](https://github.com/firebase/firebase-js-sdk/pull/7634) (fixes [#7633](https://github.com/firebase/firebase-js-sdk/issues/7633)) - Fix FetchProvider in non-browser environments, by trying to get the `fetch` implementation from not only `self` but also standard `globalThis`.
+
+- [`68927ced1`](https://github.com/firebase/firebase-js-sdk/commit/68927ced1159d9b79407c7823d7f48d30ccb591e) [#7685](https://github.com/firebase/firebase-js-sdk/pull/7685) - Create getProviderEnforcementState method to get reCAPTCHA Enterprise enforcement state of a provider.
+  This is an internal code change preparing for future features.
+
+- [`3533b32b1`](https://github.com/firebase/firebase-js-sdk/commit/3533b32b1be6a9800b1b58a6a2b08f50fae18eeb) [#7666](https://github.com/firebase/firebase-js-sdk/pull/7666) - Create handleRecaptchaFlow helper method
+
+## 1.3.0
+
+### Minor Changes
+
+- [`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256) [#7570](https://github.com/firebase/firebase-js-sdk/pull/7570) - Remove dependency on @react-native-async-storage/async-storage and add warnings to remind React Native users to manually import it.
+
+## 1.2.0
+
+### Minor Changes
+
+- [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189) [#7514](https://github.com/firebase/firebase-js-sdk/pull/7514) - Add a validatePassword method for validating passwords against the password policy configured for the project or a tenant. This method returns a status object that can be used to display the requirements of the password policy and whether each one was met.
+
+### Patch Changes
+
+- [`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5) [#7498](https://github.com/firebase/firebase-js-sdk/pull/7498) - Fix auth event uncancellable bug #7383
+
+- [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798) [#7284](https://github.com/firebase/firebase-js-sdk/pull/7284) - Raise error if calling initializeRecaptchaConfig in node env
+
+## 1.1.0
+
+### Minor Changes
+
+- [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b) [#7384](https://github.com/firebase/firebase-js-sdk/pull/7384) - Implemented `authStateReady()`, which returns a promise that resolves immediately when the initial auth state is settled and currentUser is available. When the promise is resolved, the current user might be a valid user or null if there is no user signed in currently.
+
+### Patch Changes
+
+- [`e91f82a20`](https://github.com/firebase/firebase-js-sdk/commit/e91f82a20b2c8cea75a81f55bd71d878a3d908d6) [#7467](https://github.com/firebase/firebase-js-sdk/pull/7467) (fixes [#7448](https://github.com/firebase/firebase-js-sdk/issues/7448)) - Unpin `@react-native-async-storage/async-storage` dependency to give users more control over the exact version.
+
+## 1.0.0
+
+### Major Changes
+
+- [`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183) [#7351](https://github.com/firebase/firebase-js-sdk/pull/7351) - Changed the type of ParsedToken value from any to unknown
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651) [#7138](https://github.com/firebase/firebase-js-sdk/pull/7138) - Remove `firebase/auth/react-native` entry point. The React Native bundle should be automatically picked up by React Native build tools which recognize the `react-native` fields in `package.json` (at the top level and in `exports`).
+
+- [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6) [#7128](https://github.com/firebase/firebase-js-sdk/pull/7128) (fixes [#6493](https://github.com/firebase/firebase-js-sdk/issues/6493)) - Change `getAuth()` in the React Native bundle to default to importing `AsyncStorage` from `@react-native-async-storage/async-storage` instead of from the `react-native` core package (which has recently removed it).
+
+## 0.23.2
+
+### Patch Changes
+
+- [`afdccd57a`](https://github.com/firebase/firebase-js-sdk/commit/afdccd57a93cedc3cff052dfb19c2863660ba592) [#7277](https://github.com/firebase/firebase-js-sdk/pull/7277) - Allow port numbers in authDomain
+
+## 0.23.1
+
+### Patch Changes
+
+- [`1d6771eb3`](https://github.com/firebase/firebase-js-sdk/commit/1d6771eb358fd5cb9a6b53b7a0141b08f83f0b47) [#7140](https://github.com/firebase/firebase-js-sdk/pull/7140) - Increase the popup poller timeout to 8s to support blocking functions + Firefox
+
+## 0.23.0
+
+### Minor Changes
+
+- [`b04f04081`](https://github.com/firebase/firebase-js-sdk/commit/b04f0408139f75c69b6f6eea396f3e961f658bd1) [#7191](https://github.com/firebase/firebase-js-sdk/pull/7191) - [feature] Added Firebase App Check support to Firebase Auth.
+
+- [`6b8e0c13d`](https://github.com/firebase/firebase-js-sdk/commit/6b8e0c13daaf476c7e6ea034006250d1f33dd828) [#7193](https://github.com/firebase/firebase-js-sdk/pull/7193) - [feature] Add reCAPTCHA enterprise support.
+
+## 0.22.0
+
+### Minor Changes
+
+- [`965396d52`](https://github.com/firebase/firebase-js-sdk/commit/965396d522243fcc17b63558823ad761c87ae1ba) [#7177](https://github.com/firebase/firebase-js-sdk/pull/7177) - Fixed error message for missing password case.
+
+### Patch Changes
+
+- [`bd51cecba`](https://github.com/firebase/firebase-js-sdk/commit/bd51cecba5cfc1b1c1ca46bf94e65320da3da609) [#7179](https://github.com/firebase/firebase-js-sdk/pull/7179) (fixes [#7174](https://github.com/firebase/firebase-js-sdk/issues/7174)) - Fix typings for `TotpMultiFactorGenerator`. This fixes a reversion in 9.19.0.
+
+## 0.21.6
+
+### Patch Changes
+
+- [`58bae8757`](https://github.com/firebase/firebase-js-sdk/commit/58bae875799ed2ace8232f5d9e7aaaaa7a84d064) [#7146](https://github.com/firebase/firebase-js-sdk/pull/7146) - Support TOTP as a multi-factor option in Firebase Auth/GCIP.
+
+- [`00737a1ab`](https://github.com/firebase/firebase-js-sdk/commit/00737a1abd469f3deb041d8ff482165cc16bc34e) [#7125](https://github.com/firebase/firebase-js-sdk/pull/7125) (fixes [#7118](https://github.com/firebase/firebase-js-sdk/issues/7118)) - Modify \_fail to use AuthErrorCode.NETWORK_REQUEST_FAILED
+
+## 0.21.5
+
+### Patch Changes
+
+- [`e0b677e70`](https://github.com/firebase/firebase-js-sdk/commit/e0b677e70ed2fd9e488737c77ebe2fc65d3a0822) [#7066](https://github.com/firebase/firebase-js-sdk/pull/7066) - Explicitly set createdAt and lastLoginAt when cloning UserImpl
+
+## 0.21.4
+
+### Patch Changes
+
+- [`c8a6e08b0`](https://github.com/firebase/firebase-js-sdk/commit/c8a6e08b01a52b3eca77ca9da8989dac2e77a972) [#7038](https://github.com/firebase/firebase-js-sdk/pull/7038) - Modify \_fail to use AuthErrorCode.INTERNAL_ERROR and pass in error message.
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
+## 0.21.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 0.21.2
+
+### Patch Changes
+
+- [`6439f1173`](https://github.com/firebase/firebase-js-sdk/commit/6439f1173353f3857ab820675d572ea676340924) [#6973](https://github.com/firebase/firebase-js-sdk/pull/6973) - Expose TOKEN_EXPIRED error when mfa unenroll logs out the user.
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
+## 0.21.1
+
+### Patch Changes
+
+- [`50b8191f6`](https://github.com/firebase/firebase-js-sdk/commit/50b8191f6c51a936bd92a1a6a68af1cf201fc127) [#6914](https://github.com/firebase/firebase-js-sdk/pull/6914) (fixes [#6827](https://github.com/firebase/firebase-js-sdk/issues/6827)) - Fix to minimize a potential race condition between auth init and signInWithRedirect
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
 ## 0.21.0
 
 ### Minor Changes

@@ -66,6 +66,7 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import { IndexedDbLruDelegateImpl } from '../../../src/local/indexeddb_lru_delegate_impl';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -78,6 +79,8 @@ import {
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
+import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
+import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
   ClientId,
   SharedClientState
@@ -90,7 +93,7 @@ import { Mutation } from '../../../src/model/mutation';
 import { JsonObject } from '../../../src/model/object_value';
 import { encodeBase64 } from '../../../src/platform/base64';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
@@ -105,6 +108,7 @@ import {
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
   JsonProtoSerializer,
+  toListenRequestLabels,
   toMutation,
   toTarget,
   toVersion
@@ -245,9 +249,10 @@ abstract class TestRunner {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
+  private lruGarbageCollector!: LruGarbageCollector;
   protected sharedClientState!: SharedClientState;
 
-  private useGarbageCollection: boolean;
+  private useEagerGCForMemory: boolean;
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
@@ -272,6 +277,7 @@ abstract class TestRunner {
       /*ssl=*/ false,
       /*forceLongPolling=*/ false,
       /*autoDetectLongPolling=*/ false,
+      /*longPollingOptions=*/ {},
       /*useFetchStreams=*/ false
     );
 
@@ -286,7 +292,7 @@ abstract class TestRunner {
       /* useProto3Json= */ true
     );
 
-    this.useGarbageCollection = config.useGarbageCollection;
+    this.useEagerGCForMemory = config.useEagerGCForMemory;
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
     this.expectedActiveLimboDocs = [];
@@ -318,7 +324,7 @@ abstract class TestRunner {
       await this.initializeOfflineComponentProvider(
         onlineComponentProvider,
         configuration,
-        this.useGarbageCollection
+        this.useEagerGCForMemory
       );
     await onlineComponentProvider.initialize(
       offlineComponentProvider,
@@ -327,6 +333,15 @@ abstract class TestRunner {
 
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.persistence = offlineComponentProvider.persistence;
+    // Setting reference to lru collector for manual runs
+    if (
+      this.persistence.referenceDelegate instanceof MemoryLruDelegate ||
+      this.persistence.referenceDelegate instanceof IndexedDbLruDelegateImpl
+    ) {
+      this.lruGarbageCollector =
+        this.persistence.referenceDelegate.garbageCollector;
+    }
+
     this.localStore = offlineComponentProvider.localStore;
     this.remoteStore = onlineComponentProvider.remoteStore;
     this.syncEngine = onlineComponentProvider.syncEngine;
@@ -348,7 +363,7 @@ abstract class TestRunner {
   protected abstract initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    eagerGcEnabled: boolean
   ): Promise<
     MockMultiTabOfflineComponentProvider | MockMemoryOfflineComponentProvider
   >;
@@ -442,6 +457,8 @@ abstract class TestRunner {
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
+    } else if ('triggerLruGC' in step) {
+      return this.doTriggerLruGC(step.triggerLruGC!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else if ('failDatabase' in step) {
@@ -694,13 +711,12 @@ abstract class TestRunner {
   }
 
   private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
-    const targetIds: TargetId[] = watchFilter[0];
+    const { targetIds, keys, bloomFilter } = watchFilter;
     debugAssert(
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
-    const keys = watchFilter.slice(1);
-    const filter = new ExistenceFilter(keys.length);
+    const filter = new ExistenceFilter(keys.length, bloomFilter);
     const change = new ExistenceFilterChange(targetIds[0], filter);
     return this.doWatchEvent(change);
   }
@@ -869,6 +885,20 @@ abstract class TestRunner {
     this.queue.enqueueRetryable(() =>
       remoteStoreHandleCredentialChange(this.remoteStore, new User(user))
     );
+  }
+
+  private async doTriggerLruGC(cacheThreshold: number): Promise<void> {
+    return this.queue.enqueue(async () => {
+      if (!!this.lruGarbageCollector) {
+        const params = this.lruGarbageCollector.params as {
+          cacheSizeCollectionThreshold: number;
+          percentileToCollect: number;
+        };
+        params.cacheSizeCollectionThreshold = cacheThreshold;
+        params.percentileToCollect = 100;
+        await this.localStore.collectGarbage(this.lruGarbageCollector);
+      }
+    });
   }
 
   private async doFailDatabase(
@@ -1096,15 +1126,13 @@ abstract class TestRunner {
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
-      const actualTarget = actualTargets[targetId];
+      const { target: actualTarget, labels: actualLabels } =
+        actualTargets[targetId];
 
-      // TODO(mcg): populate the purpose of the target once it's possible to
-      // encode that in the spec tests. For now, hard-code that it's a listen
-      // despite the fact that it's not always the right value.
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
         targetId,
-        TargetPurpose.Listen,
+        expected.targetPurpose ?? TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
       if (expected.resumeToken && expected.resumeToken !== '') {
@@ -1118,6 +1146,14 @@ abstract class TestRunner {
           version(expected.readTime!)
         );
       }
+      if (expected.expectedCount !== undefined) {
+        targetData = targetData.withExpectedCount(expected.expectedCount);
+      }
+
+      const expectedLabels =
+        toListenRequestLabels(this.serializer, targetData) ?? undefined;
+      expect(actualLabels).to.deep.equal(expectedLabels);
+
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
@@ -1129,6 +1165,11 @@ abstract class TestRunner {
            expectedTarget.resumeToken
          )}, actual: ${stringFromBase64String(actualTarget.resumeToken)}`
       );
+      if (expected.expectedCount !== undefined) {
+        expect(actualTarget.expectedCount).to.equal(
+          expectedTarget.expectedCount
+        );
+      }
       delete actualTargets[targetId];
     });
     expect(objectSize(actualTargets)).to.equal(
@@ -1172,7 +1213,13 @@ abstract class TestRunner {
         });
       }
 
-      expect(actual.view!.docChanges).to.deep.equal(expectedChanges);
+      const actualChangesSorted = Array.from(actual.view!.docChanges).sort(
+        (a, b) => primitiveComparator(a.doc, b.doc)
+      );
+      const expectedChangesSorted = Array.from(expectedChanges).sort((a, b) =>
+        primitiveComparator(a.doc, b.doc)
+      );
+      expect(actualChangesSorted).to.deep.equal(expectedChangesSorted);
 
       expect(actual.view!.hasPendingWrites).to.equal(
         expected.hasPendingWrites,
@@ -1216,9 +1263,11 @@ class MemoryTestRunner extends TestRunner {
   protected async initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    eagerGCEnabled: boolean
   ): Promise<MockMemoryOfflineComponentProvider> {
-    const componentProvider = new MockMemoryOfflineComponentProvider(gcEnabled);
+    const componentProvider = new MockMemoryOfflineComponentProvider(
+      eagerGCEnabled
+    );
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1241,7 +1290,7 @@ class IndexedDbTestRunner extends TestRunner {
   protected async initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
-    gcEnabled: boolean
+    _: boolean
   ): Promise<MockMultiTabOfflineComponentProvider> {
     const offlineComponentProvider = new MockMultiTabOfflineComponentProvider(
       testWindow(this.sharedFakeWebStorage),
@@ -1329,8 +1378,8 @@ export async function runSpec(
 
 /** Specifies initial configuration information for the test. */
 export interface SpecConfig {
-  /** A boolean to enable / disable GC. */
-  useGarbageCollection: boolean;
+  /** A boolean to enable / disable eager GC for memory persistence. */
+  useEagerGCForMemory: boolean;
 
   /** The number of active clients for this test run. */
   numClients: number;
@@ -1452,6 +1501,9 @@ export interface SpecStep {
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
+
+  /** Trigger a GC event with given cache threshold in bytes. */
+  triggerLruGC?: number;
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth
@@ -1583,14 +1635,12 @@ export interface SpecClientState {
 }
 
 /**
- * [[<target-id>, ...], <key>, ...]
- * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export interface SpecWatchFilter
-  extends Array<TargetId[] | string | undefined> {
-  '0': TargetId[];
-  '1': string | undefined;
+export interface SpecWatchFilter {
+  targetIds: TargetId[];
+  keys: string[];
+  bloomFilter?: api.BloomFilter;
 }
 
 export type SpecLimitType = 'LimitToFirst' | 'LimitToLast';

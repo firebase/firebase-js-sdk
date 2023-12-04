@@ -20,9 +20,17 @@ import {
   newQueryForPath,
   queryWithLimit
 } from '../../../src/core/query';
+import { TargetPurpose } from '../../../src/local/target_data';
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+import {
+  deletedDoc,
+  doc,
+  filter,
+  generateBloomFilterProto,
+  orderBy,
+  query
+} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -203,7 +211,7 @@ describeSpec('Limbo Documents:', [], () => {
     return (
       spec()
         // No GC so we can keep the cache populated.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
 
         // Full query to populate the cache with docA and docB
         .userListens(fullQuery)
@@ -275,7 +283,7 @@ describeSpec('Limbo Documents:', [], () => {
       return (
         spec()
           // No GC so we can keep the cache populated.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
 
           // Full query to populate the cache with docA and docB
           .userListens(fullQuery)
@@ -424,7 +432,7 @@ describeSpec('Limbo Documents:', [], () => {
       const docB = doc('collection/b', 1001, { key: 'b' });
       const deletedDocB = deletedDoc('collection/b', 1005);
 
-      return client(0, false)
+      return client(0)
         .expectPrimaryState(true)
         .client(1)
         .userListens(query1)
@@ -462,7 +470,7 @@ describeSpec('Limbo Documents:', [], () => {
       const deletedDocB = deletedDoc('collection/b', 1006);
       const deletedDocC = deletedDoc('collection/c', 1008);
 
-      return client(0, false)
+      return client(0)
         .expectPrimaryState(true)
         .userListens(query1)
         .watchAcksFull(query1, 1 * 1e6, docA, docB, docC)
@@ -512,7 +520,7 @@ describeSpec('Limbo Documents:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userSets('collection/a', { matches: true })
         .userSets('collection/b', { matches: true })
         .writeAcks('collection/a', 1000)
@@ -880,7 +888,8 @@ describeSpec('Limbo Documents:', [], () => {
           // documents that changed since the resume token. This will cause it
           // to just send the docBs with an existence filter with a count of 3.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
-          .watchFilters([query1], docB1.key, docB2.key, docB3.key)
+          .watchFilters([query1], [docB1.key, docB2.key, docB3.key])
+          .watchCurrents(query1, 'resume-token-1001')
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -889,7 +898,11 @@ describeSpec('Limbo Documents:', [], () => {
           // The view now contains the docAs and the docBs (6 documents), but
           // the existence filter indicated only 3 should match. This causes
           // the client to re-listen without a resume token.
-          .expectActiveTargets({ query: query1, resumeToken: '' })
+          .expectActiveTargets({
+            query: query1,
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch,
+            resumeToken: ''
+          })
           // When the existence filter mismatch was detected, the client removed
           // then re-added the target. Watch needs to acknowledge the removal.
           .watchRemoves(query1)
@@ -915,6 +928,105 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
+  // Regression test for the bug in https://github.com/firebase/firebase-android-sdk/issues/5357
+  specTest(
+    'Limbo resolution should wait for full re-query result if there is an existence filter mismatch ',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // Simulate that the client loses network connection.
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key])
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+          })
+          .watchRemoves(query1)
+          .watchAcksFull(query1, 3000, docA)
+          // Only the deleted doc is moved to limbo after re-query result.
+          .expectLimboDocs(docB.key)
+          .ackLimbo(3000, deletedDoc(docB.key.toString(), 3000))
+          .expectLimboDocs()
+          .expectEvents(query1, {
+            removed: [docB]
+          })
+      );
+    }
+  );
+  specTest(
+    'Limbo resolution throttling with bloom filter application',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA1 = doc('collection/a1', 1000, { key: 'a1' });
+      const docA2 = doc('collection/a2', 1000, { key: 'a2' });
+      const docA3 = doc('collection/a3', 1000, { key: 'a3' });
+      const docB1 = doc('collection/b1', 1000, { key: 'b1' });
+      const docB2 = doc('collection/b2', 1000, { key: 'b2' });
+      const docB3 = doc('collection/b3', 1000, { key: 'b3' });
+      const bloomFilterProto = generateBloomFilterProto({
+        contains: [docB1, docB2, docB3],
+        notContains: [docA1, docA2, docA3]
+      });
+
+      // Verify that limbo resolution throttling works as expected with bloom filter.
+      return (
+        spec()
+          .withMaxConcurrentLimboResolutions(2)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA1, docA2, docA3)
+          .expectEvents(query1, { added: [docA1, docA2, docA3] })
+          // Simulate that the client loses network connection.
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // While this client was disconnected, another client deleted all the
+          // docAs replaced them with docBs. If Watch has to re-run the
+          // underlying query when this client re-listens, Watch won't be able
+          // to tell that docAs were deleted and will only send us watch change
+          // for new docs added since the resume token.
+          .watchSends({ affects: [query1] }, docB1, docB2, docB3)
+          // The existence filter will include the docBs with a count of 3.
+          .watchFilters(
+            [query1],
+            [docB1.key, docB2.key, docB3.key],
+            bloomFilterProto
+          )
+          .watchCurrents(query1, 'resume-token-1001')
+          .watchSnapshots(1001)
+          .expectEvents(query1, {
+            added: [docB1, docB2, docB3],
+            fromCache: true
+          })
+          // The view now contains the docAs and the docBs (6 documents), but
+          // the existence filter indicated only 3 should match. There is an
+          // existence filter mismatch. Bloom filter checks membership of the
+          // docs, and filters out docAs, while docBs returns true. Number of
+          // existing docs matches the expected count, so skip the re-query.
+          // The docAs are now in limbo; the client begins limbo resolution.
+          .expectLimboDocs(docA1.key, docA2.key)
+          .expectEnqueuedLimboDocs(docA3.key)
+      );
+    }
+  );
+
   specTest(
     'A limbo resolution for a document should not be started if one is already active',
     [],
@@ -926,7 +1038,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
 
           // Start a limbo resolution listen for a document (doc1).
           .userListens(fullQuery)
@@ -964,7 +1076,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.
@@ -1014,7 +1126,7 @@ describeSpec('Limbo Documents:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .withMaxConcurrentLimboResolutions(1)
 
           // Max out the number of active limbo resolutions.

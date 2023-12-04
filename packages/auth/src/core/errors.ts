@@ -60,7 +60,7 @@ export const enum AuthErrorCode {
   INVALID_DYNAMIC_LINK_DOMAIN = 'invalid-dynamic-link-domain',
   INVALID_EMAIL = 'invalid-email',
   INVALID_EMULATOR_SCHEME = 'invalid-emulator-scheme',
-  INVALID_IDP_RESPONSE = 'invalid-credential',
+  INVALID_CREDENTIAL = 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
   INVALID_MFA_SESSION = 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
@@ -89,6 +89,7 @@ export const enum AuthErrorCode {
   MISSING_MFA_INFO = 'missing-multi-factor-info',
   MISSING_MFA_SESSION = 'missing-multi-factor-session',
   MISSING_PHONE_NUMBER = 'missing-phone-number',
+  MISSING_PASSWORD = 'missing-password',
   MISSING_SESSION_INFO = 'missing-verification-id',
   MODULE_DESTROYED = 'app-deleted',
   NEED_CONFIRMATION = 'account-exists-with-different-credential',
@@ -123,7 +124,17 @@ export const enum AuthErrorCode {
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
-  ALREADY_INITIALIZED = 'already-initialized'
+  ALREADY_INITIALIZED = 'already-initialized',
+  RECAPTCHA_NOT_ENABLED = 'recaptcha-not-enabled',
+  MISSING_RECAPTCHA_TOKEN = 'missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN = 'invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION = 'invalid-recaptcha-action',
+  MISSING_CLIENT_TYPE = 'missing-client-type',
+  MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
+  INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
+  INVALID_REQ_TYPE = 'invalid-req-type',
+  UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION = 'unsupported-password-policy-schema-version',
+  PASSWORD_DOES_NOT_MEET_REQUIREMENTS = 'password-does-not-meet-requirements'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -206,8 +217,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'Your API key is invalid, please check you have copied it correctly.',
     [AuthErrorCode.INVALID_CERT_HASH]:
       'The SHA-1 certificate hash provided is invalid.',
-    [AuthErrorCode.INVALID_IDP_RESPONSE]:
-      'The supplied auth credential is malformed or has expired.',
+    [AuthErrorCode.INVALID_CREDENTIAL]:
+      'The supplied auth credential is incorrect, malformed or has expired.',
     [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
       'The email template corresponding to this action contains invalid characters in its message. ' +
       'Please fix by going to the Auth email templates section in the Firebase Console.',
@@ -267,6 +278,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The request does not contain a valid nonce. This can occur if the ' +
       'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
       'in the ID token payload.',
+    [AuthErrorCode.MISSING_PASSWORD]: 'A non-empty password must be provided',
     [AuthErrorCode.MISSING_MFA_INFO]:
       'No second factor identifier is provided.',
     [AuthErrorCode.MISSING_MFA_SESSION]:
@@ -356,7 +368,26 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'initializeAuth() has already been called with ' +
       'different options. To avoid this error, call initializeAuth() with the ' +
       'same options as when it was originally called, or call getAuth() to return the' +
-      ' already initialized instance.'
+      ' already initialized instance.',
+    [AuthErrorCode.MISSING_RECAPTCHA_TOKEN]:
+      'The reCAPTCHA token is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_TOKEN]:
+      'The reCAPTCHA token is invalid when sending request to the backend.',
+    [AuthErrorCode.INVALID_RECAPTCHA_ACTION]:
+      'The reCAPTCHA action is invalid when sending request to the backend.',
+    [AuthErrorCode.RECAPTCHA_NOT_ENABLED]:
+      'reCAPTCHA Enterprise integration is not enabled for this project.',
+    [AuthErrorCode.MISSING_CLIENT_TYPE]:
+      'The reCAPTCHA client type is missing when sending request to the backend.',
+    [AuthErrorCode.MISSING_RECAPTCHA_VERSION]:
+      'The reCAPTCHA version is missing when sending request to the backend.',
+    [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
+    [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
+      'The reCAPTCHA version is invalid when sending request to the backend.',
+    [AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION]:
+      'The password policy received from the backend uses a schema version that is not supported by this version of the Firebase SDK.',
+    [AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS]:
+      'The password does not meet the requirements.'
   };
 }
 
@@ -497,6 +528,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   INVALID_EMAIL: 'auth/invalid-email',
   INVALID_EMULATOR_SCHEME: 'auth/invalid-emulator-scheme',
   INVALID_IDP_RESPONSE: 'auth/invalid-credential',
+  INVALID_LOGIN_CREDENTIALS: 'auth/invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'auth/invalid-message-payload',
   INVALID_MFA_SESSION: 'auth/invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID: 'auth/invalid-oauth-client-id',
@@ -558,5 +590,13 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   USER_SIGNED_OUT: 'auth/user-signed-out',
   WEAK_PASSWORD: 'auth/weak-password',
   WEB_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
-  ALREADY_INITIALIZED: 'auth/already-initialized'
+  ALREADY_INITIALIZED: 'auth/already-initialized',
+  RECAPTCHA_NOT_ENABLED: 'auth/recaptcha-not-enabled',
+  MISSING_RECAPTCHA_TOKEN: 'auth/missing-recaptcha-token',
+  INVALID_RECAPTCHA_TOKEN: 'auth/invalid-recaptcha-token',
+  INVALID_RECAPTCHA_ACTION: 'auth/invalid-recaptcha-action',
+  MISSING_CLIENT_TYPE: 'auth/missing-client-type',
+  MISSING_RECAPTCHA_VERSION: 'auth/missing-recaptcha-version',
+  INVALID_RECAPTCHA_VERSION: 'auth/invalid-recaptcha-version',
+  INVALID_REQ_TYPE: 'auth/invalid-req-type'
 } as const;

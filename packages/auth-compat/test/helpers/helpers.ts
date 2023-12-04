@@ -17,6 +17,7 @@
 
 import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
+import '@firebase/auth-compat';
 import { Provider } from '@firebase/component';
 import '../..';
 
@@ -33,6 +34,13 @@ export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER = {
     return undefined;
   }
 } as unknown as Provider<'heartbeat'>;
+
+// App Check is fully tested in core auth impl
+export const FAKE_APP_CHECK_CONTROLLER_PROVIDER = {
+  getImmediate(): undefined {
+    return undefined;
+  }
+} as unknown as Provider<'app-check-internal'>;
 
 export function initializeTestInstance(): void {
   firebase.initializeApp(getAppConfig());

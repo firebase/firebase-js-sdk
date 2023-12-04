@@ -601,7 +601,7 @@ export function localStoreApplyRemoteEventToLocalCache(
         let newTargetData = oldTargetData.withSequenceNumber(
           txn.currentSequenceNumber
         );
-        if (remoteEvent.targetMismatches.has(targetId)) {
+        if (remoteEvent.targetMismatches.get(targetId) !== null) {
           newTargetData = newTargetData
             .withResumeToken(
               ByteString.EMPTY_BYTE_STRING,
@@ -875,6 +875,10 @@ export async function localStoreNotifyLocalViewChanges(
       );
       localStoreImpl.targetDataByTarget =
         localStoreImpl.targetDataByTarget.insert(targetId, updatedTargetData);
+
+      // TODO(b/272564316): Apply the optimization done on other platforms.
+      // This is a problem for web because saving the updated targetData from
+      // non-primary client conflicts with what primary client saved.
     }
   }
 }
@@ -1081,7 +1085,7 @@ export function localStoreExecuteQuery(
 
   return localStoreImpl.persistence.runTransaction(
     'Execute query',
-    'readonly',
+    'readwrite', // Use readwrite instead of readonly so indexes can be created
     txn => {
       return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
         .next(targetData => {
@@ -1521,4 +1525,51 @@ export async function localStoreConfigureFieldIndexes(
         )
         .next(() => PersistencePromise.waitFor(promises))
   );
+}
+
+export function localStoreSetIndexAutoCreationEnabled(
+  localStore: LocalStore,
+  isEnabled: boolean
+): void {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
+}
+
+export function localStoreDeleteAllFieldIndexes(
+  localStore: LocalStore
+): Promise<void> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const indexManager = localStoreImpl.indexManager;
+  return localStoreImpl.persistence.runTransaction(
+    'Delete All Indexes',
+    'readwrite',
+    transaction => indexManager.deleteAllFieldIndexes(transaction)
+  );
+}
+
+/**
+ * Test-only hooks into the SDK for use exclusively by tests.
+ */
+export class TestingHooks {
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
+
+  static setIndexAutoCreationSettings(
+    localStore: LocalStore,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): void {
+    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
+      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
+        settings.indexAutoCreationMinCollectionSize;
+    }
+    if (settings.relativeIndexReadCostPerDocument !== undefined) {
+      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
+        settings.relativeIndexReadCostPerDocument;
+    }
+  }
 }

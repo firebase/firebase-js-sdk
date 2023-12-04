@@ -17,6 +17,7 @@
 
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
   Auth,
   AuthErrorMap,
@@ -30,7 +31,8 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordValidationStatus
 } from '../../model/public_types';
 import {
   createSubscribe,
@@ -61,7 +63,17 @@ import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
 import { HttpHeader } from '../../api';
+import {
+  RevokeTokenRequest,
+  TokenType,
+  revokeToken
+} from '../../api/authentication/token';
 import { AuthMiddlewareQueue } from './middleware';
+import { RecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha';
+import { _logWarn } from '../util/log';
+import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
+import { PasswordPolicyInternal } from '../../model/password_policy';
+import { PasswordPolicyImpl } from './password_policy_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -84,6 +96,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   private readonly beforeStateQueue = new AuthMiddlewareQueue(this);
   private redirectUser: UserInternal | null = null;
   private isProactiveRefreshEnabled = false;
+  private readonly EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION: number = 1;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -94,6 +107,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   _popupRedirectResolver: PopupRedirectResolverInternal | null = null;
   _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> =
     _DEFAULT_AUTH_ERROR_FACTORY;
+  _agentRecaptchaConfig: RecaptchaConfig | null = null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig> = {};
+  _projectPasswordPolicy: PasswordPolicyInternal | null = null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicyInternal> = {};
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -108,6 +125,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   constructor(
     public readonly app: FirebaseApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
+    private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal
   ) {
     this.name = app.name;
@@ -387,6 +405,62 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     });
   }
 
+  _getRecaptchaConfig(): RecaptchaConfig | null {
+    if (this.tenantId == null) {
+      return this._agentRecaptchaConfig;
+    } else {
+      return this._tenantRecaptchaConfigs[this.tenantId];
+    }
+  }
+
+  async validatePassword(password: string): Promise<PasswordValidationStatus> {
+    if (!this._getPasswordPolicyInternal()) {
+      await this._updatePasswordPolicy();
+    }
+
+    // Password policy will be defined after fetching.
+    const passwordPolicy: PasswordPolicyInternal =
+      this._getPasswordPolicyInternal()!;
+
+    // Check that the policy schema version is supported by the SDK.
+    // TODO: Update this logic to use a max supported policy schema version once we have multiple schema versions.
+    if (
+      passwordPolicy.schemaVersion !==
+      this.EXPECTED_PASSWORD_POLICY_SCHEMA_VERSION
+    ) {
+      return Promise.reject(
+        this._errorFactory.create(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION,
+          {}
+        )
+      );
+    }
+
+    return passwordPolicy.validatePassword(password);
+  }
+
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null {
+    if (this.tenantId === null) {
+      return this._projectPasswordPolicy;
+    } else {
+      return this._tenantPasswordPolicies[this.tenantId];
+    }
+  }
+
+  async _updatePasswordPolicy(): Promise<void> {
+    const response = await _getPasswordPolicy(this);
+
+    const passwordPolicy: PasswordPolicyInternal = new PasswordPolicyImpl(
+      response
+    );
+
+    if (this.tenantId === null) {
+      this._projectPasswordPolicy = passwordPolicy;
+    } else {
+      this._tenantPasswordPolicies[this.tenantId] = passwordPolicy;
+    }
+  }
+
   _getPersistence(): string {
     return this.assertedPersistence.persistence.type;
   }
@@ -430,6 +504,39 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       error,
       completed
     );
+  }
+
+  authStateReady(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.currentUser) {
+        resolve();
+      } else {
+        const unsubscribe = this.onAuthStateChanged(() => {
+          unsubscribe();
+          resolve();
+        }, reject);
+      }
+    });
+  }
+
+  /**
+   * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+   */
+  async revokeAccessToken(token: string): Promise<void> {
+    if (this.currentUser) {
+      const idToken = await this.currentUser.getIdToken();
+      // Generalize this to accept other providers once supported.
+      const request: RevokeTokenRequest = {
+        providerId: 'apple.com',
+        tokenType: TokenType.ACCESS_TOKEN,
+        token,
+        idToken
+      };
+      if (this.tenantId != null) {
+        request.tenantId = this.tenantId;
+      }
+      await revokeToken(this, request);
+    }
   }
 
   toJSON(): object {
@@ -556,18 +663,37 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         ? nextOrObserver
         : nextOrObserver.next.bind(nextOrObserver);
 
+    let isUnsubscribed = false;
+
     const promise = this._isInitialized
       ? Promise.resolve()
       : this._initializationPromise;
     _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => cb(this.currentUser));
+    promise.then(() => {
+      if (isUnsubscribed) {
+        return;
+      }
+      cb(this.currentUser);
+    });
 
     if (typeof nextOrObserver === 'function') {
-      return subscription.addObserver(nextOrObserver, error, completed);
+      const unsubscribe = subscription.addObserver(
+        nextOrObserver,
+        error,
+        completed
+      );
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
     } else {
-      return subscription.addObserver(nextOrObserver);
+      const unsubscribe = subscription.addObserver(nextOrObserver);
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
     }
   }
 
@@ -645,7 +771,30 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     if (heartbeatsHeader) {
       headers[HttpHeader.X_FIREBASE_CLIENT] = heartbeatsHeader;
     }
+
+    // If the App Check service exists, add the App Check token in the headers
+    const appCheckToken = await this._getAppCheckToken();
+    if (appCheckToken) {
+      headers[HttpHeader.X_FIREBASE_APP_CHECK] = appCheckToken;
+    }
+
     return headers;
+  }
+
+  async _getAppCheckToken(): Promise<string | undefined> {
+    const appCheckTokenResult = await this.appCheckServiceProvider
+      .getImmediate({ optional: true })
+      ?.getToken();
+    if (appCheckTokenResult?.error) {
+      // Context: appCheck.getToken() will never throw even if an error happened.
+      // In the error case, a dummy token will be returned along with an error field describing
+      // the error. In general, we shouldn't care about the error condition and just use
+      // the token (actual or dummy) to send requests.
+      _logWarn(
+        `Error while retrieving App Check token: ${appCheckTokenResult.error}`
+      );
+    }
+    return appCheckTokenResult?.token;
   }
 }
 

@@ -24,9 +24,24 @@ import {
 import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
+
+/**
+ * Verifies and creates a TrustedScriptURL.
+ */
+export function createGtagTrustedTypesScriptURL(url: string): string {
+  if (!url.startsWith(GTAG_URL)) {
+    const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
+      gtagURL: url
+    });
+    logger.warn(err.message);
+    return '';
+  }
+  return url;
+}
 
 /**
  * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
@@ -41,6 +56,29 @@ export function promiseAllSettled<T>(
 }
 
 /**
+ * Creates a TrustedTypePolicy object that implements the rules passed as policyOptions.
+ *
+ * @param policyName A string containing the name of the policy
+ * @param policyOptions Object containing implementations of instance methods for TrustedTypesPolicy, see {@link https://developer.mozilla.org/en-US/docs/Web/API/TrustedTypePolicy#instance_methods
+ * | the TrustedTypePolicy reference documentation}.
+ */
+export function createTrustedTypesPolicy(
+  policyName: string,
+  policyOptions: Partial<TrustedTypePolicyOptions>
+): Partial<TrustedTypePolicy> | undefined {
+  // Create a TrustedTypes policy that we can use for updating src
+  // properties
+  let trustedTypesPolicy: Partial<TrustedTypePolicy> | undefined;
+  if (window.trustedTypes) {
+    trustedTypesPolicy = window.trustedTypes.createPolicy(
+      policyName,
+      policyOptions
+    );
+  }
+  return trustedTypesPolicy;
+}
+
+/**
  * Inserts gtag script tag into the page to asynchronously download gtag.
  * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
@@ -48,10 +86,22 @@ export function insertScriptTag(
   dataLayerName: string,
   measurementId: string
 ): void {
+  const trustedTypesPolicy = createTrustedTypesPolicy(
+    'firebase-js-sdk-policy',
+    {
+      createScriptURL: createGtagTrustedTypesScriptURL
+    }
+  );
+
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  script.src = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
+
+  const gtagScriptURL = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
+  (script.src as string | TrustedScriptURL) = trustedTypesPolicy
+    ? (trustedTypesPolicy as TrustedTypePolicy)?.createScriptURL(gtagScriptURL)
+    : gtagScriptURL;
+
   script.async = true;
   document.head.appendChild(script);
 }
@@ -227,37 +277,49 @@ function wrapGtag(
    * @param gtagParams Params if event is EVENT/CONFIG.
    */
   async function gtagWrapper(
-    command: 'config' | 'set' | 'event' | 'consent',
-    idOrNameOrParams: string | ControlParams,
-    gtagParams?: GtagConfigOrEventParams | ConsentSettings
+    command: 'config' | 'set' | 'event' | 'consent' | 'get' | string,
+    ...args: unknown[]
   ): Promise<void> {
     try {
       // If event, check that relevant initialization promises have completed.
       if (command === GtagCommand.EVENT) {
+        const [measurementId, gtagParams] = args;
         // If EVENT, second arg must be measurementId.
         await gtagOnEvent(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONFIG) {
+        const [measurementId, gtagParams] = args;
         // If CONFIG, second arg must be measurementId.
         await gtagOnConfig(
           gtagCore,
           initializationPromisesMap,
           dynamicConfigPromisesList,
           measurementIdToAppId,
-          idOrNameOrParams as string,
+          measurementId as string,
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
-        // If CONFIG, second arg must be measurementId.
+        const [gtagParams] = args;
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
-      } else {
+      } else if (command === GtagCommand.GET) {
+        const [measurementId, fieldName, callback] = args;
+        gtagCore(
+          GtagCommand.GET,
+          measurementId as string,
+          fieldName as string,
+          callback as (...args: unknown[]) => void
+        );
+      } else if (command === GtagCommand.SET) {
+        const [customParams] = args;
         // If SET, second arg must be params.
-        gtagCore(GtagCommand.SET, idOrNameOrParams as CustomParams);
+        gtagCore(GtagCommand.SET, customParams as CustomParams);
+      } else {
+        gtagCore(command, ...args);
       }
     } catch (e) {
       logger.error(e);

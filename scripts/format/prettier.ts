@@ -73,7 +73,7 @@ export async function doPrettier(changedFiles?: string[]) {
       chalk`{green Validating ${changedFiles.length} files with Prettier}`
     );
   } else {
-    prettierArgs.push('{,!(node_modules)/}**/*.{js,ts}');
+    prettierArgs.push('{,!(node_modules)}/**/*.{js,ts}');
     console.log(chalk`{green Validating all .js and .ts files with Prettier}`);
   }
 

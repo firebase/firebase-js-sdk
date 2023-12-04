@@ -23,8 +23,8 @@
   "dependencies": {
     "api-extractor-model-me": "0.1.1",
     "@microsoft/tsdoc": "0.12.24",
-    "@rushstack/node-core-library": "3.45.5",
-    "@rushstack/ts-command-line": "4.13.1",
+    "@rushstack/node-core-library": "3.59.7",
+    "@rushstack/ts-command-line": "4.15.2",
     "colors": "~1.4.0",
     "resolve": "~1.22.0",
     "tslib": "^2.1.0",

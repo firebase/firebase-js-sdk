@@ -1,5 +1,11 @@
 # @firebase/auth-interop-types
 
+## 0.2.1
+
+### Patch Changes
+
+- [`e9bcd4c43`](https://github.com/firebase/firebase-js-sdk/commit/e9bcd4c43a0628ebce570f03f1e91dfa93fffca2) [#6940](https://github.com/firebase/firebase-js-sdk/pull/6940) - Remove unused peerDependencies.
+
 ## 0.2.0
 
 ### Minor Changes

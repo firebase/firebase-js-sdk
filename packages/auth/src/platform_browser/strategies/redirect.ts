@@ -42,7 +42,10 @@ import { getModularInstance } from '@firebase/util';
  *
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link signInWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link signInWithRedirect}.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -110,7 +113,10 @@ export async function _signInWithRedirect(
  * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link reauthenticateWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link reauthenticateWithRedirect}.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -176,7 +182,10 @@ export async function _reauthenticateWithRedirect(
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
- * Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using {@link linkWithRedirect}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link linkWithRedirect}.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript
@@ -196,7 +205,6 @@ export async function _reauthenticateWithRedirect(
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
- *
  *
  * @public
  */
@@ -238,6 +246,8 @@ export async function _linkWithRedirect(
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
  * error. If no redirect operation was called, returns `null`.
+ *
+ * This method does not work in a Node.js environment.
  *
  * @example
  * ```javascript

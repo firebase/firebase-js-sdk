@@ -17,22 +17,25 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { Query, queryToTarget } from '../core/query';
+import { Aggregate } from '../core/aggregate';
+import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
+  ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
   RunQueryResponse as ProtoRunQueryResponse,
-  Value as ProtoValue
+  Value
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+import { isNullOrUndefined } from '../util/types';
 
 import { Connection } from './connection';
 import {
@@ -59,6 +62,7 @@ import {
  */
 export abstract class Datastore {
   abstract terminate(): void;
+  abstract serializer: JsonProtoSerializer;
 }
 
 /**
@@ -238,12 +242,14 @@ export async function invokeRunQueryRpc(
 
 export async function invokeRunAggregationQueryRpc(
   datastore: Datastore,
-  query: Query
-): Promise<ProtoValue[]> {
+  query: Query,
+  aggregates: Aggregate[]
+): Promise<ApiClientObjectMap<Value>> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const request = toRunAggregationQueryRequest(
+  const { request, aliasMap } = toRunAggregationQueryRequest(
     datastoreImpl.serializer,
-    queryToTarget(query)
+    queryToAggregateTarget(query),
+    aggregates
   );
 
   const parent = request.parent;
@@ -254,12 +260,39 @@ export async function invokeRunAggregationQueryRpc(
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse
   >('RunAggregationQuery', parent!, request, /*expectedResponseCount=*/ 1);
-  return (
-    response
-      // Omit RunAggregationQueryResponse that only contain readTimes.
-      .filter(proto => !!proto.result)
-      .map(proto => proto.result!.aggregateFields!)
+
+  // Omit RunAggregationQueryResponse that only contain readTimes.
+  const filteredResult = response.filter(proto => !!proto.result);
+
+  hardAssert(
+    filteredResult.length === 1,
+    'Aggregation fields are missing from result.'
   );
+  debugAssert(
+    !isNullOrUndefined(filteredResult[0].result),
+    'aggregationQueryResponse.result'
+  );
+  debugAssert(
+    !isNullOrUndefined(filteredResult[0].result.aggregateFields),
+    'aggregationQueryResponse.result.aggregateFields'
+  );
+
+  // Remap the short-form aliases that were sent to the server
+  // to the client-side aliases. Users will access the results
+  // using the client-side alias.
+  const unmappedAggregateFields = filteredResult[0].result?.aggregateFields;
+  const remappedFields = Object.keys(unmappedAggregateFields).reduce<
+    ApiClientObjectMap<Value>
+  >((accumulator, key) => {
+    debugAssert(
+      !isNullOrUndefined(aliasMap[key]),
+      `'${key}' not present in aliasMap result`
+    );
+    accumulator[aliasMap[key]] = unmappedAggregateFields[key]!;
+    return accumulator;
+  }, {});
+
+  return remappedFields;
 }
 
 export function newPersistentWriteStream(

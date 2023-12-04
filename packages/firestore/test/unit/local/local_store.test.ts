@@ -42,6 +42,7 @@ import {
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
+  localStoreSetIndexAutoCreationEnabled,
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
@@ -61,16 +62,22 @@ import {
   DocumentMap
 } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
+import { FieldMask } from '../../../src/model/field_mask';
 import {
+  FieldTransform,
   Mutation,
   MutationResult,
   MutationType,
+  PatchMutation,
   Precondition
 } from '../../../src/model/mutation';
 import {
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
+import { ObjectValue } from '../../../src/model/object_value';
+import { serverTimestamp } from '../../../src/model/server_timestamps';
+import { ServerTimestampTransform } from '../../../src/model/transform_operation';
 import { BundleMetadata as ProtoBundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { RemoteEvent } from '../../../src/remote/remote_event';
@@ -94,6 +101,7 @@ import {
   docUpdateRemoteEvent,
   existenceFilterEvent,
   expectEqual,
+  field,
   filter,
   key,
   localViewChanges,
@@ -127,6 +135,8 @@ class LocalStoreTester {
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
   private bundleConverter: BundleConverterImpl;
+
+  private queryExecutionCount = 0;
 
   constructor(
     public localStore: LocalStore,
@@ -314,6 +324,7 @@ class LocalStoreTester {
         query,
         /* usePreviousResults= */ true
       ).then(({ documents }) => {
+        this.queryExecutionCount++;
         this.lastChanges = documents;
       })
     );
@@ -341,36 +352,28 @@ class LocalStoreTester {
     overlayTypes?: { [k: string]: MutationType };
   }): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
+      const actualCount: typeof expectedCount = {};
       if (expectedCount.overlaysByCollection !== undefined) {
-        expect(this.queryEngine.overlaysReadByCollection).to.be.eq(
-          expectedCount.overlaysByCollection,
-          'Overlays read (by collection)'
-        );
+        actualCount.overlaysByCollection =
+          this.queryEngine.overlaysReadByCollection;
       }
       if (expectedCount.overlaysByKey !== undefined) {
-        expect(this.queryEngine.overlaysReadByKey).to.be.eq(
-          expectedCount.overlaysByKey,
-          'Overlays read (by key)'
-        );
+        actualCount.overlaysByKey = this.queryEngine.overlaysReadByKey;
       }
       if (expectedCount.overlayTypes !== undefined) {
-        expect(this.queryEngine.overlayTypes).to.deep.equal(
-          expectedCount.overlayTypes,
-          'Overlay types read'
-        );
+        actualCount.overlayTypes = this.queryEngine.overlayTypes;
       }
       if (expectedCount.documentsByCollection !== undefined) {
-        expect(this.queryEngine.documentsReadByCollection).to.be.eq(
-          expectedCount.documentsByCollection,
-          'Remote documents read (by collection)'
-        );
+        actualCount.documentsByCollection =
+          this.queryEngine.documentsReadByCollection;
       }
       if (expectedCount.documentsByKey !== undefined) {
-        expect(this.queryEngine.documentsReadByKey).to.be.eq(
-          expectedCount.documentsByKey,
-          'Remote documents read (by key)'
-        );
+        actualCount.documentsByKey = this.queryEngine.documentsReadByKey;
       }
+      expect(actualCount).to.deep.eq(
+        expectedCount,
+        `query execution #${this.queryExecutionCount}`
+      );
     });
     return this;
   }
@@ -655,6 +658,17 @@ function genericLocalStoreTests(
       gcIsEager
     );
   }
+
+  it('localStoreSetIndexAutoCreationEnabled()', () => {
+    localStoreSetIndexAutoCreationEnabled(localStore, true);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(localStore, false);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(localStore, true);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(localStore, false);
+    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+  });
 
   it('handles SetMutation', () => {
     return expectLocalStore()
@@ -1273,7 +1287,8 @@ function genericLocalStoreTests(
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData
+      getTargetDataForTarget: () => targetData,
+      getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
@@ -1313,7 +1328,8 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
@@ -1326,7 +1342,8 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData
+        getTargetDataForTarget: () => targetData,
+        getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
@@ -2268,6 +2285,36 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  it('deeply nested server timestamps do not cause stack overflow', async () => {
+    const timestamp = Timestamp.now();
+    const initialServerTimestamp = serverTimestamp(timestamp, null);
+    const value: ObjectValue = ObjectValue.empty();
+    value.set(
+      field('timestamp'),
+      serverTimestamp(timestamp, initialServerTimestamp)
+    );
+
+    const mutations: PatchMutation[] = [];
+    for (let i = 0; i < 100; ++i) {
+      mutations.push(
+        new PatchMutation(
+          key('foo/bar'),
+          value,
+          new FieldMask([field('timestamp')]),
+          Precondition.none(),
+          [
+            new FieldTransform(
+              field('timestamp'),
+              new ServerTimestampTransform()
+            )
+          ]
+        )
+      );
+    }
+    await expect(expectLocalStore().afterMutations(mutations).finish()).to.not
+      .be.eventually.rejected;
+  });
+
   it('uses target mapping to execute queries', () => {
     if (gcIsEager) {
       return;
@@ -2288,10 +2335,10 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterExecutingQuery(query1)
-        // Execute the query, but note that we read all existing documents
+        // Execute the query, but note that we read matching documents
         // from the RemoteDocumentCache since we do not yet have target
         // mapping.
-        .toHaveRead({ documentsByCollection: 3 })
+        .toHaveRead({ documentsByCollection: 2 })
         .after(
           docAddedRemoteEvent(
             [

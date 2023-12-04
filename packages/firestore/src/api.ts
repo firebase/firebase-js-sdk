@@ -16,36 +16,63 @@
  */
 
 export {
+  aggregateFieldEqual,
   aggregateQuerySnapshotEqual,
-  getCountFromServer
+  average,
+  count,
+  getAggregateFromServer,
+  getCountFromServer,
+  sum
 } from './api/aggregate';
 
 export {
   AggregateField,
   AggregateFieldType,
+  AggregateQuerySnapshot,
   AggregateSpec,
   AggregateSpecData,
-  AggregateQuerySnapshot
+  AggregateType
 } from './lite-api/aggregate_types';
 
-export { FieldPath, documentId } from './api/field_path';
+export {
+  FirestoreLocalCache,
+  MemoryCacheSettings,
+  MemoryEagerGarbageCollector,
+  memoryEagerGarbageCollector,
+  MemoryGarbageCollector,
+  MemoryLocalCache,
+  memoryLocalCache,
+  MemoryLruGarbageCollector,
+  memoryLruGarbageCollector,
+  PersistentCacheSettings,
+  PersistentLocalCache,
+  persistentLocalCache,
+  PersistentMultipleTabManager,
+  persistentMultipleTabManager,
+  PersistentSingleTabManager,
+  persistentSingleTabManager,
+  PersistentSingleTabManagerSettings,
+  PersistentTabManager
+} from './api/cache_config';
+
+export { documentId, FieldPath } from './api/field_path';
 
 export {
-  Firestore,
+  clearIndexedDbPersistence,
+  connectFirestoreEmulator,
+  disableNetwork,
   EmulatorMockTokenOptions,
-  initializeFirestore,
-  getFirestore,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
-  clearIndexedDbPersistence,
-  waitForPendingWrites,
-  disableNetwork,
   enableNetwork,
-  terminate,
-  connectFirestoreEmulator,
+  ensureFirestoreConfigured,
+  Firestore,
+  getFirestore,
+  initializeFirestore,
   loadBundle,
   namedQuery,
-  ensureFirestoreConfigured
+  terminate,
+  waitForPendingWrites
 } from './api/database';
 
 export {
@@ -55,68 +82,73 @@ export {
 } from './api/bundle';
 
 export { FirestoreSettings, PersistenceSettings } from './api/settings';
+export type { PrivateSettings } from './lite-api/settings';
+export { ExperimentalLongPollingOptions } from './api/long_polling_options';
 
 export {
   DocumentChange,
+  DocumentChangeType,
   DocumentSnapshot,
+  FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot,
   snapshotEqual,
-  SnapshotOptions,
-  FirestoreDataConverter,
-  DocumentChangeType,
-  SnapshotMetadata
+  SnapshotMetadata,
+  SnapshotOptions
 } from './api/snapshot';
 
 export {
-  DocumentReference,
-  CollectionReference,
-  Query,
-  doc,
   collection,
   collectionGroup,
-  SetOptions,
+  CollectionReference,
+  doc,
   DocumentData,
-  UpdateData,
-  WithFieldValue,
+  DocumentReference,
   PartialWithFieldValue,
+  Query,
+  queryEqual,
   refEqual,
-  queryEqual
+  SetOptions,
+  UpdateData,
+  WithFieldValue
 } from './api/reference';
 
 export {
   and,
   endAt,
   endBefore,
-  startAt,
-  startAfter,
   limit,
   limitToLast,
-  where,
   or,
   orderBy,
+  OrderByDirection,
   query,
+  QueryCompositeFilterConstraint,
   QueryConstraint,
   QueryConstraintType,
-  QueryCompositeFilterConstraint,
-  QueryFilterConstraint,
+  QueryEndAtConstraint,
   QueryFieldFilterConstraint,
-  QueryOrderByConstraint,
+  QueryFilterConstraint,
   QueryLimitConstraint,
   QueryNonFilterConstraint,
+  QueryOrderByConstraint,
   QueryStartAtConstraint,
-  QueryEndAtConstraint,
-  OrderByDirection,
+  startAfter,
+  startAt,
+  where,
   WhereFilterOp
 } from './api/filter';
 
-export { Unsubscribe, SnapshotListenOptions } from './api/reference_impl';
+export { SnapshotListenOptions, Unsubscribe } from './api/reference_impl';
 
 export { TransactionOptions } from './api/transaction_options';
 
 export { runTransaction, Transaction } from './api/transaction';
 
 export {
+  addDoc,
+  deleteDoc,
+  executeWrite,
   getDoc,
   getDocFromCache,
   getDocFromServer,
@@ -126,23 +158,20 @@ export {
   onSnapshot,
   onSnapshotsInSync,
   setDoc,
-  updateDoc,
-  deleteDoc,
-  addDoc,
-  executeWrite
+  updateDoc
 } from './api/reference_impl';
 
 export { FieldValue } from './api/field_value';
 
 export {
-  increment,
   arrayRemove,
   arrayUnion,
-  serverTimestamp,
-  deleteField
+  deleteField,
+  increment,
+  serverTimestamp
 } from './api/field_value_impl';
 
-export { setLogLevel, LogLevelString as LogLevel } from './util/log';
+export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 
 export { Bytes } from './api/bytes';
 
@@ -154,24 +183,32 @@ export { Timestamp } from './api/timestamp';
 
 export { CACHE_SIZE_UNLIMITED } from './api/database';
 
-export { FirestoreErrorCode, FirestoreError } from './util/error';
+export { FirestoreError, FirestoreErrorCode } from './util/error';
 
 export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 
 export {
-  Primitive,
-  NestedUpdateFields,
-  ChildUpdateFields,
   AddPrefixToKeys,
+  ChildUpdateFields,
+  NestedUpdateFields,
+  Primitive,
   UnionToIntersection
 } from '../src/lite-api/types';
 
 export {
-  setIndexConfiguration,
   Index,
   IndexConfiguration,
-  IndexField
+  IndexField,
+  setIndexConfiguration
 } from './api/index_configuration';
+
+export {
+  PersistentCacheIndexManager,
+  getPersistentCacheIndexManager,
+  deleteAllPersistentCacheIndexes,
+  enablePersistentCacheIndexAutoCreation,
+  disablePersistentCacheIndexAutoCreation
+} from './api/persistent_cache_index_manager';
 
 /**
  * Internal exports
@@ -179,14 +216,24 @@ export {
 export { isBase64Available as _isBase64Available } from './platform/base64';
 export { DatabaseId as _DatabaseId } from './core/database_info';
 export {
-  validateIsNotUsedTogether as _validateIsNotUsedTogether,
-  cast as _cast
+  cast as _cast,
+  validateIsNotUsedTogether as _validateIsNotUsedTogether
 } from './util/input_validation';
 export { DocumentKey as _DocumentKey } from './model/document_key';
 export { debugAssert as _debugAssert } from './util/assert';
 export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
-export type { ByteString as _ByteString } from './util/byte_string';
+export { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
+export { AutoId as _AutoId } from './util/misc';
+export type {
+  AuthTokenFactory,
+  FirstPartyCredentialsSettings
+} from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
+export {
+  ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback,
+  TestingHooks as _TestingHooks
+} from './util/testing_hooks';
+export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';

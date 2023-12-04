@@ -202,7 +202,7 @@ export function initializeApp(
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = _apps.get(name);
-  if (!app && name === DEFAULT_ENTRY_NAME) {
+  if (!app && name === DEFAULT_ENTRY_NAME && getDefaultAppConfig()) {
     return initializeApp();
   }
   if (!app) {

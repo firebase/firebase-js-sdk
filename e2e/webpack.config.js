@@ -49,9 +49,6 @@ module.exports = [
         }
       ]
     },
-    resolve: {
-      mainFields: ['browser', 'module', 'main']
-    },
     stats: {
       colors: true
     },
@@ -87,9 +84,6 @@ module.exports = [
           }
         }
       ]
-    },
-    resolve: {
-      mainFields: ['browser', 'module', 'main']
     },
     stats: {
       colors: true

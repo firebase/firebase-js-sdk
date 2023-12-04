@@ -35,5 +35,6 @@ export const enum GtagCommand {
   EVENT = 'event',
   SET = 'set',
   CONFIG = 'config',
-  CONSENT = 'consent'
+  CONSENT = 'consent',
+  GET = 'get'
 }

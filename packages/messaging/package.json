@@ -1,27 +1,26 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.12.0",
+  "version": "0.12.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/index.sw.esm2017.js",
+  "sw": "dist/esm/index.sw.esm2017.js",
   "sw-main": "dist/index.sw.cjs",
   "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
-      "node": "./dist/index.cjs.js",
-      "browser": "./dist/esm/index.esm2017.js",
+      "require": "./dist/index.cjs.js",
       "module": "./dist/esm/index.esm2017.js",
       "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
-      "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "require": "./dist/index.sw.cjs",
+      "default": "./dist/esm/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -37,8 +36,8 @@
     "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
     "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
-    "test": "run-p test:karma type-check lint ",
-    "test:integration": "run-p test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
+    "test": "run-p --npm-path npm test:karma type-check lint ",
+    "test:integration": "run-p --npm-path npm test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
@@ -54,15 +53,15 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.6.0",
+    "@firebase/installations": "0.6.4",
     "@firebase/messaging-interop-types": "0.2.0",
-    "@firebase/util": "1.8.0",
-    "@firebase/component": "0.6.0",
-    "idb": "7.0.1",
+    "@firebase/util": "1.9.3",
+    "@firebase/component": "0.6.4",
+    "idb": "7.1.1",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.9.0",
+    "@firebase/app": "0.9.24",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-json": "4.1.0",

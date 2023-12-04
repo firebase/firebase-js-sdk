@@ -28,12 +28,10 @@ import {
 } from '../core/filter';
 import { Direction, OrderBy } from '../core/order_by';
 import {
-  getFirstOrderByField,
-  getInequalityFilterField,
   isCollectionGroupQuery,
   LimitType,
   Query as InternalQuery,
-  queryOrderBy,
+  queryNormalizedOrderBy,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
   queryWithEndAt,
@@ -53,7 +51,7 @@ import {
 } from '../util/input_validation';
 
 import { FieldPath } from './field_path';
-import { DocumentReference, Query } from './reference';
+import { DocumentData, DocumentReference, Query } from './reference';
 import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
 import {
   newUserDataReader,
@@ -95,15 +93,17 @@ export abstract class AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType>;
 }
 
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where},
- * {@link orderBy}, {@link startAt}, {@link startAfter}, {@link
- * endBefore}, {@link endAt}, {@link limit}, {@link limitToLast} and
- * can then be passed to {@link query} to create a new query instance that
+ * {@link orderBy}, {@link (startAt:1)}, {@link (startAfter:1)}, {@link
+ * (endBefore:1)}, {@link (endAt:1)}, {@link limit}, {@link limitToLast} and
+ * can then be passed to {@link (query:1)} to create a new query instance that
  * also contains this `QueryConstraint`.
  */
 export abstract class QueryConstraint extends AppliableConstraint {
@@ -114,7 +114,9 @@ export abstract class QueryConstraint extends AppliableConstraint {
    * Takes the provided {@link Query} and returns a copy of the {@link Query} with this
    * {@link AppliableConstraint} applied.
    */
-  abstract _apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType>;
 }
 
 /**
@@ -130,13 +132,12 @@ export abstract class QueryConstraint extends AppliableConstraint {
  * apply (e.g. {@link orderBy}, {@link limit}).
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   compositeFilter: QueryCompositeFilterConstraint,
   ...queryConstraints: QueryNonFilterConstraint[]
-): Query<T>;
+): Query<AppModelType, DbModelType>;
 
 /**
  * Creates a new immutable instance of {@link Query} that is extended to also
@@ -148,18 +149,18 @@ export function query<T>(
  * @throws if any of the provided query constraints cannot be combined with the
  * existing or new constraints.
  */
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   ...queryConstraints: QueryConstraint[]
-): Query<T>;
+): Query<AppModelType, DbModelType>;
 
-export function query<T>(
-  query: Query<T>,
+export function query<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>,
   queryConstraint: QueryCompositeFilterConstraint | QueryConstraint | undefined,
   ...additionalQueryConstraints: Array<
     QueryConstraint | QueryNonFilterConstraint
   >
-): Query<T> {
+): Query<AppModelType, DbModelType> {
   let queryConstraints: AppliableConstraint[] = [];
 
   if (queryConstraint instanceof AppliableConstraint) {
@@ -180,7 +181,7 @@ export function query<T>(
  * A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by
  * a Firestore query by filtering on one or more document fields.
  * `QueryFieldFilterConstraint`s are created by invoking {@link where} and can then
- * be passed to {@link query} to create a new query instance that also contains
+ * be passed to {@link (query:1)} to create a new query instance that also contains
  * this `QueryFieldFilterConstraint`.
  */
 export class QueryFieldFilterConstraint extends QueryConstraint {
@@ -206,7 +207,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     return new QueryFieldFilterConstraint(_field, _op, _value);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const filter = this._parse(query);
     validateNewFieldFilter(query._query, filter);
     return new Query(
@@ -216,7 +219,9 @@ export class QueryFieldFilterConstraint extends QueryConstraint {
     );
   }
 
-  _parse<T>(query: Query<T>): FieldFilter {
+  _parse<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): FieldFilter {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -274,9 +279,8 @@ export function where(
  * returned by a Firestore query by performing the logical OR or AND of multiple
  * {@link QueryFieldFilterConstraint}s or {@link QueryCompositeFilterConstraint}s.
  * `QueryCompositeFilterConstraint`s are created by invoking {@link or} or
- * {@link and} and can then be passed to {@link query} to create a new query
+ * {@link and} and can then be passed to {@link (query:1)} to create a new query
  * instance that also contains the `QueryCompositeFilterConstraint`.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export class QueryCompositeFilterConstraint extends AppliableConstraint {
   /**
@@ -297,7 +301,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return new QueryCompositeFilterConstraint(type, _queryConstraints);
   }
 
-  _parse<T>(query: Query<T>): Filter {
+  _parse<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Filter {
     const parsedFilters = this._queryConstraints
       .map(queryConstraint => {
         return queryConstraint._parse(query);
@@ -311,7 +317,9 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
     return CompositeFilter.create(parsedFilters, this._getOperator());
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const parsedFilter = this._parse(query);
     if (parsedFilter.getFilters().length === 0) {
       // Return the existing query if not adding any more filters (e.g. an empty
@@ -341,8 +349,8 @@ export class QueryCompositeFilterConstraint extends AppliableConstraint {
  * QueryConstraints which are used to narrow or order the set of documents,
  * but that do not explicitly filter on a document field.
  * `QueryNonFilterConstraint`s are created by invoking {@link orderBy},
- * {@link startAt}, {@link startAfter}, {@link endBefore}, {@link endAt},
- * {@link limit} or {@link limitToLast} and can then be passed to {@link query}
+ * {@link (startAt:1)}, {@link (startAfter:1)}, {@link (endBefore:1)}, {@link (endAt:1)},
+ * {@link limit} or {@link limitToLast} and can then be passed to {@link (query:1)}
  * to create a new query instance that also contains the `QueryConstraint`.
  */
 export type QueryNonFilterConstraint =
@@ -354,10 +362,6 @@ export type QueryNonFilterConstraint =
 /**
  * `QueryFilterConstraint` is a helper union type that represents
  * {@link QueryFieldFilterConstraint} and {@link QueryCompositeFilterConstraint}.
- * `QueryFilterConstraint`s are created by invoking {@link or} or {@link and}
- * and can then be passed to {@link query} to create a new query instance that
- * also contains the `QueryConstraint`.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export type QueryFilterConstraint =
   | QueryFieldFilterConstraint
@@ -372,7 +376,6 @@ export type QueryFilterConstraint =
  * {@link QueryFilterConstraint}s to perform a disjunction for. These must be
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function or(
   ...queryConstraints: QueryFilterConstraint[]
@@ -397,7 +400,6 @@ export function or(
  * {@link QueryFilterConstraint}s to perform a conjunction for. These must be
  * created with calls to {@link where}, {@link or}, or {@link and}.
  * @returns The newly created {@link QueryCompositeFilterConstraint}.
- * @internal TODO remove this internal tag with OR Query support in the server
  */
 export function and(
   ...queryConstraints: QueryFilterConstraint[]
@@ -416,7 +418,7 @@ export function and(
 /**
  * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
  * Firestore query. `QueryOrderByConstraint`s are created by invoking
- * {@link orderBy} and can then be passed to {@link query} to create a new query
+ * {@link orderBy} and can then be passed to {@link (query:1)} to create a new query
  * instance that also contains this `QueryOrderByConstraint`.
  *
  * Note: Documents that do not contain the orderBy field will not be present in
@@ -443,7 +445,9 @@ export class QueryOrderByConstraint extends QueryConstraint {
     return new QueryOrderByConstraint(_field, _direction);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
@@ -484,7 +488,7 @@ export function orderBy(
  * A `QueryLimitConstraint` is used to limit the number of documents returned by
  * a Firestore query.
  * `QueryLimitConstraint`s are created by invoking {@link limit} or
- * {@link limitToLast} and can then be passed to {@link query} to create a new
+ * {@link limitToLast} and can then be passed to {@link (query:1)} to create a new
  * query instance that also contains this `QueryLimitConstraint`.
  */
 export class QueryLimitConstraint extends QueryConstraint {
@@ -508,7 +512,9 @@ export class QueryLimitConstraint extends QueryConstraint {
     return new QueryLimitConstraint(type, _limit, _limitType);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     return new Query(
       query.firestore,
       query.converter,
@@ -548,7 +554,7 @@ export function limitToLast(limit: number): QueryLimitConstraint {
  * A `QueryStartAtConstraint` is used to exclude documents from the start of a
  * result set returned by a Firestore query.
  * `QueryStartAtConstraint`s are created by invoking {@link (startAt:1)} or
- * {@link (startAfter:1)} and can then be passed to {@link query} to create a
+ * {@link (startAfter:1)} and can then be passed to {@link (query:1)} to create a
  * new query instance that also contains this `QueryStartAtConstraint`.
  */
 export class QueryStartAtConstraint extends QueryConstraint {
@@ -572,14 +578,16 @@ export class QueryStartAtConstraint extends QueryConstraint {
     return new QueryStartAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
       this._docOrFields,
       this._inclusive
     );
-    return new Query(
+    return new Query<AppModelType, DbModelType>(
       query.firestore,
       query.converter,
       queryWithStartAt(query._query, bound)
@@ -596,8 +604,8 @@ export class QueryStartAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to start at.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
-export function startAt(
-  snapshot: DocumentSnapshot<unknown>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -609,8 +617,8 @@ export function startAt(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`.
  */
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAt',
@@ -628,8 +636,8 @@ export function startAt(
  * @param snapshot - The snapshot of the document to start after.
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
-export function startAfter(
-  snapshot: DocumentSnapshot<unknown>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryStartAtConstraint;
 /**
  * Creates a {@link QueryStartAtConstraint} that modifies the result set to
@@ -641,8 +649,8 @@ export function startAfter(
  * @returns A {@link QueryStartAtConstraint} to pass to `query()`
  */
 export function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
-export function startAfter(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function startAfter<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryStartAtConstraint {
   return QueryStartAtConstraint._create(
     'startAfter',
@@ -655,7 +663,7 @@ export function startAfter(
  * A `QueryEndAtConstraint` is used to exclude documents from the end of a
  * result set returned by a Firestore query.
  * `QueryEndAtConstraint`s are created by invoking {@link (endAt:1)} or
- * {@link (endBefore:1)} and can then be passed to {@link query} to create a new
+ * {@link (endBefore:1)} and can then be passed to {@link (query:1)} to create a new
  * query instance that also contains this `QueryEndAtConstraint`.
  */
 export class QueryEndAtConstraint extends QueryConstraint {
@@ -679,7 +687,9 @@ export class QueryEndAtConstraint extends QueryConstraint {
     return new QueryEndAtConstraint(type, _docOrFields, _inclusive);
   }
 
-  _apply<T>(query: Query<T>): Query<T> {
+  _apply<AppModelType, DbModelType extends DocumentData>(
+    query: Query<AppModelType, DbModelType>
+  ): Query<AppModelType, DbModelType> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -703,8 +713,8 @@ export class QueryEndAtConstraint extends QueryConstraint {
  * @param snapshot - The snapshot of the document to end before.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endBefore(
-  snapshot: DocumentSnapshot<unknown>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end
@@ -716,8 +726,8 @@ export function endBefore(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endBefore(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endBefore<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endBefore',
@@ -735,8 +745,8 @@ export function endBefore(
  * @param snapshot - The snapshot of the document to end at.
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
-export function endAt(
-  snapshot: DocumentSnapshot<unknown>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  snapshot: DocumentSnapshot<AppModelType, DbModelType>
 ): QueryEndAtConstraint;
 /**
  * Creates a {@link QueryEndAtConstraint} that modifies the result set to end at
@@ -748,8 +758,8 @@ export function endAt(
  * @returns A {@link QueryEndAtConstraint} to pass to `query()`
  */
 export function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
-export function endAt(
-  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
+export function endAt<AppModelType, DbModelType extends DocumentData>(
+  ...docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>
 ): QueryEndAtConstraint {
   return QueryEndAtConstraint._create(
     'endAt',
@@ -759,10 +769,13 @@ export function endAt(
 }
 
 /** Helper function to create a bound from a document or fields */
-function newQueryBoundFromDocOrFields<T>(
-  query: Query,
+function newQueryBoundFromDocOrFields<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
   methodName: string,
-  docOrFields: Array<unknown | DocumentSnapshot<T>>,
+  docOrFields: Array<unknown | DocumentSnapshot<AppModelType, DbModelType>>,
   inclusive: boolean
 ): Bound {
   docOrFields[0] = getModularInstance(docOrFields[0]);
@@ -853,7 +866,6 @@ export function newQueryOrderBy(
     );
   }
   const orderBy = new OrderBy(fieldPath, direction);
-  validateNewOrderBy(query, orderBy);
   return orderBy;
 }
 
@@ -892,7 +904,7 @@ export function newQueryBoundFromDocument(
   // the provided document. Without the key (by using the explicit sort
   // orders), multiple documents could match the position, yielding duplicate
   // results.
-  for (const orderBy of queryOrderBy(query)) {
+  for (const orderBy of queryNormalizedOrderBy(query)) {
     if (orderBy.field.isKeyField()) {
       components.push(refValue(databaseId, doc.key));
     } else {
@@ -1050,49 +1062,27 @@ function validateDisjunctiveFilterElements(
         `'${operator.toString()}' filters.`
     );
   }
-  if (value.length > 10) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters support a ` +
-        'maximum of 10 elements in the value array.'
-    );
-  }
 }
 
 /**
  * Given an operator, returns the set of operators that cannot be used with it.
  *
- * Operators in a query must adhere to the following set of rules:
- * 1. Only one array operator is allowed.
- * 2. Only one disjunctive operator is allowed.
- * 3. `NOT_EQUAL` cannot be used with another `NOT_EQUAL` operator.
- * 4. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
+ * This is not a comprehensive check, and this function should be removed in the
+ * long term. Validations should occur in the Firestore backend.
  *
- * Array operators: `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`
- * Disjunctive operators: `IN`, `ARRAY_CONTAINS_ANY`, `NOT_IN`
+ * Operators in a query must adhere to the following set of rules:
+ * 1. Only one inequality per query.
+ * 2. `NOT_IN` cannot be used with array, disjunctive, or `NOT_EQUAL` operators.
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
     case Operator.NOT_EQUAL:
       return [Operator.NOT_EQUAL, Operator.NOT_IN];
-    case Operator.ARRAY_CONTAINS:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.NOT_IN
-      ];
-    case Operator.IN:
-      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
-      return [
-        Operator.ARRAY_CONTAINS,
-        Operator.ARRAY_CONTAINS_ANY,
-        Operator.IN,
-        Operator.NOT_IN
-      ];
+    case Operator.IN:
+      return [Operator.NOT_IN];
     case Operator.NOT_IN:
       return [
-        Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
         Operator.NOT_IN,
@@ -1107,33 +1097,6 @@ function validateNewFieldFilter(
   query: InternalQuery,
   fieldFilter: FieldFilter
 ): void {
-  if (fieldFilter.isInequality()) {
-    const existingInequality = getInequalityFilterField(query);
-    const newInequality = fieldFilter.field;
-
-    if (
-      existingInequality !== null &&
-      !existingInequality.isEqual(newInequality)
-    ) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. All where filters with an inequality' +
-          ' (<, <=, !=, not-in, >, or >=) must be on the same field. But you have' +
-          ` inequality filters on '${existingInequality.toString()}'` +
-          ` and '${newInequality.toString()}'`
-      );
-    }
-
-    const firstOrderByField = getFirstOrderByField(query);
-    if (firstOrderByField !== null) {
-      validateOrderByAndInequalityMatch(
-        query,
-        newInequality,
-        firstOrderByField
-      );
-    }
-  }
-
   const conflictingOp = findOpInsideFilters(
     query.filters,
     conflictingOps(fieldFilter.op)
@@ -1179,33 +1142,6 @@ function findOpInsideFilters(
     }
   }
   return null;
-}
-
-function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
-  if (getFirstOrderByField(query) === null) {
-    // This is the first order by. It must match any inequality.
-    const inequalityField = getInequalityFilterField(query);
-    if (inequalityField !== null) {
-      validateOrderByAndInequalityMatch(query, inequalityField, orderBy.field);
-    }
-  }
-}
-
-function validateOrderByAndInequalityMatch(
-  baseQuery: InternalQuery,
-  inequality: InternalFieldPath,
-  orderBy: InternalFieldPath
-): void {
-  if (!orderBy.isEqual(inequality)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid query. You have a where filter with an inequality ` +
-        `(<, <=, !=, not-in, >, or >=) on field '${inequality.toString()}' ` +
-        `and so you must also use '${inequality.toString()}' ` +
-        `as your first argument to orderBy(), but your first orderBy() ` +
-        `is on field '${orderBy.toString()}' instead.`
-    );
-  }
 }
 
 export function validateQueryFilterConstraint(

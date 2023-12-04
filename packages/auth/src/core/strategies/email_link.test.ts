@@ -18,15 +18,24 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+import * as sinon from 'sinon';
 
 import { ActionCodeOperation } from '../../model/public_types';
 import { OperationType } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
+import {
+  mockEndpoint,
+  mockEndpointWithParams
+} from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -35,6 +44,9 @@ import {
   sendSignInLinkToEmail,
   signInWithEmailLink
 } from './email_link';
+import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import * as jsHelpers from '../../platform_browser/load_js';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -63,7 +75,8 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       requestType: ActionCodeOperation.EMAIL_SIGNIN,
       email,
       canHandleCodeInApp: true,
-      continueUrl: 'continue-url'
+      continueUrl: 'continue-url',
+      clientType: 'CLIENT_TYPE_WEB'
     });
   });
 
@@ -119,7 +132,8 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iOSBundleId: 'my-bundle'
+        iOSBundleId: 'my-bundle',
+        clientType: 'CLIENT_TYPE_WEB'
       });
     });
   });
@@ -147,8 +161,206 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         canHandleCodeInApp: true,
         androidInstallApp: false,
         androidMinimumVersionCode: 'my-version',
-        androidPackageName: 'my-package'
+        androidPackageName: 'my-package',
+        clientType: 'CLIENT_TYPE_WEB'
       });
+    });
+  });
+
+  context('#recaptcha', () => {
+    const recaptchaConfigResponseEnforce = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        {
+          provider: 'EMAIL_PASSWORD_PROVIDER',
+          enforcementState: 'ENFORCE'
+        }
+      ]
+    };
+    const recaptchaConfigResponseOff = {
+      recaptchaKey: 'foo/bar/to/site-key',
+      recaptchaEnforcementState: [
+        { provider: 'EMAIL_PASSWORD_PROVIDER', enforcementState: 'OFF' }
+      ]
+    };
+
+    beforeEach(async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('recaptcha-response'));
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('calls send sign in link to email with recaptcha enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await _initializeRecaptchaConfig(auth);
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
+        email,
+        canHandleCodeInApp: true,
+        continueUrl: 'continue-url',
+        captchaResp: 'recaptcha-response',
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('calls send sign in link to email with recaptcha disabled', async () => {
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseOff
+      );
+      await _initializeRecaptchaConfig(auth);
+
+      const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(apiMock.calls[0].request).to.eql({
+        requestType: ActionCodeOperation.EMAIL_SIGNIN,
+        email,
+        canHandleCodeInApp: true,
+        continueUrl: 'continue-url',
+        clientType: 'CLIENT_TYPE_WEB'
+      });
+    });
+
+    it('calls send sign in link to email with recaptcha forced refresh succeed', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+
+      // // First verification should fail with 'wrong-site-key'
+      stub
+        .withArgs('wrong-site-key', { action: 'signInWithEmailLink' })
+        .rejects();
+      // Second verifcation should succeed with site key refreshed
+      stub
+        .withArgs('site-key', { action: 'signInWithEmailLink' })
+        .returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await _initializeRecaptchaConfig(auth);
+      auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
+
+      mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        email
+      });
+      expect(
+        sendSignInLinkToEmail(auth, email, {
+          handleCodeInApp: true,
+          url: 'continue-url'
+        })
+      ).returned;
+    });
+
+    it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      // First call without recaptcha token should fail with MISSING_RECAPTCHA_TOKEN error
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          clientType: RecaptchaClientType.WEB
+        },
+        {
+          error: {
+            code: 400,
+            message: ServerError.MISSING_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      // Second call with a valid recaptcha token (captchaResp) should succeed
+      mockEndpointWithParams(
+        Endpoint.SEND_OOB_CODE,
+        {
+          requestType: ActionCodeOperation.EMAIL_SIGNIN,
+          email,
+          captchaResp: 'recaptcha-response',
+          clientType: RecaptchaClientType.WEB,
+          recaptchaVersion: RecaptchaVersion.ENTERPRISE
+        },
+        {
+          email
+        }
+      );
+
+      // Mock recaptcha js loading method and manually set window.recaptcha
+      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      window.grecaptcha = recaptcha;
+      const stub = sinon.stub(recaptcha.enterprise, 'execute');
+      stub
+        .withArgs('site-key', {
+          action: RecaptchaActionName.GET_OOB_CODE
+        })
+        .returns(Promise.resolve('recaptcha-response'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      await _initializeRecaptchaConfig(auth);
+
+      mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
+      const response = await sendSignInLinkToEmail(auth, email, {
+        handleCodeInApp: true,
+        url: 'continue-url'
+      });
+      expect(response).to.eq(undefined);
     });
   });
 });

@@ -22,7 +22,6 @@ import {
   WebChannel,
   WebChannelError,
   WebChannelOptions,
-  FetchXmlHttpFactory,
   XhrIo,
   getStatEventTarget,
   EventTarget,
@@ -32,6 +31,7 @@ import {
 } from '@firebase/webchannel-wrapper';
 
 import { Token } from '../../api/credentials';
+import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';
 import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
@@ -41,12 +41,13 @@ import {
 } from '../../remote/rpc_error';
 import { StreamBridge } from '../../remote/stream_bridge';
 import { fail, hardAssert } from '../../util/assert';
+import { generateUniqueDebugId } from '../../util/debug_uid';
 import { Code, FirestoreError } from '../../util/error';
 import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
 
-const LOG_TAG = 'Connection';
+const LOG_TAG = 'WebChannelConnection';
 
 const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 
@@ -56,12 +57,14 @@ export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
+  private readonly longPollingOptions: ExperimentalLongPollingOptions;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
     this.autoDetectLongPolling = info.autoDetectLongPolling;
     this.useFetchStreams = info.useFetchStreams;
+    this.longPollingOptions = info.longPollingOptions;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -70,6 +73,7 @@ export class WebChannelConnection extends RestConnection {
     headers: StringMap,
     body: Req
   ): Promise<Resp> {
+    const streamId = generateUniqueDebugId();
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
       const xhr = new XhrIo();
       xhr.setWithCredentials(true);
@@ -78,11 +82,15 @@ export class WebChannelConnection extends RestConnection {
           switch (xhr.getLastErrorCode()) {
             case ErrorCode.NO_ERROR:
               const json = xhr.getResponseJson() as Resp;
-              logDebug(LOG_TAG, 'XHR received:', JSON.stringify(json));
+              logDebug(
+                LOG_TAG,
+                `XHR for RPC '${rpcName}' ${streamId} received:`,
+                JSON.stringify(json)
+              );
               resolve(json);
               break;
             case ErrorCode.TIMEOUT:
-              logDebug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+              logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} timed out`);
               reject(
                 new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
               );
@@ -91,7 +99,7 @@ export class WebChannelConnection extends RestConnection {
               const status = xhr.getStatus();
               logDebug(
                 LOG_TAG,
-                'RPC "' + rpcName + '" failed with status:',
+                `RPC '${rpcName}' ${streamId} failed with status:`,
                 status,
                 'response text:',
                 xhr.getResponseText()
@@ -134,10 +142,8 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                'RPC "' +
-                  rpcName +
-                  '" failed with unanticipated ' +
-                  'webchannel error ' +
+                `RPC '${rpcName}' ${streamId} ` +
+                  'failed with unanticipated webchannel error: ' +
                   xhr.getLastErrorCode() +
                   ': ' +
                   xhr.getLastError() +
@@ -145,11 +151,12 @@ export class WebChannelConnection extends RestConnection {
               );
           }
         } finally {
-          logDebug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
+          logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} completed.`);
         }
       });
 
       const requestString = JSON.stringify(body);
+      logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} sending request:`, body);
       xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
@@ -159,6 +166,7 @@ export class WebChannelConnection extends RestConnection {
     authToken: Token | null,
     appCheckToken: Token | null
   ): Stream<Req, Resp> {
+    const streamId = generateUniqueDebugId();
     const urlParts = [
       this.baseUrl,
       '/',
@@ -194,8 +202,13 @@ export class WebChannelConnection extends RestConnection {
       detectBufferingProxy: this.autoDetectLongPolling
     };
 
+    const longPollingTimeoutSeconds = this.longPollingOptions.timeoutSeconds;
+    if (longPollingTimeoutSeconds !== undefined) {
+      request.longPollingTimeout = Math.round(longPollingTimeoutSeconds * 1000);
+    }
+
     if (this.useFetchStreams) {
-      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      request.useFetchStreams = true;
     }
 
     this.modifyHeadersForRequest(
@@ -217,7 +230,11 @@ export class WebChannelConnection extends RestConnection {
     request.encodeInitMessageHeaders = true;
 
     const url = urlParts.join('');
-    logDebug(LOG_TAG, 'Creating WebChannel: ' + url, request);
+    logDebug(
+      LOG_TAG,
+      `Creating RPC '${rpcName}' stream ${streamId}: ${url}`,
+      request
+    );
     const channel = webchannelTransport.createWebChannel(url, request);
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -236,14 +253,26 @@ export class WebChannelConnection extends RestConnection {
       sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
-            logDebug(LOG_TAG, 'Opening WebChannel transport.');
+            logDebug(
+              LOG_TAG,
+              `Opening RPC '${rpcName}' stream ${streamId} transport.`
+            );
             channel.open();
             opened = true;
           }
-          logDebug(LOG_TAG, 'WebChannel sending:', msg);
+          logDebug(
+            LOG_TAG,
+            `RPC '${rpcName}' stream ${streamId} sending:`,
+            msg
+          );
           channel.send(msg);
         } else {
-          logDebug(LOG_TAG, 'Not sending because WebChannel is closed:', msg);
+          logDebug(
+            LOG_TAG,
+            `Not sending because RPC '${rpcName}' stream ${streamId} ` +
+              'is closed:',
+            msg
+          );
         }
       },
       closeFn: () => channel.close()
@@ -273,14 +302,20 @@ export class WebChannelConnection extends RestConnection {
 
     unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
       if (!closed) {
-        logDebug(LOG_TAG, 'WebChannel transport opened.');
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' stream ${streamId} transport opened.`
+        );
       }
     });
 
     unguardedEventListen(channel, WebChannel.EventType.CLOSE, () => {
       if (!closed) {
         closed = true;
-        logDebug(LOG_TAG, 'WebChannel transport closed');
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' stream ${streamId} transport closed`
+        );
         streamBridge.callOnClose();
       }
     });
@@ -288,7 +323,11 @@ export class WebChannelConnection extends RestConnection {
     unguardedEventListen<Error>(channel, WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
-        logWarn(LOG_TAG, 'WebChannel transport errored:', err);
+        logWarn(
+          LOG_TAG,
+          `RPC '${rpcName}' stream ${streamId} transport errored:`,
+          err
+        );
         streamBridge.callOnClose(
           new FirestoreError(
             Code.UNAVAILABLE,
@@ -322,7 +361,11 @@ export class WebChannelConnection extends RestConnection {
             msgDataOrError.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
-            logDebug(LOG_TAG, 'WebChannel received error:', error);
+            logDebug(
+              LOG_TAG,
+              `RPC '${rpcName}' stream ${streamId} received error:`,
+              error
+            );
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
@@ -340,7 +383,11 @@ export class WebChannelConnection extends RestConnection {
             streamBridge.callOnClose(new FirestoreError(code, message));
             channel.close();
           } else {
-            logDebug(LOG_TAG, 'WebChannel received:', msgData);
+            logDebug(
+              LOG_TAG,
+              `RPC '${rpcName}' stream ${streamId} received:`,
+              msgData
+            );
             streamBridge.callOnMessage(msgData);
           }
         }
@@ -349,9 +396,15 @@ export class WebChannelConnection extends RestConnection {
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
       if (event.stat === Stat.PROXY) {
-        logDebug(LOG_TAG, 'Detected buffering proxy');
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
+        );
       } else if (event.stat === Stat.NOPROXY) {
-        logDebug(LOG_TAG, 'Detected no buffering proxy');
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
+        );
       }
     });
 

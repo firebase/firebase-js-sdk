@@ -85,7 +85,7 @@ function bundleWithDocumentAndQuery(
   );
 }
 
-describeSpec('Bundles:', ['no-ios'], () => {
+describeSpec('Bundles:', [], () => {
   specTest('Newer docs from bundles should overwrite cache', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });
@@ -178,7 +178,7 @@ describeSpec('Bundles:', ['no-ios'], () => {
         spec()
           // TODO(b/160878667): Figure out what happens when memory eager GC is on
           // a bundle is loaded.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 250, docA)
           .expectEvents(query1, {
@@ -224,7 +224,7 @@ describeSpec('Bundles:', ['no-ios'], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 250, docA)
           .expectEvents(query1, {
@@ -260,7 +260,7 @@ describeSpec('Bundles:', ['no-ios'], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 250)
         // Backend tells is there is no such doc.

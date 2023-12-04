@@ -1,5 +1,159 @@
 # @firebase/app
 
+## 0.9.24
+
+### Patch Changes
+
+- [`e9ff107ee`](https://github.com/firebase/firebase-js-sdk/commit/e9ff107eedbb9ec695ddc35e45bdd62734735674) [#7789](https://github.com/firebase/firebase-js-sdk/pull/7789) - More safeguards to ensure that heartbeat objects queried from IndexedDB include a heartbeats field.
+
+## 0.9.23
+
+### Patch Changes
+
+- [`5c7fa8491`](https://github.com/firebase/firebase-js-sdk/commit/5c7fa84912ac8a9652b82ebf88eb483dd44977a8) [#7749](https://github.com/firebase/firebase-js-sdk/pull/7749) - App - provide a more robust check to cover more cases of empty heartbeat data.
+
+## 0.9.22
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.21
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.20
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.19
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.18
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.17
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.16
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.15
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.14
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.13
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.12
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.11
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.10
+
+### Patch Changes
+
+- [`466d3670a`](https://github.com/firebase/firebase-js-sdk/commit/466d3670ae32b61e3e0319bb73407bcd7ac90290) [#7263](https://github.com/firebase/firebase-js-sdk/pull/7263) - Make the error more helpful when `getApp()` is called before `initializeApp()`.
+
+- [`e0551fa13`](https://github.com/firebase/firebase-js-sdk/commit/e0551fa13c9ae1556edf0ffb967f2f9e661f18a0) [#7272](https://github.com/firebase/firebase-js-sdk/pull/7272) (fixes [#6871](https://github.com/firebase/firebase-js-sdk/issues/6871)) - Catch more heartbeat read/write errors.
+
+## 0.9.9
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.8
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.7
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.6
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.5
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
+## 0.9.3
+
+### Patch Changes
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
 ## 0.9.0
 
 ### Minor Changes

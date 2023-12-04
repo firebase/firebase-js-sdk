@@ -20,6 +20,8 @@ import {
   AuthSettings,
   Config,
   EmulatorConfig,
+  PasswordPolicy,
+  PasswordValidationStatus,
   PopupRedirectResolver,
   User
 } from './public_types';
@@ -29,6 +31,8 @@ import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 import { PopupRedirectResolverInternal } from './popup_redirect';
 import { UserInternal } from './user';
 import { ClientPlatform } from '../core/util/version';
+import { RecaptchaConfig } from '../platform_browser/recaptcha/recaptcha';
+import { PasswordPolicyInternal } from './password_policy';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -60,6 +64,10 @@ export interface ConfigInternal extends Config {
 export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
+  _agentRecaptchaConfig: RecaptchaConfig | null;
+  _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
+  _projectPasswordPolicy: PasswordPolicy | null;
+  _tenantPasswordPolicies: Record<string, PasswordPolicy>;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
@@ -79,9 +87,13 @@ export interface AuthInternal extends Auth {
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
+  _getRecaptchaConfig(): RecaptchaConfig | null;
+  _getPasswordPolicyInternal(): PasswordPolicyInternal | null;
+  _updatePasswordPolicy(): Promise<void>;
   _logFramework(framework: string): void;
   _getFrameworks(): readonly string[];
   _getAdditionalHeaders(): Promise<Record<string, string>>;
+  _getAppCheckToken(): Promise<string | undefined>;
 
   readonly name: AppName;
   readonly config: ConfigInternal;
@@ -92,4 +104,6 @@ export interface AuthInternal extends Auth {
 
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
+  validatePassword(password: string): Promise<PasswordValidationStatus>;
+  revokeAccessToken(token: string): Promise<void>;
 }

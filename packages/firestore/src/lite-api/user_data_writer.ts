@@ -32,10 +32,12 @@ import {
 import { TypeOrder } from '../model/type_order';
 import { typeOrder } from '../model/values';
 import {
+  ApiClientObjectMap,
   ArrayValue as ProtoArrayValue,
   LatLng as ProtoLatLng,
   MapValue as ProtoMapValue,
   Timestamp as ProtoTimestamp,
+  Value,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { isValidResourceName } from '../remote/serializer';
@@ -92,8 +94,18 @@ export abstract class AbstractUserDataWriter {
     mapValue: ProtoMapValue,
     serverTimestampBehavior: ServerTimestampBehavior
   ): DocumentData {
+    return this.convertObjectMap(mapValue.fields, serverTimestampBehavior);
+  }
+
+  /**
+   * @internal
+   */
+  convertObjectMap(
+    fields: ApiClientObjectMap<Value> | undefined,
+    serverTimestampBehavior: ServerTimestampBehavior = 'none'
+  ): DocumentData {
     const result: DocumentData = {};
-    forEach(mapValue.fields, (key, value) => {
+    forEach(fields, (key, value) => {
       result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;

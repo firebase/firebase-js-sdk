@@ -25,7 +25,7 @@ import {
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
-import { signUp } from '../../api/authentication/sign_up';
+import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -36,9 +36,34 @@ import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { IdTokenResponse } from '../../model/id_token';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 
 /**
- * Sends a password reset email to the given email address.
+ * Updates the password policy cached in the {@link Auth} instance if a policy is already
+ * cached for the project or tenant.
+ *
+ * @remarks
+ * We only fetch the password policy if the password did not meet policy requirements and
+ * there is an existing policy cached. A developer must call validatePassword at least
+ * once for the cache to be automatically updated.
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @private
+ */
+async function recachePasswordPolicy(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  if (authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+}
+
+/**
+ * Sends a password reset email to the given email address. This method does not throw an error when
+ * there's no user account with the given email address and
+ * [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
  *
  * @remarks
  * To complete the password reset, call {@link confirmPasswordReset} with the code supplied in
@@ -74,16 +99,21 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: ActionCodeSettings
 ): Promise<void> {
-  const authModular = getModularInstance(auth);
+  const authInternal = _castAuth(auth);
   const request: authentication.PasswordResetRequest = {
     requestType: ActionCodeOperation.PASSWORD_RESET,
-    email
+    email,
+    clientType: RecaptchaClientType.WEB
   };
   if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(authModular, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
   }
-
-  await authentication.sendPasswordResetEmail(authModular, request);
+  await handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.GET_OOB_CODE,
+    authentication.sendPasswordResetEmail
+  );
 }
 
 /**
@@ -100,10 +130,21 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(getModularInstance(auth), {
-    oobCode,
-    newPassword
-  });
+  await account
+    .resetPassword(getModularInstance(auth), {
+      oobCode,
+      newPassword
+    })
+    .catch(async error => {
+      if (
+        error.code ===
+        `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+      ) {
+        void recachePasswordPolicy(auth);
+      }
+
+      throw error;
+    });
   // Do not return the email.
 }
 
@@ -227,10 +268,26 @@ export async function createUserWithEmailAndPassword(
   password: string
 ): Promise<UserCredential> {
   const authInternal = _castAuth(auth);
-  const response = await signUp(authInternal, {
+  const request: SignUpRequest = {
     returnSecureToken: true,
     email,
-    password
+    password,
+    clientType: RecaptchaClientType.WEB
+  };
+  const signUpResponse: Promise<IdTokenResponse> = handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.SIGN_UP_PASSWORD,
+    signUp
+  );
+  const response = await signUpResponse.catch(error => {
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -248,6 +305,8 @@ export async function createUserWithEmailAndPassword(
  *
  * @remarks
  * Fails with an error if the email address and password do not match.
+ * When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled,
+ * this method fails with "auth/invalid-credential" in case of an invalid email/password.
  *
  * Note: The user's password is NOT the password used to access the user's email account. The
  * email address serves as a unique identifier for the user, and the password is used to access
@@ -267,5 +326,13 @@ export function signInWithEmailAndPassword(
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
-  );
+  ).catch(async error => {
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
+  });
 }

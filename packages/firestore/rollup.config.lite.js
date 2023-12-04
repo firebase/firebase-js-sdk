@@ -123,7 +123,10 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -171,6 +174,25 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // Convert es2017 build to CJS
+  {
+    input: path.resolve('./lite', pkg.browser),
+    output: [
+      {
+        file: './dist/lite/index.cjs.js',
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // Browser es2017 build
   {
     input: path.resolve('./lite', pkg.browser),
@@ -181,7 +203,10 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

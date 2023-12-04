@@ -17,8 +17,11 @@
 
 import { ProviderId, SignInMethod } from '../../model/enums';
 
-import { updateEmailPassword } from '../../api/account_management/email_and_password';
-import { signInWithPassword } from '../../api/authentication/email_and_password';
+import { linkEmailPassword } from '../../api/account_management/email_and_password';
+import {
+  signInWithPassword,
+  SignInWithPasswordRequest
+} from '../../api/authentication/email_and_password';
 import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
@@ -28,7 +31,9 @@ import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { _fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
-
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import { SignUpRequest } from '../../api/authentication/sign_up';
 /**
  * Interface that represents the credentials returned by {@link EmailAuthProvider} for
  * {@link ProviderId}.PASSWORD
@@ -113,11 +118,18 @@ export class EmailAuthCredential extends AuthCredential {
   async _getIdTokenResponse(auth: AuthInternal): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
-        return signInWithPassword(auth, {
+        const request: SignInWithPasswordRequest = {
           returnSecureToken: true,
           email: this._email,
-          password: this._password
-        });
+          password: this._password,
+          clientType: RecaptchaClientType.WEB
+        };
+        return handleRecaptchaFlow(
+          auth,
+          request,
+          RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
+          signInWithPassword
+        );
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
           email: this._email,
@@ -135,12 +147,19 @@ export class EmailAuthCredential extends AuthCredential {
   ): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case SignInMethod.EMAIL_PASSWORD:
-        return updateEmailPassword(auth, {
+        const request: SignUpRequest = {
           idToken,
           returnSecureToken: true,
           email: this._email,
-          password: this._password
-        });
+          password: this._password,
+          clientType: RecaptchaClientType.WEB
+        };
+        return handleRecaptchaFlow(
+          auth,
+          request,
+          RecaptchaActionName.SIGN_UP_PASSWORD,
+          linkEmailPassword
+        );
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLinkForLinking(auth, {
           idToken,

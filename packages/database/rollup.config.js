@@ -94,6 +94,25 @@ const browserBuilds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
+  },
+  {
+    input: 'src/index.ts',
+    output: [
+      {
+        file: 'dist/index.cjs.js',
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
+    treeshake: {
+      moduleSideEffects: false
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    onwarn: onWarn
   }
 ];
 

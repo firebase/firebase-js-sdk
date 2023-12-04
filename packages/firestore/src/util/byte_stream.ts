@@ -59,7 +59,7 @@ export function toByteStreamReaderHelper(
     },
     async cancel(): Promise<void> {},
     releaseLock() {},
-    closed: Promise.reject('unimplemented')
+    closed: Promise.resolve()
   };
   return reader;
 }

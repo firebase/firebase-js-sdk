@@ -17,13 +17,15 @@
 
 import * as sinon from 'sinon';
 import { deleteApp, initializeApp } from '@firebase/app';
-import { Auth, User } from '../../../src/model/public_types';
+import { Auth, User } from '@firebase/auth';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
 import { _generateEventId } from '../../../src/core/util/event_id';
 import { getAppConfig, getEmulatorUrl } from './settings';
 import { resetEmulator } from './emulator_rest_helpers';
-
+// @ts-ignore - ignore types since this is only used in tests.
+import totp from 'totp-generator';
+import { _castAuth } from '../../../internal';
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -62,10 +64,12 @@ export function getTestInstance(requireEmulator = false): Auth {
     } else {
       // Clear out any new users that were created in the course of the test
       for (const user of createdUsers) {
-        try {
-          await user.delete();
-        } catch {
-          // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+        if (!user.email?.includes('donotdelete')) {
+          try {
+            await user.delete();
+          } catch {
+            // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+          }
         }
       }
     }
@@ -92,4 +96,58 @@ function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
       originalConsoleInfo(...args);
     }
   });
+}
+
+export function getTotpCode(
+  sharedSecretKey: string,
+  periodSec: number,
+  verificationCodeLength: number,
+  timestamp: Date
+): string {
+  const token = totp(sharedSecretKey, {
+    period: periodSec,
+    digits: verificationCodeLength,
+    algorithm: 'SHA-1',
+    timestamp
+  });
+
+  return token;
+}
+export const email = 'totpuser-donotdelete@test.com';
+export const password = 'password';
+//1000000 is always incorrect since it has 7 digits and we expect 6.
+export const incorrectTotpCode = '1000000';
+
+/**
+ * Generates a valid password for the project or tenant password policy in the Auth instance.
+ * @param auth The {@link Auth} instance.
+ * @returns A valid password according to the password policy.
+ */
+export async function generateValidPassword(auth: Auth): Promise<string> {
+  if (getEmulatorUrl()) {
+    return 'password';
+  }
+
+  // Fetch the policy using the Auth instance if one is not cached.
+  const authInternal = _castAuth(auth);
+  if (!authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+
+  const passwordPolicy = authInternal._getPasswordPolicyInternal()!;
+  const options = passwordPolicy.customStrengthOptions;
+
+  // Create a string that satisfies all possible options (uppercase, lowercase, numeric, and special characters).
+  const nonAlphaNumericCharacter =
+    passwordPolicy.allowedNonAlphanumericCharacters.charAt(0);
+  const stringWithAllOptions = 'aA0' + nonAlphaNumericCharacter;
+
+  // Repeat the string enough times to fill up the minimum password length.
+  const minPasswordLength = options.minPasswordLength ?? 6;
+  const password = stringWithAllOptions.repeat(
+    Math.round(minPasswordLength / stringWithAllOptions.length)
+  );
+
+  // Return a string that is only as long as the minimum length required by the policy.
+  return password.substring(0, minPasswordLength);
 }

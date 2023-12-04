@@ -7,38 +7,13 @@
 #
 #######################################################################################################
 
-# ===========================================================
-#  @firebase/jssdk-global-approvers
-# ===========================================================
-#  Used for approving minor changes, large-scale refactorings, and emergency situations.
-#  (secret team to avoid review requests)
-#
-#   - @lahirumaramba
-#   - @hsubox76
-#   - @allspain
-#   - @dwyfrequency
-
-
-# ===========================================================
-#  @firebase/firestore-js-team
-# ===========================================================
-#  Used for approving firestore changes.
-#  (secret team to avoid review requests)
-#
-# - @schmidt-sebastian
-# - @thebrianchen
-# - @wu-hui
-# - @ehsannas
-# - @dconeybe
-
-
 # These owners will be the default owners for everything in the repo.
-*       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
+*       @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
-packages/database-types @maneesht @jsdt @IanWyszynski @firebase/jssdk-global-approvers
+packages/database @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database-types @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -59,10 +34,10 @@ packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth  @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-compat @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-types @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-packages/auth-interop-types @avolkovi @lisajian @sam-gc @yuchenshi @firebase/jssdk-global-approvers
+packages/auth @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-compat @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-interop-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
@@ -96,6 +71,7 @@ packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 # Documentation Changes
 packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
+docs-devsite/ @egilmorez @markarndt @kevinthecheung
 
 # Changeset
-.changeset @egilmorez @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

@@ -1,0 +1,23 @@
+diff --git a/node_modules/karma-webpack/lib/webpack/plugin.js b/node_modules/karma-webpack/lib/webpack/plugin.js
+index 47b993c..3b75a9e 100644
+--- a/node_modules/karma-webpack/lib/webpack/plugin.js
++++ b/node_modules/karma-webpack/lib/webpack/plugin.js
+@@ -1,4 +1,5 @@
+ const fs = require('fs');
++const path = require('path');
+ 
+ class KW_WebpackPlugin {
+   constructor(options) {
+@@ -14,9 +15,10 @@ class KW_WebpackPlugin {
+       // read generated file content and store for karma preprocessor
+       this.controller.bundlesContent = {};
+       stats.toJson().assets.forEach((webpackFileObj) => {
+-        const filePath = `${compiler.options.output.path}/${
++        const filePath = path.resolve(
++          compiler.options.output.path,
+           webpackFileObj.name
+-        }`;
++        );
+         this.controller.bundlesContent[webpackFileObj.name] = fs.readFileSync(
+           filePath,
+           'utf-8'

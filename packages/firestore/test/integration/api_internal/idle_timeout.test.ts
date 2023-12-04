@@ -21,7 +21,7 @@ import { collection, doc, onSnapshot, setDoc } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
 
-apiDescribe('Idle Timeout', (persistence: boolean) => {
+apiDescribe('Idle Timeout', persistence => {
   it('can write document after idle timeout', () => {
     return withTestDb(persistence, db => {
       const docRef = doc(collection(db, 'test-collection'));

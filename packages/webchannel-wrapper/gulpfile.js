@@ -26,6 +26,22 @@ const commonjs = require('@rollup/plugin-commonjs');
 const rollupSourcemaps = require('rollup-plugin-sourcemaps');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
+const pkg = require('./package.json');
+
+// Copied from "../../scripts/build/rollup_emit_module_package_file" which is ESM
+// and would require converting this file to MJS to use
+function emitModulePackageFile() {
+  return {
+    generateBundle() {
+      this.emitFile({
+        fileName: 'package.json',
+        source: `{"type":"module"}`,
+        type: 'asset'
+      });
+    },
+    name: 'emit-module-package-file'
+  };
+}
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
@@ -114,13 +130,29 @@ function createRollupTask({
         })
       );
     }
+    if (format === 'es') {
+      plugins.push(emitModulePackageFile());
+    }
     const inputOptions = {
       input: inputPath,
       plugins
     };
 
+    let outputFilename;
+    if (format === 'es') {
+      if (compileToES5) {
+        // ESM5
+        outputFilename = pkg.esm5;
+      } else {
+        // ESM2017
+        outputFilename = pkg.module;
+      }
+    } else {
+      // CJS
+      outputFilename = pkg.main;
+    }
     const outputOptions = {
-      file: `dist/index${outputExtension ? '.' : ''}${outputExtension}.js`,
+      file: outputFilename,
       format,
       sourcemap: true,
       // Prevents warning when compiling CJS that there are named and default exports together.

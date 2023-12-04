@@ -32,6 +32,7 @@ import {
 } from '../core/component_provider';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import {
+  canFallbackFromIndexedDbError,
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
@@ -74,11 +75,6 @@ declare module '@firebase/component' {
     'firestore': Firestore;
   }
 }
-
-/** DOMException error code constants. */
-const DOM_EXCEPTION_INVALID_STATE = 11;
-const DOM_EXCEPTION_ABORTED = 20;
-const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -138,7 +134,7 @@ export class Firestore extends LiteFirestore {
  * @param app - The {@link @firebase/app#FirebaseApp} with which the {@link Firestore} instance will
  * be associated.
  * @param settings - A settings object to configure the {@link Firestore} instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized {@link Firestore} instance.
  */
 export function initializeFirestore(
@@ -173,6 +169,17 @@ export function initializeFirestore(
 
   if (
     settings.cacheSizeBytes !== undefined &&
+    settings.localCache !== undefined
+  ) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `cache and cacheSizeBytes cannot be specified at the same time as cacheSizeBytes will` +
+        `be deprecated. Instead, specify the cache size in the cache object`
+    );
+  }
+
+  if (
+    settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
     settings.cacheSizeBytes < LRU_MINIMUM_CACHE_SIZE_BYTES
   ) {
@@ -190,30 +197,10 @@ export function initializeFirestore(
 
 /**
  * Returns the existing default {@link Firestore} instance that is associated with the
- * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
- * instance with default settings.
- *
- * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
- * instance is associated with.
- * @returns The {@link Firestore} instance of the provided app.
- */
-export function getFirestore(app: FirebaseApp): Firestore;
-/**
- * Returns the existing {@link Firestore} instance that is associated with the
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
- * @returns The {@link Firestore} instance of the provided app.
- * @internal
- */
-export function getFirestore(databaseId: string): Firestore;
-/**
- * Returns the existing default {@link Firestore} instance that is associated with the
- * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
- * instance with default settings.
- *
- * @returns The {@link Firestore} instance of the provided app.
+ * @returns The default {@link Firestore} instance of the default app.
  */
 export function getFirestore(): Firestore;
 /**
@@ -223,9 +210,29 @@ export function getFirestore(): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
- * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @returns The default {@link Firestore} instance of the provided app.
+ */
+export function getFirestore(app: FirebaseApp): Firestore;
+/**
+ * Returns the existing named {@link Firestore} instance that is associated with the
+ * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param databaseId - The name of the database.
+ * @returns The named {@link Firestore} instance of the default app.
+ * @beta
+ */
+export function getFirestore(databaseId: string): Firestore;
+/**
+ * Returns the existing named {@link Firestore} instance that is associated with the
+ * provided {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
+ * instance is associated with.
+ * @param databaseId - The name of the database.
+ * @returns The named {@link Firestore} instance of the provided app.
+ * @beta
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
@@ -283,6 +290,16 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._queue,
     databaseInfo
   );
+  if (
+    settings.localCache?._offlineComponentProvider &&
+    settings.localCache?._onlineComponentProvider
+  ) {
+    firestore._firestoreClient._uninitializedComponentsProvider = {
+      _offlineKind: settings.localCache.kind,
+      _offline: settings.localCache._offlineComponentProvider,
+      _online: settings.localCache._onlineComponentProvider
+    };
+  }
 }
 
 /**
@@ -303,10 +320,16 @@ export function configureFirestore(firestore: Firestore): void {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
+ * Persistence cannot be used in a Node.js environment.
+ *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
  * @returns A `Promise` that represents successfully enabling persistent storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache`
+ * is already specified will throw an exception.
  */
 export function enableIndexedDbPersistence(
   firestore: Firestore,
@@ -316,6 +339,17 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -352,6 +386,10 @@ export function enableIndexedDbPersistence(
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
+ * @deprecated This function will be removed in a future major release. Instead, set
+ * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
+ * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
+ * is already specified will throw an exception.
  */
 export function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
@@ -360,6 +398,17 @@ export function enableMultiTabIndexedDbPersistence(
   verifyNotInitialized(firestore);
 
   const client = ensureFirestoreConfigured(firestore);
+  if (client._uninitializedComponentsProvider) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  logWarn(
+    'enableMultiTabIndexedDbPersistence() will be deprecated in the future, ' +
+      'you can use `FirestoreSettings.cache` instead.'
+  );
   const settings = firestore._freezeSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -398,52 +447,14 @@ function setPersistenceProviders(
           throw error;
         }
         logWarn(
-          'Error enabling offline persistence. Falling back to ' +
-            'persistence disabled: ' +
+          'Error enabling indexeddb cache. Falling back to ' +
+            'memory cache: ' +
             error
         );
         persistenceResult.reject(error);
       }
     })
     .then(() => persistenceResult.promise);
-}
-
-/**
- * Decides whether the provided error allows us to gracefully disable
- * persistence (as opposed to crashing the client).
- */
-function canFallbackFromIndexedDbError(
-  error: FirestoreError | DOMException
-): boolean {
-  if (error.name === 'FirebaseError') {
-    return (
-      error.code === Code.FAILED_PRECONDITION ||
-      error.code === Code.UNIMPLEMENTED
-    );
-  } else if (
-    typeof DOMException !== 'undefined' &&
-    error instanceof DOMException
-  ) {
-    // There are a few known circumstances where we can open IndexedDb but
-    // trying to read/write will fail (e.g. quota exceeded). For
-    // well-understood cases, we attempt to detect these and then gracefully
-    // fall back to memory persistence.
-    // NOTE: Rather than continue to add to this list, we could decide to
-    // always fall back, with the risk that we might accidentally hide errors
-    // representing actual SDK bugs.
-    return (
-      // When the browser is out of quota we could get either quota exceeded
-      // or an aborted error depending on whether the error happened during
-      // schema migration.
-      error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-      error.code === DOM_EXCEPTION_ABORTED ||
-      // Firefox Private Browsing mode disables IndexedDb and returns
-      // INVALID_STATE for any usage.
-      error.code === DOM_EXCEPTION_INVALID_STATE
-    );
-  }
-
-  return true;
 }
 
 /**

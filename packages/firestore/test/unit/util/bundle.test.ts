@@ -18,7 +18,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleReader,
   SizedBundleElement

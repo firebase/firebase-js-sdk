@@ -4,6 +4,6 @@
     "outDir": "dist"
   },
   "exclude": [
-    "dist/**/*"
+    "**/dist/**/*"
   ]
 }

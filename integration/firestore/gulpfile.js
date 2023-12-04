@@ -42,9 +42,11 @@ function copyTests() {
     .src(
       [
         testBase + '/integration/api/*.ts',
+        testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
         testBase + '/integration/util/settings.ts',
+        testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
         testBase + '/util/promise.ts'
       ],

@@ -119,9 +119,13 @@ export class ContextProvider {
     }
   }
 
-  async getAppCheckToken(): Promise<string | null> {
+  async getAppCheckToken(
+    limitedUseAppCheckTokens?: boolean
+  ): Promise<string | null> {
     if (this.appCheck) {
-      const result = await this.appCheck.getToken();
+      const result = limitedUseAppCheckTokens
+        ? await this.appCheck.getLimitedUseToken()
+        : await this.appCheck.getToken();
       if (result.error) {
         // Do not send the App Check header to the functions endpoint if
         // there was an error from the App Check exchange endpoint. The App
@@ -133,10 +137,10 @@ export class ContextProvider {
     return null;
   }
 
-  async getContext(): Promise<Context> {
+  async getContext(limitedUseAppCheckTokens?: boolean): Promise<Context> {
     const authToken = await this.getAuthToken();
     const messagingToken = await this.getMessagingToken();
-    const appCheckToken = await this.getAppCheckToken();
+    const appCheckToken = await this.getAppCheckToken(limitedUseAppCheckTokens);
     return { authToken, messagingToken, appCheckToken };
   }
 }

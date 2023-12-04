@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { Provider } from '@firebase/component';
+import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { PopupRedirectResolver } from '../../src/model/public_types';
 import { debugErrorMap } from '../../src';
 
@@ -55,6 +56,19 @@ export const FAKE_HEARTBEAT_CONTROLLER_PROVIDER: Provider<'heartbeat'> = {
   }
 } as unknown as Provider<'heartbeat'>;
 
+export const FAKE_APP_CHECK_CONTROLLER = {
+  getToken: async () => {
+    return { token: '' } as AppCheckTokenResult;
+  }
+};
+
+export const FAKE_APP_CHECK_CONTROLLER_PROVIDER: Provider<'app-check-internal'> =
+  {
+    getImmediate(): typeof FAKE_APP_CHECK_CONTROLLER {
+      return FAKE_APP_CHECK_CONTROLLER;
+    }
+  } as unknown as Provider<'app-check-internal'>;
+
 export class MockPersistenceLayer extends InMemoryPersistence {
   lastObjectSet: PersistedBlob | null = null;
 
@@ -77,6 +91,7 @@ export async function testAuth(
   const auth: TestAuth = new AuthImpl(
     FAKE_APP,
     FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+    FAKE_APP_CHECK_CONTROLLER_PROVIDER,
     {
       apiKey: TEST_KEY,
       authDomain: TEST_AUTH_DOMAIN,

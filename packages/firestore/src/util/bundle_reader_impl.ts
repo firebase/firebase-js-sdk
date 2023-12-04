@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newTextDecoder } from '../platform/serializer';
+import { newTextDecoder } from '../platform/text_serializer';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
 

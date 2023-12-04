@@ -1,3 +1,17 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Staging Release
 
 on:
@@ -16,6 +30,14 @@ on:
         options:
         - master
         - v8
+      verbose:
+        description: 'Enable verbose logging'
+        type: boolean
+        default: false
+
+env:
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   deploy:
@@ -24,10 +46,10 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
-    - name: Set up Node (14)
-      uses: actions/setup-node@v2
+    - name: Set up node (16)
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 16.x
     - name: Merge master into release
       uses: actions/github-script@v6
       with:
@@ -107,6 +129,7 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+        VERBOSE_NPM_LOGGING: ${{github.event.inputs.verbose}}
     - name: Get release version
       id: get-version
       # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
@@ -132,14 +155,28 @@ jobs:
         -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
         -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
+    - name: Check for changes requiring a reference doc publish
+      id: docs-check
+      # If a diff is found (length of DIFF_CONTENTS > 0) it will write DOCS_NEEDED=true
+      run: |
+        LAST_PUBLISHED_VERSION=$(npm info firebase version)
+        DIFF_CONTENTS=$(git diff firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite)
+        if [ -n "$DIFF_CONTENTS" ]
+        then
+        echo "DOCS_NEEDED=true" >> $GITHUB_OUTPUT
+        else
+        echo "DOCS_NEEDED=false" >> $GITHUB_OUTPUT
+        fi
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
+      if: ${{ always() }}
       run: |
         DATE=$(date +'%m/%d/%Y')
         BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
         STAGING_VERSION=${{ steps.get-version.outputs.STAGING_VERSION }}
         OPERATOR=${{ github.actor }}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        DOCS_NEEDED=${{ steps.docs-check.outputs.DOCS_NEEDED }}
         curl -X POST -H "Content-Type:application/json" \
-        -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\"}" \
+        -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\",\"docs_needed\":\"$DOCS_NEEDED\"}" \
         $RELEASE_TRACKER_URL/logStaging

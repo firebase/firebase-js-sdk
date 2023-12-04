@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!--
+ Copyright 2023 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
 <html>
   <head>
     <meta charset="UTF-8">
@@ -229,13 +245,61 @@
                 </button>
               </form>
 
+              <!-- Set Tenant -->
+              <div class="group">Set Tenant</div>
+              <form class="form form-bordered no-submit">
+                <input type="text" id="tenant-id" class="form-control"
+                       placeholder="Tenant ID" />
+                <button class="btn btn-block btn-primary set-tenant-id"
+                        data-expired=false>
+                  Set Tenant ID
+                </button>
+              </form>
+
+              <!-- Recaptcha Configs -->
+              <div class="group">Recaptcha Configs</div>
+              <button class="btn btn-block btn-primary"
+                      id="initialize-recaptcha-config">
+                Initialize reCAPTCHA Config
+              </button>
+
               <!-- Sign up -->
               <div class="group">Sign Up</div>
               <form class="form form-bordered no-submit">
                 <input type="email" name="email" id="signup-email"
                        class="form-control" placeholder="Email" />
-                <input type="password" name="password" id="signup-password"
+                <div class="input-group">
+                  <input type="password" name="password" id="signup-password"
                        class="form-control" placeholder="Password" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="signup-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="signup-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="signup-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-meets-min-password-length">
+                    Password must be at least <span id="signup-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-meets-max-password-length">
+                    Password must be at most <span id="signup-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="signup-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="signup-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="signup-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-primary"
                         id="sign-up-with-email-and-password">Sign Up</button>
               </form>
@@ -246,11 +310,48 @@
               <form class="form form-bordered no-submit">
                 <input type="email" name="email" id="signin-email"
                        class="form-control" placeholder="Email" />
-                <input type="password" name="password" id="signin-password"
+                <div class="input-group">
+                  <input type="password" name="password" id="signin-password"
                        class="form-control" placeholder="Password" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="signin-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="signin-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="signin-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced.
+                  </div>
+                  <div class="list-group-item list-group-item-warning" id="signin-password-validation-force-upgrade">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Existing passwords must meet these requirements.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-meets-min-password-length">
+                    Password must be at least <span id="signin-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-meets-max-password-length">
+                    Password must be at most <span id="signin-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="signin-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="signin-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="signin-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-primary"
                         id="sign-in-with-email-and-password">
                   Sign In with Email and Password
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="reauth-with-email-and-password">
+                  Reauthenticate with Email and Password
                 </button>
               </form>
               <form class="form form-bordered no-submit">
@@ -333,9 +434,39 @@
                 <input type="text" id="password-reset-code"
                        placeholder="Password Reset Code"
                        class="form-control" />
-                <input type="password" id="password-reset-password"
+                <div class="input-group">
+                  <input type="password" id="password-reset-password"
                        placeholder="New Password"
-                       class="form-control" />
+                       class="form-control input-group" />
+                  <div class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="password-reset-view-password" aria-label="View password">
+                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="list-group password-validation-requirements" id="password-reset-password-validation-requirements">
+                  <div class="list-group-item list-group-item-info" id="password-reset-password-validation-not-enforced">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> These requirements are not currently enforced by the backend. Basic requirements are still enforced.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-meets-min-password-length">
+                    Password must be at least <span id="password-reset-password-validation-min-length">6</span> characters.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-meets-max-password-length">
+                    Password must be at most <span id="password-reset-password-validation-max-length">4096</span> characters.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-lowercase-letter">
+                    Password must contain a lowercase letter.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-uppercase-letter">
+                    Password must contain an uppercase letter.
+                  </div>
+                  <div class="list-group-item" id="password-reset-password-validation-contains-numeric-character">
+                    Password must contain a numeric character.
+                  </div>
+                  <div class="list-group-item password-validation-contains-non-alphanumeric-character" id="password-reset-password-validation-contains-non-alphanumeric-character">
+                    Password must contain a non-alphanumeric character. <span class="glyphicon glyphicon-info-sign" id="password-reset-password-validation-allowed-non-alphanumeric-characters" data-toggle="tooltip" data-placement="bottom" title="No allowed non-alphanumeric characters." aria-label="View non-alphanumeric characters"></span>
+                  </div>
+                </div>
                 <button class="btn btn-block btn-default"
                         id="verify-password-reset-code">
                   Verify Password Reset Code
@@ -345,6 +476,7 @@
                   Confirm Password Change
                 </button>
               </form>
+
               <!-- Fetch Sign In Methods -->
               <div class="group">Fetch Sign In Methods</div>
               <form class="form form-bordered no-submit">
@@ -483,6 +615,12 @@
                     Phone
                   </a>
                 </li>
+                <li role="presentation">
+                  <a href="#mfa-totp-section" aria-controls="mfa-totp-section"
+                     data-toggle="tab" role="tab">
+                    TOTP
+                  </a>
+                </li>
               </ul>
               <div class="tab-content">
                 <div class="tab-pane active" id="mfa-phone-section">
@@ -500,7 +638,27 @@
                            class="form-control" placeholder="Display Name" />
                     <button class="btn btn-block btn-primary"
                             id="enroll-mfa-confirm-phone-verification">
-                      Complete Enrollment
+                      Complete Phone Enrollment
+                    </button>
+
+                  </form>
+                </div>
+                <div class="tab-pane" id="mfa-totp-section">
+                  <form class="form form-bordered no-submit">
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-totp-start">
+                      Start TOTP Enrollment
+                    </button>
+                    <br>
+                    <p hidden class="totp-text" id="totp-text"> Please scan the QR code below in a TOTP app </p>
+                    <p hidden class="totp-deadline" id="totp-deadline"></p>
+                    <img hidden class="totp-qr-image" id="totp-qr-image"/>
+                    <br> 
+                    <input type="text" id="enroll-mfa-totp-verification-code"
+                           class="form-control" placeholder="TOTP Verification Code(from App)" />
+                    <input type="text" id="enroll-mfa-totp-display-name"
+                           class="form-control" placeholder="Display Name" />
+                    <button class="btn btn-block btn-primary" id="enroll-mfa-totp-finalize">
+                      Complete TOTP Enrollment
                     </button>
                   </form>
                 </div>
@@ -727,6 +885,17 @@
                       id="sign-in-with-phone-multi-factor">
                 Complete sign In
               </button>
+              </div>
+            </form>
+            <!-- For handling sign-in with TOTP 2nd factor. -->
+            <form class="form form-bordered no-submit hidden" id="multi-factor-totp">
+              <div class="form">
+                  <input type="text" id="multi-factor-totp-sign-in-verification-code"
+                         class="form-control" placeholder="Totp Verification code" />
+                  <button class="btn btn-block btn-primary"
+                          id="sign-in-with-totp-multi-factor">
+                    Complete sign In
+                  </button>
               </div>
             </form>
           </div>

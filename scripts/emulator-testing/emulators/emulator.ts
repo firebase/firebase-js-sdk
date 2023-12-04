@@ -35,7 +35,7 @@ export abstract class Emulator {
   constructor(
     private binaryName: string,
     private binaryUrl: string,
-    public port: number
+    public readonly port: number
   ) {
     this.cacheDirectory = path.join(os.homedir(), `.cache/firebase-js-sdk`);
     this.cacheBinaryPath = path.join(this.cacheDirectory, binaryName);

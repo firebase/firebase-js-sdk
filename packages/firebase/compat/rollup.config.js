@@ -31,7 +31,10 @@ import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
-  mangle: true,
+  mangle: {
+    // Hack for a bug in Closure regarding switch block scope
+    reserved: ['__PRIVATE_lastReasonableEscapeIndex']
+  },
   webkit: true // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
 };
 

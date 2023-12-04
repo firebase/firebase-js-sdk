@@ -45,11 +45,21 @@ in the `config.js` file.
 
 Before deploying, you may need to build the auth package:
 ```bash
+cd auth/demo
 yarn
 yarn build:deps
 ```
 
 This can take some time, and you only need to do it if you've modified the auth package.
+
+You can optionally clear the cache and rebuild using:
+ 
+```bash
+cd auth/demo
+rm -rf node_modules yarn.lock
+yarn
+yarn build:deps
+```
 
 To run the app locally, simply issue the following command in the `auth/demo` directory:
 
@@ -90,14 +100,22 @@ The demo page by default runs against the actual Auth Backend. To run against th
 yarn run demo:emulator
 ```
 
+## Running against Auth Staging endpoint
+
+Modify the configured endpoint to staging by following the changes in this branch:
+
+https://github.com/firebase/firebase-js-sdk/compare/use-staging
+
 ## Running against local changes to auth package
 
-By default, the demo runs against the latest release of firebase-auth sdk. This can be modified by:
+
+By default, the demo runs against the local firebase-auth implementation in packages/auth/src.
+This can be modified to point to a released version using:
 
 ```
 // packages/auth/demo/package.json
-+  "@firebase/auth": "file:..",
--  "@firebase/auth": "0.18.0",
+-  "@firebase/auth": "file:..",
++  "@firebase/auth": "0.18.0",
 ```
 
 ## Troubleshooting

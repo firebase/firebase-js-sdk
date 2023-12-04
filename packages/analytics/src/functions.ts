@@ -24,6 +24,7 @@ import {
 } from './public-types';
 import { Gtag } from './types';
 import { GtagCommand } from './constants';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 /**
  * Event parameters to set on 'gtag' during initialization.
@@ -135,6 +136,32 @@ export async function setUserProperties(
       'user_properties': properties
     });
   }
+}
+
+/**
+ * Retrieves a unique Google Analytics identifier for the web client.
+ * See {@link https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id | client_id}.
+ *
+ * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
+ */
+export async function internalGetGoogleAnalyticsClientId(
+  gtagFunction: Gtag,
+  initializationPromise: Promise<string>
+): Promise<string> {
+  const measurementId = await initializationPromise;
+  return new Promise((resolve, reject) => {
+    gtagFunction(
+      GtagCommand.GET,
+      measurementId,
+      'client_id',
+      (clientId: string) => {
+        if (!clientId) {
+          reject(ERROR_FACTORY.create(AnalyticsError.NO_CLIENT_ID));
+        }
+        resolve(clientId);
+      }
+    );
+  });
 }
 
 /**

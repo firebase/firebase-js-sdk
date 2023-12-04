@@ -71,7 +71,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { SortedSet } from '../util/sorted_set';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import {
@@ -316,9 +315,6 @@ export async function syncEngineListen(
       syncEngineImpl.localStore,
       queryToTarget(query)
     );
-    if (syncEngineImpl.isPrimaryClient) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
@@ -331,6 +327,10 @@ export async function syncEngineListen(
       status === 'current',
       targetData.resumeToken
     );
+
+    if (syncEngineImpl.isPrimaryClient) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
   }
 
   return viewSnapshot;
@@ -368,7 +368,7 @@ async function initializeViewAndComputeSnapshot(
     );
   const viewChange = view.applyChanges(
     viewDocChanges,
-    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
+    /* limboResolutionEnabled= */ syncEngineImpl.isPrimaryClient,
     synthesizedTargetChange
   );
   updateTrackedLimbos(syncEngineImpl, targetId, viewChange.limboChanges);
@@ -638,7 +638,9 @@ export async function syncEngineRejectListen(
     const event = new RemoteEvent(
       SnapshotVersion.min(),
       /* targetChanges= */ new Map<TargetId, TargetChange>(),
-      /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
+      /* targetMismatches= */ new SortedMap<TargetId, TargetPurpose>(
+        primitiveComparator
+      ),
       documentUpdates,
       resolvedLimboDocuments
     );
@@ -1079,10 +1081,13 @@ async function applyDocChanges(
 
   const targetChange =
     remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
+  const targetIsPendingReset =
+    remoteEvent && remoteEvent.targetMismatches.get(queryView.targetId) != null;
   const viewChange = queryView.view.applyChanges(
     viewDocChanges,
-    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
-    targetChange
+    /* limboResolutionEnabled= */ syncEngineImpl.isPrimaryClient,
+    targetChange,
+    targetIsPendingReset
   );
   updateTrackedLimbos(
     syncEngineImpl,

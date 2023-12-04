@@ -353,6 +353,13 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     this.garbageCollector = newLruGarbageCollector(this, lruParams);
   }
 
+  static factory(
+    persistence: MemoryPersistence,
+    lruParams: LruParams
+  ): MemoryLruDelegate {
+    return new MemoryLruDelegate(persistence, lruParams);
+  }
+
   // No-ops, present so memory persistence doesn't have to care which delegate
   // it has.
   onTransactionStarted(): void {}

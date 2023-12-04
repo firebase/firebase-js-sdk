@@ -73,9 +73,9 @@ describe('Integration test: phone auth', () => {
     fakeRecaptchaContainer = document.createElement('div');
     document.body.appendChild(fakeRecaptchaContainer);
     verifier = new RecaptchaVerifier(
+      auth,
       fakeRecaptchaContainer,
-      undefined as any,
-      auth
+      undefined as any
     );
   });
 
@@ -87,9 +87,9 @@ describe('Integration test: phone auth', () => {
   function resetVerifier(): void {
     verifier.clear();
     verifier = new RecaptchaVerifier(
+      auth,
       fakeRecaptchaContainer,
-      undefined as any,
-      auth
+      undefined as any
     );
   }
 

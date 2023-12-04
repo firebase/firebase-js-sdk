@@ -1,5 +1,6 @@
 /**
- * Firebase Installations
+ * The Firebase Installations Web SDK.
+ * This SDK does not work in a Node.js environment.
  *
  * @packageDocumentation
  */

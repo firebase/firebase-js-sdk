@@ -25,7 +25,9 @@ const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
 const crossBrowserPackages = {
   'packages/auth': 'test:browser:unit',
-  'packages/firestore': 'test:browser:unit'
+  'packages/auth-compat': 'test:browser:unit',
+  'packages/firestore': 'test:browser:unit',
+  'packages/firestore-compat': 'test:browser'
 };
 
 function writeLogs(status, name, logText) {

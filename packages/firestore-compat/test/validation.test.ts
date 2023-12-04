@@ -825,15 +825,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'with different inequality fields fail', db => {
+    validationIt(persistence, 'can have different inequality fields', db => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('x', '>=', 32).where('y', '<', 'cat')
-      ).to.throw(
-        'Invalid query. All where filters with an ' +
-          'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-          ` But you have inequality filters on 'x' and 'y'`
-      );
+      ).not.to.throw();
     });
 
     validationIt(persistence, 'with more than one != query fail', db => {
@@ -845,102 +841,48 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'with != and inequality queries on different fields fail',
+      'can have != and inequality queries on different fields',
       db => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', '!=', 33)
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
+        ).not.to.throw();
       }
     );
 
     validationIt(
       persistence,
-      'with != and inequality queries on different fields fail',
+      'can have NOT-IN and inequality queries on different fields',
       db => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', 'not-in', [33])
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, !=, not-in, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
+        ).not.to.throw();
       }
     );
 
     validationIt(
       persistence,
-      'with inequality different than first orderBy fail.',
+      'can have inequality different than first orderBy',
       db => {
         const collection = db.collection('test');
-        const reason =
-          `Invalid query. You have a where filter with an ` +
-          `inequality (<, <=, !=, not-in, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first argument to Query.orderBy(), but your first ` +
-          `orderBy() is on field 'y' instead.`;
-        expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(
-          reason
-        );
-        expect(() => collection.orderBy('y').where('x', '>', 32)).to.throw(
-          reason
-        );
+        expect(() =>
+          collection.where('x', '>', 32).orderBy('y')
+        ).not.to.throw();
+        expect(() =>
+          collection.orderBy('y').where('x', '>', 32)
+        ).not.to.throw();
         expect(() =>
           collection.where('x', '>', 32).orderBy('y').orderBy('x')
-        ).to.throw(reason);
+        ).not.to.throw();
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
-        ).to.throw(reason);
-        expect(() => collection.where('x', '!=', 32).orderBy('y')).to.throw(
-          reason
-        );
+        ).not.to.throw();
+        expect(() =>
+          collection.where('x', '!=', 32).orderBy('y')
+        ).not.to.throw();
       }
     );
-
-    validationIt(persistence, 'with multiple array filters fail', db => {
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains', 1)
-          .where('foo', 'array-contains', 2)
-      ).to.throw(
-        "Invalid query. You cannot use more than one 'array-contains' filter."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains', 1)
-          .where('foo', 'array-contains-any', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'array-contains' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains-any', [2, 3])
-          .where('foo', 'array-contains', 1)
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'array-contains-any' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'not-in', [2, 3])
-          .where('foo', 'array-contains', 1)
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'not-in' filters."
-      );
-    });
 
     validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
@@ -966,47 +908,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'in', [1, 2])
-          .where('foo', 'in', [2, 3])
-      ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
-
-      expect(() =>
-        db
-          .collection('test')
           .where('foo', 'not-in', [1, 2])
           .where('foo', 'not-in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use more than one 'not-in' filter."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains-any', [1, 2])
-          .where('foo', 'array-contains-any', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use more than one 'array-contains-any'" +
-          ' filter.'
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains-any', [2, 3])
-          .where('foo', 'in', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use 'in' filters with " +
-          "'array-contains-any' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'in', [2, 3])
-          .where('foo', 'array-contains-any', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
       );
 
       expect(() =>
@@ -1046,51 +951,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
-
-      // This is redundant with the above tests, but makes sure our validation
-      // doesn't get confused.
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'in', [2, 3])
-          .where('foo', 'array-contains', 1)
-          .where('foo', 'array-contains-any', [2])
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with 'in' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains', 1)
-          .where('foo', 'in', [2, 3])
-          .where('foo', 'array-contains-any', [2])
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'array-contains' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'not-in', [2, 3])
-          .where('foo', 'array-contains', 2)
-          .where('foo', 'array-contains-any', [2])
-      ).to.throw(
-        "Invalid query. You cannot use 'array-contains' filters with " +
-          "'not-in' filters."
-      );
-
-      expect(() =>
-        db
-          .collection('test')
-          .where('foo', 'array-contains', 2)
-          .where('foo', 'in', [2])
-          .where('foo', 'not-in', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use 'not-in' filters with " +
-          "'array-contains' filters."
-      );
     });
 
     validationIt(
@@ -1110,24 +970,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
             .where('foo', 'in', [2, 3])
             .where('foo', 'array-contains', 1)
         ).not.to.throw();
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'in', [2, 3])
-            .where('foo', 'array-contains', 1)
-            .where('foo', 'array-contains', 2)
-        ).to.throw(
-          "Invalid query. You cannot use more than one 'array-contains' filter."
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains', 1)
-            .where('foo', 'in', [2, 3])
-            .where('foo', 'in', [2, 3])
-        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
       }
     );
 
@@ -1144,29 +986,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            // The 10 element max includes duplicates.
-            .where('foo', 'in', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
-        ).to.throw(
-          "Invalid Query. 'in' filters support a maximum of 10 elements in " +
-            'the value array.'
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where(
-              'foo',
-              'array-contains-any',
-              [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9]
-            )
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters support a maximum of " +
-            '10 elements in the value array.'
         );
 
         expect(() => db.collection('test').where('foo', 'in', [])).to.throw(

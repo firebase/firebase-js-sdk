@@ -19,13 +19,14 @@ import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
+import { SortedSet } from '../util/sorted_set';
 
 import {
   Bound,
   boundSortsAfterDocument,
   boundSortsBeforeDocument
 } from './bound';
-import { CompositeFilter, Filter } from './filter';
+import { FieldFilter, Filter } from './filter';
 import { Direction, OrderBy } from './order_by';
 import {
   canonifyTarget,
@@ -43,7 +44,7 @@ export const enum LimitType {
 /**
  * The Query interface defines all external properties of a query.
  *
- * QueryImpl implements this interface to provide memoization for `queryOrderBy`
+ * QueryImpl implements this interface to provide memoization for `queryNormalizedOrderBy`
  * and `queryToTarget`.
  */
 export interface Query {
@@ -65,10 +66,17 @@ export interface Query {
  * Visible for testing.
  */
 export class QueryImpl implements Query {
-  memoizedOrderBy: OrderBy[] | null = null;
+  memoizedNormalizedOrderBy: OrderBy[] | null = null;
 
-  // The corresponding `Target` of this `Query` instance.
+  // The corresponding `Target` of this `Query` instance, for use with
+  // non-aggregate queries.
   memoizedTarget: Target | null = null;
+
+  // The corresponding `Target` of this `Query` instance, for use with
+  // aggregate queries. Unlike targets for non-aggregate queries,
+  // aggregate query targets do not contain normalized order-bys, they only
+  // contain explicit order-bys.
+  memoizedAggregateTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -86,13 +94,13 @@ export class QueryImpl implements Query {
   ) {
     if (this.startAt) {
       debugAssert(
-        this.startAt.position.length <= queryOrderBy(this).length,
+        this.startAt.position.length <= queryNormalizedOrderBy(this).length,
         'Bound is longer than orderBy'
       );
     }
     if (this.endAt) {
       debugAssert(
-        this.endAt.position.length <= queryOrderBy(this).length,
+        this.endAt.position.length <= queryNormalizedOrderBy(this).length,
         'Bound is longer than orderBy'
       );
     }
@@ -165,28 +173,18 @@ export function queryMatchesAllDocuments(query: Query): boolean {
   );
 }
 
-export function queryContainsCompositeFilters(query: Query): boolean {
-  return (
-    query.filters.find(filter => filter instanceof CompositeFilter) !==
-    undefined
-  );
-}
-
-export function getFirstOrderByField(query: Query): FieldPath | null {
-  return query.explicitOrderBy.length > 0
-    ? query.explicitOrderBy[0].field
-    : null;
-}
-
-export function getInequalityFilterField(query: Query): FieldPath | null {
-  for (const filter of query.filters) {
-    const result = filter.getFirstInequalityField();
-    if (result !== null) {
-      return result;
-    }
-  }
-
-  return null;
+// Returns the sorted set of inequality filter fields used in this query.
+export function getInequalityFilterFields(query: Query): SortedSet<FieldPath> {
+  let result = new SortedSet<FieldPath>(FieldPath.comparator);
+  query.filters.forEach((filter: Filter) => {
+    const subFilters = filter.getFlattenedFilters();
+    subFilters.forEach((filter: FieldFilter) => {
+      if (filter.isInequality()) {
+        result = result.add(filter.field);
+      }
+    });
+  });
+  return result;
 }
 
 /**
@@ -218,119 +216,136 @@ export function isCollectionGroupQuery(query: Query): boolean {
 }
 
 /**
- * Returns the implicit order by constraint that is used to execute the Query,
- * which can be different from the order by constraints the user provided (e.g.
- * the SDK and backend always orders by `__name__`).
+ * Returns the normalized order-by constraint that is used to execute the Query,
+ * which can be different from the order-by constraints the user provided (e.g.
+ * the SDK and backend always orders by `__name__`). The normalized order-by
+ * includes implicit order-bys in addition to the explicit user provided
+ * order-bys.
  */
-export function queryOrderBy(query: Query): OrderBy[] {
+export function queryNormalizedOrderBy(query: Query): OrderBy[] {
   const queryImpl = debugCast(query, QueryImpl);
-  if (queryImpl.memoizedOrderBy === null) {
-    queryImpl.memoizedOrderBy = [];
+  if (queryImpl.memoizedNormalizedOrderBy === null) {
+    queryImpl.memoizedNormalizedOrderBy = [];
+    const fieldsNormalized = new Set<string>();
 
-    const inequalityField = getInequalityFilterField(queryImpl);
-    const firstOrderByField = getFirstOrderByField(queryImpl);
-    if (inequalityField !== null && firstOrderByField === null) {
-      // In order to implicitly add key ordering, we must also add the
-      // inequality filter field for it to be a valid query.
-      // Note that the default inequality field and key ordering is ascending.
-      if (!inequalityField.isKeyField()) {
-        queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
-      }
-      queryImpl.memoizedOrderBy.push(
-        new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-      );
-    } else {
-      debugAssert(
-        inequalityField === null ||
-          (firstOrderByField !== null &&
-            inequalityField.isEqual(firstOrderByField)),
-        'First orderBy should match inequality field.'
-      );
-      let foundKeyOrdering = false;
-      for (const orderBy of queryImpl.explicitOrderBy) {
-        queryImpl.memoizedOrderBy.push(orderBy);
-        if (orderBy.field.isKeyField()) {
-          foundKeyOrdering = true;
-        }
-      }
-      if (!foundKeyOrdering) {
-        // The order of the implicit key ordering always matches the last
-        // explicit order by
-        const lastDirection =
-          queryImpl.explicitOrderBy.length > 0
-            ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1]
-                .dir
-            : Direction.ASCENDING;
-        queryImpl.memoizedOrderBy.push(
-          new OrderBy(FieldPath.keyField(), lastDirection)
+    // Any explicit order by fields should be added as is.
+    for (const orderBy of queryImpl.explicitOrderBy) {
+      queryImpl.memoizedNormalizedOrderBy.push(orderBy);
+      fieldsNormalized.add(orderBy.field.canonicalString());
+    }
+
+    // The order of the implicit ordering always matches the last explicit order by.
+    const lastDirection =
+      queryImpl.explicitOrderBy.length > 0
+        ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1].dir
+        : Direction.ASCENDING;
+
+    // Any inequality fields not explicitly ordered should be implicitly ordered in a lexicographical
+    // order. When there are multiple inequality filters on the same field, the field should be added
+    // only once.
+    // Note: `SortedSet<FieldPath>` sorts the key field before other fields. However, we want the key
+    // field to be sorted last.
+    const inequalityFields: SortedSet<FieldPath> =
+      getInequalityFilterFields(queryImpl);
+    inequalityFields.forEach(field => {
+      if (
+        !fieldsNormalized.has(field.canonicalString()) &&
+        !field.isKeyField()
+      ) {
+        queryImpl.memoizedNormalizedOrderBy!.push(
+          new OrderBy(field, lastDirection)
         );
       }
+    });
+
+    // Add the document key field to the last if it is not explicitly ordered.
+    if (!fieldsNormalized.has(FieldPath.keyField().canonicalString())) {
+      queryImpl.memoizedNormalizedOrderBy.push(
+        new OrderBy(FieldPath.keyField(), lastDirection)
+      );
     }
   }
-  return queryImpl.memoizedOrderBy;
+  return queryImpl.memoizedNormalizedOrderBy;
 }
 
 /**
- * Converts this `Query` instance to it's corresponding `Target` representation.
+ * Converts this `Query` instance to its corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
   const queryImpl = debugCast(query, QueryImpl);
   if (!queryImpl.memoizedTarget) {
-    if (queryImpl.limitType === LimitType.First) {
-      queryImpl.memoizedTarget = newTarget(
-        queryImpl.path,
-        queryImpl.collectionGroup,
-        queryOrderBy(queryImpl),
-        queryImpl.filters,
-        queryImpl.limit,
-        queryImpl.startAt,
-        queryImpl.endAt
-      );
-    } else {
-      // Flip the orderBy directions since we want the last results
-      const orderBys = [] as OrderBy[];
-      for (const orderBy of queryOrderBy(queryImpl)) {
-        const dir =
-          orderBy.dir === Direction.DESCENDING
-            ? Direction.ASCENDING
-            : Direction.DESCENDING;
-        orderBys.push(new OrderBy(orderBy.field, dir));
-      }
-
-      // We need to swap the cursors to match the now-flipped query ordering.
-      const startAt = queryImpl.endAt
-        ? new Bound(queryImpl.endAt.position, queryImpl.endAt.inclusive)
-        : null;
-      const endAt = queryImpl.startAt
-        ? new Bound(queryImpl.startAt.position, queryImpl.startAt.inclusive)
-        : null;
-
-      // Now return as a LimitType.First query.
-      queryImpl.memoizedTarget = newTarget(
-        queryImpl.path,
-        queryImpl.collectionGroup,
-        orderBys,
-        queryImpl.filters,
-        queryImpl.limit,
-        startAt,
-        endAt
-      );
-    }
+    queryImpl.memoizedTarget = _queryToTarget(
+      queryImpl,
+      queryNormalizedOrderBy(query)
+    );
   }
-  return queryImpl.memoizedTarget!;
+
+  return queryImpl.memoizedTarget;
+}
+
+/**
+ * Converts this `Query` instance to its corresponding `Target` representation,
+ * for use within an aggregate query. Unlike targets for non-aggregate queries,
+ * aggregate query targets do not contain normalized order-bys, they only
+ * contain explicit order-bys.
+ */
+export function queryToAggregateTarget(query: Query): Target {
+  const queryImpl = debugCast(query, QueryImpl);
+
+  if (!queryImpl.memoizedAggregateTarget) {
+    // Do not include implicit order-bys for aggregate queries.
+    queryImpl.memoizedAggregateTarget = _queryToTarget(
+      queryImpl,
+      query.explicitOrderBy
+    );
+  }
+
+  return queryImpl.memoizedAggregateTarget;
+}
+
+function _queryToTarget(queryImpl: QueryImpl, orderBys: OrderBy[]): Target {
+  if (queryImpl.limitType === LimitType.First) {
+    return newTarget(
+      queryImpl.path,
+      queryImpl.collectionGroup,
+      orderBys,
+      queryImpl.filters,
+      queryImpl.limit,
+      queryImpl.startAt,
+      queryImpl.endAt
+    );
+  } else {
+    // Flip the orderBy directions since we want the last results
+    orderBys = orderBys.map(orderBy => {
+      const dir =
+        orderBy.dir === Direction.DESCENDING
+          ? Direction.ASCENDING
+          : Direction.DESCENDING;
+      return new OrderBy(orderBy.field, dir);
+    });
+
+    // We need to swap the cursors to match the now-flipped query ordering.
+    const startAt = queryImpl.endAt
+      ? new Bound(queryImpl.endAt.position, queryImpl.endAt.inclusive)
+      : null;
+    const endAt = queryImpl.startAt
+      ? new Bound(queryImpl.startAt.position, queryImpl.startAt.inclusive)
+      : null;
+
+    // Now return as a LimitType.First query.
+    return newTarget(
+      queryImpl.path,
+      queryImpl.collectionGroup,
+      orderBys,
+      queryImpl.filters,
+      queryImpl.limit,
+      startAt,
+      endAt
+    );
+  }
 }
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
-  const newInequalityField = filter.getFirstInequalityField();
-  const queryInequalityField = getInequalityFilterField(query);
-
-  debugAssert(
-    queryInequalityField == null ||
-      newInequalityField == null ||
-      newInequalityField.isEqual(queryInequalityField),
-    'Query must only have one inequality field.'
-  );
-
   debugAssert(
     !isDocumentQuery(query),
     'No filtering allowed for document query'
@@ -468,14 +483,14 @@ function queryMatchesPathAndCollectionGroup(
  * in the results.
  */
 function queryMatchesOrderBy(query: Query, doc: Document): boolean {
-  // We must use `queryOrderBy()` to get the list of all orderBys (both implicit and explicit).
+  // We must use `queryNormalizedOrderBy()` to get the list of all orderBys (both implicit and explicit).
   // Note that for OR queries, orderBy applies to all disjunction terms and implicit orderBys must
   // be taken into account. For example, the query "a > 1 || b==1" has an implicit "orderBy a" due
   // to the inequality, and is evaluated as "a > 1 orderBy a || b==1 orderBy a".
   // A document with content of {b:1} matches the filters, but does not match the orderBy because
   // it's missing the field 'a'.
-  for (const orderBy of queryOrderBy(query)) {
-    // order by key always matches
+  for (const orderBy of queryNormalizedOrderBy(query)) {
+    // order-by key always matches
     if (!orderBy.field.isKeyField() && doc.data.field(orderBy.field) === null) {
       return false;
     }
@@ -496,13 +511,13 @@ function queryMatchesFilters(query: Query, doc: Document): boolean {
 function queryMatchesBounds(query: Query, doc: Document): boolean {
   if (
     query.startAt &&
-    !boundSortsBeforeDocument(query.startAt, queryOrderBy(query), doc)
+    !boundSortsBeforeDocument(query.startAt, queryNormalizedOrderBy(query), doc)
   ) {
     return false;
   }
   if (
     query.endAt &&
-    !boundSortsAfterDocument(query.endAt, queryOrderBy(query), doc)
+    !boundSortsAfterDocument(query.endAt, queryNormalizedOrderBy(query), doc)
   ) {
     return false;
   }
@@ -533,7 +548,7 @@ export function newQueryComparator(
 ): (d1: Document, d2: Document) => number {
   return (d1: Document, d2: Document): number => {
     let comparedOnKeyField = false;
-    for (const orderBy of queryOrderBy(query)) {
+    for (const orderBy of queryNormalizedOrderBy(query)) {
       const comp = compareDocs(orderBy, d1, d2);
       if (comp !== 0) {
         return comp;

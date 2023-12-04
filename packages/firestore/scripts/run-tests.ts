@@ -34,6 +34,9 @@ const argv = yargs.options({
   },
   persistence: {
     type: 'boolean'
+  },
+  databaseId: {
+    type: 'string'
   }
 }).parseSync();
 
@@ -58,13 +61,16 @@ let args = [
 ];
 
 if (argv.emulator) {
-  process.env.FIRESTORE_EMULATOR_PORT = '8080';
-  process.env.FIRESTORE_EMULATOR_PROJECT_ID = 'test-emulator';
+  process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
 }
 
 if (argv.persistence) {
   process.env.USE_MOCK_PERSISTENCE = 'YES';
   args.push('--require', 'test/util/node_persistence.ts');
+}
+
+if (argv.databaseId) {
+  process.env.FIRESTORE_TARGET_DB_ID = argv.databaseId;
 }
 
 args = args.concat(argv._ as string[]);

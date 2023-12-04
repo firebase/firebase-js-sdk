@@ -1,5 +1,60 @@
 # Unreleased
 
+## 1.0.1
+
+### Patch Changes
+
+- [`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905) [#7258](https://github.com/firebase/firebase-js-sdk/pull/7258) - Included `initStandalone` as an internal method to RTDB.
+
+## 1.0.0
+
+### Major Changes
+
+- [`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956) [#6541](https://github.com/firebase/firebase-js-sdk/pull/6541) - Updated type of action parameter for DataSnapshot#forEach
+
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+
+## 0.14.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+
+## 0.14.2
+
+### Patch Changes
+
+- [`49ee786f2`](https://github.com/firebase/firebase-js-sdk/commit/49ee786f2b022e65aef45693e1a8b546d889ec10) [#6912](https://github.com/firebase/firebase-js-sdk/pull/6912) (fixes [#4603](https://github.com/firebase/firebase-js-sdk/issues/4603)) - Fixed issue where hostname set by `connectDatabaseEmulator` was being overridden by longpolling response
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- Updated dependencies [[`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+
+## 0.14.1
+
+### Patch Changes
+
+- [`d8af08feb`](https://github.com/firebase/firebase-js-sdk/commit/d8af08febfd4507a28bcda38d475b8010ef20f92) [#6883](https://github.com/firebase/firebase-js-sdk/pull/6883) (fixes [#6853](https://github.com/firebase/firebase-js-sdk/issues/6853)) - Fixed issue where connectDatabaseToEmulator can be called twice during a hot reload
+
+- [`a4056634a`](https://github.com/firebase/firebase-js-sdk/commit/a4056634a5119dd3f2ca935cae23b90fc99d84ee) [#6916](https://github.com/firebase/firebase-js-sdk/pull/6916) - Replace `innerHTML` call with `textContent`.
+
+- Updated dependencies [[`e9bcd4c43`](https://github.com/firebase/firebase-js-sdk/commit/e9bcd4c43a0628ebce570f03f1e91dfa93fffca2), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/auth-interop-types@0.2.1
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+
 ## 0.14.0
 
 ### Minor Changes

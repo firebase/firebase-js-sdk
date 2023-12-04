@@ -26,7 +26,7 @@ import { FinalizeMfaResponse } from '../authentication/mfa';
 import { AuthInternal } from '../../model/auth';
 
 /**
- * MFA Info as returned by the API
+ * MFA Info as returned by the API.
  */
 interface BaseMfaEnrollment {
   mfaEnrollmentId: string;
@@ -35,16 +35,21 @@ interface BaseMfaEnrollment {
 }
 
 /**
- * An MFA provided by SMS verification
+ * An MFA provided by SMS verification.
  */
 export interface PhoneMfaEnrollment extends BaseMfaEnrollment {
   phoneInfo: string;
 }
 
 /**
- * MfaEnrollment can be any subtype of BaseMfaEnrollment, currently only PhoneMfaEnrollment is supported
+ * An MFA provided by TOTP (Time-based One Time Password).
  */
-export type MfaEnrollment = PhoneMfaEnrollment;
+export interface TotpMfaEnrollment extends BaseMfaEnrollment {}
+
+/**
+ * MfaEnrollment can be any subtype of BaseMfaEnrollment, currently only PhoneMfaEnrollment and TotpMfaEnrollment are supported.
+ */
+export type MfaEnrollment = PhoneMfaEnrollment | TotpMfaEnrollment;
 
 export interface StartPhoneMfaEnrollmentRequest {
   idToken: string;
@@ -93,6 +98,66 @@ export function finalizeEnrollPhoneMfa(
   return _performApiRequest<
     FinalizePhoneMfaEnrollmentRequest,
     FinalizePhoneMfaEnrollmentResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_MFA_ENROLLMENT,
+    _addTidIfNecessary(auth, request)
+  );
+}
+export interface StartTotpMfaEnrollmentRequest {
+  idToken: string;
+  totpEnrollmentInfo: {};
+  tenantId?: string;
+}
+
+export interface StartTotpMfaEnrollmentResponse {
+  totpSessionInfo: {
+    sharedSecretKey: string;
+    verificationCodeLength: number;
+    hashingAlgorithm: string;
+    periodSec: number;
+    sessionInfo: string;
+    finalizeEnrollmentTime: number;
+  };
+}
+
+export function startEnrollTotpMfa(
+  auth: AuthInternal,
+  request: StartTotpMfaEnrollmentRequest
+): Promise<StartTotpMfaEnrollmentResponse> {
+  return _performApiRequest<
+    StartTotpMfaEnrollmentRequest,
+    StartTotpMfaEnrollmentResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.START_MFA_ENROLLMENT,
+    _addTidIfNecessary(auth, request)
+  );
+}
+
+export interface TotpVerificationInfo {
+  sessionInfo: string;
+  verificationCode: string;
+}
+export interface FinalizeTotpMfaEnrollmentRequest {
+  idToken: string;
+  totpVerificationInfo: TotpVerificationInfo;
+  displayName?: string | null;
+  tenantId?: string;
+}
+
+export interface FinalizeTotpMfaEnrollmentResponse
+  extends FinalizeMfaResponse {}
+
+export function finalizeEnrollTotpMfa(
+  auth: AuthInternal,
+  request: FinalizeTotpMfaEnrollmentRequest
+): Promise<FinalizeTotpMfaEnrollmentResponse> {
+  return _performApiRequest<
+    FinalizeTotpMfaEnrollmentRequest,
+    FinalizeTotpMfaEnrollmentResponse
   >(
     auth,
     HttpMethod.POST,

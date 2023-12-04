@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
+import { Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentSizeEntries,
   MutableDocumentMap,
-  mutableDocumentMap
+  mutableDocumentMap,
+  OverlayMap
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -53,6 +55,7 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDbStore } from './simple_db';
@@ -273,11 +276,14 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
       });
   }
 
-  getAllFromCollection(
+  getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    collection: ResourcePath,
-    offset: IndexOffset
+    query: Query,
+    offset: IndexOffset,
+    mutatedDocs: OverlayMap,
+    context?: QueryContext
   ): PersistencePromise<MutableDocumentMap> {
+    const collection = query.path;
     const startKey = [
       collection.popLast().toArray(),
       collection.lastSegment(),
@@ -296,6 +302,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .loadAll(IDBKeyRange.bound(startKey, endKey, true))
       .next(dbRemoteDocs => {
+        context?.incrementDocumentReadCount(dbRemoteDocs.length);
         let results = mutableDocumentMap();
         for (const dbRemoteDoc of dbRemoteDocs) {
           const document = this.maybeDecodeDocument(
@@ -307,7 +314,13 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
             ),
             dbRemoteDoc
           );
-          results = results.insert(document.key, document);
+          if (
+            document.isFoundDocument() &&
+            (queryMatches(query, document) || mutatedDocs.has(document.key))
+          ) {
+            // Either the document matches the given query, or it is mutated.
+            results = results.insert(document.key, document);
+          }
         }
         return results;
       });

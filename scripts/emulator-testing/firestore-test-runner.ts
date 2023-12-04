@@ -30,25 +30,26 @@ import { FirestoreEmulator } from './emulators/firestore-emulator';
 function runTest(port: number, projectId: string, withPersistence: boolean) {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
-    env: Object.assign({}, process.env, {
-      FIRESTORE_EMULATOR_PORT: port,
+    env: {
+      ...process.env,
+      FIRESTORE_TARGET_BACKEND: 'emulator',
+      FIRESTORE_EMULATOR_PORT: port.toString(),
       FIRESTORE_EMULATOR_PROJECT_ID: projectId
-    }),
+    },
     stdio: 'inherit' as const
   };
   // TODO(b/113267261): Include browser test once WebChannel support is
   // ready in Firestore emulator.
-  // Use `prod` to allow test runner's env variable overrides to work.
   const childProcesses: ChildProcessPromise<SpawnPromiseResult>[] = [];
   if (withPersistence) {
     childProcesses.push(
-      spawn('yarn', ['test:node:persistence:prod'], options),
-      spawn('yarn', ['test:lite:prod'], options)
+      spawn('yarn', ['test:node:persistence'], options),
+      spawn('yarn', ['test:lite'], options)
     );
   } else {
     childProcesses.push(
-      spawn('yarn', ['test:node:prod'], options),
-      spawn('yarn', ['test:lite:prod'], options)
+      spawn('yarn', ['test:node'], options),
+      spawn('yarn', ['test:lite'], options)
     );
   }
 
