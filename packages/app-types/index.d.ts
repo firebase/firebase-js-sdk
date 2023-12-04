@@ -33,9 +33,9 @@ export interface FirebaseAppConfig {
 }
 
 export interface FirebaseServerAppConfig extends FirebaseAppConfig {
-  getCookie: (name: string) => string|undefined;
+  getCookie: (name: string) => string | undefined;
   setCookie?: (name: string, value: string) => void;
-  getHeader: (name: string) => string|undefined;
+  getHeader: (name: string) => string | undefined;
 }
 
 export class FirebaseApp {
@@ -66,7 +66,7 @@ export class FirebaseServerApp extends FirebaseApp {
    * A callback that may be invoked by the Firebase SDKs to retrieve cookie data from the server
    * request object.
    */
-  getCookie: (name: string) => string|undefined;
+  getCookie: (name: string) => string | undefined;
 
   /**
    * A callback that may be invoked by the Firebase SDKs to set a cookie in the SSR response object.
@@ -77,7 +77,7 @@ export class FirebaseServerApp extends FirebaseApp {
    * A callback that may be invoked by the Firebase SDKs to query a header value from the server
    * request object.
    */
-  getHeader: (name: string) => string|undefined;
+  getHeader: (name: string) => string | undefined;
 }
 
 export interface FirebaseNamespace {

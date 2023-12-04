@@ -21,18 +21,21 @@ import { FirebaseAppImpl } from './firebaseApp';
 import { FirebaseServerAppImpl } from './firebaseServerApp';
 import { ComponentContainer } from '@firebase/component';
 
-
-const setCookieCb = (name: string, value: string|undefined, options: object ) : void => { 
+const setCookieCb = (
+  name: string,
+  value: string | undefined,
+  options: object
+): void => {
   return;
-}
+};
 
-const getCookieCb = (name: string) : string|undefined =>  { 
+const getCookieCb = (name: string): string | undefined => {
   return;
-}
+};
 
-const getHeaderCb = (name: string) : string|undefined => { 
+const getHeaderCb = (name: string): string | undefined => {
   return;
-}
+};
 
 describe('FirebaseServerApp', () => {
   it('has various accessors', () => {
@@ -41,12 +44,12 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings = {
-      name: "test",
+      name: 'test',
       automaticDataCollectionEnabled: false,
       setCookie: setCookieCb,
       getCookie: getCookieCb,
       getHeader: getHeaderCb,
-      deleteOnDeref: options,
+      deleteOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -54,7 +57,7 @@ describe('FirebaseServerApp', () => {
       serverAppSettings,
       new ComponentContainer('test')
     );
-    
+
     expect(firebaseServerAppImpl.automaticDataCollectionEnabled).to.be.false;
     expect(firebaseServerAppImpl.name).to.equal('test');
     expect(firebaseServerAppImpl.options).to.deep.equal(options);
@@ -66,12 +69,12 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings = {
-      name: "test",
+      name: 'test',
       automaticDataCollectionEnabled: false,
       setCookie: setCookieCb,
       getCookie: getCookieCb,
       getHeader: getHeaderCb,
-      deleteOnDeref: options,
+      deleteOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -90,12 +93,12 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings = {
-      name: "test",
+      name: 'test',
       automaticDataCollectionEnabled: false,
       setCookie: setCookieCb,
       getCookie: getCookieCb,
       getHeader: getHeaderCb,
-      deleteOnDeref: options,
+      deleteOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -115,12 +118,12 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings = {
-      name: "test",
+      name: 'test',
       automaticDataCollectionEnabled: false,
       setCookie: setCookieCb,
       getCookie: getCookieCb,
       getHeader: getHeaderCb,
-      deleteOnDeref: options,
+      deleteOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -130,7 +133,8 @@ describe('FirebaseServerApp', () => {
     );
 
     expect(() => firebaseServerAppImpl.name).to.not.throw();
-    (firebaseServerAppImpl as unknown as FirebaseServerAppImpl).isDeleted = true;
+    (firebaseServerAppImpl as unknown as FirebaseServerAppImpl).isDeleted =
+      true;
 
     expect(() => {
       firebaseServerAppImpl.name;

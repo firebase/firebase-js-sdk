@@ -189,17 +189,21 @@ describe('API tests', () => {
   });
 
   describe('initializeServerApp', () => {
-    const setCookieCb = (name: string, value: string|undefined, options: object ) : void => { 
+    const setCookieCb = (
+      name: string,
+      value: string | undefined,
+      options: object
+    ): void => {
       return;
-    }
+    };
 
-    const getCookieCb = (name: string) : string|undefined =>  {
+    const getCookieCb = (name: string): string | undefined => {
       return;
-    }
+    };
 
-    const getHeaderCb = (name: string) : string|undefined => {
+    const getHeaderCb = (name: string): string | undefined => {
       return;
-    }
+    };
 
     it('creates named App', () => {
       const options = {
@@ -214,7 +218,7 @@ describe('API tests', () => {
         setCookie: setCookieCb,
         getCookie: getCookieCb,
         getHeader: getHeaderCb,
-        deleteOnDeref: options,
+        deleteOnDeref: options
       };
 
       const app = initializeServerAppInstance(options, serverAppSettings);
@@ -228,12 +232,12 @@ describe('API tests', () => {
         apiKey: 'APIKEY'
       };
 
-      let serverAppSettings : FirebaseServerAppSettings = {
+      let serverAppSettings: FirebaseServerAppSettings = {
         automaticDataCollectionEnabled: false,
         setCookie: setCookieCb,
         getCookie: getCookieCb,
         getHeader: getHeaderCb,
-        deleteOnDeref: options,
+        deleteOnDeref: options
       };
 
       const app1 = initializeServerAppInstance(options, serverAppSettings);

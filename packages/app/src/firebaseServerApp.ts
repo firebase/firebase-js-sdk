@@ -21,18 +21,21 @@ import {
   FirebaseServerAppSettings,
   FirebaseOptions
 } from './public-types';
-import {
-  deleteApp
-} from './api';
-import {
-  ComponentContainer
-} from '@firebase/component';
+import { deleteApp } from './api';
+import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { DEFAULT_ENTRY_NAME } from './constants';
 
-export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseServerApp {
+export class FirebaseServerAppImpl
+  extends FirebaseAppImpl
+  implements FirebaseServerApp
+{
   private readonly _serverConfig: FirebaseServerAppSettings;
-  private readonly _setCookie?: (name: string, value: string|undefined, options: object) => void;
+  private readonly _setCookie?: (
+    name: string,
+    value: string | undefined,
+    options: object
+  ) => void;
   private readonly _getCookie: (name: string) => string | undefined;
   private readonly _getHeader: (name: string) => string | undefined;
   private _finalizationRegistry: FinalizationRegistry<object>;
@@ -43,13 +46,17 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     container: ComponentContainer
   ) {
     // Build configuration parameters for the FirebaseAppImpl base class.
-    const name: string = (serverConfig.name !== undefined) ? serverConfig.name : DEFAULT_ENTRY_NAME;
+    const name: string =
+      serverConfig.name !== undefined ? serverConfig.name : DEFAULT_ENTRY_NAME;
     const automaticDataCollectionEnabled =
-      (serverConfig.automaticDataCollectionEnabled !== undefined) ? serverConfig.automaticDataCollectionEnabled : false;
+      serverConfig.automaticDataCollectionEnabled !== undefined
+        ? serverConfig.automaticDataCollectionEnabled
+        : false;
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
-      name, automaticDataCollectionEnabled
+      name,
+      automaticDataCollectionEnabled
     };
 
     // Construct the parent FirebaseAppImp object.
@@ -57,7 +64,8 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
 
     // Now construct the data for the FirebaseServerAppImpl.
     this._serverConfig = {
-      name, automaticDataCollectionEnabled,
+      name,
+      automaticDataCollectionEnabled,
       ...serverConfig
     };
 
@@ -65,11 +73,15 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     this._getCookie = this._serverConfig.getCookie;
     this._getHeader = this._serverConfig.getHeader;
 
-    this._finalizationRegistry =
-      new FinalizationRegistry(this.automaticCleanup);
+    this._finalizationRegistry = new FinalizationRegistry(
+      this.automaticCleanup
+    );
 
     if (this._serverConfig.deleteOnDeref !== undefined) {
-      this._finalizationRegistry.register(this._serverConfig.deleteOnDeref, this);
+      this._finalizationRegistry.register(
+        this._serverConfig.deleteOnDeref,
+        this
+      );
       this._serverConfig.deleteOnDeref = undefined; // Don't keep a strong reference to the object.
     }
   }
@@ -83,7 +95,11 @@ export class FirebaseServerAppImpl extends FirebaseAppImpl implements FirebaseSe
     return this._serverConfig;
   }
 
-  invokeSetCookie(cookieName: string, cookieValue: string|undefined, options: object): void {
+  invokeSetCookie(
+    cookieName: string,
+    cookieValue: string | undefined,
+    options: object
+  ): void {
     this.checkDestroyed();
     if (this._setCookie !== undefined) {
       this._setCookie(cookieName, cookieValue, options);

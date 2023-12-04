@@ -33,7 +33,12 @@ import {
 import { version } from '../../firebase/package.json';
 import { FirebaseAppImpl } from './firebaseApp';
 import { FirebaseServerAppImpl } from './firebaseServerApp';
-import { _apps, _components, _registerComponent, _serverApps } from './internal';
+import {
+  _apps,
+  _components,
+  _registerComponent,
+  _serverApps
+} from './internal';
 import { logger } from './logger';
 import {
   LogLevelString,
@@ -228,52 +233,56 @@ export function initializeApp(
  * @public
  */
 export function initializeServerAppInstance(
- _options: FirebaseOptions,
- _serverAppConfig: FirebaseServerAppSettings): FirebaseServerApp {
+  _options: FirebaseOptions,
+  _serverAppConfig: FirebaseServerAppSettings
+): FirebaseServerApp {
+  const serverAppSettings: FirebaseServerAppSettings = {
+    name: DEFAULT_ENTRY_NAME,
+    automaticDataCollectionEnabled: false,
+    ..._serverAppConfig
+  };
 
- const serverAppSettings: FirebaseServerAppSettings = {
-   name: DEFAULT_ENTRY_NAME,
-   automaticDataCollectionEnabled: false,
-   ..._serverAppConfig
- };
-
- const name = serverAppSettings.name;
- if (typeof name !== 'string' || !name) {
-   throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
-     appName: String(name)
-   });
- }
-
- const existingApp = _serverApps.get(name) as FirebaseServerAppImpl;
- if (existingApp) {
-   // return the existing app if options and config deep equal the ones in the existing app.
-   if (
-     deepEqual(_options, existingApp.options) &&
-     deepEqual(serverAppSettings, existingApp.serverAppConfig)
-   ) {
-     return existingApp;
-   } else {
-     throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
-   }
- }
-
- if(serverAppSettings.deleteOnDeref !== undefined) {
-  if (typeof FinalizationRegistry === "undefined") {
-    throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, {
+  const name = serverAppSettings.name;
+  if (typeof name !== 'string' || !name) {
+    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
       appName: String(name)
     });
   }
- }
 
- const container = new ComponentContainer(name);
- for (const component of _components.values()) {
-   container.addComponent(component);
- }
+  const existingApp = _serverApps.get(name) as FirebaseServerAppImpl;
+  if (existingApp) {
+    // return the existing app if options and config deep equal the ones in the existing app.
+    if (
+      deepEqual(_options, existingApp.options) &&
+      deepEqual(serverAppSettings, existingApp.serverAppConfig)
+    ) {
+      return existingApp;
+    } else {
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
+    }
+  }
 
- const newApp = new FirebaseServerAppImpl(_options, serverAppSettings, container);
- _serverApps.set(name, newApp);
+  if (serverAppSettings.deleteOnDeref !== undefined) {
+    if (typeof FinalizationRegistry === 'undefined') {
+      throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, {
+        appName: String(name)
+      });
+    }
+  }
 
- return newApp;
+  const container = new ComponentContainer(name);
+  for (const component of _components.values()) {
+    container.addComponent(component);
+  }
+
+  const newApp = new FirebaseServerAppImpl(
+    _options,
+    serverAppSettings,
+    container
+  );
+  _serverApps.set(name, newApp);
+
+  return newApp;
 }
 
 /**

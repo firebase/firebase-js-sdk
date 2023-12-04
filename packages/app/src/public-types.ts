@@ -85,20 +85,24 @@ export interface FirebaseServerApp extends FirebaseApp {
   /**
    * Invokes a callback into the App to retrieve cookie data from the server request object.
    */
-  invokeGetCookie: (name: string) => string|undefined;
+  invokeGetCookie: (name: string) => string | undefined;
 
   /**
    * Invokes a callback into the App to set cookie data within the server response object. If
    * no callback was configured when the FirebaseServerApp was created then this operation is a
    * no-op.
    */
-  invokeSetCookie: (name: string, value: string|undefined, options: object) => void;
+  invokeSetCookie: (
+    name: string,
+    value: string | undefined,
+    options: object
+  ) => void;
 
   /**
    * Invokes a callback into the App to retrieve header data from the server request object.
    */
-  invokeGetHeader: (name: string) => string|undefined;
- }
+  invokeGetHeader: (name: string) => string | undefined;
+}
 
 /**
  * @public
@@ -178,7 +182,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * A function callback the Firebase SDK may call to query a cookie value from the server request
    * object.
    */
-  getCookie: (name: string) => string|undefined;
+  getCookie: (name: string) => string | undefined;
 
   /**
    * An optional function callback the Firebase SDK may call to request that a cookie be
@@ -189,13 +193,17 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * A undefined value parameter signifies that the corresponding cookie should be
    * deleted.
    */
-  setCookie?: (name: string, value: string|undefined, options: object) => void;
+  setCookie?: (
+    name: string,
+    value: string | undefined,
+    options: object
+  ) => void;
 
   /**
    * A function callback the Firebase SDK may call to query a header value from the server request
    * object.
    */
-  getHeader: (name: string) => string|undefined;
+  getHeader: (name: string) => string | undefined;
 
   /**
    * An optional WeakRef. If provided, the Firebase SDK will cleanup and destroy
