@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.5.1
+
+### Patch Changes
+
+- [`70e4cf6a6`](https://github.com/firebase/firebase-js-sdk/commit/70e4cf6a6544c4ccfa609c3f2c320980e7122101) [#7825](https://github.com/firebase/firebase-js-sdk/pull/7825) - Protection from enumerating an empty list in Auth's reading of IndexedDB results, as this causes errors in some macOS and iOS browser runtimes.
+
 ## 1.5.0
 
 ### Minor Changes
