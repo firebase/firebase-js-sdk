@@ -670,9 +670,12 @@ export class SimpleDbStore<
   ): PersistencePromise<ValueType[]> {
     const iterateOptions = this.options(indexOrRange, range);
     // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
-    // 20% faster. Unfortunately, getAll() does not support custom indices.
-    if (!iterateOptions.index && typeof this.store.getAll === 'function') {
-      const request = this.store.getAll(iterateOptions.range);
+    // 20% faster.
+    const store = iterateOptions.index
+      ? this.store.index(iterateOptions.index)
+      : this.store;
+    if (typeof store.getAll === 'function') {
+      const request = store.getAll(iterateOptions.range);
       return new PersistencePromise((resolve, reject) => {
         request.onerror = (event: Event) => {
           reject((event.target as IDBRequest).error!);
