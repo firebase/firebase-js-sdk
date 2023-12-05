@@ -11,7 +11,7 @@
   "devDependencies": {
     "firebase": "10.7.1",
     "chai": "4.3.7",
-    "chromedriver": "114.0.2",
+    "chromedriver": "119.0.1",
     "express": "4.18.2",
     "geckodriver": "2.0.4",
     "mocha": "9.2.2",
