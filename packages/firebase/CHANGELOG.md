@@ -1,5 +1,19 @@
 # firebase
 
+## 10.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`1d32137c5`](https://github.com/firebase/firebase-js-sdk/commit/1d32137c546a576298adb1713a9862cc92a26c83), [`70e4cf6a6`](https://github.com/firebase/firebase-js-sdk/commit/70e4cf6a6544c4ccfa609c3f2c320980e7122101), [`0ecaf6c9f`](https://github.com/firebase/firebase-js-sdk/commit/0ecaf6c9fa14b40d32c52215d9e1c912bcc52bef)]:
+  - @firebase/app@0.9.25
+  - @firebase/app-check@0.8.1
+  - @firebase/auth@1.5.1
+  - @firebase/database@1.0.2
+  - @firebase/app-compat@0.2.25
+  - @firebase/app-check-compat@0.3.8
+  - @firebase/auth-compat@0.5.1
+  - @firebase/database-compat@1.0.2
+
 ## 10.7.0
 
 ### Minor Changes
