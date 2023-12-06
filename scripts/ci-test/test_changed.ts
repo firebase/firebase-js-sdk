@@ -59,7 +59,7 @@ async function runTests(config: TestConfig) {
       process.exit(0);
     }
 
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+    const lernaCmd = ['lerna', 'run', '--concurrency', '1'];
     console.log(chalk`{blue Running tests in:}`);
     for (const task of testTasks) {
       if (task.reason === TestReason.Changed) {
