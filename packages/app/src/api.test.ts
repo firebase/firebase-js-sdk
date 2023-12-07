@@ -20,7 +20,7 @@ import { stub, spy } from 'sinon';
 import '../test/setup';
 import {
   initializeApp,
-  initializeServerAppInstance,
+  initializeServerApp,
   getApps,
   deleteApp,
   getApp,
@@ -221,7 +221,7 @@ describe('API tests', () => {
         deleteOnDeref: options
       };
 
-      const app = initializeServerAppInstance(options, serverAppSettings);
+      const app = initializeServerApp(options, serverAppSettings);
       expect(app.name).to.equal(appName);
       deleteApp(app);
     });
@@ -240,9 +240,9 @@ describe('API tests', () => {
         deleteOnDeref: options
       };
 
-      const app1 = initializeServerAppInstance(options, serverAppSettings);
+      const app1 = initializeServerApp(options, serverAppSettings);
       serverAppSettings.name = appName;
-      const app2 = initializeServerAppInstance(options, serverAppSettings);
+      const app2 = initializeServerApp(options, serverAppSettings);
 
       expect(app1.name).to.equal(DEFAULT_ENTRY_NAME);
       expect(app2.name).to.equal(appName);

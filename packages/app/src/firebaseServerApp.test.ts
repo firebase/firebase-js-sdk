@@ -21,22 +21,6 @@ import { FirebaseAppImpl } from './firebaseApp';
 import { FirebaseServerAppImpl } from './firebaseServerApp';
 import { ComponentContainer } from '@firebase/component';
 
-const setCookieCb = (
-  name: string,
-  value: string | undefined,
-  options: object
-): void => {
-  return;
-};
-
-const getCookieCb = (name: string): string | undefined => {
-  return;
-};
-
-const getHeaderCb = (name: string): string | undefined => {
-  return;
-};
-
 describe('FirebaseServerApp', () => {
   it('has various accessors', () => {
     const options = {
@@ -46,9 +30,6 @@ describe('FirebaseServerApp', () => {
     const serverAppSettings = {
       name: 'test',
       automaticDataCollectionEnabled: false,
-      setCookie: setCookieCb,
-      getCookie: getCookieCb,
-      getHeader: getHeaderCb,
       deleteOnDeref: options
     };
 
@@ -71,9 +52,6 @@ describe('FirebaseServerApp', () => {
     const serverAppSettings = {
       name: 'test',
       automaticDataCollectionEnabled: false,
-      setCookie: setCookieCb,
-      getCookie: getCookieCb,
-      getHeader: getHeaderCb,
       deleteOnDeref: options
     };
 
@@ -95,9 +73,6 @@ describe('FirebaseServerApp', () => {
     const serverAppSettings = {
       name: 'test',
       automaticDataCollectionEnabled: false,
-      setCookie: setCookieCb,
-      getCookie: getCookieCb,
-      getHeader: getHeaderCb,
       deleteOnDeref: options
     };
 
@@ -120,9 +95,6 @@ describe('FirebaseServerApp', () => {
     const serverAppSettings = {
       name: 'test',
       automaticDataCollectionEnabled: false,
-      setCookie: setCookieCb,
-      getCookie: getCookieCb,
-      getHeader: getHeaderCb,
       deleteOnDeref: options
     };
 

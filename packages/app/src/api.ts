@@ -183,7 +183,7 @@ export function initializeApp(
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
  * The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in
- * server environments only.
+ * server side rendering environments only.
  *
  * See
  * {@link
@@ -196,10 +196,10 @@ export function initializeApp(
  * @example
  * ```javascript
  *
- * // Initialize default app
+ * // Initialize a FirebaseServerApp.
  * // Retrieve your own options values by adding a web app on
  * // https://console.firebase.google.com
- * initializeServerAppInstance({
+ * initializeServerApp({
  *     apiKey: "AIza....",                             // Auth / General Use
  *     authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
  *     databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
@@ -207,33 +207,25 @@ export function initializeApp(
  *     messagingSenderId: "123456789"                  // Cloud Messaging
  *   },
  *   {
- *    headers: requestHeaders
+ *    authIdToken: "Your Auth ID Token"
  *   });
  * ```
  *
- * @example
- * ```javascript
- *
- * // Initialize another server app
- * const otherApp = initializeServerAppInstance({
- *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
- *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
- * },
- * {
- *  name: "otherApp",
- *  headers: requestHeaders
- * });
- * ```
- *
- * @param options - Options to configure the app's services.
+ * @param options - Firebase.AppOptions to configure the app's services, or a
+ *   a FirebaseApp instance which contains the AppOptions within.
  * @param config - FirebaseServerApp configuration.
  *
  * @returns The initialized FirebaseServerApp.
  *
  * @public
  */
-export function initializeServerAppInstance(
-  _options: FirebaseOptions,
+export function initializeServerApp(
+  options: FirebaseOptions | FirebaseApp,
+  config: FirebaseServerAppSettings
+): FirebaseServerApp;
+
+export function initializeServerApp(
+  _options: FirebaseOptions | FirebaseApp,
   _serverAppConfig: FirebaseServerAppSettings
 ): FirebaseServerApp {
   const serverAppSettings: FirebaseServerAppSettings = {
@@ -249,11 +241,18 @@ export function initializeServerAppInstance(
     });
   }
 
+  let appOptions: FirebaseOptions;
+  if ((_options as FirebaseApp).options !== undefined) {
+    appOptions = (_options as FirebaseApp).options;
+  } else {
+    appOptions = _options as FirebaseOptions;
+  }
+
   const existingApp = _serverApps.get(name) as FirebaseServerAppImpl;
   if (existingApp) {
     // return the existing app if options and config deep equal the ones in the existing app.
     if (
-      deepEqual(_options, existingApp.options) &&
+      deepEqual(appOptions, existingApp.options) &&
       deepEqual(serverAppSettings, existingApp.serverAppConfig)
     ) {
       return existingApp;
@@ -276,11 +275,10 @@ export function initializeServerAppInstance(
   }
 
   const newApp = new FirebaseServerAppImpl(
-    _options,
+    appOptions,
     serverAppSettings,
     container
   );
-  _serverApps.set(name, newApp);
 
   return newApp;
 }

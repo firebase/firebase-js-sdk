@@ -115,7 +115,7 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
-export function initializeServerAppInstance(_options: FirebaseOptions, _serverAppConfig: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
