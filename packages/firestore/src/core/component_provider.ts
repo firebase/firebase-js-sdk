@@ -483,7 +483,11 @@ export class OnlineComponentProvider {
     );
   }
 
-  terminate(): Promise<void> {
-    return remoteStoreShutdown(this.remoteStore);
+  async terminate(): Promise<void> {
+    await remoteStoreShutdown(this.remoteStore);
+
+    if (this.datastore) {
+      await this.datastore.terminate();
+    }
   }
 }

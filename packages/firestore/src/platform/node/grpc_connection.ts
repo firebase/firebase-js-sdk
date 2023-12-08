@@ -325,4 +325,11 @@ export class GrpcConnection implements Connection {
 
     return stream;
   }
+
+  terminate(): void {
+    if (this.cachedStub) {
+      this.cachedStub.close();
+      this.cachedStub = undefined;
+    }
+  }
 }

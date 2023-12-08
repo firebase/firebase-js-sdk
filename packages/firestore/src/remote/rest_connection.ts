@@ -189,4 +189,8 @@ export abstract class RestConnection implements Connection {
     );
     return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
   }
+
+  terminate(): void {
+    // No-op
+  }
 }

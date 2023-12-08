@@ -92,6 +92,8 @@ export interface Connection {
    */
   readonly shouldResourcePathBeIncludedInRequest: boolean;
 
+  terminate(): void;
+
   // TODO(mcg): subscribe to connection state changes.
 }
 
