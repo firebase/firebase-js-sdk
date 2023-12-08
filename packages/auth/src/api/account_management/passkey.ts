@@ -33,7 +33,7 @@ interface AuthenticatorResponseJSON {
   userHandle?: string;
 }
 
-interface PublicKeyCredentialJSON {
+export interface PublicKeyCredentialJSON {
   id: string;
   type: string;
   rawId: string;
