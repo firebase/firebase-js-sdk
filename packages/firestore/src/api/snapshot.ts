@@ -53,7 +53,7 @@ import { SnapshotListenOptions } from './reference_impl';
  * Simple Example
  *
  * ```typescript
- * const numberConverter: FirestoreDataConverter<number, {value: number}> = {
+ * const numberConverter = {
  *     toFirestore(value: WithFieldValue<number>) {
  *         return { value };
  *     },
@@ -104,11 +104,11 @@ import { SnapshotListenOptions } from './reference_impl';
  *     lut: Timestamp;
  * }
  *
- * // The `PostConverter` implements `FirestoreDataConverter<AppModelType, DbModelType>`
- * // and specifies how the Firestore SDK can convert `Post` objects to `PostDbModel`
+ * // The `PostConverter` implements `FirestoreDataConverter` and specifies
+ * // how the Firestore SDK can convert `Post` objects to `PostDbModel`
  * // objects and vice versa.
  * class PostConverter implements FirestoreDataConverter<Post, PostDbModel> {
- *     toFirestore(post: WithFieldValue<Post>) {
+ *     toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> {
  *         return {
  *             ttl: post.title,
  *             aut: this._autFromAuthor(post.author),
@@ -116,7 +116,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *         };
  *     }
  *
- *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
+ *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): Post {
  *         const data = snapshot.data(options) as PostDbModel;
  *         const author = `${data.aut.firstName} ${data.aut.lastName}`;
  *         return new Post(data.ttl, author, data.lut.toMillis());
@@ -161,7 +161,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *     });
  *
  *     // The TypeScript compiler will fail to compile if the `data` argument to
- *     // `setDoc()` is _not_ be compatible with `WithFieldValue<Post>`. This
+ *     // `setDoc()` is _not_ compatible with `WithFieldValue<Post>`. This
  *     // type checking prevents the caller from specifying objects with incorrect
  *     // properties or property values.
  *     // @ts-expect-error "Argument of type { ttl: string; } is not assignable
@@ -186,7 +186,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *     // `PostDbModel`. Similar to `setDoc()`, since the `data` argument is typed
  *     // as `WithFieldValue<PostDbModel>` rather than just `PostDbModel`, this
  *     // allows properties of the `data` argument to also be those special
- *     // Firestore values, like as `arrayRemove()`, `deleteField()`, and
+ *     // Firestore values, like `arrayRemove()`, `deleteField()`, and
  *     // `serverTimestamp()`.
  *     await updateDoc(documentRef, {
  *         'aut.firstName': 'NewFirstName',
@@ -194,7 +194,7 @@ import { SnapshotListenOptions } from './reference_impl';
  *     });
  *
  *     // The TypeScript compiler will fail to compile if the `data` argument to
- *     // `updateDoc()` is _not_ be compatible with `WithFieldValue<PostDbModel>`.
+ *     // `updateDoc()` is _not_ compatible with `WithFieldValue<PostDbModel>`.
  *     // This type checking prevents the caller from specifying objects with
  *     // incorrect properties or property values.
  *     // @ts-expect-error "Argument of type { title: string; } is not assignable
