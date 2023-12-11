@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.12.5
+
+### Patch Changes
+
+- [`b782bb270`](https://github.com/firebase/firebase-js-sdk/commit/b782bb2709b661e8b72bde9915352582fb820337) [#7788](https://github.com/firebase/firebase-js-sdk/pull/7788) - Tag product id for internal big query metric logging.
+
 ## 0.12.4
 
 ### Patch Changes

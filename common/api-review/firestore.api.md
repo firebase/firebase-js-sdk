@@ -19,11 +19,15 @@ export type AddPrefixToKeys<Prefix extends string, T extends Record<string, unkn
 
 // @public
 export class AggregateField<T> {
+    readonly aggregateType: AggregateType;
     readonly type = "AggregateField";
 }
 
 // @public
-export type AggregateFieldType = AggregateField<number | null>;
+export function aggregateFieldEqual(left: AggregateField<unknown>, right: AggregateField<unknown>): boolean;
+
+// @public
+export type AggregateFieldType = ReturnType<typeof sum> | ReturnType<typeof average> | ReturnType<typeof count>;
 
 // @public
 export class AggregateQuerySnapshot<AggregateSpecType extends AggregateSpec, AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
@@ -47,6 +51,9 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 };
 
 // @public
+export type AggregateType = 'count' | 'avg' | 'sum';
+
+// @public
 export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
 // @public
@@ -54,6 +61,9 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
+
+// @public
+export function average(field: string | FieldPath): AggregateField<number | null>;
 
 // @public
 export class Bytes {
@@ -100,6 +110,9 @@ export class CollectionReference<AppModelType = DocumentData, DbModelType extend
 export function connectFirestoreEmulator(firestore: Firestore, host: string, port: number, options?: {
     mockUserToken?: EmulatorMockTokenOptions | string;
 }): void;
+
+// @public
+export function count(): AggregateField<number>;
 
 // @public
 export function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
@@ -261,6 +274,9 @@ export class GeoPoint {
 }
 
 // @public
+export function getAggregateFromServer<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>>;
+
+// @public
 export function getCountFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<AggregateQuerySnapshot<{
     count: AggregateField<number>;
 }, AppModelType, DbModelType>>;
@@ -284,13 +300,13 @@ export function getDocsFromCache<AppModelType, DbModelType extends DocumentData>
 export function getDocsFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 // @public
+export function getFirestore(): Firestore;
+
+// @public
 export function getFirestore(app: FirebaseApp): Firestore;
 
 // @beta
 export function getFirestore(databaseId: string): Firestore;
-
-// @public
-export function getFirestore(): Firestore;
 
 // @beta
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
@@ -660,6 +676,9 @@ export function startAt<AppModelType, DbModelType extends DocumentData>(snapshot
 
 // @public
 export function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
+
+// @public
+export function sum(field: string | FieldPath): AggregateField<number>;
 
 // @public
 export type TaskState = 'Error' | 'Running' | 'Success';

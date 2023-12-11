@@ -1,5 +1,49 @@
 # @firebase/auth
 
+## 1.5.1
+
+### Patch Changes
+
+- [`70e4cf6a6`](https://github.com/firebase/firebase-js-sdk/commit/70e4cf6a6544c4ccfa609c3f2c320980e7122101) [#7825](https://github.com/firebase/firebase-js-sdk/pull/7825) - Protection from enumerating an empty list in Auth's reading of IndexedDB results, as this causes errors in some macOS and iOS browser runtimes.
+
+## 1.5.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de) [#7772](https://github.com/firebase/firebase-js-sdk/pull/7772) - Exposed INVALID_LOGIN_CREDENTIALS as auth/invalid-credential error and updated docs for various auth SDK methods.
+
+## 1.4.0
+
+### Minor Changes
+
+- [`5f496e401`](https://github.com/firebase/firebase-js-sdk/commit/5f496e401782db29afd1bd433818a3fc1ef1da3c) [#7745](https://github.com/firebase/firebase-js-sdk/pull/7745) - [feature] Add sign-in with Apple token revocation support.
+
+### Patch Changes
+
+- [`f10acb360`](https://github.com/firebase/firebase-js-sdk/commit/f10acb36009dc9d5d4f0d0880f1357330e3f1d1b) [#7692](https://github.com/firebase/firebase-js-sdk/pull/7692) - Fixes https://github.com/firebase/firebase-js-sdk/issues/7675
+
+## 1.3.2
+
+### Patch Changes
+
+- [`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5) [#7720](https://github.com/firebase/firebase-js-sdk/pull/7720) - fixes github issue https://github.com/firebase/firebase-js-sdk/issues/7701.
+
+## 1.3.1
+
+### Patch Changes
+
+- [`f002ef36a`](https://github.com/firebase/firebase-js-sdk/commit/f002ef36a6b427fd526696f9cd6077a217ccc6ef) [#7634](https://github.com/firebase/firebase-js-sdk/pull/7634) (fixes [#7633](https://github.com/firebase/firebase-js-sdk/issues/7633)) - Fix FetchProvider in non-browser environments, by trying to get the `fetch` implementation from not only `self` but also standard `globalThis`.
+
+- [`68927ced1`](https://github.com/firebase/firebase-js-sdk/commit/68927ced1159d9b79407c7823d7f48d30ccb591e) [#7685](https://github.com/firebase/firebase-js-sdk/pull/7685) - Create getProviderEnforcementState method to get reCAPTCHA Enterprise enforcement state of a provider.
+  This is an internal code change preparing for future features.
+
+- [`3533b32b1`](https://github.com/firebase/firebase-js-sdk/commit/3533b32b1be6a9800b1b58a6a2b08f50fae18eeb) [#7666](https://github.com/firebase/firebase-js-sdk/pull/7666) - Create handleRecaptchaFlow helper method
+
 ## 1.3.0
 
 ### Minor Changes

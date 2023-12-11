@@ -225,6 +225,7 @@ export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
 export { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
+export { AutoId as _AutoId } from './util/misc';
 export type {
   AuthTokenFactory,
   FirstPartyCredentialsSettings

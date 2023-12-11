@@ -1,5 +1,41 @@
 # @firebase/app
 
+## 0.9.25
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.24
+
+### Patch Changes
+
+- [`e9ff107ee`](https://github.com/firebase/firebase-js-sdk/commit/e9ff107eedbb9ec695ddc35e45bdd62734735674) [#7789](https://github.com/firebase/firebase-js-sdk/pull/7789) - More safeguards to ensure that heartbeat objects queried from IndexedDB include a heartbeats field.
+
+## 0.9.23
+
+### Patch Changes
+
+- [`5c7fa8491`](https://github.com/firebase/firebase-js-sdk/commit/5c7fa84912ac8a9652b82ebf88eb483dd44977a8) [#7749](https://github.com/firebase/firebase-js-sdk/pull/7749) - App - provide a more robust check to cover more cases of empty heartbeat data.
+
+## 0.9.22
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.21
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.9.20
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.9.19
 
 ### Patch Changes

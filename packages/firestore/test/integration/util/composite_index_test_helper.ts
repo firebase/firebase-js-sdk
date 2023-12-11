@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { and } from '../../../src/lite-api/query';
-import { AutoId } from '../../../src/util/misc';
-import { field } from '../../util/helpers';
-
 import {
   query as internalQuery,
   CollectionReference,
@@ -41,7 +37,13 @@ import {
   getDocs as getDocuments,
   QuerySnapshot,
   deleteDoc as deleteDocument,
-  doc
+  doc,
+  and,
+  _AutoId,
+  _FieldPath,
+  newTestFirestore,
+  newTestApp,
+  collection
 } from './firebase_export';
 import {
   batchCommitDocsToCollection,
@@ -49,7 +51,12 @@ import {
   PERSISTENCE_MODE_UNSPECIFIED,
   PersistenceMode
 } from './helpers';
-import { COMPOSITE_INDEX_TEST_COLLECTION, DEFAULT_SETTINGS } from './settings';
+import {
+  COMPOSITE_INDEX_TEST_COLLECTION,
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS,
+  TARGET_DB_ID
+} from './settings';
 
 /**
  * This helper class is designed to facilitate integration testing of Firestore queries that
@@ -72,7 +79,7 @@ export class CompositeIndexTestHelper {
   // Creates a new instance of the CompositeIndexTestHelper class, with a unique test
   // identifier for data isolation.
   constructor() {
-    this.testId = 'test-id-' + AutoId.newId();
+    this.testId = 'test-id-' + _AutoId.newId();
   }
 
   // Runs a test with specified documents in the COMPOSITE_INDEX_TEST_COLLECTION.
@@ -90,6 +97,23 @@ export class CompositeIndexTestHelper {
     );
   }
 
+  // Runs a test on COMPOSITE_INDEX_TEST_COLLECTION.
+  async withTestCollection<T>(
+    persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+    fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+  ): Promise<T> {
+    const settings = { ...DEFAULT_SETTINGS };
+    if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
+      settings.localCache = persistence.asLocalCacheFirestoreSettings();
+    }
+    const db = newTestFirestore(
+      newTestApp(DEFAULT_PROJECT_ID),
+      settings,
+      TARGET_DB_ID
+    );
+    return fn(collection(db, COMPOSITE_INDEX_TEST_COLLECTION), db);
+  }
+
   // Hash the document key with testId.
   private toHashedId(docId: string): string {
     return docId + '-' + this.testId;
@@ -100,7 +124,7 @@ export class CompositeIndexTestHelper {
   }
 
   // Adds test-specific fields to a document, including the testId and expiration date.
-  private addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
+  addTestSpecificFieldsToDoc(doc: DocumentData): DocumentData {
     return {
       ...doc,
       [this.TEST_ID_FIELD]: this.testId,
@@ -113,8 +137,8 @@ export class CompositeIndexTestHelper {
 
   // Remove test-specific fields from a document, including the testId and expiration date.
   private removeTestSpecificFieldsFromDoc(doc: DocumentData): void {
-    doc._document?.data?.delete(field(this.TTL_FIELD));
-    doc._document?.data?.delete(field(this.TEST_ID_FIELD));
+    doc._document?.data?.delete(new _FieldPath([this.TEST_ID_FIELD]));
+    doc._document?.data?.delete(new _FieldPath([this.TEST_ID_FIELD]));
   }
 
   // Helper method to hash document keys and add test-specific fields for the provided documents.
