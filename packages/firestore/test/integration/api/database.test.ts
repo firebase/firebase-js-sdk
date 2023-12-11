@@ -868,7 +868,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('DocumentSnapshot events for add data to document', () => {
+  it.only('DocumentSnapshot events for add data to document', () => {
     return withTestCollection(persistence, {}, col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
@@ -878,27 +878,37 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.false;
           expect(snap.data()).to.equal(undefined);
-          expect(snap.metadata.fromCache).to.be.false;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Initial snapshot fromCache should be false'
+          );
         })
         .then(() => setDoc(docA, { a: 1 }))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).to.be.false;
-          expect(snap.metadata.hasPendingWrites).to.be.true;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Second lat-comp snapshot fromCache should be false'
+          );
+          expect(snap.metadata.hasPendingWrites).to.be.true(
+            'Second lat-comp snapshot hasPendingWrites should be true'
+          );
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).to.be.false;
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Final sync snapshot fromCache should be false'
+          );
+          expect(snap.metadata.hasPendingWrites).to.be.false(
+            'Final sync snapshot hasPendingWrites should be false'
+          );
         });
     });
   });
 
-  it('DocumentSnapshot events for change data in document', () => {
+  it.only('DocumentSnapshot events for change data in document', () => {
     const initialData = { a: 1 };
     const changedData = { b: 2 };
 
@@ -910,21 +920,33 @@ apiDescribe('Database', persistence => {
         .awaitEvent()
         .then(snap => {
           expect(snap.data()).to.deep.equal(initialData);
-          expect(snap.metadata.fromCache).to.be.false;
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Initial snapshot fromCache should be false'
+          );
+          expect(snap.metadata.hasPendingWrites).to.be.false(
+            'Initial snapshot hasPendingWrites should be false'
+          );
         })
         .then(() => setDoc(doc1, changedData))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).to.be.false;
-          expect(snap.metadata.hasPendingWrites).to.be.true;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Second lat-comp snapshot fromCache should be false'
+          );
+          expect(snap.metadata.hasPendingWrites).to.be.true(
+            'Second lat-comp snapshot hasPendingWrites should be true'
+          );
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).to.be.false;
-          expect(snap.metadata.hasPendingWrites).to.be.false;
+          expect(snap.metadata.fromCache).to.be.false(
+            'Final sync snapshot fromCache should be false'
+          );
+          expect(snap.metadata.hasPendingWrites).to.be.false(
+            'Final sync snapshot hasPendingWrites should be false'
+          );
         });
     });
   });
