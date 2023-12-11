@@ -106,7 +106,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * // how the Firestore SDK can convert `Post` objects to `PostDbModel`
  * // objects and vice versa.
  * class PostConverter implements FirestoreDataConverter<Post, PostDbModel> {
- *     toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> { {
+ *     toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> {
  *         return {
  *             ttl: post.title,
  *             aut: this._autFromAuthor(post.author),
