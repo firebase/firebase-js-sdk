@@ -73,7 +73,9 @@ function parseTargetBackend(targetBackend: string): TargetBackend {
     case 'prod':
       return TargetBackend.PROD;
     default:
-      throw Error('Unknown backend configuration used for integration tests.');
+      throw Error(
+        `Unknown backend configuration ${targetBackend} used for integration tests.`
+      );
   }
 }
 
