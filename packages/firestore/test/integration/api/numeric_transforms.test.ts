@@ -31,7 +31,7 @@ import {
   writeBatch,
   DocumentReference,
   increment,
-  Firestore
+  Firestore, setLogLevel
 } from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
@@ -158,7 +158,8 @@ apiDescribe('Numeric Transforms:', persistence => {
     });
   });
 
-  it('multiple double increments', async () => {
+  it.only('multiple double increments', async () => {
+    setLogLevel('debug');
     await withTestSetup(async () => {
       await writeInitialData({ sum: 0.0 });
 
