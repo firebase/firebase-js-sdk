@@ -878,32 +878,32 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.false;
           expect(snap.data()).to.equal(undefined);
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Initial snapshot fromCache should be false'
-          );
+          ).to.be.false;
         })
         .then(() => setDoc(docA, { a: 1 }))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Second lat-comp snapshot fromCache should be false'
-          );
-          expect(snap.metadata.hasPendingWrites).to.be.true(
+          ).to.be.false;
+          expect(snap.metadata.hasPendingWrites).string(
             'Second lat-comp snapshot hasPendingWrites should be true'
-          );
+          ).to.be.true;
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Final sync snapshot fromCache should be false'
-          );
-          expect(snap.metadata.hasPendingWrites).to.be.false(
+          ).to.be.false;
+          expect(snap.metadata.hasPendingWrites).string(
             'Final sync snapshot hasPendingWrites should be false'
-          );
+          ).to.be.false;
         });
     });
   });
@@ -920,33 +920,33 @@ apiDescribe('Database', persistence => {
         .awaitEvent()
         .then(snap => {
           expect(snap.data()).to.deep.equal(initialData);
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Initial snapshot fromCache should be false'
-          );
-          expect(snap.metadata.hasPendingWrites).to.be.false(
+          ).to.be.false;
+          expect(snap.metadata.hasPendingWrites).string(
             'Initial snapshot hasPendingWrites should be false'
-          );
+          ).to.be.false;
         })
         .then(() => setDoc(doc1, changedData))
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Second lat-comp snapshot fromCache should be false'
-          );
-          expect(snap.metadata.hasPendingWrites).to.be.true(
+          ).to.be.false;
+          expect(snap.metadata.hasPendingWrites).string(
             'Second lat-comp snapshot hasPendingWrites should be true'
-          );
+          ).to.be.true;
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).to.be.false(
+          expect(snap.metadata.fromCache).string(
             'Final sync snapshot fromCache should be false'
-          );
-          expect(snap.metadata.hasPendingWrites).to.be.false(
+          ).to.be.false;
+          expect(snap.metadata.hasPendingWrites).string(
             'Final sync snapshot hasPendingWrites should be false'
-          );
+          ).to.be.false;
         });
     });
   });
