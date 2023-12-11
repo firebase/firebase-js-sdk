@@ -309,8 +309,8 @@ export function configureFirestore(firestore: Firestore): void {
  * {@link initializeFirestore}, {@link (getFirestore:1)} or
  * {@link clearIndexedDbPersistence}.
  *
- * If this fails, `enableIndexedDbPersistence()` will reject the promise it
- * returns. Note that even after this failure, the {@link Firestore} instance will
+ * If this fails, `enableIndexedDbPersistence()` will throw an error. Note
+ * that even after this failure, the {@link Firestore} instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -325,6 +325,7 @@ export function configureFirestore(firestore: Firestore): void {
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
+ * @throws FirestoreError if it fails.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
@@ -371,8 +372,8 @@ export function enableIndexedDbPersistence(
  * shared execution of queries and latency-compensated local document updates
  * across all connected instances.
  *
- * If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise
- * it returns. Note that even after this failure, the {@link Firestore} instance will
+ * If this fails, `enableMultiTabIndexedDbPersistence()` will throw an error.
+ * Note that even after this failure, the {@link Firestore} instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -386,6 +387,7 @@ export function enableIndexedDbPersistence(
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
+ * @throws FirestoreError if it fails.
  * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
  * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
