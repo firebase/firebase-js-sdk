@@ -8,7 +8,7 @@
   "browser": "dist/esm2017/index.js",
   "module": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.js",
-  "extension": "dist/extension-esm2017/index.js",
+  "chrome-extension": "dist/chrome-extension-esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "esm5": "dist/esm5/index.js",
   "exports": {
@@ -42,11 +42,11 @@
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
     },
-    "./extension": {
-      "types:": "./dist/extension-esm2017/index.extension.d.ts",
-      "import": "./dist/extension-esm2017/index.js",
-      "require": "./dist/extension-cjs/index.js",
-      "default": "./dist/extension-esm2017/index.js"
+    "./chrome-extension": {
+      "types:": "./dist/chrome-extension-esm2017/index.chrome-extension.d.ts",
+      "import": "./dist/chrome-extension-esm2017/index.js",
+      "require": "./dist/chrome-extension-cjs/index.js",
+      "default": "./dist/chrome-extension-esm2017/index.js"
     },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
@@ -68,11 +68,11 @@
         "require": "./dist/browser-cjs/internal.js",
         "import": "./dist/esm2017/internal.js"
       },
-      "extension": {
-        "types:": "./dist/extension-cjs/internal/index.d.ts",
-        "import": "./dist/extension-esm2017/internal.js",
-        "require": "./dist/extension-cjs/internal.js",
-        "default": "./dist/extension-esm2017/internal.js"
+      "chrome-extension": {
+        "types:": "./dist/chrome-extension-cjs/internal/index.d.ts",
+        "import": "./dist/chrome-extension-esm2017/internal.js",
+        "require": "./dist/chrome-extension-cjs/internal.js",
+        "default": "./dist/chrome-extension-esm2017/internal.js"
       },
       "default": "./dist/esm2017/internal.js"
     },
@@ -82,7 +82,7 @@
     "dist",
     "cordova/package.json",
     "internal/package.json",
-    "extension/package.json"
+    "chrome-extension/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",

@@ -49,8 +49,8 @@ function getVersionForPlatform(
       return 'webworker';
     case ClientPlatform.CORDOVA:
       return 'cordova';
-    case ClientPlatform.EXTENSION:
-      return 'extension';
+    case ClientPlatform.CHROME_EXTENSION:
+      return 'chrome-extension';
     default:
       return undefined;
   }

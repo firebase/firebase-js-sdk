@@ -112,14 +112,14 @@ const browserBuilds = [
   }
 ];
 
-const browserExtensionBuilds = [
+const browserChromeExtensionBuilds = [
   {
     input: {
-      index: 'index.extension.ts',
+      index: 'index.chrome-extension.ts',
       internal: 'internal/index.ts'
     },
     output: {
-      dir: 'dist/extension-esm2017',
+      dir: 'dist/chrome-extension-esm2017',
       format: 'es',
       sourcemap: true
     },
@@ -131,10 +131,12 @@ const browserExtensionBuilds = [
   },
   {
     input: {
-      index: 'index.extension.ts',
+      index: 'index.chrome-extension.ts',
       internal: 'internal/index.ts'
     },
-    output: [{ dir: 'dist/extension-cjs', format: 'cjs', sourcemap: true }],
+    output: [
+      { dir: 'dist/chrome-extension-cjs', format: 'cjs', sourcemap: true }
+    ],
     plugins: [
       ...es2017BuildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
@@ -229,7 +231,7 @@ const webWorkerBuild = {
 
 export default [
   ...browserBuilds,
-  ...browserExtensionBuilds,
+  ...browserChromeExtensionBuilds,
   ...nodeBuilds,
   cordovaBuild,
   rnBuild,

@@ -20,7 +20,6 @@ export * from './src';
 
 import { ClientPlatform } from './src/core/util/version';
 
-import { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 import {
@@ -48,7 +47,7 @@ function getAuth(app: FirebaseApp = getApp()): Auth {
   }
 
   const auth = initializeAuth(app, {
-    persistence: [indexedDBLocalPersistence, browserSessionPersistence]
+    persistence: [indexedDBLocalPersistence]
   });
 
   const authEmulatorHost = getDefaultEmulatorHost('auth');
@@ -59,10 +58,9 @@ function getAuth(app: FirebaseApp = getApp()): Auth {
   return auth;
 }
 
-registerAuth(ClientPlatform.EXTENSION);
+registerAuth(ClientPlatform.CHROME_EXTENSION);
 
 export {
-  browserSessionPersistence,
   indexedDBLocalPersistence,
   TotpMultiFactorGenerator,
   TotpSecret,

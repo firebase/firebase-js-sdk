@@ -1,0 +1,8 @@
+{
+  "name": "@firebase/auth/chrome-extension",
+  "description": "A Chrome-Manifest-v3-specific build of the Firebase Auth JS SDK",
+  "main": "../dist/chrome-extension-cjs/index.js",
+  "browser": "../dist/chrome-extension-esm2017/index.js",
+  "module": "../dist/chrome-extension-esm2017/index.js",
+  "typings": "../dist/chrome-extension-esm2017/index.chrome-extension.d.ts"
+}
