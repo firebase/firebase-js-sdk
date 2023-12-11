@@ -326,6 +326,12 @@ export class GrpcConnection implements Connection {
     return stream;
   }
 
+  /**
+   * Closes and cleans up any resources associated with the GrpcConnection.
+   * If a gRPC client has been generated for this connection, the gRPC client
+   * is closed. Failure to call terminate on a GrpcConnection can result
+   * in leaked resources of the gRPC client.
+   */
   terminate(): void {
     if (this.cachedStub) {
       this.cachedStub.close();

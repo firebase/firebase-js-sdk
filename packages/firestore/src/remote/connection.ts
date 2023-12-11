@@ -92,6 +92,11 @@ export interface Connection {
    */
   readonly shouldResourcePathBeIncludedInRequest: boolean;
 
+  /**
+   * Closes and cleans up any resources associated with the connection. Actual
+   * resources cleaned are implementation specific. Failure to call `terminate`
+   * on a connection may result in resource leaks.
+   */
   terminate(): void;
 
   // TODO(mcg): subscribe to connection state changes.
