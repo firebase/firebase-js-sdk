@@ -2,7 +2,7 @@
   "name": "@firebase/auth/internal",
   "description": "An internal version of the Auth SDK for use in the compatibility layer",
   "main": "../dist/node/internal.js",
-  "react-native": "../dist/rn/index.js",
+  "react-native": "../dist/rn/internal.js",
   "module": "../dist/esm2017/internal.js",
   "browser": "../dist/esm2017/internal.js",
   "esm5": "../dist/esm5/internal.js",
