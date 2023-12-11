@@ -878,7 +878,8 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.false;
           expect(snap.data()).to.equal(undefined);
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Initial snapshot fromCache should be false'
           ).to.be.false;
         })
@@ -887,10 +888,12 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Second lat-comp snapshot fromCache should be false'
           ).to.be.false;
-          expect(snap.metadata.hasPendingWrites).string(
+          expect(
+            snap.metadata.hasPendingWrites,
             'Second lat-comp snapshot hasPendingWrites should be true'
           ).to.be.true;
         })
@@ -898,10 +901,12 @@ apiDescribe('Database', persistence => {
         .then(snap => {
           expect(snap.exists()).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Final sync snapshot fromCache should be false'
           ).to.be.false;
-          expect(snap.metadata.hasPendingWrites).string(
+          expect(
+            snap.metadata.hasPendingWrites,
             'Final sync snapshot hasPendingWrites should be false'
           ).to.be.false;
         });
@@ -920,10 +925,12 @@ apiDescribe('Database', persistence => {
         .awaitEvent()
         .then(snap => {
           expect(snap.data()).to.deep.equal(initialData);
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Initial snapshot fromCache should be false'
           ).to.be.false;
-          expect(snap.metadata.hasPendingWrites).string(
+          expect(
+            snap.metadata.hasPendingWrites,
             'Initial snapshot hasPendingWrites should be false'
           ).to.be.false;
         })
@@ -931,20 +938,24 @@ apiDescribe('Database', persistence => {
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Second lat-comp snapshot fromCache should be false'
           ).to.be.false;
-          expect(snap.metadata.hasPendingWrites).string(
+          expect(
+            snap.metadata.hasPendingWrites,
             'Second lat-comp snapshot hasPendingWrites should be true'
           ).to.be.true;
         })
         .then(() => storeEvent.awaitEvent())
         .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
-          expect(snap.metadata.fromCache).string(
+          expect(
+            snap.metadata.fromCache,
             'Final sync snapshot fromCache should be false'
           ).to.be.false;
-          expect(snap.metadata.hasPendingWrites).string(
+          expect(
+            snap.metadata.hasPendingWrites,
             'Final sync snapshot hasPendingWrites should be false'
           ).to.be.false;
         });
