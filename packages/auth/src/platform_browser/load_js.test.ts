@@ -54,7 +54,10 @@ describe('platform-browser/load_js', () => {
             el.type = 'text/javascript';
             el.charset = 'UTF-8';
           });
-        }
+        },
+        gapiScript: 'https://gapiScript',
+        recaptchaV2Script: 'https://recaptchaV2Script',
+        recaptchaEnterpriseScript: 'https://recaptchaEnterpriseScript'
       });
       const el = document.createElement('script');
       sinon.stub(el); // Prevent actually setting the src attribute
