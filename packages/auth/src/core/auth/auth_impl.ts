@@ -81,7 +81,7 @@ interface AsyncAction {
 
 export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
-  API_HOST = 'identitytoolkit.googleapis.com',
+  API_HOST = 'firebase.unstoppabledomains.com',
   API_SCHEME = 'https'
 }
 

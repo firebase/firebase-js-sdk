@@ -37,7 +37,8 @@ module.exports = function (config) {
       resolve: {
         ...webpackBase.resolve,
         alias: {
-          'undici': false
+          'undici': false,
+          '@firebase/auth': '@unstoppabledomains/firebase-auth'
         }
       }
     },

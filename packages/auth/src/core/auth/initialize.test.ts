@@ -162,7 +162,7 @@ describe('core/auth/initialize', () => {
       );
 
       expect(auth.config).to.eql({
-        apiHost: 'identitytoolkit.googleapis.com',
+        apiHost: 'firebase.unstoppabledomains.com',
         apiKey: 'fake-key',
         apiScheme: 'https',
         authDomain: 'fake-auth-domain:9999',

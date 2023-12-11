@@ -1,5 +1,5 @@
 {
-  "name": "@firebase/auth",
+  "name": "@unstoppabledomains/firebase-auth",
   "version": "1.5.1",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",

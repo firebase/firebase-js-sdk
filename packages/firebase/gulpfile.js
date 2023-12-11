@@ -34,6 +34,7 @@ gulp.task('cdn-type-module-path', function () {
       // gulp-replace doesn't work with gulp-sourcemaps, so no change is made to the existing sourcemap.
       // Therefore the sourcemap become slightly inaccurate
       .pipe(replace(/(['"])@firebase\/app(['"])/g, `$1${FIREBASE_APP_URL}$2`))
+      .pipe(replace(/(['"])@firebase\/auth(['"])/g, `$1@unstoppabledomains/firebase-auth$2`))
       .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('.'))
   );
@@ -45,6 +46,7 @@ gulp.task('cdn-type-module-path-internal', function () {
     .src(files)
     .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(replace(/(['"])@firebase\/app(['"])/g, "'./firebase-app.js'"))
+    .pipe(replace(/(['"])@firebase\/auth(['"])/g, `$1@unstoppabledomains/firebase-auth$2`))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('.'));
 });
