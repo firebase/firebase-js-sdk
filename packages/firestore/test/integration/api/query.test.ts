@@ -451,7 +451,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it.only('can listen for the same query with different options', () => {
+  it('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<QuerySnapshot>();
