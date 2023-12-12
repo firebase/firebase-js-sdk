@@ -61,7 +61,7 @@ jobs:
           pushd functions
           npm install
           popd
-          npx firebase-tools@12.9.1 deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
+          npx firebase-tools@13.0.0 deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
         working-directory: ./config
         env:
           FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
