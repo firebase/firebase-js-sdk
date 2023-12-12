@@ -20,7 +20,7 @@ import {
   FieldPath as PublicFieldPath,
   SetOptions
 } from '@firebase/firestore-types';
-import { Compat, getModularInstance } from '@firebase/util';
+import { Compat, deepEqual, getModularInstance } from '@firebase/util';
 
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
@@ -525,13 +525,15 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayUnionFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(methodName: string, readonly _elements: unknown[]) {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
 
@@ -549,8 +551,10 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayRemoveFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
@@ -568,8 +572,10 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof NumericIncrementFieldValueImpl &&
+      this._operand === other._operand
+    );
   }
 }
 
