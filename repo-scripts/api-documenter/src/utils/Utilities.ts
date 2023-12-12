@@ -19,7 +19,6 @@
 // See LICENSE in the project root for license information.
 
 import { ApiParameterListMixin, ApiItem } from 'api-extractor-model-me';
-import { createHash, HexBase64Latin1Encoding } from 'crypto';
 
 export class Utilities {
   private static readonly _badFilenameCharsRegExp: RegExp = /[^a-z0-9_\-\.]/gi;
