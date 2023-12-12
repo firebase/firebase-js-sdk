@@ -118,7 +118,7 @@ export function getFilenameForApiItem(
   return baseName + '.md';
 }
 
-// TODO: handle method overloads and namespace?
+// TODO: handle namespace?
 export function getHeadingAnchorForApiItem(apiItem: ApiItem): string {
   const scopedName: string = lowercaseAndRemoveSymbols(
     apiItem.getScopedNameWithinPackage()
