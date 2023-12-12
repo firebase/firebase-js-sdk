@@ -33,7 +33,7 @@ export declare class DocumentReference<AppModelType = DocumentData, DbModelType 
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_lite.documentreference.md#documentreferencewithconverter) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.md#setdoc)<!-- -->, [getDoc()](./firestore_lite.md#getdoc)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
+|  [withConverter(converter)](./firestore_lite.documentreference.md#documentreferencewithconverter) |  | Applies a custom data converter to this <code>DocumentReference</code>, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->, [getDoc()](./firestore_lite.md#getdoc_4569087)<!-- -->, etc. with the returned <code>DocumentReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 |  [withConverter(converter)](./firestore_lite.documentreference.md#documentreferencewithconverter) |  | Removes the current converter. |
 
 ## DocumentReference.converter
@@ -98,7 +98,7 @@ readonly type = "document";
 
 ## DocumentReference.withConverter()
 
-Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.md#setdoc)<!-- -->, [getDoc()](./firestore_lite.md#getdoc)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
+Applies a custom data converter to this `DocumentReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->, [getDoc()](./firestore_lite.md#getdoc_4569087)<!-- -->, etc. with the returned `DocumentReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 

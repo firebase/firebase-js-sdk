@@ -25,8 +25,8 @@ export declare interface FirestoreDataConverter<AppModelType, DbModelType extend
 |  Method | Description |
 |  --- | --- |
 |  [fromFirestore(snapshot)](./firestore_lite.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type <code>AppModelType</code>. You can access your data by calling: <code>snapshot.data()</code>.<!-- -->Generally, the data returned from <code>snapshot.data()</code> can be cast to <code>DbModelType</code>; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout. |
-|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
-|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
+|  [toFirestore(modelObject)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and .<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
+|  [toFirestore(modelObject, options)](./firestore_lite.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain Javascript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion_7d853aa) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
 
 ## FirestoreDataConverter.fromFirestore()
 
@@ -52,7 +52,7 @@ AppModelType
 
 ## FirestoreDataConverter.toFirestore()
 
-Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and .
+Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and .
 
 The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values.
 
@@ -74,9 +74,9 @@ toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelTy
 
 ## FirestoreDataConverter.toFirestore()
 
-Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
+Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain Javascript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
 
-The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested `Partial` by allowing nested fields to be omitted.
+The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion_7d853aa) to be used as property values. It also supports nested `Partial` by allowing nested fields to be omitted.
 
 <b>Signature:</b>
 

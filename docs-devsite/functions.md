@@ -17,11 +17,11 @@ Cloud Functions for Firebase
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app...)</b> |
-|  [getFunctions(app, regionOrCustomDomain)](./functions.md#getfunctions) | Returns a [Functions](./functions.functions.md#functions_interface) instance for the given app. |
+|  [getFunctions(app, regionOrCustomDomain)](./functions.md#getfunctions_60f2095) | Returns a [Functions](./functions.functions.md#functions_interface) instance for the given app. |
 |  <b>function(functionsInstance...)</b> |
-|  [connectFunctionsEmulator(functionsInstance, host, port)](./functions.md#connectfunctionsemulator) | Modify this instance to communicate with the Cloud Functions emulator.<!-- -->Note: this must be called before this instance has been used to do any operations. |
-|  [httpsCallable(functionsInstance, name, options)](./functions.md#httpscallable) | Returns a reference to the callable HTTPS trigger with the given name. |
-|  [httpsCallableFromURL(functionsInstance, url, options)](./functions.md#httpscallablefromurl) | Returns a reference to the callable HTTPS trigger with the specified url. |
+|  [connectFunctionsEmulator(functionsInstance, host, port)](./functions.md#connectfunctionsemulator_505c08d) | Modify this instance to communicate with the Cloud Functions emulator.<!-- -->Note: this must be called before this instance has been used to do any operations. |
+|  [httpsCallable(functionsInstance, name, options)](./functions.md#httpscallable_1dd297c) | Returns a reference to the callable HTTPS trigger with the given name. |
+|  [httpsCallableFromURL(functionsInstance, url, options)](./functions.md#httpscallablefromurl_7af6987) | Returns a reference to the callable HTTPS trigger with the specified url. |
 
 ## Interfaces
 
@@ -40,7 +40,7 @@ Cloud Functions for Firebase
 |  [FunctionsErrorCodeCore](./functions.md#functionserrorcodecore) | Functions error code string appended after "functions/" product prefix. See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes. |
 |  [HttpsCallable](./functions.md#httpscallable) | A reference to a "callable" HTTP trigger in Google Cloud Functions. |
 
-## getFunctions()
+## getFunctions() {:#getfunctions_60f2095}
 
 Returns a [Functions](./functions.functions.md#functions_interface) instance for the given app.
 
@@ -61,7 +61,7 @@ export declare function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: s
 
 [Functions](./functions.functions.md#functions_interface)
 
-## connectFunctionsEmulator()
+## connectFunctionsEmulator() {:#connectfunctionsemulator_505c08d}
 
 Modify this instance to communicate with the Cloud Functions emulator.
 
@@ -85,7 +85,7 @@ export declare function connectFunctionsEmulator(functionsInstance: Functions, h
 
 void
 
-## httpsCallable()
+## httpsCallable() {:#httpscallable_1dd297c}
 
 Returns a reference to the callable HTTPS trigger with the given name.
 
@@ -107,7 +107,7 @@ export declare function httpsCallable<RequestData = unknown, ResponseData = unkn
 
 [HttpsCallable](./functions.md#httpscallable)<!-- -->&lt;RequestData, ResponseData&gt;
 
-## httpsCallableFromURL()
+## httpsCallableFromURL() {:#httpscallablefromurl_7af6987}
 
 Returns a reference to the callable HTTPS trigger with the specified url.
 

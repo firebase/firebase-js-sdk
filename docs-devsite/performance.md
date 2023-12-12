@@ -17,10 +17,10 @@ The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app...)</b> |
-|  [getPerformance(app)](./performance.md#getperformance) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. |
-|  [initializePerformance(app, settings)](./performance.md#initializeperformance) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. Can only be called once. |
+|  [getPerformance(app)](./performance.md#getperformance_cf608e1) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. |
+|  [initializePerformance(app, settings)](./performance.md#initializeperformance_980350e) | Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. Can only be called once. |
 |  <b>function(performance...)</b> |
-|  [trace(performance, name)](./performance.md#trace) | Returns a new <code>PerformanceTrace</code> instance. |
+|  [trace(performance, name)](./performance.md#trace_62e4b7e) | Returns a new <code>PerformanceTrace</code> instance. |
 
 ## Interfaces
 
@@ -30,7 +30,7 @@ The Firebase Performance Monitoring Web SDK. This SDK does not work in a Node.js
 |  [PerformanceSettings](./performance.performancesettings.md#performancesettings_interface) | Defines configuration options for the Performance Monitoring SDK. |
 |  [PerformanceTrace](./performance.performancetrace.md#performancetrace_interface) | The interface representing a <code>Trace</code>. |
 
-## getPerformance()
+## getPerformance() {:#getperformance_cf608e1}
 
 Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app.
 
@@ -50,7 +50,7 @@ export declare function getPerformance(app?: FirebaseApp): FirebasePerformance;
 
 [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface)
 
-## initializePerformance()
+## initializePerformance() {:#initializeperformance_980350e}
 
 Returns a [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface) instance for the given app. Can only be called once.
 
@@ -71,7 +71,7 @@ export declare function initializePerformance(app: FirebaseApp, settings?: Perfo
 
 [FirebasePerformance](./performance.firebaseperformance.md#firebaseperformance_interface)
 
-## trace()
+## trace() {:#trace_62e4b7e}
 
 Returns a new `PerformanceTrace` instance.
 

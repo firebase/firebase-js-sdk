@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WriteBatch class
 A write batch, used to perform multiple writes as a single atomic unit.
 
-A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
+A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
 
 <b>Signature:</b>
 

@@ -17,66 +17,66 @@ Firebase Authentication
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app...)</b> |
-|  [getAuth(app)](./auth.md#getauth) | Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies. |
-|  [initializeAuth(app, deps)](./auth.md#initializeauth) | Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. |
+|  [getAuth(app)](./auth.md#getauth_cf608e1) | Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies. |
+|  [initializeAuth(app, deps)](./auth.md#initializeauth_ca77c9b) | Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. |
 |  <b>function(storage...)</b> |
-|  [getReactNativePersistence(storage)](./auth.md#getreactnativepersistence) | Returns a persistence object that wraps <code>AsyncStorage</code> imported from <code>react-native</code> or <code>@react-native-community/async-storage</code>, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth)<!-- -->. |
+|  [getReactNativePersistence(storage)](./auth.md#getreactnativepersistence_bab4ada) | Returns a persistence object that wraps <code>AsyncStorage</code> imported from <code>react-native</code> or <code>@react-native-community/async-storage</code>, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->. |
 |  <b>function(auth...)</b> |
-|  [applyActionCode(auth, oobCode)](./auth.md#applyactioncode) | Applies a verification code sent to the user by email or other out-of-band mechanism. |
-|  [beforeAuthStateChanged(auth, callback, onAbort)](./auth.md#beforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
-|  [checkActionCode(auth, oobCode)](./auth.md#checkactioncode) | Checks a verification code sent to the user by email or other out-of-band mechanism. |
-|  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset) | Completes the password reset process, given a confirmation code and new password. |
-|  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
-|  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword) | Creates a new user account associated with the specified email address and password. |
-|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
-|  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
-|  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
-|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
-|  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
-|  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
-|  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
-|  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
-|  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail) | Sends a sign-in email link to the user with the specified email. |
-|  [setPersistence(auth, persistence)](./auth.md#setpersistence) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
-|  [signInAnonymously(auth)](./auth.md#signinanonymously) | Asynchronously signs in as an anonymous user. |
-|  [signInWithCredential(auth, credential)](./auth.md#signinwithcredential) | Asynchronously signs in with the given credentials. |
-|  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken) | Asynchronously signs in using a custom token. |
-|  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword) | Asynchronously signs in using an email and password. |
-|  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink) | Asynchronously signs in using an email and sign-in email link. |
-|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber) | Asynchronously signs in using a phone number. |
-|  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
-|  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect) | Authenticates a Firebase client using a full-page redirect flow. |
-|  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
-|  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
-|  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage) | Sets the current language to the default device/browser preference. |
-|  [validatePassword(auth, password)](./auth.md#validatepassword) | Validates the password against the password policy configured for the project or tenant. |
-|  [verifyPasswordResetCode(auth, code)](./auth.md#verifypasswordresetcode) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
+|  [applyActionCode(auth, oobCode)](./auth.md#applyactioncode_d2ae15a) | Applies a verification code sent to the user by email or other out-of-band mechanism. |
+|  [beforeAuthStateChanged(auth, callback, onAbort)](./auth.md#beforeauthstatechanged_22f2ab6) | Adds a blocking callback that runs before an auth state change sets a new user. |
+|  [checkActionCode(auth, oobCode)](./auth.md#checkactioncode_d2ae15a) | Checks a verification code sent to the user by email or other out-of-band mechanism. |
+|  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset_749dad8) | Completes the password reset process, given a confirmation code and new password. |
+|  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator_657c7e5) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
+|  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword_21ad33b) | Creates a new user account associated with the specified email address and password. |
+|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
+|  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver_201ba61) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
+|  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult_c35dc1f) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
+|  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig_2a61ea7) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
+|  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink_db04f1d) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink_ed14c53)<!-- -->. |
+|  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged_b0d07ab) | Adds an observer for changes to the user's sign-in state. |
+|  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged_b0d07ab) | Adds an observer for changes to the signed-in user's ID token. |
+|  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken_5556ad5) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail_95b079b) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
+|  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail_95b079b) | Sends a sign-in email link to the user with the specified email. |
+|  [setPersistence(auth, persistence)](./auth.md#setpersistence_a3592ac) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
+|  [signInAnonymously(auth)](./auth.md#signinanonymously_2a61ea7) | Asynchronously signs in as an anonymous user. |
+|  [signInWithCredential(auth, credential)](./auth.md#signinwithcredential_8074518) | Asynchronously signs in with the given credentials. |
+|  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken_32af683) | Asynchronously signs in using a custom token. |
+|  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword_21ad33b) | Asynchronously signs in using an email and password. |
+|  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink_ed14c53) | Asynchronously signs in using an email and sign-in email link. |
+|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber_75b2560) | Asynchronously signs in using a phone number. |
+|  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup_770f816) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
+|  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect_770f816) | Authenticates a Firebase client using a full-page redirect flow. |
+|  [signOut(auth)](./auth.md#signout_2a61ea7) | Signs out the current user. |
+|  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser_9d96fff) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
+|  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage_2a61ea7) | Sets the current language to the default device/browser preference. |
+|  [validatePassword(auth, password)](./auth.md#validatepassword_4dc4ad2) | Validates the password against the password policy configured for the project or tenant. |
+|  [verifyPasswordResetCode(auth, code)](./auth.md#verifypasswordresetcode_01e0a1a) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
 |  <b>function(link...)</b> |
-|  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
+|  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl_51293c3) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
 |  <b>function(user...)</b> |
-|  [deleteUser(user)](./auth.md#deleteuser) | Deletes and signs out the user. |
-|  [getIdToken(user, forceRefresh)](./auth.md#getidtoken) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
-|  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
-|  [linkWithCredential(user, credential)](./auth.md#linkwithcredential) | Links the user account with the given credentials. |
-|  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#linkwithphonenumber) | Links the user account with the given phone number. |
-|  [linkWithPopup(user, provider, resolver)](./auth.md#linkwithpopup) | Links the authenticated provider to the user account using a pop-up based OAuth flow. |
-|  [linkWithRedirect(user, provider, resolver)](./auth.md#linkwithredirect) | Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow. |
-|  [multiFactor(user)](./auth.md#multifactor) | The [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) corresponding to the user. |
-|  [reauthenticateWithCredential(user, credential)](./auth.md#reauthenticatewithcredential) | Re-authenticates a user using a fresh credential. |
-|  [reauthenticateWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#reauthenticatewithphonenumber) | Re-authenticates a user using a fresh phone credential. |
-|  [reauthenticateWithPopup(user, provider, resolver)](./auth.md#reauthenticatewithpopup) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a pop-up based OAuth flow. |
-|  [reauthenticateWithRedirect(user, provider, resolver)](./auth.md#reauthenticatewithredirect) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow. |
-|  [reload(user)](./auth.md#reload) | Reloads user account data, if signed in. |
-|  [sendEmailVerification(user, actionCodeSettings)](./auth.md#sendemailverification) | Sends a verification email to a user. |
-|  [unlink(user, providerId)](./auth.md#unlink) | Unlinks a provider from a user account. |
-|  [updateEmail(user, newEmail)](./auth.md#updateemail) | Updates the user's email address. |
-|  [updatePassword(user, newPassword)](./auth.md#updatepassword) | Updates the user's password. |
-|  [updatePhoneNumber(user, credential)](./auth.md#updatephonenumber) | Updates the user's phone number. |
-|  [updateProfile(user, { displayName, photoURL: photoUrl })](./auth.md#updateprofile) | Updates a user's profile data. |
-|  [verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings)](./auth.md#verifybeforeupdateemail) | Sends a verification email to a new email address. |
+|  [deleteUser(user)](./auth.md#deleteuser_52b2e2e) | Deletes and signs out the user. |
+|  [getIdToken(user, forceRefresh)](./auth.md#getidtoken_ce7d429) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
+|  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult_ce7d429) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
+|  [linkWithCredential(user, credential)](./auth.md#linkwithcredential_60f8043) | Links the user account with the given credentials. |
+|  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#linkwithphonenumber_9ed75fe) | Links the user account with the given phone number. |
+|  [linkWithPopup(user, provider, resolver)](./auth.md#linkwithpopup_41c0b31) | Links the authenticated provider to the user account using a pop-up based OAuth flow. |
+|  [linkWithRedirect(user, provider, resolver)](./auth.md#linkwithredirect_41c0b31) | Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow. |
+|  [multiFactor(user)](./auth.md#multifactor_52b2e2e) | The [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) corresponding to the user. |
+|  [reauthenticateWithCredential(user, credential)](./auth.md#reauthenticatewithcredential_60f8043) | Re-authenticates a user using a fresh credential. |
+|  [reauthenticateWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.md#reauthenticatewithphonenumber_9ed75fe) | Re-authenticates a user using a fresh phone credential. |
+|  [reauthenticateWithPopup(user, provider, resolver)](./auth.md#reauthenticatewithpopup_41c0b31) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a pop-up based OAuth flow. |
+|  [reauthenticateWithRedirect(user, provider, resolver)](./auth.md#reauthenticatewithredirect_41c0b31) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow. |
+|  [reload(user)](./auth.md#reload_52b2e2e) | Reloads user account data, if signed in. |
+|  [sendEmailVerification(user, actionCodeSettings)](./auth.md#sendemailverification_6a885d6) | Sends a verification email to a user. |
+|  [unlink(user, providerId)](./auth.md#unlink_f289a14) | Unlinks a provider from a user account. |
+|  [updateEmail(user, newEmail)](./auth.md#updateemail_7737d57) | Updates the user's email address. |
+|  [updatePassword(user, newPassword)](./auth.md#updatepassword_6df673e) | Updates the user's password. |
+|  [updatePhoneNumber(user, credential)](./auth.md#updatephonenumber_0105c49) | Updates the user's phone number. |
+|  [updateProfile(user, { displayName, photoURL: photoUrl })](./auth.md#updateprofile_017e12d) | Updates a user's profile data. |
+|  [verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings)](./auth.md#verifybeforeupdateemail_09d6f11) | Sends a verification email to a new email address. |
 |  <b>function(userCredential...)</b> |
-|  [getAdditionalUserInfo(userCredential)](./auth.md#getadditionaluserinfo) | Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential. |
+|  [getAdditionalUserInfo(userCredential)](./auth.md#getadditionaluserinfo_838a6bd) | Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential. |
 
 ## Classes
 
@@ -104,7 +104,7 @@ Firebase Authentication
 
 |  Interface | Description |
 |  --- | --- |
-|  [ActionCodeInfo](./auth.actioncodeinfo.md#actioncodeinfo_interface) | A response from [checkActionCode()](./auth.md#checkactioncode)<!-- -->. |
+|  [ActionCodeInfo](./auth.actioncodeinfo.md#actioncodeinfo_interface) | A response from [checkActionCode()](./auth.md#checkactioncode_d2ae15a)<!-- -->. |
 |  [ActionCodeSettings](./auth.actioncodesettings.md#actioncodesettings_interface) | An interface that defines the required continue/state URL with optional Android and iOS bundle identifiers. |
 |  [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) | A structure containing additional user information from a federated identity provider. |
 |  [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | A verifier for domain verification and abuse prevention. |
@@ -134,7 +134,7 @@ Firebase Authentication
 |  [PhoneMultiFactorInfo](./auth.phonemultifactorinfo.md#phonemultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for phone number second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.PHONE. |
 |  [PhoneMultiFactorSignInInfoOptions](./auth.phonemultifactorsignininfooptions.md#phonemultifactorsignininfooptions_interface) | Options used for signing in with a second factor. |
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
-|  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->. |
+|  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
 |  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
@@ -172,7 +172,7 @@ Firebase Authentication
 |  [PhoneInfoOptions](./auth.md#phoneinfooptions) | The information required to verify the ownership of a phone number. |
 |  [UserProfile](./auth.md#userprofile) | User profile used in [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface)<!-- -->. |
 
-## getAuth()
+## getAuth() {:#getauth_cf608e1}
 
 Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies.
 
@@ -192,11 +192,11 @@ export declare function getAuth(app?: FirebaseApp): Auth;
 
 [Auth](./auth.auth.md#auth_interface)
 
-## initializeAuth()
+## initializeAuth() {:#initializeauth_ca77c9b}
 
 Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->.
 
-This function allows more control over the [Auth](./auth.auth.md#auth_interface) instance than [getAuth()](./auth.md#getauth)<!-- -->. `getAuth` uses platform-specific defaults to supply the [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. In general, `getAuth` is the easiest way to initialize Auth and works for most use cases. Use `initializeAuth` if you need control over which persistence layer is used, or to minimize bundle size if you're not using either `signInWithPopup` or `signInWithRedirect`<!-- -->.
+This function allows more control over the [Auth](./auth.auth.md#auth_interface) instance than [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. `getAuth` uses platform-specific defaults to supply the [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. In general, `getAuth` is the easiest way to initialize Auth and works for most use cases. Use `initializeAuth` if you need control over which persistence layer is used, or to minimize bundle size if you're not using either `signInWithPopup` or `signInWithRedirect`<!-- -->.
 
 For example, if your app only uses anonymous accounts and you only want accounts saved for the current session, initialize `Auth` with:
 
@@ -225,9 +225,9 @@ export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): A
 
 [Auth](./auth.auth.md#auth_interface)
 
-## getReactNativePersistence()
+## getReactNativePersistence() {:#getreactnativepersistence_bab4ada}
 
-Returns a persistence object that wraps `AsyncStorage` imported from `react-native` or `@react-native-community/async-storage`<!-- -->, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth)<!-- -->.
+Returns a persistence object that wraps `AsyncStorage` imported from `react-native` or `@react-native-community/async-storage`<!-- -->, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->.
 
 <b>Signature:</b>
 
@@ -245,7 +245,7 @@ export declare function getReactNativePersistence(storage: ReactNativeAsyncStora
 
 [Persistence](./auth.persistence.md#persistence_interface)
 
-## applyActionCode()
+## applyActionCode() {:#applyactioncode_d2ae15a}
 
 Applies a verification code sent to the user by email or other out-of-band mechanism.
 
@@ -266,7 +266,7 @@ export declare function applyActionCode(auth: Auth, oobCode: string): Promise<vo
 
 Promise&lt;void&gt;
 
-## beforeAuthStateChanged()
+## beforeAuthStateChanged() {:#beforeauthstatechanged_22f2ab6}
 
 Adds a blocking callback that runs before an auth state change sets a new user.
 
@@ -288,7 +288,7 @@ export declare function beforeAuthStateChanged(auth: Auth, callback: (user: User
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## checkActionCode()
+## checkActionCode() {:#checkactioncode_d2ae15a}
 
 Checks a verification code sent to the user by email or other out-of-band mechanism.
 
@@ -311,7 +311,7 @@ Promise&lt;[ActionCodeInfo](./auth.actioncodeinfo.md#actioncodeinfo_interface)<!
 
 metadata about the code.
 
-## confirmPasswordReset()
+## confirmPasswordReset() {:#confirmpasswordreset_749dad8}
 
 Completes the password reset process, given a confirmation code and new password.
 
@@ -333,11 +333,11 @@ export declare function confirmPasswordReset(auth: Auth, oobCode: string, newPas
 
 Promise&lt;void&gt;
 
-## connectAuthEmulator()
+## connectAuthEmulator() {:#connectauthemulator_657c7e5}
 
 Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services.
 
-This must be called synchronously immediately following the first call to [initializeAuth()](./auth.md#initializeauth)<!-- -->. Do not use with production credentials as emulator traffic is not encrypted.
+This must be called synchronously immediately following the first call to [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->. Do not use with production credentials as emulator traffic is not encrypted.
 
 <b>Signature:</b>
 
@@ -367,7 +367,7 @@ connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
 
 ```
 
-## createUserWithEmailAndPassword()
+## createUserWithEmailAndPassword() {:#createuserwithemailandpassword_21ad33b}
 
 Creates a new user account associated with the specified email address and password.
 
@@ -395,7 +395,7 @@ export declare function createUserWithEmailAndPassword(auth: Auth, email: string
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## fetchSignInMethodsForEmail()
+## fetchSignInMethodsForEmail() {:#fetchsigninmethodsforemail_efb3887}
 
 Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
 
@@ -418,7 +418,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 
 Promise&lt;string\[\]&gt;
 
-## getMultiFactorResolver()
+## getMultiFactorResolver() {:#getmultifactorresolver_201ba61}
 
 Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow.
 
@@ -439,7 +439,7 @@ export declare function getMultiFactorResolver(auth: Auth, error: MultiFactorErr
 
 [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface)
 
-## getRedirectResult()
+## getRedirectResult() {:#getredirectresult_c35dc1f}
 
 Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow.
 
@@ -458,7 +458,7 @@ export declare function getRedirectResult(auth: Auth, resolver?: PopupRedirectRe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -492,7 +492,7 @@ const operationType = result.operationType;
 
 ```
 
-## initializeRecaptchaConfig()
+## initializeRecaptchaConfig() {:#initializerecaptchaconfig_2a61ea7}
 
 Loads the reCAPTCHA configuration into the `Auth` instance.
 
@@ -528,9 +528,9 @@ initializeRecaptchaConfig(auth);
 
 ```
 
-## isSignInWithEmailLink()
+## isSignInWithEmailLink() {:#issigninwithemaillink_db04f1d}
 
-Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->.
+Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink_ed14c53)<!-- -->.
 
 <b>Signature:</b>
 
@@ -549,11 +549,11 @@ export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): bo
 
 boolean
 
-## onAuthStateChanged()
+## onAuthStateChanged() {:#onauthstatechanged_b0d07ab}
 
 Adds an observer for changes to the user's sign-in state.
 
-To keep the old behavior, see [onIdTokenChanged()](./auth.md#onidtokenchanged)<!-- -->.
+To keep the old behavior, see [onIdTokenChanged()](./auth.md#onidtokenchanged_b0d07ab)<!-- -->.
 
 <b>Signature:</b>
 
@@ -574,7 +574,7 @@ export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObs
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## onIdTokenChanged()
+## onIdTokenChanged() {:#onidtokenchanged_b0d07ab}
 
 Adds an observer for changes to the signed-in user's ID token.
 
@@ -599,7 +599,7 @@ export declare function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObser
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## revokeAccessToken()
+## revokeAccessToken() {:#revokeaccesstoken_5556ad5}
 
 Revokes the given access token. Currently only supports Apple OAuth access tokens.
 
@@ -620,11 +620,11 @@ export declare function revokeAccessToken(auth: Auth, token: string): Promise<vo
 
 Promise&lt;void&gt;
 
-## sendPasswordResetEmail()
+## sendPasswordResetEmail() {:#sendpasswordresetemail_95b079b}
 
 Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
-To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset) with the code supplied in the email sent to the user, along with the new password specified by the user.
+To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset_749dad8) with the code supplied in the email sent to the user, along with the new password specified by the user.
 
 <b>Signature:</b>
 
@@ -666,13 +666,13 @@ await confirmPasswordReset('user@example.com', code);
 
 ```
 
-## sendSignInLinkToEmail()
+## sendSignInLinkToEmail() {:#sendsigninlinktoemail_95b079b}
 
 Sends a sign-in email link to the user with the specified email.
 
 The sign-in operation has to always be completed in the app unlike other out of band email actions (password reset and email verifications). This is because, at the end of the flow, the user is expected to be signed in and their Auth state persisted within the app.
 
-To complete sign in with the email link, call [signInWithEmailLink()](./auth.md#signinwithemaillink) with the email address and the email link supplied in the email sent to the user.
+To complete sign in with the email link, call [signInWithEmailLink()](./auth.md#signinwithemaillink_ed14c53) with the email address and the email link supplied in the email sent to the user.
 
 <b>Signature:</b>
 
@@ -716,7 +716,7 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ```
 
-## setPersistence()
+## setPersistence() {:#setpersistence_a3592ac}
 
 Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved `Auth` session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.
 
@@ -751,7 +751,7 @@ setPersistence(auth, browserSessionPersistence);
 
 ```
 
-## signInAnonymously()
+## signInAnonymously() {:#signinanonymously_2a61ea7}
 
 Asynchronously signs in as an anonymous user.
 
@@ -773,7 +773,7 @@ export declare function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithCredential()
+## signInWithCredential() {:#signinwithcredential_8074518}
 
 Asynchronously signs in with the given credentials.
 
@@ -796,7 +796,7 @@ export declare function signInWithCredential(auth: Auth, credential: AuthCredent
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithCustomToken()
+## signInWithCustomToken() {:#signinwithcustomtoken_32af683}
 
 Asynchronously signs in using a custom token.
 
@@ -821,13 +821,13 @@ export declare function signInWithCustomToken(auth: Auth, customToken: string): 
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithEmailAndPassword()
+## signInWithEmailAndPassword() {:#signinwithemailandpassword_21ad33b}
 
 Asynchronously signs in using an email and password.
 
 Fails with an error if the email address and password do not match. When \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
 
-Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword)<!-- -->.
+Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword_21ad33b)<!-- -->.
 
 <b>Signature:</b>
 
@@ -847,7 +847,7 @@ export declare function signInWithEmailAndPassword(auth: Auth, email: string, pa
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithEmailLink()
+## signInWithEmailLink() {:#signinwithemaillink_ed14c53}
 
 Asynchronously signs in using an email and sign-in email link.
 
@@ -899,7 +899,7 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ```
 
-## signInWithPhoneNumber()
+## signInWithPhoneNumber() {:#signinwithphonenumber_75b2560}
 
 Asynchronously signs in using a phone number.
 
@@ -939,7 +939,7 @@ const credential = await confirmationResult.confirm(verificationCode);
 
 ```
 
-## signInWithPopup()
+## signInWithPopup() {:#signinwithpopup_770f816}
 
 Authenticates a Firebase client using a popup-based OAuth authentication flow.
 
@@ -959,7 +959,7 @@ export declare function signInWithPopup(auth: Auth, provider: AuthProvider, reso
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -981,11 +981,11 @@ const token = credential.accessToken;
 
 ```
 
-## signInWithRedirect()
+## signInWithRedirect() {:#signinwithredirect_770f816}
 
 Authenticates a Firebase client using a full-page redirect flow.
 
-To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->.
+To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->.
 
 This method does not work in a Node.js environment.
 
@@ -1001,7 +1001,7 @@ export declare function signInWithRedirect(auth: Auth, provider: AuthProvider, r
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1035,7 +1035,7 @@ const operationType = result.operationType;
 
 ```
 
-## signOut()
+## signOut() {:#signout_2a61ea7}
 
 Signs out the current user.
 
@@ -1055,13 +1055,13 @@ export declare function signOut(auth: Auth): Promise<void>;
 
 Promise&lt;void&gt;
 
-## updateCurrentUser()
+## updateCurrentUser() {:#updatecurrentuser_9d96fff}
 
 Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance.
 
 A new instance copy of the user provided will be made and set as currentUser.
 
-This will trigger [onAuthStateChanged()](./auth.md#onauthstatechanged) and [onIdTokenChanged()](./auth.md#onidtokenchanged) listeners like other sign in methods.
+This will trigger [onAuthStateChanged()](./auth.md#onauthstatechanged_b0d07ab) and [onIdTokenChanged()](./auth.md#onidtokenchanged_b0d07ab) listeners like other sign in methods.
 
 The operation fails with an error if the user to be updated belongs to a different Firebase project.
 
@@ -1082,7 +1082,7 @@ export declare function updateCurrentUser(auth: Auth, user: User | null): Promis
 
 Promise&lt;void&gt;
 
-## useDeviceLanguage()
+## useDeviceLanguage() {:#usedevicelanguage_2a61ea7}
 
 Sets the current language to the default device/browser preference.
 
@@ -1102,7 +1102,7 @@ export declare function useDeviceLanguage(auth: Auth): void;
 
 void
 
-## validatePassword()
+## validatePassword() {:#validatepassword_4dc4ad2}
 
 Validates the password against the password policy configured for the project or tenant.
 
@@ -1135,7 +1135,7 @@ validatePassword(auth, 'some-password');
 
 ```
 
-## verifyPasswordResetCode()
+## verifyPasswordResetCode() {:#verifypasswordresetcode_01e0a1a}
 
 Checks a password reset code sent to the user by email or other out-of-band mechanism.
 
@@ -1158,7 +1158,7 @@ Promise&lt;string&gt;
 
 the user's email address if valid.
 
-## parseActionCodeURL()
+## parseActionCodeURL() {:#parseactioncodeurl_51293c3}
 
 Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null.
 
@@ -1178,11 +1178,11 @@ export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) \| null
 
-## deleteUser()
+## deleteUser() {:#deleteuser_52b2e2e}
 
 Deletes and signs out the user.
 
-Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential)<!-- -->.
+Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1200,7 +1200,7 @@ export declare function deleteUser(user: User): Promise<void>;
 
 Promise&lt;void&gt;
 
-## getIdToken()
+## getIdToken() {:#getidtoken_ce7d429}
 
 Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
 
@@ -1223,7 +1223,7 @@ export declare function getIdToken(user: User, forceRefresh?: boolean): Promise<
 
 Promise&lt;string&gt;
 
-## getIdTokenResult()
+## getIdTokenResult() {:#getidtokenresult_ce7d429}
 
 Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
 
@@ -1246,7 +1246,7 @@ export declare function getIdTokenResult(user: User, forceRefresh?: boolean): Pr
 
 Promise&lt;[IdTokenResult](./auth.idtokenresult.md#idtokenresult_interface)<!-- -->&gt;
 
-## linkWithCredential()
+## linkWithCredential() {:#linkwithcredential_60f8043}
 
 Links the user account with the given credentials.
 
@@ -1269,7 +1269,7 @@ export declare function linkWithCredential(user: User, credential: AuthCredentia
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## linkWithPhoneNumber()
+## linkWithPhoneNumber() {:#linkwithphonenumber_9ed75fe}
 
 Links the user account with the given phone number.
 
@@ -1293,7 +1293,7 @@ export declare function linkWithPhoneNumber(user: User, phoneNumber: string, app
 
 Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->&gt;
 
-## linkWithPopup()
+## linkWithPopup() {:#linkwithpopup_41c0b31}
 
 Links the authenticated provider to the user account using a pop-up based OAuth flow.
 
@@ -1313,7 +1313,7 @@ export declare function linkWithPopup(user: User, provider: AuthProvider, resolv
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1331,11 +1331,11 @@ await linkWithPopup(result.user, provider);
 
 ```
 
-## linkWithRedirect()
+## linkWithRedirect() {:#linkwithredirect_41c0b31}
 
 Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow.
 
-To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [linkWithRedirect()](./auth.md#linkwithredirect)<!-- -->.
+To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [linkWithRedirect()](./auth.md#linkwithredirect_41c0b31)<!-- -->.
 
 This method does not work in a Node.js environment.
 
@@ -1351,7 +1351,7 @@ export declare function linkWithRedirect(user: User, provider: AuthProvider, res
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1373,7 +1373,7 @@ const result = await getRedirectResult(auth);
 
 ```
 
-## multiFactor()
+## multiFactor() {:#multifactor_52b2e2e}
 
 The [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) corresponding to the user.
 
@@ -1395,11 +1395,11 @@ export declare function multiFactor(user: User): MultiFactorUser;
 
 [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface)
 
-## reauthenticateWithCredential()
+## reauthenticateWithCredential() {:#reauthenticatewithcredential_60f8043}
 
 Re-authenticates a user using a fresh credential.
 
-Use before operations such as [updatePassword()](./auth.md#updatepassword) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
+Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
 
 <b>Signature:</b>
 
@@ -1418,11 +1418,11 @@ export declare function reauthenticateWithCredential(user: User, credential: Aut
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## reauthenticateWithPhoneNumber()
+## reauthenticateWithPhoneNumber() {:#reauthenticatewithphonenumber_9ed75fe}
 
 Re-authenticates a user using a fresh phone credential.
 
-Use before operations such as [updatePassword()](./auth.md#updatepassword) that require tokens from recent sign-in attempts.
+Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts.
 
 This method does not work in a Node.js environment.
 
@@ -1444,7 +1444,7 @@ export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: s
 
 Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->&gt;
 
-## reauthenticateWithPopup()
+## reauthenticateWithPopup() {:#reauthenticatewithpopup_41c0b31}
 
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a pop-up based OAuth flow.
 
@@ -1464,7 +1464,7 @@ export declare function reauthenticateWithPopup(user: User, provider: AuthProvid
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1482,11 +1482,11 @@ await reauthenticateWithPopup(result.user, provider);
 
 ```
 
-## reauthenticateWithRedirect()
+## reauthenticateWithRedirect() {:#reauthenticatewithredirect_41c0b31}
 
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow.
 
-To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [reauthenticateWithRedirect()](./auth.md#reauthenticatewithredirect)<!-- -->.
+To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [reauthenticateWithRedirect()](./auth.md#reauthenticatewithredirect_41c0b31)<!-- -->.
 
 This method does not work in a Node.js environment.
 
@@ -1502,7 +1502,7 @@ export declare function reauthenticateWithRedirect(user: User, provider: AuthPro
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
 |  provider | [AuthProvider](./auth.authprovider.md#authprovider_interface) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) will throw an error. |
-|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth) or provided by [getAuth()](./auth.md#getauth)<!-- -->. |
+|  resolver | [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | An instance of [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface)<!-- -->, optional if already supplied to [initializeAuth()](./auth.md#initializeauth_ca77c9b) or provided by [getAuth()](./auth.md#getauth_cf608e1)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1528,7 +1528,7 @@ const result = await getRedirectResult(auth);
 
 ```
 
-## reload()
+## reload() {:#reload_52b2e2e}
 
 Reloads user account data, if signed in.
 
@@ -1548,11 +1548,11 @@ export declare function reload(user: User): Promise<void>;
 
 Promise&lt;void&gt;
 
-## sendEmailVerification()
+## sendEmailVerification() {:#sendemailverification_6a885d6}
 
 Sends a verification email to a user.
 
-The verification process is completed by calling [applyActionCode()](./auth.md#applyactioncode)<!-- -->.
+The verification process is completed by calling [applyActionCode()](./auth.md#applyactioncode_d2ae15a)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1593,7 +1593,7 @@ await applyActionCode(auth, code);
 
 ```
 
-## unlink()
+## unlink() {:#unlink_f289a14}
 
 Unlinks a provider from a user account.
 
@@ -1614,13 +1614,13 @@ export declare function unlink(user: User, providerId: string): Promise<User>;
 
 Promise&lt;[User](./auth.user.md#user_interface)<!-- -->&gt;
 
-## updateEmail()
+## updateEmail() {:#updateemail_7737d57}
 
 Updates the user's email address.
 
 An email will be sent to the original email address (if it was set) that allows to revoke the email address change, in order to protect them from account hijacking.
 
-Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential)<!-- -->.
+Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1633,17 +1633,17 @@ export declare function updateEmail(user: User, newEmail: string): Promise<void>
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
-|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail) instead. |
+|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail_09d6f11) instead. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
 
-## updatePassword()
+## updatePassword() {:#updatepassword_6df673e}
 
 Updates the user's password.
 
-Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential)<!-- -->.
+Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1662,7 +1662,7 @@ export declare function updatePassword(user: User, newPassword: string): Promise
 
 Promise&lt;void&gt;
 
-## updatePhoneNumber()
+## updatePhoneNumber() {:#updatephonenumber_0105c49}
 
 Updates the user's phone number.
 
@@ -1699,7 +1699,7 @@ await updatePhoneNumber(user, phoneCredential);
 
 ```
 
-## updateProfile()
+## updateProfile() {:#updateprofile_017e12d}
 
 Updates a user's profile data.
 
@@ -1723,13 +1723,13 @@ export declare function updateProfile(user: User, { displayName, photoURL: photo
 
 Promise&lt;void&gt;
 
-## verifyBeforeUpdateEmail()
+## verifyBeforeUpdateEmail() {:#verifybeforeupdateemail_09d6f11}
 
 Sends a verification email to a new email address.
 
 The user's email will be updated to the new one after being verified.
 
-If you have a custom email action handler, you can complete the verification process by calling [applyActionCode()](./auth.md#applyactioncode)<!-- -->.
+If you have a custom email action handler, you can complete the verification process by calling [applyActionCode()](./auth.md#applyactioncode_d2ae15a)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1771,7 +1771,7 @@ await applyActionCode(auth, code);
 
 ```
 
-## getAdditionalUserInfo()
+## getAdditionalUserInfo() {:#getadditionaluserinfo_838a6bd}
 
 Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential.
 

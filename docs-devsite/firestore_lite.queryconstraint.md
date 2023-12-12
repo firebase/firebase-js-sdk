@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryConstraint class
-A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where)<!-- -->, [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->, [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
+A `QueryConstraint` is used to narrow the set of documents returned by a Firestore query. `QueryConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where_0fae4bf)<!-- -->, [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryConstraint`<!-- -->.
 
 <b>Signature:</b>
 

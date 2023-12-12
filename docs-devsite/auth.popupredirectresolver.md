@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PopupRedirectResolver interface
-A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup) or [signInWithRedirect()](./auth.md#signinwithredirect)<!-- -->.
+A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->.
 
 <b>Signature:</b>
 

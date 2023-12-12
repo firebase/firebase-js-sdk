@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CollectionReference class
-A `CollectionReference` object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query)<!-- -->).
+A `CollectionReference` object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->).
 
 <b>Signature:</b>
 
@@ -32,7 +32,7 @@ export declare class CollectionReference<AppModelType = DocumentData, DbModelTyp
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
+|  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc_6e783ff) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 |  [withConverter(converter)](./firestore_lite.collectionreference.md#collectionreferencewithconverter) |  | Removes the current converter. |
 
 ## CollectionReference.id
@@ -77,7 +77,7 @@ readonly type = "collection";
 
 ## CollectionReference.withConverter()
 
-Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
+Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc_6e783ff) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 

@@ -16,11 +16,11 @@ https://github.com/firebase/firebase-js-sdk
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app...)</b> |
-|  [getMessaging(app)](./messaging_.md#getmessaging) | Retrieves a Firebase Cloud Messaging instance. |
+|  [getMessaging(app)](./messaging_.md#getmessaging_cf608e1) | Retrieves a Firebase Cloud Messaging instance. |
 |  <b>function(messaging...)</b> |
-|  [deleteToken(messaging)](./messaging_.md#deletetoken) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
-|  [getToken(messaging, options)](./messaging_.md#gettoken) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
-|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
+|  [deleteToken(messaging)](./messaging_.md#deletetoken_3fae4b1) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
+|  [getToken(messaging, options)](./messaging_.md#gettoken_b538f38) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
+|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage_b9887da) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_.md#issupported) | Checks if all required APIs exist in the browser. |
 
@@ -29,12 +29,12 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [FcmOptions](./messaging_.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
-|  [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken)<!-- -->. |
+|  [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken_b538f38)<!-- -->. |
 |  [MessagePayload](./messaging_.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 |  [Messaging](./messaging_.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
 |  [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 
-## getMessaging()
+## getMessaging() {:#getmessaging_cf608e1}
 
 Retrieves a Firebase Cloud Messaging instance.
 
@@ -56,7 +56,7 @@ export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
 
 The Firebase Cloud Messaging instance associated with the provided firebase app.
 
-## deleteToken()
+## deleteToken() {:#deletetoken_3fae4b1}
 
 Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription.
 
@@ -78,7 +78,7 @@ Promise&lt;boolean&gt;
 
 The promise resolves when the token has been successfully deleted.
 
-## getToken()
+## getToken() {:#gettoken_b538f38}
 
 Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.
 
@@ -103,7 +103,7 @@ Promise&lt;string&gt;
 
 The promise resolves with an FCM registration token.
 
-## onMessage()
+## onMessage() {:#onmessage_b9887da}
 
 When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an `onMessage()` event is dispatched with the payload of the push message.
 
@@ -126,7 +126,7 @@ export declare function onMessage(messaging: Messaging, nextOrObserver: NextFn<M
 
 To stop listening for messages execute this returned function.
 
-## isSupported()
+## isSupported() {:#issupported}
 
 Checks if all required APIs exist in the browser.
 

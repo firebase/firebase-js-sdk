@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SnapshotListenOptions interface
-An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set.
+An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set.
 
 <b>Signature:</b>
 

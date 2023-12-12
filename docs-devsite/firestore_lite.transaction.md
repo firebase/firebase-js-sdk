@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # Transaction class
 A reference to a transaction.
 
-The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction)<!-- -->.
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->.
 
 <b>Signature:</b>
 

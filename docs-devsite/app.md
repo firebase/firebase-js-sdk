@@ -19,28 +19,28 @@ This package coordinates the communication between the different Firebase compon
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app...)</b> |
-|  [deleteApp(app)](./app.md#deleteapp) | Renders this app unusable and frees the resources of all associated services. |
+|  [deleteApp(app)](./app.md#deleteapp_cf608e1) | Renders this app unusable and frees the resources of all associated services. |
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
 |  <b>function(libraryKeyOrName...)</b> |
-|  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion) | Registers a library's name and version for platform logging purposes. |
+|  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion_f673248) | Registers a library's name and version for platform logging purposes. |
 |  <b>function(logCallback...)</b> |
-|  [onLog(logCallback, options)](./app.md#onlog) | Sets log handler for all Firebase SDKs. |
+|  [onLog(logCallback, options)](./app.md#onlog_fd46eae) | Sets log handler for all Firebase SDKs. |
 |  <b>function(logLevel...)</b> |
-|  [setLogLevel(logLevel)](./app.md#setloglevel) | Sets log level for all Firebase SDKs.<!-- -->All of the log types above the current log level are captured (i.e. if you set the log level to <code>info</code>, errors are logged, but <code>debug</code> and <code>verbose</code> logs are not). |
+|  [setLogLevel(logLevel)](./app.md#setloglevel_697d53a) | Sets log level for all Firebase SDKs.<!-- -->All of the log types above the current log level are captured (i.e. if you set the log level to <code>info</code>, errors are logged, but <code>debug</code> and <code>verbose</code> logs are not). |
 |  <b>function(name...)</b> |
-|  [getApp(name)](./app.md#getapp) | Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->When called with no arguments, the default app is returned. When an app name is provided, the app corresponding to that name is returned.<!-- -->An exception is thrown if the app being retrieved has not yet been initialized. |
+|  [getApp(name)](./app.md#getapp_1eaaff4) | Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->When called with no arguments, the default app is returned. When an app name is provided, the app corresponding to that name is returned.<!-- -->An exception is thrown if the app being retrieved has not yet been initialized. |
 |  <b>function(options...)</b> |
-|  [initializeApp(options, name)](./app.md#initializeapp) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
-|  [initializeApp(options, config)](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  [initializeApp(options, name)](./app.md#initializeapp_cb2f5e1) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
+|  [initializeApp(options, config)](./app.md#initializeapp_079e917) | Creates and initializes a FirebaseApp instance. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp) to create an app. |
-|  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp) |
+|  [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp_cb2f5e1) to create an app. |
+|  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp_cb2f5e1) |
 |  [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Firebase configuration object. Contains a set of parameters required by services in order to successfully communicate with Firebase server APIs and to associate client data with your Firebase project and Firebase application. Typically this object is populated by the Firebase console at project setup. See also: [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object)<!-- -->. |
 
 ## Variables
@@ -49,7 +49,7 @@ This package coordinates the communication between the different Firebase compon
 |  --- | --- |
 |  [SDK\_VERSION](./app.md#sdk_version) | The current SDK version. |
 
-## deleteApp()
+## deleteApp() {:#deleteapp_cf608e1}
 
 Renders this app unusable and frees the resources of all associated services.
 
@@ -83,7 +83,7 @@ deleteApp(app)
 
 ```
 
-## getApps()
+## getApps() {:#getapps}
 
 A (read-only) array of all initialized apps.
 
@@ -96,7 +96,7 @@ export declare function getApps(): FirebaseApp[];
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->\[\]
 
-## initializeApp()
+## initializeApp() {:#initializeapp}
 
 Creates and initializes a FirebaseApp instance.
 
@@ -109,7 +109,7 @@ export declare function initializeApp(): FirebaseApp;
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
 
-## registerVersion()
+## registerVersion() {:#registerversion_f673248}
 
 Registers a library's name and version for platform logging purposes.
 
@@ -131,7 +131,7 @@ export declare function registerVersion(libraryKeyOrName: string, version: strin
 
 void
 
-## onLog()
+## onLog() {:#onlog_fd46eae}
 
 Sets log handler for all Firebase SDKs.
 
@@ -152,7 +152,7 @@ export declare function onLog(logCallback: LogCallback | null, options?: LogOpti
 
 void
 
-## setLogLevel()
+## setLogLevel() {:#setloglevel_697d53a}
 
 Sets log level for all Firebase SDKs.
 
@@ -174,7 +174,7 @@ export declare function setLogLevel(logLevel: LogLevelString): void;
 
 void
 
-## getApp()
+## getApp() {:#getapp_1eaaff4}
 
 Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
 
@@ -218,7 +218,7 @@ const otherApp = getApp("otherApp");
 
 ```
 
-## initializeApp()
+## initializeApp() {:#initializeapp_cb2f5e1}
 
 Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
 
@@ -274,7 +274,7 @@ const otherApp = initializeApp({
 
 ```
 
-## initializeApp()
+## initializeApp() {:#initializeapp_079e917}
 
 Creates and initializes a FirebaseApp instance.
 
