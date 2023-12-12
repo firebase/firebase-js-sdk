@@ -26,8 +26,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
 |  [disableNetwork(firestore)](./firestore_.md#disablenetwork) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
 |  [doc(firestore, path, pathSegments)](./firestore_.md#doc) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
-|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Persistence cannot be used in a Node.js environment. |
-|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
+|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will throw an error. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Persistence cannot be used in a Node.js environment. |
+|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will throw an error. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
 |  [enableNetwork(firestore)](./firestore_.md#enablenetwork) | Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork)<!-- -->. |
 |  [getPersistentCacheIndexManager(firestore)](./firestore_.md#getpersistentcacheindexmanager) | Returns the PersistentCache Index Manager used by the given <code>Firestore</code> object. The <code>PersistentCacheIndexManager</code> instance, or <code>null</code> if local persistent storage is not in use. |
 |  [loadBundle(firestore, bundleData)](./firestore_.md#loadbundle) | Loads a Firestore bundle into the local cache. |
@@ -457,7 +457,7 @@ Attempts to enable persistent storage, if possible.
 
 Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.
 
-If this fails, `enableIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
+If this fails, `enableIndexedDbPersistence()` will throw an error. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
 
 There are several reasons why this can fail, which can be identified by the `code` on the error.
 
@@ -484,6 +484,10 @@ Promise&lt;void&gt;
 
 A `Promise` that represents successfully enabling persistent storage.
 
+## Exceptions
+
+FirestoreError if it fails.
+
 ## enableMultiTabIndexedDbPersistence()
 
 > Warning: This API is now obsolete.
@@ -493,7 +497,7 @@ A `Promise` that represents successfully enabling persistent storage.
 
 Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
 
-If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
+If this fails, `enableMultiTabIndexedDbPersistence()` will throw an error. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
 
 There are several reasons why this can fail, which can be identified by the `code` on the error.
 
@@ -516,6 +520,10 @@ export declare function enableMultiTabIndexedDbPersistence(firestore: Firestore)
 Promise&lt;void&gt;
 
 A `Promise` that represents successfully enabling persistent storage.
+
+## Exceptions
+
+FirestoreError if it fails.
 
 ## enableNetwork()
 
