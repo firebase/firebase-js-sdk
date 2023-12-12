@@ -189,4 +189,13 @@ export abstract class RestConnection implements Connection {
     );
     return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
   }
+
+  /**
+   * Closes and cleans up any resources associated with the connection. This
+   * implementation is a no-op because there are no resources associated
+   * with the RestConnection that need to be cleaned up.
+   */
+  terminate(): void {
+    // No-op
+  }
 }

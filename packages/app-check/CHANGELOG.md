@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.8.1
+
+### Patch Changes
+
+- [`1d32137c5`](https://github.com/firebase/firebase-js-sdk/commit/1d32137c546a576298adb1713a9862cc92a26c83) [#7822](https://github.com/firebase/firebase-js-sdk/pull/7822) - Prevent App Check from logging "uncaught" cancelled promises. The cancelled promises are part of App Check's expected behavior, and their cancellation wasn't intended to produce errors or warnings. See issue #7805.
+
 ## 0.8.0
 
 ### Minor Changes
