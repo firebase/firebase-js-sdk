@@ -77,7 +77,8 @@ import {
   createEnumTables,
   createThrowsSection,
   createEntryPointTitleCell,
-  createExampleSection
+  createExampleSection,
+  getHeadingAnchorForApiItem
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
 import { DocHeading } from '../nodes/DocHeading';
@@ -86,6 +87,7 @@ import { DocTable } from '../nodes/DocTable';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
+import { Utilities } from '../utils/Utilities';
 
 export interface IMarkdownDocumenterOptions {
   apiModel: ApiModel;
@@ -232,7 +234,14 @@ page_type: reference
         output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Function:
-        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
+        const anchor = getHeadingAnchorForApiItem(apiItem);
+        output.push(
+          new DocHeading({
+            configuration,
+            title: `${scopedName}`,
+            anchor: anchor
+          })
+        );
         break;
       case ApiItemKind.Model:
         output.push(new DocHeading({ configuration, title: `API Reference` }));

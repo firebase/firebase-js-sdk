@@ -91,7 +91,11 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
             prefix = '####';
         }
 
-        writer.writeLine(prefix + ' ' + this.getEscapedText(docHeading.title));
+        let mdLine = prefix + ' ' + this.getEscapedText(docHeading.title);
+        if (docHeading.anchor) {
+          mdLine = mdLine + ` {:#${docHeading.anchor}}`;
+        }
+        writer.writeLine(mdLine);
         writer.writeLine();
         break;
       }
