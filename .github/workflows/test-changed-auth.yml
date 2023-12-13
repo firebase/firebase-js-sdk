@@ -43,7 +43,7 @@ jobs:
           echo $CHROME_VALIDATED_VERSION
           if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
           echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating the validated version in the GitHub workflow if tests pass."
-          echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION}  Installed version: chromeVersionString"
+          echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
           fi
       - name: Checkout Repo
         uses: actions/checkout@master
