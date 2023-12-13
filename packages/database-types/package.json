@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-types",
-  "version": "0.10.4",
+  "version": "1.0.0",
   "description": "@firebase/database Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

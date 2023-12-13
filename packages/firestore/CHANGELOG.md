@@ -1,5 +1,107 @@
 # @firebase/firestore
 
+## 4.4.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- [`0d29adc97`](https://github.com/firebase/firebase-js-sdk/commit/0d29adc974d72f93552dad53ebd8b4ecab2ce810) [#7740](https://github.com/firebase/firebase-js-sdk/pull/7740) - Fixed an issue in the local cache synchronization logic where all locally-cached documents that matched a resumed query would be unnecessarily re-downloaded; with the fix it now only downloads the documents that are known to be out-of-sync.
+
+- [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4) [#7771](https://github.com/firebase/firebase-js-sdk/pull/7771) (fixes [#6118](https://github.com/firebase/firebase-js-sdk/issues/6118)) - Fix high memory usage of Firestore in browsers.
+
+- Updated dependencies [[`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4)]:
+  - @firebase/webchannel-wrapper@0.10.5
+
+## 4.3.2
+
+### Patch Changes
+
+- [`f27baf423`](https://github.com/firebase/firebase-js-sdk/commit/f27baf423b3c9834b94aed13a93a5385813fd7dd) [#7729](https://github.com/firebase/firebase-js-sdk/pull/7729) - Rolling back the use of useFetchStreams, which has lead to hanging and incomplete queries.
+
+## 4.3.1
+
+### Patch Changes
+
+- [`12f25592c`](https://github.com/firebase/firebase-js-sdk/commit/12f25592c02de8d899926d215b0ffd383b1f3aa0) [#7696](https://github.com/firebase/firebase-js-sdk/pull/7696) - Clarify method documentation.
+
+## 4.3.0
+
+### Minor Changes
+
+- [`02e2518ca`](https://github.com/firebase/firebase-js-sdk/commit/02e2518cabce16f47e4485c4c5a2a499e4d96e0c) [#7502](https://github.com/firebase/firebase-js-sdk/pull/7502) - Support sum and average aggregations.
+
+- [`cca47353c`](https://github.com/firebase/firebase-js-sdk/commit/cca47353c9db1e16fa512f909525dd34920db1ba) [#7441](https://github.com/firebase/firebase-js-sdk/pull/7441) - Added a default template type parameter to withConverter() functions to improve backwards compatibility with the v9 SDK
+
+## 4.2.0
+
+### Minor Changes
+
+- [`fbd8e0e2e`](https://github.com/firebase/firebase-js-sdk/commit/fbd8e0e2e17befcd514775e018fcc4f4c5ecfc43) [#7599](https://github.com/firebase/firebase-js-sdk/pull/7599) - Add `enablePersistentCacheIndexAutoCreation()` function to enable automatic creation of local cache query indexes, which can improve performance of local query execution.
+
+### Patch Changes
+
+- [`60e4a07d2`](https://github.com/firebase/firebase-js-sdk/commit/60e4a07d2c89b5ea473f903a942aabab03050fa5) [#7593](https://github.com/firebase/firebase-js-sdk/pull/7593) - Fix an issue where Firestore was incorrectly using XHR instead of fetch for streaming response.
+
+- [`2d0a9f5fd`](https://github.com/firebase/firebase-js-sdk/commit/2d0a9f5fd921568bc76fcdee325b9ab5e6be8a58) [#7592](https://github.com/firebase/firebase-js-sdk/pull/7592) - Updated minor dependencies grpc (firestore) and firebase-admin (rules-unit-testing).
+
+- Updated dependencies [[`60e4a07d2`](https://github.com/firebase/firebase-js-sdk/commit/60e4a07d2c89b5ea473f903a942aabab03050fa5)]:
+  - @firebase/webchannel-wrapper@0.10.3
+
+## 4.1.3
+
+### Patch Changes
+
+- [`12221ddb4`](https://github.com/firebase/firebase-js-sdk/commit/12221ddb41766f85d9c2327a8af9ba647cfa9f3e) [#7542](https://github.com/firebase/firebase-js-sdk/pull/7542) - Implemented internal logic to auto-create client-side indexes
+
+- [`25cda8af6`](https://github.com/firebase/firebase-js-sdk/commit/25cda8af6a6fc15e33f0ce5644dd29d996e4716f) [#7587](https://github.com/firebase/firebase-js-sdk/pull/7587) - Implemented internal logic to delete all client-side indexes
+
+## 4.1.2
+
+### Patch Changes
+
+- [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea) [#7569](https://github.com/firebase/firebase-js-sdk/pull/7569) - Fix how we enable fetch streams.
+
+- Updated dependencies [[`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea)]:
+  - @firebase/webchannel-wrapper@0.10.2
+
+## 4.1.1
+
+### Patch Changes
+
+- [`43e402fb4`](https://github.com/firebase/firebase-js-sdk/commit/43e402fb49a081a59729290627c7b20099ca46a4) [#7520](https://github.com/firebase/firebase-js-sdk/pull/7520) - Update @grpc/proto-loader from v0.6.13 to v0.7.8
+
+- [`b395277f3`](https://github.com/firebase/firebase-js-sdk/commit/b395277f3de5d017df7b2edfba329682a0928453) [#7507](https://github.com/firebase/firebase-js-sdk/pull/7507) - Refactored aggregate query order-by normalization to support future aggregate operations.
+
+## 4.1.0
+
+### Minor Changes
+
+- [`52b17b426`](https://github.com/firebase/firebase-js-sdk/commit/52b17b4267729c14adcb52f2d523572aa22e4759) [#7452](https://github.com/firebase/firebase-js-sdk/pull/7452) - Update the grpc dependency to the latest version.
+
+### Patch Changes
+
+- [`c5518c80f`](https://github.com/firebase/firebase-js-sdk/commit/c5518c80fc577d6ab4f524d49c44b6dfd6ed96e7) [#7440](https://github.com/firebase/firebase-js-sdk/pull/7440) - Fixed issue where count and lite API queries did not work with named databases.
+
+## 4.0.0
+
+### Major Changes
+
+- [`f2fb56fc0`](https://github.com/firebase/firebase-js-sdk/commit/f2fb56fc0f5d1573fe7700f019c58ec2755a3478) [#7310](https://github.com/firebase/firebase-js-sdk/pull/7310) - Fixed updateDoc() typing issue by adding a 2nd type parameter to FirestoreDataConverter
+
+### Minor Changes
+
+- [`57f2a863f`](https://github.com/firebase/firebase-js-sdk/commit/57f2a863f188ca11b6167656fc7a7d7c9affc1d6) [#7318](https://github.com/firebase/firebase-js-sdk/pull/7318) (fixes [#6105](https://github.com/firebase/firebase-js-sdk/issues/6105)) - Changing UpdateData<T> to expand support for types with index signatures.
+
+### Patch Changes
+
+- [`aaf3fa396`](https://github.com/firebase/firebase-js-sdk/commit/aaf3fa3969521c540c4a4583648536348033e1c6) [#7385](https://github.com/firebase/firebase-js-sdk/pull/7385) - Fix an issue where localCache is not copied as part of Settings.
+
+- [`d86c89f9c`](https://github.com/firebase/firebase-js-sdk/commit/d86c89f9c65203842eed39699c729f841d902cc0) [#7382](https://github.com/firebase/firebase-js-sdk/pull/7382) - Fix source maps that incorrectly referenced yet another minified and mangled bundle, rendering them useless. The fixed bundles' source maps are: index.esm2017.js, index.cjs.js, index.node.mjs, and index.browser.esm2017.js (lite sdk only).
+
 ## 3.13.0
 
 ### Minor Changes

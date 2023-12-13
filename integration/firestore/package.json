@@ -6,32 +6,31 @@
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:persistence": "INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
+    "karma:singlerun": "karma start --single-run",
     "prettier": "prettier --write '*.js' '*.ts'",
-    "test": "yarn build:memory; karma start --single-run; yarn build:persistence; karma start --single-run;",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:persistence": " yarn build:persistence; karma start --single-run",
     "test:persistence:debug": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
     "test:memory": "yarn build:memory; karma start --single-run",
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "dependencies": {
-    "@firebase/app": "0.9.13",
-    "@firebase/firestore": "3.13.0"
+    "@firebase/app": "0.9.25",
+    "@firebase/firestore": "4.4.0"
   },
   "devDependencies": {
     "@types/mocha": "9.1.1",
     "gulp": "4.0.2",
     "gulp-filter": "7.0.0",
     "gulp-replace": "1.1.4",
-    "karma": "6.4.1",
-    "karma-chrome-launcher": "3.1.1",
+    "karma": "6.4.2",
+    "karma-chrome-launcher": "3.2.0",
     "karma-firefox-launcher": "2.1.2",
     "karma-mocha": "2.0.1",
-    "karma-spec-reporter": "0.0.34",
+    "karma-spec-reporter": "0.0.36",
     "mocha": "9.2.2",
     "ts-loader": "8.4.0",
     "typescript": "4.2.2",
-    "webpack": "4.46.0",
-    "webpack-stream": "6.1.2"
+    "webpack": "5.76.0",
+    "webpack-stream": "7.0.0"
   }
 }

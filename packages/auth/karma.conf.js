@@ -16,6 +16,7 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const webpackBase = require('../../config/webpack.test');
 const { argv } = require('yargs');
 
 module.exports = function (config) {
@@ -26,7 +27,17 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-
+    // undici is a fetch polyfill that test helpers call for Node tests, and browser tests should
+    // ingore its import to avoid compilation errors in those test helpers.
+    webpack: {
+      ...webpackBase,
+      resolve: {
+        ...webpackBase.resolve,
+        alias: {
+          'undici': false
+        }
+      }
+    },
     client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
@@ -38,7 +49,10 @@ function getTestFiles(argv) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
     if (argv.prodbackend) {
-      return ['test/integration/flows/totp.test.ts'];
+      return [
+        'test/integration/flows/totp.test.ts',
+        'test/integration/flows/password_policy.test.ts'
+      ];
     }
     return argv.local
       ? ['test/integration/flows/*.test.ts']

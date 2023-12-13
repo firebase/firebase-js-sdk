@@ -889,6 +889,7 @@ describeSpec('Limbo Documents:', [], () => {
           // to just send the docBs with an existence filter with a count of 3.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
           .watchFilters([query1], [docB1.key, docB2.key, docB3.key])
+          .watchCurrents(query1, 'resume-token-1001')
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -927,6 +928,46 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
+  // Regression test for the bug in https://github.com/firebase/firebase-android-sdk/issues/5357
+  specTest(
+    'Limbo resolution should wait for full re-query result if there is an existence filter mismatch ',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { v: 1 });
+      const docB = doc('collection/b', 1000, { v: 2 });
+      return (
+        spec()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          // Simulate that the client loses network connection.
+          .disableNetwork()
+          .expectEvents(query1, { fromCache: true })
+          .enableNetwork()
+          .restoreListen(query1, 'resume-token-1000')
+          .watchAcks(query1)
+          // DocB is deleted in the next sync.
+          .watchFilters([query1], [docA.key])
+          .watchCurrents(query1, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: '',
+            targetPurpose: TargetPurpose.ExistenceFilterMismatch
+          })
+          .watchRemoves(query1)
+          .watchAcksFull(query1, 3000, docA)
+          // Only the deleted doc is moved to limbo after re-query result.
+          .expectLimboDocs(docB.key)
+          .ackLimbo(3000, deletedDoc(docB.key.toString(), 3000))
+          .expectLimboDocs()
+          .expectEvents(query1, {
+            removed: [docB]
+          })
+      );
+    }
+  );
   specTest(
     'Limbo resolution throttling with bloom filter application',
     [],
@@ -959,15 +1000,16 @@ describeSpec('Limbo Documents:', [], () => {
           // While this client was disconnected, another client deleted all the
           // docAs replaced them with docBs. If Watch has to re-run the
           // underlying query when this client re-listens, Watch won't be able
-          // to tell that docAs were deleted and will only send us existing
-          // documents that changed since the resume token. This will cause it
-          // to just send the docBs with an existence filter with a count of 3.
+          // to tell that docAs were deleted and will only send us watch change
+          // for new docs added since the resume token.
           .watchSends({ affects: [query1] }, docB1, docB2, docB3)
+          // The existence filter will include the docBs with a count of 3.
           .watchFilters(
             [query1],
             [docB1.key, docB2.key, docB3.key],
             bloomFilterProto
           )
+          .watchCurrents(query1, 'resume-token-1001')
           .watchSnapshots(1001)
           .expectEvents(query1, {
             added: [docB1, docB2, docB3],
@@ -978,8 +1020,6 @@ describeSpec('Limbo Documents:', [], () => {
           // existence filter mismatch. Bloom filter checks membership of the
           // docs, and filters out docAs, while docBs returns true. Number of
           // existing docs matches the expected count, so skip the re-query.
-          .watchCurrents(query1, 'resume-token-1002')
-          .watchSnapshots(1002)
           // The docAs are now in limbo; the client begins limbo resolution.
           .expectLimboDocs(docA1.key, docA2.key)
           .expectEnqueuedLimboDocs(docA3.key)

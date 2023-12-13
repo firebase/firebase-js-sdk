@@ -67,7 +67,10 @@ export const enum Endpoint {
   FINALIZE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
   GET_PROJECT_CONFIG = '/v1/projects',
-  GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig'
+  GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
+  GET_PASSWORD_POLICY = '/v2/passwordPolicy',
+  TOKEN = '/v1/token',
+  REVOKE_TOKEN = '/v2/accounts:revokeToken'
 }
 
 export const enum RecaptchaClientType {
@@ -84,6 +87,18 @@ export const enum RecaptchaActionName {
   SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
   GET_OOB_CODE = 'getOobCode',
   SIGN_UP_PASSWORD = 'signUpPassword'
+}
+
+export const enum EnforcementState {
+  ENFORCE = 'ENFORCE',
+  AUDIT = 'AUDIT',
+  OFF = 'OFF',
+  ENFORCEMENT_STATE_UNSPECIFIED = 'ENFORCEMENT_STATE_UNSPECIFIED'
+}
+
+// Providers that have reCAPTCHA Enterprise support.
+export const enum RecaptchaProvider {
+  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
@@ -242,6 +257,21 @@ export function _getFinalTarget(
   }
 
   return _emulatorUrl(auth.config as ConfigInternal, base);
+}
+
+export function _parseEnforcementState(
+  enforcementStateStr: string
+): EnforcementState {
+  switch (enforcementStateStr) {
+    case 'ENFORCE':
+      return EnforcementState.ENFORCE;
+    case 'AUDIT':
+      return EnforcementState.AUDIT;
+    case 'OFF':
+      return EnforcementState.OFF;
+    default:
+      return EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED;
+  }
 }
 
 class NetworkTimeout<T> {

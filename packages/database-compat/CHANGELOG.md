@@ -1,5 +1,33 @@
 # @firebase/database-compat
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`0ecaf6c9f`](https://github.com/firebase/firebase-js-sdk/commit/0ecaf6c9fa14b40d32c52215d9e1c912bcc52bef)]:
+  - @firebase/database@1.0.2
+
+## 1.0.1
+
+### Patch Changes
+
+- [`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905) [#7258](https://github.com/firebase/firebase-js-sdk/pull/7258) - Included `initStandalone` as an internal method to RTDB.
+
+- Updated dependencies [[`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905)]:
+  - @firebase/database@1.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- [`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956) [#6541](https://github.com/firebase/firebase-js-sdk/pull/6541) - Updated type of action parameter for DataSnapshot#forEach
+
+### Patch Changes
+
+- Updated dependencies [[`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956)]:
+  - @firebase/database-types@1.0.0
+  - @firebase/database@1.0.0
+
 ## 0.3.4
 
 ### Patch Changes

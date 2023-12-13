@@ -1,5 +1,75 @@
 # @firebase/auth-compat
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`70e4cf6a6`](https://github.com/firebase/firebase-js-sdk/commit/70e4cf6a6544c4ccfa609c3f2c320980e7122101)]:
+  - @firebase/auth@1.5.1
+
+## 0.5.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- Updated dependencies [[`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6), [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de)]:
+  - @firebase/auth@1.5.0
+
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [[`5f496e401`](https://github.com/firebase/firebase-js-sdk/commit/5f496e401782db29afd1bd433818a3fc1ef1da3c), [`f10acb360`](https://github.com/firebase/firebase-js-sdk/commit/f10acb36009dc9d5d4f0d0880f1357330e3f1d1b)]:
+  - @firebase/auth@1.4.0
+
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies [[`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5)]:
+  - @firebase/auth@1.3.2
+
+## 0.4.7
+
+### Patch Changes
+
+- Updated dependencies [[`f002ef36a`](https://github.com/firebase/firebase-js-sdk/commit/f002ef36a6b427fd526696f9cd6077a217ccc6ef), [`68927ced1`](https://github.com/firebase/firebase-js-sdk/commit/68927ced1159d9b79407c7823d7f48d30ccb591e), [`3533b32b1`](https://github.com/firebase/firebase-js-sdk/commit/3533b32b1be6a9800b1b58a6a2b08f50fae18eeb)]:
+  - @firebase/auth@1.3.1
+
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256)]:
+  - @firebase/auth@1.3.0
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5), [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798), [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189)]:
+  - @firebase/auth@1.2.0
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`e91f82a20`](https://github.com/firebase/firebase-js-sdk/commit/e91f82a20b2c8cea75a81f55bd71d878a3d908d6), [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b)]:
+  - @firebase/auth@1.1.0
+
+## 0.4.3
+
+### Patch Changes
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- Updated dependencies [[`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183), [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65), [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651), [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6)]:
+  - @firebase/auth@1.0.0
+
 ## 0.4.2
 
 ### Patch Changes

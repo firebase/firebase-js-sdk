@@ -26,10 +26,12 @@ import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument
+  localStoreReadDocument,
+  localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -530,7 +532,6 @@ export function firestoreClientRunAggregateQuery(
   const deferred = new Deferred<ApiClientObjectMap<Value>>();
 
   client.asyncQueue.enqueueAndForget(async () => {
-    // TODO (sum/avg) should we update this to use the event manager?
     // Implement and call executeAggregateQueryViaSnapshotListener, similar
     // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
     // above
@@ -728,7 +729,7 @@ async function executeQueryFromCache(
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+      /* limboResolutionEnabled= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {
@@ -826,5 +827,25 @@ export function firestoreClientSetIndexConfiguration(
       await getLocalStore(client),
       indexes
     );
+  });
+}
+
+export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+  client: FirestoreClient,
+  isEnabled: boolean
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreSetIndexAutoCreationEnabled(
+      await getLocalStore(client),
+      isEnabled
+    );
+  });
+}
+
+export function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
 }

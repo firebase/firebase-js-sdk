@@ -5819,7 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (a: firebase.database.DataSnapshot) => boolean | void
+      action: (a: firebase.database.IteratedDataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.
@@ -5996,6 +5996,10 @@ declare namespace firebase.database {
      * Returns a JSON-serializable representation of this object.
      */
     toJSON(): Object | null;
+  }
+
+  interface IteratedDataSnapshot extends DataSnapshot {
+    key: string; // key of the location of this snapshot.
   }
 
   /**
@@ -7480,7 +7484,7 @@ declare namespace firebase.messaging {
      * @param options.serviceWorkerRegistration The service worker registration for receiving push
      * messaging. If the registration is not provided explicitly, you need to have a
      * `firebase-messaging-sw.js` at your root location. See
-     * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token}
+     * {@link https://firebase.google.com/docs/cloud-messaging/js/client#access_the_registration_token | Access the registration token}
      * for more details.
      *
      * @return The promise resolves with an FCM registration token.

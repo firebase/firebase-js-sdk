@@ -60,7 +60,7 @@ export const enum AuthErrorCode {
   INVALID_DYNAMIC_LINK_DOMAIN = 'invalid-dynamic-link-domain',
   INVALID_EMAIL = 'invalid-email',
   INVALID_EMULATOR_SCHEME = 'invalid-emulator-scheme',
-  INVALID_IDP_RESPONSE = 'invalid-credential',
+  INVALID_CREDENTIAL = 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
   INVALID_MFA_SESSION = 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
@@ -132,7 +132,9 @@ export const enum AuthErrorCode {
   MISSING_CLIENT_TYPE = 'missing-client-type',
   MISSING_RECAPTCHA_VERSION = 'missing-recaptcha-version',
   INVALID_RECAPTCHA_VERSION = 'invalid-recaptcha-version',
-  INVALID_REQ_TYPE = 'invalid-req-type'
+  INVALID_REQ_TYPE = 'invalid-req-type',
+  UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION = 'unsupported-password-policy-schema-version',
+  PASSWORD_DOES_NOT_MEET_REQUIREMENTS = 'password-does-not-meet-requirements'
 }
 
 function _debugErrorMap(): ErrorMap<AuthErrorCode> {
@@ -215,8 +217,8 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'Your API key is invalid, please check you have copied it correctly.',
     [AuthErrorCode.INVALID_CERT_HASH]:
       'The SHA-1 certificate hash provided is invalid.',
-    [AuthErrorCode.INVALID_IDP_RESPONSE]:
-      'The supplied auth credential is malformed or has expired.',
+    [AuthErrorCode.INVALID_CREDENTIAL]:
+      'The supplied auth credential is incorrect, malformed or has expired.',
     [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
       'The email template corresponding to this action contains invalid characters in its message. ' +
       'Please fix by going to the Auth email templates section in the Firebase Console.',
@@ -381,7 +383,11 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The reCAPTCHA version is missing when sending request to the backend.',
     [AuthErrorCode.INVALID_REQ_TYPE]: 'Invalid request parameters.',
     [AuthErrorCode.INVALID_RECAPTCHA_VERSION]:
-      'The reCAPTCHA version is invalid when sending request to the backend.'
+      'The reCAPTCHA version is invalid when sending request to the backend.',
+    [AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION]:
+      'The password policy received from the backend uses a schema version that is not supported by this version of the Firebase SDK.',
+    [AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS]:
+      'The password does not meet the requirements.'
   };
 }
 
@@ -522,6 +528,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   INVALID_EMAIL: 'auth/invalid-email',
   INVALID_EMULATOR_SCHEME: 'auth/invalid-emulator-scheme',
   INVALID_IDP_RESPONSE: 'auth/invalid-credential',
+  INVALID_LOGIN_CREDENTIALS: 'auth/invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'auth/invalid-message-payload',
   INVALID_MFA_SESSION: 'auth/invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID: 'auth/invalid-oauth-client-id',

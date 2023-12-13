@@ -22,6 +22,7 @@ import {
   collectionGroup,
   disableNetwork,
   doc,
+  orderBy,
   DocumentData,
   getCountFromServer,
   getAggregateFromServer,
@@ -172,9 +173,15 @@ apiDescribe('Count queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getCountFromServer(query_)
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(getCountFromServer(query_)).to.be.eventually.rejected;
+        }
       });
     }
   );
@@ -376,27 +383,39 @@ apiDescribe('Aggregation queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(
-          getAggregateFromServer(query_, { count: count() })
-        ).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getAggregateFromServer(query_, {
+              count: count()
+            })
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(
+            getAggregateFromServer(query_, {
+              count: count()
+            })
+          ).to.be.eventually.rejected;
+        }
       });
     }
   );
 });
 
-// TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe.skip('Aggregation queries - sum / average', persistence => {
+apiDescribe('Aggregation queries - sum / average', persistence => {
   it('can run sum query getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA', pages: 100 },
       b: { author: 'authorB', title: 'titleB', pages: 50 }
     };
     return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(coll, {
-        totalPages: sum('pages')
-      });
+      const snapshot = await getAggregateFromServer(
+        query(coll, orderBy('pages')),
+        {
+          totalPages: sum('pages')
+        }
+      );
       expect(snapshot.data().totalPages).to.equal(150);
     });
   });
@@ -492,99 +511,6 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
     });
   });
 
-  it('aggregate query supports collection groups', () => {
-    return withTestDb(persistence, async db => {
-      const collectionGroupId = doc(collection(db, 'aggregateQueryTest')).id;
-      const docPaths = [
-        `${collectionGroupId}/cg-doc1`,
-        `abc/123/${collectionGroupId}/cg-doc2`,
-        `zzz${collectionGroupId}/cg-doc3`,
-        `abc/123/zzz${collectionGroupId}/cg-doc4`,
-        `abc/123/zzz/${collectionGroupId}`
-      ];
-      const batch = writeBatch(db);
-      for (const docPath of docPaths) {
-        batch.set(doc(db, docPath), { x: 2 });
-      }
-      await batch.commit();
-      const snapshot = await getAggregateFromServer(
-        collectionGroup(db, collectionGroupId),
-        {
-          count: count(),
-          sum: sum('x'),
-          avg: average('x')
-        }
-      );
-      expect(snapshot.data().count).to.equal(2);
-      expect(snapshot.data().sum).to.equal(4);
-      expect(snapshot.data().avg).to.equal(2);
-    });
-  });
-
-  it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
-      b: { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
-      c: { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
-      d: { author: 'authorD', title: 'titleD', pages: 50 }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        averageYear: average('year'),
-        count: count()
-      });
-      expect(snapshot.data().totalPages).to.equal(300);
-      expect(snapshot.data().averagePages).to.equal(100);
-      expect(snapshot.data().averageYear).to.equal(2007);
-      expect(snapshot.data().count).to.equal(3);
-    });
-  });
-
-  it('performs aggregates on multiple fields where one aggregate could cause short-circuit due to NaN using getAggregationFromServer', () => {
-    const testDocs = {
-      a: {
-        author: 'authorA',
-        title: 'titleA',
-        pages: 100,
-        year: 1980,
-        rating: 5
-      },
-      b: {
-        author: 'authorB',
-        title: 'titleB',
-        pages: 50,
-        year: 2020,
-        rating: 4
-      },
-      c: {
-        author: 'authorC',
-        title: 'titleC',
-        pages: 100,
-        year: 1980,
-        rating: Number.NaN
-      },
-      d: {
-        author: 'authorD',
-        title: 'titleD',
-        pages: 50,
-        year: 2020,
-        rating: 0
-      }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(coll, {
-        totalRating: sum('rating'),
-        totalPages: sum('pages'),
-        averageYear: average('year')
-      });
-      expect(snapshot.data().totalRating).to.be.NaN;
-      expect(snapshot.data().totalPages).to.equal(300);
-      expect(snapshot.data().averageYear).to.equal(2000);
-    });
-  });
-
   it('returns undefined when getting the result of an unrequested aggregation', () => {
     const testDocs = {
       a: {
@@ -617,13 +543,10 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
       }
     };
     return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(
-        query(coll, where('pages', '>', 200)),
-        {
-          totalRating: sum('rating'),
-          averageRating: average('rating')
-        }
-      );
+      const snapshot = await getAggregateFromServer(coll, {
+        totalRating: sum('rating'),
+        averageRating: average('rating')
+      });
 
       // @ts-expect-error
       const totalPages = snapshot.data().totalPages;
@@ -668,65 +591,11 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
         {
           totalRating: sum('rating'),
           averageRating: average('rating'),
-          totalPages: sum('pages'),
-          averagePages: average('pages'),
           countOfDocs: count()
         }
       );
       expect(snapshot.data().totalRating).to.equal(8);
       expect(snapshot.data().averageRating).to.equal(4);
-      expect(snapshot.data().totalPages).to.equal(200);
-      expect(snapshot.data().averagePages).to.equal(100);
-      expect(snapshot.data().countOfDocs).to.equal(2);
-    });
-  });
-
-  it('performs aggregates when using `array-contains-any` operator getAggregationFromServer', () => {
-    const testDocs = {
-      a: {
-        author: 'authorA',
-        title: 'titleA',
-        pages: 100,
-        year: 1980,
-        rating: [5, 1000]
-      },
-      b: {
-        author: 'authorB',
-        title: 'titleB',
-        pages: 50,
-        year: 2020,
-        rating: [4]
-      },
-      c: {
-        author: 'authorC',
-        title: 'titleC',
-        pages: 100,
-        year: 1980,
-        rating: [2222, 3]
-      },
-      d: {
-        author: 'authorD',
-        title: 'titleD',
-        pages: 50,
-        year: 2020,
-        rating: [0]
-      }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(
-        query(coll, where('rating', 'array-contains-any', [5, 3])),
-        {
-          totalRating: sum('rating'),
-          averageRating: average('rating'),
-          totalPages: sum('pages'),
-          averagePages: average('pages'),
-          countOfDocs: count()
-        }
-      );
-      expect(snapshot.data().totalRating).to.equal(0);
-      expect(snapshot.data().averageRating).to.be.null;
-      expect(snapshot.data().totalPages).to.equal(200);
-      expect(snapshot.data().averagePages).to.equal(100);
       expect(snapshot.data().countOfDocs).to.equal(2);
     });
   });
@@ -748,14 +617,10 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(coll, {
         totalPages: sum('metadata.pages'),
         averagePages: average('metadata.pages'),
-        averageCriticRating: average('metadata.rating.critic'),
-        totalUserRating: sum('metadata.rating.user'),
         count: count()
       });
       expect(snapshot.data().totalPages).to.equal(150);
       expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().averageCriticRating).to.equal(3);
-      expect(snapshot.data().totalUserRating).to.equal(9);
       expect(snapshot.data().count).to.equal(2);
     });
   });
@@ -1003,6 +868,7 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
   });
 
   it('performs sum that is valid but could overflow during aggregation using getAggregationFromServer', () => {
+    // Sum of rating would be 0, but if the accumulation overflow, we expect infinity
     const testDocs = {
       a: {
         author: 'authorA',
@@ -1031,41 +897,17 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
         pages: 50,
         year: 2020,
         rating: -Number.MAX_VALUE
-      },
-      e: {
-        author: 'authorE',
-        title: 'titleE',
-        pages: 100,
-        year: 1980,
-        rating: Number.MAX_VALUE
-      },
-      f: {
-        author: 'authorF',
-        title: 'titleF',
-        pages: 50,
-        year: 2020,
-        rating: -Number.MAX_VALUE
-      },
-      g: {
-        author: 'authorG',
-        title: 'titleG',
-        pages: 100,
-        year: 1980,
-        rating: -Number.MAX_VALUE
-      },
-      h: {
-        author: 'authorH',
-        title: 'titleDH',
-        pages: 50,
-        year: 2020,
-        rating: Number.MAX_VALUE
       }
     };
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getAggregateFromServer(coll, {
         totalRating: sum('rating')
       });
-      expect(snapshot.data().totalRating).to.equal(0);
+      expect(snapshot.data().totalRating).to.oneOf([
+        Number.POSITIVE_INFINITY,
+        Number.NEGATIVE_INFINITY,
+        0
+      ]);
     });
   });
 
@@ -1143,10 +985,10 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(
         query(coll, where('pages', '>', 200)),
         {
-          totalRating: sum('rating')
+          totalPages: sum('pages')
         }
       );
-      expect(snapshot.data().totalRating).to.equal(0);
+      expect(snapshot.data().totalPages).to.equal(0);
     });
   });
 
@@ -1529,10 +1371,10 @@ apiDescribe.skip('Aggregation queries - sum / average', persistence => {
       const snapshot = await getAggregateFromServer(
         query(coll, where('pages', '>', 200)),
         {
-          averageRating: average('rating')
+          averagePages: average('pages')
         }
       );
-      expect(snapshot.data().averageRating).to.be.null;
+      expect(snapshot.data().averagePages).to.be.null;
     });
   });
 

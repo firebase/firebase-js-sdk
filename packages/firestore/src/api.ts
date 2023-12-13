@@ -82,6 +82,7 @@ export {
 } from './api/bundle';
 
 export { FirestoreSettings, PersistenceSettings } from './api/settings';
+export type { PrivateSettings } from './lite-api/settings';
 export { ExperimentalLongPollingOptions } from './api/long_polling_options';
 
 export {
@@ -201,6 +202,14 @@ export {
   setIndexConfiguration
 } from './api/index_configuration';
 
+export {
+  PersistentCacheIndexManager,
+  getPersistentCacheIndexManager,
+  deleteAllPersistentCacheIndexes,
+  enablePersistentCacheIndexAutoCreation,
+  disablePersistentCacheIndexAutoCreation
+} from './api/persistent_cache_index_manager';
+
 /**
  * Internal exports
  */
@@ -214,8 +223,17 @@ export { DocumentKey as _DocumentKey } from './model/document_key';
 export { debugAssert as _debugAssert } from './util/assert';
 export { FieldPath as _FieldPath } from './model/path';
 export type { ResourcePath as _ResourcePath } from './model/path';
-export type { ByteString as _ByteString } from './util/byte_string';
+export { ByteString as _ByteString } from './util/byte_string';
 export { logWarn as _logWarn } from './util/log';
+export { AutoId as _AutoId } from './util/misc';
+export type {
+  AuthTokenFactory,
+  FirstPartyCredentialsSettings
+} from './api/credentials';
 export { EmptyAuthCredentialsProvider as _EmptyAuthCredentialsProvider } from './api/credentials';
 export { EmptyAppCheckTokenProvider as _EmptyAppCheckTokenProvider } from './api/credentials';
-export { TestingHooks as _TestingHooks } from './util/testing_hooks';
+export {
+  ExistenceFilterMismatchCallback as _TestingHooksExistenceFilterMismatchCallback,
+  TestingHooks as _TestingHooks
+} from './util/testing_hooks';
+export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';

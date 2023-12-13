@@ -1,5 +1,11 @@
 # @firebase/firestore-types
 
+## 3.0.0
+
+### Major Changes
+
+- [`47860fe6e`](https://github.com/firebase/firebase-js-sdk/commit/47860fe6e702e224d4ea4052dc42029673b9f7f1) [#7423](https://github.com/firebase/firebase-js-sdk/pull/7423) - Update to be consistent with the FirestoreDataConverter changes from #7310
+
 ## 2.5.1
 
 ### Patch Changes

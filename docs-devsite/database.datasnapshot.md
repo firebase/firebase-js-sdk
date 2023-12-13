@@ -38,7 +38,7 @@ export declare class DataSnapshot
 |  [child(path)](./database.datasnapshot.md#datasnapshotchild) |  | Gets another <code>DataSnapshot</code> for the location at the specified relative path.<!-- -->Passing a relative path to the <code>child()</code> method of a DataSnapshot returns another <code>DataSnapshot</code> for the location at the specified relative path. The relative path can either be a simple child name (for example, "ada") or a deeper, slash-separated path (for example, "ada/name/first"). If the child location has no data, an empty <code>DataSnapshot</code> (that is, a <code>DataSnapshot</code> whose value is <code>null</code>) is returned. |
 |  [exists()](./database.datasnapshot.md#datasnapshotexists) |  | Returns true if this <code>DataSnapshot</code> contains any data. It is slightly more efficient than using <code>snapshot.val() !== null</code>. |
 |  [exportVal()](./database.datasnapshot.md#datasnapshotexportval) |  | Exports the entire contents of the DataSnapshot as a JavaScript object.<!-- -->The <code>exportVal()</code> method is similar to <code>val()</code>, except priority information is included (if available), making it suitable for backing up your data. |
-|  [forEach(action)](./database.datasnapshot.md#datasnapshotforeach) |  | Enumerates the top-level children in the <code>DataSnapshot</code>.<!-- -->Because of the way JavaScript objects work, the ordering of data in the JavaScript object returned by <code>val()</code> is not guaranteed to match the ordering on the server nor the ordering of <code>onChildAdded()</code> events. That is where <code>forEach()</code> comes in handy. It guarantees the children of a <code>DataSnapshot</code> will be iterated in their query order.<!-- -->If no explicit <code>orderBy*()</code> method is used, results are returned ordered by key (unless priorities are used, in which case, results are returned by priority). |
+|  [forEach(action)](./database.datasnapshot.md#datasnapshotforeach) |  | Enumerates the top-level children in the <code>IteratedDataSnapshot</code>.<!-- -->Because of the way JavaScript objects work, the ordering of data in the JavaScript object returned by <code>val()</code> is not guaranteed to match the ordering on the server nor the ordering of <code>onChildAdded()</code> events. That is where <code>forEach()</code> comes in handy. It guarantees the children of a <code>DataSnapshot</code> will be iterated in their query order.<!-- -->If no explicit <code>orderBy*()</code> method is used, results are returned ordered by key (unless priorities are used, in which case, results are returned by priority). |
 |  [hasChild(path)](./database.datasnapshot.md#datasnapshothaschild) |  | Returns true if the specified child path has (non-null) data. |
 |  [hasChildren()](./database.datasnapshot.md#datasnapshothaschildren) |  | Returns whether or not the <code>DataSnapshot</code> has any non-<code>null</code> child properties.<!-- -->You can use <code>hasChildren()</code> to determine if a <code>DataSnapshot</code> has any children. If it does, you can enumerate them using <code>forEach()</code>. If it doesn't, then either this snapshot contains a primitive value (which can be retrieved with <code>val()</code>) or it is empty (in which case, <code>val()</code> will return <code>null</code>). |
 |  [toJSON()](./database.datasnapshot.md#datasnapshottojson) |  | Returns a JSON-serializable representation of this object. |
@@ -142,7 +142,7 @@ The DataSnapshot's contents as a JavaScript value (Object, Array, string, number
 
 ## DataSnapshot.forEach()
 
-Enumerates the top-level children in the `DataSnapshot`<!-- -->.
+Enumerates the top-level children in the `IteratedDataSnapshot`<!-- -->.
 
 Because of the way JavaScript objects work, the ordering of data in the JavaScript object returned by `val()` is not guaranteed to match the ordering on the server nor the ordering of `onChildAdded()` events. That is where `forEach()` comes in handy. It guarantees the children of a `DataSnapshot` will be iterated in their query order.
 
@@ -151,14 +151,14 @@ If no explicit `orderBy*()` method is used, results are returned ordered by key 
 <b>Signature:</b>
 
 ```typescript
-forEach(action: (child: DataSnapshot) => boolean | void): boolean;
+forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  action | (child: [DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->) =&gt; boolean \| void | A function that will be called for each child DataSnapshot. The callback can return true to cancel further enumeration. |
+|  action | (child: [IteratedDataSnapshot](./database.iterateddatasnapshot.md#iterateddatasnapshot_interface)<!-- -->) =&gt; boolean \| void | A function that will be called for each child DataSnapshot. The callback can return true to cancel further enumeration. |
 
 <b>Returns:</b>
 

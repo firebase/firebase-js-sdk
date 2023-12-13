@@ -78,6 +78,7 @@ import {
   updateDoc
 } from '../../src/lite-api/reference_impl';
 import {
+  FirestoreDataConverter,
   snapshotEqual,
   QuerySnapshot,
   QueryDocumentSnapshot
@@ -428,26 +429,28 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
   ): Promise<void>;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): Promise<void>;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    data: UpdateData<T>
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
   ): Promise<void>;
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
-  delete(documentRef: DocumentReference<unknown>): Promise<void>;
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<void>;
 }
 
 genericMutationTests({
@@ -458,15 +461,17 @@ genericMutationTests({
 
 describe('WriteBatch', () => {
   class WriteBatchTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       batch.delete(ref);
       return batch.commit();
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -476,9 +481,9 @@ describe('WriteBatch', () => {
       return batch.commit();
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -521,29 +526,31 @@ describe('WriteBatch', () => {
 
 describe('Transaction', () => {
   class TransactionTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         transaction.delete(ref);
       });
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
           transaction.set(ref, data, options);
         } else {
-          transaction.set(ref, data as WithFieldValue<T>);
+          transaction.set(ref, data as WithFieldValue<AppModelType>);
         }
       });
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -556,7 +563,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as UpdateData<T>);
+          transaction.update(ref, dataOrField as UpdateData<DbModelType>);
         }
       });
     }
@@ -1406,7 +1413,7 @@ describe('withConverter() support', () => {
       ) {}
     }
 
-    const testConverter = {
+    const testConverter: FirestoreDataConverter<TestObject, TestObject> = {
       toFirestore(testObj: WithFieldValue<TestObject>) {
         return { ...testObj };
       },
@@ -1801,8 +1808,7 @@ describe('withConverter() support', () => {
 
       it('supports string-separated fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
           await updateDoc(testDocRef, {
             // @ts-expect-error
             outerString: 3,
@@ -1916,7 +1922,10 @@ describe('withConverter() support', () => {
             | { requiredNumber: number };
         }
 
-        const testConverterUnion = {
+        const testConverterUnion: FirestoreDataConverter<
+          TestObjectUnion,
+          TestObjectUnion
+        > = {
           toFirestore(testObj: WithFieldValue<TestObjectUnion>) {
             return { ...testObj };
           },
@@ -1930,8 +1939,7 @@ describe('withConverter() support', () => {
         };
 
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObjectUnion> =
-            docRef.withConverter(testConverterUnion);
+          const testDocRef = docRef.withConverter(testConverterUnion);
 
           await updateDoc(testDocRef, {
             nested: {
@@ -1964,8 +1972,7 @@ describe('withConverter() support', () => {
 
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
 
           // Top-level fields.
           await updateDoc(testDocRef, {
@@ -2447,9 +2454,13 @@ describe('Count queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getCount(query_)).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(getCount(query_)).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(getCount(query_)).to.be.eventually.rejected;
+        }
       });
     }
   );
@@ -2750,20 +2761,27 @@ describe('Aggregate queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(
-          getAggregate(query_, {
-            myCount: count()
-          })
-        ).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejected;
+        }
       });
     }
   );
 });
 
-// TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe.skip('Aggregation queries - sum / average', () => {
+describe('Aggregate queries - sum / average', () => {
   it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA', rating: 1 },
@@ -2772,9 +2790,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
-      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
+      const snapshot1 = await getAggregate(coll, { sum: sum('rating') });
+      const snapshot2 = await getAggregate(coll, { avg: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2792,9 +2809,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
+      const snapshot1 = await getAggregate(coll, { foo: average('rating') });
+      const snapshot2 = await getAggregate(coll, { bar: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2812,12 +2828,11 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, {
+      const snapshot1 = await getAggregate(coll, {
         foo: average('rating'),
         bar: sum('rating')
       });
-      const snapshot2 = await getAggregate(query1, {
+      const snapshot2 = await getAggregate(coll, {
         bar: sum('rating'),
         foo: average('rating')
       });
@@ -2890,24 +2905,31 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
     });
   });
 
-  it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
-      { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
-      { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
-      { author: 'authorD', title: 'titleD', pages: 50 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const snapshot = await getAggregate(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        averageYear: average('year'),
-        count: count()
+  // Only run tests that require indexes against the emulator, because we don't
+  // have a way to dynamically create the indexes when running the tests.
+  (USE_EMULATOR ? apiDescribe : apiDescribe.skip)(
+    'queries requiring indexes',
+    () => {
+      it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
+        const testDocs = [
+          { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+          { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+          { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+          { author: 'authorD', title: 'titleD', pages: 50 }
+        ];
+        return withTestCollectionAndInitialData(testDocs, async coll => {
+          const snapshot = await getAggregate(coll, {
+            totalPages: sum('pages'),
+            averagePages: average('pages'),
+            averageYear: average('year'),
+            count: count()
+          });
+          expect(snapshot.data().totalPages).to.equal(300);
+          expect(snapshot.data().averagePages).to.equal(100);
+          expect(snapshot.data().averageYear).to.equal(2007);
+          expect(snapshot.data().count).to.equal(3);
+        });
       });
-      expect(snapshot.data().totalPages).to.equal(300);
-      expect(snapshot.data().averagePages).to.equal(100);
-      expect(snapshot.data().averageYear).to.equal(2007);
-      expect(snapshot.data().count).to.equal(3);
-    });
-  });
+    }
+  );
 });

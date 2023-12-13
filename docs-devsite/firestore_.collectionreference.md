@@ -15,16 +15,16 @@ A `CollectionReference` object can be used for adding documents, getting documen
 <b>Signature:</b>
 
 ```typescript
-export declare class CollectionReference<T = DocumentData> extends Query<T> 
+export declare class CollectionReference<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends Query<AppModelType, DbModelType> 
 ```
-<b>Extends:</b> [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt;
+<b>Extends:</b> [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [id](./firestore_.collectionreference.md#collectionreferenceid) |  | string | The collection's identifier. |
-|  [parent](./firestore_.collectionreference.md#collectionreferenceparent) |  | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt; \| null | A reference to the containing <code>DocumentReference</code> if this is a subcollection. If this isn't a subcollection, the reference is null. |
+|  [parent](./firestore_.collectionreference.md#collectionreferenceparent) |  | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt; \| null | A reference to the containing <code>DocumentReference</code> if this is a subcollection. If this isn't a subcollection, the reference is null. |
 |  [path](./firestore_.collectionreference.md#collectionreferencepath) |  | string | A string representing the path of the referenced collection (relative to the root of the database). |
 |  [type](./firestore_.collectionreference.md#collectionreferencetype) |  | (not declared) | The type of this Firestore reference. |
 
@@ -32,7 +32,7 @@ export declare class CollectionReference<T = DocumentData> extends Query<T>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [withConverter(converter)](./firestore_.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data and your custom type <code>U</code>. |
+|  [withConverter(converter)](./firestore_.collectionreference.md#collectionreferencewithconverter) |  | Applies a custom data converter to this <code>CollectionReference</code>, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned <code>CollectionReference</code> instance, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 |  [withConverter(converter)](./firestore_.collectionreference.md#collectionreferencewithconverter) |  | Removes the current converter. |
 
 ## CollectionReference.id
@@ -52,7 +52,7 @@ A reference to the containing `DocumentReference` if this is a subcollection. If
 <b>Signature:</b>
 
 ```typescript
-get parent(): DocumentReference<DocumentData> | null;
+get parent(): DocumentReference<DocumentData, DocumentData> | null;
 ```
 
 ## CollectionReference.path
@@ -77,25 +77,25 @@ readonly type = "collection";
 
 ## CollectionReference.withConverter()
 
-Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data and your custom type `U`<!-- -->.
+Applies a custom data converter to this `CollectionReference`<!-- -->, allowing you to use your own custom model objects with Firestore. When you call [addDoc()](./firestore_.md#adddoc) with the returned `CollectionReference` instance, the provided converter will convert between Firestore data of type `NewDbModelType` and your custom type `NewAppModelType`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
+withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): CollectionReference<NewAppModelType, NewDbModelType>;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;U&gt; | Converts objects to and from Firestore. |
+|  converter | [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface)<!-- -->&lt;NewAppModelType, NewDbModelType&gt; | Converts objects to and from Firestore. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;U&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;NewAppModelType, NewDbModelType&gt;
 
-A `CollectionReference<U>` that uses the provided converter.
+A `CollectionReference` that uses the provided converter.
 
 ## CollectionReference.withConverter()
 
@@ -104,7 +104,7 @@ Removes the current converter.
 <b>Signature:</b>
 
 ```typescript
-withConverter(converter: null): CollectionReference<DocumentData>;
+withConverter(converter: null): CollectionReference<DocumentData, DocumentData>;
 ```
 
 ### Parameters
@@ -115,7 +115,7 @@ withConverter(converter: null): CollectionReference<DocumentData>;
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
-A `CollectionReference<DocumentData>` that does not use a converter.
+A `CollectionReference<DocumentData, DocumentData>` that does not use a converter.
 

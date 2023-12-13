@@ -17,9 +17,9 @@ A `QueryDocumentSnapshot` offers the same API surface as a `DocumentSnapshot`<!-
 <b>Signature:</b>
 
 ```typescript
-export declare class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> 
+export declare class QueryDocumentSnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> extends DocumentSnapshot<AppModelType, DbModelType> 
 ```
-<b>Extends:</b> [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;
+<b>Extends:</b> [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 ## Methods
 
@@ -35,11 +35,11 @@ Retrieves all fields in the document as an `Object`<!-- -->.
 
 ```typescript
 /** @override */
-data(): T;
+data(): AppModelType;
 ```
 <b>Returns:</b>
 
-T
+AppModelType
 
 An `Object` containing all fields in the document.
 

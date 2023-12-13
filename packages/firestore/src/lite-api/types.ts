@@ -66,7 +66,22 @@ export type AddPrefixToKeys<
   T extends Record<string, unknown>
 > =
   // Remap K => Prefix.K. See https://www.typescriptlang.org/docs/handbook/2/mapped-types.html#key-remapping-via-as
-  { [K in keyof T & string as `${Prefix}.${K}`]+?: T[K] };
+
+  // `string extends K : ...` is used to detect index signatures
+  // like `{[key: string]: bool}`. We map these properties to type `any`
+  // because a field path like `foo.[string]` will match `foo.bar` or a
+  // sub-path `foo.bar.baz`. Because it matches a sub-path, we have to
+  // make this type `any` to allow for any types of the sub-path property.
+  // This is a significant downside to using index signatures in types for `T`
+  // for `UpdateData<T>`.
+
+  {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K
+      ? any
+      : T[K];
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  };
 
 /**
  * Given a union type `U = T1 | T2 | ...`, returns an intersected type

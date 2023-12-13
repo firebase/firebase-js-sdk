@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { _TestingHooks as TestingHooks } from './firebase_export';
+import {
+  DocumentReference,
+  _TestingHooks as TestingHooks,
+  _TestingHooksExistenceFilterMismatchInfo as ExistenceFilterMismatchInfoInternal
+} from './firebase_export';
 
 /**
  * Captures all existence filter mismatches in the Watch 'Listen' stream that
@@ -29,16 +33,10 @@ export async function captureExistenceFilterMismatches<T>(
   callback: () => Promise<T>
 ): Promise<[ExistenceFilterMismatchInfo[], T]> {
   const results: ExistenceFilterMismatchInfo[] = [];
-  const onExistenceFilterMismatchCallback = (
-    info: ExistenceFilterMismatchInfo
-  ): void => {
-    results.push(info);
-  };
 
-  const unregister =
-    TestingHooks.getOrCreateInstance().onExistenceFilterMismatch(
-      onExistenceFilterMismatchCallback
-    );
+  const unregister = TestingHooks.onExistenceFilterMismatch(info =>
+    results.push(createExistenceFilterMismatchInfoFrom(info))
+  );
 
   let callbackResult: T;
   try {
@@ -54,12 +52,8 @@ export async function captureExistenceFilterMismatches<T>(
  * Information about an existence filter mismatch, captured during an invocation
  * of `captureExistenceFilterMismatches()`.
  *
- * See the documentation of `TestingHooks.notifyOnExistenceFilterMismatch()`
- * for the meaning of these values.
- *
- * TODO: Delete this "interface" definition and instead use the one from
- * testing_hooks.ts. I tried to do this but couldn't figure out how to get it to
- * work in a way that survived bundling and minification.
+ * See the documentation of `ExistenceFilterMismatchInfo` in
+ * `testing_hooks_spi.ts` for the meaning of these values.
  */
 export interface ExistenceFilterMismatchInfo {
   localCacheCount: number;
@@ -69,5 +63,33 @@ export interface ExistenceFilterMismatchInfo {
     hashCount: number;
     bitmapLength: number;
     padding: number;
+    mightContain(documentRef: DocumentReference): boolean;
   };
+}
+
+function createExistenceFilterMismatchInfoFrom(
+  internalInfo: ExistenceFilterMismatchInfoInternal
+): ExistenceFilterMismatchInfo {
+  const info: ExistenceFilterMismatchInfo = {
+    localCacheCount: internalInfo.localCacheCount,
+    existenceFilterCount: internalInfo.existenceFilterCount
+  };
+
+  const internalBloomFilter = internalInfo.bloomFilter;
+  if (internalBloomFilter) {
+    info.bloomFilter = {
+      applied: internalBloomFilter.applied,
+      hashCount: internalBloomFilter.hashCount,
+      bitmapLength: internalBloomFilter.bitmapLength,
+      padding: internalBloomFilter.padding,
+      mightContain: (documentRef: DocumentReference): boolean =>
+        internalBloomFilter.mightContain?.(
+          `projects/${internalInfo.projectId}` +
+            `/databases/${internalInfo.databaseId}` +
+            `/documents/${documentRef.path}`
+        ) ?? false
+    };
+  }
+
+  return info;
 }

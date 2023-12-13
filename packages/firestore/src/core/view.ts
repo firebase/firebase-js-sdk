@@ -271,17 +271,21 @@ export class View {
    * Updates the view with the given ViewDocumentChanges and optionally updates
    * limbo docs and sync state from the provided target change.
    * @param docChanges - The set of changes to make to the view's docs.
-   * @param updateLimboDocuments - Whether to update limbo documents based on
+   * @param limboResolutionEnabled - Whether to update limbo documents based on
    *        this change.
    * @param targetChange - A target change to apply for computing limbo docs and
    *        sync state.
+   * @param targetIsPendingReset - Whether the target is pending to reset due to
+   *        existence filter mismatch. If not explicitly specified, it is treated
+   *        equivalently to `false`.
    * @returns A new ViewChange with the given docs, changes, and sync state.
    */
   // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
-    updateLimboDocuments: boolean,
-    targetChange?: TargetChange
+    limboResolutionEnabled: boolean,
+    targetChange?: TargetChange,
+    targetIsPendingReset?: boolean
   ): ViewChange {
     debugAssert(
       !docChanges.needsRefill,
@@ -300,10 +304,18 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = updateLimboDocuments
-      ? this.updateLimboDocuments()
-      : [];
-    const synced = this.limboDocuments.size === 0 && this.current;
+
+    targetIsPendingReset = targetIsPendingReset ?? false;
+    const limboChanges =
+      limboResolutionEnabled && !targetIsPendingReset
+        ? this.updateLimboDocuments()
+        : [];
+
+    // We are at synced state if there is no limbo docs are waiting to be resolved, view is current
+    // with the backend, and the query is not pending to reset due to existence filter mismatch.
+    const synced =
+      this.limboDocuments.size === 0 && this.current && !targetIsPendingReset;
+
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
     this.syncState = newSyncState;
@@ -350,7 +362,7 @@ export class View {
           mutatedKeys: this.mutatedKeys,
           needsRefill: false
         },
-        /* updateLimboDocuments= */ false
+        /* limboResolutionEnabled= */ false
       );
     } else {
       // No effect, just return a no-op ViewChange.
@@ -458,7 +470,7 @@ export class View {
     this._syncedDocuments = queryResult.remoteKeys;
     this.limboDocuments = documentKeySet();
     const docChanges = this.computeDocChanges(queryResult.documents);
-    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
+    return this.applyChanges(docChanges, /* limboResolutionEnabled= */ true);
   }
 
   /**

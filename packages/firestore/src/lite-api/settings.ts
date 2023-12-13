@@ -68,7 +68,10 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 }
 
-/** Undocumented, private additional settings not exposed in our public API. */
+/**
+ * @internal
+ * Undocumented, private additional settings not exposed in our public API.
+ */
 export interface PrivateSettings extends FirestoreSettings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;

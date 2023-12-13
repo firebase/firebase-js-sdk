@@ -15,17 +15,17 @@ A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects representing 
 <b>Signature:</b>
 
 ```typescript
-export declare class QuerySnapshot<T = DocumentData> 
+export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [docs](./firestore_.querysnapshot.md#querysnapshotdocs) |  | Array&lt;[QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
+|  [docs](./firestore_.querysnapshot.md#querysnapshotdocs) |  | Array&lt;[QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
 |  [empty](./firestore_.querysnapshot.md#querysnapshotempty) |  | boolean | True if there are no documents in the <code>QuerySnapshot</code>. |
 |  [metadata](./firestore_.querysnapshot.md#querysnapshotmetadata) |  | [SnapshotMetadata](./firestore_.snapshotmetadata.md#snapshotmetadata_class) | Metadata about this snapshot, concerning its source and if it has local modifications. |
-|  [query](./firestore_.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query on which you called <code>get</code> or <code>onSnapshot</code> in order to get this <code>QuerySnapshot</code>. |
+|  [query](./firestore_.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query on which you called <code>get</code> or <code>onSnapshot</code> in order to get this <code>QuerySnapshot</code>. |
 |  [size](./firestore_.querysnapshot.md#querysnapshotsize) |  | number | The number of documents in the <code>QuerySnapshot</code>. |
 
 ## Methods
@@ -42,7 +42,7 @@ An array of all the documents in the `QuerySnapshot`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-get docs(): Array<QueryDocumentSnapshot<T>>;
+get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 ## QuerySnapshot.empty
@@ -72,7 +72,7 @@ The query on which you called `get` or `onSnapshot` in order to get this `QueryS
 <b>Signature:</b>
 
 ```typescript
-readonly query: Query<T>;
+readonly query: Query<AppModelType, DbModelType>;
 ```
 
 ## QuerySnapshot.size
@@ -92,7 +92,7 @@ Returns an array of the documents changes since the last snapshot. If this is th
 <b>Signature:</b>
 
 ```typescript
-docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
+docChanges(options?: SnapshotListenOptions): Array<DocumentChange<AppModelType, DbModelType>>;
 ```
 
 ### Parameters
@@ -103,7 +103,7 @@ docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
 
 <b>Returns:</b>
 
-Array&lt;[DocumentChange](./firestore_.documentchange.md#documentchange_interface)<!-- -->&lt;T&gt;&gt;
+Array&lt;[DocumentChange](./firestore_.documentchange.md#documentchange_interface)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 ## QuerySnapshot.forEach()
 
@@ -112,14 +112,14 @@ Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
+forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
 ```
 
 ### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  callback | (result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
+|  callback | (result: [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
 |  thisArg | unknown | The <code>this</code> binding for the callback. |
 
 <b>Returns:</b>

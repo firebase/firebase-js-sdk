@@ -8,7 +8,7 @@
 #######################################################################################################
 
 # These owners will be the default owners for everything in the repo.
-*       @dwyfrequency @hsubox76 @firebase/jssdk-global-approvers
+*       @firebase/jssdk-global-approvers
 
 # Database Code
 packages/database @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers

@@ -35,7 +35,7 @@ use(chaiAsPromised);
 
 apiDescribe('Database (with internal API)', persistence => {
   // eslint-disable-next-line no-restricted-properties
-  (persistence ? it : it.skip)(
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {
       await withTestDoc(persistence, async (docRef, firestore) => {

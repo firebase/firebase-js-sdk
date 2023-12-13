@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "9.23.0",
+  "version": "10.7.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -82,18 +82,6 @@
         "import": "./auth/cordova/dist/esm/index.esm.js"
       },
       "default": "./auth/cordova/dist/esm/index.esm.js"
-    },
-    "./auth/react-native": {
-      "types": "./auth/react-native/dist/auth/react-native/index.d.ts",
-      "node": {
-        "require": "./auth/react-native/dist/index.cjs.js",
-        "import": "./auth/react-native/dist/index.mjs"
-      },
-      "browser": {
-        "require": "./auth/react-native/dist/index.cjs.js",
-        "import": "./auth/react-native/dist/esm/index.esm.js"
-      },
-      "default": "./auth/react-native/dist/esm/index.esm.js"
     },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
@@ -374,31 +362,31 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app": "0.9.13",
-    "@firebase/app-compat": "0.2.13",
+    "@firebase/app": "0.9.25",
+    "@firebase/app-compat": "0.2.25",
     "@firebase/app-types": "0.9.0",
-    "@firebase/auth": "0.23.2",
-    "@firebase/auth-compat": "0.4.2",
-    "@firebase/database": "0.14.4",
-    "@firebase/database-compat": "0.3.4",
-    "@firebase/firestore": "3.13.0",
-    "@firebase/firestore-compat": "0.3.12",
-    "@firebase/functions": "0.10.0",
-    "@firebase/functions-compat": "0.3.5",
+    "@firebase/auth": "1.5.1",
+    "@firebase/auth-compat": "0.5.1",
+    "@firebase/database": "1.0.2",
+    "@firebase/database-compat": "1.0.2",
+    "@firebase/firestore": "4.4.0",
+    "@firebase/firestore-compat": "0.3.23",
+    "@firebase/functions": "0.11.0",
+    "@firebase/functions-compat": "0.3.6",
     "@firebase/installations": "0.6.4",
     "@firebase/installations-compat": "0.2.4",
-    "@firebase/messaging": "0.12.4",
-    "@firebase/messaging-compat": "0.2.4",
-    "@firebase/storage": "0.11.2",
-    "@firebase/storage-compat": "0.3.2",
+    "@firebase/messaging": "0.12.5",
+    "@firebase/messaging-compat": "0.2.5",
+    "@firebase/storage": "0.12.0",
+    "@firebase/storage-compat": "0.3.3",
     "@firebase/performance": "0.6.4",
     "@firebase/performance-compat": "0.2.4",
     "@firebase/remote-config": "0.4.4",
     "@firebase/remote-config-compat": "0.2.4",
     "@firebase/analytics": "0.10.0",
     "@firebase/analytics-compat": "0.2.6",
-    "@firebase/app-check": "0.8.0",
-    "@firebase/app-check-compat": "0.3.7",
+    "@firebase/app-check": "0.8.1",
+    "@firebase/app-check-compat": "0.3.8",
     "@firebase/util": "1.9.3"
   },
   "devDependencies": {
@@ -421,7 +409,6 @@
     "app-check",
     "auth",
     "auth/cordova",
-    "auth/react-native",
     "functions",
     "firestore",
     "firestore/lite",

@@ -254,6 +254,10 @@ export class MockConnection implements Connection {
 
   constructor(private queue: AsyncQueue) {}
 
+  terminate(): void {
+    // no-op
+  }
+
   shouldResourcePathBeIncludedInRequest: boolean = false;
 
   /**

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AggregateField, AggregateSpec, Query } from '../api';
+import { AggregateField, AggregateSpec, DocumentData, Query } from '../api';
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
@@ -56,9 +56,18 @@ export {
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCountFromServer(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCountFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >
+> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
@@ -71,7 +80,7 @@ export function getCountFromServer(
  * set of the given query, without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
- * final aggregation values, not the documents' data, is downloaded. This
+ * final aggregation values, not the documents' data, are downloaded. This
  * function can even perform aggregations of the documents if the result set
  * would be prohibitively large to download entirely (e.g. thousands of documents).
  *
@@ -98,19 +107,24 @@ export function getCountFromServer(
  * const totalHours: number = aggregateSnapshot.data().totalHours;
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
- * @internal TODO (sum/avg) remove when public
  */
-export function getAggregateFromServer<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T
-): Promise<AggregateQuerySnapshot<T>> {
+export function getAggregateFromServer<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType
+): Promise<
+  AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
+> {
   const firestore = cast(query.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
-      aggregate._aggregateType,
+      aggregate.aggregateType,
       aggregate._internalFieldPath
     );
   });
@@ -132,16 +146,20 @@ export function getAggregateFromServer<T extends AggregateSpec>(
  * @param aggregateResult Core aggregation result
  * @internal
  */
-function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
+function convertToAggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
   firestore: Firestore,
-  query: Query<unknown>,
+  query: Query<AppModelType, DbModelType>,
   aggregateResult: ApiClientObjectMap<Value>
-): AggregateQuerySnapshot<T> {
+): AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
   const userDataWriter = new ExpUserDataWriter(firestore);
-  const querySnapshot = new AggregateQuerySnapshot<T>(
-    query,
-    userDataWriter,
-    aggregateResult
-  );
+  const querySnapshot = new AggregateQuerySnapshot<
+    AggregateSpecType,
+    AppModelType,
+    DbModelType
+  >(query, userDataWriter, aggregateResult);
   return querySnapshot;
 }

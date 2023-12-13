@@ -19,7 +19,8 @@ import { AggregateType } from '../core/aggregate';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 
-import { Query } from './reference';
+import { average, count, sum } from './aggregate';
+import { DocumentData, Query } from './reference';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 export { AggregateType };
@@ -32,25 +33,30 @@ export class AggregateField<T> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateField';
 
+  /** Indicates the aggregation operation of this AggregateField. */
+  readonly aggregateType: AggregateType;
+
   /**
    * Create a new AggregateField<T>
-   * @param _aggregateType Specifies the type of aggregation operation to perform.
+   * @param aggregateType Specifies the type of aggregation operation to perform.
    * @param _internalFieldPath Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
-    // TODO (sum/avg) make aggregateType public when the feature is supported
-    readonly _aggregateType: AggregateType = 'count',
+    aggregateType: AggregateType = 'count',
     readonly _internalFieldPath?: InternalFieldPath
-  ) {}
+  ) {
+    this.aggregateType = aggregateType;
+  }
 }
 
-// TODO (sum/avg) Update the definition of AggregateFieldType to be based
-// on the return type of `sum(..)`, `average(...)`, and `count()`
 /**
  * The union of all `AggregateField` types that are supported by Firestore.
  */
-export type AggregateFieldType = AggregateField<number | null>;
+export type AggregateFieldType =
+  | ReturnType<typeof sum>
+  | ReturnType<typeof average>
+  | ReturnType<typeof count>;
 
 /**
  * Specifies a set of aggregations and their aliases.
@@ -71,7 +77,11 @@ export type AggregateSpecData<T extends AggregateSpec> = {
 /**
  * The results of executing an aggregation query.
  */
-export class AggregateQuerySnapshot<T extends AggregateSpec> {
+export class AggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /** A type string to uniquely identify instances of this class. */
   readonly type = 'AggregateQuerySnapshot';
 
@@ -79,11 +89,11 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * The underlying query over which the aggregations recorded in this
    * `AggregateQuerySnapshot` were performed.
    */
-  readonly query: Query<unknown>;
+  readonly query: Query<AppModelType, DbModelType>;
 
   /** @hideconstructor */
   constructor(
-    query: Query<unknown>,
+    query: Query<AppModelType, DbModelType>,
     private readonly _userDataWriter: AbstractUserDataWriter,
     private readonly _data: ApiClientObjectMap<Value>
   ) {
@@ -101,9 +111,9 @@ export class AggregateQuerySnapshot<T extends AggregateSpec> {
    * @returns The results of the aggregations performed over the underlying
    * query.
    */
-  data(): AggregateSpecData<T> {
+  data(): AggregateSpecData<AggregateSpecType> {
     return this._userDataWriter.convertObjectMap(
       this._data
-    ) as AggregateSpecData<T>;
+    ) as AggregateSpecData<AggregateSpecType>;
   }
 }

@@ -28,14 +28,15 @@ Firebase Authentication
 |  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset) | Completes the password reset process, given a confirmation code and new password. |
 |  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
 |  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword) | Creates a new user account associated with the specified email address and password. |
-|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. |
+|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
 |  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
 |  [isSignInWithEmailLink(auth, emailLink)](./auth.md#issigninwithemaillink) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink)<!-- -->. |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. |
+|  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
 |  [signInAnonymously(auth)](./auth.md#signinanonymously) | Asynchronously signs in as an anonymous user. |
@@ -49,6 +50,7 @@ Firebase Authentication
 |  [signOut(auth)](./auth.md#signout) | Signs out the current user. |
 |  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage) | Sets the current language to the default device/browser preference. |
+|  [validatePassword(auth, password)](./auth.md#validatepassword) | Validates the password against the password policy configured for the project or tenant. |
 |  [verifyPasswordResetCode(auth, code)](./auth.md#verifypasswordresetcode) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
 |  <b>function(link...)</b> |
 |  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
@@ -124,6 +126,8 @@ Firebase Authentication
 |  [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth.user.md#user_interface)<!-- -->. |
 |  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md#oauthcredentialoptions_interface) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [ParsedToken](./auth.parsedtoken.md#parsedtoken_interface) | Interface representing a parsed ID token. |
+|  [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | A structure specifying password policy requirements. |
+|  [PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface) | A structure indicating which password policy requirements were met or violated and what the requirements are. |
 |  [Persistence](./auth.persistence.md#persistence_interface) | An interface covering the possible persistence mechanism types. |
 |  [PhoneMultiFactorAssertion](./auth.phonemultifactorassertion.md#phonemultifactorassertion_interface) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth.phonemultifactorgenerator.md#phonemultifactorgeneratorassertion)<!-- -->. |
 |  [PhoneMultiFactorEnrollInfoOptions](./auth.phonemultifactorenrollinfooptions.md#phonemultifactorenrollinfooptions_interface) | Options used for enrolling a second factor. |
@@ -157,7 +161,6 @@ Firebase Authentication
 |  [OperationType](./auth.md#operationtype) | Enumeration of supported operation types. |
 |  [prodErrorMap](./auth.md#proderrormap) | A minimal error map with all verbose error messages stripped.<!-- -->See discussion at [AuthErrorMap](./auth.autherrormap.md#autherrormap_interface) |
 |  [ProviderId](./auth.md#providerid) | Enumeration of supported providers. |
-|  [reactNativeLocalPersistence](./auth.md#reactnativelocalpersistence) | An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'LOCAL' for use in React Native environments. |
 |  [SignInMethod](./auth.md#signinmethod) | Enumeration of supported sign-in methods. |
 
 ## Type Aliases
@@ -394,7 +397,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 ## fetchSignInMethodsForEmail()
 
-Gets the list of possible sign in methods for the given email address.
+Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
 
 This is useful to differentiate methods of sign-in for the same provider, eg. [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) which has 2 methods of sign-in, [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_PASSWORD and [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_LINK.
 
@@ -409,7 +412,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  email | string | The user's email address. |
+|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection). |
 
 <b>Returns:</b>
 
@@ -596,9 +599,30 @@ export declare function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObser
 
 [Unsubscribe](./util.md#unsubscribe)
 
+## revokeAccessToken()
+
+Revokes the given access token. Currently only supports Apple OAuth access tokens.
+
+<b>Signature:</b>
+
+```typescript
+export declare function revokeAccessToken(auth: Auth, token: string): Promise<void>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+|  token | string | The Apple OAuth access token. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
 ## sendPasswordResetEmail()
 
-Sends a password reset email to the given email address.
+Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
 To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset) with the code supplied in the email sent to the user, along with the new password specified by the user.
 
@@ -801,7 +825,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Asynchronously signs in using an email and password.
 
-Fails with an error if the email address and password do not match.
+Fails with an error if the email address and password do not match. When \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
 
 Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword)<!-- -->.
 
@@ -1077,6 +1101,39 @@ export declare function useDeviceLanguage(auth: Auth): void;
 <b>Returns:</b>
 
 void
+
+## validatePassword()
+
+Validates the password against the password policy configured for the project or tenant.
+
+If no tenant ID is set on the `Auth` instance, then this method will use the password policy configured for the project. Otherwise, this method will use the policy configured for the tenant. If a password policy has not been configured, then the default policy configured for all projects will be used.
+
+If an auth flow fails because a submitted password does not meet the password policy requirements and this method has previously been called, then this method will use the most recent policy available when called again.
+
+<b>Signature:</b>
+
+```typescript
+export declare function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
+|  password | string | The password to validate. |
+
+<b>Returns:</b>
+
+Promise&lt;[PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface)<!-- -->&gt;
+
+### Example
+
+
+```javascript
+validatePassword(auth, 'some-password');
+
+```
 
 ## verifyPasswordResetCode()
 
@@ -1576,7 +1633,7 @@ export declare function updateEmail(user: User, newEmail: string): Promise<void>
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
-|  newEmail | string | The new email address. |
+|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail) instead. |
 
 <b>Returns:</b>
 
@@ -1794,6 +1851,7 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly INVALID_EMAIL: "auth/invalid-email";
     readonly INVALID_EMULATOR_SCHEME: "auth/invalid-emulator-scheme";
     readonly INVALID_IDP_RESPONSE: "auth/invalid-credential";
+    readonly INVALID_LOGIN_CREDENTIALS: "auth/invalid-credential";
     readonly INVALID_MESSAGE_PAYLOAD: "auth/invalid-message-payload";
     readonly INVALID_MFA_SESSION: "auth/invalid-multi-factor-session";
     readonly INVALID_OAUTH_CLIENT_ID: "auth/invalid-oauth-client-id";
@@ -1995,16 +2053,6 @@ ProviderId: {
     readonly PHONE: "phone";
     readonly TWITTER: "twitter.com";
 }
-```
-
-## reactNativeLocalPersistence
-
-An implementation of [Persistence](./auth.persistence.md#persistence_interface) of type 'LOCAL' for use in React Native environments.
-
-<b>Signature:</b>
-
-```typescript
-reactNativeLocalPersistence: Persistence
 ```
 
 ## SignInMethod
