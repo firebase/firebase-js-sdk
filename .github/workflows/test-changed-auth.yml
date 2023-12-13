@@ -40,7 +40,7 @@ jobs:
           ls chrome
           chromeVersionString=$(ls chrome)
           echo $chromeVersionString
-          echo "::notice file=app.js,line=1,col=5,endColumn=7::Missing semicolon"
+          echo "::notice file=app.js,line=1,col=5,endColumn=7::$chromeVersionString"
           echo "::warning chromeVersion $chromeVersionString"
       - name: Checkout Repo
         uses: actions/checkout@master
