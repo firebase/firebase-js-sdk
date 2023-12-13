@@ -38,17 +38,13 @@ jobs:
       - name: install Chrome stable
         run: |
           npx @puppeteer/browsers install chrome@stable
-          ls chrome
           chromeVersionString=$(ls chrome)
-          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
-            echo "::warning Chromeversion doesn't match validated version. \
+          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
+           echo "::warning The Chrome version doesn't match the previously validated version. \
+            A new version must have been releaed.\n\
             Consider updating the validated version in the GitHub workflow if tests pass."
           fi
-          echo $chromeVersionString
-          echo "::notice file=app.js,line=1,col=5,endColumn=7::$chromeVersionString"
-          echo "::warning file=app.js,line=1,col=5,endColumn=7::$chromeVersionString"
-          echo "::warning file=app.js,line=1,col=5,endColumn=7::control_test"
-          echo "::warning chromeVersion $chromeVersionString"
+
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
