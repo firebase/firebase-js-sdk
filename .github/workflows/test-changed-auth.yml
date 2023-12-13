@@ -14,7 +14,7 @@
 
 name: Test Auth
 
-on: pull_request
+on: [push, pull_request]
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
@@ -37,6 +37,10 @@ jobs:
       - name: install Chrome stable
         run: |
           npx @puppeteer/browsers install chrome@stable
+          ls chrome
+          chromeVersionString=$(ls chrome)
+          echo $chromeVersionString
+          echo "::warning chromeVersion $chromeVersionString"
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
