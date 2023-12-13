@@ -106,7 +106,7 @@ Applies a custom data converter to this `DocumentReference`<!-- -->, allowing yo
 withConverter<NewAppModelType, NewDbModelType extends DocumentData = DocumentData>(converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>): DocumentReference<NewAppModelType, NewDbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -128,7 +128,7 @@ Removes the current converter.
 withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

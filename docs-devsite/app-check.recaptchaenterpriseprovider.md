@@ -35,7 +35,7 @@ Create a ReCaptchaEnterpriseProvider instance.
 constructor(_siteKey: string);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

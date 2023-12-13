@@ -142,7 +142,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 getIdToken(forceRefresh?: boolean): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -164,7 +164,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

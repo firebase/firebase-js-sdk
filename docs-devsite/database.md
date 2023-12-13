@@ -16,9 +16,9 @@ Firebase Realtime Database
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [getDatabase(app, url)](./database.md#getdatabase_d9cea01) | Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with with default settings if no instance exists or if the existing instance uses a custom database URL. |
-|  <b>function(db...)</b> |
+|  <b>function(db, ...)</b> |
 |  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_27b9e93) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
 |  [goOffline(db)](./database.md#gooffline_732b338) | Disconnects from the server (all Database operations will be completed offline).<!-- -->The client automatically maintains a persistent connection to the Database server, which will remain active indefinitely and reconnect when disconnected. However, the <code>goOffline()</code> and <code>goOnline()</code> methods may be used to control the client connection in cases where a persistent connection is undesirable.<!-- -->While offline, the client will no longer receive data updates from the Database. However, all Database operations performed locally will continue to immediately fire events, allowing your application to continue behaving normally. Additionally, each operation performed locally will automatically be queued and retried upon reconnection to the Database server.<!-- -->To reconnect to the Database and begin receiving remote events, see <code>goOnline()</code>. |
 |  [goOnline(db)](./database.md#goonline_732b338) | Reconnects to the server and synchronizes the offline Database state with the server state.<!-- -->This method should be used after disabling the active connection with <code>goOffline()</code>. Once reconnected, the client will transmit the proper data and fire the appropriate events so that your client "catches up" automatically. |
@@ -31,21 +31,21 @@ Firebase Realtime Database
 |  [orderByPriority()](./database.md#orderbypriority) | Creates a new <code>QueryConstraint</code> that orders by priority.<!-- -->Applications need not use priority but can order collections by ordinary properties (see [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data) for alternatives to priority. |
 |  [orderByValue()](./database.md#orderbyvalue) | Creates a new <code>QueryConstraint</code> that orders by value.<!-- -->If the children of a query are all scalar values (string, number, or boolean), you can order the results by their (ascending) values.<!-- -->You can read more about <code>orderByValue()</code> in [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)<!-- -->. |
 |  [serverTimestamp()](./database.md#servertimestamp) | Returns a placeholder value for auto-populating the current timestamp (time since the Unix epoch, in milliseconds) as determined by the Firebase servers. |
-|  <b>function(delta...)</b> |
+|  <b>function(delta, ...)</b> |
 |  [increment(delta)](./database.md#increment_1a4266e) | Returns a placeholder value that can be used to atomically increment the current database value by the provided delta. |
-|  <b>function(enabled...)</b> |
+|  <b>function(enabled, ...)</b> |
 |  [enableLogging(enabled, persistent)](./database.md#enablelogging_cd4f840) | Logs debugging information to the console. |
-|  <b>function(limit...)</b> |
+|  <b>function(limit, ...)</b> |
 |  [limitToFirst(limit)](./database.md#limittofirst_ec46c78) | Creates a new <code>QueryConstraint</code> that if limited to the first specific number of children.<!-- -->The <code>limitToFirst()</code> method is used to set a maximum number of children to be synced for a given callback. If we set a limit of 100, we will initially only receive up to 100 <code>child_added</code> events. If we have fewer than 100 messages stored in our Database, a <code>child_added</code> event will fire for each message. However, if we have over 100 messages, we will only receive a <code>child_added</code> event for the first 100 ordered messages. As items change, we will receive <code>child_removed</code> events for each item that drops out of the active list so that the total number stays at 100.<!-- -->You can read more about <code>limitToFirst()</code> in [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)<!-- -->. |
 |  [limitToLast(limit)](./database.md#limittolast_ec46c78) | Creates a new <code>QueryConstraint</code> that is limited to return only the last specified number of children.<!-- -->The <code>limitToLast()</code> method is used to set a maximum number of children to be synced for a given callback. If we set a limit of 100, we will initially only receive up to 100 <code>child_added</code> events. If we have fewer than 100 messages stored in our Database, a <code>child_added</code> event will fire for each message. However, if we have over 100 messages, we will only receive a <code>child_added</code> event for the last 100 ordered messages. As items change, we will receive <code>child_removed</code> events for each item that drops out of the active list so that the total number stays at 100.<!-- -->You can read more about <code>limitToLast()</code> in [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)<!-- -->. |
-|  <b>function(logger...)</b> |
+|  <b>function(logger, ...)</b> |
 |  [enableLogging(logger)](./database.md#enablelogging_3886555) | Logs debugging information to the console. |
-|  <b>function(parent...)</b> |
+|  <b>function(parent, ...)</b> |
 |  [child(parent, path)](./database.md#child_28a1a9f) | Gets a <code>Reference</code> for the location at the specified relative path.<!-- -->The relative path can either be a simple child name (for example, "ada") or a deeper slash-separated path (for example, "ada/name/first"). |
 |  [push(parent, value)](./database.md#push_c74661c) | Generates a new child location using a unique key and returns its <code>Reference</code>.<!-- -->This is the most common pattern for adding data to a collection of items.<!-- -->If you provide a value to <code>push()</code>, the value is written to the generated location. If you don't pass a value, nothing is written to the database and the child remains empty (but you can use the <code>Reference</code> elsewhere).<!-- -->The unique keys generated by <code>push()</code> are ordered by the current time, so the resulting list of items is chronologically sorted. The keys are also designed to be unguessable (they contain 72 random bits of entropy).<!-- -->See [Append to a list of data](https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data)<!-- -->. See [The 2^120 Ways to Ensure Unique Identifiers](https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html)<!-- -->. |
-|  <b>function(path...)</b> |
+|  <b>function(path, ...)</b> |
 |  [orderByChild(path)](./database.md#orderbychild_fe1f8e4) | Creates a new <code>QueryConstraint</code> that orders by the specified child key.<!-- -->Queries can only order by one key at a time. Calling <code>orderByChild()</code> multiple times on the same query is an error.<!-- -->Firebase queries allow you to order your data by any child key on the fly. However, if you know in advance what your indexes will be, you can define them via the .indexOn rule in your Security Rules for better performance. See the[https://firebase.google.com/docs/database/security/indexing-data](https://firebase.google.com/docs/database/security/indexing-data) rule for more information.<!-- -->You can read more about <code>orderByChild()</code> in [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)<!-- -->. |
-|  <b>function(query...)</b> |
+|  <b>function(query, ...)</b> |
 |  [get(query)](./database.md#get_20b2416) | Gets the most up-to-date result for this query. |
 |  [off(query, eventType, callback)](./database.md#off_17bb961) | Detaches a callback previously attached with the corresponding <code>on*()</code> (<code>onValue</code>, <code>onChildAdded</code>) listener. Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from the respective <code>on*</code> callbacks.<!-- -->Detach a callback previously attached with <code>on*()</code>. Calling <code>off()</code> on a parent listener will not automatically remove listeners registered on child nodes, <code>off()</code> must also be called on any child listeners to remove the callback.<!-- -->If a callback is not specified, all callbacks for the specified eventType will be removed. Similarly, if no eventType is specified, all callbacks for the <code>Reference</code> will be removed.<!-- -->Individual listeners can also be removed by invoking their unsubscribe callbacks. |
 |  [onChildAdded(query, callback, cancelCallback)](./database.md#onchildadded_139c747) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onChildAdded</code> event will be triggered once for each initial child at this location, and it will be triggered again every time a new child is added. The <code>DataSnapshot</code> passed into the callback will reflect the data for the relevant child. For ordering purposes, it is passed a second argument which is a string containing the key of the previous sibling child by sort order, or <code>null</code> if it is the first child. |
@@ -64,7 +64,7 @@ Firebase Realtime Database
 |  [onValue(query, callback, options)](./database.md#onvalue_7357cb6) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onValue</code> event will trigger once with the initial data stored at this location, and then trigger again each time the data changes. The <code>DataSnapshot</code> passed to the callback will be for the location at which <code>on()</code> was called. It won't trigger until the entire contents has been synchronized. If the location has no data, it will be triggered with an empty <code>DataSnapshot</code> (<code>val()</code> will return <code>null</code>). |
 |  [onValue(query, callback, cancelCallback, options)](./database.md#onvalue_e66d5b6) | Listens for data changes at a particular location.<!-- -->This is the primary way to read data from a Database. Your callback will be triggered for the initial data and again whenever the data changes. Invoke the returned unsubscribe callback to stop receiving updates. See [Retrieve Data on the Web](https://firebase.google.com/docs/database/web/retrieve-data) for more details.<!-- -->An <code>onValue</code> event will trigger once with the initial data stored at this location, and then trigger again each time the data changes. The <code>DataSnapshot</code> passed to the callback will be for the location at which <code>on()</code> was called. It won't trigger until the entire contents has been synchronized. If the location has no data, it will be triggered with an empty <code>DataSnapshot</code> (<code>val()</code> will return <code>null</code>). |
 |  [query(query, queryConstraints)](./database.md#query_870e07a) | Creates a new immutable instance of <code>Query</code> that is extended to also include additional query constraints. |
-|  <b>function(ref...)</b> |
+|  <b>function(ref, ...)</b> |
 |  [onDisconnect(ref)](./database.md#ondisconnect_8616c19) | Returns an <code>OnDisconnect</code> object - see [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities) for more information on how to use it. |
 |  [remove(ref)](./database.md#remove_8616c19) | Removes the data at this Database location.<!-- -->Any data at child locations will also be deleted.<!-- -->The effect of the remove will be visible immediately and the corresponding event 'value' will be triggered. Synchronization of the remove to the Firebase servers will also be started, and the returned Promise will resolve when complete. If provided, the onComplete callback will be called asynchronously after synchronization has finished. |
 |  [runTransaction(ref, transactionUpdate, options)](./database.md#runtransaction_a3641e5) | Atomically modifies the data at this location.<!-- -->Atomically modify the data at this location. Unlike a normal <code>set()</code>, which just overwrites the data regardless of its previous value, <code>runTransaction()</code> is used to modify the existing value to a new value, ensuring there are no conflicts with other clients writing to the same location at the same time.<!-- -->To accomplish this, you pass <code>runTransaction()</code> an update function which is used to transform the current value into a new value. If another client writes to the location before your new value is successfully written, your update function will be called again with the new current value, and the write will be retried. This will happen repeatedly until your write succeeds without conflict or you abort the transaction by not returning a value from your update function.<!-- -->Note: Modifying data with <code>set()</code> will cancel any pending transactions at that location, so extreme care should be taken if mixing <code>set()</code> and <code>runTransaction()</code> to update the same data.<!-- -->Note: When using transactions with Security and Firebase Rules in place, be aware that a client needs <code>.read</code> access in addition to <code>.write</code> access in order to perform a transaction. This is because the client-side nature of transactions requires the client to read the data in order to transactionally update it. |
@@ -72,7 +72,7 @@ Firebase Realtime Database
 |  [setPriority(ref, priority)](./database.md#setpriority_f979832) | Sets a priority for the data at this Database location.<!-- -->Applications need not use priority but can order collections by ordinary properties (see [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data) ). |
 |  [setWithPriority(ref, value, priority)](./database.md#setwithpriority_dc560e7) | Writes data the Database location. Like <code>set()</code> but also specifies the priority for that data.<!-- -->Applications need not use priority but can order collections by ordinary properties (see [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data) ). |
 |  [update(ref, values)](./database.md#update_06756b7) | Writes multiple values to the Database at once.<!-- -->The <code>values</code> argument contains multiple property-value pairs that will be written to the Database together. Each child property can either be a simple property (for example, "name") or a relative path (for example, "name/first") from the current location to the data to update.<!-- -->As opposed to the <code>set()</code> method, <code>update()</code> can be use to selectively update only the referenced properties at the current location (instead of replacing all the child properties at the current location).<!-- -->The effect of the write will be visible immediately, and the corresponding events ('value', 'child\_added', etc.) will be triggered. Synchronization of the data to the Firebase servers will also be started, and the returned Promise will resolve when complete. If provided, the <code>onComplete</code> callback will be called asynchronously after synchronization has finished.<!-- -->A single <code>update()</code> will generate a single "value" event at the location where the <code>update()</code> was performed, regardless of how many children were modified.<!-- -->Note that modifying data with <code>update()</code> will cancel any pending transactions at that location, so extreme care should be taken if mixing <code>update()</code> and <code>transaction()</code> to modify the same data.<!-- -->Passing <code>null</code> to <code>update()</code> will remove the data at this location.<!-- -->See [Introducing multi-location updates and more](https://firebase.googleblog.com/2015/09/introducing-multi-location-updates-and_86.html)<!-- -->. |
-|  <b>function(value...)</b> |
+|  <b>function(value, ...)</b> |
 |  [endAt(value, key)](./database.md#endat_51c2c8b) | Creates a <code>QueryConstraint</code> with the specified ending point.<!-- -->Using <code>startAt()</code>, <code>startAfter()</code>, <code>endBefore()</code>, <code>endAt()</code> and <code>equalTo()</code> allows you to choose arbitrary starting and ending points for your queries.<!-- -->The ending point is inclusive, so children with exactly the specified value will be included in the query. The optional key argument can be used to further limit the range of the query. If it is specified, then children that have exactly the specified value must also have a key name less than or equal to the specified key.<!-- -->You can read more about <code>endAt()</code> in [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)<!-- -->. |
 |  [endBefore(value, key)](./database.md#endbefore_51c2c8b) | Creates a <code>QueryConstraint</code> with the specified ending point (exclusive).<!-- -->Using <code>startAt()</code>, <code>startAfter()</code>, <code>endBefore()</code>, <code>endAt()</code> and <code>equalTo()</code> allows you to choose arbitrary starting and ending points for your queries.<!-- -->The ending point is exclusive. If only a value is provided, children with a value less than the specified value will be included in the query. If a key is specified, then children must have a value less than or equal to the specified value and a key name less than the specified key. |
 |  [equalTo(value, key)](./database.md#equalto_51c2c8b) | Creates a <code>QueryConstraint</code> that includes children that match the specified value.<!-- -->Using <code>startAt()</code>, <code>startAfter()</code>, <code>endBefore()</code>, <code>endAt()</code> and <code>equalTo()</code> allows you to choose arbitrary starting and ending points for your queries.<!-- -->The optional key argument can be used to further limit the range of the query. If it is specified, then children that have exactly the specified value must also have exactly the specified key as their key name. This can be used to filter result sets with many matches for the same value.<!-- -->You can read more about <code>equalTo()</code> in [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)<!-- -->. |
@@ -108,7 +108,9 @@ Firebase Realtime Database
 |  [QueryConstraintType](./database.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [Unsubscribe](./database.md#unsubscribe) | A callback that can invoked to remove a listener. |
 
-## getDatabase() {:#getdatabase_d9cea01}
+## function(app, ...)
+
+### getDatabase(app, url) {:#getdatabase_d9cea01}
 
 Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with with default settings if no instance exists or if the existing instance uses a custom database URL.
 
@@ -118,7 +120,7 @@ Returns the instance of the Realtime Database SDK that is associated with the pr
 export declare function getDatabase(app?: FirebaseApp, url?: string): Database;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -131,7 +133,9 @@ export declare function getDatabase(app?: FirebaseApp, url?: string): Database;
 
 The `Database` instance of the provided app.
 
-## connectDatabaseEmulator() {:#connectdatabaseemulator_27b9e93}
+## function(db, ...)
+
+### connectDatabaseEmulator(db, host, port, options) {:#connectdatabaseemulator_27b9e93}
 
 Modify the provided instance to communicate with the Realtime Database emulator.
 
@@ -145,7 +149,7 @@ export declare function connectDatabaseEmulator(db: Database, host: string, port
 }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -158,7 +162,7 @@ export declare function connectDatabaseEmulator(db: Database, host: string, port
 
 void
 
-## goOffline() {:#gooffline_732b338}
+### goOffline(db) {:#gooffline_732b338}
 
 Disconnects from the server (all Database operations will be completed offline).
 
@@ -174,7 +178,7 @@ To reconnect to the Database and begin receiving remote events, see `goOnline()`
 export declare function goOffline(db: Database): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -184,7 +188,7 @@ export declare function goOffline(db: Database): void;
 
 void
 
-## goOnline() {:#goonline_732b338}
+### goOnline(db) {:#goonline_732b338}
 
 Reconnects to the server and synchronizes the offline Database state with the server state.
 
@@ -196,7 +200,7 @@ This method should be used after disabling the active connection with `goOffline
 export declare function goOnline(db: Database): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -206,7 +210,7 @@ export declare function goOnline(db: Database): void;
 
 void
 
-## ref() {:#ref_5f88fa2}
+### ref(db, path) {:#ref_5f88fa2}
 
 Returns a `Reference` representing the location in the Database corresponding to the provided path. If no path is provided, the `Reference` will point to the root of the Database.
 
@@ -216,7 +220,7 @@ Returns a `Reference` representing the location in the Database corresponding to
 export declare function ref(db: Database, path?: string): DatabaseReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -229,7 +233,7 @@ export declare function ref(db: Database, path?: string): DatabaseReference;
 
 If a path is provided, a `Reference` pointing to the provided path. Otherwise, a `Reference` pointing to the root of the Database.
 
-## refFromURL() {:#reffromurl_98d95ad}
+### refFromURL(db, url) {:#reffromurl_98d95ad}
 
 Returns a `Reference` representing the location in the Database corresponding to the provided Firebase URL.
 
@@ -243,7 +247,7 @@ Note that all query parameters (`orderBy`<!-- -->, `limitToLast`<!-- -->, etc.) 
 export declare function refFromURL(db: Database, url: string): DatabaseReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -256,7 +260,9 @@ export declare function refFromURL(db: Database, url: string): DatabaseReference
 
 A `Reference` pointing to the provided Firebase URL.
 
-## forceLongPolling() {:#forcelongpolling}
+## function()
+
+### forceLongPolling() {:#forcelongpolling}
 
 Force the use of longPolling instead of websockets. This will be ignored if websocket protocol is used in databaseURL.
 
@@ -269,7 +275,7 @@ export declare function forceLongPolling(): void;
 
 void
 
-## forceWebSockets() {:#forcewebsockets}
+### forceWebSockets() {:#forcewebsockets}
 
 Force the use of websockets instead of longPolling.
 
@@ -282,7 +288,7 @@ export declare function forceWebSockets(): void;
 
 void
 
-## orderByKey() {:#orderbykey}
+### orderByKey() {:#orderbykey}
 
 Creates a new `QueryConstraint` that orders by the key.
 
@@ -299,7 +305,7 @@ export declare function orderByKey(): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## orderByPriority() {:#orderbypriority}
+### orderByPriority() {:#orderbypriority}
 
 Creates a new `QueryConstraint` that orders by priority.
 
@@ -314,7 +320,7 @@ export declare function orderByPriority(): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## orderByValue() {:#orderbyvalue}
+### orderByValue() {:#orderbyvalue}
 
 Creates a new `QueryConstraint` that orders by value.
 
@@ -331,7 +337,7 @@ export declare function orderByValue(): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## serverTimestamp() {:#servertimestamp}
+### serverTimestamp() {:#servertimestamp}
 
 Returns a placeholder value for auto-populating the current timestamp (time since the Unix epoch, in milliseconds) as determined by the Firebase servers.
 
@@ -344,7 +350,9 @@ export declare function serverTimestamp(): object;
 
 object
 
-## increment() {:#increment_1a4266e}
+## function(delta, ...)
+
+### increment(delta) {:#increment_1a4266e}
 
 Returns a placeholder value that can be used to atomically increment the current database value by the provided delta.
 
@@ -354,7 +362,7 @@ Returns a placeholder value that can be used to atomically increment the current
 export declare function increment(delta: number): object;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -366,7 +374,9 @@ object
 
 A placeholder value for modifying data atomically server-side.
 
-## enableLogging() {:#enablelogging_cd4f840}
+## function(enabled, ...)
+
+### enableLogging(enabled, persistent) {:#enablelogging_cd4f840}
 
 Logs debugging information to the console.
 
@@ -376,7 +386,7 @@ Logs debugging information to the console.
 export declare function enableLogging(enabled: boolean, persistent?: boolean): any;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -387,7 +397,9 @@ export declare function enableLogging(enabled: boolean, persistent?: boolean): a
 
 any
 
-## limitToFirst() {:#limittofirst_ec46c78}
+## function(limit, ...)
+
+### limitToFirst(limit) {:#limittofirst_ec46c78}
 
 Creates a new `QueryConstraint` that if limited to the first specific number of children.
 
@@ -401,7 +413,7 @@ You can read more about `limitToFirst()` in [Filtering data](https://firebase.go
 export declare function limitToFirst(limit: number): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -411,7 +423,7 @@ export declare function limitToFirst(limit: number): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## limitToLast() {:#limittolast_ec46c78}
+### limitToLast(limit) {:#limittolast_ec46c78}
 
 Creates a new `QueryConstraint` that is limited to return only the last specified number of children.
 
@@ -425,7 +437,7 @@ You can read more about `limitToLast()` in [Filtering data](https://firebase.goo
 export declare function limitToLast(limit: number): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -435,7 +447,9 @@ export declare function limitToLast(limit: number): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## enableLogging() {:#enablelogging_3886555}
+## function(logger, ...)
+
+### enableLogging(logger) {:#enablelogging_3886555}
 
 Logs debugging information to the console.
 
@@ -445,7 +459,7 @@ Logs debugging information to the console.
 export declare function enableLogging(logger: (message: string) => unknown): any;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -455,7 +469,9 @@ export declare function enableLogging(logger: (message: string) => unknown): any
 
 any
 
-## child() {:#child_28a1a9f}
+## function(parent, ...)
+
+### child(parent, path) {:#child_28a1a9f}
 
 Gets a `Reference` for the location at the specified relative path.
 
@@ -467,7 +483,7 @@ The relative path can either be a simple child name (for example, "ada") or a de
 export declare function child(parent: DatabaseReference, path: string): DatabaseReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -480,7 +496,7 @@ export declare function child(parent: DatabaseReference, path: string): Database
 
 The specified child location.
 
-## push() {:#push_c74661c}
+### push(parent, value) {:#push_c74661c}
 
 Generates a new child location using a unique key and returns its `Reference`<!-- -->.
 
@@ -498,7 +514,7 @@ See [Append to a list of data](https://firebase.google.com/docs/database/web/lis
 export declare function push(parent: DatabaseReference, value?: unknown): ThenableReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -511,7 +527,9 @@ export declare function push(parent: DatabaseReference, value?: unknown): Thenab
 
 Combined `Promise` and `Reference`<!-- -->; resolves when write is complete, but can be used immediately as the `Reference` to the child location.
 
-## orderByChild() {:#orderbychild_fe1f8e4}
+## function(path, ...)
+
+### orderByChild(path) {:#orderbychild_fe1f8e4}
 
 Creates a new `QueryConstraint` that orders by the specified child key.
 
@@ -527,7 +545,7 @@ You can read more about `orderByChild()` in [Sort data](https://firebase.google.
 export declare function orderByChild(path: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -537,7 +555,9 @@ export declare function orderByChild(path: string): QueryConstraint;
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## get() {:#get_20b2416}
+## function(query, ...)
+
+### get(query) {:#get_20b2416}
 
 Gets the most up-to-date result for this query.
 
@@ -547,7 +567,7 @@ Gets the most up-to-date result for this query.
 export declare function get(query: Query): Promise<DataSnapshot>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -559,7 +579,7 @@ Promise&lt;[DataSnapshot](./database.datasnapshot.md#datasnapshot_class)<!-- -->
 
 A `Promise` which resolves to the resulting DataSnapshot if a value is available, or rejects if the client is unable to return a value (e.g., if the server is unreachable and there is nothing cached).
 
-## off() {:#off_17bb961}
+### off(query, eventType, callback) {:#off_17bb961}
 
 Detaches a callback previously attached with the corresponding `on*()` (`onValue`<!-- -->, `onChildAdded`<!-- -->) listener. Note: This is not the recommended way to remove a listener. Instead, please use the returned callback function from the respective `on*` callbacks.
 
@@ -575,7 +595,7 @@ Individual listeners can also be removed by invoking their unsubscribe callbacks
 export declare function off(query: Query, eventType?: EventType, callback?: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -587,7 +607,7 @@ export declare function off(query: Query, eventType?: EventType, callback?: (sna
 
 void
 
-## onChildAdded() {:#onchildadded_139c747}
+### onChildAdded(query, callback, cancelCallback) {:#onchildadded_139c747}
 
 Listens for data changes at a particular location.
 
@@ -601,7 +621,7 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName?: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -615,7 +635,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildAdded() {:#onchildadded_cf4f177}
+### onChildAdded(query, callback, options) {:#onchildadded_cf4f177}
 
 Listens for data changes at a particular location.
 
@@ -629,7 +649,7 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -643,7 +663,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildAdded() {:#onchildadded_456d092}
+### onChildAdded(query, callback, cancelCallback, options) {:#onchildadded_456d092}
 
 Listens for data changes at a particular location.
 
@@ -657,7 +677,7 @@ An `onChildAdded` event will be triggered once for each initial child at this lo
 export declare function onChildAdded(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -672,7 +692,7 @@ export declare function onChildAdded(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildChanged() {:#onchildchanged_c1edf58}
+### onChildChanged(query, callback, cancelCallback) {:#onchildchanged_c1edf58}
 
 Listens for data changes at a particular location.
 
@@ -686,7 +706,7 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -700,7 +720,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onChildChanged() {:#onchildchanged_cf4f177}
+### onChildChanged(query, callback, options) {:#onchildchanged_cf4f177}
 
 Listens for data changes at a particular location.
 
@@ -714,7 +734,7 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -728,7 +748,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onChildChanged() {:#onchildchanged_456d092}
+### onChildChanged(query, callback, cancelCallback, options) {:#onchildchanged_456d092}
 
 Listens for data changes at a particular location.
 
@@ -742,7 +762,7 @@ An `onChildChanged` event will be triggered when the data stored in a child (or 
 export declare function onChildChanged(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -757,7 +777,7 @@ export declare function onChildChanged(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onChildMoved() {:#onchildmoved_c1edf58}
+### onChildMoved(query, callback, cancelCallback) {:#onchildmoved_c1edf58}
 
 Listens for data changes at a particular location.
 
@@ -771,7 +791,7 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -785,7 +805,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildMoved() {:#onchildmoved_cf4f177}
+### onChildMoved(query, callback, options) {:#onchildmoved_cf4f177}
 
 Listens for data changes at a particular location.
 
@@ -799,7 +819,7 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -813,7 +833,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildMoved() {:#onchildmoved_456d092}
+### onChildMoved(query, callback, cancelCallback, options) {:#onchildmoved_456d092}
 
 Listens for data changes at a particular location.
 
@@ -827,7 +847,7 @@ An `onChildMoved` event will be triggered when a child's sort order changes such
 export declare function onChildMoved(query: Query, callback: (snapshot: DataSnapshot, previousChildName: string | null) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -842,7 +862,7 @@ export declare function onChildMoved(query: Query, callback: (snapshot: DataSnap
 
 A function that can be invoked to remove the listener.
 
-## onChildRemoved() {:#onchildremoved_47c1ae9}
+### onChildRemoved(query, callback, cancelCallback) {:#onchildremoved_47c1ae9}
 
 Listens for data changes at a particular location.
 
@@ -858,7 +878,7 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -872,7 +892,7 @@ export declare function onChildRemoved(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onChildRemoved() {:#onchildremoved_7357cb6}
+### onChildRemoved(query, callback, options) {:#onchildremoved_7357cb6}
 
 Listens for data changes at a particular location.
 
@@ -888,7 +908,7 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -902,7 +922,7 @@ export declare function onChildRemoved(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onChildRemoved() {:#onchildremoved_e66d5b6}
+### onChildRemoved(query, callback, cancelCallback, options) {:#onchildremoved_e66d5b6}
 
 Listens for data changes at a particular location.
 
@@ -918,7 +938,7 @@ An `onChildRemoved` event will be triggered once every time a child is removed. 
 export declare function onChildRemoved(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -933,7 +953,7 @@ export declare function onChildRemoved(query: Query, callback: (snapshot: DataSn
 
 A function that can be invoked to remove the listener.
 
-## onValue() {:#onvalue_47c1ae9}
+### onValue(query, callback, cancelCallback) {:#onvalue_47c1ae9}
 
 Listens for data changes at a particular location.
 
@@ -947,7 +967,7 @@ An `onValue` event will trigger once with the initial data stored at this locati
 export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback?: (error: Error) => unknown): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -961,7 +981,7 @@ export declare function onValue(query: Query, callback: (snapshot: DataSnapshot)
 
 A function that can be invoked to remove the listener.
 
-## onValue() {:#onvalue_7357cb6}
+### onValue(query, callback, options) {:#onvalue_7357cb6}
 
 Listens for data changes at a particular location.
 
@@ -975,7 +995,7 @@ An `onValue` event will trigger once with the initial data stored at this locati
 export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -989,7 +1009,7 @@ export declare function onValue(query: Query, callback: (snapshot: DataSnapshot)
 
 A function that can be invoked to remove the listener.
 
-## onValue() {:#onvalue_e66d5b6}
+### onValue(query, callback, cancelCallback, options) {:#onvalue_e66d5b6}
 
 Listens for data changes at a particular location.
 
@@ -1003,7 +1023,7 @@ An `onValue` event will trigger once with the initial data stored at this locati
 export declare function onValue(query: Query, callback: (snapshot: DataSnapshot) => unknown, cancelCallback: (error: Error) => unknown, options: ListenOptions): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1018,7 +1038,7 @@ export declare function onValue(query: Query, callback: (snapshot: DataSnapshot)
 
 A function that can be invoked to remove the listener.
 
-## query() {:#query_870e07a}
+### query(query, queryConstraints) {:#query_870e07a}
 
 Creates a new immutable instance of `Query` that is extended to also include additional query constraints.
 
@@ -1028,7 +1048,7 @@ Creates a new immutable instance of `Query` that is extended to also include add
 export declare function query(query: Query, ...queryConstraints: QueryConstraint[]): Query;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1039,11 +1059,13 @@ export declare function query(query: Query, ...queryConstraints: QueryConstraint
 
 [Query](./database.query.md#query_interface)
 
-## Exceptions
+#### Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
 
-## onDisconnect() {:#ondisconnect_8616c19}
+## function(ref, ...)
+
+### onDisconnect(ref) {:#ondisconnect_8616c19}
 
 Returns an `OnDisconnect` object - see [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities) for more information on how to use it.
 
@@ -1053,7 +1075,7 @@ Returns an `OnDisconnect` object - see [Enabling Offline Capabilities in JavaScr
 export declare function onDisconnect(ref: DatabaseReference): OnDisconnect;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1063,7 +1085,7 @@ export declare function onDisconnect(ref: DatabaseReference): OnDisconnect;
 
 [OnDisconnect](./database.ondisconnect.md#ondisconnect_class)
 
-## remove() {:#remove_8616c19}
+### remove(ref) {:#remove_8616c19}
 
 Removes the data at this Database location.
 
@@ -1077,7 +1099,7 @@ The effect of the remove will be visible immediately and the corresponding event
 export declare function remove(ref: DatabaseReference): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1089,7 +1111,7 @@ Promise&lt;void&gt;
 
 Resolves when remove on server is complete.
 
-## runTransaction() {:#runtransaction_a3641e5}
+### runTransaction(ref, transactionUpdate, options) {:#runtransaction_a3641e5}
 
 Atomically modifies the data at this location.
 
@@ -1107,7 +1129,7 @@ Note: When using transactions with Security and Firebase Rules in place, be awar
 export declare function runTransaction(ref: DatabaseReference, transactionUpdate: (currentData: any) => unknown, options?: TransactionOptions): Promise<TransactionResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1121,7 +1143,7 @@ Promise&lt;[TransactionResult](./database.transactionresult.md#transactionresult
 
 A `Promise` that can optionally be used instead of the `onComplete` callback to handle success and failure.
 
-## set() {:#set_c9eacde}
+### set(ref, value) {:#set_c9eacde}
 
 Writes data to this Database location.
 
@@ -1143,7 +1165,7 @@ A single `set()` will generate a single "value" event at the location where the 
 export declare function set(ref: DatabaseReference, value: unknown): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1156,7 +1178,7 @@ Promise&lt;void&gt;
 
 Resolves when write to server is complete.
 
-## setPriority() {:#setpriority_f979832}
+### setPriority(ref, priority) {:#setpriority_f979832}
 
 Sets a priority for the data at this Database location.
 
@@ -1168,7 +1190,7 @@ Applications need not use priority but can order collections by ordinary propert
 export declare function setPriority(ref: DatabaseReference, priority: string | number | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1181,7 +1203,7 @@ Promise&lt;void&gt;
 
 Resolves when write to server is complete.
 
-## setWithPriority() {:#setwithpriority_dc560e7}
+### setWithPriority(ref, value, priority) {:#setwithpriority_dc560e7}
 
 Writes data the Database location. Like `set()` but also specifies the priority for that data.
 
@@ -1193,7 +1215,7 @@ Applications need not use priority but can order collections by ordinary propert
 export declare function setWithPriority(ref: DatabaseReference, value: unknown, priority: string | number | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1207,7 +1229,7 @@ Promise&lt;void&gt;
 
 Resolves when write to server is complete.
 
-## update() {:#update_06756b7}
+### update(ref, values) {:#update_06756b7}
 
 Writes multiple values to the Database at once.
 
@@ -1231,7 +1253,7 @@ See [Introducing multi-location updates and more](https://firebase.googleblog.co
 export declare function update(ref: DatabaseReference, values: object): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1244,7 +1266,9 @@ Promise&lt;void&gt;
 
 Resolves when update on server is complete.
 
-## endAt() {:#endat_51c2c8b}
+## function(value, ...)
+
+### endAt(value, key) {:#endat_51c2c8b}
 
 Creates a `QueryConstraint` with the specified ending point.
 
@@ -1260,7 +1284,7 @@ You can read more about `endAt()` in [Filtering data](https://firebase.google.co
 export declare function endAt(value: number | string | boolean | null, key?: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1271,7 +1295,7 @@ export declare function endAt(value: number | string | boolean | null, key?: str
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## endBefore() {:#endbefore_51c2c8b}
+### endBefore(value, key) {:#endbefore_51c2c8b}
 
 Creates a `QueryConstraint` with the specified ending point (exclusive).
 
@@ -1285,7 +1309,7 @@ The ending point is exclusive. If only a value is provided, children with a valu
 export declare function endBefore(value: number | string | boolean | null, key?: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1296,7 +1320,7 @@ export declare function endBefore(value: number | string | boolean | null, key?:
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## equalTo() {:#equalto_51c2c8b}
+### equalTo(value, key) {:#equalto_51c2c8b}
 
 Creates a `QueryConstraint` that includes children that match the specified value.
 
@@ -1312,7 +1336,7 @@ You can read more about `equalTo()` in [Filtering data](https://firebase.google.
 export declare function equalTo(value: number | string | boolean | null, key?: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1323,7 +1347,7 @@ export declare function equalTo(value: number | string | boolean | null, key?: s
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## startAfter() {:#startafter_51c2c8b}
+### startAfter(value, key) {:#startafter_51c2c8b}
 
 Creates a `QueryConstraint` with the specified starting point (exclusive).
 
@@ -1337,7 +1361,7 @@ The starting point is exclusive. If only a value is provided, children with a va
 export declare function startAfter(value: number | string | boolean | null, key?: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1348,7 +1372,7 @@ export declare function startAfter(value: number | string | boolean | null, key?
 
 [QueryConstraint](./database.queryconstraint.md#queryconstraint_class)
 
-## startAt() {:#startat_51c2c8b}
+### startAt(value, key) {:#startat_51c2c8b}
 
 Creates a `QueryConstraint` with the specified starting point.
 
@@ -1364,7 +1388,7 @@ You can read more about `startAt()` in [Filtering data](https://firebase.google.
 export declare function startAt(value?: number | string | boolean | null, key?: string): QueryConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -40,7 +40,7 @@ Generally, the data returned from `snapshot.data()` can be cast to `DbModelType`
 fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>): AppModelType;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -62,7 +62,7 @@ The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as [dele
 toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -84,7 +84,7 @@ The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues su
 toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

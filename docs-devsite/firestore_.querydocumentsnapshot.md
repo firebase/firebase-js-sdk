@@ -40,7 +40,7 @@ By default, `serverTimestamp()` values that have not yet been set to their final
 data(options?: SnapshotOptions): AppModelType;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

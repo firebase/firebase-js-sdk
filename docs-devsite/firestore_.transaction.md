@@ -41,7 +41,7 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -63,7 +63,7 @@ Reads the document referenced by the provided [DocumentReference](./firestore_.d
 get<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -85,7 +85,7 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -98,7 +98,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -112,7 +112,7 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -126,7 +126,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -140,7 +140,7 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -153,7 +153,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
@@ -169,7 +169,7 @@ Nested fields can be updated by providing dot-separated field path strings or by
 update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -184,7 +184,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 

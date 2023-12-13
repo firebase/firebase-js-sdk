@@ -15,12 +15,12 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [getFirestore(app)](./firestore_lite.md#getfirestore_cf608e1) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [getFirestore(app, databaseId)](./firestore_lite.md#getfirestore_48de6cb) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [initializeFirestore(app, settings)](./firestore_lite.md#initializefirestore_87c6318) | Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  [initializeFirestore(app, settings, databaseId)](./firestore_lite.md#initializefirestore_37baaaf) | <b><i>(BETA)</i></b> Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
-|  <b>function(firestore...)</b> |
+|  <b>function(firestore, ...)</b> |
 |  [collection(firestore, path, pathSegments)](./firestore_lite.md#collection_1eb4c23) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
 |  [collectionGroup(firestore, collectionId)](./firestore_lite.md#collectiongroup_1838fc3) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
 |  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_lite.md#connectfirestoreemulator_7c247cd) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
@@ -34,45 +34,45 @@ https://github.com/firebase/firebase-js-sdk
 |  [documentId()](./firestore_lite.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
-|  <b>function(databaseId...)</b> |
+|  <b>function(databaseId, ...)</b> |
 |  [getFirestore(databaseId)](./firestore_lite.md#getfirestore_53dc891) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
-|  <b>function(elements...)</b> |
+|  <b>function(elements, ...)</b> |
 |  [arrayRemove(elements)](./firestore_lite.md#arrayremove_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_lite.md#arrayunion_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
-|  <b>function(field...)</b> |
+|  <b>function(field, ...)</b> |
 |  [average(field)](./firestore_lite.md#average_aacc3a9) | Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query. |
 |  [sum(field)](./firestore_lite.md#sum_aacc3a9) | Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query. |
-|  <b>function(fieldPath...)</b> |
+|  <b>function(fieldPath, ...)</b> |
 |  [orderBy(fieldPath, directionStr)](./firestore_lite.md#orderby_006d61f) | Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.<!-- -->Note: Documents that do not contain the specified field will not be present in the query result. |
 |  [where(fieldPath, opStr, value)](./firestore_lite.md#where_0fae4bf) | Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
-|  <b>function(fieldValues...)</b> |
+|  <b>function(fieldValues, ...)</b> |
 |  [endAt(fieldValues)](./firestore_lite.md#endat_8b2f2c8) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [endBefore(fieldValues)](./firestore_lite.md#endbefore_8b2f2c8) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAfter(fieldValues)](./firestore_lite.md#startafter_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAt(fieldValues)](./firestore_lite.md#startat_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
-|  <b>function(left...)</b> |
+|  <b>function(left, ...)</b> |
 |  [aggregateFieldEqual(left, right)](./firestore_lite.md#aggregatefieldequal_e80a2b2) | Compares two 'AggregateField<!-- -->\` instances for equality. |
 |  [aggregateQuerySnapshotEqual(left, right)](./firestore_lite.md#aggregatequerysnapshotequal_1529a20) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
 |  [queryEqual(left, right)](./firestore_lite.md#queryequal_7a1f045) | Returns true if the provided queries point to the same collection and apply the same constraints. |
 |  [refEqual(left, right)](./firestore_lite.md#refequal_598b780) | Returns true if the provided references are equal. |
 |  [snapshotEqual(left, right)](./firestore_lite.md#snapshotequal_5109204) | Returns true if the provided snapshots are equal. |
-|  <b>function(limit...)</b> |
+|  <b>function(limit, ...)</b> |
 |  [limit(limit)](./firestore_lite.md#limit_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents. |
 |  [limitToLast(limit)](./firestore_lite.md#limittolast_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
-|  <b>function(logLevel...)</b> |
+|  <b>function(logLevel, ...)</b> |
 |  [setLogLevel(logLevel)](./firestore_lite.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
-|  <b>function(n...)</b> |
+|  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
-|  <b>function(query...)</b> |
+|  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents). |
 |  [getDocs(query)](./firestore_lite.md#getdocs_4e56953) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
 |  [query(query, compositeFilter, queryConstraints)](./firestore_lite.md#query_9f7b0f4) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  [query(query, queryConstraints)](./firestore_lite.md#query_0f46da1) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
-|  <b>function(queryConstraints...)</b> |
+|  <b>function(queryConstraints, ...)</b> |
 |  [and(queryConstraints)](./firestore_lite.md#and_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters. |
 |  [or(queryConstraints)](./firestore_lite.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
-|  <b>function(reference...)</b> |
+|  <b>function(reference, ...)</b> |
 |  [addDoc(reference, data)](./firestore_lite.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically.<!-- -->The result of this write will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
 |  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
@@ -84,7 +84,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [setDoc(reference, data, options)](./firestore_lite.md#setdoc_ff80739) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document.<!-- -->The result of this write will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [updateDoc(reference, data)](./firestore_lite.md#updatedoc_51a65e3) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist.<!-- -->The result of this update will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the update fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_lite.md#updatedoc_7c28659) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects.<!-- -->The result of this update will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the update fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
-|  <b>function(snapshot...)</b> |
+|  <b>function(snapshot, ...)</b> |
 |  [endAt(snapshot)](./firestore_lite.md#endat_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [endBefore(snapshot)](./firestore_lite.md#endbefore_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAfter(snapshot)](./firestore_lite.md#startafter_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
@@ -152,7 +152,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [WhereFilterOp](./firestore_lite.md#wherefilterop) | Filter conditions in a [where()](./firestore_.md#where_0fae4bf) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'. |
 |  [WithFieldValue](./firestore_lite.md#withfieldvalue) | Allows FieldValues to be passed in as a property value while maintaining type safety. |
 
-## getFirestore() {:#getfirestore_cf608e1}
+## function(app, ...)
+
+### getFirestore(app) {:#getfirestore_cf608e1}
 
 Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
 
@@ -162,7 +164,7 @@ Returns the existing default [Firestore](./firestore_.firestore.md#firestore_cla
 export declare function getFirestore(app: FirebaseApp): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -174,7 +176,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## getFirestore() {:#getfirestore_48de6cb}
+### getFirestore(app, databaseId) {:#getfirestore_48de6cb}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -187,7 +189,7 @@ Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) inst
 export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -200,7 +202,7 @@ export declare function getFirestore(app: FirebaseApp, databaseId: string): Fire
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## initializeFirestore() {:#initializefirestore_87c6318}
+### initializeFirestore(app, settings) {:#initializefirestore_87c6318}
 
 Initializes a new instance of Cloud Firestore with the provided settings. Can only be called before any other functions, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->.
 
@@ -210,7 +212,7 @@ Initializes a new instance of Cloud Firestore with the provided settings. Can on
 export declare function initializeFirestore(app: FirebaseApp, settings: Settings): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -223,7 +225,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 A newly initialized `Firestore` instance.
 
-## initializeFirestore() {:#initializefirestore_37baaaf}
+### initializeFirestore(app, settings, databaseId) {:#initializefirestore_37baaaf}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -236,7 +238,7 @@ Initializes a new instance of Cloud Firestore with the provided settings. Can on
 export declare function initializeFirestore(app: FirebaseApp, settings: Settings, databaseId?: string): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -250,7 +252,9 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Settings
 
 A newly initialized `Firestore` instance.
 
-## collection() {:#collection_1eb4c23}
+## function(firestore, ...)
+
+### collection(firestore, path, pathSegments) {:#collection_1eb4c23}
 
 Gets a `CollectionReference` instance that refers to the collection at the specified absolute path.
 
@@ -260,7 +264,7 @@ Gets a `CollectionReference` instance that refers to the collection at the speci
 export declare function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -274,11 +278,11 @@ export declare function collection(firestore: Firestore, path: string, ...pathSe
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## collectionGroup() {:#collectiongroup_1838fc3}
+### collectionGroup(firestore, collectionId) {:#collectiongroup_1838fc3}
 
 Creates and returns a new `Query` instance that includes all documents in the database that are contained in a collection or subcollection with the given `collectionId`<!-- -->.
 
@@ -288,7 +292,7 @@ Creates and returns a new `Query` instance that includes all documents in the da
 export declare function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -301,7 +305,7 @@ export declare function collectionGroup(firestore: Firestore, collectionId: stri
 
 The created `Query`<!-- -->.
 
-## connectFirestoreEmulator() {:#connectfirestoreemulator_7c247cd}
+### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_7c247cd}
 
 Modify this instance to communicate with the Cloud Firestore emulator.
 
@@ -315,7 +319,7 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -328,7 +332,7 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 
 void
 
-## doc() {:#doc_1eb4c23}
+### doc(firestore, path, pathSegments) {:#doc_1eb4c23}
 
 Gets a `DocumentReference` instance that refers to the document at the specified absolute path.
 
@@ -338,7 +342,7 @@ Gets a `DocumentReference` instance that refers to the document at the specified
 export declare function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -352,11 +356,11 @@ export declare function doc(firestore: Firestore, path: string, ...pathSegments:
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## runTransaction() {:#runtransaction_6f03ec4}
+### runTransaction(firestore, updateFunction, options) {:#runtransaction_6f03ec4}
 
 Executes the given `updateFunction` and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the `updateFunction`<!-- -->. If it fails to commit after 5 attempts, the transaction fails.
 
@@ -368,7 +372,7 @@ The maximum number of writes allowed in a single transaction is 500.
 export declare function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -382,7 +386,7 @@ Promise&lt;T&gt;
 
 If the transaction completed successfully or was explicitly aborted (the `updateFunction` returned a failed promise), the promise returned by the `updateFunction `<!-- -->is returned here. Otherwise, if the transaction failed, a rejected promise with the corresponding failure error is returned.
 
-## terminate() {:#terminate_231a8e0}
+### terminate(firestore) {:#terminate_231a8e0}
 
 Terminates the provided `Firestore` instance.
 
@@ -398,7 +402,7 @@ Note: Under normal circumstances, calling `terminate()` is not required. This fu
 export declare function terminate(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -410,7 +414,7 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved when the instance has been successfully terminated.
 
-## writeBatch() {:#writebatch_231a8e0}
+### writeBatch(firestore) {:#writebatch_231a8e0}
 
 Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single WriteBatch is 500.
 
@@ -422,7 +426,7 @@ The result of these writes will only be reflected in document reads that occur a
 export declare function writeBatch(firestore: Firestore): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -434,7 +438,9 @@ export declare function writeBatch(firestore: Firestore): WriteBatch;
 
 A `WriteBatch` that can be used to atomically execute multiple writes.
 
-## count() {:#count}
+## function()
+
+### count() {:#count}
 
 Create an AggregateField object that can be used to compute the count of documents in the result set of a query.
 
@@ -447,7 +453,7 @@ export declare function count(): AggregateField<number>;
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
 
-## deleteField() {:#deletefield}
+### deleteField() {:#deletefield}
 
 Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with `{merge: true}` to mark a field for deletion.
 
@@ -460,7 +466,7 @@ export declare function deleteField(): FieldValue;
 
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
 
-## documentId() {:#documentid}
+### documentId() {:#documentid}
 
 Returns a special sentinel `FieldPath` to refer to the ID of a document. It can be used in queries to sort or filter by the document ID.
 
@@ -473,7 +479,7 @@ export declare function documentId(): FieldPath;
 
 [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class)
 
-## getFirestore() {:#getfirestore}
+### getFirestore() {:#getfirestore}
 
 Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
 
@@ -488,7 +494,7 @@ export declare function getFirestore(): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## serverTimestamp() {:#servertimestamp}
+### serverTimestamp() {:#servertimestamp}
 
 Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data.
 
@@ -501,7 +507,9 @@ export declare function serverTimestamp(): FieldValue;
 
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
 
-## getFirestore() {:#getfirestore_53dc891}
+## function(databaseId, ...)
+
+### getFirestore(databaseId) {:#getfirestore_53dc891}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -514,7 +522,7 @@ Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) inst
 export declare function getFirestore(databaseId: string): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -526,7 +534,9 @@ export declare function getFirestore(databaseId: string): Firestore;
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## arrayRemove() {:#arrayremove_7d853aa}
+## function(elements, ...)
+
+### arrayRemove(elements) {:#arrayremove_7d853aa}
 
 Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array.
 
@@ -536,7 +546,7 @@ Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_
 export declare function arrayRemove(...elements: unknown[]): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -548,7 +558,7 @@ export declare function arrayRemove(...elements: unknown[]): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
-## arrayUnion() {:#arrayunion_7d853aa}
+### arrayUnion(elements) {:#arrayunion_7d853aa}
 
 Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
 
@@ -558,7 +568,7 @@ Returns a special value that can be used with [setDoc()](./firestore_lite.md#set
 export declare function arrayUnion(...elements: unknown[]): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -570,7 +580,9 @@ export declare function arrayUnion(...elements: unknown[]): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`<!-- -->.
 
-## average() {:#average_aacc3a9}
+## function(field, ...)
+
+### average(field) {:#average_aacc3a9}
 
 Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query.
 
@@ -580,7 +592,7 @@ Create an AggregateField object that can be used to compute the average of a spe
 export declare function average(field: string | FieldPath): AggregateField<number | null>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -590,7 +602,7 @@ export declare function average(field: string | FieldPath): AggregateField<numbe
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number \| null&gt;
 
-## sum() {:#sum_aacc3a9}
+### sum(field) {:#sum_aacc3a9}
 
 Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query.
 
@@ -600,7 +612,7 @@ Create an AggregateField object that can be used to compute the sum of a specifi
 export declare function sum(field: string | FieldPath): AggregateField<number>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -610,7 +622,9 @@ export declare function sum(field: string | FieldPath): AggregateField<number>;
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
 
-## orderBy() {:#orderby_006d61f}
+## function(fieldPath, ...)
+
+### orderBy(fieldPath, directionStr) {:#orderby_006d61f}
 
 Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.
 
@@ -622,7 +636,7 @@ Note: Documents that do not contain the specified field will not be present in t
 export declare function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -635,7 +649,7 @@ export declare function orderBy(fieldPath: string | FieldPath, directionStr?: Or
 
 The created [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class)<!-- -->.
 
-## where() {:#where_0fae4bf}
+### where(fieldPath, opStr, value) {:#where_0fae4bf}
 
 Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided.
 
@@ -645,7 +659,7 @@ Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.m
 export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -659,7 +673,9 @@ export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterO
 
 The created [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->.
 
-## endAt() {:#endat_8b2f2c8}
+## function(fieldValues, ...)
+
+### endAt(fieldValues) {:#endat_8b2f2c8}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -669,7 +685,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -681,7 +697,7 @@ export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## endBefore() {:#endbefore_8b2f2c8}
+### endBefore(fieldValues) {:#endbefore_8b2f2c8}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -691,7 +707,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -703,7 +719,7 @@ export declare function endBefore(...fieldValues: unknown[]): QueryEndAtConstrai
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## startAfter() {:#startafter_8b2f2c8}
+### startAfter(fieldValues) {:#startafter_8b2f2c8}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -713,7 +729,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -725,7 +741,7 @@ export declare function startAfter(...fieldValues: unknown[]): QueryStartAtConst
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`
 
-## startAt() {:#startat_8b2f2c8}
+### startAt(fieldValues) {:#startat_8b2f2c8}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -735,7 +751,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -747,7 +763,9 @@ export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstrai
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
 
-## aggregateFieldEqual() {:#aggregatefieldequal_e80a2b2}
+## function(left, ...)
+
+### aggregateFieldEqual(left, right) {:#aggregatefieldequal_e80a2b2}
 
 Compares two 'AggregateField<!-- -->\` instances for equality.
 
@@ -757,7 +775,7 @@ Compares two 'AggregateField<!-- -->\` instances for equality.
 export declare function aggregateFieldEqual(left: AggregateField<unknown>, right: AggregateField<unknown>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -768,7 +786,7 @@ export declare function aggregateFieldEqual(left: AggregateField<unknown>, right
 
 boolean
 
-## aggregateQuerySnapshotEqual() {:#aggregatequerysnapshotequal_1529a20}
+### aggregateQuerySnapshotEqual(left, right) {:#aggregatequerysnapshotequal_1529a20}
 
 Compares two `AggregateQuerySnapshot` instances for equality.
 
@@ -780,7 +798,7 @@ Two `AggregateQuerySnapshot` instances are considered "equal" if they have under
 export declare function aggregateQuerySnapshotEqual<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>, right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -793,7 +811,7 @@ boolean
 
 `true` if the objects are "equal", as defined above, or `false` otherwise.
 
-## queryEqual() {:#queryequal_7a1f045}
+### queryEqual(left, right) {:#queryequal_7a1f045}
 
 Returns true if the provided queries point to the same collection and apply the same constraints.
 
@@ -803,7 +821,7 @@ Returns true if the provided queries point to the same collection and apply the 
 export declare function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -816,7 +834,7 @@ boolean
 
 true if the references point to the same location in the same Firestore database.
 
-## refEqual() {:#refequal_598b780}
+### refEqual(left, right) {:#refequal_598b780}
 
 Returns true if the provided references are equal.
 
@@ -826,7 +844,7 @@ Returns true if the provided references are equal.
 export declare function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -839,7 +857,7 @@ boolean
 
 true if the references point to the same location in the same Firestore database.
 
-## snapshotEqual() {:#snapshotequal_5109204}
+### snapshotEqual(left, right) {:#snapshotequal_5109204}
 
 Returns true if the provided snapshots are equal.
 
@@ -849,7 +867,7 @@ Returns true if the provided snapshots are equal.
 export declare function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -862,7 +880,9 @@ boolean
 
 true if the snapshots are equal.
 
-## limit() {:#limit_ec46c78}
+## function(limit, ...)
+
+### limit(limit) {:#limit_ec46c78}
 
 Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents.
 
@@ -872,7 +892,7 @@ Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimit
 export declare function limit(limit: number): QueryLimitConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -884,7 +904,7 @@ export declare function limit(limit: number): QueryLimitConstraint;
 
 The created [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class)<!-- -->.
 
-## limitToLast() {:#limittolast_ec46c78}
+### limitToLast(limit) {:#limittolast_ec46c78}
 
 Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.
 
@@ -896,7 +916,7 @@ You must specify at least one `orderBy` clause for `limitToLast` queries, otherw
 export declare function limitToLast(limit: number): QueryLimitConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -908,7 +928,9 @@ export declare function limitToLast(limit: number): QueryLimitConstraint;
 
 The created [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class)<!-- -->.
 
-## setLogLevel() {:#setloglevel_d02fda2}
+## function(logLevel, ...)
+
+### setLogLevel(logLevel) {:#setloglevel_d02fda2}
 
 Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
 
@@ -918,7 +940,7 @@ Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
 export declare function setLogLevel(logLevel: LogLevel): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -928,7 +950,9 @@ export declare function setLogLevel(logLevel: LogLevel): void;
 
 void
 
-## increment() {:#increment_5685735}
+## function(n, ...)
+
+### increment(n) {:#increment_5685735}
 
 Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.
 
@@ -942,7 +966,7 @@ If the current field value is not of type `number`<!-- -->, or if the field does
 export declare function increment(n: number): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -954,7 +978,9 @@ export declare function increment(n: number): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
-## getAggregate() {:#getaggregate_2073a74}
+## function(query, ...)
+
+### getAggregate(query, aggregateSpec) {:#getaggregate_2073a74}
 
 Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.
 
@@ -966,7 +992,7 @@ Using this function to perform aggregations is efficient because only the final 
 export declare function getAggregate<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -993,7 +1019,7 @@ const averageScore: number | null = aggregateSnapshot.data().averageScore;
 
 ```
 
-## getCount() {:#getcount_4e56953}
+### getCount(query) {:#getcount_4e56953}
 
 Calculates the number of documents in the result set of the given query, without actually downloading the documents.
 
@@ -1007,7 +1033,7 @@ export declare function getCount<AppModelType, DbModelType extends DocumentData>
 }, AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1019,7 +1045,7 @@ Promise&lt;[AggregateQuerySnapshot](./firestore_lite.aggregatequerysnapshot.md#a
 
 A Promise that will be resolved with the count; the count can be retrieved from `snapshot.data().count`<!-- -->, where `snapshot` is the `AggregateQuerySnapshot` to which the returned Promise resolves.
 
-## getDocs() {:#getdocs_4e56953}
+### getDocs(query) {:#getdocs_4e56953}
 
 Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.
 
@@ -1031,7 +1057,7 @@ All queries are executed directly by the server, even if the the query was previ
 export declare function getDocs<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1043,7 +1069,7 @@ Promise&lt;[QuerySnapshot](./firestore_lite.querysnapshot.md#querysnapshot_class
 
 A Promise that will be resolved with the results of the query.
 
-## query() {:#query_9f7b0f4}
+### query(query, compositeFilter, queryConstraints) {:#query_9f7b0f4}
 
 Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
 
@@ -1053,7 +1079,7 @@ Creates a new immutable instance of [Query](./firestore_.query.md#query_class) t
 export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1065,11 +1091,11 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(qu
 
 [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
-## Exceptions
+#### Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
 
-## query() {:#query_0f46da1}
+### query(query, queryConstraints) {:#query_0f46da1}
 
 Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
 
@@ -1079,7 +1105,7 @@ Creates a new immutable instance of [Query](./firestore_.query.md#query_class) t
 export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, ...queryConstraints: QueryConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1090,11 +1116,13 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(qu
 
 [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
-## Exceptions
+#### Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
 
-## and() {:#and_e72c712}
+## function(queryConstraints, ...)
+
+### and(queryConstraints) {:#and_e72c712}
 
 Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters.
 
@@ -1104,7 +1132,7 @@ Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilter
 export declare function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1116,7 +1144,7 @@ export declare function and(...queryConstraints: QueryFilterConstraint[]): Query
 
 The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
 
-## or() {:#or_e72c712}
+### or(queryConstraints) {:#or_e72c712}
 
 Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters.
 
@@ -1126,7 +1154,7 @@ Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilter
 export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1138,7 +1166,9 @@ export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryC
 
 The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
 
-## addDoc() {:#adddoc_6e783ff}
+## function(reference, ...)
+
+### addDoc(reference, data) {:#adddoc_6e783ff}
 
 Add a new document to specified `CollectionReference` with the given data, assigning it a document ID automatically.
 
@@ -1150,7 +1180,7 @@ The result of this write will only be reflected in document reads that occur aft
 export declare function addDoc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<DocumentReference<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1163,11 +1193,11 @@ Promise&lt;[DocumentReference](./firestore_lite.documentreference.md#documentref
 
 A `Promise` resolved with a `DocumentReference` pointing to the newly created document after it has been written to the backend.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
-## collection() {:#collection_568f98d}
+### collection(reference, path, pathSegments) {:#collection_568f98d}
 
 Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
 
@@ -1177,7 +1207,7 @@ Gets a `CollectionReference` instance that refers to a subcollection of `referen
 export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1191,11 +1221,11 @@ export declare function collection<AppModelType, DbModelType extends DocumentDat
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## collection() {:#collection_70b4396}
+### collection(reference, path, pathSegments) {:#collection_70b4396}
 
 Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
 
@@ -1205,7 +1235,7 @@ Gets a `CollectionReference` instance that refers to a subcollection of `referen
 export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1219,11 +1249,11 @@ export declare function collection<AppModelType, DbModelType extends DocumentDat
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## deleteDoc() {:#deletedoc_4569087}
+### deleteDoc(reference) {:#deletedoc_4569087}
 
 Deletes the document referred to by the specified `DocumentReference`<!-- -->.
 
@@ -1235,7 +1265,7 @@ The deletion will only be reflected in document reads that occur after the retur
 export declare function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1247,7 +1277,7 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the document has been successfully deleted from the backend.
 
-## doc() {:#doc_568f98d}
+### doc(reference, path, pathSegments) {:#doc_568f98d}
 
 Gets a `DocumentReference` instance that refers to a document within `reference` at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned `DocumentReference`<!-- -->.
 
@@ -1257,7 +1287,7 @@ Gets a `DocumentReference` instance that refers to a document within `reference`
 export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path?: string, ...pathSegments: string[]): DocumentReference<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1271,11 +1301,11 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(refe
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## doc() {:#doc_70b4396}
+### doc(reference, path, pathSegments) {:#doc_70b4396}
 
 Gets a `DocumentReference` instance that refers to a document within `reference` at the specified relative path.
 
@@ -1285,7 +1315,7 @@ Gets a `DocumentReference` instance that refers to a document within `reference`
 export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1299,11 +1329,11 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(refe
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## getDoc() {:#getdoc_4569087}
+### getDoc(reference) {:#getdoc_4569087}
 
 Reads the document referred to by the specified document reference.
 
@@ -1315,7 +1345,7 @@ All documents are directly fetched from the server, even if the document was pre
 export declare function getDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1327,7 +1357,7 @@ Promise&lt;[DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnaps
 
 A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 
-## setDoc() {:#setdoc_ee215ad}
+### setDoc(reference, data) {:#setdoc_ee215ad}
 
 Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created.
 
@@ -1339,7 +1369,7 @@ The result of this write will only be reflected in document reads that occur aft
 export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1352,11 +1382,11 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
-## setDoc() {:#setdoc_ff80739}
+### setDoc(reference, data, options) {:#setdoc_ff80739}
 
 Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
 
@@ -1368,7 +1398,7 @@ The result of this write will only be reflected in document reads that occur aft
 export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1382,11 +1412,11 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
-## updateDoc() {:#updatedoc_51a65e3}
+### updateDoc(reference, data) {:#updatedoc_51a65e3}
 
 Updates fields in the document referred to by the specified `DocumentReference`<!-- -->. The update will fail if applied to a document that does not exist.
 
@@ -1398,7 +1428,7 @@ The result of this update will only be reflected in document reads that occur af
 export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1411,11 +1441,11 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
-## updateDoc() {:#updatedoc_7c28659}
+### updateDoc(reference, field, value, moreFieldsAndValues) {:#updatedoc_7c28659}
 
 Updates fields in the document referred to by the specified `DocumentReference` The update will fail if applied to a document that does not exist.
 
@@ -1429,7 +1459,7 @@ The result of this update will only be reflected in document reads that occur af
 export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1444,11 +1474,13 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
-## endAt() {:#endat_9a4477f}
+## function(snapshot, ...)
+
+### endAt(snapshot) {:#endat_9a4477f}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
@@ -1458,7 +1490,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1470,7 +1502,7 @@ export declare function endAt<AppModelType, DbModelType extends DocumentData>(sn
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## endBefore() {:#endbefore_9a4477f}
+### endBefore(snapshot) {:#endbefore_9a4477f}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
@@ -1480,7 +1512,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1492,7 +1524,7 @@ export declare function endBefore<AppModelType, DbModelType extends DocumentData
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## startAfter() {:#startafter_9a4477f}
+### startAfter(snapshot) {:#startafter_9a4477f}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
@@ -1502,7 +1534,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1514,7 +1546,7 @@ export declare function startAfter<AppModelType, DbModelType extends DocumentDat
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`
 
-## startAt() {:#startat_9a4477f}
+### startAt(snapshot) {:#startat_9a4477f}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the `orderBy` of this query.
 
@@ -1524,7 +1556,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

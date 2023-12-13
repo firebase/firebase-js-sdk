@@ -43,7 +43,7 @@ Constructor. The providerId must start with "saml."
 constructor(providerId: string);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -59,7 +59,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromError(error: FirebaseError): AuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -79,7 +79,7 @@ Creates an [AuthCredential](./auth.authcredential.md#authcredential_class) from 
 static credentialFromJSON(json: string | object): AuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -107,7 +107,7 @@ const credential = SAMLAuthProvider.credentialFromResult(userCredential);
 static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

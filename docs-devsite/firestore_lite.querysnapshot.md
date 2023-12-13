@@ -83,7 +83,7 @@ Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
 forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

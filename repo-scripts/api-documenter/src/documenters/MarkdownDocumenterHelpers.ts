@@ -347,7 +347,8 @@ function appendAndMergeSection(
 
 export function createThrowsSection(
   apiItem: ApiItem,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  parentHeadingLevel: number
 ): DocNode[] {
   const output: DocNode[] = [];
   if (apiItem instanceof ApiDocumentedItem) {
@@ -363,7 +364,13 @@ export function createThrowsSection(
 
       if (throwsBlocks.length > 0) {
         const heading: string = 'Exceptions';
-        output.push(new DocHeading({ configuration, title: heading }));
+        output.push(
+          new DocHeading({
+            configuration,
+            title: heading,
+            level: parentHeadingLevel + 1
+          })
+        );
 
         for (const throwsBlock of throwsBlocks) {
           output.push(...throwsBlock.content.nodes);

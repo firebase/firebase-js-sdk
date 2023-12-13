@@ -50,7 +50,7 @@ Creates a new immutable `GeoPoint` object with the provided latitude and longitu
 constructor(latitude: number, longitude: number);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -87,7 +87,7 @@ Returns true if this `GeoPoint` is equal to the provided one.
 isEqual(other: GeoPoint): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
