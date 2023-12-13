@@ -23,6 +23,7 @@ env:
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
+  CHROME_VALIDATED_VERSION: blinux-120.0.6099.71
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
@@ -39,6 +40,10 @@ jobs:
           npx @puppeteer/browsers install chrome@stable
           ls chrome
           chromeVersionString=$(ls chrome)
+          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
+            echo "::warning Chromeversion doesn't match validated version. \
+            Consider updating the validated version in the GitHub workflow if tests pass."
+          fi
           echo $chromeVersionString
           echo "::notice file=app.js,line=1,col=5,endColumn=7::$chromeVersionString"
           echo "::warning file=app.js,line=1,col=5,endColumn=7::$chromeVersionString"
