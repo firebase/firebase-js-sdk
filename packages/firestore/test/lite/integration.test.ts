@@ -2406,7 +2406,7 @@ describe('Count queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getCount error message is good if missing index',
+    'getCount error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
@@ -2713,7 +2713,7 @@ describe('Aggregate queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getAggregate error message is good if missing index',
+    'getAggregate error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
