@@ -883,6 +883,16 @@ describe('FieldValue', () => {
     expect(deleteField().isEqual(deleteField())).to.be.true;
     expect(serverTimestamp().isEqual(serverTimestamp())).to.be.true;
     expect(deleteField().isEqual(serverTimestamp())).to.be.false;
+    expect(arrayUnion().isEqual(arrayUnion())).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('a'))).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('b'))).to.be.false;
+    expect(arrayUnion('a', 'b').isEqual(arrayUnion('b', 'a'))).to.be.false;
+    expect(arrayRemove().isEqual(arrayRemove())).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('a'))).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('b'))).to.be.false;
+    expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
+    expect(increment(1).isEqual(increment(1))).to.be.true;
+    expect(increment(1).isEqual(increment(2))).to.be.false;
   });
 
   it('support instanceof checks', () => {
