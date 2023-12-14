@@ -90,9 +90,9 @@ const argv = yargs.options({
 
     const chrome_notes = process.env.CHROME_VERSION_NOTES;
     if(chrome_notes) {
+      console.error()
       console.error(chrome_notes)
-    } else {
-      console.error("No chrome notes!")
+      console.error()
     }
 
     writeLogs('Failure', name, stdout + '\n' + stderr);

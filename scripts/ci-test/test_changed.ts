@@ -83,7 +83,9 @@ async function runTests(config: TestConfig) {
 
     const chrome_notes = process.env.CHROME_VERSION_NOTES;
     if(chrome_notes) {
-      console.error(chrome_notes)
+      console.error();
+      console.error(chalk`{red ${chrome_notes}}`);
+      console.error(" yo ");
     } else {
       console.error("No chrome notes!")
     }
