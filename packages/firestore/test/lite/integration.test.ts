@@ -2414,6 +2414,8 @@ describe('Count queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(getCount(query_)).to.be.eventually.rejectedWith(
             /index.*https:\/\/console\.firebase\.google\.com/
@@ -2721,6 +2723,8 @@ describe('Aggregate queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getAggregate(query_, {
