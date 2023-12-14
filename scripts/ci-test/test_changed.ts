@@ -85,9 +85,7 @@ async function runTests(config: TestConfig) {
     if(chrome_notes) {
       console.error();
       console.error(chalk`{red ${chrome_notes}}`);
-      console.error(" yo ");
-    } else {
-      console.error("No chrome notes!")
+      console.error();
     }
 
     process.exit(1);

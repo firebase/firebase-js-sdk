@@ -88,11 +88,12 @@ const argv = yargs.options({
     console.log(stdout);
     console.error(stderr);
 
-    const chrome_notes = process.env.CHROME_VERSION_NOTES;
-    if(chrome_notes) {
+    if(process.env.CHROME_VERSION_NOTES) {
       console.error()
-      console.error(chrome_notes)
-      console.error()
+      console.error(process.env.CHROME_VERSION_NOTES)
+      console.error(" yo yo ho ho ")
+    } else {
+
     }
 
     writeLogs('Failure', name, stdout + '\n' + stderr);
