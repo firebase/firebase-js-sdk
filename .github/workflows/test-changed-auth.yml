@@ -38,7 +38,8 @@ jobs:
       # Note: we only need to check the chrome version change in one job as the warning annotation
       # is appended to the entire workflow results, not just this job's results.
       - name: install Chrome stable
-        env: env: CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+        env:
+          CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
         run: |
           npx @puppeteer/browsers install chrome@stable
           chromeVersionString=$(ls chrome)
