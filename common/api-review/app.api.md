@@ -73,17 +73,19 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    invokeGetCookie: (name: string) => string | undefined;
-    invokeGetHeader: (name: string) => string | undefined;
-    invokeSetCookie: (name: string, value: string | undefined, options: object) => void;
+    appCheckTokenVerified: () => Promise<void>;
+    authIdTokenVerified: () => Promise<void>;
+    installationTokenVerified: () => Promise<void>;
+    name: string;
 }
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
-    deleteOnDeref?: object;
-    getCookie: (name: string) => string | undefined;
-    getHeader: (name: string) => string | undefined;
-    setCookie?: (name: string, value: string | undefined, options: object) => void;
+    appCheckToken?: string;
+    authIdToken?: string;
+    installationsAuthToken?: string;
+    name: "";
+    releaseOnDeref?: object;
 }
 
 // @internal (undocumented)

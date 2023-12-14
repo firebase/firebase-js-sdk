@@ -24,30 +24,20 @@ import {
 import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
-import { DEFAULT_ENTRY_NAME } from './constants';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
   implements FirebaseServerApp
 {
   private readonly _serverConfig: FirebaseServerAppSettings;
-  private readonly _setCookie?: (
-    name: string,
-    value: string | undefined,
-    options: object
-  ) => void;
-  private readonly _getCookie: (name: string) => string | undefined;
-  private readonly _getHeader: (name: string) => string | undefined;
   private _finalizationRegistry: FinalizationRegistry<object>;
 
   constructor(
-    options: FirebaseOptions,
+    options: FirebaseOptions | FirebaseAppImpl,
     serverConfig: FirebaseServerAppSettings,
     container: ComponentContainer
   ) {
     // Build configuration parameters for the FirebaseAppImpl base class.
-    const name: string =
-      serverConfig.name !== undefined ? serverConfig.name : DEFAULT_ENTRY_NAME;
     const automaticDataCollectionEnabled =
       serverConfig.automaticDataCollectionEnabled !== undefined
         ? serverConfig.automaticDataCollectionEnabled
@@ -55,38 +45,40 @@ export class FirebaseServerAppImpl
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
-      name,
+      name: serverConfig.name,
       automaticDataCollectionEnabled
     };
 
-    // Construct the parent FirebaseAppImp object.
-    super(options, config, container);
+    if((options as FirebaseOptions).apiKey !== undefined) {
+      // Construct the parent FirebaseAppImp object.
+      super(options as FirebaseOptions, config, container);
+    } else {
+      const appImpl : FirebaseAppImpl = options as FirebaseAppImpl;
+      
+      super(appImpl.options, config, container);
+    }
 
     // Now construct the data for the FirebaseServerAppImpl.
     this._serverConfig = {
-      name,
       automaticDataCollectionEnabled,
       ...serverConfig
     };
-
-    this._setCookie = this._serverConfig.setCookie;
-    this._getCookie = this._serverConfig.getCookie;
-    this._getHeader = this._serverConfig.getHeader;
 
     this._finalizationRegistry = new FinalizationRegistry(
       this.automaticCleanup
     );
 
-    if (this._serverConfig.deleteOnDeref !== undefined) {
+    if (this._serverConfig.releaseOnDeref !== undefined) {
       this._finalizationRegistry.register(
-        this._serverConfig.deleteOnDeref,
+        this._serverConfig.releaseOnDeref,
         this
       );
-      this._serverConfig.deleteOnDeref = undefined; // Don't keep a strong reference to the object.
+      this._serverConfig.releaseOnDeref = undefined; // Don't keep a strong reference to the object.
     }
   }
 
   private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
+    // TODO: implement reference counting.
     void deleteApp(serverApp);
   }
 
@@ -95,24 +87,18 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  invokeSetCookie(
-    cookieName: string,
-    cookieValue: string | undefined,
-    options: object
-  ): void {
-    this.checkDestroyed();
-    if (this._setCookie !== undefined) {
-      this._setCookie(cookieName, cookieValue, options);
-    }
+  authIdTokenVerified() : Promise<void> {
+    // TODO
+    return Promise.resolve();
   }
 
-  invokeGetCookie(cookieName: string): string | undefined {
-    this.checkDestroyed();
-    return this._getCookie(cookieName);
+  appCheckTokenVerified() : Promise<void> {
+    // TODO
+    return Promise.resolve();
   }
 
-  invokeGetHeader(headerName: string): string | undefined {
-    this.checkDestroyed();
-    return this._getHeader(headerName);
+  installationTokenVerified() : Promise<void> {
+    // TODO
+    return Promise.resolve();
   }
 }

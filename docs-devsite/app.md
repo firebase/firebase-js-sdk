@@ -22,6 +22,7 @@ This package coordinates the communication between the different Firebase compon
 |  [deleteApp(app)](./app.md#deleteapp) | Renders this app unusable and frees the resources of all associated services. |
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
+|  [getServerApps()](./app.md#getserverapps) | A (read-only) array of all initialized server apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
 |  <b>function(libraryKeyOrName...)</b> |
 |  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion) | Registers a library's name and version for platform logging purposes. |
@@ -34,6 +35,7 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function(options...)</b> |
 |  [initializeApp(options, name)](./app.md#initializeapp) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 |  [initializeApp(options, config)](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  [initializeServerApp(options, config)](./app.md#initializeserverapp) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in server side rendering environments only.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 
 ## Interfaces
 
@@ -42,11 +44,14 @@ This package coordinates the communication between the different Firebase compon
 |  [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp) to create an app. |
 |  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp) |
 |  [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Firebase configuration object. Contains a set of parameters required by services in order to successfully communicate with Firebase server APIs and to associate client data with your Firebase project and Firebase application. Typically this object is populated by the Firebase console at project setup. See also: [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object)<!-- -->. |
+|  [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) | A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server enviornments.<!-- -->Do not call this constructor directly. Instead, use  to create an app. |
+|  [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Configuration options given to [initializeServerApp()](./app.md#initializeserverapp) |
 
 ## Variables
 
 |  Variable | Description |
 |  --- | --- |
+|  [\_serverApps](./app.md#_serverapps) |  |
 |  [SDK\_VERSION](./app.md#sdk_version) | The current SDK version. |
 
 ## deleteApp()
@@ -95,6 +100,19 @@ export declare function getApps(): FirebaseApp[];
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->\[\]
+
+## getServerApps()
+
+A (read-only) array of all initialized server apps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getServerApps(): FirebaseServerApp[];
+```
+<b>Returns:</b>
+
+[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->\[\]
 
 ## initializeApp()
 
@@ -294,6 +312,62 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+## initializeServerApp()
+
+Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
+
+The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in server side rendering environments only.
+
+See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation.
+
+<b>Signature:</b>
+
+```typescript
+export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | Firebase.AppOptions to configure the app's services, or a a FirebaseApp instance which contains the AppOptions within. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | FirebaseServerApp configuration. |
+
+<b>Returns:</b>
+
+[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
+
+The initialized FirebaseServerApp.
+
+### Example
+
+
+```javascript
+
+// Initialize a FirebaseServerApp.
+// Retrieve your own options values by adding a web app on
+// https://console.firebase.google.com
+initializeServerApp({
+    apiKey: "AIza....",                             // Auth / General Use
+    authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
+    databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
+    storageBucket: "YOUR_APP.appspot.com",          // Storage
+    messagingSenderId: "123456789"                  // Cloud Messaging
+  },
+  {
+   authIdToken: "Your Auth ID Token"
+  });
+
+```
+
+## \_serverApps
+
+<b>Signature:</b>
+
+```typescript
+_serverApps: Map<string, FirebaseServerApp>
+```
 
 ## SDK\_VERSION
 

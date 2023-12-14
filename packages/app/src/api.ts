@@ -229,7 +229,6 @@ export function initializeServerApp(
   _serverAppConfig: FirebaseServerAppSettings
 ): FirebaseServerApp {
   const serverAppSettings: FirebaseServerAppSettings = {
-    name: DEFAULT_ENTRY_NAME,
     automaticDataCollectionEnabled: false,
     ..._serverAppConfig
   };
@@ -261,11 +260,9 @@ export function initializeServerApp(
     }
   }
 
-  if (serverAppSettings.deleteOnDeref !== undefined) {
+  if (serverAppSettings.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
-      throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, {
-        appName: String(name)
-      });
+      throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, { });
     }
   }
 
@@ -330,14 +327,6 @@ export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
  */
 export function getApps(): FirebaseApp[] {
   return Array.from(_apps.values());
-}
-
-/**
- * A (read-only) array of all initialized server apps.
- * @public
- */
-export function getServerApps(): FirebaseServerApp[] {
-  return Array.from(_serverApps.values());
 }
 
 /**
