@@ -132,7 +132,7 @@ apiDescribe('Count queries', persistence => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getCountFromServer error message is good if missing index',
+    'getCountFromServer error message contains console link if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
@@ -344,7 +344,7 @@ apiDescribe('Aggregation queries', persistence => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getAggregateFromServer error message is good if missing index',
+    'getAggregateFromServer error message contains console link good if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
