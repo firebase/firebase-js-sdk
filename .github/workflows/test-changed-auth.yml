@@ -24,7 +24,6 @@ env:
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
   CHROME_VALIDATED_VERSION: blinux-120.0.6099.71
-  CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
@@ -32,7 +31,6 @@ jobs:
   test-chrome:
     name: Test Auth on Chrome and Node If Changed
     runs-on: ubuntu-latest
-
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
@@ -40,10 +38,11 @@ jobs:
       # Note: we only need to check the chrome version change in one job as the warning annotation
       # is appended to the entire workflow results, not just this job's results.
       - name: install Chrome stable
+        env: env: CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
         run: |
           npx @puppeteer/browsers install chrome@stable
           chromeVersionString=$(ls chrome)
-          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
+          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
           echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
           echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
           echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"

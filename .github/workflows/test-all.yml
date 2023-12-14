@@ -41,15 +41,6 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-        chromeVersionString=$(ls chrome)
-        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
-        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
-        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
-        echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
-        fi
-    - name: Test Evn TEMP
-      run: |
-        echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
@@ -126,6 +117,15 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+        chromeVersionString=$(ls chrome)
+        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
+        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
+        echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
+        fi
+    - name: Test Evn TEMP
+      run: |
+        echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
