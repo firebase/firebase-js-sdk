@@ -25,7 +25,8 @@ env:
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
-  CHROME_VALIDATED_VERSION: linux-120.0.6099.71
+  CHROME_VALIDATED_VERSION: blinux-120.0.6099.71
+  CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
   artifactRetentionDays: 14
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
@@ -38,13 +39,17 @@ jobs:
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
-      run: |
-        npx @puppeteer/browsers install chrome@stable
-        chromeVersionString=$(ls chrome)
-        if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
-        echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
-        echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
-        fi
+        run: |
+          npx @puppeteer/browsers install chrome@stable
+          chromeVersionString=$(ls chrome)
+          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
+          echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+          echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
+          echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
+          fi
+      - name: Test Evn TEMP
+        run: |
+         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
