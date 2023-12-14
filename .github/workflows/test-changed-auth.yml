@@ -35,14 +35,15 @@ jobs:
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
+      #
+      # Note: we only need to check the chrome version change in one job as the warning annotation
+      # is appended to the entire workflow results, not just this job's results.
       - name: install Chrome stable
         run: |
           npx @puppeteer/browsers install chrome@stable
           chromeVersionString=$(ls chrome)
-          echo $chromeVersionString
-          echo $CHROME_VALIDATED_VERSION
           if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then 
-          echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating the validated version in the GitHub workflow if tests pass."
+          echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
           echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
           fi
       - name: Checkout Repo
