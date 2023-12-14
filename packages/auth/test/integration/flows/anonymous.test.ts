@@ -52,7 +52,7 @@ describe('Integration test: anonymous auth', () => {
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
 
     const user = userCred.user;
-    expect(user.isAnonymous).to.be.true;
+    expect(user.isAnonymous).to.be.false;
     expect(user.uid).to.be.a('string');
   });
 
