@@ -231,38 +231,18 @@ and push your branch. The push should cause the CI to re-check your PR's changes
 In order to generate the HTML documentation files locally, go to the root of this repo, and run:
 
 ```
+yarn
 yarn install
-yarn docgen
+yarn docgen devsite
 ```
 
-This will generate both js and node (client) reference docs. To just generate js
-docs, replace the last line with:
-
-```
-yarn docgen:js
-```
-
-To just generate node docs, replace the last line with:
-
-```
-yarn docgen:node
-```
-
-Files will be written to `scripts/docgen/html` - js docs will go into the `/js`
-subdirectory and node docs into the `/node` subdirectory.
+This will generate reference docs in `docs-devsite/`. Commit and push your the generated
+documentation changes to GitHub following the [PR submission guidelines](#submit). Your push
+to the remote repository should force any failing documentation checks to execute again.
 
 **NOTE:** These files are formatted to be inserted into Google's documentation site, which adds some
 styling and navigation, so the raw files will be missing navigation elements and may not look
 polished. However, it should be enough to preview the content.
-
-This process will generate warnings for files that are generated but not listed in the `toc.yaml`,
-or files that are in the `toc.yaml` but were not generated (which means something is missing in
-`index.d.ts`).  If this happens during the JS documentation generation, it probably means either the
-`toc.yaml` or `index.d.ts` is incorrect.  But in the Node process, some generated files not being
-found in `toc.yaml` are to be expected, since Node documentation is a subset of the full JS
-documentation.
-
-Follow the [PR submission guidelines](#submit) above to submit any documentation changes.
 
 [archive]: https://github.com/firebase/firebase-js-sdk/issues?utf8=%E2%9C%93&q=is%3Aissue
 [file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
