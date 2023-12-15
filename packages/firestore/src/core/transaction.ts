@@ -63,7 +63,7 @@ export class Transaction {
   async lookup(keys: DocumentKey[]): Promise<Document[]> {
     this.ensureCommitNotCalled();
 
-    if (this.mutations.length > 0) {
+    if (this.mutations.length != 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Firestore transactions require all reads to be executed before all writes.'
