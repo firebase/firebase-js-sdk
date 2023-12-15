@@ -18,9 +18,9 @@ Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Prov
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck_5548dfc) | Activate App Check for the given app. Can be called only once per app. |
-|  <b>function(appCheckInstance...)</b> |
+|  <b>function(appCheckInstance, ...)</b> |
 |  [getLimitedUseToken(appCheckInstance)](./app-check.md#getlimitedusetoken_53ef5e3) | Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.<!-- -->Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method. |
 |  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken_39fc1b3) | Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight. |
 |  [onTokenChanged(appCheckInstance, observer)](./app-check.md#ontokenchanged_9761e16) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
@@ -51,7 +51,9 @@ Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Prov
 |  --- | --- |
 |  [AppCheckTokenListener](./app-check.md#appchecktokenlistener) | A listener that is called whenever the App Check token changes. |
 
-## initializeAppCheck() {:#initializeappcheck_5548dfc}
+## function(app, ...)
+
+### initializeAppCheck(app, options) {:#initializeappcheck_5548dfc}
 
 Activate App Check for the given app. Can be called only once per app.
 
@@ -61,7 +63,7 @@ Activate App Check for the given app. Can be called only once per app.
 export declare function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -72,7 +74,9 @@ export declare function initializeAppCheck(app: FirebaseApp | undefined, options
 
 [AppCheck](./app-check.appcheck.md#appcheck_interface)
 
-## getLimitedUseToken() {:#getlimitedusetoken_53ef5e3}
+## function(appCheckInstance, ...)
+
+### getLimitedUseToken(appCheckInstance) {:#getlimitedusetoken_53ef5e3}
 
 Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.
 
@@ -84,7 +88,7 @@ Returns limited-use tokens that are intended for use with your non-Firebase back
 export declare function getLimitedUseToken(appCheckInstance: AppCheck): Promise<AppCheckTokenResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -96,7 +100,7 @@ Promise&lt;[AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktoke
 
 The limited use token.
 
-## getToken() {:#gettoken_39fc1b3}
+### getToken(appCheckInstance, forceRefresh) {:#gettoken_39fc1b3}
 
 Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight.
 
@@ -106,7 +110,7 @@ Get the current App Check token. Attaches to the most recent in-flight request i
 export declare function getToken(appCheckInstance: AppCheck, forceRefresh?: boolean): Promise<AppCheckTokenResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -117,7 +121,7 @@ export declare function getToken(appCheckInstance: AppCheck, forceRefresh?: bool
 
 Promise&lt;[AppCheckTokenResult](./app-check.appchecktokenresult.md#appchecktokenresult_interface)<!-- -->&gt;
 
-## onTokenChanged() {:#ontokenchanged_9761e16}
+### onTokenChanged(appCheckInstance, observer) {:#ontokenchanged_9761e16}
 
 Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes.
 
@@ -127,7 +131,7 @@ Registers a listener to changes in the token state. There can be more than one l
 export declare function onTokenChanged(appCheckInstance: AppCheck, observer: PartialObserver<AppCheckTokenResult>): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -140,7 +144,7 @@ export declare function onTokenChanged(appCheckInstance: AppCheck, observer: Par
 
 A function that unsubscribes this listener.
 
-## onTokenChanged() {:#ontokenchanged_8ef80a7}
+### onTokenChanged(appCheckInstance, onNext, onError, onCompletion) {:#ontokenchanged_8ef80a7}
 
 Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes.
 
@@ -150,7 +154,7 @@ Registers a listener to changes in the token state. There can be more than one l
 export declare function onTokenChanged(appCheckInstance: AppCheck, onNext: (tokenResult: AppCheckTokenResult) => void, onError?: (error: Error) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -165,7 +169,7 @@ export declare function onTokenChanged(appCheckInstance: AppCheck, onNext: (toke
 
 A function that unsubscribes this listener.
 
-## setTokenAutoRefreshEnabled() {:#settokenautorefreshenabled_057a76c}
+### setTokenAutoRefreshEnabled(appCheckInstance, isTokenAutoRefreshEnabled) {:#settokenautorefreshenabled_057a76c}
 
 Set whether App Check will automatically refresh tokens as needed.
 
@@ -175,7 +179,7 @@ Set whether App Check will automatically refresh tokens as needed.
 export declare function setTokenAutoRefreshEnabled(appCheckInstance: AppCheck, isTokenAutoRefreshEnabled: boolean): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

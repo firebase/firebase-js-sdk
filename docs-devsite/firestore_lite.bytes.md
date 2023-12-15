@@ -39,7 +39,7 @@ Creates a new `Bytes` object from the given Base64 string, converting it to byte
 static fromBase64String(base64: string): Bytes;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -59,7 +59,7 @@ Creates a new `Bytes` object from the given Uint8Array.
 static fromUint8Array(array: Uint8Array): Bytes;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -79,7 +79,7 @@ Returns true if this `Bytes` object is equal to the provided one.
 isEqual(other: Bytes): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

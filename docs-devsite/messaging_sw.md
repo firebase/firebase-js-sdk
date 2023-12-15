@@ -15,9 +15,9 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [getMessaging(app)](./messaging_sw.md#getmessaging_cf608e1) | Retrieves a Firebase Cloud Messaging instance. |
-|  <b>function(messaging...)</b> |
+|  <b>function(messaging, ...)</b> |
 |  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
 |  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage_b9887da) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
 |  <b>function()</b> |
@@ -33,7 +33,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [Messaging](./messaging_sw.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
 |  [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 
-## getMessaging() {:#getmessaging_cf608e1}
+## function(app, ...)
+
+### getMessaging(app) {:#getmessaging_cf608e1}
 
 Retrieves a Firebase Cloud Messaging instance.
 
@@ -43,7 +45,7 @@ Retrieves a Firebase Cloud Messaging instance.
 export declare function getMessagingInSw(app?: FirebaseApp): Messaging;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -55,7 +57,9 @@ export declare function getMessagingInSw(app?: FirebaseApp): Messaging;
 
 The Firebase Cloud Messaging instance associated with the provided firebase app.
 
-## experimentalSetDeliveryMetricsExportedToBigQueryEnabled() {:#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd}
+## function(messaging, ...)
+
+### experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable) {:#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd}
 
 Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime.
 
@@ -65,7 +69,7 @@ Enables or disables Firebase Cloud Messaging message delivery metrics export to 
 export declare function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging: Messaging, enable: boolean): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -76,7 +80,7 @@ export declare function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(
 
 void
 
-## onBackgroundMessage() {:#onbackgroundmessage_b9887da}
+### onBackgroundMessage(messaging, nextOrObserver) {:#onbackgroundmessage_b9887da}
 
 Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed.
 
@@ -86,7 +90,7 @@ Called when a message is received while the app is in the background. An app is 
 export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -99,7 +103,9 @@ export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver
 
 To stop listening for messages execute this returned function
 
-## isSupported() {:#issupported}
+## function()
+
+### isSupported() {:#issupported}
 
 Checks whether all required APIs exist within SW Context
 

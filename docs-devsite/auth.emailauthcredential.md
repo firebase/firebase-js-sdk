@@ -40,7 +40,7 @@ Static method to deserialize a JSON representation of an object into an [AuthCre
 static fromJSON(json: object | string): EmailAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

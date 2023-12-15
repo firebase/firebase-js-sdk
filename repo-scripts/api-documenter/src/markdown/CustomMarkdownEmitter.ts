@@ -85,7 +85,7 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
             prefix = '###';
             break;
           case 3:
-            prefix = '###';
+            prefix = '####';
             break;
           default:
             prefix = '####';

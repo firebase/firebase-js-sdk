@@ -16,9 +16,9 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [getRemoteConfig(app)](./remote-config.md#getremoteconfig_cf608e1) |  |
-|  <b>function(remoteConfig...)</b> |
+|  <b>function(remoteConfig, ...)</b> |
 |  [activate(remoteConfig)](./remote-config.md#activate_722a192) | Makes the last fetched config available to the getters. |
 |  [ensureInitialized(remoteConfig)](./remote-config.md#ensureinitialized_722a192) | Ensures the last activated config are available to the getters. |
 |  [fetchAndActivate(remoteConfig)](./remote-config.md#fetchandactivate_722a192) | Performs fetch and activate operations, as a convenience. |
@@ -48,7 +48,9 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [LogLevel](./remote-config.md#loglevel) | Defines levels of Remote Config logging. |
 |  [ValueSource](./remote-config.md#valuesource) | Indicates the source of a value.<ul> <li>"static" indicates the value was defined by a static constant.</li> <li>"default" indicates the value was defined by default config.</li> <li>"remote" indicates the value was defined by fetched config.</li> </ul> |
 
-## getRemoteConfig() {:#getremoteconfig_cf608e1}
+## function(app, ...)
+
+### getRemoteConfig(app) {:#getremoteconfig_cf608e1}
 
 <b>Signature:</b>
 
@@ -56,7 +58,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -68,7 +70,9 @@ export declare function getRemoteConfig(app?: FirebaseApp): RemoteConfig;
 
 A [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance.
 
-## activate() {:#activate_722a192}
+## function(remoteConfig, ...)
+
+### activate(remoteConfig) {:#activate_722a192}
 
 Makes the last fetched config available to the getters.
 
@@ -78,7 +82,7 @@ Makes the last fetched config available to the getters.
 export declare function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -90,7 +94,7 @@ Promise&lt;boolean&gt;
 
 A `Promise` which resolves to true if the current call activated the fetched configs. If the fetched configs were already activated, the `Promise` will resolve to false.
 
-## ensureInitialized() {:#ensureinitialized_722a192}
+### ensureInitialized(remoteConfig) {:#ensureinitialized_722a192}
 
 Ensures the last activated config are available to the getters.
 
@@ -100,7 +104,7 @@ Ensures the last activated config are available to the getters.
 export declare function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -112,7 +116,7 @@ Promise&lt;void&gt;
 
 A `Promise` that resolves when the last activated config is available to the getters.
 
-## fetchAndActivate() {:#fetchandactivate_722a192}
+### fetchAndActivate(remoteConfig) {:#fetchandactivate_722a192}
 
 Performs fetch and activate operations, as a convenience.
 
@@ -122,7 +126,7 @@ Performs fetch and activate operations, as a convenience.
 export declare function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -134,7 +138,7 @@ Promise&lt;boolean&gt;
 
 A `Promise` which resolves to true if the current call activated the fetched configs. If the fetched configs were already activated, the `Promise` will resolve to false.
 
-## fetchConfig() {:#fetchconfig_722a192}
+### fetchConfig(remoteConfig) {:#fetchconfig_722a192}
 
 Fetches and caches configuration from the Remote Config service.
 
@@ -144,7 +148,7 @@ Fetches and caches configuration from the Remote Config service.
 export declare function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -154,7 +158,7 @@ export declare function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
 Promise&lt;void&gt;
 
-## getAll() {:#getall_722a192}
+### getAll(remoteConfig) {:#getall_722a192}
 
 Gets all config.
 
@@ -164,7 +168,7 @@ Gets all config.
 export declare function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -176,7 +180,7 @@ Record&lt;string, [Value](./remote-config.value.md#value_interface)<!-- -->&gt;
 
 All config.
 
-## getBoolean() {:#getboolean_476c09f}
+### getBoolean(remoteConfig, key) {:#getboolean_476c09f}
 
 Gets the value for the given key as a boolean.
 
@@ -188,7 +192,7 @@ Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</cod
 export declare function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -201,7 +205,7 @@ boolean
 
 The value for the given key as a boolean.
 
-## getNumber() {:#getnumber_476c09f}
+### getNumber(remoteConfig, key) {:#getnumber_476c09f}
 
 Gets the value for the given key as a number.
 
@@ -213,7 +217,7 @@ Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code
 export declare function getNumber(remoteConfig: RemoteConfig, key: string): number;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -226,7 +230,7 @@ number
 
 The value for the given key as a number.
 
-## getString() {:#getstring_476c09f}
+### getString(remoteConfig, key) {:#getstring_476c09f}
 
 Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
 
@@ -236,7 +240,7 @@ Gets the value for the given key as a string. Convenience method for calling <co
 export declare function getString(remoteConfig: RemoteConfig, key: string): string;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -249,7 +253,7 @@ string
 
 The value for the given key as a string.
 
-## getValue() {:#getvalue_476c09f}
+### getValue(remoteConfig, key) {:#getvalue_476c09f}
 
 Gets the [Value](./remote-config.value.md#value_interface) for the given key.
 
@@ -259,7 +263,7 @@ Gets the [Value](./remote-config.value.md#value_interface) for the given key.
 export declare function getValue(remoteConfig: RemoteConfig, key: string): Value;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -272,7 +276,7 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 
 The value for the given key.
 
-## setLogLevel() {:#setloglevel_039a45b}
+### setLogLevel(remoteConfig, logLevel) {:#setloglevel_039a45b}
 
 Defines the log level to use.
 
@@ -282,7 +286,7 @@ Defines the log level to use.
 export declare function setLogLevel(remoteConfig: RemoteConfig, logLevel: RemoteConfigLogLevel): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -293,7 +297,9 @@ export declare function setLogLevel(remoteConfig: RemoteConfig, logLevel: Remote
 
 void
 
-## isSupported() {:#issupported}
+## function()
+
+### isSupported() {:#issupported}
 
 This method provides two different checks:
 

@@ -53,7 +53,7 @@ Constructs a new instance of the `PhoneAuthProvider` class
 constructor(auth: Auth);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -99,7 +99,7 @@ Creates a phone auth credential, given the verification ID from [PhoneAuthProvid
 static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -166,7 +166,7 @@ try {
 static credentialFromError(error: FirebaseError): AuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -186,7 +186,7 @@ Generates an [AuthCredential](./auth.authcredential.md#authcredential_class) fro
 static credentialFromResult(userCredential: UserCredential): AuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -206,7 +206,7 @@ Starts a phone number authentication flow by sending a verification code to the 
 verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -16,12 +16,12 @@ Firebase Authentication
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
+|  <b>function(app, ...)</b> |
 |  [getAuth(app)](./auth.md#getauth_cf608e1) | Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies. |
 |  [initializeAuth(app, deps)](./auth.md#initializeauth_ca77c9b) | Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. |
-|  <b>function(storage...)</b> |
+|  <b>function(storage, ...)</b> |
 |  [getReactNativePersistence(storage)](./auth.md#getreactnativepersistence_bab4ada) | Returns a persistence object that wraps <code>AsyncStorage</code> imported from <code>react-native</code> or <code>@react-native-community/async-storage</code>, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->. |
-|  <b>function(auth...)</b> |
+|  <b>function(auth, ...)</b> |
 |  [applyActionCode(auth, oobCode)](./auth.md#applyactioncode_d2ae15a) | Applies a verification code sent to the user by email or other out-of-band mechanism. |
 |  [beforeAuthStateChanged(auth, callback, onAbort)](./auth.md#beforeauthstatechanged_22f2ab6) | Adds a blocking callback that runs before an auth state change sets a new user. |
 |  [checkActionCode(auth, oobCode)](./auth.md#checkactioncode_d2ae15a) | Checks a verification code sent to the user by email or other out-of-band mechanism. |
@@ -52,9 +52,9 @@ Firebase Authentication
 |  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage_2a61ea7) | Sets the current language to the default device/browser preference. |
 |  [validatePassword(auth, password)](./auth.md#validatepassword_4dc4ad2) | Validates the password against the password policy configured for the project or tenant. |
 |  [verifyPasswordResetCode(auth, code)](./auth.md#verifypasswordresetcode_01e0a1a) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
-|  <b>function(link...)</b> |
+|  <b>function(link, ...)</b> |
 |  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl_51293c3) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
-|  <b>function(user...)</b> |
+|  <b>function(user, ...)</b> |
 |  [deleteUser(user)](./auth.md#deleteuser_52b2e2e) | Deletes and signs out the user. |
 |  [getIdToken(user, forceRefresh)](./auth.md#getidtoken_ce7d429) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult_ce7d429) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
@@ -75,7 +75,7 @@ Firebase Authentication
 |  [updatePhoneNumber(user, credential)](./auth.md#updatephonenumber_0105c49) | Updates the user's phone number. |
 |  [updateProfile(user, { displayName, photoURL: photoUrl })](./auth.md#updateprofile_017e12d) | Updates a user's profile data. |
 |  [verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings)](./auth.md#verifybeforeupdateemail_09d6f11) | Sends a verification email to a new email address. |
-|  <b>function(userCredential...)</b> |
+|  <b>function(userCredential, ...)</b> |
 |  [getAdditionalUserInfo(userCredential)](./auth.md#getadditionaluserinfo_838a6bd) | Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential. |
 
 ## Classes
@@ -172,7 +172,9 @@ Firebase Authentication
 |  [PhoneInfoOptions](./auth.md#phoneinfooptions) | The information required to verify the ownership of a phone number. |
 |  [UserProfile](./auth.md#userprofile) | User profile used in [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface)<!-- -->. |
 
-## getAuth() {:#getauth_cf608e1}
+## function(app, ...)
+
+### getAuth(app) {:#getauth_cf608e1}
 
 Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies.
 
@@ -182,7 +184,7 @@ Returns the Auth instance associated with the provided [FirebaseApp](./app.fireb
 export declare function getAuth(app?: FirebaseApp): Auth;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -192,7 +194,7 @@ export declare function getAuth(app?: FirebaseApp): Auth;
 
 [Auth](./auth.auth.md#auth_interface)
 
-## initializeAuth() {:#initializeauth_ca77c9b}
+### initializeAuth(app, deps) {:#initializeauth_ca77c9b}
 
 Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->.
 
@@ -214,7 +216,7 @@ const auth = initializeAuth(app, {
 export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -225,7 +227,9 @@ export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): A
 
 [Auth](./auth.auth.md#auth_interface)
 
-## getReactNativePersistence() {:#getreactnativepersistence_bab4ada}
+## function(storage, ...)
+
+### getReactNativePersistence(storage) {:#getreactnativepersistence_bab4ada}
 
 Returns a persistence object that wraps `AsyncStorage` imported from `react-native` or `@react-native-community/async-storage`<!-- -->, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->.
 
@@ -235,7 +239,7 @@ Returns a persistence object that wraps `AsyncStorage` imported from `react-nati
 export declare function getReactNativePersistence(storage: ReactNativeAsyncStorage): Persistence;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -245,7 +249,9 @@ export declare function getReactNativePersistence(storage: ReactNativeAsyncStora
 
 [Persistence](./auth.persistence.md#persistence_interface)
 
-## applyActionCode() {:#applyactioncode_d2ae15a}
+## function(auth, ...)
+
+### applyActionCode(auth, oobCode) {:#applyactioncode_d2ae15a}
 
 Applies a verification code sent to the user by email or other out-of-band mechanism.
 
@@ -255,7 +261,7 @@ Applies a verification code sent to the user by email or other out-of-band mecha
 export declare function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -266,7 +272,7 @@ export declare function applyActionCode(auth: Auth, oobCode: string): Promise<vo
 
 Promise&lt;void&gt;
 
-## beforeAuthStateChanged() {:#beforeauthstatechanged_22f2ab6}
+### beforeAuthStateChanged(auth, callback, onAbort) {:#beforeauthstatechanged_22f2ab6}
 
 Adds a blocking callback that runs before an auth state change sets a new user.
 
@@ -276,7 +282,7 @@ Adds a blocking callback that runs before an auth state change sets a new user.
 export declare function beforeAuthStateChanged(auth: Auth, callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -288,7 +294,7 @@ export declare function beforeAuthStateChanged(auth: Auth, callback: (user: User
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## checkActionCode() {:#checkactioncode_d2ae15a}
+### checkActionCode(auth, oobCode) {:#checkactioncode_d2ae15a}
 
 Checks a verification code sent to the user by email or other out-of-band mechanism.
 
@@ -298,7 +304,7 @@ Checks a verification code sent to the user by email or other out-of-band mechan
 export declare function checkActionCode(auth: Auth, oobCode: string): Promise<ActionCodeInfo>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -311,7 +317,7 @@ Promise&lt;[ActionCodeInfo](./auth.actioncodeinfo.md#actioncodeinfo_interface)<!
 
 metadata about the code.
 
-## confirmPasswordReset() {:#confirmpasswordreset_749dad8}
+### confirmPasswordReset(auth, oobCode, newPassword) {:#confirmpasswordreset_749dad8}
 
 Completes the password reset process, given a confirmation code and new password.
 
@@ -321,7 +327,7 @@ Completes the password reset process, given a confirmation code and new password
 export declare function confirmPasswordReset(auth: Auth, oobCode: string, newPassword: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -333,7 +339,7 @@ export declare function confirmPasswordReset(auth: Auth, oobCode: string, newPas
 
 Promise&lt;void&gt;
 
-## connectAuthEmulator() {:#connectauthemulator_657c7e5}
+### connectAuthEmulator(auth, url, options) {:#connectauthemulator_657c7e5}
 
 Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services.
 
@@ -347,7 +353,7 @@ export declare function connectAuthEmulator(auth: Auth, url: string, options?: {
 }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -367,7 +373,7 @@ connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
 
 ```
 
-## createUserWithEmailAndPassword() {:#createuserwithemailandpassword_21ad33b}
+### createUserWithEmailAndPassword(auth, email, password) {:#createuserwithemailandpassword_21ad33b}
 
 Creates a new user account associated with the specified email address and password.
 
@@ -383,7 +389,7 @@ Note: The email address acts as a unique identifier for the user and enables an 
 export declare function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -395,7 +401,7 @@ export declare function createUserWithEmailAndPassword(auth: Auth, email: string
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## fetchSignInMethodsForEmail() {:#fetchsigninmethodsforemail_efb3887}
+### fetchSignInMethodsForEmail(auth, email) {:#fetchsigninmethodsforemail_efb3887}
 
 Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
 
@@ -407,7 +413,7 @@ This is useful to differentiate methods of sign-in for the same provider, eg. [E
 export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): Promise<string[]>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -418,7 +424,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 
 Promise&lt;string\[\]&gt;
 
-## getMultiFactorResolver() {:#getmultifactorresolver_201ba61}
+### getMultiFactorResolver(auth, error) {:#getmultifactorresolver_201ba61}
 
 Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow.
 
@@ -428,7 +434,7 @@ Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolv
 export declare function getMultiFactorResolver(auth: Auth, error: MultiFactorError): MultiFactorResolver;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -439,7 +445,7 @@ export declare function getMultiFactorResolver(auth: Auth, error: MultiFactorErr
 
 [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface)
 
-## getRedirectResult() {:#getredirectresult_c35dc1f}
+### getRedirectResult(auth, resolver) {:#getredirectresult_c35dc1f}
 
 Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow.
 
@@ -453,7 +459,7 @@ This method does not work in a Node.js environment.
 export declare function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -492,7 +498,7 @@ const operationType = result.operationType;
 
 ```
 
-## initializeRecaptchaConfig() {:#initializerecaptchaconfig_2a61ea7}
+### initializeRecaptchaConfig(auth) {:#initializerecaptchaconfig_2a61ea7}
 
 Loads the reCAPTCHA configuration into the `Auth` instance.
 
@@ -510,7 +516,7 @@ This method does not work in a Node.js environment.
 export declare function initializeRecaptchaConfig(auth: Auth): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -528,7 +534,7 @@ initializeRecaptchaConfig(auth);
 
 ```
 
-## isSignInWithEmailLink() {:#issigninwithemaillink_db04f1d}
+### isSignInWithEmailLink(auth, emailLink) {:#issigninwithemaillink_db04f1d}
 
 Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.md#signinwithemaillink_ed14c53)<!-- -->.
 
@@ -538,7 +544,7 @@ Checks if an incoming link is a sign-in with email link suitable for [signInWith
 export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -549,7 +555,7 @@ export declare function isSignInWithEmailLink(auth: Auth, emailLink: string): bo
 
 boolean
 
-## onAuthStateChanged() {:#onauthstatechanged_b0d07ab}
+### onAuthStateChanged(auth, nextOrObserver, error, completed) {:#onauthstatechanged_b0d07ab}
 
 Adds an observer for changes to the user's sign-in state.
 
@@ -561,7 +567,7 @@ To keep the old behavior, see [onIdTokenChanged()](./auth.md#onidtokenchanged_b0
 export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -574,7 +580,7 @@ export declare function onAuthStateChanged(auth: Auth, nextOrObserver: NextOrObs
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## onIdTokenChanged() {:#onidtokenchanged_b0d07ab}
+### onIdTokenChanged(auth, nextOrObserver, error, completed) {:#onidtokenchanged_b0d07ab}
 
 Adds an observer for changes to the signed-in user's ID token.
 
@@ -586,7 +592,7 @@ This includes sign-in, sign-out, and token refresh events. This will not be trig
 export declare function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObserver<User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -599,7 +605,7 @@ export declare function onIdTokenChanged(auth: Auth, nextOrObserver: NextOrObser
 
 [Unsubscribe](./util.md#unsubscribe)
 
-## revokeAccessToken() {:#revokeaccesstoken_5556ad5}
+### revokeAccessToken(auth, token) {:#revokeaccesstoken_5556ad5}
 
 Revokes the given access token. Currently only supports Apple OAuth access tokens.
 
@@ -609,7 +615,7 @@ Revokes the given access token. Currently only supports Apple OAuth access token
 export declare function revokeAccessToken(auth: Auth, token: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -620,7 +626,7 @@ export declare function revokeAccessToken(auth: Auth, token: string): Promise<vo
 
 Promise&lt;void&gt;
 
-## sendPasswordResetEmail() {:#sendpasswordresetemail_95b079b}
+### sendPasswordResetEmail(auth, email, actionCodeSettings) {:#sendpasswordresetemail_95b079b}
 
 Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
@@ -632,7 +638,7 @@ To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmp
 export declare function sendPasswordResetEmail(auth: Auth, email: string, actionCodeSettings?: ActionCodeSettings): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -666,7 +672,7 @@ await confirmPasswordReset('user@example.com', code);
 
 ```
 
-## sendSignInLinkToEmail() {:#sendsigninlinktoemail_95b079b}
+### sendSignInLinkToEmail(auth, email, actionCodeSettings) {:#sendsigninlinktoemail_95b079b}
 
 Sends a sign-in email link to the user with the specified email.
 
@@ -680,7 +686,7 @@ To complete sign in with the email link, call [signInWithEmailLink()](./auth.md#
 export declare function sendSignInLinkToEmail(auth: Auth, email: string, actionCodeSettings: ActionCodeSettings): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -716,7 +722,7 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ```
 
-## setPersistence() {:#setpersistence_a3592ac}
+### setPersistence(auth, persistence) {:#setpersistence_a3592ac}
 
 Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved `Auth` session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.
 
@@ -730,7 +736,7 @@ This method does not work in a Node.js environment.
 export declare function setPersistence(auth: Auth, persistence: Persistence): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -751,7 +757,7 @@ setPersistence(auth, browserSessionPersistence);
 
 ```
 
-## signInAnonymously() {:#signinanonymously_2a61ea7}
+### signInAnonymously(auth) {:#signinanonymously_2a61ea7}
 
 Asynchronously signs in as an anonymous user.
 
@@ -763,7 +769,7 @@ If there is already an anonymous user signed in, that user will be returned; oth
 export declare function signInAnonymously(auth: Auth): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -773,7 +779,7 @@ export declare function signInAnonymously(auth: Auth): Promise<UserCredential>;
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithCredential() {:#signinwithcredential_8074518}
+### signInWithCredential(auth, credential) {:#signinwithcredential_8074518}
 
 Asynchronously signs in with the given credentials.
 
@@ -785,7 +791,7 @@ An [AuthProvider](./auth.authprovider.md#authprovider_interface) can be used to 
 export declare function signInWithCredential(auth: Auth, credential: AuthCredential): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -796,7 +802,7 @@ export declare function signInWithCredential(auth: Auth, credential: AuthCredent
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithCustomToken() {:#signinwithcustomtoken_32af683}
+### signInWithCustomToken(auth, customToken) {:#signinwithcustomtoken_32af683}
 
 Asynchronously signs in using a custom token.
 
@@ -810,7 +816,7 @@ Fails with an error if the token is invalid, expired, or not accepted by the Fir
 export declare function signInWithCustomToken(auth: Auth, customToken: string): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -821,7 +827,7 @@ export declare function signInWithCustomToken(auth: Auth, customToken: string): 
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithEmailAndPassword() {:#signinwithemailandpassword_21ad33b}
+### signInWithEmailAndPassword(auth, email, password) {:#signinwithemailandpassword_21ad33b}
 
 Asynchronously signs in using an email and password.
 
@@ -835,7 +841,7 @@ Note: The user's password is NOT the password used to access the user's email ac
 export declare function signInWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -847,7 +853,7 @@ export declare function signInWithEmailAndPassword(auth: Auth, email: string, pa
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## signInWithEmailLink() {:#signinwithemaillink_ed14c53}
+### signInWithEmailLink(auth, email, emailLink) {:#signinwithemaillink_ed14c53}
 
 Asynchronously signs in using an email and sign-in email link.
 
@@ -863,7 +869,7 @@ Note: Confirm the link is a sign-in email link before calling this method fireba
 export declare function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -899,7 +905,7 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 
 ```
 
-## signInWithPhoneNumber() {:#signinwithphonenumber_75b2560}
+### signInWithPhoneNumber(auth, phoneNumber, appVerifier) {:#signinwithphonenumber_75b2560}
 
 Asynchronously signs in using a phone number.
 
@@ -915,7 +921,7 @@ This method does not work in a Node.js environment.
 export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -939,7 +945,7 @@ const credential = await confirmationResult.confirm(verificationCode);
 
 ```
 
-## signInWithPopup() {:#signinwithpopup_770f816}
+### signInWithPopup(auth, provider, resolver) {:#signinwithpopup_770f816}
 
 Authenticates a Firebase client using a popup-based OAuth authentication flow.
 
@@ -953,7 +959,7 @@ This method does not work in a Node.js environment.
 export declare function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -981,7 +987,7 @@ const token = credential.accessToken;
 
 ```
 
-## signInWithRedirect() {:#signinwithredirect_770f816}
+### signInWithRedirect(auth, provider, resolver) {:#signinwithredirect_770f816}
 
 Authenticates a Firebase client using a full-page redirect flow.
 
@@ -995,7 +1001,7 @@ This method does not work in a Node.js environment.
 export declare function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1035,7 +1041,7 @@ const operationType = result.operationType;
 
 ```
 
-## signOut() {:#signout_2a61ea7}
+### signOut(auth) {:#signout_2a61ea7}
 
 Signs out the current user.
 
@@ -1045,7 +1051,7 @@ Signs out the current user.
 export declare function signOut(auth: Auth): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1055,7 +1061,7 @@ export declare function signOut(auth: Auth): Promise<void>;
 
 Promise&lt;void&gt;
 
-## updateCurrentUser() {:#updatecurrentuser_9d96fff}
+### updateCurrentUser(auth, user) {:#updatecurrentuser_9d96fff}
 
 Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance.
 
@@ -1071,7 +1077,7 @@ The operation fails with an error if the user to be updated belongs to a differe
 export declare function updateCurrentUser(auth: Auth, user: User | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1082,7 +1088,7 @@ export declare function updateCurrentUser(auth: Auth, user: User | null): Promis
 
 Promise&lt;void&gt;
 
-## useDeviceLanguage() {:#usedevicelanguage_2a61ea7}
+### useDeviceLanguage(auth) {:#usedevicelanguage_2a61ea7}
 
 Sets the current language to the default device/browser preference.
 
@@ -1092,7 +1098,7 @@ Sets the current language to the default device/browser preference.
 export declare function useDeviceLanguage(auth: Auth): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1102,7 +1108,7 @@ export declare function useDeviceLanguage(auth: Auth): void;
 
 void
 
-## validatePassword() {:#validatepassword_4dc4ad2}
+### validatePassword(auth, password) {:#validatepassword_4dc4ad2}
 
 Validates the password against the password policy configured for the project or tenant.
 
@@ -1116,7 +1122,7 @@ If an auth flow fails because a submitted password does not meet the password po
 export declare function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1135,7 +1141,7 @@ validatePassword(auth, 'some-password');
 
 ```
 
-## verifyPasswordResetCode() {:#verifypasswordresetcode_01e0a1a}
+### verifyPasswordResetCode(auth, code) {:#verifypasswordresetcode_01e0a1a}
 
 Checks a password reset code sent to the user by email or other out-of-band mechanism.
 
@@ -1145,7 +1151,7 @@ Checks a password reset code sent to the user by email or other out-of-band mech
 export declare function verifyPasswordResetCode(auth: Auth, code: string): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1158,7 +1164,9 @@ Promise&lt;string&gt;
 
 the user's email address if valid.
 
-## parseActionCodeURL() {:#parseactioncodeurl_51293c3}
+## function(link, ...)
+
+### parseActionCodeURL(link) {:#parseactioncodeurl_51293c3}
 
 Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null.
 
@@ -1168,7 +1176,7 @@ Parses the email action link string and returns an [ActionCodeURL](./auth.action
 export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1178,7 +1186,9 @@ export declare function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) \| null
 
-## deleteUser() {:#deleteuser_52b2e2e}
+## function(user, ...)
+
+### deleteUser(user) {:#deleteuser_52b2e2e}
 
 Deletes and signs out the user.
 
@@ -1190,7 +1200,7 @@ Important: this is a security-sensitive operation that requires the user to have
 export declare function deleteUser(user: User): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1200,7 +1210,7 @@ export declare function deleteUser(user: User): Promise<void>;
 
 Promise&lt;void&gt;
 
-## getIdToken() {:#getidtoken_ce7d429}
+### getIdToken(user, forceRefresh) {:#getidtoken_ce7d429}
 
 Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
 
@@ -1212,7 +1222,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 export declare function getIdToken(user: User, forceRefresh?: boolean): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1223,7 +1233,7 @@ export declare function getIdToken(user: User, forceRefresh?: boolean): Promise<
 
 Promise&lt;string&gt;
 
-## getIdTokenResult() {:#getidtokenresult_ce7d429}
+### getIdTokenResult(user, forceRefresh) {:#getidtokenresult_ce7d429}
 
 Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
 
@@ -1235,7 +1245,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 export declare function getIdTokenResult(user: User, forceRefresh?: boolean): Promise<IdTokenResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1246,7 +1256,7 @@ export declare function getIdTokenResult(user: User, forceRefresh?: boolean): Pr
 
 Promise&lt;[IdTokenResult](./auth.idtokenresult.md#idtokenresult_interface)<!-- -->&gt;
 
-## linkWithCredential() {:#linkwithcredential_60f8043}
+### linkWithCredential(user, credential) {:#linkwithcredential_60f8043}
 
 Links the user account with the given credentials.
 
@@ -1258,7 +1268,7 @@ An [AuthProvider](./auth.authprovider.md#authprovider_interface) can be used to 
 export declare function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1269,7 +1279,7 @@ export declare function linkWithCredential(user: User, credential: AuthCredentia
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## linkWithPhoneNumber() {:#linkwithphonenumber_9ed75fe}
+### linkWithPhoneNumber(user, phoneNumber, appVerifier) {:#linkwithphonenumber_9ed75fe}
 
 Links the user account with the given phone number.
 
@@ -1281,7 +1291,7 @@ This method does not work in a Node.js environment.
 export declare function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1293,7 +1303,7 @@ export declare function linkWithPhoneNumber(user: User, phoneNumber: string, app
 
 Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->&gt;
 
-## linkWithPopup() {:#linkwithpopup_41c0b31}
+### linkWithPopup(user, provider, resolver) {:#linkwithpopup_41c0b31}
 
 Links the authenticated provider to the user account using a pop-up based OAuth flow.
 
@@ -1307,7 +1317,7 @@ This method does not work in a Node.js environment.
 export declare function linkWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1331,7 +1341,7 @@ await linkWithPopup(result.user, provider);
 
 ```
 
-## linkWithRedirect() {:#linkwithredirect_41c0b31}
+### linkWithRedirect(user, provider, resolver) {:#linkwithredirect_41c0b31}
 
 Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the user account using a full-page redirect flow.
 
@@ -1345,7 +1355,7 @@ This method does not work in a Node.js environment.
 export declare function linkWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1373,7 +1383,7 @@ const result = await getRedirectResult(auth);
 
 ```
 
-## multiFactor() {:#multifactor_52b2e2e}
+### multiFactor(user) {:#multifactor_52b2e2e}
 
 The [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) corresponding to the user.
 
@@ -1385,7 +1395,7 @@ This is used to access all multi-factor properties and operations related to the
 export declare function multiFactor(user: User): MultiFactorUser;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1395,7 +1405,7 @@ export declare function multiFactor(user: User): MultiFactorUser;
 
 [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface)
 
-## reauthenticateWithCredential() {:#reauthenticatewithcredential_60f8043}
+### reauthenticateWithCredential(user, credential) {:#reauthenticatewithcredential_60f8043}
 
 Re-authenticates a user using a fresh credential.
 
@@ -1407,7 +1417,7 @@ Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673
 export declare function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1418,7 +1428,7 @@ export declare function reauthenticateWithCredential(user: User, credential: Aut
 
 Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
 
-## reauthenticateWithPhoneNumber() {:#reauthenticatewithphonenumber_9ed75fe}
+### reauthenticateWithPhoneNumber(user, phoneNumber, appVerifier) {:#reauthenticatewithphonenumber_9ed75fe}
 
 Re-authenticates a user using a fresh phone credential.
 
@@ -1432,7 +1442,7 @@ This method does not work in a Node.js environment.
 export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1444,7 +1454,7 @@ export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: s
 
 Promise&lt;[ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->&gt;
 
-## reauthenticateWithPopup() {:#reauthenticatewithpopup_41c0b31}
+### reauthenticateWithPopup(user, provider, resolver) {:#reauthenticatewithpopup_41c0b31}
 
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a pop-up based OAuth flow.
 
@@ -1458,7 +1468,7 @@ This method does not work in a Node.js environment.
 export declare function reauthenticateWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1482,7 +1492,7 @@ await reauthenticateWithPopup(result.user, provider);
 
 ```
 
-## reauthenticateWithRedirect() {:#reauthenticatewithredirect_41c0b31}
+### reauthenticateWithRedirect(user, provider, resolver) {:#reauthenticatewithredirect_41c0b31}
 
 Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow.
 
@@ -1496,7 +1506,7 @@ This method does not work in a Node.js environment.
 export declare function reauthenticateWithRedirect(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<never>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1528,7 +1538,7 @@ const result = await getRedirectResult(auth);
 
 ```
 
-## reload() {:#reload_52b2e2e}
+### reload(user) {:#reload_52b2e2e}
 
 Reloads user account data, if signed in.
 
@@ -1538,7 +1548,7 @@ Reloads user account data, if signed in.
 export declare function reload(user: User): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1548,7 +1558,7 @@ export declare function reload(user: User): Promise<void>;
 
 Promise&lt;void&gt;
 
-## sendEmailVerification() {:#sendemailverification_6a885d6}
+### sendEmailVerification(user, actionCodeSettings) {:#sendemailverification_6a885d6}
 
 Sends a verification email to a user.
 
@@ -1560,7 +1570,7 @@ The verification process is completed by calling [applyActionCode()](./auth.md#a
 export declare function sendEmailVerification(user: User, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1593,7 +1603,7 @@ await applyActionCode(auth, code);
 
 ```
 
-## unlink() {:#unlink_f289a14}
+### unlink(user, providerId) {:#unlink_f289a14}
 
 Unlinks a provider from a user account.
 
@@ -1603,7 +1613,7 @@ Unlinks a provider from a user account.
 export declare function unlink(user: User, providerId: string): Promise<User>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1614,7 +1624,7 @@ export declare function unlink(user: User, providerId: string): Promise<User>;
 
 Promise&lt;[User](./auth.user.md#user_interface)<!-- -->&gt;
 
-## updateEmail() {:#updateemail_7737d57}
+### updateEmail(user, newEmail) {:#updateemail_7737d57}
 
 Updates the user's email address.
 
@@ -1628,7 +1638,7 @@ Important: this is a security sensitive operation that requires the user to have
 export declare function updateEmail(user: User, newEmail: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1639,7 +1649,7 @@ export declare function updateEmail(user: User, newEmail: string): Promise<void>
 
 Promise&lt;void&gt;
 
-## updatePassword() {:#updatepassword_6df673e}
+### updatePassword(user, newPassword) {:#updatepassword_6df673e}
 
 Updates the user's password.
 
@@ -1651,7 +1661,7 @@ Important: this is a security sensitive operation that requires the user to have
 export declare function updatePassword(user: User, newPassword: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1662,7 +1672,7 @@ export declare function updatePassword(user: User, newPassword: string): Promise
 
 Promise&lt;void&gt;
 
-## updatePhoneNumber() {:#updatephonenumber_0105c49}
+### updatePhoneNumber(user, credential) {:#updatephonenumber_0105c49}
 
 Updates the user's phone number.
 
@@ -1674,7 +1684,7 @@ This method does not work in a Node.js environment.
 export declare function updatePhoneNumber(user: User, credential: PhoneAuthCredential): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1699,7 +1709,7 @@ await updatePhoneNumber(user, phoneCredential);
 
 ```
 
-## updateProfile() {:#updateprofile_017e12d}
+### updateProfile(user, { displayName, photoURL: photoUrl }) {:#updateprofile_017e12d}
 
 Updates a user's profile data.
 
@@ -1712,7 +1722,7 @@ export declare function updateProfile(user: User, { displayName, photoURL: photo
 }): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1723,7 +1733,7 @@ export declare function updateProfile(user: User, { displayName, photoURL: photo
 
 Promise&lt;void&gt;
 
-## verifyBeforeUpdateEmail() {:#verifybeforeupdateemail_09d6f11}
+### verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings) {:#verifybeforeupdateemail_09d6f11}
 
 Sends a verification email to a new email address.
 
@@ -1737,7 +1747,7 @@ If you have a custom email action handler, you can complete the verification pro
 export declare function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1771,7 +1781,9 @@ await applyActionCode(auth, code);
 
 ```
 
-## getAdditionalUserInfo() {:#getadditionaluserinfo_838a6bd}
+## function(userCredential, ...)
+
+### getAdditionalUserInfo(userCredential) {:#getadditionaluserinfo_838a6bd}
 
 Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#additionaluserinfo_interface) for the given credential.
 
@@ -1781,7 +1793,7 @@ Extracts provider specific [AdditionalUserInfo](./auth.additionaluserinfo.md#add
 export declare function getAdditionalUserInfo(userCredential: UserCredential): AdditionalUserInfo | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

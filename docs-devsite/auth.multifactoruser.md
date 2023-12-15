@@ -54,7 +54,7 @@ On resolution, the user tokens are updated to reflect the change in the JWT payl
 enroll(assertion: MultiFactorAssertion, displayName?: string | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -137,7 +137,7 @@ To specify the factor to remove, pass a [MultiFactorInfo](./auth.multifactorinfo
 unenroll(option: MultiFactorInfo | string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
