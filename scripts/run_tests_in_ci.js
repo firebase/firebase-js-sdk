@@ -91,9 +91,7 @@ const argv = yargs.options({
     if(process.env.CHROME_VERSION_NOTES) {
       console.error()
       console.error(process.env.CHROME_VERSION_NOTES)
-      console.error(" yo yo ho ho ")
-    } else {
-
+      console.error()
     }
 
     writeLogs('Failure', name, stdout + '\n' + stderr);
