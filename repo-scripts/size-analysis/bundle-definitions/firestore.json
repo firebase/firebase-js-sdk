@@ -195,7 +195,7 @@
     ]
   },
   {
-    "name": "Read/Write w/ Persistence",
+    "name": "Read Write w Persistence",
     "dependencies": [
       {
         "packageName": "firebase",
