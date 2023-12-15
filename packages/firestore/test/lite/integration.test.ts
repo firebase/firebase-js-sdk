@@ -883,6 +883,16 @@ describe('FieldValue', () => {
     expect(deleteField().isEqual(deleteField())).to.be.true;
     expect(serverTimestamp().isEqual(serverTimestamp())).to.be.true;
     expect(deleteField().isEqual(serverTimestamp())).to.be.false;
+    expect(arrayUnion().isEqual(arrayUnion())).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('a'))).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('b'))).to.be.false;
+    expect(arrayUnion('a', 'b').isEqual(arrayUnion('b', 'a'))).to.be.false;
+    expect(arrayRemove().isEqual(arrayRemove())).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('a'))).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('b'))).to.be.false;
+    expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
+    expect(increment(1).isEqual(increment(1))).to.be.true;
+    expect(increment(1).isEqual(increment(2))).to.be.false;
   });
 
   it('support instanceof checks', () => {
@@ -2396,7 +2406,7 @@ describe('Count queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getCount error message is good if missing index',
+    'getCount error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
@@ -2404,6 +2414,8 @@ describe('Count queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(getCount(query_)).to.be.eventually.rejectedWith(
             /index.*https:\/\/console\.firebase\.google\.com/
@@ -2703,7 +2715,7 @@ describe('Aggregate queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getAggregate error message is good if missing index',
+    'getAggregate error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
@@ -2711,6 +2723,8 @@ describe('Aggregate queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getAggregate(query_, {
