@@ -132,7 +132,7 @@ apiDescribe('Count queries', persistence => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getCountFromServer error message is good if missing index',
+    'getCountFromServer error message contains console link if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
@@ -140,6 +140,8 @@ apiDescribe('Count queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getCountFromServer(query_)
@@ -342,7 +344,7 @@ apiDescribe('Aggregation queries', persistence => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getAggregateFromServer error message is good if missing index',
+    'getAggregateFromServer error message contains console link good if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
@@ -350,6 +352,8 @@ apiDescribe('Aggregation queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getAggregateFromServer(query_, {

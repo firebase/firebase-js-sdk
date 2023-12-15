@@ -131,6 +131,40 @@ jobs:
         env:
           EXPERIMENTAL_MODE: true
 
+  test-firestore-nightly-with-chrome:
+    name: Test Nightly Firestore with Chrome
+    strategy:
+      matrix:
+        test-name: ["test:browser:nightly"]
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (16)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup against nightly Firestore
+        env:
+          INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
+        run: |
+          echo $INTEG_TESTS_GOOGLE_SERVICES > config/project.json
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          EXPERIMENTAL_MODE: true
+
+
   compat-test-firefox:
     name: Test Firestore Compatible on Firefox
     # Whatever version of Firefox comes with 22.04 is causing Firefox

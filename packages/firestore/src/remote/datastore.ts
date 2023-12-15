@@ -161,6 +161,7 @@ class DatastoreImpl extends Datastore {
 
   terminate(): void {
     this.terminated = true;
+    this.connection.terminate();
   }
 }
 
