@@ -518,8 +518,7 @@ export class LocalDocumentsView {
           transaction,
           query,
           offset,
-          overlays,
-          context
+          overlays
         );
       })
       .next(remoteDocuments => {

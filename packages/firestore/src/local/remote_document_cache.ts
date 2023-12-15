@@ -28,7 +28,6 @@ import { IndexOffset } from '../model/field_index';
 import { IndexManager } from './index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryContext } from './query_context';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 /**
@@ -79,8 +78,7 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    mutatedDocs: OverlayMap,
-    context?: QueryContext
+    mutatedDocs: OverlayMap
   ): PersistencePromise<MutableDocumentMap>;
 
   /**
