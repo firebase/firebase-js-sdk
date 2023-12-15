@@ -16,14 +16,16 @@
  */
 
 import {
+  FirestoreClient,
   firestoreClientDeleteAllFieldIndexes,
-  firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
-  FirestoreClient
+  firestoreClientSetFieldIndexManagementApi
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { FieldIndexManagementApiImpl } from '../index/field_index_management';
+import { debugCast } from '../util/assert';
 
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
@@ -31,12 +33,19 @@ import { ensureFirestoreConfigured, Firestore } from './database';
  *
  * To use, call `getPersistentCacheIndexManager()` to get an instance.
  */
-export class PersistentCacheIndexManager {
+export interface PersistentCacheIndexManager {
   /** A type string to uniquely identify instances of this class. */
-  readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
+  readonly type: 'PersistentCacheIndexManager';
+}
 
-  /** @hideconstructor */
-  constructor(readonly _client: FirestoreClient) {}
+class PersistentCacheIndexManagerImpl implements PersistentCacheIndexManager {
+  readonly type = 'PersistentCacheIndexManager';
+
+  installed = false;
+
+  fieldIndexManagementApiImpl: FieldIndexManagementApiImpl | null = null;
+
+  constructor(readonly client: FirestoreClient) {}
 }
 
 /**
@@ -61,7 +70,7 @@ export function getPersistentCacheIndexManager(
     return null;
   }
 
-  const instance = new PersistentCacheIndexManager(client);
+  const instance = new PersistentCacheIndexManagerImpl(client);
   persistentCacheIndexManagerByFirestore.set(firestore, instance);
   return instance;
 }
@@ -76,7 +85,33 @@ export function getPersistentCacheIndexManager(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, true);
+  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
+  indexManagerImpl.client.verifyNotTerminated();
+
+  if (!indexManagerImpl.fieldIndexManagementApiImpl) {
+    indexManagerImpl.fieldIndexManagementApiImpl =
+      new FieldIndexManagementApiImpl();
+  }
+
+  indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationEnabled = true;
+
+  if (indexManagerImpl.installed) {
+    return;
+  }
+
+  const promise = firestoreClientSetFieldIndexManagementApi(
+    indexManagerImpl.client,
+    indexManagerImpl.fieldIndexManagementApiImpl
+  );
+
+  promise.then(_ => {
+    indexManagerImpl.installed = true;
+    logDebug('enabling persistent cache index auto creation succeeded');
+  });
+
+  promise.catch(error =>
+    logWarn('enabling persistent cache index auto creation failed', error)
+  );
 }
 
 /**
@@ -87,7 +122,15 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, false);
+  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
+  // TODO: Refactor this code such that disabling persistent cache auto creation
+  //  does _not_ need FieldIndexManagementApiImpl (i.e. it just uses the
+  //  interface) so that FieldIndexManagementApiImpl can be tree-shaken away if
+  //  the only client-side indexing function used is this one.
+  if (indexManagerImpl.fieldIndexManagementApiImpl) {
+    indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationEnabled =
+      false;
+  }
 }
 
 /**
@@ -99,42 +142,23 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
-  indexManager._client.verifyNotTerminated();
+  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
 
-  const promise = firestoreClientDeleteAllFieldIndexes(indexManager._client);
+  indexManagerImpl.client.verifyNotTerminated();
 
-  promise
-    .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
-    .catch(error =>
-      logWarn('deleting all persistent cache indexes failed', error)
-    );
-}
+  // TODO: Refactor this code such that deleting field indexes does _not_ need
+  //  FieldIndexManagementApiImpl so that FieldIndexManagementApiImpl can be
+  //  tree-shaken away if the only client-side indexing function used is this
+  //  one.
+  const promise = firestoreClientDeleteAllFieldIndexes(indexManagerImpl.client);
 
-function setPersistentCacheIndexAutoCreationEnabled(
-  indexManager: PersistentCacheIndexManager,
-  isEnabled: boolean
-): void {
-  indexManager._client.verifyNotTerminated();
-
-  const promise = firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-    indexManager._client,
-    isEnabled
+  promise.then(_ =>
+    logDebug('deleting all persistent cache indexes succeeded')
   );
 
-  promise
-    .then(_ =>
-      logDebug(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} succeeded`
-      )
-    )
-    .catch(error =>
-      logWarn(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} failed`,
-        error
-      )
-    );
+  promise.catch(error =>
+    logWarn('deleting all persistent cache indexes failed', error)
+  );
 }
 
 /**
@@ -149,3 +173,39 @@ const persistentCacheIndexManagerByFirestore = new WeakMap<
   Firestore,
   PersistentCacheIndexManager
 >();
+
+/**
+ * Test-only hooks into the SDK for use exclusively by tests.
+ */
+export class TestingHooks {
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
+
+  static setIndexAutoCreationSettings(
+    indexManager: PersistentCacheIndexManager,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): void {
+    const indexManagerImpl = debugCast(
+      indexManager,
+      PersistentCacheIndexManagerImpl
+    );
+
+    if (!indexManagerImpl.fieldIndexManagementApiImpl) {
+      indexManagerImpl.fieldIndexManagementApiImpl =
+        new FieldIndexManagementApiImpl();
+    }
+
+    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
+      indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationMinCollectionSize =
+        settings.indexAutoCreationMinCollectionSize;
+    }
+    if (settings.relativeIndexReadCostPerDocument !== undefined) {
+      indexManagerImpl.fieldIndexManagementApiImpl.relativeIndexReadCostPerDocument =
+        settings.relativeIndexReadCostPerDocument;
+    }
+  }
+}

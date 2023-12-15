@@ -31,7 +31,7 @@ import {
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
   localStoreReadDocument,
-  localStoreSetIndexAutoCreationEnabled
+  localStoreSetFieldIndexManagementApi
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -93,6 +93,7 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { FieldIndexManagementApi } from '../index/field_index_management_api';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -830,14 +831,14 @@ export function firestoreClientSetIndexConfiguration(
   });
 }
 
-export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+export function firestoreClientSetFieldIndexManagementApi(
   client: FirestoreClient,
-  isEnabled: boolean
+  fieldIndexManagementApi: FieldIndexManagementApi
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreSetIndexAutoCreationEnabled(
+    return localStoreSetFieldIndexManagementApi(
       await getLocalStore(client),
-      isEnabled
+      fieldIndexManagementApi
     );
   });
 }

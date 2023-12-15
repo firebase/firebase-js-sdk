@@ -90,6 +90,7 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
+import { FieldIndexManagementApi } from '../index/field_index_management_api';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1527,12 +1528,12 @@ export async function localStoreConfigureFieldIndexes(
   );
 }
 
-export function localStoreSetIndexAutoCreationEnabled(
+export function localStoreSetFieldIndexManagementApi(
   localStore: LocalStore,
-  isEnabled: boolean
+  fieldIndexManagementApi: FieldIndexManagementApi
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
+  localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
 }
 
 export function localStoreDeleteAllFieldIndexes(
@@ -1545,31 +1546,4 @@ export function localStoreDeleteAllFieldIndexes(
     'readwrite',
     transaction => indexManager.deleteAllFieldIndexes(transaction)
   );
-}
-
-/**
- * Test-only hooks into the SDK for use exclusively by tests.
- */
-export class TestingHooks {
-  private constructor() {
-    throw new Error('creating instances is not supported');
-  }
-
-  static setIndexAutoCreationSettings(
-    localStore: LocalStore,
-    settings: {
-      indexAutoCreationMinCollectionSize?: number;
-      relativeIndexReadCostPerDocument?: number;
-    }
-  ): void {
-    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
-      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
-        settings.indexAutoCreationMinCollectionSize;
-    }
-    if (settings.relativeIndexReadCostPerDocument !== undefined) {
-      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
-        settings.relativeIndexReadCostPerDocument;
-    }
-  }
 }
