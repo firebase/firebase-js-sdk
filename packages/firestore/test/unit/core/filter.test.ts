@@ -25,8 +25,7 @@ import {
   FieldFilter,
   Operator
 } from '../../../src/core/filter';
-import { queryToTarget } from '../../../src/core/query';
-import { canonifyTarget } from '../../../src/core/target';
+import { canonifyQuery } from '../../../src/core/query';
 import { andFilter, filter, orFilter, query } from '../../util/helpers';
 
 describe('FieldFilter', () => {
@@ -97,12 +96,8 @@ describe('CompositeFilter', () => {
   });
 
   it('computes canonical id of flat conjunctions', () => {
-    const target1 = query('col', a, b, c);
-
-    const target2 = query('col', andFilter(a, b, c));
-
-    expect(canonifyTarget(queryToTarget(target1))).to.equal(
-      canonifyTarget(queryToTarget(target2))
-    );
+    const query1 = query('col', a, b, c);
+    const query2 = query('col', andFilter(a, b, c));
+    expect(canonifyQuery(query1)).to.equal(canonifyQuery(query2));
   });
 });
