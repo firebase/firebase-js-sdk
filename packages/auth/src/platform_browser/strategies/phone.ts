@@ -29,9 +29,9 @@ import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode, WebOTPError } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import { _assert, _errorWithCustomMessage } from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -52,18 +52,155 @@ interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
 }
 
+// interfaces added to provide typescript support for webOTP autofill
+interface OTPCredentialRequestOptions extends CredentialRequestOptions {
+  otp: OTPOptions;
+}
+
+interface OTPOptions {
+  transport: string[];
+}
+
+interface OTPCredential extends Credential {
+  code?: string;
+}
+
 class ConfirmationResultImpl implements ConfirmationResult {
   constructor(
     readonly verificationId: string,
     private readonly onConfirmation: OnConfirmationCallback
   ) {}
 
-  confirm(verificationCode: string): Promise<UserCredential> {
-    const authCredential = PhoneAuthCredential._fromVerification(
-      this.verificationId,
-      verificationCode
-    );
-    return this.onConfirmation(authCredential);
+  private confirmInProgress = false;
+  private confirmResolve: (
+    value: UserCredential | PromiseLike<UserCredential>
+  ) => void = () => {};
+  private confirmReject: (reason: Error) => void = () => {};
+
+  // confirm method with minimal changes
+  async confirm(verificationCode: string): Promise<UserCredential> {
+    this.confirmInProgress = true;
+    try {
+      const authCredential = PhoneAuthCredential._fromVerification(
+        this.verificationId,
+        verificationCode
+      );
+      const userCredential = await this.onConfirmation(authCredential);
+      this.confirmResolve(userCredential); // Resolve any waiting confirmed promise
+      return userCredential;
+    } catch (error) {
+      this.confirmReject(error as Error); // Reject any waiting confirmed promise
+      throw error;
+    } finally {
+      this.confirmInProgress = false;
+    }
+  }
+
+  // New confirmed method
+  confirmed(auth: Auth): Promise<UserCredential> {
+    // If confirm is already in progress, we return a promise that will be resolved
+    // or rejected by the ongoing confirm operation.
+    if (this.confirmInProgress) {
+      return new Promise<UserCredential>((resolve, reject) => {
+        this.confirmResolve = resolve;
+        this.confirmReject = reject;
+      });
+    } else {
+      // If confirm is not in progress, we race confirmWithWebOTP with a promise
+      // that can be resolved or rejected by a future confirm call.
+      const manualConfirmationPromise = new Promise<UserCredential>(
+        (resolve, reject) => {
+          this.confirmResolve = resolve;
+          this.confirmReject = reject;
+        }
+      );
+
+      // Immediately invoke confirmWithWebOTP to start the WebOTP process
+      const webOTPConfirmationPromise = this.confirmWithWebOTP(auth, 30);
+
+      // Race the manual confirmation promise against the WebOTP confirmation promise
+      return Promise.race([
+        manualConfirmationPromise,
+        webOTPConfirmationPromise
+      ]);
+    }
+  }
+
+  async confirmWithWebOTP(
+    auth: Auth,
+    webOTPTimeoutSeconds: number
+  ): Promise<UserCredential> {
+    if ('OTPCredential' in window) {
+      const abortController = new AbortController();
+      const timer = setTimeout(() => {
+        abortController.abort();
+
+        const myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code is not fetched before timeout`
+        ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+      }, webOTPTimeoutSeconds * 1000);
+
+      const o: OTPCredentialRequestOptions = {
+        otp: { transport: ['sms'] },
+        signal: abortController.signal
+      };
+
+      let code: string = '';
+      await (
+        window.navigator['credentials'].get(o) as Promise<OTPCredential | null>
+      )
+        .then(async content => {
+          if (
+            content === undefined ||
+            content === null ||
+            content.code === undefined
+          ) {
+            const myErr = _errorWithCustomMessage(
+              auth,
+              AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+              `the auto-retrieved credential or code is not defined`
+            ) as WebOTPError;
+            myErr.confirmationResult = this;
+            throw myErr;
+          } else {
+            clearTimeout(timer);
+            code = content.code;
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          const myErr = _errorWithCustomMessage(
+            auth,
+            AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+            `Web OTP get method failed to retrieve the code`
+          ) as WebOTPError;
+          myErr.confirmationResult = this;
+          throw myErr;
+        });
+      try {
+        return this.confirm(code);
+      } catch {
+        const myErr = _errorWithCustomMessage(
+          auth,
+          AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+          `Web OTP code received is incorrect`
+        ) as WebOTPError;
+        myErr.confirmationResult = this;
+        throw myErr;
+      }
+    } else {
+      const myErr = _errorWithCustomMessage(
+        auth,
+        AuthErrorCode.WEB_OTP_NOT_RETRIEVED,
+        `Web OTP is not supported`
+      ) as WebOTPError;
+      myErr.confirmationResult = this;
+      throw myErr;
+    }
   }
 }
 
@@ -71,8 +208,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * Asynchronously signs in using a phone number.
  *
  * @remarks
- * This method sends a code via SMS to the given
- * phone number, and returns a {@link ConfirmationResult}. After the user
+ * This method sends a code via SMS to the given phone number,
+ * and returns a {@link ConfirmationResult}. After the user
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
@@ -96,6 +233,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @param auth - The {@link Auth} instance.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
  * @param appVerifier - The {@link ApplicationVerifier}.
+ * @param webOTPTimtout - Errors would be thrown if WebOTP autofill is used and does not resolve within this specified timeout parameter (milliseconds).
  *
  * @public
  */
@@ -206,7 +344,7 @@ export async function _verifyPhoneNumber(
     } else {
       phoneInfoOptions = options;
     }
-
+    let verificationId = '';
     if ('session' in phoneInfoOptions) {
       const session = phoneInfoOptions.session as MultiFactorSessionImpl;
 
@@ -223,7 +361,7 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        return response.phoneSessionInfo.sessionInfo;
+        verificationId = response.phoneSessionInfo.sessionInfo;
       } else {
         _assert(
           session.type === MultiFactorSessionType.SIGN_IN,
@@ -241,15 +379,16 @@ export async function _verifyPhoneNumber(
             recaptchaToken
           }
         });
-        return response.phoneResponseInfo.sessionInfo;
+        verificationId = response.phoneResponseInfo.sessionInfo;
       }
     } else {
       const { sessionInfo } = await sendPhoneVerificationCode(auth, {
         phoneNumber: phoneInfoOptions.phoneNumber,
         recaptchaToken
       });
-      return sessionInfo;
+      verificationId = sessionInfo;
     }
+    return verificationId;
   } finally {
     verifier._reset();
   }

@@ -98,14 +98,66 @@ export class PhoneAuthProvider {
    * @param applicationVerifier - For abuse prevention, this method also requires a
    * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (in seconds).
    *
    * @returns A Promise for a verification ID that can be passed to
    * {@link PhoneAuthProvider.credential} to identify this flow..
+   *
    */
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
-  ): Promise<string> {
+  ): Promise<string>;
+
+  /**
+   *
+   * Completes the phone number authentication flow by sending a verification code to the
+   * given phone number, automatically retrieving the verification code from the SMS message,
+   * and signing the user in.
+   *
+   * @example
+   * ```javascript
+   * const provider = new PhoneAuthProvider(auth);
+   * const userCredential = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier, 10);
+   * ```
+   *
+   * @example
+   * An alternative flow is provided using the `signInWithPhoneNumber` method.
+   * ```javascript
+   * const userCredential = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier, 10);
+   * ```
+   *
+   * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in
+   * E.164 format (for example, +16505550101).
+   * @param applicationVerifier - For abuse prevention, this method also requires a
+   * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
+   * {@link RecaptchaVerifier}.
+   * @param webOTPTimeoutSeconds - Error would be thrown if WebOTP does not resolve within this specified timeout parameter (in seconds).
+   *
+   * @returns A Promise for a UserCredential.
+   */
+  verifyPhoneNumber(
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier,
+    webOTPTimeoutSeconds: number
+  ): Promise<UserCredential>;
+
+  verifyPhoneNumber(
+    phoneOptions: PhoneInfoOptions | string,
+    applicationVerifier: ApplicationVerifier,
+    webOTPTimeoutSeconds?: number
+  ): Promise<string | UserCredential> {
+    if (webOTPTimeoutSeconds) {
+      try {
+        return _verifyPhoneNumber(
+          this.auth,
+          phoneOptions,
+          getModularInstance(applicationVerifier as ApplicationVerifierInternal)
+        );
+      } catch (error) {
+        throw error;
+      }
+    }
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,

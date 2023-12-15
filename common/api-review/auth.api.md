@@ -236,6 +236,7 @@ export const AuthErrorCodes: {
     readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
     readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
     readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
+    readonly WEB_OTP_NOT_RETRIEVED: "auth/web-otp-not-retrieved";
 };
 
 // @public
@@ -282,6 +283,9 @@ export interface Config {
 // @public
 export interface ConfirmationResult {
     confirm(verificationCode: string): Promise<UserCredential>;
+    // (undocumented)
+    confirmed(auth: Auth): Promise<UserCredential>;
+    confirmWithWebOTP(auth: Auth, webOTPTimeoutSeconds: number): Promise<UserCredential | undefined>;
     readonly verificationId: string;
 }
 
@@ -626,6 +630,7 @@ export class PhoneAuthProvider {
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
     verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier, webOTPTimeoutSeconds: number): Promise<UserCredential>;
 }
 
 // @public
