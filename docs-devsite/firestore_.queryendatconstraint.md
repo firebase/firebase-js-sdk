@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryEndAtConstraint class
-A `QueryEndAtConstraint` is used to exclude documents from the end of a result set returned by a Firestore query. `QueryEndAtConstraint`<!-- -->s are created by invoking [endAt()](./firestore_.md#endat) or [endBefore()](./firestore_.md#endbefore) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this `QueryEndAtConstraint`<!-- -->.
+A `QueryEndAtConstraint` is used to exclude documents from the end of a result set returned by a Firestore query. `QueryEndAtConstraint`<!-- -->s are created by invoking [endAt()](./firestore_.md#endat_9a4477f) or [endBefore()](./firestore_.md#endbefore_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryEndAtConstraint`<!-- -->.
 
 <b>Signature:</b>
 

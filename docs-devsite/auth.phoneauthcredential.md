@@ -36,7 +36,7 @@ Generates a phone credential based on a plain object or a JSON string.
 static fromJSON(json: object | string): PhoneAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

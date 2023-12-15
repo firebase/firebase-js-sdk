@@ -49,7 +49,7 @@ Constructs a new instance of the `StorageError` class
 constructor(code: StorageErrorCode, message: string, status_?: number);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -101,7 +101,7 @@ Compares a `StorageErrorCode` against this error's code, filtering out the prefi
 _codeEquals(code: StorageErrorCode): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

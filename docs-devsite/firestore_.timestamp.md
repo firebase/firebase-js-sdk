@@ -61,7 +61,7 @@ constructor(
     nanoseconds: number);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -98,7 +98,7 @@ Creates a new timestamp from the given date.
 static fromDate(date: Date): Timestamp;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -120,7 +120,7 @@ Creates a new timestamp from the given number of milliseconds.
 static fromMillis(milliseconds: number): Timestamp;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -142,7 +142,7 @@ Returns true if this `Timestamp` is equal to the provided one.
 isEqual(other: Timestamp): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

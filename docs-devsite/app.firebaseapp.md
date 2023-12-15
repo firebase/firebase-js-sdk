@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseApp interface
 A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.
 
-Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp) to create an app.
+Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp_cb2f5e1) to create an app.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface FirebaseApp
 |  --- | --- | --- |
 |  [automaticDataCollectionEnabled](./app.firebaseapp.md#firebaseappautomaticdatacollectionenabled) | boolean | The settable config flag for GDPR opt-in/opt-out |
 |  [name](./app.firebaseapp.md#firebaseappname) | string | The (read-only) name for this app.<!-- -->The default app's name is <code>&quot;[DEFAULT]&quot;</code>. |
-|  [options](./app.firebaseapp.md#firebaseappoptions) | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.md#initializeapp)<!-- -->. |
+|  [options](./app.firebaseapp.md#firebaseappoptions) | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.md#initializeapp_cb2f5e1)<!-- -->. |
 
 ## FirebaseApp.automaticDataCollectionEnabled
 
@@ -72,7 +72,7 @@ console.log(otherApp.name);  // "other"
 
 ## FirebaseApp.options
 
-The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.md#initializeapp)<!-- -->.
+The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.md#initializeapp_cb2f5e1)<!-- -->.
 
 <b>Signature:</b>
 
