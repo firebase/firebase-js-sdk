@@ -260,7 +260,7 @@
     ]
   },
   {
-    "name": "CSI Auto Indexing",
+    "name": "CSI Auto Indexing Enable",
     "dependencies": [
       {
         "packageName": "firebase",
@@ -293,7 +293,7 @@
     ]
   },
   {
-    "name": "CSI Delete All Indexes",
+    "name": "CSI Auto Indexing Disable and Delete",
     "dependencies": [
       {
         "packageName": "firebase",
@@ -315,6 +315,7 @@
             "path": "firestore",
             "imports": [
               "deleteAllPersistentCacheIndexes",
+              "disablePersistentCacheIndexAutoCreation",
               "enableIndexedDbPersistence",
               "getFirestore",
               "getPersistentCacheIndexManager"
