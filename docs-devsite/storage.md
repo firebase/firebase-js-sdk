@@ -16,26 +16,26 @@ Cloud Storage for Firebase
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getStorage(app, bucketUrl)](./storage.md#getstorage) | Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app. |
-|  <b>function(storage...)</b> |
-|  [connectStorageEmulator(storage, host, port, options)](./storage.md#connectstorageemulator) | Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator. |
-|  [ref(storage, url)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
-|  <b>function(ref...)</b> |
-|  [deleteObject(ref)](./storage.md#deleteobject) | Deletes the object at this location. |
-|  [getBlob(ref, maxDownloadSizeBytes)](./storage.md#getblob) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors<!-- -->This API is not available in Node. |
-|  [getBytes(ref, maxDownloadSizeBytes)](./storage.md#getbytes) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors |
-|  [getDownloadURL(ref)](./storage.md#getdownloadurl) | Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
-|  [getMetadata(ref)](./storage.md#getmetadata) | A <code>Promise</code> that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected. |
-|  [getStream(ref, maxDownloadSizeBytes)](./storage.md#getstream) | Downloads the data at the object's location. Raises an error event if the object is not found.<!-- -->This API is only available in Node. |
-|  [list(ref, options)](./storage.md#list) | List items (files) and prefixes (folders) under this storage reference.<!-- -->List API is only available for Firebase Rules Version 2.<!-- -->GCS is a key-blob store. Firebase Storage imposes the semantic of '/' delimited folder structure. Refer to GCS's List API if you want to learn more.<!-- -->To adhere to Firebase Rules's Semantics, Firebase Storage does not support objects whose paths end with "/" or contain two consecutive "/"s. Firebase Storage List API will filter these unsupported objects. list() may fail if there are too many unsupported objects in the bucket. |
-|  [listAll(ref)](./storage.md#listall) | List all items (files) and prefixes (folders) under this storage reference.<!-- -->This is a helper method for calling list() repeatedly until there are no more results. The default pagination size is 1000.<!-- -->Note: The results may not be consistent if objects are changed while this operation is running.<!-- -->Warning: <code>listAll</code> may potentially consume too many resources if there are too many results. |
-|  [updateMetadata(ref, metadata)](./storage.md#updatemetadata) | Updates the metadata for this object. |
-|  [uploadBytes(ref, data, metadata)](./storage.md#uploadbytes) | Uploads data to this object's location. The upload is not resumable. |
-|  [uploadBytesResumable(ref, data, metadata)](./storage.md#uploadbytesresumable) | Uploads data to this object's location. The upload can be paused and resumed, and exposes progress updates. |
-|  [uploadString(ref, value, format, metadata)](./storage.md#uploadstring) | Uploads a string to this object's location. The upload is not resumable. |
-|  <b>function(storageOrRef...)</b> |
-|  [ref(storageOrRef, path)](./storage.md#ref) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket. |
+|  <b>function(app, ...)</b> |
+|  [getStorage(app, bucketUrl)](./storage.md#getstorage_25f3a57) | Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app. |
+|  <b>function(storage, ...)</b> |
+|  [connectStorageEmulator(storage, host, port, options)](./storage.md#connectstorageemulator_e9039de) | Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator. |
+|  [ref(storage, url)](./storage.md#ref_5672fc1) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url. |
+|  <b>function(ref, ...)</b> |
+|  [deleteObject(ref)](./storage.md#deleteobject_30df0b2) | Deletes the object at this location. |
+|  [getBlob(ref, maxDownloadSizeBytes)](./storage.md#getblob_1c7a935) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors<!-- -->This API is not available in Node. |
+|  [getBytes(ref, maxDownloadSizeBytes)](./storage.md#getbytes_1c7a935) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors |
+|  [getDownloadURL(ref)](./storage.md#getdownloadurl_30df0b2) | Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
+|  [getMetadata(ref)](./storage.md#getmetadata_30df0b2) | A <code>Promise</code> that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected. |
+|  [getStream(ref, maxDownloadSizeBytes)](./storage.md#getstream_1c7a935) | Downloads the data at the object's location. Raises an error event if the object is not found.<!-- -->This API is only available in Node. |
+|  [list(ref, options)](./storage.md#list_36af757) | List items (files) and prefixes (folders) under this storage reference.<!-- -->List API is only available for Firebase Rules Version 2.<!-- -->GCS is a key-blob store. Firebase Storage imposes the semantic of '/' delimited folder structure. Refer to GCS's List API if you want to learn more.<!-- -->To adhere to Firebase Rules's Semantics, Firebase Storage does not support objects whose paths end with "/" or contain two consecutive "/"s. Firebase Storage List API will filter these unsupported objects. list() may fail if there are too many unsupported objects in the bucket. |
+|  [listAll(ref)](./storage.md#listall_30df0b2) | List all items (files) and prefixes (folders) under this storage reference.<!-- -->This is a helper method for calling list() repeatedly until there are no more results. The default pagination size is 1000.<!-- -->Note: The results may not be consistent if objects are changed while this operation is running.<!-- -->Warning: <code>listAll</code> may potentially consume too many resources if there are too many results. |
+|  [updateMetadata(ref, metadata)](./storage.md#updatemetadata_a634608) | Updates the metadata for this object. |
+|  [uploadBytes(ref, data, metadata)](./storage.md#uploadbytes_02686b1) | Uploads data to this object's location. The upload is not resumable. |
+|  [uploadBytesResumable(ref, data, metadata)](./storage.md#uploadbytesresumable_02686b1) | Uploads data to this object's location. The upload can be paused and resumed, and exposes progress updates. |
+|  [uploadString(ref, value, format, metadata)](./storage.md#uploadstring_277829d) | Uploads a string to this object's location. The upload is not resumable. |
+|  <b>function(storageOrRef, ...)</b> |
+|  [ref(storageOrRef, path)](./storage.md#ref_41be95d) | Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket. |
 
 ## Classes
 
@@ -79,7 +79,9 @@ Cloud Storage for Firebase
 |  [TaskEvent](./storage.md#taskevent) | An event that is triggered on a task. |
 |  [TaskState](./storage.md#taskstate) | Represents the current state of a running upload. |
 
-## getStorage()
+## function(app, ...)
+
+### getStorage(app, bucketUrl) {:#getstorage_25f3a57}
 
 Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance for the given Firebase app.
 
@@ -89,7 +91,7 @@ Gets a [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface)
 export declare function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -102,7 +104,9 @@ export declare function getStorage(app?: FirebaseApp, bucketUrl?: string): Fireb
 
 A [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance.
 
-## connectStorageEmulator()
+## function(storage, ...)
+
+### connectStorageEmulator(storage, host, port, options) {:#connectstorageemulator_e9039de}
 
 Modify this [FirebaseStorage](./storage.firebasestorage.md#firebasestorage_interface) instance to communicate with the Cloud Storage emulator.
 
@@ -114,7 +118,7 @@ export declare function connectStorageEmulator(storage: FirebaseStorage, host: s
 }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -127,7 +131,7 @@ export declare function connectStorageEmulator(storage: FirebaseStorage, host: s
 
 void
 
-## ref()
+### ref(storage, url) {:#ref_5672fc1}
 
 Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given url.
 
@@ -137,7 +141,7 @@ Returns a [StorageReference](./storage.storagereference.md#storagereference_inte
 export declare function ref(storage: FirebaseStorage, url?: string): StorageReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -148,7 +152,9 @@ export declare function ref(storage: FirebaseStorage, url?: string): StorageRefe
 
 [StorageReference](./storage.storagereference.md#storagereference_interface)
 
-## deleteObject()
+## function(ref, ...)
+
+### deleteObject(ref) {:#deleteobject_30df0b2}
 
 Deletes the object at this location.
 
@@ -158,7 +164,7 @@ Deletes the object at this location.
 export declare function deleteObject(ref: StorageReference): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -170,7 +176,7 @@ Promise&lt;void&gt;
 
 A `Promise` that resolves if the deletion succeeds.
 
-## getBlob()
+### getBlob(ref, maxDownloadSizeBytes) {:#getblob_1c7a935}
 
 Downloads the data at the object's location. Returns an error if the object is not found.
 
@@ -184,7 +190,7 @@ This API is not available in Node.
 export declare function getBlob(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<Blob>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -197,7 +203,7 @@ Promise&lt;Blob&gt;
 
 A Promise that resolves with a Blob containing the object's bytes
 
-## getBytes()
+### getBytes(ref, maxDownloadSizeBytes) {:#getbytes_1c7a935}
 
 Downloads the data at the object's location. Returns an error if the object is not found.
 
@@ -209,7 +215,7 @@ To use this functionality, you have to whitelist your app's origin in your Cloud
 export declare function getBytes(ref: StorageReference, maxDownloadSizeBytes?: number): Promise<ArrayBuffer>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -222,7 +228,7 @@ Promise&lt;ArrayBuffer&gt;
 
 A Promise containing the object's bytes
 
-## getDownloadURL()
+### getDownloadURL(ref) {:#getdownloadurl_30df0b2}
 
 Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->.
 
@@ -232,7 +238,7 @@ Returns the download URL for the given [StorageReference](./storage.storagerefer
 export declare function getDownloadURL(ref: StorageReference): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -244,7 +250,7 @@ Promise&lt;string&gt;
 
 A `Promise` that resolves with the download URL for this object.
 
-## getMetadata()
+### getMetadata(ref) {:#getmetadata_30df0b2}
 
 A `Promise` that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected.
 
@@ -254,7 +260,7 @@ A `Promise` that resolves with the metadata for this object. If this object does
 export declare function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -264,7 +270,7 @@ export declare function getMetadata(ref: StorageReference): Promise<FullMetadata
 
 Promise&lt;[FullMetadata](./storage.fullmetadata.md#fullmetadata_interface)<!-- -->&gt;
 
-## getStream()
+### getStream(ref, maxDownloadSizeBytes) {:#getstream_1c7a935}
 
 Downloads the data at the object's location. Raises an error event if the object is not found.
 
@@ -276,7 +282,7 @@ This API is only available in Node.
 export declare function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -289,7 +295,7 @@ NodeJS.ReadableStream
 
 A stream with the object's data as bytes
 
-## list()
+### list(ref, options) {:#list_36af757}
 
 List items (files) and prefixes (folders) under this storage reference.
 
@@ -305,7 +311,7 @@ To adhere to Firebase Rules's Semantics, Firebase Storage does not support objec
 export declare function list(ref: StorageReference, options?: ListOptions): Promise<ListResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -318,7 +324,7 @@ Promise&lt;[ListResult](./storage.listresult.md#listresult_interface)<!-- -->&gt
 
 A `Promise` that resolves with the items and prefixes. `prefixes` contains references to sub-folders and `items` contains references to objects in this folder. `nextPageToken` can be used to get the rest of the results.
 
-## listAll()
+### listAll(ref) {:#listall_30df0b2}
 
 List all items (files) and prefixes (folders) under this storage reference.
 
@@ -334,7 +340,7 @@ Warning: `listAll` may potentially consume too many resources if there are too m
 export declare function listAll(ref: StorageReference): Promise<ListResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -346,7 +352,7 @@ Promise&lt;[ListResult](./storage.listresult.md#listresult_interface)<!-- -->&gt
 
 A `Promise` that resolves with all the items and prefixes under the current storage reference. `prefixes` contains references to sub-directories and `items` contains references to objects in this folder. `nextPageToken` is never returned.
 
-## updateMetadata()
+### updateMetadata(ref, metadata) {:#updatemetadata_a634608}
 
 Updates the metadata for this object.
 
@@ -356,7 +362,7 @@ Updates the metadata for this object.
 export declare function updateMetadata(ref: StorageReference, metadata: SettableMetadata): Promise<FullMetadata>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -369,7 +375,7 @@ Promise&lt;[FullMetadata](./storage.fullmetadata.md#fullmetadata_interface)<!-- 
 
 A `Promise` that resolves with the new metadata for this object.
 
-## uploadBytes()
+### uploadBytes(ref, data, metadata) {:#uploadbytes_02686b1}
 
 Uploads data to this object's location. The upload is not resumable.
 
@@ -379,7 +385,7 @@ Uploads data to this object's location. The upload is not resumable.
 export declare function uploadBytes(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: UploadMetadata): Promise<UploadResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -393,7 +399,7 @@ Promise&lt;[UploadResult](./storage.uploadresult.md#uploadresult_interface)<!-- 
 
 A Promise containing an UploadResult
 
-## uploadBytesResumable()
+### uploadBytesResumable(ref, data, metadata) {:#uploadbytesresumable_02686b1}
 
 Uploads data to this object's location. The upload can be paused and resumed, and exposes progress updates.
 
@@ -403,7 +409,7 @@ Uploads data to this object's location. The upload can be paused and resumed, an
 export declare function uploadBytesResumable(ref: StorageReference, data: Blob | Uint8Array | ArrayBuffer, metadata?: UploadMetadata): UploadTask;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -417,7 +423,7 @@ export declare function uploadBytesResumable(ref: StorageReference, data: Blob |
 
 An UploadTask
 
-## uploadString()
+### uploadString(ref, value, format, metadata) {:#uploadstring_277829d}
 
 Uploads a string to this object's location. The upload is not resumable.
 
@@ -427,7 +433,7 @@ Uploads a string to this object's location. The upload is not resumable.
 export declare function uploadString(ref: StorageReference, value: string, format?: StringFormat, metadata?: UploadMetadata): Promise<UploadResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -442,7 +448,9 @@ Promise&lt;[UploadResult](./storage.uploadresult.md#uploadresult_interface)<!-- 
 
 A Promise containing an UploadResult
 
-## ref()
+## function(storageOrRef, ...)
+
+### ref(storageOrRef, path) {:#ref_41be95d}
 
 Returns a [StorageReference](./storage.storagereference.md#storagereference_interface) for the given path in the default bucket.
 
@@ -452,7 +460,7 @@ Returns a [StorageReference](./storage.storagereference.md#storagereference_inte
 export declare function ref(storageOrRef: FirebaseStorage | StorageReference, path?: string): StorageReference;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

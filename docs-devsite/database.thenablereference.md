@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ThenableReference interface
-A `Promise` that can also act as a `DatabaseReference` when returned by [push()](./database.md#push)<!-- -->. The reference is available immediately and the `Promise` resolves as the write to the backend completes.
+A `Promise` that can also act as a `DatabaseReference` when returned by [push()](./database.md#push_c74661c)<!-- -->. The reference is available immediately and the `Promise` resolves as the write to the backend completes.
 
 <b>Signature:</b>
 

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryOrderByConstraint class
-A `QueryOrderByConstraint` is used to sort the set of documents returned by a Firestore query. `QueryOrderByConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this `QueryOrderByConstraint`<!-- -->.
+A `QueryOrderByConstraint` is used to sort the set of documents returned by a Firestore query. `QueryOrderByConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryOrderByConstraint`<!-- -->.
 
 Note: Documents that do not contain the orderBy field will not be present in the query result.
 

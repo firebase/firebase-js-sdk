@@ -95,7 +95,7 @@ Returns an array of the documents changes since the last snapshot. If this is th
 docChanges(options?: SnapshotListenOptions): Array<DocumentChange<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -115,7 +115,7 @@ Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
 forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -43,7 +43,7 @@ Retrieves the value which a custom attribute is set to.
 getAttribute(attr: string): string | undefined;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -78,7 +78,7 @@ Returns the value of the custom metric by that name. If a custom metric with tha
 getMetric(metricName: string): number;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -98,7 +98,7 @@ Adds to the value of a custom metric. If a custom metric with the provided name 
 incrementMetric(metricName: string, num?: number): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -119,7 +119,7 @@ Set a custom attribute of a trace to a certain value.
 putAttribute(attr: string, value: string): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -140,7 +140,7 @@ Sets the value of the specified custom metric to the given number regardless of 
 putMetric(metricName: string, num: number): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -168,7 +168,7 @@ record(startTime: number, duration: number, options?: {
     }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -190,7 +190,7 @@ Removes the specified custom attribute from a trace instance.
 removeAttribute(attr: string): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

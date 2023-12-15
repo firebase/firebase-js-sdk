@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryStartAtConstraint class
-A `QueryStartAtConstraint` is used to exclude documents from the start of a result set returned by a Firestore query. `QueryStartAtConstraint`<!-- -->s are created by invoking [startAt()](./firestore_.md#startat) or [startAfter()](./firestore_.md#startafter) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this `QueryStartAtConstraint`<!-- -->.
+A `QueryStartAtConstraint` is used to exclude documents from the start of a result set returned by a Firestore query. `QueryStartAtConstraint`<!-- -->s are created by invoking [startAt()](./firestore_.md#startat_9a4477f) or [startAfter()](./firestore_.md#startafter_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryStartAtConstraint`<!-- -->.
 
 <b>Signature:</b>
 
