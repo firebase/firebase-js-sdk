@@ -506,10 +506,11 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  it('cannot read after writing', () => {
-    return withTestDb(persistence, db => {
-      return runTransaction(db, transaction => {
-        const docRef = doc(collection(db, 'anything'));
+  it('cannot read after writing and does not commit', () => {
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, '00000-anything'));
+      await setDoc(docRef, { foo: 'baz' });
+      await runTransaction(db, async transaction => {
         transaction.set(docRef, { foo: 'bar' });
         return transaction.get(docRef);
       })
@@ -523,6 +524,41 @@ apiDescribe('Database transactions', persistence => {
             'Firestore transactions require all reads to be executed'
           );
         });
+
+      const postSnap = await getDoc(docRef);
+      expect(postSnap.get('foo')).to.equal('baz');
+    });
+  });
+
+  it('cannot read after writing and does not commit, even if the user transaction does not bubble up the error', () => {
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, '00000-anything'));
+      await setDoc(docRef, { foo: 'baz' });
+      await runTransaction(db, async transaction => {
+        transaction.set(docRef, { foo: 'bar' });
+
+        // The following statement `transaction.get(...)` is problematic because
+        // it occurs after `transaction.set(...)`. In previous versions of the
+        // SDK this un-awaited `transaction.get(...)` failed but the transaction
+        // still committed successfully. This regression test ensures that the
+        // commit will fail even if the code does not await
+        // `transaction.get(...)`.
+        // eslint-disable-next-line
+        transaction.get(docRef);
+      })
+        .then(() => {
+          expect.fail('transaction should fail');
+        })
+        .catch((err: FirestoreError) => {
+          expect(err).to.exist;
+          expect(err.code).to.equal('invalid-argument');
+          expect(err.message).to.contain(
+            'Firestore transactions require all reads to be executed'
+          );
+        });
+
+      const postSnap = await getDoc(docRef);
+      expect(postSnap.get('foo')).to.equal('baz');
     });
   });
 
