@@ -22,7 +22,6 @@ This package coordinates the communication between the different Firebase compon
 |  [deleteApp(app)](./app.md#deleteapp) | Renders this app unusable and frees the resources of all associated services. |
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
-|  [getServerApps()](./app.md#getserverapps) | A (read-only) array of all initialized server apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
 |  <b>function(libraryKeyOrName...)</b> |
 |  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion) | Registers a library's name and version for platform logging purposes. |
@@ -100,19 +99,6 @@ export declare function getApps(): FirebaseApp[];
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->\[\]
-
-## getServerApps()
-
-A (read-only) array of all initialized server apps.
-
-<b>Signature:</b>
-
-```typescript
-export declare function getServerApps(): FirebaseServerApp[];
-```
-<b>Returns:</b>
-
-[FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->\[\]
 
 ## initializeApp()
 

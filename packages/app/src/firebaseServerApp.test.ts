@@ -17,9 +17,9 @@
 
 import { expect } from 'chai';
 import '../test/setup';
-import { FirebaseAppImpl } from './firebaseApp';
-import { FirebaseServerAppImpl } from './firebaseServerApp';
 import { ComponentContainer } from '@firebase/component';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
+import { FirebaseServerAppSettings } from './public-types';
 
 describe('FirebaseServerApp', () => {
   it('has various accessors', () => {
@@ -27,10 +27,10 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings = {
-      name: 'test',
+    const serverAppSettings : FirebaseServerAppSettings = {
+      name: "",
       automaticDataCollectionEnabled: false,
-      deleteOnDeref: options
+      releaseOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -49,10 +49,10 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings = {
-      name: 'test',
+    const serverAppSettings : FirebaseServerAppSettings = {
+      name: "",
       automaticDataCollectionEnabled: false,
-      deleteOnDeref: options
+      releaseOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -70,10 +70,10 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings = {
-      name: 'test',
+    const serverAppSettings : FirebaseServerAppSettings = {
+      name: "",
       automaticDataCollectionEnabled: false,
-      deleteOnDeref: options
+      releaseOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
@@ -92,10 +92,9 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings = {
-      name: 'test',
+    const serverAppSettings : FirebaseServerAppSettings = {
       automaticDataCollectionEnabled: false,
-      deleteOnDeref: options
+      releaseOnDeref: options
     };
 
     const firebaseServerAppImpl = new FirebaseServerAppImpl(

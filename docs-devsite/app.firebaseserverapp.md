@@ -28,7 +28,7 @@ export interface FirebaseServerApp extends FirebaseApp
 |  [appCheckTokenVerified](./app.firebaseserverapp.md#firebaseserverappappchecktokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the verification of the appCheckToken provided to  has completed. If the optional appCheckToken parameter was omitted then the returned Promise is completed immediately.<!-- -->It is recommend that your application awaits this promise before initializing any Firebase products that use AppCheck. The Firebase SDKs will not use App Check tokens that are determined to be invalid or those that have not yet completed validation.<!-- -->The returned Promise is completed immediately if the optional appCheckToken parameter was omitted from FirebaseServerApp initialization. |
 |  [authIdTokenVerified](./app.firebaseserverapp.md#firebaseserverappauthidtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the verification of the authIdToken provided to  has completed.<!-- -->It is recommend that your application awaits this promise if an authIdToken was provided during FirebaseServerApp initialization before invoking getAuth(). If an instance of Auth is created before the Auth ID Token is validated, then the token will not be used by that instance of the Auth SDK.<!-- -->The returned Promise is completed immediately if the optional authIdToken parameter was omitted from FirebaseServerApp initialization. |
 |  [installationTokenVerified](./app.firebaseserverapp.md#firebaseserverappinstallationtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the verification of the installationToken provided to  has completed.<!-- -->It is recommend that your application awaits this promise before initializing any Firebase products that use Firebase Installations. The Firebase SDKs will not use Installation Auth tokens that are determined to be invalid or those that have not yet completed validation.<!-- -->The returned Promise is completed immediately if the optional appCheckToken parameter was omitted from FirebaseServerApp initialization. |
-|  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no get for FirebaseServerApp, name is not relevant—however it's always a blank string to conform to the FirebaseApp interface |
+|  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no get for FirebaseServerApp, so the name is not relevant. However, it's declared here so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this string will always be empty for FirebaseServerApp instances. |
 
 ## FirebaseServerApp.appCheckTokenVerified
 
@@ -74,7 +74,7 @@ installationTokenVerified: () => Promise<void>;
 
 ## FirebaseServerApp.name
 
-There is no get for FirebaseServerApp, name is not relevant—however it's always a blank string to conform to the FirebaseApp interface
+There is no get for FirebaseServerApp, so the name is not relevant. However, it's declared here so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this string will always be empty for FirebaseServerApp instances.
 
 <b>Signature:</b>
 

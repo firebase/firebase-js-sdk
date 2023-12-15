@@ -26,7 +26,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings
 |  [appCheckToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsappchecktoken) | string | An optional AppCheck token.<!-- -->If provided, the FirebaseServerApp instance will work to validate the token. The result of the validation can be monitored by invoking the FirebaseServerApp.appCheckTokenVerified(). Awaiting the Promise returned by appCheckTokenVerified is highly recommended if an AppCheck token is provided.<!-- -->If the token has been properly verified then the AppCheck token will be automatically used by Firebase SDKs that support App Check.<!-- -->If the token fails verification then a warning is logged and the token will not be used. |
 |  [authIdToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsauthidtoken) | string | An optional Auth ID token used to resume a signed in user session from a client runtime environment.<!-- -->If provided, the FirebaseServerApp instance will work to validate the token. The result of the validation can be queried via by the application by invoking the FirebaseServerApp.authIdTokenVerified(). Awaiting the Promise returned by authIdTokenVerified is highly recommended if an Auth ID token is provided.<!-- -->Once the token has been properly verified then invoking getAuth() will attempt to automatically sign in a user with the provided Auth ID Token.<!-- -->If the token fails verification then a warning is logged and Auth SDK will not attempt to sign in a user upon its initalization. |
 |  [installationsAuthToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsinstallationsauthtoken) | string | An optional Installation Auth token.<!-- -->If provided, the FirebaseServerApp instance will work to validate the token. The result of the validation can be monitored by invoking the FirebaseServerApp.installationTokenVerified(). Awaiting the Promise returned by appCheckTokenVerified is highly recommended before initalization any other Firebase SDKs.<!-- -->If the token has been properly verified then the Installation Auth token will be automatically used by Firebase SDKs that support Firebase Installations.<!-- -->If the token fails verification then a warning is logged and the token will not be used. |
-|  [name](./app.firebaseserverappsettings.md#firebaseserverappsettingsname) | "" | There is no get for FirebaseServerApp, and so the name cannot be provided as it can in parent interface FirebaseAppSettings. Force the name to blank string by default. |
+|  [name](./app.firebaseserverappsettings.md#firebaseserverappsettingsname) | "" | There is no get for FirebaseServerApps, so the name is not relevant. however it's always a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration. |
 |  [releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) | object | An optional object. If provided, the Firebase SDK will use a FinalizationRegistry object to monitor the Garbage Collection status of the provided object, and the Firebase SDK will release its refrence on the FirebaseServerApp instance when the provided object is collected. or.<!-- -->The intent of this field is to help reduce memory overhead for long-running cloud functions executing SSR fulfillment without the customer's app needing to orchestrate FirebaseServerApp cleanup. Additionally, prexisting FirebaseServerApp instances may reused if they're identical to a previously generated one that has yet to be deleted.<!-- -->If the object is not provided then the application must clean up the FirebaseServerApp instance through the applicationss own standard mechanisms by invoking deleteApp.<!-- -->If the app provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of FinalizationRegistry (introduced in node v14.6.0, for instance), then the Firebase SDK will not be able to automatically clean up the FirebaseServerApp instance and an error will be thrown. |
 
 ## FirebaseServerAppSettings.appCheckToken
@@ -79,12 +79,12 @@ installationsAuthToken?: string;
 
 ## FirebaseServerAppSettings.name
 
-There is no get for FirebaseServerApp, and so the name cannot be provided as it can in parent interface FirebaseAppSettings. Force the name to blank string by default.
+There is no get for FirebaseServerApps, so the name is not relevant. however it's always a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration.
 
 <b>Signature:</b>
 
 ```typescript
-name: "";
+name?: "";
 ```
 
 ## FirebaseServerAppSettings.releaseOnDeref

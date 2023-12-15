@@ -189,160 +189,19 @@ describe('API tests', () => {
   });
 
   describe('initializeServerApp', () => {
-    const setCookieCb = (
-      name: string,
-      value: string | undefined,
-      options: object
-    ): void => {
-      return;
-    };
-
-    const getCookieCb = (name: string): string | undefined => {
-      return;
-    };
-
-    const getHeaderCb = (name: string): string | undefined => {
-      return;
-    };
-
     it('creates named App', () => {
       const options = {
         apiKey: 'APIKEY'
       };
 
-      const appName = 'MyApp';
-
-      const serverAppSettings = {
-        name: appName,
+      const serverAppSettings : FirebaseServerAppSettings = {
+        name: "",
         automaticDataCollectionEnabled: false,
-        setCookie: setCookieCb,
-        getCookie: getCookieCb,
-        getHeader: getHeaderCb,
-        deleteOnDeref: options
+        releaseOnDeref: options
       };
 
       const app = initializeServerApp(options, serverAppSettings);
-      expect(app.name).to.equal(appName);
-      deleteApp(app);
-    });
-
-    it('creates named and DEFAULT App', () => {
-      const appName = 'MyApp';
-      const options = {
-        apiKey: 'APIKEY'
-      };
-
-      let serverAppSettings: FirebaseServerAppSettings = {
-        automaticDataCollectionEnabled: false,
-        setCookie: setCookieCb,
-        getCookie: getCookieCb,
-        getHeader: getHeaderCb,
-        deleteOnDeref: options
-      };
-
-      const app1 = initializeServerApp(options, serverAppSettings);
-      serverAppSettings.name = appName;
-      const app2 = initializeServerApp(options, serverAppSettings);
-
-      expect(app1.name).to.equal(DEFAULT_ENTRY_NAME);
-      expect(app2.name).to.equal(appName);
-      deleteApp(app1);
-      deleteApp(app2);
-    });
-
-    it('throws when creating duplicate DEDAULT Apps with different options', () => {
-      initializeApp({
-        apiKey: 'test1'
-      });
-      expect(() =>
-        initializeApp({
-          apiKey: 'test2'
-        })
-      ).throws(/\[DEFAULT\].*exists/i);
-    });
-
-    it('throws when creating duplicate named Apps with different options', () => {
-      const appName = 'MyApp';
-      initializeApp(
-        {
-          apiKey: 'test1'
-        },
-        appName
-      );
-      expect(() =>
-        initializeApp(
-          {
-            apiKey: 'test2'
-          },
-          appName
-        )
-      ).throws(/'MyApp'.*exists/i);
-    });
-
-    it('throws when creating duplicate DEFAULT Apps with different config values', () => {
-      initializeApp(
-        {
-          apiKey: 'test1'
-        },
-        { automaticDataCollectionEnabled: true }
-      );
-      expect(() =>
-        initializeApp(
-          {
-            apiKey: 'test1'
-          },
-          { automaticDataCollectionEnabled: false }
-        )
-      ).throws(/\[DEFAULT\].*exists/i);
-    });
-
-    it('throws when creating duplicate named Apps with different config values', () => {
-      const appName = 'MyApp';
-      initializeApp(
-        {
-          apiKey: 'test1'
-        },
-        { name: appName, automaticDataCollectionEnabled: true }
-      );
-      expect(() =>
-        initializeApp(
-          {
-            apiKey: 'test1'
-          },
-          { name: appName, automaticDataCollectionEnabled: false }
-        )
-      ).throws(/'MyApp'.*exists/i);
-    });
-
-    it('takes an object as the second parameter to create named App', () => {
-      const appName = 'MyApp';
-      const app = initializeApp({}, { name: appName });
-      expect(app.name).to.equal(appName);
-    });
-
-    it('takes an object as the second parameter to create named App', () => {
-      const appName = 'MyApp';
-      const app = initializeApp({}, { name: appName });
-      expect(app.name).to.equal(appName);
-    });
-
-    it('sets automaticDataCollectionEnabled', () => {
-      const app = initializeApp({}, { automaticDataCollectionEnabled: true });
-      expect(app.automaticDataCollectionEnabled).to.be.true;
-    });
-
-    it('adds registered components to App', () => {
-      _clearComponents();
-      const comp1 = createTestComponent('test1');
-      const comp2 = createTestComponent('test2');
-      _registerComponent(comp1);
-      _registerComponent(comp2);
-
-      const app = initializeApp({}) as FirebaseAppImpl;
-      // -1 here to not count the FirebaseApp provider that's added during initializeApp
-      expect(app.container.getProviders().length - 1).to.equal(
-        _components.size
-      );
+      expect(app).to.not.equal(null);
     });
   });
 

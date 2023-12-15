@@ -127,8 +127,9 @@ export interface FirebaseServerApp extends FirebaseApp {
   installationTokenVerified: () => Promise<void>;
 
   /**
-   * There is no get for FirebaseServerApp, name is not relevant—however it's always
-   * a blank string to conform to the FirebaseApp interface
+   * There is no get for FirebaseServerApp, so the name is not relevant. However, it's declared here
+   * so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this
+   * string will always be empty for FirebaseServerApp instances.
    */
   name : string;
 }
@@ -282,10 +283,10 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    releaseOnDeref?: object;
 
   /**
-   * There is no get for FirebaseServerApp, and so the name cannot be provided as it can
-   * in  parent interface FirebaseAppSettings. Force the name to blank string by default.
+   * There is no get for FirebaseServerApps, so the name is not relevant. however it's always
+   * a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration.
    */
-  name: "";
+  name?: "";
 }
 
 /**

@@ -84,7 +84,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
     appCheckToken?: string;
     authIdToken?: string;
     installationsAuthToken?: string;
-    name: "";
+    name?: "";
     releaseOnDeref?: object;
 }
 
@@ -103,9 +103,6 @@ export function getApps(): FirebaseApp[];
 
 // @internal (undocumented)
 export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
-
-// @public
-export function getServerApps(): FirebaseServerApp[];
 
 // @public
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;

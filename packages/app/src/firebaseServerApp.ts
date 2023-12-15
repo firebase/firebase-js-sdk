@@ -45,7 +45,7 @@ export class FirebaseServerAppImpl
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
-      name: serverConfig.name,
+      name: "",
       automaticDataCollectionEnabled
     };
 
