@@ -21,13 +21,10 @@ import {
   Query,
   queryMatches,
   queryMatchesAllDocuments,
-  queryToTarget,
-  queryWithLimit,
   stringifyQuery
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
-  documentKeySet,
   DocumentKeySet,
   DocumentMap
 } from '../model/collections';
@@ -42,23 +39,9 @@ import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager, IndexType } from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryContext } from './query_context';
-
-const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
-
-/**
- * This cost represents the evaluation result of
- * (([index, docKey] + [docKey, docContent]) per document in the result set)
- * / ([docKey, docContent] per documents in full collection scan) coming from
- * experiment [enter PR experiment URL here].
- * TODO(b/299284287) Choose a value appropriate for the browser/OS combination,
- *  as determined by more data points from running the experiment.
- */
-const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
 
 /**
  * The Firestore query engine.
@@ -100,28 +83,11 @@ const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
  */
 export class QueryEngine {
   private localDocumentsView!: LocalDocumentsView;
-  private indexManager!: IndexManager;
   private initialized = false;
 
-  indexAutoCreationEnabled = false;
-
-  /**
-   * SDK only decides whether it should create index when collection size is
-   * larger than this.
-   */
-  indexAutoCreationMinCollectionSize =
-    DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE;
-
-  relativeIndexReadCostPerDocument =
-    DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
-
   /** Sets the document view to query against. */
-  initialize(
-    localDocuments: LocalDocumentsView,
-    indexManager: IndexManager
-  ): void {
+  initialize(localDocuments: LocalDocumentsView,): void {
     this.localDocumentsView = localDocuments;
-    this.indexManager = indexManager;
     this.initialized = true;
   }
 
@@ -133,191 +99,7 @@ export class QueryEngine {
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     debugAssert(this.initialized, 'initialize() not called');
-
-    // Stores the result from executing the query; using this object is more
-    // convenient than passing the result between steps of the persistence
-    // transaction and improves readability comparatively.
-    const queryResult: { result: DocumentMap | null } = { result: null };
-
-    return this.performQueryUsingIndex(transaction, query)
-      .next(result => {
-        queryResult.result = result;
-      })
-      .next(() => {
-        if (queryResult.result) {
-          return;
-        }
-        return this.performQueryUsingRemoteKeys(
-          transaction,
-          query,
-          remoteKeys,
-          lastLimboFreeSnapshotVersion
-        ).next(result => {
-          queryResult.result = result;
-        });
-      })
-      .next(() => {
-        if (queryResult.result) {
-          return;
-        }
-        const context = new QueryContext();
-        return this.executeFullCollectionScan(transaction, query, context).next(
-          result => {
-            queryResult.result = result;
-            if (this.indexAutoCreationEnabled) {
-              return this.createCacheIndexes(
-                transaction,
-                query,
-                context,
-                result.size
-              );
-            }
-          }
-        );
-      })
-      .next(() => queryResult.result!);
-  }
-
-  createCacheIndexes(
-    transaction: PersistenceTransaction,
-    query: Query,
-    context: QueryContext,
-    resultSize: number
-  ): PersistencePromise<void> {
-    if (context.documentReadCount < this.indexAutoCreationMinCollectionSize) {
-      if (getLogLevel() <= LogLevel.DEBUG) {
-        logDebug(
-          'QueryEngine',
-          'SDK will not create cache indexes for query:',
-          stringifyQuery(query),
-          'since it only creates cache indexes for collection contains',
-          'more than or equal to',
-          this.indexAutoCreationMinCollectionSize,
-          'documents'
-        );
-      }
-      return PersistencePromise.resolve();
-    }
-
-    if (getLogLevel() <= LogLevel.DEBUG) {
-      logDebug(
-        'QueryEngine',
-        'Query:',
-        stringifyQuery(query),
-        'scans',
-        context.documentReadCount,
-        'local documents and returns',
-        resultSize,
-        'documents as results.'
-      );
-    }
-
-    if (
-      context.documentReadCount >
-      this.relativeIndexReadCostPerDocument * resultSize
-    ) {
-      if (getLogLevel() <= LogLevel.DEBUG) {
-        logDebug(
-          'QueryEngine',
-          'The SDK decides to create cache indexes for query:',
-          stringifyQuery(query),
-          'as using cache indexes may help improve performance.'
-        );
-      }
-      return this.indexManager.createTargetIndexes(
-        transaction,
-        queryToTarget(query)
-      );
-    }
-
-    return PersistencePromise.resolve();
-  }
-
-  /**
-   * Performs an indexed query that evaluates the query based on a collection's
-   * persisted index values. Returns `null` if an index is not available.
-   */
-  private performQueryUsingIndex(
-    transaction: PersistenceTransaction,
-    query: Query
-  ): PersistencePromise<DocumentMap | null> {
-    if (queryMatchesAllDocuments(query)) {
-      // Queries that match all documents don't benefit from using
-      // key-based lookups. It is more efficient to scan all documents in a
-      // collection, rather than to perform individual lookups.
-      return PersistencePromise.resolve<DocumentMap | null>(null);
-    }
-
-    let target = queryToTarget(query);
-    return this.indexManager
-      .getIndexType(transaction, target)
-      .next(indexType => {
-        if (indexType === IndexType.NONE) {
-          // The target cannot be served from any index.
-          return null;
-        }
-
-        if (query.limit !== null && indexType === IndexType.PARTIAL) {
-          // We cannot apply a limit for targets that are served using a partial
-          // index. If a partial index will be used to serve the target, the
-          // query may return a superset of documents that match the target
-          // (e.g. if the index doesn't include all the target's filters), or
-          // may return the correct set of documents in the wrong order (e.g. if
-          // the index doesn't include a segment for one of the orderBys).
-          // Therefore, a limit should not be applied in such cases.
-          query = queryWithLimit(query, null, LimitType.First);
-          target = queryToTarget(query);
-        }
-
-        return this.indexManager
-          .getDocumentsMatchingTarget(transaction, target)
-          .next(keys => {
-            debugAssert(
-              !!keys,
-              'Index manager must return results for partial and full indexes.'
-            );
-            const sortedKeys = documentKeySet(...keys);
-            return this.localDocumentsView
-              .getDocuments(transaction, sortedKeys)
-              .next(indexedDocuments => {
-                return this.indexManager
-                  .getMinOffset(transaction, target)
-                  .next(offset => {
-                    const previousResults = this.applyQuery(
-                      query,
-                      indexedDocuments
-                    );
-
-                    if (
-                      this.needsRefill(
-                        query,
-                        previousResults,
-                        sortedKeys,
-                        offset.readTime
-                      )
-                    ) {
-                      // A limit query whose boundaries change due to local
-                      // edits can be re-run against the cache by excluding the
-                      // limit. This ensures that all documents that match the
-                      // query's filters are included in the result set. The SDK
-                      // can then apply the limit once all local edits are
-                      // incorporated.
-                      return this.performQueryUsingIndex(
-                        transaction,
-                        queryWithLimit(query, null, LimitType.First)
-                      );
-                    }
-
-                    return this.appendRemainingResults(
-                      transaction,
-                      previousResults,
-                      query,
-                      offset
-                    ) as PersistencePromise<DocumentMap | null>;
-                  });
-              });
-          });
-      });
+    return this.performQueryUsingRemoteKeys(transaction, query, remoteKeys, lastLimboFreeSnapshotVersion).next(result => result ?? this.executeFullCollectionScan(transaction, query));
   }
 
   /**
@@ -451,8 +233,7 @@ export class QueryEngine {
 
   private executeFullCollectionScan(
     transaction: PersistenceTransaction,
-    query: Query,
-    context: QueryContext
+    query: Query
   ): PersistencePromise<DocumentMap> {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
@@ -465,8 +246,7 @@ export class QueryEngine {
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,
-      IndexOffset.min(),
-      context
+      IndexOffset.min()
     );
   }
 

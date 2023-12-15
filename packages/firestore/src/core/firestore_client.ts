@@ -25,18 +25,14 @@ import {
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
-  localStoreConfigureFieldIndexes,
-  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
   localStoreReadDocument,
-  localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
@@ -816,36 +812,4 @@ function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
-}
-
-export function firestoreClientSetIndexConfiguration(
-  client: FirestoreClient,
-  indexes: FieldIndex[]
-): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreConfigureFieldIndexes(
-      await getLocalStore(client),
-      indexes
-    );
-  });
-}
-
-export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-  client: FirestoreClient,
-  isEnabled: boolean
-): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreSetIndexAutoCreationEnabled(
-      await getLocalStore(client),
-      isEnabled
-    );
-  });
-}
-
-export function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient
-): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
-  });
 }

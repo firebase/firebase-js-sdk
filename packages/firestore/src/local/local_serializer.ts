@@ -23,12 +23,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetIsDocumentTarget } from '../core/target';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import {
-  FieldIndex,
-  IndexOffset,
-  IndexSegment,
-  IndexState
-} from '../model/field_index';
+import { IndexOffset } from '../model/field_index';
 import { MutationBatch } from '../model/mutation_batch';
 import { Overlay } from '../model/overlay';
 import { FieldPath } from '../model/path';
@@ -436,42 +431,6 @@ export function toDbDocumentOverlayKey(
   const docId = docKey.path.lastSegment();
   const collectionPath = encodeResourcePath(docKey.path.popLast());
   return [userId, collectionPath, docId];
-}
-
-export function toDbIndexConfiguration(
-  index: FieldIndex
-): DbIndexConfiguration {
-  return {
-    indexId: index.indexId,
-    collectionGroup: index.collectionGroup,
-    fields: index.fields.map(s => [s.fieldPath.canonicalString(), s.kind])
-  };
-}
-
-export function fromDbIndexConfiguration(
-  index: DbIndexConfiguration,
-  state: DbIndexState | null
-): FieldIndex {
-  const decodedState = state
-    ? new IndexState(
-        state.sequenceNumber,
-        new IndexOffset(
-          fromDbTimestamp(state.readTime),
-          new DocumentKey(decodeResourcePath(state.documentKey)),
-          state.largestBatchId
-        )
-      )
-    : IndexState.empty();
-  const decodedSegments = index.fields.map(
-    ([fieldPath, kind]) =>
-      new IndexSegment(FieldPath.fromServerFormat(fieldPath), kind)
-  );
-  return new FieldIndex(
-    index.indexId!,
-    index.collectionGroup,
-    decodedSegments,
-    decodedState
-  );
 }
 
 export function toDbIndexState(

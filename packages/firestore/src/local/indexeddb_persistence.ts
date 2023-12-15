@@ -745,10 +745,7 @@ export class IndexedDbPersistence implements Persistence {
       this.started,
       'Cannot initialize IndexManager before persistence is started.'
     );
-    return new IndexedDbIndexManager(
-      user,
-      this.serializer.remoteSerializer.databaseId
-    );
+    return new IndexedDbIndexManager();
   }
 
   getDocumentOverlayCache(user: User): DocumentOverlayCache {

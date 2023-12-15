@@ -18,10 +18,6 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import {
-  IndexBackfiller,
-  IndexBackfillerScheduler
-} from '../local/index_backfiller';
-import {
   indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../local/indexeddb_persistence';
@@ -267,14 +263,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     const garbageCollector =
       this.persistence.referenceDelegate.garbageCollector;
     return new LruScheduler(garbageCollector, cfg.asyncQueue, localStore);
-  }
-
-  createIndexBackfillerScheduler(
-    cfg: ComponentConfiguration,
-    localStore: LocalStore
-  ): Scheduler | null {
-    const indexBackfiller = new IndexBackfiller(localStore, this.persistence);
-    return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {

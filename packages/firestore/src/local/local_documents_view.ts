@@ -60,7 +60,6 @@ import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
@@ -356,14 +355,11 @@ export class LocalDocumentsView {
    * @param transaction - The persistence transaction.
    * @param query - The query to match documents against.
    * @param offset - Read time and key to start scanning by (exclusive).
-   * @param context - A optional tracker to keep a record of important details
-   *   during database local query execution.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
@@ -372,14 +368,12 @@ export class LocalDocumentsView {
         transaction,
         query,
         offset,
-        context
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
         offset,
-        context
       );
     }
   }
@@ -479,7 +473,6 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -501,7 +494,6 @@ export class LocalDocumentsView {
             transaction,
             collectionQuery,
             offset,
-            context
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -515,7 +507,6 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let overlays: OverlayMap;

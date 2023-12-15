@@ -39,8 +39,6 @@ import {
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
-  FieldIndex,
-  fieldIndexSemanticComparator,
   INITIAL_LARGEST_BATCH_ID,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
@@ -217,7 +215,7 @@ class LocalStoreImpl implements LocalStore {
       this.indexManager
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
-    this.queryEngine.initialize(this.localDocuments, this.indexManager);
+    this.queryEngine.initialize(this.localDocuments);
   }
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
@@ -1493,83 +1491,3 @@ export async function localStoreSaveNamedQuery(
   );
 }
 
-export async function localStoreConfigureFieldIndexes(
-  localStore: LocalStore,
-  newFieldIndexes: FieldIndex[]
-): Promise<void> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
-  const promises: Array<PersistencePromise<void>> = [];
-  return localStoreImpl.persistence.runTransaction(
-    'Configure indexes',
-    'readwrite',
-    transaction =>
-      indexManager
-        .getFieldIndexes(transaction)
-        .next(oldFieldIndexes =>
-          diffArrays(
-            oldFieldIndexes,
-            newFieldIndexes,
-            fieldIndexSemanticComparator,
-            fieldIndex => {
-              promises.push(
-                indexManager.addFieldIndex(transaction, fieldIndex)
-              );
-            },
-            fieldIndex => {
-              promises.push(
-                indexManager.deleteFieldIndex(transaction, fieldIndex)
-              );
-            }
-          )
-        )
-        .next(() => PersistencePromise.waitFor(promises))
-  );
-}
-
-export function localStoreSetIndexAutoCreationEnabled(
-  localStore: LocalStore,
-  isEnabled: boolean
-): void {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
-}
-
-export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore
-): Promise<void> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
-  return localStoreImpl.persistence.runTransaction(
-    'Delete All Indexes',
-    'readwrite',
-    transaction => indexManager.deleteAllFieldIndexes(transaction)
-  );
-}
-
-/**
- * Test-only hooks into the SDK for use exclusively by tests.
- */
-export class TestingHooks {
-  private constructor() {
-    throw new Error('creating instances is not supported');
-  }
-
-  static setIndexAutoCreationSettings(
-    localStore: LocalStore,
-    settings: {
-      indexAutoCreationMinCollectionSize?: number;
-      relativeIndexReadCostPerDocument?: number;
-    }
-  ): void {
-    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
-      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
-        settings.indexAutoCreationMinCollectionSize;
-    }
-    if (settings.relativeIndexReadCostPerDocument !== undefined) {
-      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
-        settings.relativeIndexReadCostPerDocument;
-    }
-  }
-}
