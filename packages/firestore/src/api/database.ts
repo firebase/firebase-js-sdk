@@ -307,25 +307,24 @@ export function configureFirestore(firestore: Firestore): void {
  *
  * Must be called before any other functions (other than
  * {@link initializeFirestore}, {@link (getFirestore:1)} or
- * {@link clearIndexedDbPersistence}.
+ * {@link clearIndexedDbPersistence}. Failing to do so will make
+ * `enableIndexedDbPersistence()` throw an error. Note that even after this
+ * failure, the {@link Firestore} instance will remain usable, however
+ * offline persistence will be disabled.
  *
- * If this fails, `enableIndexedDbPersistence()` will throw an error. Note
- * that even after this failure, the {@link Firestore} instance will
- * remain usable, however offline persistence will be disabled.
+ * There are several reasons why `enableIndexedDbPersistence()` can fail, which
+ * can be identified by the `code` on the error.
  *
- * There are several reasons why this can fail, which can be identified by
- * the `code` on the error.
- *
- *   * failed-precondition: The app is already open in another browser tab.
- *   * unimplemented: The browser is incompatible with the offline
- *     persistence implementation.
+ *   * Throw error with [failed-precondition]: The app is already open in another
+ *     browser tab.
+ *   * Reject promise with [unimplemented]: The browser is incompatible with the
+ *     offline persistence implementation.
  *
  * Persistence cannot be used in a Node.js environment.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @param persistenceSettings - Optional settings object to configure
  * persistence.
- * @throws FirestoreError if it fails.
  * @returns A `Promise` that represents successfully enabling persistent storage.
  * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
@@ -372,22 +371,21 @@ export function enableIndexedDbPersistence(
  * shared execution of queries and latency-compensated local document updates
  * across all connected instances.
  *
- * If this fails, `enableMultiTabIndexedDbPersistence()` will throw an error.
- * Note that even after this failure, the {@link Firestore} instance will
- * remain usable, however offline persistence will be disabled.
+ * If fails, `enableMultiTabIndexedDbPersistence()` will reject the promise or
+ * throw an error. Note that even after this failure, the {@link Firestore} instance
+ * will remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
  * the `code` on the error.
  *
- *   * failed-precondition: The app is already open in another browser tab and
- *     multi-tab is not enabled.
- *   * unimplemented: The browser is incompatible with the offline
- *     persistence implementation.
+ *   * Throw error with [failed-precondition]: The app is already open in another
+ *     browser tab and multi-tab is not enabled.
+ *   * Reject promise with [unimplemented]: The browser is incompatible with the
+ *     offline persistence implementation.
  *
  * @param firestore - The {@link Firestore} instance to enable persistence for.
  * @returns A `Promise` that represents successfully enabling persistent
  * storage.
- * @throws FirestoreError if it fails.
  * @deprecated This function will be removed in a future major release. Instead, set
  * `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to
  * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
