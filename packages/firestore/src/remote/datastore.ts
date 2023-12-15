@@ -18,10 +18,12 @@
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
+import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { ResourcePath } from '../model/path';
 import {
   ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
@@ -47,7 +49,6 @@ import {
 import {
   fromDocument,
   fromBatchGetDocumentsResponse,
-  getEncodedDatabaseId,
   JsonProtoSerializer,
   toMutation,
   toName,
@@ -55,8 +56,6 @@ import {
   toResourcePath,
   toRunAggregationQueryRequest
 } from './serializer';
-import { DatabaseId } from '../core/database_info';
-import { ResourcePath } from '../model/path';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -248,7 +247,7 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const { queryTarget: request, parent } = toQueryTarget(
+  const { queryTarget, parent } = toQueryTarget(
     datastoreImpl.serializer,
     queryToTarget(query)
   );
@@ -256,7 +255,7 @@ export async function invokeRunQueryRpc(
     ProtoRunQueryRequest,
     ProtoRunQueryResponse
   >('RunQuery', datastoreImpl.serializer.databaseId, parent, {
-    structuredQuery: request.structuredQuery
+    structuredQuery: queryTarget.structuredQuery
   });
   return (
     response

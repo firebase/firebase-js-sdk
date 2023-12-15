@@ -1129,7 +1129,6 @@ describe('Query', () => {
   it('supports query over collection path with special characters', () => {
     return withTestCollection(async collRef => {
       const docWithSpecials = doc(collRef, 'so!@#$%^&*()_+special');
-      await setDoc(docWithSpecials, {});
 
       const collectionWithSpecials = collection(
         docWithSpecials,
@@ -1142,7 +1141,6 @@ describe('Query', () => {
         query(collectionWithSpecials, orderBy('foo', 'asc'))
       );
 
-      expect(result.size).to.equal(2);
       verifyResults(result, { foo: 1 }, { foo: 2 });
     });
   });
@@ -2159,34 +2157,23 @@ describe('Count queries', () => {
     });
   });
 
-  it('can run count query getCountFromServer with + in document name', () => {
-    return withTestCollection(async coll => {
-      await setDoc(doc(coll, 'a+1'), {});
-      await setDoc(doc(coll, 'b1'), {});
-      await setDoc(doc(coll, 'c1'), {});
-
-      const subColl1 = collection(coll, 'a+1/sub');
-      await addDoc(subColl1, { foo: 'bar' });
-      await addDoc(subColl1, { foo: 'baz' });
-
-      const subColl2 = collection(coll, 'b1/su+b');
-      await addDoc(subColl2, { foo: 'bar' });
-      await addDoc(subColl2, { foo: 'baz' });
-
-      const subColl3 = collection(coll, 'c1/sub');
-      await addDoc(subColl3, { foo: 'bar' });
-      await addDoc(subColl3, { foo: 'baz' });
-
-      const snapshot1 = await getCount(subColl1);
-      expect(snapshot1.data().count).to.equal(2);
-
-      const snapshot2 = await getCount(subColl2);
-      expect(snapshot2.data().count).to.equal(2);
-
-      const snapshot3 = await getCount(subColl3);
-      expect(snapshot3.data().count).to.equal(2);
-    });
-  });
+  ['so!@#$%^&*()_+special/sub', 'b1/so!@#$%^&*()_+special'].forEach(
+    documentPath => {
+      it(
+        'can run count query getCount with special chars in the document path: ' +
+          documentPath,
+        () => {
+          return withTestCollection(async coll => {
+            const subColl1 = collection(coll, documentPath);
+            await addDoc(subColl1, { foo: 'bar' });
+            await addDoc(subColl1, { foo: 'baz' });
+            const snapshot1 = await getCount(subColl1);
+            expect(snapshot1.data().count).to.equal(2);
+          });
+        }
+      );
+    }
+  );
 
   it('run count query on empty collection', () => {
     return withTestCollection(async coll => {

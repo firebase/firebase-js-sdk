@@ -34,8 +34,7 @@ import {
   count,
   sum,
   average,
-  addDoc,
-  setLogLevel
+  addDoc
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -57,36 +56,23 @@ apiDescribe('Count queries', persistence => {
     });
   });
 
-  it('can run count query getCountFromServer with + in document name', () => {
-    setLogLevel('debug');
-    const testDocs = {
-      'a+1': { author: 'authorA' },
-      'b1': { author: 'authorB' },
-      'c1': { author: 'authorC' }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const subColl1 = collection(coll, 'a+1/sub');
-      await addDoc(subColl1, { foo: 'bar' });
-      await addDoc(subColl1, { foo: 'baz' });
-
-      const subColl2 = collection(coll, 'b1/su+b');
-      await addDoc(subColl2, { foo: 'bar' });
-      await addDoc(subColl2, { foo: 'baz' });
-
-      const subColl3 = collection(coll, 'c1/sub');
-      await addDoc(subColl3, { foo: 'bar' });
-      await addDoc(subColl3, { foo: 'baz' });
-
-      const snapshot1 = await getCountFromServer(subColl1);
-      expect(snapshot1.data().count).to.equal(2);
-
-      const snapshot2 = await getCountFromServer(subColl2);
-      expect(snapshot2.data().count).to.equal(2);
-
-      const snapshot3 = await getCountFromServer(subColl3);
-      expect(snapshot3.data().count).to.equal(2);
-    });
-  });
+  ['so!@#$%^&*()_+special/sub', 'b1/so!@#$%^&*()_+special'].forEach(
+    documentPath => {
+      it(
+        'can run count query getCountFromServer with special chars in the document path: ' +
+          documentPath,
+        () => {
+          return withTestCollection(persistence, {}, async coll => {
+            const subColl1 = collection(coll, documentPath);
+            await addDoc(subColl1, { foo: 'bar' });
+            await addDoc(subColl1, { foo: 'baz' });
+            const snapshot1 = await getCountFromServer(subColl1);
+            expect(snapshot1.data().count).to.equal(2);
+          });
+        }
+      );
+    }
+  );
 
   it("count query doesn't use converter", () => {
     const testDocs = {
