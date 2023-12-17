@@ -221,14 +221,11 @@ formatting guidelines. In your local build environment, please run the code form
 by executing the command `yarn format`. Once the code is formatted, commit the changes and push your
 branch. The push should cause the CI to re-check your PR's changes.
 
-### Generating Documentation HTML Files
+# Generating Documentation HTML Files
 
 If the Doc Change Check fails in your PR, it indicates that the documentation has not been generated
-correctly for the changes. In your local build environment, please run `yarn docgen devsite` to
-generate the documentation locally. Once the documentation has been generated, commit the changes
-and push your branch. The push should cause the CI to re-check your PR's changes.
-
-In order to generate the HTML documentation files locally, go to the root of this repo, and run:
+correctly for the changes. In your local build environment, please run the following commands in the
+root directory to generate the documentation locally:
 
 ```
 yarn
