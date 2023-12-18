@@ -1536,6 +1536,17 @@ export function localStoreSetFieldIndexManagementApi(
   localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
 }
 
+export function localStoreGetOrSetFieldIndexManagementApi(
+  localStore: LocalStore,
+  factory: () => FieldIndexManagementApi
+): FieldIndexManagementApi {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  if (!localStoreImpl.queryEngine.fieldIndexManagementApi) {
+    localStoreImpl.queryEngine.fieldIndexManagementApi = factory();
+  }
+  return localStoreImpl.queryEngine.fieldIndexManagementApi;
+}
+
 export function localStoreDeleteAllFieldIndexes(
   localStore: LocalStore
 ): Promise<void> {

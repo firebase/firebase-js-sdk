@@ -37,10 +37,9 @@ import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
-  localStoreSetIndexAutoCreationEnabled,
+  localStoreGetOrSetFieldIndexManagementApi,
   localStoreWriteLocally,
-  newLocalStore,
-  TestingHooks as LocalStoreTestingHooks
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
@@ -72,6 +71,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
@@ -143,13 +143,28 @@ class AsyncLocalStoreTester {
   }): void {
     this.prepareNextStep();
 
-    if (config.isEnabled !== undefined) {
-      localStoreSetIndexAutoCreationEnabled(this.localStore, config.isEnabled);
-    }
-    LocalStoreTestingHooks.setIndexAutoCreationSettings(
+    const fieldIndexManagementApi = localStoreGetOrSetFieldIndexManagementApi(
       this.localStore,
-      config
+      () => new FieldIndexManagementApiImpl()
     );
+    if (!(fieldIndexManagementApi instanceof FieldIndexManagementApiImpl)) {
+      throw new Error(
+        `fieldIndexManagementApi should be an instance of ` +
+          `FieldIndexManagementApiImpl: $fieldIndexManagementApi`
+      );
+    }
+
+    if (config.isEnabled !== undefined) {
+      fieldIndexManagementApi.indexAutoCreationEnabled = config.isEnabled;
+    }
+    if (config.indexAutoCreationMinCollectionSize !== undefined) {
+      fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
+        config.indexAutoCreationMinCollectionSize;
+    }
+    if (config.relativeIndexReadCostPerDocument !== undefined) {
+      fieldIndexManagementApi.relativeIndexReadCostPerDocument =
+        config.relativeIndexReadCostPerDocument;
+    }
   }
 
   deleteAllFieldIndexes(): Promise<void> {
