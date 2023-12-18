@@ -42,7 +42,7 @@ import {
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
-  localStoreSetIndexAutoCreationEnabled,
+  localStoreSetFieldIndexManagementApi,
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
@@ -122,6 +122,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -660,14 +661,15 @@ function genericLocalStoreTests(
   }
 
   it('localStoreSetIndexAutoCreationEnabled()', () => {
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    const api1 = new FieldIndexManagementApiImpl();
+    const api2 = new FieldIndexManagementApiImpl();
+
+    localStoreSetFieldIndexManagementApi(localStore, api1);
+    expect(queryEngine.fieldIndexManagementApi).to.equal(api1);
+    localStoreSetFieldIndexManagementApi(localStore, api2);
+    expect(queryEngine.fieldIndexManagementApi).to.equal(api2);
+    localStoreSetFieldIndexManagementApi(localStore, api1);
+    expect(queryEngine.fieldIndexManagementApi).to.equal(api1);
   });
 
   it('handles SetMutation', () => {
