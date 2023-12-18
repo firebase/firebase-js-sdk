@@ -79,6 +79,11 @@ export class Bytes {
 export const CACHE_SIZE_UNLIMITED = -1;
 
 // @public
+export type ChildTypes<T> = T extends Record<string, unknown> ? {
+    [K in keyof T & string]: ChildTypes<T[K]>;
+}[keyof T & string] | T : T;
+
+// @public
 export type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
 
 // @public
@@ -413,7 +418,7 @@ export function namedQuery(firestore: Firestore, name: string): Promise<Query | 
 
 // @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
-    [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
+    [K in keyof T & string]: string extends K ? never : ChildUpdateFields<K, T[K]>;
 }[keyof T & string]>;
 
 // @public
@@ -732,7 +737,7 @@ export interface Unsubscribe {
 
 // @public
 export type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
-    [K in keyof T]?: UpdateData<T[K]> | FieldValue;
+    [K in keyof T]?: string extends K ? PartialWithFieldValue<ChildTypes<T[K]>> : UpdateData<T[K]> | FieldValue;
 } & NestedUpdateFields<T> : Partial<T>;
 
 // @public
