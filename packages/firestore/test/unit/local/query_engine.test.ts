@@ -78,6 +78,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 const TEST_TARGET_ID = 1;
 
@@ -864,14 +865,18 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
-      queryEngine.indexAutoCreationEnabled = config.indexAutoCreationEnabled;
+      const fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+      queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
+
+      fieldIndexManagementApi.indexAutoCreationEnabled =
+        config.indexAutoCreationEnabled;
 
       if (config.indexAutoCreationMinCollectionSize !== undefined) {
-        queryEngine.indexAutoCreationMinCollectionSize =
+        fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
           config.indexAutoCreationMinCollectionSize;
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
-        queryEngine.relativeIndexReadCostPerDocument =
+        fieldIndexManagementApi.relativeIndexReadCostPerDocument =
           config.relativeIndexReadCostPerDocument;
       }
 
