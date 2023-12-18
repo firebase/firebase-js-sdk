@@ -36,7 +36,7 @@ Retrieve an item from storage.
 getItem(key: string): Promise<string | null>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -56,7 +56,7 @@ Remove an item from storage.
 removeItem(key: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -76,7 +76,7 @@ Persist an item in storage.
 setItem(key: string, value: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

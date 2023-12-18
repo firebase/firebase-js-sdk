@@ -34,7 +34,7 @@ Compares `FieldValue`<!-- -->s for equality.
 abstract isEqual(other: FieldValue): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

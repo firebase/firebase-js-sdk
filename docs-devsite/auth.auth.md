@@ -168,7 +168,7 @@ Adds a blocking callback that runs before an auth state change sets a new user.
 beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -191,7 +191,7 @@ To keep the old behavior, see [Auth.onIdTokenChanged()](./auth.auth.md#authonidt
 onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -215,7 +215,7 @@ This includes sign-in, sign-out, and token refresh events.
 onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -243,7 +243,7 @@ This method does not work in a Node.js environment.
 setPersistence(persistence: Persistence): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -290,7 +290,7 @@ The operation fails with an error if the user to be updated belongs to a differe
 updateCurrentUser(user: User | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -1,4 +1,8 @@
 # @firebase/api-documenter
+## 0.4.0
+### Minor Changes
+
+- [#7864](https://github.com/firebase/firebase-js-sdk/pull/7864) Fix documentation links for function overloads and improve readability of function headings.
 ## 0.3.0
 ### Minor Changes
 
