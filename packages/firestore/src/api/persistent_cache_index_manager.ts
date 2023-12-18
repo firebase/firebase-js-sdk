@@ -25,7 +25,6 @@ import { logDebug, logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { FieldIndexManagementApiImpl } from '../index/field_index_management';
-import { debugCast } from '../util/assert';
 
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
@@ -33,19 +32,16 @@ import { debugCast } from '../util/assert';
  *
  * To use, call `getPersistentCacheIndexManager()` to get an instance.
  */
-export interface PersistentCacheIndexManager {
+export class PersistentCacheIndexManager {
   /** A type string to uniquely identify instances of this class. */
-  readonly type: 'PersistentCacheIndexManager';
-}
+  readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
 
-class PersistentCacheIndexManagerImpl implements PersistentCacheIndexManager {
-  readonly type = 'PersistentCacheIndexManager';
+  _fieldIndexManagementApi: FieldIndexManagementApiImpl | null = null;
 
-  installed = false;
+  _fieldIndexManagementApiInstallPromise: Promise<void> | null = null;
 
-  fieldIndexManagementApiImpl: FieldIndexManagementApiImpl | null = null;
-
-  constructor(readonly client: FirestoreClient) {}
+  /** @hideconstructor */
+  constructor(readonly _client: FirestoreClient) {}
 }
 
 /**
@@ -70,7 +66,7 @@ export function getPersistentCacheIndexManager(
     return null;
   }
 
-  const instance = new PersistentCacheIndexManagerImpl(client);
+  const instance = new PersistentCacheIndexManager(client);
   persistentCacheIndexManagerByFirestore.set(firestore, instance);
   return instance;
 }
@@ -85,33 +81,30 @@ export function getPersistentCacheIndexManager(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
-  indexManagerImpl.client.verifyNotTerminated();
+  const client: FirestoreClient = indexManager._client;
+  client.verifyNotTerminated();
 
-  if (!indexManagerImpl.fieldIndexManagementApiImpl) {
-    indexManagerImpl.fieldIndexManagementApiImpl =
-      new FieldIndexManagementApiImpl();
+  if (!indexManager._fieldIndexManagementApi) {
+    indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
   }
 
-  indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationEnabled = true;
+  indexManager._fieldIndexManagementApi.indexAutoCreationEnabled = true;
 
-  if (indexManagerImpl.installed) {
+  if (indexManager._fieldIndexManagementApiInstallPromise) {
     return;
   }
 
-  const promise = firestoreClientSetFieldIndexManagementApi(
-    indexManagerImpl.client,
-    indexManagerImpl.fieldIndexManagementApiImpl
-  );
-
-  promise.then(_ => {
-    indexManagerImpl.installed = true;
-    logDebug('enabling persistent cache index auto creation succeeded');
-  });
-
-  promise.catch(error =>
-    logWarn('enabling persistent cache index auto creation failed', error)
-  );
+  indexManager._fieldIndexManagementApiInstallPromise =
+    firestoreClientSetFieldIndexManagementApi(
+      client,
+      indexManager._fieldIndexManagementApi
+    )
+      .then(_ => {
+        logDebug('enabling persistent cache index auto creation succeeded');
+      })
+      .catch(error =>
+        logWarn('enabling persistent cache index auto creation failed', error)
+      );
 }
 
 /**
@@ -122,14 +115,12 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
   // TODO: Refactor this code such that disabling persistent cache auto creation
   //  does _not_ need FieldIndexManagementApiImpl (i.e. it just uses the
   //  interface) so that FieldIndexManagementApiImpl can be tree-shaken away if
   //  the only client-side indexing function used is this one.
-  if (indexManagerImpl.fieldIndexManagementApiImpl) {
-    indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationEnabled =
-      false;
+  if (indexManager._fieldIndexManagementApi) {
+    indexManager._fieldIndexManagementApi.indexAutoCreationEnabled = false;
   }
 }
 
@@ -142,23 +133,15 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const indexManagerImpl = cast(indexManager, PersistentCacheIndexManagerImpl);
-
-  indexManagerImpl.client.verifyNotTerminated();
-
   // TODO: Refactor this code such that deleting field indexes does _not_ need
   //  FieldIndexManagementApiImpl so that FieldIndexManagementApiImpl can be
   //  tree-shaken away if the only client-side indexing function used is this
   //  one.
-  const promise = firestoreClientDeleteAllFieldIndexes(indexManagerImpl.client);
-
-  promise.then(_ =>
-    logDebug('deleting all persistent cache indexes succeeded')
-  );
-
-  promise.catch(error =>
-    logWarn('deleting all persistent cache indexes failed', error)
-  );
+  firestoreClientDeleteAllFieldIndexes(indexManager._client)
+    .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
+    .catch(error =>
+      logWarn('deleting all persistent cache indexes failed', error)
+    );
 }
 
 /**
@@ -189,22 +172,16 @@ export class TestingHooks {
       relativeIndexReadCostPerDocument?: number;
     }
   ): void {
-    const indexManagerImpl = debugCast(
-      indexManager,
-      PersistentCacheIndexManagerImpl
-    );
-
-    if (!indexManagerImpl.fieldIndexManagementApiImpl) {
-      indexManagerImpl.fieldIndexManagementApiImpl =
-        new FieldIndexManagementApiImpl();
+    if (!indexManager._fieldIndexManagementApi) {
+      indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
     }
 
     if (settings.indexAutoCreationMinCollectionSize !== undefined) {
-      indexManagerImpl.fieldIndexManagementApiImpl.indexAutoCreationMinCollectionSize =
+      indexManager._fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
         settings.indexAutoCreationMinCollectionSize;
     }
     if (settings.relativeIndexReadCostPerDocument !== undefined) {
-      indexManagerImpl.fieldIndexManagementApiImpl.relativeIndexReadCostPerDocument =
+      indexManager._fieldIndexManagementApi.relativeIndexReadCostPerDocument =
         settings.relativeIndexReadCostPerDocument;
     }
   }
