@@ -16,45 +16,45 @@ The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment.
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getAnalytics(app)](./analytics.md#getanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
-|  [initializeAnalytics(app, options)](./analytics.md#initializeanalytics) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
-|  <b>function(analyticsInstance...)</b> |
-|  [getGoogleAnalyticsClientId(analyticsInstance)](./analytics.md#getgoogleanalyticsclientid) | Retrieves a unique Google Analytics identifier for the web client. See [client\_id](https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Measure exceptions](https://developers.google.com/analytics/devguides/collection/ga4/exceptions)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)<!-- -->. |
-|  [setAnalyticsCollectionEnabled(analyticsInstance, enabled)](./analytics.md#setanalyticscollectionenabled) | Sets whether Google Analytics collection is enabled for this app on this device. Sets global <code>window['ga-disable-analyticsId'] = true;</code> |
-|  [setCurrentScreen(analyticsInstance, screenName, options)](./analytics.md#setcurrentscreen) | Use gtag <code>config</code> command to set <code>screen_name</code>. |
-|  [setUserId(analyticsInstance, id, options)](./analytics.md#setuserid) | Use gtag <code>config</code> command to set <code>user_id</code>. |
-|  [setUserProperties(analyticsInstance, properties, options)](./analytics.md#setuserproperties) | Use gtag <code>config</code> command to set all params specified. |
+|  <b>function(app, ...)</b> |
+|  [getAnalytics(app)](./analytics.md#getanalytics_cf608e1) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
+|  [initializeAnalytics(app, options)](./analytics.md#initializeanalytics_a68c1d7) | Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app. |
+|  <b>function(analyticsInstance, ...)</b> |
+|  [getGoogleAnalyticsClientId(analyticsInstance)](./analytics.md#getgoogleanalyticsclientid_b0a3b5a) | Retrieves a unique Google Analytics identifier for the web client. See [client\_id](https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_d5f1743) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_507c89b) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_918c505) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Track Screenviews](https://firebase.google.com/docs/analytics/screenviews)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_97ff7c6) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_1f89527) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_5dd5dd2) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_77bad34) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_560b592) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_0f60635) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_bf98d4d) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_88130b6) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_feb40db) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_cfbc3bb) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_f0c3c2c) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_a155179) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_c4de9a4) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_8260753) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_162cb02) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_800159e) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Measure exceptions](https://developers.google.com/analytics/devguides/collection/ga4/exceptions)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_9c11aa9) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_1f3f282) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_0792e28) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)<!-- -->. |
+|  [setAnalyticsCollectionEnabled(analyticsInstance, enabled)](./analytics.md#setanalyticscollectionenabled_494179c) | Sets whether Google Analytics collection is enabled for this app on this device. Sets global <code>window['ga-disable-analyticsId'] = true;</code> |
+|  [setCurrentScreen(analyticsInstance, screenName, options)](./analytics.md#setcurrentscreen_a6168fa) | Use gtag <code>config</code> command to set <code>screen_name</code>. |
+|  [setUserId(analyticsInstance, id, options)](./analytics.md#setuserid_86d82f6) | Use gtag <code>config</code> command to set <code>user_id</code>. |
+|  [setUserProperties(analyticsInstance, properties, options)](./analytics.md#setuserproperties_877b6e8) | Use gtag <code>config</code> command to set all params specified. |
 |  <b>function()</b> |
 |  [isSupported()](./analytics.md#issupported) | This is a public static method provided to users that wraps four different checks:<!-- -->1. Check if it's not a browser extension environment. 2. Check if cookies are enabled in current browser. 3. Check if IndexedDB is supported by the browser environment. 4. Check if the current browser context is valid for using <code>IndexedDB.open()</code>. |
-|  <b>function(consentSettings...)</b> |
-|  [setConsent(consentSettings)](./analytics.md#setconsent) | Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.<!-- -->Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted". |
-|  <b>function(customParams...)</b> |
-|  [setDefaultEventParameters(customParams)](./analytics.md#setdefaulteventparameters) | Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events. |
-|  <b>function(options...)</b> |
-|  [settings(options)](./analytics.md#settings) | Configures Firebase Analytics to use custom <code>gtag</code> or <code>dataLayer</code> names. Intended to be used if <code>gtag.js</code> script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the <code>gtag</code> function or for <code>dataLayer</code>. Must be called before calling <code>getAnalytics()</code> or it won't have any effect. |
+|  <b>function(consentSettings, ...)</b> |
+|  [setConsent(consentSettings)](./analytics.md#setconsent_1697027) | Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.<!-- -->Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interface) to specify individual consent type values. By default consent types are set to "granted". |
+|  <b>function(customParams, ...)</b> |
+|  [setDefaultEventParameters(customParams)](./analytics.md#setdefaulteventparameters_0682bee) | Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events. |
+|  <b>function(options, ...)</b> |
+|  [settings(options)](./analytics.md#settings_eb37905) | Configures Firebase Analytics to use custom <code>gtag</code> or <code>dataLayer</code> names. Intended to be used if <code>gtag.js</code> script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the <code>gtag</code> function or for <code>dataLayer</code>. Must be called before calling <code>getAnalytics()</code> or it won't have any effect. |
 
 ## Interfaces
 
@@ -81,7 +81,9 @@ The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment.
 |  [CustomEventName](./analytics.md#customeventname) | Any custom event name string not in the standard list of recommended event names. |
 |  [EventNameString](./analytics.md#eventnamestring) | Type for standard Google Analytics event names. <code>logEvent</code> also accepts any custom string and interprets it as a custom event name. |
 
-## getAnalytics()
+## function(app, ...)
+
+### getAnalytics(app) {:#getanalytics_cf608e1}
 
 Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app.
 
@@ -91,7 +93,7 @@ Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance fo
 export declare function getAnalytics(app?: FirebaseApp): Analytics;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -101,7 +103,7 @@ export declare function getAnalytics(app?: FirebaseApp): Analytics;
 
 [Analytics](./analytics.analytics.md#analytics_interface)
 
-## initializeAnalytics()
+### initializeAnalytics(app, options) {:#initializeanalytics_a68c1d7}
 
 Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance for the given app.
 
@@ -111,7 +113,7 @@ Returns an [Analytics](./analytics.analytics.md#analytics_interface) instance fo
 export declare function initializeAnalytics(app: FirebaseApp, options?: AnalyticsSettings): Analytics;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -122,7 +124,9 @@ export declare function initializeAnalytics(app: FirebaseApp, options?: Analytic
 
 [Analytics](./analytics.analytics.md#analytics_interface)
 
-## getGoogleAnalyticsClientId()
+## function(analyticsInstance, ...)
+
+### getGoogleAnalyticsClientId(analyticsInstance) {:#getgoogleanalyticsclientid_b0a3b5a}
 
 Retrieves a unique Google Analytics identifier for the web client. See [client\_id](https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id)<!-- -->.
 
@@ -132,7 +136,7 @@ Retrieves a unique Google Analytics identifier for the web client. See [client\_
 export declare function getGoogleAnalyticsClientId(analyticsInstance: Analytics): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -142,7 +146,7 @@ export declare function getGoogleAnalyticsClientId(analyticsInstance: Analytics)
 
 Promise&lt;string&gt;
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_d5f1743}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -161,7 +165,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_p
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -174,7 +178,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_p
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_507c89b}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -196,7 +200,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'purch
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -209,7 +213,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'purch
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_918c505}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -225,7 +229,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'scree
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -238,7 +242,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'scree
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_97ff7c6}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -253,7 +257,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'searc
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -266,7 +270,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'searc
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_1f89527}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -282,7 +286,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -295,7 +299,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_5dd5dd2}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -312,7 +316,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -325,7 +329,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_77bad34}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -342,7 +346,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -355,7 +359,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'selec
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_560b592}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -371,7 +375,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'set_c
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -384,7 +388,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'set_c
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_0f60635}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -401,7 +405,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'share
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -414,7 +418,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'share
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_bf98d4d}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -429,7 +433,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'sign_
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -442,7 +446,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'sign_
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_88130b6}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -460,7 +464,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'timin
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -473,7 +477,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'timin
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_feb40db}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -492,7 +496,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_s
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -505,7 +509,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_s
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_cfbc3bb}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -522,7 +526,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -535,7 +539,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_f0c3c2c}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -552,7 +556,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -565,7 +569,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'view_
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_a155179}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -579,7 +583,7 @@ export declare function logEvent<T extends string>(analyticsInstance: Analytics,
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -592,7 +596,7 @@ export declare function logEvent<T extends string>(analyticsInstance: Analytics,
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_c4de9a4}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -609,7 +613,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_t
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -622,7 +626,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'add_t
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_8260753}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -640,7 +644,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'begin
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -653,7 +657,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'begin
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_162cb02}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -673,7 +677,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'check
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -686,7 +690,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'check
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_800159e}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -702,7 +706,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'excep
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -715,7 +719,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'excep
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_9c11aa9}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -731,7 +735,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'gener
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -744,7 +748,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'gener
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_1f3f282}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -759,7 +763,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'login
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -772,7 +776,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'login
 
 void
 
-## logEvent()
+### logEvent(analyticsInstance, eventName, eventParams, options) {:#logevent_0792e28}
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
@@ -789,7 +793,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'page_
 }, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -802,7 +806,7 @@ export declare function logEvent(analyticsInstance: Analytics, eventName: 'page_
 
 void
 
-## setAnalyticsCollectionEnabled()
+### setAnalyticsCollectionEnabled(analyticsInstance, enabled) {:#setanalyticscollectionenabled_494179c}
 
 Sets whether Google Analytics collection is enabled for this app on this device. Sets global `window['ga-disable-analyticsId'] = true;`
 
@@ -812,7 +816,7 @@ Sets whether Google Analytics collection is enabled for this app on this device.
 export declare function setAnalyticsCollectionEnabled(analyticsInstance: Analytics, enabled: boolean): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -823,7 +827,7 @@ export declare function setAnalyticsCollectionEnabled(analyticsInstance: Analyti
 
 void
 
-## setCurrentScreen()
+### setCurrentScreen(analyticsInstance, screenName, options) {:#setcurrentscreen_a6168fa}
 
 > Warning: This API is now obsolete.
 > 
@@ -838,7 +842,7 @@ Use gtag `config` command to set `screen_name`<!-- -->.
 export declare function setCurrentScreen(analyticsInstance: Analytics, screenName: string, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -850,7 +854,7 @@ export declare function setCurrentScreen(analyticsInstance: Analytics, screenNam
 
 void
 
-## setUserId()
+### setUserId(analyticsInstance, id, options) {:#setuserid_86d82f6}
 
 Use gtag `config` command to set `user_id`<!-- -->.
 
@@ -860,7 +864,7 @@ Use gtag `config` command to set `user_id`<!-- -->.
 export declare function setUserId(analyticsInstance: Analytics, id: string | null, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -872,7 +876,7 @@ export declare function setUserId(analyticsInstance: Analytics, id: string | nul
 
 void
 
-## setUserProperties()
+### setUserProperties(analyticsInstance, properties, options) {:#setuserproperties_877b6e8}
 
 Use gtag `config` command to set all params specified.
 
@@ -882,7 +886,7 @@ Use gtag `config` command to set all params specified.
 export declare function setUserProperties(analyticsInstance: Analytics, properties: CustomParams, options?: AnalyticsCallOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -894,7 +898,9 @@ export declare function setUserProperties(analyticsInstance: Analytics, properti
 
 void
 
-## isSupported()
+## function()
+
+### isSupported() {:#issupported}
 
 This is a public static method provided to users that wraps four different checks:
 
@@ -909,7 +915,9 @@ export declare function isSupported(): Promise<boolean>;
 
 Promise&lt;boolean&gt;
 
-## setConsent()
+## function(consentSettings, ...)
+
+### setConsent(consentSettings) {:#setconsent_1697027}
 
 Sets the applicable end user consent state for this web app across all gtag references once Firebase Analytics is initialized.
 
@@ -921,7 +929,7 @@ Use the [ConsentSettings](./analytics.consentsettings.md#consentsettings_interfa
 export declare function setConsent(consentSettings: ConsentSettings): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -931,7 +939,9 @@ export declare function setConsent(consentSettings: ConsentSettings): void;
 
 void
 
-## setDefaultEventParameters()
+## function(customParams, ...)
+
+### setDefaultEventParameters(customParams) {:#setdefaulteventparameters_0682bee}
 
 Adds data that will be set on every event logged from the SDK, including automatic ones. With gtag's "set" command, the values passed persist on the current page and are passed with all subsequent events.
 
@@ -941,7 +951,7 @@ Adds data that will be set on every event logged from the SDK, including automat
 export declare function setDefaultEventParameters(customParams: CustomParams): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -951,7 +961,9 @@ export declare function setDefaultEventParameters(customParams: CustomParams): v
 
 void
 
-## settings()
+## function(options, ...)
+
+### settings(options) {:#settings_eb37905}
 
 Configures Firebase Analytics to use custom `gtag` or `dataLayer` names. Intended to be used if `gtag.js` script has been installed on this page independently of Firebase Analytics, and is using non-default names for either the `gtag` function or for `dataLayer`<!-- -->. Must be called before calling `getAnalytics()` or it won't have any effect.
 
@@ -961,7 +973,7 @@ Configures Firebase Analytics to use custom `gtag` or `dataLayer` names. Intende
 export declare function settings(options: SettingsOptions): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

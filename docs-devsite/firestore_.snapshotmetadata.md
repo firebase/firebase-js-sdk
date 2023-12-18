@@ -61,7 +61,7 @@ Returns true if this `SnapshotMetadata` is equal to the provided one.
 isEqual(other: SnapshotMetadata): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

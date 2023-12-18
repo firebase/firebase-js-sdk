@@ -85,13 +85,17 @@ export class CustomMarkdownEmitter extends MarkdownEmitter {
             prefix = '###';
             break;
           case 3:
-            prefix = '###';
+            prefix = '####';
             break;
           default:
             prefix = '####';
         }
 
-        writer.writeLine(prefix + ' ' + this.getEscapedText(docHeading.title));
+        let mdLine = prefix + ' ' + this.getEscapedText(docHeading.title);
+        if (docHeading.anchor) {
+          mdLine = mdLine + ` {:#${docHeading.anchor}}`;
+        }
+        writer.writeLine(mdLine);
         writer.writeLine();
         break;
       }

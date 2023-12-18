@@ -35,7 +35,7 @@ Constructs a new instance of the `CustomProvider` class
 constructor(_customProviderOptions: CustomProviderOptions);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

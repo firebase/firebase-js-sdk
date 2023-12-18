@@ -48,6 +48,7 @@ import { PackageName } from '@rushstack/node-core-library';
 import { DocNoteBox } from '../nodes/DocNoteBox';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
+import { createHash } from 'crypto';
 
 export function getLinkForApiItem(
   apiItem: ApiItem,
@@ -117,15 +118,15 @@ export function getFilenameForApiItem(
   return baseName + '.md';
 }
 
-// TODO: handle method overloads and namespace?
-function getHeadingAnchorForApiItem(apiItem: ApiItem): string {
+// TODO: handle namespace?
+export function getHeadingAnchorForApiItem(apiItem: ApiItem): string {
   const scopedName: string = lowercaseAndRemoveSymbols(
     apiItem.getScopedNameWithinPackage()
   );
 
   switch (apiItem.kind) {
     case ApiItemKind.Function:
-      return `${scopedName}`;
+      return lowercaseAndRemoveSymbols(getFunctionOverloadAnchor(apiItem));
     case ApiItemKind.Variable:
       return `${scopedName}`;
     case ApiItemKind.TypeAlias:
@@ -166,6 +167,29 @@ function getHeadingAnchorForApiItem(apiItem: ApiItem): string {
         'Unsupported API item kind:3 ' + apiItem.kind + apiItem.displayName
       );
   }
+}
+
+/**
+ * Generates a unique link for a function.  Example: "getArea_paramhashhere"
+ */
+function getFunctionOverloadAnchor(apiItem: ApiItem): string {
+  if (
+    ApiParameterListMixin.isBaseClassOf(apiItem) &&
+    apiItem.parameters.length > 0
+  ) {
+    // Create a sha256 hash from the parameter names and types.
+    const hash = createHash('sha256');
+    apiItem.parameters.forEach(param =>
+      hash.update(`${param.name}:${param.parameterTypeExcerpt.text}`)
+    );
+    // Use the first 7 characters of the hash for an easier to read URL.
+    const paramHash = hash.digest('hex').substring(0, 7);
+
+    // Suffix the API item name with the paramHash to generate a unique
+    // anchor for function overloads
+    return apiItem.getScopedNameWithinPackage() + '_' + paramHash;
+  }
+  return apiItem.getScopedNameWithinPackage();
 }
 
 function lowercaseAndRemoveSymbols(input: string): string {
@@ -323,7 +347,8 @@ function appendAndMergeSection(
 
 export function createThrowsSection(
   apiItem: ApiItem,
-  configuration: TSDocConfiguration
+  configuration: TSDocConfiguration,
+  parentHeadingLevel: number
 ): DocNode[] {
   const output: DocNode[] = [];
   if (apiItem instanceof ApiDocumentedItem) {
@@ -339,7 +364,13 @@ export function createThrowsSection(
 
       if (throwsBlocks.length > 0) {
         const heading: string = 'Exceptions';
-        output.push(new DocHeading({ configuration, title: heading }));
+        output.push(
+          new DocHeading({
+            configuration,
+            title: heading,
+            level: parentHeadingLevel + 1
+          })
+        );
 
         for (const throwsBlock of throwsBlocks) {
           output.push(...throwsBlock.content.nodes);

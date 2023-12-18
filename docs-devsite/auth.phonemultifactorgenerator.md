@@ -52,7 +52,7 @@ This method does not work in a Node.js environment.
 static assertion(credential: PhoneAuthCredential): PhoneMultiFactorAssertion;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -52,7 +52,7 @@ Finishes a phone number sign-in, link, or reauthentication.
 confirm(verificationCode: string): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

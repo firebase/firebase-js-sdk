@@ -96,7 +96,7 @@ Returns a QR code URL as described in https://github.com/google/google-authentic
 generateQrCodeUrl(accountName?: string, issuer?: string): string;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

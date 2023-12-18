@@ -26,7 +26,7 @@ export declare interface FirestoreDataConverter<AppModelType, DbModelType extend
 |  --- | --- |
 |  [fromFirestore(snapshot, options)](./firestore_.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type <code>AppModelType</code>. You can access your data by calling: <code>snapshot.data(options)</code>.<!-- -->Generally, the data returned from <code>snapshot.data()</code> can be cast to <code>DbModelType</code>; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout. |
 |  [toFirestore(modelObject)](./firestore_.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain JavaScript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. To use <code>set()</code> with <code>merge</code> and <code>mergeFields</code>, <code>toFirestore()</code> must be defined with <code>PartialWithFieldValue&lt;AppModelType&gt;</code>.<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
-|  [toFirestore(modelObject, options)](./firestore_.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain JavaScript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_.md#setdoc)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
+|  [toFirestore(modelObject, options)](./firestore_.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain JavaScript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_.md#setdoc_ee215ad)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion_7d853aa) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
 
 ## FirestoreDataConverter.fromFirestore()
 
@@ -40,7 +40,7 @@ Generally, the data returned from `snapshot.data()` can be cast to `DbModelType`
 fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>, options?: SnapshotOptions): AppModelType;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -63,7 +63,7 @@ The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as [dele
 toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -75,9 +75,9 @@ toFirestore(modelObject: WithFieldValue<AppModelType>): WithFieldValue<DbModelTy
 
 ## FirestoreDataConverter.toFirestore()
 
-Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain JavaScript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_.md#setdoc)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
+Called by the Firestore SDK to convert a custom model object of type `AppModelType` into a plain JavaScript object (suitable for writing directly to the Firestore database) of type `DbModelType`<!-- -->. Used with [setDoc()](./firestore_.md#setdoc_ee215ad)<!-- -->,  and  with `merge:true` or `mergeFields`<!-- -->.
 
-The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion) to be used as property values. It also supports nested `Partial` by allowing nested fields to be omitted.
+The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion_7d853aa) to be used as property values. It also supports nested `Partial` by allowing nested fields to be omitted.
 
 <b>Signature:</b>
 
@@ -85,7 +85,7 @@ The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow FieldValues su
 toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOptions): PartialWithFieldValue<DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -98,43 +98,162 @@ toFirestore(modelObject: PartialWithFieldValue<AppModelType>, options: SetOption
 
 ### Example
 
+Simple Example
 
 ```typescript
-class Post {
-  constructor(readonly title: string, readonly author: string) {}
-
-  toString(): string {
-    return this.title + ', by ' + this.author;
-  }
-}
-
-interface PostDbModel {
-  title: string;
-  author: string;
-}
-
-const postConverter = {
-  toFirestore(post: WithFieldValue<Post>): PostDbModel {
-    return {title: post.title, author: post.author};
-  },
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot,
-    options: SnapshotOptions
-  ): Post {
-    const data = snapshot.data(options) as PostDbModel;
-    return new Post(data.title, data.author);
-  }
+const numberConverter = {
+    toFirestore(value: WithFieldValue<number>) {
+        return { value };
+    },
+    fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
+        return snapshot.data(options).value as number;
+    }
 };
 
-const postSnap = await firebase.firestore()
-  .collection('posts')
-  .withConverter(postConverter)
-  .doc().get();
-const post = postSnap.data();
-if (post !== undefined) {
-  post.title; // string
-  post.toString(); // Should be defined
-  post.someNonExistentProperty; // TS error
+async function simpleDemo(db: Firestore): Promise<void> {
+    const documentRef = doc(db, 'values/value123').withConverter(numberConverter);
+
+    // converters are used with `setDoc`, `addDoc`, and `getDoc`
+    await setDoc(documentRef, 42);
+    const snapshot1 = await getDoc(documentRef);
+    assertEqual(snapshot1.data(), 42);
+
+    // converters are not used when writing data with `updateDoc`
+    await updateDoc(documentRef, { value: 999 });
+    const snapshot2 = await getDoc(documentRef);
+    assertEqual(snapshot2.data(), 999);
+}
+
+```
+Advanced Example
+
+```typescript
+// The Post class is a model that is used by our application.
+// This class may have properties and methods that are specific
+// to our application execution, which do not need to be persisted
+// to Firestore.
+class Post {
+    constructor(
+        readonly title: string,
+        readonly author: string,
+        readonly lastUpdatedMillis: number
+    ) {}
+    toString(): string {
+        return `${this.title} by ${this.author}`;
+    }
+}
+
+// The PostDbModel represents how we want our posts to be stored
+// in Firestore. This DbModel has different properties (`ttl`,
+// `aut`, and `lut`) from the Post class we use in our application.
+interface PostDbModel {
+    ttl: string;
+    aut: { firstName: string; lastName: string };
+    lut: Timestamp;
+}
+
+// The `PostConverter` implements `FirestoreDataConverter` and specifies
+// how the Firestore SDK can convert `Post` objects to `PostDbModel`
+// objects and vice versa.
+class PostConverter implements FirestoreDataConverter<Post, PostDbModel> {
+    toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> {
+        return {
+            ttl: post.title,
+            aut: this._autFromAuthor(post.author),
+            lut: this._lutFromLastUpdatedMillis(post.lastUpdatedMillis)
+        };
+    }
+
+    fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): Post {
+        const data = snapshot.data(options) as PostDbModel;
+        const author = `${data.aut.firstName} ${data.aut.lastName}`;
+        return new Post(data.ttl, author, data.lut.toMillis());
+    }
+
+    _autFromAuthor(
+        author: string | FieldValue
+    ): { firstName: string; lastName: string } | FieldValue {
+        if (typeof author !== 'string') {
+            // `author` is a FieldValue, so just return it.
+            return author;
+        }
+        const [firstName, lastName] = author.split(' ');
+        return {firstName, lastName};
+    }
+
+    _lutFromLastUpdatedMillis(
+        lastUpdatedMillis: number | FieldValue
+    ): Timestamp | FieldValue {
+        if (typeof lastUpdatedMillis !== 'number') {
+            // `lastUpdatedMillis` must be a FieldValue, so just return it.
+            return lastUpdatedMillis;
+        }
+        return Timestamp.fromMillis(lastUpdatedMillis);
+    }
+}
+
+async function advancedDemo(db: Firestore): Promise<void> {
+    // Create a `DocumentReference` with a `FirestoreDataConverter`.
+    const documentRef = doc(db, 'posts/post123').withConverter(new PostConverter());
+
+    // The `data` argument specified to `setDoc()` is type checked by the
+    // TypeScript compiler to be compatible with `Post`. Since the `data`
+    // argument is typed as `WithFieldValue<Post>` rather than just `Post`,
+    // this allows properties of the `data` argument to also be special
+    // Firestore values that perform server-side mutations, such as
+    // `arrayRemove()`, `deleteField()`, and `serverTimestamp()`.
+    await setDoc(documentRef, {
+        title: 'My Life',
+        author: 'Foo Bar',
+        lastUpdatedMillis: serverTimestamp()
+    });
+
+    // The TypeScript compiler will fail to compile if the `data` argument to
+    // `setDoc()` is _not_ compatible with `WithFieldValue<Post>`. This
+    // type checking prevents the caller from specifying objects with incorrect
+    // properties or property values.
+    // @ts-expect-error "Argument of type { ttl: string; } is not assignable
+    // to parameter of type WithFieldValue<Post>"
+    await setDoc(documentRef, { ttl: 'The Title' });
+
+    // When retrieving a document with `getDoc()` the `DocumentSnapshot`
+    // object's `data()` method returns a `Post`, rather than a generic object,
+    // which would have been returned if the `DocumentReference` did _not_ have a
+    // `FirestoreDataConverter` attached to it.
+    const snapshot1: DocumentSnapshot<Post> = await getDoc(documentRef);
+    const post1: Post = snapshot1.data()!;
+    if (post1) {
+        assertEqual(post1.title, 'My Life');
+        assertEqual(post1.author, 'Foo Bar');
+    }
+
+    // The `data` argument specified to `updateDoc()` is type checked by the
+    // TypeScript compiler to be compatible with `PostDbModel`. Note that
+    // unlike `setDoc()`, whose `data` argument must be compatible with `Post`,
+    // the `data` argument to `updateDoc()` must be compatible with
+    // `PostDbModel`. Similar to `setDoc()`, since the `data` argument is typed
+    // as `WithFieldValue<PostDbModel>` rather than just `PostDbModel`, this
+    // allows properties of the `data` argument to also be those special
+    // Firestore values, like `arrayRemove()`, `deleteField()`, and
+    // `serverTimestamp()`.
+    await updateDoc(documentRef, {
+        'aut.firstName': 'NewFirstName',
+        lut: serverTimestamp()
+    });
+
+    // The TypeScript compiler will fail to compile if the `data` argument to
+    // `updateDoc()` is _not_ compatible with `WithFieldValue<PostDbModel>`.
+    // This type checking prevents the caller from specifying objects with
+    // incorrect properties or property values.
+    // @ts-expect-error "Argument of type { title: string; } is not assignable
+    // to parameter of type WithFieldValue<PostDbModel>"
+    await updateDoc(documentRef, { title: 'New Title' });
+    const snapshot2: DocumentSnapshot<Post> = await getDoc(documentRef);
+    const post2: Post = snapshot2.data()!;
+    if (post2) {
+        assertEqual(post2.title, 'My Life');
+        assertEqual(post2.author, 'NewFirstName Bar');
+    }
 }
 
 ```

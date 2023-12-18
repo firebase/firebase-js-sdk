@@ -52,7 +52,7 @@ Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmul
 static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -75,7 +75,7 @@ Provides a [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmul
 static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -98,7 +98,7 @@ Returns a promise to [TotpSecret](./auth.totpsecret.md#totpsecret_class) which c
 static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

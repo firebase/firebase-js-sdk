@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ActionCodeInfo interface
-A response from [checkActionCode()](./auth.md#checkactioncode)<!-- -->.
+A response from [checkActionCode()](./auth.md#checkactioncode_d2ae15a)<!-- -->.
 
 <b>Signature:</b>
 
