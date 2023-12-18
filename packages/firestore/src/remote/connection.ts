@@ -38,14 +38,15 @@ export interface Connection {
    * representing the JSON to send.
    *
    * @param rpcName - the name of the RPC to invoke
-   * @param path - the path to invoke this RPC on
+   * @param path - the path to invoke this RPC on. An array of path segments
+   * that will be encoded and joined with path separators when required.
    * @param request - the Raw JSON object encoding of the request message
    * @param token - the Token to use for the RPC.
    * @returns a Promise containing the JSON object encoding of the response
    */
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: string[],
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null
@@ -57,7 +58,8 @@ export interface Connection {
    * completion and then returned as an array.
    *
    * @param rpcName - the name of the RPC to invoke
-   * @param path - the path to invoke this RPC on
+   * @param path - the path to invoke this RPC on. An array of path segments
+   * that will be encoded and joined with path separators when required.
    * @param request - the Raw JSON object encoding of the request message
    * @param token - the Token to use for the RPC.
    * @returns a Promise containing an array with the JSON object encodings of the
@@ -65,7 +67,7 @@ export interface Connection {
    */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: string[],
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,

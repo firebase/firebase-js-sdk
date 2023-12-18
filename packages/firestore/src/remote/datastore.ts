@@ -106,10 +106,7 @@ class DatastoreImpl extends Datastore {
       this.appCheckCredentials.getToken()
     ])
       .then(([authToken, appCheckToken]) => {
-        const path = toResourcePath(databaseId, resourcePath)
-          .toArray()
-          .map(encodeURIComponent)
-          .join('/');
+        const path = toResourcePath(databaseId, resourcePath).toArray();
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
           path,
@@ -145,10 +142,7 @@ class DatastoreImpl extends Datastore {
       this.appCheckCredentials.getToken()
     ])
       .then(([authToken, appCheckToken]) => {
-        const path = toResourcePath(databaseId, resourcePath)
-          .toArray()
-          .map(encodeURIComponent)
-          .join('/');
+        const path = toResourcePath(databaseId, resourcePath).toArray();
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,
           path,

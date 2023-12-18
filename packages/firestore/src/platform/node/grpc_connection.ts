@@ -114,7 +114,7 @@ export class GrpcConnection implements Connection {
 
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: string[],
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null
@@ -166,7 +166,7 @@ export class GrpcConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: string[],
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
