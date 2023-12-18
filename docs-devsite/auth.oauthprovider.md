@@ -40,7 +40,7 @@ The raw nonce is required when an ID token with a nonce field is provided. The S
 credential(params: OAuthCredentialOptions): OAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -74,7 +74,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromError(error: FirebaseError): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -94,7 +94,7 @@ Creates an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) fr
 static credentialFromJSON(json: object | string): OAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -114,7 +114,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

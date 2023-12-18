@@ -78,7 +78,7 @@
     "@types/long": "4.0.2",
     "@types/mocha": "9.1.1",
     "@types/mz": "2.7.4",
-    "@types/node": "12.20.50",
+    "@types/node": "16.18.68",
     "@types/request": "2.48.8",
     "@types/sinon": "9.0.11",
     "@types/sinon-chai": "3.2.9",

@@ -48,7 +48,7 @@ export class Transaction {
    * A deferred usage error that occurred previously in this transaction that
    * will cause the transaction to fail once it actually commits.
    */
-  private lastWriteError: FirestoreError | null = null;
+  private lastTransactionError: FirestoreError | null = null;
 
   /**
    * Set of documents that have been written in the transaction.
@@ -64,10 +64,11 @@ export class Transaction {
     this.ensureCommitNotCalled();
 
     if (this.mutations.length > 0) {
-      throw new FirestoreError(
+      this.lastTransactionError = new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Firestore transactions require all reads to be executed before all writes.'
       );
+      throw this.lastTransactionError;
     }
     const docs = await invokeBatchGetDocumentsRpc(this.datastore, keys);
     docs.forEach(doc => this.recordVersion(doc));
@@ -83,7 +84,7 @@ export class Transaction {
     try {
       this.write(data.toMutation(key, this.preconditionForUpdate(key)));
     } catch (e) {
-      this.lastWriteError = e as FirestoreError | null;
+      this.lastTransactionError = e as FirestoreError | null;
     }
     this.writtenDocs.add(key.toString());
   }
@@ -96,8 +97,8 @@ export class Transaction {
   async commit(): Promise<void> {
     this.ensureCommitNotCalled();
 
-    if (this.lastWriteError) {
-      throw this.lastWriteError;
+    if (this.lastTransactionError) {
+      throw this.lastTransactionError;
     }
     const unwritten = this.readVersions;
     // For each mutation, note that the doc was written.

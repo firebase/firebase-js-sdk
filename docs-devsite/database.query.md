@@ -60,7 +60,7 @@ Two `Query` objects are equivalent if they represent the same location, have the
 isEqual(other: Query | null): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -51,7 +51,7 @@ readonly providerId: string;
 
 The authentication sign in method for the credential.
 
-For example, [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_PASSWORD, or [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_LINK. This corresponds to the sign-in method identifier as returned in [fetchSignInMethodsForEmail()](./auth.md#fetchsigninmethodsforemail)<!-- -->.
+For example, [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_PASSWORD, or [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_LINK. This corresponds to the sign-in method identifier as returned in [fetchSignInMethodsForEmail()](./auth.md#fetchsigninmethodsforemail_efb3887)<!-- -->.
 
 <b>Signature:</b>
 
