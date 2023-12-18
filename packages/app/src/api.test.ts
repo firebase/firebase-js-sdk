@@ -195,7 +195,6 @@ describe('API tests', () => {
       };
 
       const serverAppSettings : FirebaseServerAppSettings = {
-        name: "",
         automaticDataCollectionEnabled: false,
         releaseOnDeref: options
       };

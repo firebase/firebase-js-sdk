@@ -286,7 +286,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * There is no get for FirebaseServerApps, so the name is not relevant. however it's always
    * a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration.
    */
-  name?: "";
+  name?: undefined;
 }
 
 /**

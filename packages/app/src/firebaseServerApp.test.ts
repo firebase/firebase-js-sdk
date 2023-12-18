@@ -28,7 +28,6 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings : FirebaseServerAppSettings = {
-      name: "",
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
@@ -50,7 +49,6 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings : FirebaseServerAppSettings = {
-      name: "",
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
@@ -71,7 +69,6 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings : FirebaseServerAppSettings = {
-      name: "",
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };

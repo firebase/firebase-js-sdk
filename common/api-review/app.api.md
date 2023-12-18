@@ -84,7 +84,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
     appCheckToken?: string;
     authIdToken?: string;
     installationsAuthToken?: string;
-    name?: "";
+    name?: undefined;
     releaseOnDeref?: object;
 }
 
