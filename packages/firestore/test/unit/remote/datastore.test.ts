@@ -49,7 +49,7 @@ describe('Datastore', () => {
 
     invokeRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: string[],
       request: Req,
       token: Token | null
     ): Promise<Resp> {
@@ -58,7 +58,7 @@ describe('Datastore', () => {
 
     invokeStreamingRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: string[],
       request: Req,
       token: Token | null
     ): Promise<Resp[]> {
