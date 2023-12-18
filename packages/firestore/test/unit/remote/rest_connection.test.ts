@@ -73,7 +73,7 @@ describe('RestConnection', () => {
   it('url uses from path', async () => {
     await connection.invokeRPC(
       'Commit',
-      'projects/testproject/databases/(default)/documents',
+      'projects/testproject/databases/(default)/documents'.split('/'),
       {},
       null,
       null
@@ -86,7 +86,7 @@ describe('RestConnection', () => {
   it('merges headers', async () => {
     await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/foo',
+      'projects/testproject/databases/(default)/documents/foo'.split('/'),
       {},
       new OAuthToken('owner', User.UNAUTHENTICATED),
       new AppCheckToken('some-app-check-token')
@@ -105,7 +105,7 @@ describe('RestConnection', () => {
   it('empty app check token is not added to headers', async () => {
     await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/foo',
+      'projects/testproject/databases/(default)/documents/foo'.split('/'),
       {},
       null,
       new AppCheckToken('')
@@ -124,7 +124,7 @@ describe('RestConnection', () => {
     connection.nextResponse = Promise.resolve({ response: true });
     const response = await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/coll',
+      'projects/testproject/databases/(default)/documents/coll'.split('/'),
       {},
       null,
       null
@@ -138,7 +138,7 @@ describe('RestConnection', () => {
     return expect(
       connection.invokeRPC(
         'RunQuery',
-        'projects/testproject/databases/(default)/documents/coll',
+        'projects/testproject/databases/(default)/documents/coll'.split('/'),
         {},
         null,
         null
