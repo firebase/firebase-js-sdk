@@ -376,10 +376,10 @@ export function enableIndexedDbPersistence(
  * throw an error. There are several reasons why this can fail, which can be
  * identified by the `code` on the error.
  *
- *   * Throw error with [failed-precondition]: The app is already open in another
- *     browser tab and multi-tab is not enabled.
- *   * Reject promise with [unimplemented]: The browser is incompatible with the
- *     offline persistence implementation.
+ *   * failed-precondition: The app is already open in another browser tab and
+ *     multi-tab is not enabled.
+ *   * unimplemented: The browser is incompatible with the offline persistence
+ *     implementation.
  *
  * Note that even after this failure, the {@link Firestore} instance will remain
  * usable, however offline persistence will be disabled.
