@@ -34,10 +34,10 @@ packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-compat @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-interop-types @lisajian @prameshj @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-compat @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-types @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth-interop-types @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
