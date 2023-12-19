@@ -47,7 +47,7 @@ function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
           case 0:
             try {
               db.createObjectStore(STORE_NAME);
-            } catch(e) {
+            } catch (e) {
               // Safari/iOS browsers throw occasional exceptions on
               // db.createObjectStore() that may be a bug. Avoid blocking
               // the rest of the app functionality.
