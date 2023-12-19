@@ -45,7 +45,14 @@ function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
         // eslint-disable-next-line default-case
         switch (oldVersion) {
           case 0:
-            db.createObjectStore(STORE_NAME);
+            try {
+              db.createObjectStore(STORE_NAME);
+            } catch(e) {
+              // Safari/iOS browsers throw occasional exceptions on
+              // db.createObjectStore() that may be a bug. Avoid blocking
+              // the rest of the app functionality.
+              console.warn(e);
+            }
         }
       }
     }).catch(e => {
