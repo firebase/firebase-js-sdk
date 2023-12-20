@@ -89,7 +89,7 @@ export abstract class RestConnection implements Connection {
     appCheckToken: Token | null
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
-    const url = this.makeUrl(rpcName, path.map(encodeURIComponent).join('/'));
+    const url = this.makeUrl(rpcName, path.toUriEncodedString());
     logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers: StringMap = {
@@ -120,7 +120,7 @@ export abstract class RestConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string[],
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
