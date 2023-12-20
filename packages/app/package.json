@@ -7,9 +7,6 @@
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
   "esm5": "dist/esm/index.esm5.js",
-  "engines": {
-    "node": ">=14.6.0"
-  },
   "exports": {
     ".": {
       "types": "./dist/app-public.d.ts",
