@@ -1135,6 +1135,25 @@ describe('Query', () => {
       );
     });
   });
+
+  it('supports query over collection path with special characters', () => {
+    return withTestCollection(async collRef => {
+      const docWithSpecials = doc(collRef, 'so!@#$%^&*()_+special');
+
+      const collectionWithSpecials = collection(
+        docWithSpecials,
+        'so!@#$%^&*()_+special'
+      );
+      await addDoc(collectionWithSpecials, { foo: 1 });
+      await addDoc(collectionWithSpecials, { foo: 2 });
+
+      const result = await getDocs(
+        query(collectionWithSpecials, orderBy('foo', 'asc'))
+      );
+
+      verifyResults(result, { foo: 1 }, { foo: 2 });
+    });
+  });
 });
 
 describe('equality', () => {
@@ -2147,6 +2166,24 @@ describe('Count queries', () => {
       expect(snapshot.query).to.equal(query_);
     });
   });
+
+  ['so!@#$%^&*()_+special/sub', 'b1/so!@#$%^&*()_+special'].forEach(
+    documentPath => {
+      it(
+        'can run count query getCount with special chars in the document path: ' +
+          documentPath,
+        () => {
+          return withTestCollection(async coll => {
+            const subColl1 = collection(coll, documentPath);
+            await addDoc(subColl1, { foo: 'bar' });
+            await addDoc(subColl1, { foo: 'baz' });
+            const snapshot1 = await getCount(subColl1);
+            expect(snapshot1.data().count).to.equal(2);
+          });
+        }
+      );
+    }
+  );
 
   it('run count query on empty collection', () => {
     return withTestCollection(async coll => {

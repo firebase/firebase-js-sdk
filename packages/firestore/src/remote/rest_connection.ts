@@ -22,6 +22,7 @@ import {
   DatabaseInfo,
   DEFAULT_DATABASE_NAME
 } from '../core/database_info';
+import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { generateUniqueDebugId } from '../util/debug_uid';
 import { FirestoreError } from '../util/error';
@@ -82,13 +83,13 @@ export abstract class RestConnection implements Connection {
 
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     req: Req,
     authToken: Token | null,
     appCheckToken: Token | null
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
-    const url = this.makeUrl(rpcName, path);
+    const url = this.makeUrl(rpcName, path.toUriEncodedString());
     logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
     const headers: StringMap = {
@@ -119,7 +120,7 @@ export abstract class RestConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
