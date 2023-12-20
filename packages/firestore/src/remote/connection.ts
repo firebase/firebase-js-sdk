@@ -16,6 +16,7 @@
  */
 
 import { Token } from '../api/credentials';
+import { ResourcePath } from '../model/path';
 import { FirestoreError } from '../util/error';
 
 /**
@@ -46,7 +47,7 @@ export interface Connection {
    */
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string[],
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null
@@ -67,7 +68,7 @@ export interface Connection {
    */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string[],
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
