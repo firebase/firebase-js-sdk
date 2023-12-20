@@ -27,7 +27,7 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings : FirebaseServerAppSettings = {
+    const serverAppSettings: FirebaseServerAppSettings = {
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
@@ -39,7 +39,6 @@ describe('FirebaseServerApp', () => {
     );
 
     expect(firebaseServerAppImpl.automaticDataCollectionEnabled).to.be.false;
-    expect(firebaseServerAppImpl.name).to.equal('test');
     expect(firebaseServerAppImpl.options).to.deep.equal(options);
   });
 
@@ -48,7 +47,7 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings : FirebaseServerAppSettings = {
+    const serverAppSettings: FirebaseServerAppSettings = {
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
@@ -68,7 +67,7 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings : FirebaseServerAppSettings = {
+    const serverAppSettings: FirebaseServerAppSettings = {
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
@@ -89,29 +88,56 @@ describe('FirebaseServerApp', () => {
       apiKey: 'APIKEY'
     };
 
-    const serverAppSettings : FirebaseServerAppSettings = {
+    const serverAppSettings: FirebaseServerAppSettings = {
       automaticDataCollectionEnabled: false,
       releaseOnDeref: options
     };
 
-    const firebaseServerAppImpl = new FirebaseServerAppImpl(
+    const app = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
       new ComponentContainer('test')
     );
 
-    expect(() => firebaseServerAppImpl.name).to.not.throw();
-    (firebaseServerAppImpl as unknown as FirebaseServerAppImpl).isDeleted =
-      true;
+    expect(() => app.options).to.not.throw();
+    (app as unknown as FirebaseServerAppImpl).isDeleted = true;
 
-    expect(() => {
-      firebaseServerAppImpl.name;
-    }).throws("Firebase App named 'test' already deleted");
-    expect(() => firebaseServerAppImpl.options).throws(
-      "Firebase App named 'test' already deleted"
+    expect(() => app.options).throws('Firebase Server App has been deleted');
+
+    expect(() => app.automaticDataCollectionEnabled).throws(
+      'Firebase Server App has been deleted'
     );
-    expect(() => firebaseServerAppImpl.automaticDataCollectionEnabled).throws(
-      "Firebase App named 'test' already deleted"
+  });
+
+  it('throws accessing any method after being deleted', () => {
+    const options = {
+      apiKey: 'APIKEY'
+    };
+
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const app = new FirebaseServerAppImpl(
+      options,
+      serverAppSettings,
+      new ComponentContainer('test')
+    );
+
+    expect(() => app.authIdTokenVerified).to.not.throw();
+    (app as unknown as FirebaseServerAppImpl).isDeleted = true;
+
+    expect(() => app.authIdTokenVerified()).throws(
+      'Firebase Server App has been deleted'
+    );
+
+    expect(() => app.appCheckTokenVerified()).throws(
+      'Firebase Server App has been deleted'
+    );
+
+    expect(() => app.installationTokenVerified()).throws(
+      'Firebase Server App has been deleted'
     );
   });
 });

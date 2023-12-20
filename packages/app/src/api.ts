@@ -233,13 +233,6 @@ export function initializeServerApp(
     ..._serverAppConfig
   };
 
-  const name = serverAppSettings.name;
-  if (typeof name !== 'string' || !name) {
-    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
-      appName: String(name)
-    });
-  }
-
   let appOptions: FirebaseOptions;
   if ((_options as FirebaseApp).options !== undefined) {
     appOptions = (_options as FirebaseApp).options;
@@ -247,26 +240,40 @@ export function initializeServerApp(
     appOptions = _options as FirebaseOptions;
   }
 
-  const existingApp = _serverApps.get(name) as FirebaseServerAppImpl;
-  if (existingApp) {
-    // return the existing app if options and config deep equal the ones in the existing app.
-    if (
-      deepEqual(appOptions, existingApp.options) &&
-      deepEqual(serverAppSettings, existingApp.serverAppConfig)
-    ) {
-      return existingApp;
-    } else {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
-    }
-  }
+  const nameObj = {
+    authIdToken: _serverAppConfig?.authIdToken,
+    appCheckToken: _serverAppConfig?.appCheckToken,
+    installationsAuthToken: _serverAppConfig?.installationsAuthToken,
+    ...appOptions
+  };
 
   if (serverAppSettings.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
-      throw ERROR_FACTORY.create(AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED, { });
+      throw ERROR_FACTORY.create(
+        AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
+        {}
+      );
     }
   }
 
-  const container = new ComponentContainer(name);
+  // TODO: move this into util.js.
+  const hashCode = (s: string): number => {
+    return [...s].reduce(
+      (hash, c) => (Math.imul(31, hash) + c.charCodeAt(0)) | 0,
+      0
+    );
+  };
+
+  const nameString = '' + hashCode(JSON.stringify(nameObj));
+  const existingApp = _serverApps.get(nameString) as FirebaseServerAppImpl;
+  if (existingApp) {
+    // TODO:
+    //   1: Register a new reference to finalization registry.
+    //   2: Incrememnt reference count.
+    return existingApp;
+  }
+
+  const container = new ComponentContainer(nameString);
   for (const component of _components.values()) {
     container.addComponent(component);
   }

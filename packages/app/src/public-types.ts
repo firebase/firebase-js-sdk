@@ -84,13 +84,13 @@ export interface FirebaseApp {
 export interface FirebaseServerApp extends FirebaseApp {
   /**
    * Checks to see if the verification of the authIdToken provided to
-   * @initializeServerApp has completed. 
+   * @initializeServerApp has completed.
    *
    * It is recommend that your application awaits this promise if an authIdToken was
    * provided during FirebaseServerApp initialization before invoking getAuth(). If an
    * instance of Auth is created before the Auth ID Token is validated, then the token
    * will not be used by that instance of the Auth SDK.
-   * 
+   *
    * The returned Promise is completed immediately if the optional authIdToken parameter
    * was omitted from FirebaseServerApp initialization.
    */
@@ -105,7 +105,7 @@ export interface FirebaseServerApp extends FirebaseApp {
    * any Firebase products that use AppCheck. The Firebase SDKs will not
    * use App Check tokens that are determined to be invalid or those that have not yet
    * completed validation.
-   * 
+   *
    * The returned Promise is completed immediately if the optional appCheckToken
    * parameter was omitted from FirebaseServerApp initialization.
    */
@@ -113,17 +113,17 @@ export interface FirebaseServerApp extends FirebaseApp {
 
   /**
    * Checks to see if the verification of the installationToken provided to
-   * @initializeServerApp has completed. 
+   * @initializeServerApp has completed.
    *
    * It is recommend that your application awaits this promise before initializing
    * any Firebase products that use Firebase Installations. The Firebase SDKs will not
    * use Installation Auth tokens that are determined to be invalid or those that have
    * not yet completed validation.
-   * 
+   *
    * The returned Promise is completed immediately if the optional appCheckToken
    * parameter was omitted from FirebaseServerApp initialization.
    */
-  
+
   installationTokenVerified: () => Promise<void>;
 
   /**
@@ -131,7 +131,7 @@ export interface FirebaseServerApp extends FirebaseApp {
    * so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this
    * string will always be empty for FirebaseServerApp instances.
    */
-  name : string;
+  name: string;
 }
 
 /**
@@ -214,12 +214,12 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    *
    * If provided, the FirebaseServerApp instance will work to validate the token. The
    * result of the validation can be queried via by the application by invoking the
-   * FirebaseServerApp.authIdTokenVerified(). Awaiting the Promise returned by 
+   * FirebaseServerApp.authIdTokenVerified(). Awaiting the Promise returned by
    * authIdTokenVerified is highly recommended if an Auth ID token is provided.
    *
    * Once the token has been properly verified then invoking getAuth() will attempt to
    * automatically sign in a user with the provided Auth ID Token.
-   * 
+   *
    * If the token fails verification then a warning is logged and Auth SDK will not
    * attempt to sign in a user upon its initalization.
    */
@@ -230,7 +230,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    *
    * If provided, the FirebaseServerApp instance will work to validate the token. The
    * result of the validation can be monitored by invoking the
-   * FirebaseServerApp.appCheckTokenVerified(). Awaiting the Promise returned by 
+   * FirebaseServerApp.appCheckTokenVerified(). Awaiting the Promise returned by
    * appCheckTokenVerified is highly recommended if an AppCheck token is provided.
    *
    * If the token has been properly verified then the AppCheck token will be
@@ -239,37 +239,37 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * If the token fails verification then a warning is logged and the token will not
    * be used.
    */
-   appCheckToken?: string;
+  appCheckToken?: string;
 
   /**
    * An optional Installation Auth token.
    *
    * If provided, the FirebaseServerApp instance will work to validate the token. The
    * result of the validation can be monitored by invoking the
-   * FirebaseServerApp.installationTokenVerified(). Awaiting the Promise returned by 
-   * appCheckTokenVerified is highly recommended before initalization any other Firebase 
+   * FirebaseServerApp.installationTokenVerified(). Awaiting the Promise returned by
+   * appCheckTokenVerified is highly recommended before initalization any other Firebase
    * SDKs.
    *
    * If the token has been properly verified then the Installation Auth token will be
    * automatically used by Firebase SDKs that support Firebase Installations.
-   * 
+   *
    * If the token fails verification then a warning is logged and the token will not
    * be used.
    */
-   installationsAuthToken?: string;
+  installationsAuthToken?: string;
 
   /**
    * An optional object. If provided, the Firebase SDK will use a FinalizationRegistry
    * object to monitor the Garbage Collection status of the provided object, and the
    * Firebase SDK will release its refrence on the FirebaseServerApp instance when the
    * provided object is collected. or.
-   * 
+   *
    * The intent of this field is to help reduce memory overhead for long-running cloud
    * functions executing SSR fulfillment without the customer's app needing to
-   * orchestrate FirebaseServerApp cleanup. Additionally, prexisting FirebaseServerApp  
+   * orchestrate FirebaseServerApp cleanup. Additionally, prexisting FirebaseServerApp
    * instances may reused if they're identical to a previously generated one that has
    * yet to be deleted.
-   * 
+   *
    * If the object is not provided then the application must clean up the
    * FirebaseServerApp instance through the applicationss own standard mechanisms by
    * invoking deleteApp.
@@ -280,7 +280,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * to automatically clean up the FirebaseServerApp instance and an error will be
    * thrown.
    */
-   releaseOnDeref?: object;
+  releaseOnDeref?: object;
 
   /**
    * There is no get for FirebaseServerApps, so the name is not relevant. however it's always

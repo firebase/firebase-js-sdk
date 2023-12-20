@@ -24,6 +24,7 @@ import {
 import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
+import { ERROR_FACTORY, AppError } from './errors';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -45,16 +46,16 @@ export class FirebaseServerAppImpl
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
-      name: "",
+      name: '',
       automaticDataCollectionEnabled
     };
 
-    if((options as FirebaseOptions).apiKey !== undefined) {
+    if ((options as FirebaseOptions).apiKey !== undefined) {
       // Construct the parent FirebaseAppImp object.
       super(options as FirebaseOptions, config, container);
     } else {
-      const appImpl : FirebaseAppImpl = options as FirebaseAppImpl;
-      
+      const appImpl: FirebaseAppImpl = options as FirebaseAppImpl;
+
       super(appImpl.options, config, container);
     }
 
@@ -87,18 +88,31 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  authIdTokenVerified() : Promise<void> {
+  authIdTokenVerified(): Promise<void> {
+    this.checkDestroyed();
     // TODO
     return Promise.resolve();
   }
 
-  appCheckTokenVerified() : Promise<void> {
+  appCheckTokenVerified(): Promise<void> {
+    this.checkDestroyed();
     // TODO
     return Promise.resolve();
   }
 
-  installationTokenVerified() : Promise<void> {
+  installationTokenVerified(): Promise<void> {
+    this.checkDestroyed();
     // TODO
     return Promise.resolve();
+  }
+
+  /**
+   * This function will throw an Error if the App has already been deleted -
+   * use before performing API actions on the App.
+   */
+  protected checkDestroyed(): void {
+    if (this.isDeleted) {
+      throw ERROR_FACTORY.create(AppError.SERVER_APP_DELETED);
+    }
   }
 }

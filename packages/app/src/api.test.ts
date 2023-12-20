@@ -194,7 +194,7 @@ describe('API tests', () => {
         apiKey: 'APIKEY'
       };
 
-      const serverAppSettings : FirebaseServerAppSettings = {
+      const serverAppSettings: FirebaseServerAppSettings = {
         automaticDataCollectionEnabled: false,
         releaseOnDeref: options
       };
