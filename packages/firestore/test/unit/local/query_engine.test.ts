@@ -284,9 +284,11 @@ function genericQueryEngineTest(
       documentOverlayCache,
       underlyingIndexManager
     );
-    queryEngine.initialize(localDocuments, underlyingIndexManager);
+    queryEngine.initialize(localDocuments);
 
-    queryEngine.fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+    queryEngine.fieldIndexManagementApi = new FieldIndexManagementApiImpl(
+      underlyingIndexManager
+    );
 
     indexManager = new TestIndexManager(persistence, underlyingIndexManager);
   });
@@ -867,8 +869,13 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
-      const fieldIndexManagementApi = new FieldIndexManagementApiImpl();
-      queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
+      const fieldIndexManagementApi = queryEngine.fieldIndexManagementApi;
+      if (!(fieldIndexManagementApi instanceof FieldIndexManagementApiImpl)) {
+        throw new Error(
+          'queryEngine.fieldIndexManagementApi should be ' +
+            'an instance of FieldIndexManagementApiImpl'
+        );
+      }
 
       fieldIndexManagementApi.indexAutoCreationEnabled =
         config.indexAutoCreationEnabled;

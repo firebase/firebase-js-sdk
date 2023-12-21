@@ -27,7 +27,6 @@ export interface FieldIndexManagementApi {
 
   createCacheIndexes(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     query: Query,
     context: QueryContext,
     resultSize: number
@@ -35,12 +34,11 @@ export interface FieldIndexManagementApi {
 
   performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     localDocumentsView: LocalDocumentsView,
     query: Query
   ): PersistencePromise<DocumentMap | null>;
 }
 
 export interface FieldIndexManagementApiFactory {
-  new (): FieldIndexManagementApi;
+  new (indexManager: IndexManager): FieldIndexManagementApi;
 }

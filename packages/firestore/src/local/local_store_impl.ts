@@ -225,7 +225,7 @@ class LocalStoreImpl implements LocalStore {
       this.indexManager
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
-    this.queryEngine.initialize(this.localDocuments, this.indexManager);
+    this.queryEngine.initialize(this.localDocuments);
   }
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
@@ -1578,7 +1578,9 @@ export function localStoreInstallFieldIndexManagementApi(
   );
 
   const fieldIndexManagementApi =
-    new localStoreImpl.fieldIndexManagementApiFactory();
+    new localStoreImpl.fieldIndexManagementApiFactory(
+      localStoreImpl.indexManager
+    );
   if (
     localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled !== null
   ) {

@@ -50,9 +50,10 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
   relativeIndexReadCostPerDocument =
     DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
 
+  constructor(readonly indexManager: IndexManager) {}
+
   createCacheIndexes(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     query: Query,
     context: QueryContext,
     resultSize: number
@@ -97,7 +98,7 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
           'as using cache indexes may help improve performance.'
         );
       }
-      return indexManager.createTargetIndexes(
+      return this.indexManager.createTargetIndexes(
         transaction,
         queryToTarget(query)
       );
@@ -112,7 +113,6 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
    */
   performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     localDocumentsView: LocalDocumentsView,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
@@ -124,73 +124,74 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
     }
 
     let target = queryToTarget(query);
-    return indexManager.getIndexType(transaction, target).next(indexType => {
-      if (indexType === IndexType.NONE) {
-        // The target cannot be served from any index.
-        return null;
-      }
+    return this.indexManager
+      .getIndexType(transaction, target)
+      .next(indexType => {
+        if (indexType === IndexType.NONE) {
+          // The target cannot be served from any index.
+          return null;
+        }
 
-      if (query.limit !== null && indexType === IndexType.PARTIAL) {
-        // We cannot apply a limit for targets that are served using a partial
-        // index. If a partial index will be used to serve the target, the
-        // query may return a superset of documents that match the target
-        // (e.g. if the index doesn't include all the target's filters), or
-        // may return the correct set of documents in the wrong order (e.g. if
-        // the index doesn't include a segment for one of the orderBys).
-        // Therefore, a limit should not be applied in such cases.
-        query = queryWithLimit(query, null, LimitType.First);
-        target = queryToTarget(query);
-      }
+        if (query.limit !== null && indexType === IndexType.PARTIAL) {
+          // We cannot apply a limit for targets that are served using a partial
+          // index. If a partial index will be used to serve the target, the
+          // query may return a superset of documents that match the target
+          // (e.g. if the index doesn't include all the target's filters), or
+          // may return the correct set of documents in the wrong order (e.g. if
+          // the index doesn't include a segment for one of the orderBys).
+          // Therefore, a limit should not be applied in such cases.
+          query = queryWithLimit(query, null, LimitType.First);
+          target = queryToTarget(query);
+        }
 
-      return indexManager
-        .getDocumentsMatchingTarget(transaction, target)
-        .next(keys => {
-          debugAssert(
-            !!keys,
-            'Index manager must return results for partial and full indexes.'
-          );
-          const sortedKeys = documentKeySet(...keys);
-          return localDocumentsView
-            .getDocuments(transaction, sortedKeys)
-            .next(indexedDocuments => {
-              return indexManager
-                .getMinOffset(transaction, target)
-                .next(offset => {
-                  const previousResults = applyQuery(query, indexedDocuments);
+        return this.indexManager
+          .getDocumentsMatchingTarget(transaction, target)
+          .next(keys => {
+            debugAssert(
+              !!keys,
+              'Index manager must return results for partial and full indexes.'
+            );
+            const sortedKeys = documentKeySet(...keys);
+            return localDocumentsView
+              .getDocuments(transaction, sortedKeys)
+              .next(indexedDocuments => {
+                return this.indexManager
+                  .getMinOffset(transaction, target)
+                  .next(offset => {
+                    const previousResults = applyQuery(query, indexedDocuments);
 
-                  if (
-                    needsRefill(
-                      query,
-                      previousResults,
-                      sortedKeys,
-                      offset.readTime
-                    )
-                  ) {
-                    // A limit query whose boundaries change due to local
-                    // edits can be re-run against the cache by excluding the
-                    // limit. This ensures that all documents that match the
-                    // query's filters are included in the result set. The SDK
-                    // can then apply the limit once all local edits are
-                    // incorporated.
-                    return this.performQueryUsingIndex(
+                    if (
+                      needsRefill(
+                        query,
+                        previousResults,
+                        sortedKeys,
+                        offset.readTime
+                      )
+                    ) {
+                      // A limit query whose boundaries change due to local
+                      // edits can be re-run against the cache by excluding the
+                      // limit. This ensures that all documents that match the
+                      // query's filters are included in the result set. The SDK
+                      // can then apply the limit once all local edits are
+                      // incorporated.
+                      return this.performQueryUsingIndex(
+                        transaction,
+                        localDocumentsView,
+                        queryWithLimit(query, null, LimitType.First)
+                      );
+                    }
+
+                    return appendRemainingResults(
                       transaction,
-                      indexManager,
                       localDocumentsView,
-                      queryWithLimit(query, null, LimitType.First)
-                    );
-                  }
-
-                  return appendRemainingResults(
-                    transaction,
-                    localDocumentsView,
-                    previousResults,
-                    query,
-                    offset
-                  ) as PersistencePromise<DocumentMap | null>;
-                });
-            });
-        });
-    });
+                      previousResults,
+                      query,
+                      offset
+                    ) as PersistencePromise<DocumentMap | null>;
+                  });
+              });
+          });
+      });
   }
 }
 
