@@ -94,7 +94,10 @@ export class TestBundleBuilder {
       query = queryWithLimit(query, query.limit!, LimitType.First);
       bundledLimitType = 'LAST';
     }
-    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
+    const queryTarget = toQueryTarget(
+      this.serializer,
+      queryToTarget(query)
+    ).queryTarget;
     this.elements.push({
       namedQuery: {
         name,
