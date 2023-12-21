@@ -151,7 +151,7 @@ export class FirestoreClient {
     });
   }
 
-  get configuration(): ComponentConfiguration {
+  async getConfiguration(): Promise<ComponentConfiguration> {
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -223,7 +223,7 @@ export async function setOfflineComponentProvider(
   client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = client.configuration;
+  const configuration = await client.getConfiguration();
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
@@ -255,9 +255,10 @@ export async function setOnlineComponentProvider(
   const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
+  const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
-    client.configuration
+    configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
@@ -820,14 +821,12 @@ function createBundleReader(
 
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
-  indexes: FieldIndex[],
-  factory: () => FieldIndexManagementApi
+  indexes: FieldIndex[]
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
     return localStoreConfigureFieldIndexes(
       await getLocalStore(client),
-      indexes,
-      factory
+      indexes
     );
   });
 }
@@ -845,10 +844,9 @@ export function firestoreClientSetFieldIndexManagementApi(
 }
 
 export function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient,
-  factory: () => FieldIndexManagementApi
+  client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(await getLocalStore(client), factory);
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
 }

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldIndexManagementApi} from './field_index_management_api';
-import {PersistenceTransaction} from '../local/persistence_transaction';
+import { FieldIndexManagementApi } from './field_index_management_api';
+import { PersistenceTransaction } from '../local/persistence_transaction';
 import {
   LimitType,
   Query,
@@ -24,16 +24,16 @@ import {
   queryWithLimit,
   stringifyQuery
 } from '../core/query';
-import {QueryContext} from '../local/query_context';
-import {PersistencePromise} from '../local/persistence_promise';
-import {getLogLevel, logDebug, LogLevel} from '../util/log';
-import {documentKeySet, DocumentMap} from '../model/collections';
-import {IndexType} from '../local/index_manager';
+import { QueryContext } from '../local/query_context';
+import { PersistencePromise } from '../local/persistence_promise';
+import { getLogLevel, logDebug, LogLevel } from '../util/log';
+import { documentKeySet, DocumentMap } from '../model/collections';
+import { IndexType } from '../local/index_manager';
 import {debugAssert, fail, hardAssert} from '../util/assert';
-import {LocalDocumentsView} from '../local/local_documents_view';
+import { LocalDocumentsView } from '../local/local_documents_view';
 import {
-  appendRemainingResults,
   applyQuery,
+  appendRemainingResults,
   needsRefill
 } from '../local/query_engine';
 import {
@@ -55,8 +55,7 @@ import {
 import {
   canonifyTarget,
   newTarget,
-  Target,
-  targetEquals,
+  Target, targetEquals,
   targetGetArrayValues,
   targetGetLowerBound,
   targetGetNotInValues,
@@ -70,8 +69,7 @@ import {
   CompositeFilter,
   CompositeOperator,
   FieldFilter,
-  Filter,
-  Operator
+  Filter, Operator
 } from "../core/filter";
 import {getDnfTerms} from "../util/logic_utils";
 import {Value as ProtoValue} from "../protos/firestore_proto_api";
@@ -88,10 +86,8 @@ import {
   DbIndexConfigurationStore,
   DbIndexEntryDocumentKeyIndex,
   DbIndexEntryKey,
-  DbIndexEntryStore,
-  DbIndexStateKey,
-  DbIndexStateSequenceNumberIndex,
-  DbIndexStateStore
+  DbIndexEntryStore, DbIndexStateKey,
+  DbIndexStateSequenceNumberIndex, DbIndexStateStore
 } from "../local/indexeddb_sentinels";
 import {
   DbIndexConfiguration,

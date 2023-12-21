@@ -75,7 +75,7 @@ export function registerFieldIndexManagementApi(
   indexManager: PersistentCacheIndexManager
 ): FieldIndexManagementApiImpl {
   if (!indexManager._fieldIndexManagementApi) {
-    indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl(indexManager._client.configuration.databaseInfo.databaseId);
+    indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
   }
   return indexManager._fieldIndexManagementApi;
 }
@@ -145,7 +145,7 @@ export function deleteAllPersistentCacheIndexes(
   //  FieldIndexManagementApiImpl so that FieldIndexManagementApiImpl can be
   //  tree-shaken away if the only client-side indexing function used is this
   //  one.
-  firestoreClientDeleteAllFieldIndexes(indexManager._client, () => registerFieldIndexManagementApi(indexManager))
+  firestoreClientDeleteAllFieldIndexes(indexManager._client)
     .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
     .catch(error =>
       logWarn('deleting all persistent cache indexes failed', error)
@@ -164,3 +164,33 @@ const persistentCacheIndexManagerByFirestore = new WeakMap<
   Firestore,
   PersistentCacheIndexManager
 >();
+
+/**
+ * Test-only hooks into the SDK for use exclusively by tests.
+ */
+export class TestingHooks {
+  private constructor() {
+    throw new Error('creating instances is not supported');
+  }
+
+  static setIndexAutoCreationSettings(
+    indexManager: PersistentCacheIndexManager,
+    settings: {
+      indexAutoCreationMinCollectionSize?: number;
+      relativeIndexReadCostPerDocument?: number;
+    }
+  ): void {
+    if (!indexManager._fieldIndexManagementApi) {
+      indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+    }
+
+    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
+      indexManager._fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
+        settings.indexAutoCreationMinCollectionSize;
+    }
+    if (settings.relativeIndexReadCostPerDocument !== undefined) {
+      indexManager._fieldIndexManagementApi.relativeIndexReadCostPerDocument =
+        settings.relativeIndexReadCostPerDocument;
+    }
+  }
+}
