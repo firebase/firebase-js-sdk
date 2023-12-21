@@ -25,14 +25,14 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
-import { LocalWriteResult } from './local_store_impl';
-import { Persistence, Scheduler } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-import { PersistenceTransaction } from './persistence_transaction';
-import { isIndexedDbTransactionError } from './simple_db';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
+import { LocalWriteResult } from '../local/local_store_impl';
+import { Persistence, Scheduler } from '../local/persistence';
+import { PersistencePromise } from '../local/persistence_promise';
+import { PersistenceTransaction } from '../local/persistence_transaction';
+import { isIndexedDbTransactionError } from '../local/simple_db';
 
-const LOG_TAG = 'IndexBackiller';
+const LOG_TAG = 'IndexBackfiller';
 
 /** How long we wait to try running index backfill after SDK initialization. */
 const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
@@ -76,7 +76,7 @@ export class IndexBackfillerScheduler implements Scheduler {
   private schedule(delay: number): void {
     debugAssert(
       this.task === null,
-      'Cannot schedule IndexBackiller while a task is pending'
+      'Cannot schedule IndexBackfiller while a task is pending'
     );
     logDebug(LOG_TAG, `Scheduled in ${delay}ms`);
     this.task = this.asyncQueue.enqueueAfterDelay(
