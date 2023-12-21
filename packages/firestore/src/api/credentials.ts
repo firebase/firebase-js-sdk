@@ -285,7 +285,12 @@ export class FirebaseAuthCredentialsProvider
     const awaitNextToken: () => void = () => {
       const currentTokenAttempt = nextToken;
       asyncQueue.enqueueRetryable(async () => {
-        await currentTokenAttempt.promise;
+        currentTokenAttempt.promise.catch(error => {
+          logDebug(
+            'FirebaseAuthCredentialsProvider encountered an error: ',
+            error
+          );
+        });
         await guardedChangeListener(this.currentUser);
       });
     };
