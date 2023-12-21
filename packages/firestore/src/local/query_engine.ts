@@ -36,7 +36,6 @@ import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager } from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -83,18 +82,13 @@ import { FieldIndexManagementApi } from '../index/field_index_management_api';
  */
 export class QueryEngine {
   private localDocumentsView!: LocalDocumentsView;
-  private indexManager!: IndexManager;
   private initialized = false;
 
   fieldIndexManagementApi: FieldIndexManagementApi | null = null;
 
   /** Sets the document view to query against. */
-  initialize(
-    localDocuments: LocalDocumentsView,
-    indexManager: IndexManager
-  ): void {
+  initialize(localDocuments: LocalDocumentsView): void {
     this.localDocumentsView = localDocuments;
-    this.indexManager = indexManager;
     this.initialized = true;
   }
 
@@ -115,7 +109,6 @@ export class QueryEngine {
     return (
       this.fieldIndexManagementApi?.performQueryUsingIndex(
         transaction,
-        this.indexManager,
         this.localDocumentsView,
         query
       ) ?? PersistencePromise.resolve<DocumentMap | null>(null)

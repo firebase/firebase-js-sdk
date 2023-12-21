@@ -214,7 +214,7 @@ export interface Persistence {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getIndexManager(user: User): IndexManager;
+  getIndexManager(): IndexManager;
 
   /**
    * Returns a DocumentOverlayCache representing the documents that are mutated

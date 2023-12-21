@@ -126,7 +126,7 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
-  getIndexManager(user: User): MemoryIndexManager {
+  getIndexManager(): MemoryIndexManager {
     // We do not currently support indices for memory persistence, so we can
     // return the same shared instance of the memory index manager.
     return this.indexManager;

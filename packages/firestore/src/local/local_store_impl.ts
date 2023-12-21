@@ -90,7 +90,8 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import { FieldIndexManagementApi } from '../index/field_index_management_api';
+import { FieldIndexManagementApi, FieldIndexManagementApiFactory } from '../index/field_index_management_api';
+import {DatabaseId} from "../core/database_info";
 
 export const LOG_TAG = 'LocalStore';
 
@@ -184,11 +185,40 @@ class LocalStoreImpl implements LocalStore {
    */
   collectionGroupReadTime = new Map<string, SnapshotVersion>();
 
+  /** The currently-logged-in user. */
+  user!: User;
+
+  /**
+   * The factory to use to create a `FieldIndexManagementApi` object, when
+   * needed. May be null, in which case the factory has not yet been registered.
+   */
+  fieldIndexManagementApiFactory: FieldIndexManagementApiFactory | null = null;
+
+  /**
+   * The object that manages field indexes. Will be null until initialized by
+   * the `fieldIndexManagementApiFactory`.
+   */
+  private _fieldIndexManagementApi: FieldIndexManagementApi | null = null;
+
+  get fieldIndexManagementApi(): FieldIndexManagementApi {
+    if (this._fieldIndexManagementApi) {
+      return this._fieldIndexManagementApi;
+    }
+
+    if (!this.fieldIndexManagementApiFactory) {
+      throw new Error("internal error: the FieldIndexManagementApiFactory has not been initialized");
+    }
+
+    this._fieldIndexManagementApi = new this.fieldIndexManagementApiFactory(this.databaseId);
+    return this._fieldIndexManagementApi;
+  }
+
   constructor(
     /** Manages our in-memory or durable persistence. */
     readonly persistence: Persistence,
     readonly queryEngine: QueryEngine,
     initialUser: User,
+    readonly databaseId: DatabaseId,
     readonly serializer: JsonProtoSerializer
   ) {
     debugAssert(
@@ -203,10 +233,12 @@ class LocalStoreImpl implements LocalStore {
   }
 
   initializeUserComponents(user: User): void {
+    this.user = user;
+
     // TODO(indexing): Add spec tests that test these components change after a
     // user change
     this.documentOverlayCache = this.persistence.getDocumentOverlayCache(user);
-    this.indexManager = this.persistence.getIndexManager(user);
+    this.indexManager = this.persistence.getIndexManager();
     this.mutationQueue = this.persistence.getMutationQueue(
       user,
       this.indexManager
@@ -240,9 +272,10 @@ export function newLocalStore(
   persistence: Persistence,
   queryEngine: QueryEngine,
   initialUser: User,
+  databaseId: DatabaseId,
   serializer: JsonProtoSerializer
 ): LocalStore {
-  return new LocalStoreImpl(persistence, queryEngine, initialUser, serializer);
+  return new LocalStoreImpl(persistence, queryEngine, initialUser, databaseId, serializer);
 }
 
 /**
@@ -1499,14 +1532,16 @@ export async function localStoreConfigureFieldIndexes(
   newFieldIndexes: FieldIndex[]
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  const fieldIndexManagementApi = localStoreImpl.fieldIndexManagementApi;
+
+  const user = localStoreImpl.user
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
     'readwrite',
     transaction =>
-      indexManager
-        .getFieldIndexes(transaction)
+      fieldIndexManagementApi
+        .getFieldIndexes(transaction, user)
         .next(oldFieldIndexes =>
           diffArrays(
             oldFieldIndexes,
@@ -1514,12 +1549,12 @@ export async function localStoreConfigureFieldIndexes(
             fieldIndexSemanticComparator,
             fieldIndex => {
               promises.push(
-                indexManager.addFieldIndex(transaction, fieldIndex)
+                fieldIndexManagementApi.addFieldIndex(transaction, user, fieldIndex)
               );
             },
             fieldIndex => {
               promises.push(
-                indexManager.deleteFieldIndex(transaction, fieldIndex)
+                fieldIndexManagementApi.deleteFieldIndex(transaction, fieldIndex)
               );
             }
           )
@@ -1528,33 +1563,20 @@ export async function localStoreConfigureFieldIndexes(
   );
 }
 
-export function localStoreSetFieldIndexManagementApi(
-  localStore: LocalStore,
-  fieldIndexManagementApi: FieldIndexManagementApi
-): void {
+export function localStoreDeleteAllFieldIndexes(localStore: LocalStore): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
-}
-
-export function localStoreGetOrSetFieldIndexManagementApi(
-  localStore: LocalStore,
-  factory: () => FieldIndexManagementApi
-): FieldIndexManagementApi {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  if (!localStoreImpl.queryEngine.fieldIndexManagementApi) {
-    localStoreImpl.queryEngine.fieldIndexManagementApi = factory();
-  }
-  return localStoreImpl.queryEngine.fieldIndexManagementApi;
-}
-
-export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore
-): Promise<void> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  const fieldIndexManagementApi = localStoreImpl.fieldIndexManagementApi;
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => indexManager.deleteAllFieldIndexes(transaction)
+    transaction => fieldIndexManagementApi.deleteAllFieldIndexes(transaction)
   );
+}
+
+export function localStoreSetFieldIndexManagementApiFactory(
+  localStore: LocalStore,
+  factory: FieldIndexManagementApiFactory
+): void {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  localStoreImpl.fieldIndexManagementApiFactory = factory;
 }

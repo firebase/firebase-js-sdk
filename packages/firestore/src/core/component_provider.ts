@@ -74,6 +74,7 @@ import {
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
 import { OnlineStateSource } from './types';
+import {FieldIndexManagementApi} from "../index/field_index_management_api";
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -153,6 +154,7 @@ export class MemoryOfflineComponentProvider
       this.persistence,
       new QueryEngine(),
       cfg.initialUser,
+      cfg.databaseInfo.databaseId,
       this.serializer
     );
   }
@@ -256,6 +258,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.persistence,
       new QueryEngine(),
       cfg.initialUser,
+      cfg.databaseInfo.databaseId,
       this.serializer
     );
   }
@@ -273,7 +276,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {
-    const indexBackfiller = new IndexBackfiller(localStore, this.persistence);
+    const indexBackfiller = new IndexBackfiller(localStore, this.persistence, fieldIndexManagementApi);
     return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
   }
 

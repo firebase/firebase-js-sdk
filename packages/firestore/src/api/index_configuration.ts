@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { firestoreClientSetIndexConfiguration } from '../core/firestore_client';
-import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
+import {firestoreClientSetIndexConfiguration} from '../core/firestore_client';
+import {fieldPathFromDotSeparatedString} from '../lite-api/user_data_reader';
 import {
   getPersistentCacheIndexManager,
   registerFieldIndexManagementApi
@@ -27,11 +27,10 @@ import {
   IndexSegment,
   IndexState
 } from '../model/field_index';
-import { Code, FirestoreError } from '../util/error';
-import { cast } from '../util/input_validation';
-import { logWarn } from '../util/log';
+import {Code, FirestoreError} from '../util/error';
+import {logWarn} from '../util/log';
 
-import { ensureFirestoreConfigured, Firestore } from './database';
+import {Firestore} from './database';
 
 export {
   connectFirestoreEmulator,
@@ -183,12 +182,11 @@ export function setIndexConfiguration(
     return Promise.resolve();
   }
 
-  registerFieldIndexManagementApi(persistentCacheIndexManager);
-
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
   return firestoreClientSetIndexConfiguration(
     persistentCacheIndexManager._client,
-    parsedIndexes
+    parsedIndexes,
+    () => registerFieldIndexManagementApi(persistentCacheIndexManager)
   );
 }
 

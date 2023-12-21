@@ -9,6 +9,7 @@ import {FieldIndex, IndexOffset} from "../model/field_index";
 import {Target} from "../core/target";
 import {DocumentKey} from "../model/document_key";
 import {User} from "../auth/user";
+import {DatabaseId} from "../core/database_info";
 
 /**
  * @license
@@ -165,4 +166,8 @@ export interface FieldIndexManagementApi {
     collectionGroup: string
   ): PersistencePromise<IndexOffset>;
 
+}
+
+export interface FieldIndexManagementApiFactory {
+  new (databaseId: DatabaseId): FieldIndexManagementApi;
 }

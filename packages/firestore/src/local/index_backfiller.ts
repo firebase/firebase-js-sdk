@@ -31,6 +31,8 @@ import { Persistence, Scheduler } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
+import {FieldIndexManagementApi} from "../index/field_index_management_api";
+import {User} from "../auth/user";
 
 const LOG_TAG = 'IndexBackiller';
 
@@ -115,22 +117,24 @@ export class IndexBackfiller {
      * an up-to-date references to IndexManager and LocalDocumentStore.
      */
     private readonly localStore: LocalStore,
-    private readonly persistence: Persistence
+    private readonly persistence: Persistence,
+    private readonly fieldIndexManagementApi: FieldIndexManagementApi
   ) {}
 
   async backfill(
-    maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS
+    maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS,
   ): Promise<number> {
     return this.persistence.runTransaction(
       'Backfill Indexes',
       'readwrite-primary',
-      txn => this.writeIndexEntries(txn, maxDocumentsToProcess)
+      txn => this.writeIndexEntries(txn, this.localStore.user, maxDocumentsToProcess)
     );
   }
 
   /** Writes index entries until the cap is reached. Returns the number of documents processed. */
   private writeIndexEntries(
     transation: PersistenceTransaction,
+    user: User,
     maxDocumentsToProcess: number
   ): PersistencePromise<number> {
     const processedCollectionGroups = new Set<string>();
@@ -139,8 +143,8 @@ export class IndexBackfiller {
     return PersistencePromise.doWhile(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
-        return this.localStore.indexManager
-          .getNextCollectionGroupToUpdate(transation)
+        return this.fieldIndexManagementApi
+          .getNextCollectionGroupToUpdate(transation, user)
           .next((collectionGroup: string | null) => {
             if (
               collectionGroup === null ||
@@ -151,6 +155,7 @@ export class IndexBackfiller {
               logDebug(LOG_TAG, `Processing collection: ${collectionGroup}`);
               return this.writeEntriesForCollectionGroup(
                 transation,
+                user,
                 collectionGroup,
                 documentsRemaining
               ).next(documentsProcessed => {
@@ -168,12 +173,13 @@ export class IndexBackfiller {
    */
   private writeEntriesForCollectionGroup(
     transaction: PersistenceTransaction,
+    user: User,
     collectionGroup: string,
     documentsRemainingUnderCap: number
   ): PersistencePromise<number> {
     // Use the earliest offset of all field indexes to query the local cache.
-    return this.localStore.indexManager
-      .getMinOffsetFromCollectionGroup(transaction, collectionGroup)
+    return this.fieldIndexManagementApi
+      .getMinOffsetFromCollectionGroup(transaction, user, collectionGroup)
       .next(existingOffset =>
         this.localStore.localDocuments
           .getNextDocuments(
@@ -184,13 +190,14 @@ export class IndexBackfiller {
           )
           .next(nextBatch => {
             const docs: DocumentMap = nextBatch.changes;
-            return this.localStore.indexManager
-              .updateIndexEntries(transaction, docs)
+            return this.fieldIndexManagementApi
+              .updateIndexEntries(transaction, user, docs)
               .next(() => this.getNewOffset(existingOffset, nextBatch))
               .next(newOffset => {
                 logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
-                return this.localStore.indexManager.updateCollectionGroup(
+                return this.fieldIndexManagementApi.updateCollectionGroup(
                   transaction,
+                  user,
                   collectionGroup,
                   newOffset
                 );
