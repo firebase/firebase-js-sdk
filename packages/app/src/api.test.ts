@@ -162,12 +162,6 @@ describe('API tests', () => {
       expect(app.name).to.equal(appName);
     });
 
-    it('takes an object as the second parameter to create named App', () => {
-      const appName = 'MyApp';
-      const app = initializeApp({}, { name: appName });
-      expect(app.name).to.equal(appName);
-    });
-
     it('sets automaticDataCollectionEnabled', () => {
       const app = initializeApp({}, { automaticDataCollectionEnabled: true });
       expect(app.automaticDataCollectionEnabled).to.be.true;
@@ -189,11 +183,34 @@ describe('API tests', () => {
   });
 
   describe('initializeServerApp', () => {
-    it('creates named App', () => {
+    it('creates FirebaseServerApp with options', () => {
       const options = {
         apiKey: 'APIKEY'
       };
 
+      const serverAppSettings: FirebaseServerAppSettings = {};
+
+      const app = initializeServerApp(options, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.false;
+    });
+
+    it('creates FirebaseServerApp with automaticDataCollectionEnabled', () => {
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: true
+      };
+
+      const app = initializeServerApp(options, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+    });
+
+    it('creates FirebaseServerApp with releaseOnDeref', () => {
+      const options = { apiKey: 'APIKEY' };
       const serverAppSettings: FirebaseServerAppSettings = {
         automaticDataCollectionEnabled: false,
         releaseOnDeref: options
@@ -201,6 +218,24 @@ describe('API tests', () => {
 
       const app = initializeServerApp(options, serverAppSettings);
       expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.false;
+    });
+
+    it('creates FirebaseServerApp with FirebaseApp', () => {
+      const options = {
+        apiKey: 'test1'
+      };
+      const standardApp = initializeApp(options);
+      expect(standardApp.name).to.equal(DEFAULT_ENTRY_NAME);
+      expect(standardApp.options.apiKey).to.equal('test1');
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: false
+      };
+
+      const serverApp = initializeServerApp(standardApp, serverAppSettings);
+      expect(serverApp).to.not.equal(null);
+      expect(serverApp.options.apiKey).to.equal('test1');
     });
   });
 

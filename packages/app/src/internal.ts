@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseServerApp } from './public-types';
+import {
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseServerApp
+} from './public-types';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 import { DEFAULT_ENTRY_NAME } from './constants';
@@ -135,6 +139,20 @@ export function _removeServiceInstance<T extends Name>(
   instanceIdentifier: string = DEFAULT_ENTRY_NAME
 ): void {
   _getProvider(app, name).clearInstance(instanceIdentifier);
+}
+
+/**
+ *
+ * @param obj - an object of type FirebaseApp or FirebaseOptions.
+ *
+ * @returns true if the provide object is of type FirebaseApp.
+ *
+ * @internal
+ */
+export function _isFirebaseApp(
+  obj: FirebaseApp | FirebaseOptions
+): obj is FirebaseApp {
+  return (obj as FirebaseApp).options !== undefined;
 }
 
 /**

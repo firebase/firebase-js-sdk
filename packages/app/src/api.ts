@@ -36,6 +36,7 @@ import { FirebaseServerAppImpl } from './firebaseServerApp';
 import {
   _apps,
   _components,
+  _isFirebaseApp,
   _registerComponent,
   _serverApps
 } from './internal';
@@ -234,10 +235,10 @@ export function initializeServerApp(
   };
 
   let appOptions: FirebaseOptions;
-  if ((_options as FirebaseApp).options !== undefined) {
-    appOptions = (_options as FirebaseApp).options;
+  if (_isFirebaseApp(_options)) {
+    appOptions = _options.options;
   } else {
-    appOptions = _options as FirebaseOptions;
+    appOptions = _options;
   }
 
   const nameObj = {
