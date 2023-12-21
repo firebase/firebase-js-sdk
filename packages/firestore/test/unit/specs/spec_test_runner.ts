@@ -80,7 +80,7 @@ import {
 import { LocalStore } from '../../../src/local/local_store';
 import {
   localStoreConfigureFieldIndexes,
-  localStoreGetOrSetFieldIndexManagementApi
+  localStoreSetFieldIndexManagementApiFactory
 } from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
@@ -587,9 +587,9 @@ abstract class TestRunner {
   ): Promise<void> {
     return this.queue.enqueue(async () => {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
-      localStoreGetOrSetFieldIndexManagementApi(
+      localStoreSetFieldIndexManagementApiFactory(
         this.localStore,
-        () => new FieldIndexManagementApiImpl()
+        FieldIndexManagementApiImpl
       );
       return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });

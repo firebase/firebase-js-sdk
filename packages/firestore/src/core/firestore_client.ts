@@ -27,11 +27,13 @@ import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
+  localStoreDisablePersistentCacheIndexAutoCreation,
+  localStoreEnablePersistentCacheIndexAutoCreation,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
   localStoreReadDocument,
-  localStoreSetFieldIndexManagementApi
+  localStoreSetFieldIndexManagementApiFactory
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -93,7 +95,7 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { FieldIndexManagementApi } from '../index/field_index_management_api';
+import { FieldIndexManagementApiFactory } from '../index/field_index_management_api';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -831,14 +833,34 @@ export function firestoreClientSetIndexConfiguration(
   });
 }
 
-export function firestoreClientSetFieldIndexManagementApi(
+export function firestoreClientSetFieldIndexManagementApiFactory(
   client: FirestoreClient,
-  fieldIndexManagementApi: FieldIndexManagementApi
+  factory: FieldIndexManagementApiFactory
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreSetFieldIndexManagementApi(
+    return localStoreSetFieldIndexManagementApiFactory(
       await getLocalStore(client),
-      fieldIndexManagementApi
+      factory
+    );
+  });
+}
+
+export function firestoreClientEnablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreEnablePersistentCacheIndexAutoCreation(
+      await getLocalStore(client)
+    );
+  });
+}
+
+export function firestoreClientDisablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDisablePersistentCacheIndexAutoCreation(
+      await getLocalStore(client)
     );
   });
 }

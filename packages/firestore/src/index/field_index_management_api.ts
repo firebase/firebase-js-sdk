@@ -40,3 +40,7 @@ export interface FieldIndexManagementApi {
     query: Query
   ): PersistencePromise<DocumentMap | null>;
 }
+
+export interface FieldIndexManagementApiFactory {
+  new (): FieldIndexManagementApi;
+}

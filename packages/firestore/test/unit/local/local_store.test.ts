@@ -38,20 +38,23 @@ import {
   localStoreAllocateTarget,
   localStoreApplyBundledDocuments,
   localStoreApplyRemoteEventToLocalCache,
+  localStoreDisablePersistentCacheIndexAutoCreation,
+  localStoreEnablePersistentCacheIndexAutoCreation,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
-  localStoreGetTargetData,
   localStoreGetNamedQuery,
-  localStoreSetFieldIndexManagementApi,
+  localStoreGetTargetData,
   localStoreHasNewerBundle,
-  localStoreWriteLocally,
-  LocalWriteResult,
+  localStoreInstallFieldIndexManagementApi,
   localStoreNotifyLocalViewChanges,
   localStoreReadDocument,
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
+  localStoreSetFieldIndexManagementApiFactory,
+  localStoreWriteLocally,
+  LocalWriteResult,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
@@ -122,7 +125,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
+import { TestFieldIndexManagementApi } from './test_field_index_management_api';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -660,16 +663,50 @@ function genericLocalStoreTests(
     );
   }
 
-  it('localStoreSetIndexAutoCreationEnabled()', () => {
-    const api1 = new FieldIndexManagementApiImpl();
-    const api2 = new FieldIndexManagementApiImpl();
+  it('localStoreEnablePersistentCacheIndexAutoCreation()', () => {
+    localStoreSetFieldIndexManagementApiFactory(
+      localStore,
+      TestFieldIndexManagementApi
+    );
 
-    localStoreSetFieldIndexManagementApi(localStore, api1);
-    expect(queryEngine.fieldIndexManagementApi).to.equal(api1);
-    localStoreSetFieldIndexManagementApi(localStore, api2);
-    expect(queryEngine.fieldIndexManagementApi).to.equal(api2);
-    localStoreSetFieldIndexManagementApi(localStore, api1);
-    expect(queryEngine.fieldIndexManagementApi).to.equal(api1);
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
+    const fieldIndexManagementApi =
+      localStoreInstallFieldIndexManagementApi(localStore);
+    if (!(fieldIndexManagementApi instanceof TestFieldIndexManagementApi)) {
+      throw new Error(
+        'fieldIndexManagementApi should be ' +
+          'an instance of TestFieldIndexManagementApi'
+      );
+    }
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisablePersistentCacheIndexAutoCreation(localStore);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
+  });
+
+  it('localStoreDisablePersistentCacheIndexAutoCreation()', () => {
+    localStoreSetFieldIndexManagementApiFactory(
+      localStore,
+      TestFieldIndexManagementApi
+    );
+
+    localStoreDisablePersistentCacheIndexAutoCreation(localStore);
+    const fieldIndexManagementApi =
+      localStoreInstallFieldIndexManagementApi(localStore);
+    if (!(fieldIndexManagementApi instanceof TestFieldIndexManagementApi)) {
+      throw new Error(
+        'fieldIndexManagementApi should be ' +
+          'an instance of TestFieldIndexManagementApi'
+      );
+    }
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
+
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
+    localStoreDisablePersistentCacheIndexAutoCreation(localStore);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
   });
 
   it('handles SetMutation', () => {

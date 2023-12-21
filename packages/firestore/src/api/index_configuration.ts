@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-import { firestoreClientSetIndexConfiguration } from '../core/firestore_client';
-import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
 import {
-  getPersistentCacheIndexManager,
-  registerFieldIndexManagementApi
-} from './persistent_cache_index_manager';
+  firestoreClientSetFieldIndexManagementApiFactory,
+  firestoreClientSetIndexConfiguration
+} from '../core/firestore_client';
+import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
 import {
   FieldIndex,
   IndexKind,
@@ -32,6 +31,7 @@ import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { FieldIndexManagementApiImpl } from '../index/field_index_management';
 
 export {
   connectFirestoreEmulator,
@@ -175,21 +175,23 @@ export function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
-  const persistentCacheIndexManager = getPersistentCacheIndexManager(firestore);
-  if (!persistentCacheIndexManager) {
+  firestore = cast(firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  if (
+    !client._uninitializedComponentsProvider ||
+    client._uninitializedComponentsProvider?._offlineKind === 'memory'
+  ) {
     // PORTING NOTE: We don't return an error if the user has not enabled
     // persistence since `enableIndexeddbPersistence()` can fail on the Web.
     logWarn('Cannot enable indexes when persistence is disabled');
     return Promise.resolve();
   }
-
-  registerFieldIndexManagementApi(persistentCacheIndexManager);
-
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
-  return firestoreClientSetIndexConfiguration(
-    persistentCacheIndexManager._client,
-    parsedIndexes
+  firestoreClientSetFieldIndexManagementApiFactory(
+    client,
+    FieldIndexManagementApiImpl
   );
+  return firestoreClientSetIndexConfiguration(client, parsedIndexes);
 }
 
 export function parseIndexes(

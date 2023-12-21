@@ -37,7 +37,8 @@ import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
-  localStoreGetOrSetFieldIndexManagementApi,
+  localStoreInstallFieldIndexManagementApi,
+  localStoreSetFieldIndexManagementApiFactory,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
@@ -143,9 +144,12 @@ class AsyncLocalStoreTester {
   }): void {
     this.prepareNextStep();
 
-    const fieldIndexManagementApi = localStoreGetOrSetFieldIndexManagementApi(
+    localStoreSetFieldIndexManagementApiFactory(
       this.localStore,
-      () => new FieldIndexManagementApiImpl()
+      FieldIndexManagementApiImpl
+    );
+    const fieldIndexManagementApi = localStoreInstallFieldIndexManagementApi(
+      this.localStore
     );
     if (!(fieldIndexManagementApi instanceof FieldIndexManagementApiImpl)) {
       throw new Error(
@@ -179,9 +183,9 @@ class AsyncLocalStoreTester {
   }
 
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
-    localStoreGetOrSetFieldIndexManagementApi(
+    localStoreSetFieldIndexManagementApiFactory(
       this.localStore,
-      () => new FieldIndexManagementApiImpl()
+      FieldIndexManagementApiImpl
     );
     await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }

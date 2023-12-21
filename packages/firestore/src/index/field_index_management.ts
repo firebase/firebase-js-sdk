@@ -28,13 +28,12 @@ import { QueryContext } from '../local/query_context';
 import { PersistencePromise } from '../local/persistence_promise';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { documentKeySet, DocumentMap } from '../model/collections';
-import { IndexType } from '../local/index_manager';
+import { IndexManager, IndexType } from '../local/index_manager';
 import { debugAssert } from '../util/assert';
-import { IndexManager } from '../local/index_manager';
 import { LocalDocumentsView } from '../local/local_documents_view';
 import {
-  applyQuery,
   appendRemainingResults,
+  applyQuery,
   needsRefill
 } from '../local/query_engine';
 
