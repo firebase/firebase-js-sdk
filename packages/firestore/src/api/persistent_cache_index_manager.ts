@@ -119,6 +119,8 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
+  indexManager._client.verifyNotTerminated();
+
   // TODO: Refactor this code such that disabling persistent cache auto creation
   //  does _not_ need FieldIndexManagementApiImpl (i.e. it just uses the
   //  interface) so that FieldIndexManagementApiImpl can be tree-shaken away if
@@ -137,6 +139,8 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
+  indexManager._client.verifyNotTerminated();
+
   // TODO: Refactor this code such that deleting field indexes does _not_ need
   //  FieldIndexManagementApiImpl so that FieldIndexManagementApiImpl can be
   //  tree-shaken away if the only client-side indexing function used is this
