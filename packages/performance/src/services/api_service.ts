@@ -60,7 +60,7 @@ export class Api {
     this.windowLocation = window.location;
     this.navigator = window.navigator;
     this.document = window.document;
-    if (this.navigator && this.navigator.cookieEnabled) {
+    if (areCookiesEnabled()) {
       // If user blocks cookies on the browser, accessing localStorage will
       // throw an exception.
       this.localStorage = window.localStorage;
