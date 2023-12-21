@@ -95,27 +95,26 @@ function setupUserTimingTraces(
 ): void {
   const api = Api.getInstance();
   // Run through the measure performance entries collected up to this point.
-  const measures = api.getEntriesByType('measure');
+  const measures = api.getEntriesByType('measure') as PerformanceMeasure[];
   for (const measure of measures) {
     createUserTimingTrace(performanceController, measure);
   }
   // Setup an observer to capture the measures from this point on.
-  api.setupObserver('measure', entry =>
-    createUserTimingTrace(performanceController, entry)
+  api.setupObserver('measure', (entry) =>
+    createUserTimingTrace(performanceController, entry as PerformanceMeasure)
   );
 }
 
 function createUserTimingTrace(
   performanceController: PerformanceController,
-  measure: PerformanceEntry
+  measureEntry: PerformanceMeasure
 ): void {
-  const measureName = measure.name;
   // Do not create a trace, if the user timing marks and measures are created by the sdk itself.
   if (
-    measureName.substring(0, TRACE_MEASURE_PREFIX.length) ===
+    measureEntry.name.substring(0, TRACE_MEASURE_PREFIX.length) ===
     TRACE_MEASURE_PREFIX
   ) {
     return;
   }
-  Trace.createUserTimingTrace(performanceController, measureName);
+  Trace.createUserTimingTrace(performanceController, measureEntry);
 }

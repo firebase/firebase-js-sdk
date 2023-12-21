@@ -82,11 +82,11 @@ export class Api {
     this.performance.mark(name);
   }
 
-  measure(measureName: string, mark1: string, mark2: string): void {
+  measure(measureName: string, mark1: string, mark2: string): PerformanceMeasure|void {
     if (!this.performance || !this.performance.measure) {
       return;
     }
-    this.performance.measure(measureName, mark1, mark2);
+   return this.performance.measure(measureName, mark1, mark2);
   }
 
   getEntriesByType(type: EntryType): PerformanceEntry[] {
