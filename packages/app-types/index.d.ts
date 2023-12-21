@@ -107,7 +107,7 @@ export interface FirebaseServerAppConfig extends FirebaseAppConfig {
    */
   deleteOnDeref?: object;
 
-  name: '';
+  name: undefined;
 }
 
 export class FirebaseApp {
