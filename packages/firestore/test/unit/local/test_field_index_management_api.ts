@@ -26,9 +26,10 @@ import { DocumentMap } from '../../../src/model/collections';
 export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
   indexAutoCreationEnabled = null as unknown as boolean;
 
+  constructor(indexManager: IndexManager) {}
+
   createCacheIndexes(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     query: Query,
     context: QueryContext,
     resultSize: number
@@ -40,7 +41,6 @@ export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
 
   performQueryUsingIndex(
     transaction: PersistenceTransaction,
-    indexManager: IndexManager,
     localDocumentsView: LocalDocumentsView,
     query: Query
   ): PersistencePromise<DocumentMap | null> {

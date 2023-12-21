@@ -29,7 +29,7 @@ import {
 } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
-import { IndexBackfiller } from '../../../src/local/index_backfiller';
+import { IndexBackfiller } from '../../../src/index/index_backfiller';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   localStoreAllocateTarget,
