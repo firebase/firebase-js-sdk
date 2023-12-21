@@ -144,7 +144,9 @@ export class QueryEngine {
         return this.executeFullCollectionScan(transaction, query, context).next(
           result => {
             queryResult.result = result;
-            if (this.fieldIndexManagementApi) {
+            if (
+              this.fieldIndexManagementApi?.indexAutoCreationEnabled === true
+            ) {
               return this.fieldIndexManagementApi.createCacheIndexes(
                 transaction,
                 this.indexManager,

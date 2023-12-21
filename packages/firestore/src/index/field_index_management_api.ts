@@ -23,6 +23,8 @@ import { LocalDocumentsView } from '../local/local_documents_view';
  * limitations under the License.
  */
 export interface FieldIndexManagementApi {
+  indexAutoCreationEnabled: boolean;
+
   createCacheIndexes(
     transaction: PersistenceTransaction,
     indexManager: IndexManager,

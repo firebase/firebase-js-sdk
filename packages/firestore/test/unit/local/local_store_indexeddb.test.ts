@@ -179,6 +179,10 @@ class AsyncLocalStoreTester {
   }
 
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
+    localStoreGetOrSetFieldIndexManagementApi(
+      this.localStore,
+      () => new FieldIndexManagementApiImpl()
+    );
     await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }
 

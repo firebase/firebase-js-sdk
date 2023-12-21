@@ -18,6 +18,10 @@
 import { firestoreClientSetIndexConfiguration } from '../core/firestore_client';
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
 import {
+  getPersistentCacheIndexManager,
+  registerFieldIndexManagementApi
+} from './persistent_cache_index_manager';
+import {
   FieldIndex,
   IndexKind,
   IndexSegment,
@@ -171,19 +175,21 @@ export function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
-  firestore = cast(firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-  if (
-    !client._uninitializedComponentsProvider ||
-    client._uninitializedComponentsProvider?._offlineKind === 'memory'
-  ) {
+  const persistentCacheIndexManager = getPersistentCacheIndexManager(firestore);
+  if (!persistentCacheIndexManager) {
     // PORTING NOTE: We don't return an error if the user has not enabled
     // persistence since `enableIndexeddbPersistence()` can fail on the Web.
     logWarn('Cannot enable indexes when persistence is disabled');
     return Promise.resolve();
   }
+
+  registerFieldIndexManagementApi(persistentCacheIndexManager);
+
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
-  return firestoreClientSetIndexConfiguration(client, parsedIndexes);
+  return firestoreClientSetIndexConfiguration(
+    persistentCacheIndexManager._client,
+    parsedIndexes
+  );
 }
 
 export function parseIndexes(

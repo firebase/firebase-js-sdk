@@ -71,6 +71,15 @@ export function getPersistentCacheIndexManager(
   return instance;
 }
 
+export function registerFieldIndexManagementApi(
+  indexManager: PersistentCacheIndexManager
+): FieldIndexManagementApiImpl {
+  if (!indexManager._fieldIndexManagementApi) {
+    indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+  }
+  return indexManager._fieldIndexManagementApi;
+}
+
 /**
  * Enables the SDK to create persistent cache indexes automatically for local
  * query execution when the SDK believes cache indexes can help improve
@@ -84,24 +93,19 @@ export function enablePersistentCacheIndexAutoCreation(
   const client: FirestoreClient = indexManager._client;
   client.verifyNotTerminated();
 
-  if (!indexManager._fieldIndexManagementApi) {
-    indexManager._fieldIndexManagementApi = new FieldIndexManagementApiImpl();
-  }
+  const fieldIndexManagementApi = registerFieldIndexManagementApi(indexManager);
 
-  indexManager._fieldIndexManagementApi.indexAutoCreationEnabled = true;
+  fieldIndexManagementApi.indexAutoCreationEnabled = true;
 
   if (indexManager._fieldIndexManagementApiInstallPromise) {
     return;
   }
 
   indexManager._fieldIndexManagementApiInstallPromise =
-    firestoreClientSetFieldIndexManagementApi(
-      client,
-      indexManager._fieldIndexManagementApi
-    )
-      .then(_ => {
-        logDebug('enabling persistent cache index auto creation succeeded');
-      })
+    firestoreClientSetFieldIndexManagementApi(client, fieldIndexManagementApi)
+      .then(_ =>
+        logDebug('enabling persistent cache index auto creation succeeded')
+      )
       .catch(error =>
         logWarn('enabling persistent cache index auto creation failed', error)
       );

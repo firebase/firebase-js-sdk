@@ -286,6 +286,8 @@ function genericQueryEngineTest(
     );
     queryEngine.initialize(localDocuments, underlyingIndexManager);
 
+    queryEngine.fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+
     indexManager = new TestIndexManager(persistence, underlyingIndexManager);
   });
 
