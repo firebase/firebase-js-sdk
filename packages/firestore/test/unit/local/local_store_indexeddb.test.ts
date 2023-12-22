@@ -240,7 +240,7 @@ class AsyncLocalStoreTester {
   }
 }
 
-describe.only('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   if (!isIndexedDBAvailable()) {
     return;
   }
