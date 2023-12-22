@@ -286,7 +286,9 @@ function genericQueryEngineTest(
     );
     queryEngine.initialize(localDocuments);
 
-    queryEngine.fieldIndexManagementApi = new FieldIndexManagementApiImpl(
+    queryEngine.fieldIndexManagementApi = new FieldIndexManagementApiImpl();
+    queryEngine.fieldIndexManagementApi.initialize(
+      User.UNAUTHENTICATED,
       underlyingIndexManager
     );
 
