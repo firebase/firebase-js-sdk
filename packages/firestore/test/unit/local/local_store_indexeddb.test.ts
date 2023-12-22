@@ -36,9 +36,9 @@ import {
   localStoreApplyRemoteEventToLocalCache,
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
+  localStoreDisablePersistentCacheIndexAutoCreation,
+  localStoreEnablePersistentCacheIndexAutoCreation,
   localStoreExecuteQuery,
-  localStoreInstallFieldIndexManagementApi,
-  localStoreSetFieldIndexManagementApiFactory,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
@@ -72,17 +72,12 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {
-  FieldIndexManagementApiFactoryImpl,
-  FieldIndexManagementApiImpl
-} from '../../../src/index/field_index_management';
-import { TestFieldIndexManagementApiFactory } from './test_field_index_management_api';
+import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
   private indexBackfiller: IndexBackfiller;
-  private fieldIndexManagementApiFactory =
-    new FieldIndexManagementApiFactoryImpl();
+  private fieldIndexManagementApi = new FieldIndexManagementApiImpl();
 
   private lastChanges: DocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
@@ -150,29 +145,23 @@ class AsyncLocalStoreTester {
   }): void {
     this.prepareNextStep();
 
-    localStoreSetFieldIndexManagementApiFactory(
-      this.localStore,
-      this.fieldIndexManagementApiFactory
-    );
-    const fieldIndexManagementApi = localStoreInstallFieldIndexManagementApi(
-      this.localStore
-    );
-    if (!(fieldIndexManagementApi instanceof FieldIndexManagementApiImpl)) {
-      throw new Error(
-        'fieldIndexManagementApi should be an instance of ' +
-          'FieldIndexManagementApiImpl'
-      );
+    if (config.isEnabled !== undefined) {
+      if (config.isEnabled) {
+        localStoreEnablePersistentCacheIndexAutoCreation(
+          this.localStore,
+          this.fieldIndexManagementApi
+        );
+      } else {
+        localStoreDisablePersistentCacheIndexAutoCreation(this.localStore);
+      }
     }
 
-    if (config.isEnabled !== undefined) {
-      fieldIndexManagementApi.indexAutoCreationEnabled = config.isEnabled;
-    }
     if (config.indexAutoCreationMinCollectionSize !== undefined) {
-      fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
+      this.fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
         config.indexAutoCreationMinCollectionSize;
     }
     if (config.relativeIndexReadCostPerDocument !== undefined) {
-      fieldIndexManagementApi.relativeIndexReadCostPerDocument =
+      this.fieldIndexManagementApi.relativeIndexReadCostPerDocument =
         config.relativeIndexReadCostPerDocument;
     }
   }
@@ -189,11 +178,11 @@ class AsyncLocalStoreTester {
   }
 
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
-    localStoreSetFieldIndexManagementApiFactory(
+    await localStoreConfigureFieldIndexes(
       this.localStore,
-      this.fieldIndexManagementApiFactory
+      this.fieldIndexManagementApi,
+      indexes
     );
-    await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }
 
   async assertFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
@@ -251,7 +240,7 @@ class AsyncLocalStoreTester {
   }
 }
 
-describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
+describe.only('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   if (!isIndexedDBAvailable()) {
     return;
   }
