@@ -6,6 +6,10 @@ import { DocumentMap } from '../model/collections';
 import { IndexManager } from '../local/index_manager';
 import { LocalDocumentsView } from '../local/local_documents_view';
 import { User } from '../auth/user';
+import { IndexBackfiller, IndexBackfillerScheduler } from './index_backfiller';
+import { AsyncQueue } from '../util/async_queue';
+import { LocalStore } from '../local/local_store';
+import { Persistence } from '../local/persistence';
 
 /**
  * @license
@@ -29,6 +33,12 @@ export interface FieldIndexManagementApi {
   // Must be called before any other methods and may be called multiple times,
   // where subsequent calls will update the stored variables.
   initialize(user: User, indexManager: IndexManager): void;
+
+  getIndexBackfillerScheduler(
+    asyncQueue: AsyncQueue,
+    localStore: LocalStore,
+    persistence: Persistence
+  ): IndexBackfillerScheduler;
 
   createCacheIndexes(
     transaction: PersistenceTransaction,

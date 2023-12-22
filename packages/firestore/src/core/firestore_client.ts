@@ -152,7 +152,7 @@ export class FirestoreClient {
     });
   }
 
-  async getConfiguration(): Promise<ComponentConfiguration> {
+  get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -224,7 +224,7 @@ export async function setOfflineComponentProvider(
   client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = await client.getConfiguration();
+  const configuration = client.configuration;
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
@@ -256,7 +256,7 @@ export async function setOnlineComponentProvider(
   const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = await client.getConfiguration();
+  const configuration = client.configuration;
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
     configuration
@@ -820,30 +820,52 @@ function createBundleReader(
   return newBundleReader(toByteStreamReader(content), serializer);
 }
 
-export function firestoreClientSetIndexConfiguration(
+export async function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
   fieldIndexManagementApi: FieldIndexManagementApi,
   indexes: FieldIndex[]
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
+  await client.asyncQueue.enqueue(async () => {
     return localStoreConfigureFieldIndexes(
       await getLocalStore(client),
       fieldIndexManagementApi,
       indexes
     );
   });
+
+  // TODO: Update the backfiller scheduler on user change.
+  await setIndexBackfiller(client, fieldIndexManagementApi);
 }
 
-export function firestoreClientEnablePersistentCacheIndexAutoCreation(
+async function setIndexBackfiller(
   client: FirestoreClient,
   fieldIndexManagementApi: FieldIndexManagementApi
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
+  const localStore = await getLocalStore(client);
+  const persistence = await getPersistence(client);
+  const offlineComponents = await ensureOfflineComponents(client);
+  const indexBackfillerScheduler =
+    fieldIndexManagementApi.getIndexBackfillerScheduler(
+      client.asyncQueue,
+      localStore,
+      persistence
+    );
+  offlineComponents.setIndexBackfillerScheduler(indexBackfillerScheduler);
+}
+
+export async function firestoreClientEnablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient,
+  fieldIndexManagementApi: FieldIndexManagementApi
+): Promise<void> {
+  await client.asyncQueue.enqueue(async () => {
     return localStoreEnablePersistentCacheIndexAutoCreation(
       await getLocalStore(client),
       fieldIndexManagementApi
     );
   });
+
+  // TODO: Update the backfiller scheduler on user change.
+  await setIndexBackfiller(client, fieldIndexManagementApi);
 }
 
 export function firestoreClientDisablePersistentCacheIndexAutoCreation(

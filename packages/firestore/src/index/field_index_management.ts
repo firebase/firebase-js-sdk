@@ -37,6 +37,10 @@ import {
   needsRefill
 } from '../local/query_engine';
 import { User } from '../auth/user';
+import { AsyncQueue } from '../util/async_queue';
+import { IndexBackfiller, IndexBackfillerScheduler } from './index_backfiller';
+import { LocalStore } from '../local/local_store';
+import { Persistence } from '../local/persistence';
 
 export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
   indexAutoCreationEnabled = false;
@@ -53,10 +57,31 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
 
   user!: User;
   indexManager!: IndexManager;
+  indexBackfiller?: IndexBackfiller;
+  indexBackfillerScheduler?: IndexBackfillerScheduler;
 
   initialize(user: User, indexManager: IndexManager): void {
     this.user = user;
     this.indexManager = indexManager;
+    this.indexBackfiller = undefined;
+    this.indexBackfillerScheduler = undefined;
+  }
+
+  getIndexBackfillerScheduler(
+    asyncQueue: AsyncQueue,
+    localStore: LocalStore,
+    persistence: Persistence
+  ): IndexBackfillerScheduler {
+    if (!this.indexBackfiller) {
+      this.indexBackfiller = new IndexBackfiller(localStore, persistence);
+    }
+    if (!this.indexBackfillerScheduler) {
+      this.indexBackfillerScheduler = new IndexBackfillerScheduler(
+        asyncQueue,
+        this.indexBackfiller
+      );
+    }
+    return this.indexBackfillerScheduler;
   }
 
   createCacheIndexes(

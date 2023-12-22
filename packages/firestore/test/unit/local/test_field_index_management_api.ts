@@ -23,6 +23,10 @@ import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { DocumentMap } from '../../../src/model/collections';
 import { IndexManager } from '../../../src/local/index_manager';
 import { User } from '../../../src/auth/user';
+import { LocalStore } from '../../../src/local/local_store';
+import { Persistence } from '../../../src/local/persistence';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { IndexBackfillerScheduler } from '../../../src/index/index_backfiller';
 
 export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
   indexAutoCreationEnabled = undefined as unknown as boolean;
@@ -32,6 +36,17 @@ export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
     this.initializeInvocationCount++;
   }
 
+  getIndexBackfillerScheduler(
+    asyncQueue: AsyncQueue,
+    localStore: LocalStore,
+    persistence: Persistence
+  ): IndexBackfillerScheduler {
+    throw new Error(
+      'getIndexBackfillerScheduler() is not implemented ' +
+        'in TestFieldIndexManagementApi'
+    );
+  }
+
   createCacheIndexes(
     transaction: PersistenceTransaction,
     query: Query,
@@ -39,7 +54,8 @@ export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
     resultSize: number
   ): PersistencePromise<void> {
     throw new Error(
-      'createCacheIndexes() is not implemented in TestFieldIndexManagementApi'
+      'createCacheIndexes() is not implemented ' +
+        'in TestFieldIndexManagementApi'
     );
   }
 
@@ -49,7 +65,8 @@ export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
     query: Query
   ): PersistencePromise<DocumentMap | null> {
     throw new Error(
-      'performQueryUsingIndex() is not implemented in TestFieldIndexManagementApi'
+      'performQueryUsingIndex() is not implemented ' +
+        'in TestFieldIndexManagementApi'
     );
   }
 }

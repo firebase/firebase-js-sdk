@@ -50,7 +50,7 @@ import {
   remoteStoreShutdown
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert, hardAssert } from '../util/assert';
+import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 
@@ -92,6 +92,8 @@ export interface OfflineComponentProvider {
   gcScheduler: Scheduler | null;
   synchronizeTabs: boolean;
 
+  setIndexBackfillerScheduler(indexBackfillerScheduler: Scheduler): void;
+
   initialize(cfg: ComponentConfiguration): Promise<void>;
 
   terminate(): Promise<void>;
@@ -124,6 +126,10 @@ export class MemoryOfflineComponentProvider
     );
   }
 
+  setIndexBackfillerScheduler(_: Scheduler): void {
+    // do nothing; index backfiller only applied to IndexedDB persistence.
+  }
+
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore
@@ -149,10 +155,8 @@ export class MemoryOfflineComponentProvider
   }
 
   async terminate(): Promise<void> {
-    if (this.gcScheduler) {
-      this.gcScheduler.stop();
-    }
-    await this.sharedClientState.shutdown();
+    this.gcScheduler?.stop();
+    this.sharedClientState.shutdown();
     await this.persistence.shutdown();
   }
 }
@@ -237,14 +241,18 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     });
   }
 
-  registerIndexBackfillerScheduler(indexBackfillerScheduler: Scheduler): void {
-    debugAssert(
-      !indexBackfillerScheduler.started,
-      'indexBackfillerScheduler.started should be false ' +
-        'when calling registerIndexBackfillerScheduler()'
-    );
+  setIndexBackfillerScheduler(indexBackfillerScheduler: Scheduler): void {
+    if (this.indexBackfillerScheduler === indexBackfillerScheduler) {
+      return;
+    }
+
+    this.indexBackfillerScheduler?.stop();
     this.indexBackfillerScheduler = indexBackfillerScheduler;
-    if (this.wasPrimaryStateListenerNotified) {
+
+    if (
+      this.wasPrimaryStateListenerNotified &&
+      !indexBackfillerScheduler.started
+    ) {
       indexBackfillerScheduler.start();
     }
   }
@@ -293,6 +301,11 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     return new MemorySharedClientState();
+  }
+
+  terminate(): Promise<void> {
+    this.indexBackfillerScheduler?.stop();
+    return super.terminate();
   }
 }
 
@@ -361,19 +374,18 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     });
   }
 
-  registerIndexBackfillerScheduler(indexBackfillerScheduler: Scheduler): void {
-    debugAssert(
-      !indexBackfillerScheduler.started,
-      'indexBackfillerScheduler.started should be false ' +
-        'when calling registerIndexBackfillerScheduler()'
-    );
+  setIndexBackfillerScheduler(indexBackfillerScheduler: Scheduler): void {
+    if (this.indexBackfillerScheduler === indexBackfillerScheduler) {
+      return;
+    }
+
+    this.indexBackfillerScheduler?.stop();
     this.indexBackfillerScheduler = indexBackfillerScheduler;
-    if (this.isPrimary !== null) {
-      if (this.isPrimary) {
-        indexBackfillerScheduler.start();
-      } else {
-        indexBackfillerScheduler.stop();
-      }
+
+    if (this.isPrimary === true && !indexBackfillerScheduler.started) {
+      indexBackfillerScheduler.start();
+    } else if (this.isPrimary === false) {
+      indexBackfillerScheduler.stop();
     }
   }
 
@@ -494,9 +506,6 @@ export class OnlineComponentProvider {
 
   async terminate(): Promise<void> {
     await remoteStoreShutdown(this.remoteStore);
-
-    if (this.datastore) {
-      await this.datastore.terminate();
-    }
+    this.datastore?.terminate();
   }
 }
