@@ -78,10 +78,7 @@ import {
   DbPrimaryClientStore
 } from '../../../src/local/indexeddb_sentinels';
 import { LocalStore } from '../../../src/local/local_store';
-import {
-  localStoreConfigureFieldIndexes,
-  localStoreSetFieldIndexManagementApiFactory
-} from '../../../src/local/local_store_impl';
+import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
 import { MemoryLruDelegate } from '../../../src/local/memory_persistence';
 import {
@@ -181,10 +178,7 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import {
-  FieldIndexManagementApiFactoryImpl,
-  FieldIndexManagementApiImpl
-} from '../../../src/index/field_index_management';
+import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 use(chaiExclude);
 
@@ -258,8 +252,7 @@ abstract class TestRunner {
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
   private lruGarbageCollector!: LruGarbageCollector;
   protected sharedClientState!: SharedClientState;
-  private fieldIndexManagementApiFactory =
-    new FieldIndexManagementApiFactoryImpl();
+  private fieldIndexManagementApi = new FieldIndexManagementApiImpl();
 
   private useEagerGCForMemory: boolean;
   private numClients: number;
@@ -592,11 +585,11 @@ abstract class TestRunner {
   ): Promise<void> {
     return this.queue.enqueue(async () => {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
-      localStoreSetFieldIndexManagementApiFactory(
+      return localStoreConfigureFieldIndexes(
         this.localStore,
-        this.fieldIndexManagementApiFactory
+        this.fieldIndexManagementApi,
+        parsedIndexes
       );
-      return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });
   }
 
