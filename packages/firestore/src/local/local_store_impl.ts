@@ -235,7 +235,7 @@ class LocalStoreImpl implements LocalStore {
     this.queryEngine.initialize(this.localDocuments);
 
     if (this.fieldIndexManagement.api) {
-      this.fieldIndexManagement.api.initialize(user, this.indexManager);
+      this.fieldIndexManagement.api.initialize(user);
     } else {
       this.fieldIndexManagement.initialUser = user;
     }
@@ -1523,13 +1523,12 @@ export async function localStoreConfigureFieldIndexes(
 
   installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
 
-  const indexManager = localStoreImpl.indexManager;
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
     'readwrite',
     transaction =>
-      indexManager
+      fieldIndexManagementApi
         .getFieldIndexes(transaction)
         .next(oldFieldIndexes =>
           diffArrays(
@@ -1538,12 +1537,15 @@ export async function localStoreConfigureFieldIndexes(
             fieldIndexSemanticComparator,
             fieldIndex => {
               promises.push(
-                indexManager.addFieldIndex(transaction, fieldIndex)
+                fieldIndexManagementApi.addFieldIndex(transaction, fieldIndex)
               );
             },
             fieldIndex => {
               promises.push(
-                indexManager.deleteFieldIndex(transaction, fieldIndex)
+                fieldIndexManagementApi.deleteFieldIndex(
+                  transaction,
+                  fieldIndex
+                )
               );
             }
           )
@@ -1576,10 +1578,7 @@ function installFieldIndexManagementApi(
   }
 
   if (localStoreImpl.fieldIndexManagement.initialUser !== undefined) {
-    api.initialize(
-      localStoreImpl.fieldIndexManagement.initialUser,
-      localStoreImpl.indexManager
-    );
+    api.initialize(localStoreImpl.fieldIndexManagement.initialUser);
   }
 
   localStoreImpl.queryEngine.fieldIndexManagementApi = api;
@@ -1607,13 +1606,17 @@ export function localStoreDisablePersistentCacheIndexAutoCreation(
 }
 
 export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore
+  localStore: LocalStore,
+  fieldIndexManagementApi: FieldIndexManagementApi
 ): Promise<void> {
+  // TODO: Remove FieldIndexManagementApi argument so that simply calling
+  // deleteAllFieldIndexes() does not preclude tree-shaking the rest of the
+  // CSI code.
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => indexManager.deleteAllFieldIndexes(transaction)
+    transaction => fieldIndexManagementApi.deleteAllFieldIndexes(transaction)
   );
 }

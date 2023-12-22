@@ -31,6 +31,7 @@ import { Persistence, Scheduler } from '../local/persistence';
 import { PersistencePromise } from '../local/persistence_promise';
 import { PersistenceTransaction } from '../local/persistence_transaction';
 import { isIndexedDbTransactionError } from '../local/simple_db';
+import { FieldIndexManagementApi } from './field_index_management_api';
 
 const LOG_TAG = 'IndexBackfiller';
 
@@ -115,7 +116,8 @@ export class IndexBackfiller {
      * an up-to-date references to IndexManager and LocalDocumentStore.
      */
     private readonly localStore: LocalStore,
-    private readonly persistence: Persistence
+    private readonly persistence: Persistence,
+    private readonly fieldIndexManagementApi: FieldIndexManagementApi
   ) {}
 
   async backfill(
@@ -139,7 +141,7 @@ export class IndexBackfiller {
     return PersistencePromise.doWhile(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
-        return this.localStore.indexManager
+        return this.fieldIndexManagementApi
           .getNextCollectionGroupToUpdate(transation)
           .next((collectionGroup: string | null) => {
             if (
@@ -172,7 +174,7 @@ export class IndexBackfiller {
     documentsRemainingUnderCap: number
   ): PersistencePromise<number> {
     // Use the earliest offset of all field indexes to query the local cache.
-    return this.localStore.indexManager
+    return this.fieldIndexManagementApi
       .getMinOffsetFromCollectionGroup(transaction, collectionGroup)
       .next(existingOffset =>
         this.localStore.localDocuments
@@ -184,12 +186,12 @@ export class IndexBackfiller {
           )
           .next(nextBatch => {
             const docs: DocumentMap = nextBatch.changes;
-            return this.localStore.indexManager
+            return this.fieldIndexManagementApi
               .updateIndexEntries(transaction, docs)
               .next(() => this.getNewOffset(existingOffset, nextBatch))
               .next(newOffset => {
                 logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
-                return this.localStore.indexManager.updateCollectionGroup(
+                return this.fieldIndexManagementApi.updateCollectionGroup(
                   transaction,
                   collectionGroup,
                   newOffset

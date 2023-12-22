@@ -91,9 +91,12 @@ export function getPersistentCacheIndexManager(
 export function persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(
   indexManager: PersistentCacheIndexManager
 ): FieldIndexManagementApi {
+  const client = persistentCacheIndexManagerGetFirestoreClient(indexManager);
   if (!indexManager._state.fieldIndexManagementApi) {
     indexManager._state.fieldIndexManagementApi =
-      new FieldIndexManagementApiImpl();
+      new FieldIndexManagementApiImpl(
+        client.configuration.databaseInfo.databaseId
+      );
   }
   return indexManager._state.fieldIndexManagementApi;
 }
@@ -124,15 +127,14 @@ export function persistentCacheIndexManagerGetFirestoreClient(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const firestoreClient =
-    persistentCacheIndexManagerGetFirestoreClient(indexManager);
-  firestoreClient.verifyNotTerminated();
+  const client = persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  client.verifyNotTerminated();
 
   const fieldIndexManagementApi =
     persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(indexManager);
 
   firestoreClientEnablePersistentCacheIndexAutoCreation(
-    firestoreClient,
+    client,
     fieldIndexManagementApi
   )
     .then(() =>
@@ -151,11 +153,10 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const firestoreClient =
-    persistentCacheIndexManagerGetFirestoreClient(indexManager);
-  firestoreClient.verifyNotTerminated();
+  const client = persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  client.verifyNotTerminated();
 
-  firestoreClientDisablePersistentCacheIndexAutoCreation(firestoreClient)
+  firestoreClientDisablePersistentCacheIndexAutoCreation(client)
     .then(() =>
       logDebug('disabling persistent cache index auto creation succeeded')
     )
@@ -173,11 +174,13 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const firestoreClient =
-    persistentCacheIndexManagerGetFirestoreClient(indexManager);
-  firestoreClient.verifyNotTerminated();
+  const client = persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  client.verifyNotTerminated();
 
-  firestoreClientDeleteAllFieldIndexes(firestoreClient)
+  const fieldIndexManagementApi =
+    persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(indexManager);
+
+  firestoreClientDeleteAllFieldIndexes(client, fieldIndexManagementApi)
     .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
     .catch(error =>
       logWarn('deleting all persistent cache indexes failed', error)

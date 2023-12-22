@@ -878,10 +878,17 @@ export function firestoreClientDisablePersistentCacheIndexAutoCreation(
   });
 }
 
-export function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient
+export async function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient,
+  fieldIndexManagementApi: FieldIndexManagementApi
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
+  await client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(
+      await getLocalStore(client),
+      fieldIndexManagementApi
+    );
   });
+
+  // TODO: Update the backfiller scheduler on user change.
+  await setIndexBackfiller(client, fieldIndexManagementApi);
 }
