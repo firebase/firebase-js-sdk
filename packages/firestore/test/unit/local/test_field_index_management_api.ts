@@ -14,19 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FieldIndexManagementApi } from '../../../src/index/field_index_management_api';
+import {
+  FieldIndexManagementApi,
+  FieldIndexManagementApiFactory
+} from '../../../src/index/field_index_management_api';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
-import { IndexManager } from '../../../src/local/index_manager';
 import { Query } from '../../../src/core/query';
 import { QueryContext } from '../../../src/local/query_context';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { DocumentMap } from '../../../src/model/collections';
+import { IndexManager } from '../../../src/local/index_manager';
 
 export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
   indexAutoCreationEnabled = null as unknown as boolean;
-
-  constructor(indexManager: IndexManager) {}
 
   createCacheIndexes(
     transaction: PersistenceTransaction,
@@ -47,5 +48,37 @@ export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
     throw new Error(
       'performQueryUsingIndex() is not implemented in TestFieldIndexManagementApi'
     );
+  }
+}
+
+export class TestFieldIndexManagementApiFactory
+  implements FieldIndexManagementApiFactory
+{
+  readonly instance = new TestFieldIndexManagementApi();
+
+  private readonly callbacks = new Map<
+    Symbol,
+    (api: FieldIndexManagementApi) => void
+  >();
+
+  private newInstanceCalled = false;
+
+  newInstance(indexManager: IndexManager): TestFieldIndexManagementApi {
+    if (this.newInstanceCalled) {
+      throw new Error(
+        'TestFieldIndexManagementApiFactory.newInstance() has already been called'
+      );
+    }
+    this.callbacks.forEach(callback => callback(this.instance));
+    return this.instance;
+  }
+  onNewInstance<T>(
+    callbackId: Symbol,
+    callback: (api: FieldIndexManagementApi, cookie: T) => void,
+    cookie: T
+  ): void {
+    const callbackWrapper = (api: FieldIndexManagementApi) =>
+      callback(api, cookie);
+    this.callbacks.set(callbackId, callbackWrapper);
   }
 }

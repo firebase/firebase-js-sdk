@@ -181,7 +181,10 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
+import {
+  FieldIndexManagementApiFactoryImpl,
+  FieldIndexManagementApiImpl
+} from '../../../src/index/field_index_management';
 
 use(chaiExclude);
 
@@ -255,6 +258,8 @@ abstract class TestRunner {
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
   private lruGarbageCollector!: LruGarbageCollector;
   protected sharedClientState!: SharedClientState;
+  private fieldIndexManagementApiFactory =
+    new FieldIndexManagementApiFactoryImpl();
 
   private useEagerGCForMemory: boolean;
   private numClients: number;
@@ -589,7 +594,7 @@ abstract class TestRunner {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
       localStoreSetFieldIndexManagementApiFactory(
         this.localStore,
-        FieldIndexManagementApiImpl
+        this.fieldIndexManagementApiFactory
       );
       return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });

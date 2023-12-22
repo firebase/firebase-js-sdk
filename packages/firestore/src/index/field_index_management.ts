@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FieldIndexManagementApi } from './field_index_management_api';
+import {
+  FieldIndexManagementApi,
+  FieldIndexManagementApiFactory
+} from './field_index_management_api';
 import { PersistenceTransaction } from '../local/persistence_transaction';
 import {
   LimitType,
@@ -36,6 +39,7 @@ import {
   applyQuery,
   needsRefill
 } from '../local/query_engine';
+import { OfflineComponentProvider } from '../core/component_provider';
 
 export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
   indexAutoCreationEnabled = false;
@@ -51,6 +55,10 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
     DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
 
   constructor(readonly indexManager: IndexManager) {}
+
+  static newInstance(indexManager: IndexManager): FieldIndexManagementApiImpl {
+    return new FieldIndexManagementApiImpl(indexManager);
+  }
 
   createCacheIndexes(
     transaction: PersistenceTransaction,
@@ -192,6 +200,33 @@ export class FieldIndexManagementApiImpl implements FieldIndexManagementApi {
               });
           });
       });
+  }
+}
+
+export class FieldIndexManagementApiFactoryImpl
+  implements FieldIndexManagementApiFactory
+{
+  readonly onNewInstanceCallbacks = new Map<
+    Symbol,
+    (api: FieldIndexManagementApi) => void
+  >();
+
+  newInstance(indexManager: IndexManager): FieldIndexManagementApiImpl {
+    const instance = new FieldIndexManagementApiImpl(indexManager);
+    this.onNewInstanceCallbacks.forEach(callback => {
+      callback(instance);
+    });
+    return instance;
+  }
+
+  onNewInstance<T>(
+    callbackId: Symbol,
+    callback: (api: FieldIndexManagementApi, cookie: T) => void,
+    cookie: T
+  ): void {
+    const callbackWrapper = (api: FieldIndexManagementApi) =>
+      callback(api, cookie);
+    this.onNewInstanceCallbacks.set(callbackId, callbackWrapper);
   }
 }
 

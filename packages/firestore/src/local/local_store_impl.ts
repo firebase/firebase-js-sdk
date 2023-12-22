@@ -1537,12 +1537,39 @@ export async function localStoreConfigureFieldIndexes(
   );
 }
 
+const ON_NEW_INSTANCE_ID = Symbol('LocalStoreImpl_ON_NEW_INSTANCE_ID');
+
 export function localStoreSetFieldIndexManagementApiFactory(
   localStore: LocalStore,
   factory: FieldIndexManagementApiFactory
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  hardAssert(
+    localStoreImpl.fieldIndexManagementApiFactory === null ||
+      localStoreImpl.fieldIndexManagementApiFactory === factory,
+    'The FieldIndexManagementApiFactory must be ' +
+      'the same object as previously set'
+  );
+  factory.onNewInstance(
+    ON_NEW_INSTANCE_ID,
+    onNewFieldIndexManagementApiInstance,
+    localStoreImpl
+  );
   localStoreImpl.fieldIndexManagementApiFactory = factory;
+}
+
+function onNewFieldIndexManagementApiInstance(
+  fieldIndexManagementApi: FieldIndexManagementApi,
+  localStoreImpl: LocalStoreImpl
+) {
+  if (
+    localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled !== null
+  ) {
+    fieldIndexManagementApi.indexAutoCreationEnabled =
+      localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled;
+  }
+
+  localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
 }
 
 export function localStoreEnablePersistentCacheIndexAutoCreation(
@@ -1577,21 +1604,11 @@ export function localStoreInstallFieldIndexManagementApi(
     'FieldIndexManagementApiFactory must be set on LocalStoreImpl'
   );
 
-  const fieldIndexManagementApi =
-    new localStoreImpl.fieldIndexManagementApiFactory(
+  localStoreImpl.fieldIndexManagementApi =
+    localStoreImpl.fieldIndexManagementApiFactory.newInstance(
       localStoreImpl.indexManager
     );
-  if (
-    localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled !== null
-  ) {
-    fieldIndexManagementApi.indexAutoCreationEnabled =
-      localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled;
-    localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled = null;
-  }
-
-  localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
-  localStoreImpl.fieldIndexManagementApi = fieldIndexManagementApi;
-  return fieldIndexManagementApi;
+  return localStoreImpl.fieldIndexManagementApi;
 }
 
 export function localStoreDeleteAllFieldIndexes(

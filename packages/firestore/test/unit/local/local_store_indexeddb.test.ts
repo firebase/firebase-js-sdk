@@ -72,11 +72,17 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
+import {
+  FieldIndexManagementApiFactoryImpl,
+  FieldIndexManagementApiImpl
+} from '../../../src/index/field_index_management';
+import { TestFieldIndexManagementApiFactory } from './test_field_index_management_api';
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
   private indexBackfiller: IndexBackfiller;
+  private fieldIndexManagementApiFactory =
+    new FieldIndexManagementApiFactoryImpl();
 
   private lastChanges: DocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
@@ -146,15 +152,15 @@ class AsyncLocalStoreTester {
 
     localStoreSetFieldIndexManagementApiFactory(
       this.localStore,
-      FieldIndexManagementApiImpl
+      this.fieldIndexManagementApiFactory
     );
     const fieldIndexManagementApi = localStoreInstallFieldIndexManagementApi(
       this.localStore
     );
     if (!(fieldIndexManagementApi instanceof FieldIndexManagementApiImpl)) {
       throw new Error(
-        `fieldIndexManagementApi should be an instance of ` +
-          `FieldIndexManagementApiImpl: $fieldIndexManagementApi`
+        'fieldIndexManagementApi should be an instance of ' +
+          'FieldIndexManagementApiImpl'
       );
     }
 
@@ -185,7 +191,7 @@ class AsyncLocalStoreTester {
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
     localStoreSetFieldIndexManagementApiFactory(
       this.localStore,
-      FieldIndexManagementApiImpl
+      this.fieldIndexManagementApiFactory
     );
     await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }

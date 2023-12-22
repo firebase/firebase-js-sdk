@@ -125,7 +125,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { TestFieldIndexManagementApi } from './test_field_index_management_api';
+import { TestFieldIndexManagementApiFactory } from './test_field_index_management_api';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -664,18 +664,22 @@ function genericLocalStoreTests(
   }
 
   it('localStoreEnablePersistentCacheIndexAutoCreation()', () => {
+    const testFieldIndexManagementApiFactory =
+      new TestFieldIndexManagementApiFactory();
     localStoreSetFieldIndexManagementApiFactory(
       localStore,
-      TestFieldIndexManagementApi
+      testFieldIndexManagementApiFactory
     );
 
     localStoreEnablePersistentCacheIndexAutoCreation(localStore);
     const fieldIndexManagementApi =
       localStoreInstallFieldIndexManagementApi(localStore);
-    if (!(fieldIndexManagementApi instanceof TestFieldIndexManagementApi)) {
+    if (
+      fieldIndexManagementApi !== testFieldIndexManagementApiFactory.instance
+    ) {
       throw new Error(
-        'fieldIndexManagementApi should be ' +
-          'an instance of TestFieldIndexManagementApi'
+        'fieldIndexManagementApi should be the TestFieldIndexManagementApi ' +
+          'from the TestFieldIndexManagementApiFactory'
       );
     }
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
@@ -687,18 +691,22 @@ function genericLocalStoreTests(
   });
 
   it('localStoreDisablePersistentCacheIndexAutoCreation()', () => {
+    const testFieldIndexManagementApiFactory =
+      new TestFieldIndexManagementApiFactory();
     localStoreSetFieldIndexManagementApiFactory(
       localStore,
-      TestFieldIndexManagementApi
+      testFieldIndexManagementApiFactory
     );
 
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     const fieldIndexManagementApi =
       localStoreInstallFieldIndexManagementApi(localStore);
-    if (!(fieldIndexManagementApi instanceof TestFieldIndexManagementApi)) {
+    if (
+      fieldIndexManagementApi !== testFieldIndexManagementApiFactory.instance
+    ) {
       throw new Error(
-        'fieldIndexManagementApi should be ' +
-          'an instance of TestFieldIndexManagementApi'
+        'fieldIndexManagementApi should be the TestFieldIndexManagementApi ' +
+          'from the TestFieldIndexManagementApiFactory'
       );
     }
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;

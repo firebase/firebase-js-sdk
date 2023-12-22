@@ -26,7 +26,10 @@ import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { FieldIndexManagementApiImpl } from '../index/field_index_management';
+import {
+  FieldIndexManagementApiFactoryImpl,
+  FieldIndexManagementApiImpl
+} from '../index/field_index_management';
 
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
@@ -37,6 +40,9 @@ import { FieldIndexManagementApiImpl } from '../index/field_index_management';
 export class PersistentCacheIndexManager {
   /** A type string to uniquely identify instances of this class. */
   readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
+
+  readonly _fieldIndexManagementApiFactory =
+    new FieldIndexManagementApiFactoryImpl();
 
   /** @hideconstructor */
   constructor(readonly _client: FirestoreClient) {}
@@ -82,7 +88,7 @@ export function enablePersistentCacheIndexAutoCreation(
   const client: FirestoreClient = indexManager._client;
   client.verifyNotTerminated();
 
-  enablePersistentCacheIndexAutoCreationInternal(client)
+  enablePersistentCacheIndexAutoCreationInternal(indexManager)
     .then(() =>
       logDebug('enabling persistent cache index auto creation succeeded')
     )
@@ -92,13 +98,21 @@ export function enablePersistentCacheIndexAutoCreation(
 }
 
 async function enablePersistentCacheIndexAutoCreationInternal(
-  client: FirestoreClient
+  indexManager: PersistentCacheIndexManager
 ): Promise<void> {
-  await firestoreClientSetFieldIndexManagementApiFactory(
-    client,
-    FieldIndexManagementApiImpl
+  await setFieldIndexManagementApiFactory(indexManager);
+  await firestoreClientEnablePersistentCacheIndexAutoCreation(
+    indexManager._client
   );
-  await firestoreClientEnablePersistentCacheIndexAutoCreation(client);
+}
+
+export function setFieldIndexManagementApiFactory(
+  indexManager: PersistentCacheIndexManager
+): Promise<void> {
+  return firestoreClientSetFieldIndexManagementApiFactory(
+    indexManager._client,
+    indexManager._fieldIndexManagementApiFactory
+  );
 }
 
 /**

@@ -5,6 +5,7 @@ import { PersistencePromise } from '../local/persistence_promise';
 import { DocumentMap } from '../model/collections';
 import { IndexManager } from '../local/index_manager';
 import { LocalDocumentsView } from '../local/local_documents_view';
+import { OfflineComponentProvider } from '../core/component_provider';
 
 /**
  * @license
@@ -40,5 +41,11 @@ export interface FieldIndexManagementApi {
 }
 
 export interface FieldIndexManagementApiFactory {
-  new (indexManager: IndexManager): FieldIndexManagementApi;
+  newInstance(indexManager: IndexManager): FieldIndexManagementApi;
+
+  onNewInstance<T>(
+    callbackId: Symbol,
+    callback: (api: FieldIndexManagementApi, cookie: T) => void,
+    cookie: T
+  ): void;
 }
