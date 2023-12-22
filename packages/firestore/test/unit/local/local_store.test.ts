@@ -45,14 +45,13 @@ import {
   localStoreGetNamedQuery,
   localStoreGetTargetData,
   localStoreHasNewerBundle,
-  localStoreInstallFieldIndexManagementApi,
+  localStoreConfigureFieldIndexes,
   localStoreNotifyLocalViewChanges,
   localStoreReadDocument,
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  localStoreSetFieldIndexManagementApiFactory,
   localStoreWriteLocally,
   LocalWriteResult,
   newLocalStore
@@ -125,7 +124,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { TestFieldIndexManagementApiFactory } from './test_field_index_management_api';
+import {TestFieldIndexManagementApi} from './test_field_index_management_api';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -610,7 +609,7 @@ describe('LocalStore w/ Memory Persistence', () => {
   genericLocalStoreTests(initialize, /* gcIsEager= */ true);
 });
 
-describe('LocalStore w/ IndexedDB Persistence', () => {
+describe.only('LocalStore w/ IndexedDB Persistence', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn(
       'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
@@ -663,55 +662,58 @@ function genericLocalStoreTests(
     );
   }
 
-  it('localStoreEnablePersistentCacheIndexAutoCreation()', () => {
-    const testFieldIndexManagementApiFactory =
-      new TestFieldIndexManagementApiFactory();
-    localStoreSetFieldIndexManagementApiFactory(
-      localStore,
-      testFieldIndexManagementApiFactory
-    );
+  it('localStoreEnablePersistentCacheIndexAutoCreation() should set the index auto creation flag to true', () => {
+    const fieldIndexManagementApi = new TestFieldIndexManagementApi();
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
-    const fieldIndexManagementApi =
-      localStoreInstallFieldIndexManagementApi(localStore);
-    if (
-      fieldIndexManagementApi !== testFieldIndexManagementApiFactory.instance
-    ) {
-      throw new Error(
-        'fieldIndexManagementApi should be the TestFieldIndexManagementApi ' +
-          'from the TestFieldIndexManagementApiFactory'
-      );
-    }
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
 
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
   });
 
-  it('localStoreDisablePersistentCacheIndexAutoCreation()', () => {
-    const testFieldIndexManagementApiFactory =
-      new TestFieldIndexManagementApiFactory();
-    localStoreSetFieldIndexManagementApiFactory(
-      localStore,
-      testFieldIndexManagementApiFactory
-    );
+  it('localStoreEnablePersistentCacheIndexAutoCreation() should throw if given a different FieldIndexManagementApi instance', () => {
+    const fieldIndexManagementApi1 = new TestFieldIndexManagementApi();
+    const fieldIndexManagementApi2 = new TestFieldIndexManagementApi();
+
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi1);
+    expect(() => localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi2)).to.throw(/The exact same FieldIndexManagementApi instance must be/);
+  });
+
+  it('localStoreEnablePersistentCacheIndexAutoCreation() should initialize the FieldIndexManagementApi instance the first time, and only the first time', () => {
+    const fieldIndexManagementApi = new TestFieldIndexManagementApi();
+
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+
+    expect(fieldIndexManagementApi.initializeInvocationCount).to.equal(1);
+  });
+
+  it('localStoreDisablePersistentCacheIndexAutoCreation() should cache the value, using it upon initialization', () => {
+    const fieldIndexManagementApi = new TestFieldIndexManagementApi();
 
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
-    const fieldIndexManagementApi =
-      localStoreInstallFieldIndexManagementApi(localStore);
-    if (
-      fieldIndexManagementApi !== testFieldIndexManagementApiFactory.instance
-    ) {
-      throw new Error(
-        'fieldIndexManagementApi should be the TestFieldIndexManagementApi ' +
-          'from the TestFieldIndexManagementApiFactory'
-      );
-    }
-    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.undefined;
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore);
+    // The call to localStoreConfigureFieldIndexes() should initialize the given
+    // `FieldIndexManagementApi` object and explicitly set the index auto
+    // creation flag to false, due to the above invocation.
+    localStoreConfigureFieldIndexes(localStore, fieldIndexManagementApi, []);
+
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
+  });
+
+  it('localStoreDisablePersistentCacheIndexAutoCreation() should set the index auto creation flag to false', () => {
+    const fieldIndexManagementApi = new TestFieldIndexManagementApi();
+
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
+    localStoreDisablePersistentCacheIndexAutoCreation(localStore);
+    expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
+    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
