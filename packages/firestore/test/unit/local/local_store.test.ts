@@ -124,7 +124,7 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {TestFieldIndexManagementApi} from './test_field_index_management_api';
+import { TestFieldIndexManagementApi } from './test_field_index_management_api';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -609,7 +609,7 @@ describe('LocalStore w/ Memory Persistence', () => {
   genericLocalStoreTests(initialize, /* gcIsEager= */ true);
 });
 
-describe.only('LocalStore w/ IndexedDB Persistence', () => {
+describe('LocalStore w/ IndexedDB Persistence', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn(
       'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
@@ -665,12 +665,18 @@ function genericLocalStoreTests(
   it('localStoreEnablePersistentCacheIndexAutoCreation() should set the index auto creation flag to true', () => {
     const fieldIndexManagementApi = new TestFieldIndexManagementApi();
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
 
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
   });
 
@@ -678,16 +684,33 @@ function genericLocalStoreTests(
     const fieldIndexManagementApi1 = new TestFieldIndexManagementApi();
     const fieldIndexManagementApi2 = new TestFieldIndexManagementApi();
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi1);
-    expect(() => localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi2)).to.throw(/The exact same FieldIndexManagementApi instance must be/);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi1
+    );
+    expect(() =>
+      localStoreEnablePersistentCacheIndexAutoCreation(
+        localStore,
+        fieldIndexManagementApi2
+      )
+    ).to.throw(/The exact same FieldIndexManagementApi instance must be/);
   });
 
   it('localStoreEnablePersistentCacheIndexAutoCreation() should initialize the FieldIndexManagementApi instance the first time, and only the first time', () => {
     const fieldIndexManagementApi = new TestFieldIndexManagementApi();
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
 
     expect(fieldIndexManagementApi.initializeInvocationCount).to.equal(1);
   });
@@ -709,11 +732,17 @@ function genericLocalStoreTests(
   it('localStoreDisablePersistentCacheIndexAutoCreation() should set the index auto creation flag to false', () => {
     const fieldIndexManagementApi = new TestFieldIndexManagementApi();
 
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;
-    localStoreEnablePersistentCacheIndexAutoCreation(localStore, fieldIndexManagementApi);
+    localStoreEnablePersistentCacheIndexAutoCreation(
+      localStore,
+      fieldIndexManagementApi
+    );
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.true;
     localStoreDisablePersistentCacheIndexAutoCreation(localStore);
     expect(fieldIndexManagementApi.indexAutoCreationEnabled).to.be.false;

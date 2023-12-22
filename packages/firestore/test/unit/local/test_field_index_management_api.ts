@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldIndexManagementApi} from '../../../src/index/field_index_management_api';
+import { FieldIndexManagementApi } from '../../../src/index/field_index_management_api';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { Query } from '../../../src/core/query';
 import { QueryContext } from '../../../src/local/query_context';
@@ -22,7 +22,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { DocumentMap } from '../../../src/model/collections';
 import { IndexManager } from '../../../src/local/index_manager';
-import {User} from "../../../src/auth/user";
+import { User } from '../../../src/auth/user';
 
 export class TestFieldIndexManagementApi implements FieldIndexManagementApi {
   indexAutoCreationEnabled = undefined as unknown as boolean;
