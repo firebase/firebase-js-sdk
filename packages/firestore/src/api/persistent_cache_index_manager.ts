@@ -19,17 +19,19 @@ import {
   FirestoreClient,
   firestoreClientDeleteAllFieldIndexes,
   firestoreClientDisablePersistentCacheIndexAutoCreation,
-  firestoreClientEnablePersistentCacheIndexAutoCreation,
-  firestoreClientSetFieldIndexManagementApiFactory
+  firestoreClientEnablePersistentCacheIndexAutoCreation
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import {
-  FieldIndexManagementApiFactoryImpl,
-  FieldIndexManagementApiImpl
-} from '../index/field_index_management';
+import { FieldIndexManagementApiImpl } from '../index/field_index_management';
+import { FieldIndexManagementApi } from '../index/field_index_management_api';
+
+interface PersistentCacheIndexManagerState {
+  readonly firestoreClient: FirestoreClient;
+  fieldIndexManagementApi?: FieldIndexManagementApi;
+}
 
 /**
  * A `PersistentCacheIndexManager` for configuring persistent cache indexes used
@@ -41,11 +43,12 @@ export class PersistentCacheIndexManager {
   /** A type string to uniquely identify instances of this class. */
   readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
 
-  readonly _fieldIndexManagementApiFactory =
-    new FieldIndexManagementApiFactoryImpl();
+  readonly _state: PersistentCacheIndexManagerState;
 
   /** @hideconstructor */
-  constructor(readonly _client: FirestoreClient) {}
+  constructor(firestoreClient: FirestoreClient) {
+    this._state = { firestoreClient };
+  }
 }
 
 /**
@@ -76,6 +79,42 @@ export function getPersistentCacheIndexManager(
 }
 
 /**
+ * Gets the `FieldIndexManagementApi` associated with the given
+ * `PersistentCacheIndexManager`, creating it if it does not already exist.
+ *
+ * @param indexManager The `PersistentCacheIndexManager` instance whose
+ * `FieldIndexManagementApi` to get (or create).
+ * @return The `FieldIndexManagementApi` instance associated with the given
+ * `PersistentCacheIndexManager`; this function will return the exact same
+ * object for a given `PersistentCacheIndexManager` object.
+ */
+export function persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(
+  indexManager: PersistentCacheIndexManager
+): FieldIndexManagementApi {
+  if (!indexManager._state.fieldIndexManagementApi) {
+    indexManager._state.fieldIndexManagementApi =
+      new FieldIndexManagementApiImpl();
+  }
+  return indexManager._state.fieldIndexManagementApi;
+}
+
+/**
+ * Gets the `FirestoreClient` associated with the given
+ * `PersistentCacheIndexManager`.
+ *
+ * @param indexManager The `PersistentCacheIndexManager` instance whose
+ * `FirestoreClient` to get.
+ * @return The `FirestoreClient` instance associated with the given
+ * `PersistentCacheIndexManager`; this function will return the exact same
+ * object for a given `PersistentCacheIndexManager` object.
+ */
+export function persistentCacheIndexManagerGetFirestoreClient(
+  indexManager: PersistentCacheIndexManager
+): FirestoreClient {
+  return indexManager._state.firestoreClient;
+}
+
+/**
  * Enables the SDK to create persistent cache indexes automatically for local
  * query execution when the SDK believes cache indexes can help improve
  * performance.
@@ -85,34 +124,23 @@ export function getPersistentCacheIndexManager(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  const client: FirestoreClient = indexManager._client;
-  client.verifyNotTerminated();
+  const firestoreClient =
+    persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  firestoreClient.verifyNotTerminated();
 
-  enablePersistentCacheIndexAutoCreationInternal(indexManager)
+  const fieldIndexManagementApi =
+    persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(indexManager);
+
+  firestoreClientEnablePersistentCacheIndexAutoCreation(
+    firestoreClient,
+    fieldIndexManagementApi
+  )
     .then(() =>
       logDebug('enabling persistent cache index auto creation succeeded')
     )
     .catch(error =>
       logWarn('enabling persistent cache index auto creation failed', error)
     );
-}
-
-async function enablePersistentCacheIndexAutoCreationInternal(
-  indexManager: PersistentCacheIndexManager
-): Promise<void> {
-  await setFieldIndexManagementApiFactory(indexManager);
-  await firestoreClientEnablePersistentCacheIndexAutoCreation(
-    indexManager._client
-  );
-}
-
-export function setFieldIndexManagementApiFactory(
-  indexManager: PersistentCacheIndexManager
-): Promise<void> {
-  return firestoreClientSetFieldIndexManagementApiFactory(
-    indexManager._client,
-    indexManager._fieldIndexManagementApiFactory
-  );
 }
 
 /**
@@ -123,9 +151,11 @@ export function setFieldIndexManagementApiFactory(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  indexManager._client.verifyNotTerminated();
+  const firestoreClient =
+    persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  firestoreClient.verifyNotTerminated();
 
-  firestoreClientDisablePersistentCacheIndexAutoCreation(indexManager._client)
+  firestoreClientDisablePersistentCacheIndexAutoCreation(firestoreClient)
     .then(() =>
       logDebug('disabling persistent cache index auto creation succeeded')
     )
@@ -143,9 +173,11 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
-  indexManager._client.verifyNotTerminated();
+  const firestoreClient =
+    persistentCacheIndexManagerGetFirestoreClient(indexManager);
+  firestoreClient.verifyNotTerminated();
 
-  firestoreClientDeleteAllFieldIndexes(indexManager._client)
+  firestoreClientDeleteAllFieldIndexes(firestoreClient)
     .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
     .catch(error =>
       logWarn('deleting all persistent cache indexes failed', error)

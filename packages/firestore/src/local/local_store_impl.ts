@@ -90,10 +90,7 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import {
-  FieldIndexManagementApi,
-  FieldIndexManagementApiFactory
-} from '../index/field_index_management_api';
+import { FieldIndexManagementApi } from '../index/field_index_management_api';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -123,6 +120,12 @@ export interface UserChangeResult {
 export interface QueryResult {
   readonly documents: DocumentMap;
   readonly remoteKeys: DocumentKeySet;
+}
+
+interface FieldIndexManagementApiInfo {
+  api?: FieldIndexManagementApi;
+  initialIndexAutoCreationEnabled?: boolean;
+  initialUser?: User;
 }
 
 /**
@@ -187,9 +190,13 @@ class LocalStoreImpl implements LocalStore {
    */
   collectionGroupReadTime = new Map<string, SnapshotVersion>();
 
-  fieldIndexManagementApiFactory: FieldIndexManagementApiFactory | null = null;
-  fieldIndexManagementApi: FieldIndexManagementApi | null = null;
-  fieldIndexManagementInitialIndexAutoCreationEnabled: boolean | null = null;
+  /**
+   * Information about the field indexes API. The field indexing (a.k.a.
+   * "client side indexing") functionality is "injectable" so that it is
+   * tree-shakeable if not used. That's why it is a bit more complicated than
+   * simply initializing it in the constructor.
+   */
+  fieldIndexManagement: FieldIndexManagementApiInfo = {};
 
   constructor(
     /** Manages our in-memory or durable persistence. */
@@ -226,6 +233,12 @@ class LocalStoreImpl implements LocalStore {
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
     this.queryEngine.initialize(this.localDocuments);
+
+    if (this.fieldIndexManagement.api) {
+      this.fieldIndexManagement.api.initialize(user, this.indexManager);
+    } else {
+      this.fieldIndexManagement.initialUser = user;
+    }
   }
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
@@ -1503,11 +1516,13 @@ export async function localStoreSaveNamedQuery(
 
 export async function localStoreConfigureFieldIndexes(
   localStore: LocalStore,
+  fieldIndexManagementApi: FieldIndexManagementApi,
   newFieldIndexes: FieldIndex[]
 ): Promise<void> {
-  localStoreInstallFieldIndexManagementApi(localStore);
-
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
+  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
+
   const indexManager = localStoreImpl.indexManager;
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
@@ -1537,46 +1552,46 @@ export async function localStoreConfigureFieldIndexes(
   );
 }
 
-const ON_NEW_INSTANCE_ID = Symbol('LocalStoreImpl_ON_NEW_INSTANCE_ID');
-
-export function localStoreSetFieldIndexManagementApiFactory(
-  localStore: LocalStore,
-  factory: FieldIndexManagementApiFactory
+function installFieldIndexManagementApi(
+  localStoreImpl: LocalStoreImpl,
+  api: FieldIndexManagementApi
 ): void {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  hardAssert(
-    localStoreImpl.fieldIndexManagementApiFactory === null ||
-      localStoreImpl.fieldIndexManagementApiFactory === factory,
-    'The FieldIndexManagementApiFactory must be ' +
-      'the same object as previously set'
-  );
-  factory.onNewInstance(
-    ON_NEW_INSTANCE_ID,
-    onNewFieldIndexManagementApiInstance,
-    localStoreImpl
-  );
-  localStoreImpl.fieldIndexManagementApiFactory = factory;
-}
-
-function onNewFieldIndexManagementApiInstance(
-  fieldIndexManagementApi: FieldIndexManagementApi,
-  localStoreImpl: LocalStoreImpl
-) {
-  if (
-    localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled !== null
-  ) {
-    fieldIndexManagementApi.indexAutoCreationEnabled =
-      localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled;
+  if (localStoreImpl.fieldIndexManagement.api === api) {
+    return;
   }
 
-  localStoreImpl.queryEngine.fieldIndexManagementApi = fieldIndexManagementApi;
+  hardAssert(
+    localStoreImpl.fieldIndexManagement.api === undefined,
+    'The exact same FieldIndexManagementApi instance must be ' +
+      'specified to all localStoreXXX() functions for a given LocalStore ' +
+      'instance; however, two distinct instances have been specified for ' +
+      `LocalStore instance ${localStoreImpl}: ` +
+      `${localStoreImpl.fieldIndexManagement.api} and ${api}`
+  );
+
+  const initialIndexAutoCreationEnabled =
+    localStoreImpl.fieldIndexManagement.initialIndexAutoCreationEnabled;
+  if (initialIndexAutoCreationEnabled !== undefined) {
+    api.indexAutoCreationEnabled = initialIndexAutoCreationEnabled;
+  }
+
+  if (localStoreImpl.fieldIndexManagement.initialUser !== undefined) {
+    api.initialize(
+      localStoreImpl.fieldIndexManagement.initialUser,
+      localStoreImpl.indexManager
+    );
+  }
+
+  localStoreImpl.queryEngine.fieldIndexManagementApi = api;
+  localStoreImpl.fieldIndexManagement.api = api;
 }
 
 export function localStoreEnablePersistentCacheIndexAutoCreation(
-  localStore: LocalStore
+  localStore: LocalStore,
+  fieldIndexManagementApi: FieldIndexManagementApi
 ): void {
-  const fieldIndexManagementApi =
-    localStoreInstallFieldIndexManagementApi(localStore);
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
   fieldIndexManagementApi.indexAutoCreationEnabled = true;
 }
 
@@ -1584,31 +1599,11 @@ export function localStoreDisablePersistentCacheIndexAutoCreation(
   localStore: LocalStore
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  if (localStoreImpl.fieldIndexManagementApi) {
-    localStoreImpl.fieldIndexManagementApi.indexAutoCreationEnabled = false;
+  if (localStoreImpl.fieldIndexManagement.api) {
+    localStoreImpl.fieldIndexManagement.api.indexAutoCreationEnabled = false;
   } else {
-    localStoreImpl.fieldIndexManagementInitialIndexAutoCreationEnabled = false;
+    localStoreImpl.fieldIndexManagement.initialIndexAutoCreationEnabled = false;
   }
-}
-
-export function localStoreInstallFieldIndexManagementApi(
-  localStore: LocalStore
-): FieldIndexManagementApi {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  if (localStoreImpl.fieldIndexManagementApi) {
-    return localStoreImpl.fieldIndexManagementApi;
-  }
-
-  debugAssert(
-    !!localStoreImpl.fieldIndexManagementApiFactory,
-    'FieldIndexManagementApiFactory must be set on LocalStoreImpl'
-  );
-
-  localStoreImpl.fieldIndexManagementApi =
-    localStoreImpl.fieldIndexManagementApiFactory.newInstance(
-      localStoreImpl.indexManager
-    );
-  return localStoreImpl.fieldIndexManagementApi;
 }
 
 export function localStoreDeleteAllFieldIndexes(

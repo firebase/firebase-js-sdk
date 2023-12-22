@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  firestoreClientSetFieldIndexManagementApiFactory,
-  firestoreClientSetIndexConfiguration
-} from '../core/firestore_client';
+import { firestoreClientSetIndexConfiguration } from '../core/firestore_client';
 import { fieldPathFromDotSeparatedString } from '../lite-api/user_data_reader';
 import {
   FieldIndex,
@@ -27,17 +24,13 @@ import {
   IndexState
 } from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
-import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
-import { ensureFirestoreConfigured, Firestore } from './database';
-import {
-  FieldIndexManagementApiFactoryImpl,
-  FieldIndexManagementApiImpl
-} from '../index/field_index_management';
+import { Firestore } from './database';
 import {
   getPersistentCacheIndexManager,
-  setFieldIndexManagementApiFactory
+  persistentCacheIndexManagerGetFirestoreClient,
+  persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi
 } from './persistent_cache_index_manager';
 
 export {
@@ -190,13 +183,19 @@ export function setIndexConfiguration(
     return Promise.resolve();
   }
 
+  const firestoreClient = persistentCacheIndexManagerGetFirestoreClient(
+    persistentCacheIndexManager
+  );
+  const fieldIndexManagementApi =
+    persistentCacheIndexManagerGetOrCreateFieldIndexManagementApi(
+      persistentCacheIndexManager
+    );
+
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
-  return setFieldIndexManagementApiFactory(persistentCacheIndexManager).then(
-    () =>
-      firestoreClientSetIndexConfiguration(
-        persistentCacheIndexManager._client,
-        parsedIndexes
-      )
+  return firestoreClientSetIndexConfiguration(
+    firestoreClient,
+    fieldIndexManagementApi,
+    parsedIndexes
   );
 }
 

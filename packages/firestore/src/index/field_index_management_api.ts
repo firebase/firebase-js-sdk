@@ -5,7 +5,7 @@ import { PersistencePromise } from '../local/persistence_promise';
 import { DocumentMap } from '../model/collections';
 import { IndexManager } from '../local/index_manager';
 import { LocalDocumentsView } from '../local/local_documents_view';
-import { OfflineComponentProvider } from '../core/component_provider';
+import { User } from '../auth/user';
 
 /**
  * @license
@@ -26,6 +26,10 @@ import { OfflineComponentProvider } from '../core/component_provider';
 export interface FieldIndexManagementApi {
   indexAutoCreationEnabled: boolean;
 
+  // Must be called before any other methods and may be called multiple times,
+  // where subsequent calls will update the stored variables.
+  initialize(user: User, indexManager: IndexManager): void;
+
   createCacheIndexes(
     transaction: PersistenceTransaction,
     query: Query,
@@ -38,14 +42,4 @@ export interface FieldIndexManagementApi {
     localDocumentsView: LocalDocumentsView,
     query: Query
   ): PersistencePromise<DocumentMap | null>;
-}
-
-export interface FieldIndexManagementApiFactory {
-  newInstance(indexManager: IndexManager): FieldIndexManagementApi;
-
-  onNewInstance<T>(
-    callbackId: Symbol,
-    callback: (api: FieldIndexManagementApi, cookie: T) => void,
-    cookie: T
-  ): void;
 }
