@@ -24,7 +24,7 @@ export interface FullMetadata extends UploadMetadata
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [bucket](./storage.fullmetadata.md#fullmetadatabucket) | string | The bucket this object is contained in. |
-|  [downloadTokens](./storage.fullmetadata.md#fullmetadatadownloadtokens) | string\[\] \| undefined | Tokens to allow access to the downloatd URL. |
+|  [downloadTokens](./storage.fullmetadata.md#fullmetadatadownloadtokens) | string\[\] \| undefined | Tokens to allow access to the download URL. |
 |  [fullPath](./storage.fullmetadata.md#fullmetadatafullpath) | string | The full path of this object. |
 |  [generation](./storage.fullmetadata.md#fullmetadatageneration) | string | The object's generation. [https://cloud.google.com/storage/docs/metadata\#generation-number](https://cloud.google.com/storage/docs/metadata#generation-number) |
 |  [metageneration](./storage.fullmetadata.md#fullmetadatametageneration) | string | The object's metageneration. [https://cloud.google.com/storage/docs/metadata\#generation-number](https://cloud.google.com/storage/docs/metadata#generation-number) |
@@ -46,7 +46,7 @@ bucket: string;
 
 ## FullMetadata.downloadTokens
 
-Tokens to allow access to the downloatd URL.
+Tokens to allow access to the download URL.
 
 <b>Signature:</b>
 
