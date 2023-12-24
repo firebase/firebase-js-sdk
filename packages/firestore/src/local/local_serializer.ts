@@ -16,7 +16,6 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { User } from '../auth/user';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
