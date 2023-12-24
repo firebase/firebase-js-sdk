@@ -476,13 +476,13 @@ export function fromDbIndexConfiguration(
 
 export function toDbIndexState(
   indexId: number,
-  user: User,
+  uid: string,
   sequenceNumber: number,
   offset: IndexOffset
 ): DbIndexState {
   return {
     indexId,
-    uid: user.uid || '',
+    uid,
     sequenceNumber,
     readTime: toDbTimestamp(offset.readTime),
     documentKey: encodeResourcePath(offset.documentKey.path),
