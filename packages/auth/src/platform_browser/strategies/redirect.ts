@@ -167,9 +167,10 @@ export async function _reauthenticateWithRedirect(
   await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
-  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
-
-  const eventId = await prepareUserForRedirect(userInternal);
+  const [, eventId] = await Promise.all([
+    _setPendingRedirectStatus(resolverInternal, userInternal.auth),
+    prepareUserForRedirect(userInternal),
+  ]);
   return resolverInternal._openRedirect(
     userInternal.auth,
     provider,
@@ -228,8 +229,10 @@ export async function _linkWithRedirect(
   await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
-  await _assertLinkedStatus(false, userInternal, provider.providerId);
-  await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
+  await Promise.all([
+    _assertLinkedStatus(false, userInternal, provider.providerId),
+    _setPendingRedirectStatus(resolverInternal, userInternal.auth),
+  ]);
 
   const eventId = await prepareUserForRedirect(userInternal);
   return resolverInternal._openRedirect(

@@ -193,13 +193,15 @@ export class BundleLoader {
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
 
-    for (const q of this.queries) {
-      await localStoreSaveNamedQuery(
-        this.localStore,
-        q,
-        queryDocumentMap.get(q.name!)
-      );
-    }
+    await Promise.allSettled(
+      this.queries.map((q) =>
+        localStoreSaveNamedQuery(
+          this.localStore,
+          q,
+          queryDocumentMap.get(q.name!)
+        )
+      )
+    );
 
     this.progress.taskState = 'Success';
     return {

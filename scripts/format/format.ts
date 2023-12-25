@@ -80,9 +80,7 @@ const format = async () => {
       }
     }
 
-    await doPrettier(changedFiles);
-
-    await doLicense(changedFiles);
+    await Promise.all([doPrettier(changedFiles), doLicense(changedFiles)]);
 
     process.exit();
   } catch (err) {

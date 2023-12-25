@@ -71,8 +71,7 @@ export async function runPrerelease({
     );
   }
 
-  const sha = await getCurrentSha();
-  const updates = await getAllPackages();
+  const [sha, updates] = await Promise.all([getCurrentSha(), getAllPackages()]);
   const pkgJsons = await Promise.all(
     updates.map(pkg => mapPkgNameToPkgJson(pkg))
   );

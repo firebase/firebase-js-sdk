@@ -249,9 +249,12 @@ async function generateDocs(
     }
   }
 
-  await moveRulesUnitTestingDocs(outputFolder, command);
-  await removeExcludedDocs(outputFolder);
-  await removeExcludedPackageEntries(outputFolder);
+
+  await Promise.all([
+    moveRulesUnitTestingDocs(outputFolder, command),
+    removeExcludedDocs(outputFolder),
+    removeExcludedPackageEntries(outputFolder)
+  ]);
 }
 
 /**

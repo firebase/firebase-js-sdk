@@ -90,11 +90,10 @@ export async function deleteTokenInternal(
 ): Promise<boolean> {
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (tokenDetails) {
-    await requestDeleteToken(
-      messaging.firebaseDependencies,
-      tokenDetails.token
-    );
-    await dbRemove(messaging.firebaseDependencies);
+    await Promise.all([
+      requestDeleteToken(messaging.firebaseDependencies, tokenDetails.token),
+      dbRemove(messaging.firebaseDependencies),
+    ]);
   }
 
   // Unsubscribe from the push subscription.

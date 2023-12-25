@@ -169,8 +169,10 @@ export class MemoryOfflineComponentProvider
     if (this.gcScheduler) {
       this.gcScheduler.stop();
     }
-    await this.sharedClientState.shutdown();
-    await this.persistence.shutdown();
+    await Promise.all([
+      this.sharedClientState.shutdown(),
+      this.persistence.shutdown(),
+    ]);
   }
 }
 

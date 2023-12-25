@@ -61,8 +61,10 @@ export async function onSubChange(
     return;
   }
 
-  const tokenDetails = await dbGet(messaging.firebaseDependencies);
-  await deleteTokenInternal(messaging);
+  const [tokenDetails] = await Promise.all([
+    dbGet(messaging.firebaseDependencies),
+    deleteTokenInternal(messaging),
+  ]);
 
   messaging.vapidKey =
     tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
@@ -79,13 +81,13 @@ export async function onPush(
     return;
   }
 
-  // log to Firelog with user consent
-  if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
-    await stageLog(messaging, internalPayload);
-  }
+  //foreground handling: eventually passed to onMessage hook && log to Firelog with user consent
+  const [clientList] = await Promise.all([
+    getClientList(),
+    messaging.deliveryMetricsExportedToBigQueryEnabled &&
+      stageLog(messaging, internalPayload),
+  ]);
 
-  // foreground handling: eventually passed to onMessage hook
-  const clientList = await getClientList();
   if (hasVisibleClients(clientList)) {
     return sendMessagePayloadInternalToWindows(clientList, internalPayload);
   }

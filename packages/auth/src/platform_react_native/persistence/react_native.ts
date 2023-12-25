@@ -50,8 +50,10 @@ export function getReactNativePersistence(
         if (!storage) {
           return false;
         }
-        await storage.setItem(STORAGE_AVAILABLE_KEY, '1');
-        await storage.removeItem(STORAGE_AVAILABLE_KEY);
+        await Promise.all([
+          storage.setItem(STORAGE_AVAILABLE_KEY, "1"),
+          storage.removeItem(STORAGE_AVAILABLE_KEY),
+        ]);
         return true;
       } catch {
         return false;

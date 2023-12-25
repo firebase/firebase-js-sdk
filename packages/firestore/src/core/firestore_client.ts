@@ -406,8 +406,10 @@ export function firestoreClientEnableNetwork(
   client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    const persistence = await getPersistence(client);
-    const remoteStore = await getRemoteStore(client);
+    const [persistence, remoteStore] = await Promise.all([
+      getPersistence(client),
+      getRemoteStore(client),
+    ]);
     persistence.setNetworkEnabled(true);
     return remoteStoreEnableNetwork(remoteStore);
   });
@@ -418,8 +420,10 @@ export function firestoreClientDisableNetwork(
   client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    const persistence = await getPersistence(client);
-    const remoteStore = await getRemoteStore(client);
+    const [persistence, remoteStore] = await Promise.all([
+      getPersistence(client),
+      getRemoteStore(client),
+    ]);
     persistence.setNetworkEnabled(false);
     return remoteStoreDisableNetwork(remoteStore);
   });
