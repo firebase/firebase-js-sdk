@@ -40,6 +40,7 @@ import { createTestComponent } from '../test/util';
 import { Component, ComponentType } from '@firebase/component';
 import { Logger } from '@firebase/logger';
 import { FirebaseAppImpl } from './firebaseApp';
+import { isBrowser } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -184,6 +185,23 @@ describe('API tests', () => {
 
   describe('initializeServerApp', () => {
     it('creates FirebaseServerApp with options', () => {
+      if (isBrowser()) {
+        const options = {
+          apiKey: 'APIKEY'
+        };
+        const serverAppSettings: FirebaseServerAppSettings = {};
+        expect(() => initializeServerApp(options, serverAppSettings)).throws(
+          /FirebaseServerApp is not for use in browser environments./
+        );
+      }
+    });
+
+    it('creates FirebaseServerApp with options', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
       const options = {
         apiKey: 'APIKEY'
       };
@@ -196,6 +214,11 @@ describe('API tests', () => {
     });
 
     it('creates FirebaseServerApp with automaticDataCollectionEnabled', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
       const options = {
         apiKey: 'APIKEY'
       };
@@ -210,6 +233,11 @@ describe('API tests', () => {
     });
 
     it('creates FirebaseServerApp with releaseOnDeref', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
       const options = { apiKey: 'APIKEY' };
       const serverAppSettings: FirebaseServerAppSettings = {
         automaticDataCollectionEnabled: false,
@@ -222,6 +250,11 @@ describe('API tests', () => {
     });
 
     it('creates FirebaseServerApp with FirebaseApp', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
       const options = {
         apiKey: 'test1'
       };
