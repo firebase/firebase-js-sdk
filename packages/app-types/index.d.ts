@@ -107,7 +107,7 @@ export interface FirebaseServerAppConfig extends FirebaseAppConfig {
    */
   deleteOnDeref?: object;
 
-  name: '';
+  name: undefined;
 }
 
 export class FirebaseApp {
@@ -191,7 +191,7 @@ export class FirebaseServerApp extends FirebaseApp {
    * There is no get for FirebaseServerApp, name is not relevant—however it's always
    * a blank string to conform to the FirebaseApp interface
    */
-  name: undefined;
+  name: '';
 }
 
 export interface FirebaseNamespace {
