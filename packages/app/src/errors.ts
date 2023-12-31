@@ -30,7 +30,8 @@ export const enum AppError {
   IDB_GET = 'idb-get',
   IDB_WRITE = 'idb-set',
   IDB_DELETE = 'idb-delete',
-  FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported'
+  FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported',
+  INVALID_SERVER_APP_ENVIRONMENT = 'invalid-server-app-environment'
 }
 
 const ERRORS: ErrorMap<AppError> = {
@@ -58,7 +59,9 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.IDB_DELETE]:
     'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.',
   [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]:
-    "FirebaseServerApp '{$appName}' deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry."
+    'FirebaseServerApp deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry.',
+  [AppError.INVALID_SERVER_APP_ENVIRONMENT]:
+    'FirebaseServerApp is not for use in browser environments.'
 };
 
 interface ErrorParams {

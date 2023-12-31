@@ -48,7 +48,7 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
-import { deepEqual, getDefaultAppConfig } from '@firebase/util';
+import { deepEqual, getDefaultAppConfig, isBrowser } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
 
@@ -229,6 +229,11 @@ export function initializeServerApp(
   _options: FirebaseOptions | FirebaseApp,
   _serverAppConfig: FirebaseServerAppSettings
 ): FirebaseServerApp {
+  if (isBrowser()) {
+    // FirebaseServerApps aren't designed to be run in browsers.
+    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
+  }
+
   const serverAppSettings: FirebaseServerAppSettings = {
     automaticDataCollectionEnabled: false,
     ..._serverAppConfig

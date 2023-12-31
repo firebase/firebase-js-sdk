@@ -2,8 +2,7 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "downlevelIteration": true,
-    "lib": ["ESNext"],
+    "downlevelIteration": true
   },
   "exclude": [
     "dist/**/*"
