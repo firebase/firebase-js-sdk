@@ -32,7 +32,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
 
-const LOG_TAG = 'IndexBackiller';
+const LOG_TAG = 'IndexBackfiller';
 
 /** How long we wait to try running index backfill after SDK initialization. */
 const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
@@ -76,7 +76,7 @@ export class IndexBackfillerScheduler implements Scheduler {
   private schedule(delay: number): void {
     debugAssert(
       this.task === null,
-      'Cannot schedule IndexBackiller while a task is pending'
+      'Cannot schedule IndexBackfiller while a task is pending'
     );
     logDebug(LOG_TAG, `Scheduled in ${delay}ms`);
     this.task = this.asyncQueue.enqueueAfterDelay(
