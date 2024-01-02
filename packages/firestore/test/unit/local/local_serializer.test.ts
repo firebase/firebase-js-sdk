@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
 import { encodeResourcePath } from '../../../src/local/encoded_resource_path';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
@@ -258,7 +257,7 @@ describe('Local Serializer', () => {
 
     const dbIndexState = toDbIndexState(
       /* indexId= */ 1,
-      User.UNAUTHENTICATED,
+      /* uid= */ '',
       /* sequenceNumber= */ 2,
       expected
     );

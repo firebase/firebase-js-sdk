@@ -120,7 +120,7 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
-  private uid: string;
+  private readonly uid: string;
 
   /**
    * Maps from a target to its equivalent list of sub-targets. Each sub-target
@@ -131,7 +131,7 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(private user: User, private readonly databaseId: DatabaseId) {
+  constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -210,7 +210,7 @@ export class IndexedDbIndexManager implements IndexManager {
         states.put(
           toDbIndexState(
             indexId,
-            this.user,
+            this.uid,
             index.indexState.sequenceNumber,
             index.indexState.offset
           )
@@ -754,7 +754,7 @@ export class IndexedDbIndexManager implements IndexManager {
             states.put(
               toDbIndexState(
                 config.indexId!,
-                this.user,
+                this.uid,
                 nextSequenceNumber,
                 offset
               )
