@@ -256,10 +256,9 @@ export async function setOnlineComponentProvider(
   const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = client.configuration;
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
-    configuration
+    client.configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.

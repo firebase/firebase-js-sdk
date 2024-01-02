@@ -156,6 +156,7 @@ export class MemoryOfflineComponentProvider
 
   async terminate(): Promise<void> {
     this.gcScheduler?.stop();
+    this.indexBackfillerScheduler?.stop();
     this.sharedClientState.shutdown();
     await this.persistence.shutdown();
   }
