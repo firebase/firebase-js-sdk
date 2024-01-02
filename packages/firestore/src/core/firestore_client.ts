@@ -150,7 +150,7 @@ export class FirestoreClient {
     });
   }
 
-  async getConfiguration(): Promise<ComponentConfiguration> {
+  get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -222,7 +222,7 @@ export async function setOfflineComponentProvider(
   client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = await client.getConfiguration();
+  const configuration = client.configuration;
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
@@ -254,10 +254,9 @@ export async function setOnlineComponentProvider(
   const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
-    configuration
+    client.configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
