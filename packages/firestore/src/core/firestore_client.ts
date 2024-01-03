@@ -31,9 +31,11 @@ import {
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
   localStoreReadDocument,
-  localStoreSetIndexAutoCreationEnabled
+  localStoreEnableIndexAutoCreation,
+  localStoreDisableIndexAutoCreation
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
+import { QueryEngineFieldIndexPlugin } from '../local/query_engine';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
@@ -819,25 +821,35 @@ function createBundleReader(
 
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
+  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin,
   indexes: FieldIndex[]
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
     return localStoreConfigureFieldIndexes(
       await getLocalStore(client),
+      queryEngineFieldIndexPlugin,
       indexes
     );
   });
 }
 
-export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+export function firestoreClientEnablePersistentCacheIndexAutoCreation(
   client: FirestoreClient,
-  isEnabled: boolean
+  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreSetIndexAutoCreationEnabled(
+    return localStoreEnableIndexAutoCreation(
       await getLocalStore(client),
-      isEnabled
+      queryEngineFieldIndexPlugin
     );
+  });
+}
+
+export function firestoreClientDisablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDisableIndexAutoCreation(await getLocalStore(client));
   });
 }
 

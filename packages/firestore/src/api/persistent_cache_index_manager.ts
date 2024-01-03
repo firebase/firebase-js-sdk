@@ -17,11 +17,16 @@
 
 import {
   firestoreClientDeleteAllFieldIndexes,
-  firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
+  firestoreClientEnablePersistentCacheIndexAutoCreation,
+  firestoreClientDisablePersistentCacheIndexAutoCreation,
   FirestoreClient
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
+import {
+  QueryEngineFieldIndexPlugin,
+  QueryEngineFieldIndexPluginImpl
+} from '../local/query_engine';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -34,6 +39,8 @@ import { ensureFirestoreConfigured, Firestore } from './database';
 export class PersistentCacheIndexManager {
   /** A type string to uniquely identify instances of this class. */
   readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
+
+  _queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin | null = null;
 
   /** @hideconstructor */
   constructor(readonly _client: FirestoreClient) {}
@@ -66,6 +73,19 @@ export function getPersistentCacheIndexManager(
   return instance;
 }
 
+export type WithQueryEngineFieldIndexPlugin<T> = T & {
+  _queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin;
+};
+
+export function ensureQueryEngineFieldIndexPluginInitialized<
+  T extends PersistentCacheIndexManager
+>(indexManager: T): asserts indexManager is WithQueryEngineFieldIndexPlugin<T> {
+  if (!indexManager._queryEngineFieldIndexPlugin) {
+    indexManager._queryEngineFieldIndexPlugin =
+      new QueryEngineFieldIndexPluginImpl();
+  }
+}
+
 /**
  * Enables the SDK to create persistent cache indexes automatically for local
  * query execution when the SDK believes cache indexes can help improve
@@ -76,7 +96,18 @@ export function getPersistentCacheIndexManager(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, true);
+  indexManager._client.verifyNotTerminated();
+  ensureQueryEngineFieldIndexPluginInitialized(indexManager);
+  firestoreClientEnablePersistentCacheIndexAutoCreation(
+    indexManager._client,
+    indexManager._queryEngineFieldIndexPlugin
+  )
+    .then(_ =>
+      logDebug('enabling persistent cache index auto creation succeeded')
+    )
+    .catch(error =>
+      logWarn('enabling persistent cache index auto creation failed', error)
+    );
 }
 
 /**
@@ -87,7 +118,14 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, false);
+  indexManager._client.verifyNotTerminated();
+  firestoreClientDisablePersistentCacheIndexAutoCreation(indexManager._client)
+    .then(_ =>
+      logDebug('disabling persistent cache index auto creation succeeded')
+    )
+    .catch(error =>
+      logWarn('disabling persistent cache index auto creation failed', error)
+    );
 }
 
 /**
@@ -107,33 +145,6 @@ export function deleteAllPersistentCacheIndexes(
     .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
     .catch(error =>
       logWarn('deleting all persistent cache indexes failed', error)
-    );
-}
-
-function setPersistentCacheIndexAutoCreationEnabled(
-  indexManager: PersistentCacheIndexManager,
-  isEnabled: boolean
-): void {
-  indexManager._client.verifyNotTerminated();
-
-  const promise = firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-    indexManager._client,
-    isEnabled
-  );
-
-  promise
-    .then(_ =>
-      logDebug(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} succeeded`
-      )
-    )
-    .catch(error =>
-      logWarn(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} failed`,
-        error
-      )
     );
 }
 
