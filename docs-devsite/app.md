@@ -34,6 +34,7 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function(options, ...)</b> |
 |  [initializeApp(options, name)](./app.md#initializeapp_cb2f5e1) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 |  [initializeApp(options, config)](./app.md#initializeapp_079e917) | Creates and initializes a FirebaseApp instance. |
+|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in server side rendering environments only.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 
 ## Interfaces
 
@@ -43,7 +44,7 @@ This package coordinates the communication between the different Firebase compon
 |  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp_cb2f5e1) |
 |  [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Firebase configuration object. Contains a set of parameters required by services in order to successfully communicate with Firebase server APIs and to associate client data with your Firebase project and Firebase application. Typically this object is populated by the Firebase console at project setup. See also: [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object)<!-- -->. |
 |  [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) | A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server enviornments.<!-- -->Do not call this constructor directly. Instead, use  to create an app. |
-|  [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Configuration options given to [initializeServerApp()](./app.md#initializeserverapp) |
+|  [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Configuration options given to [initializeServerApp()](./app.md#initializeserverapp_30ab697) |
 
 ## Variables
 
@@ -312,7 +313,7 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
 
-## initializeServerApp()
+### initializeServerApp(options, config) {:#initializeserverapp_30ab697}
 
 Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
 
@@ -326,7 +327,7 @@ See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_fi
 export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
