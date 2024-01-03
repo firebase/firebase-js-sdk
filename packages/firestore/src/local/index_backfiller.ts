@@ -104,8 +104,29 @@ export class IndexBackfillerScheduler implements Scheduler {
   }
 }
 
+export interface IndexBackfillerSchedulerFactory {
+  newIndexBackfillerScheduler(
+    localStore: LocalStore,
+    persistence: Persistence,
+    asyncQueue: AsyncQueue
+  ): IndexBackfillerScheduler;
+}
+
+export class IndexBackfillerSchedulerFactoryImpl
+  implements IndexBackfillerSchedulerFactory
+{
+  newIndexBackfillerScheduler(
+    localStore: LocalStore,
+    persistence: Persistence,
+    asyncQueue: AsyncQueue
+  ): IndexBackfillerScheduler {
+    const indexBackfiller = new IndexBackfiller(localStore, persistence);
+    return new IndexBackfillerScheduler(asyncQueue, indexBackfiller);
+  }
+}
+
 /** Implements the steps for backfilling indexes. */
-export class IndexBackfiller {
+class IndexBackfiller {
   constructor(
     /**
      * LocalStore provides access to IndexManager and LocalDocumentView.
