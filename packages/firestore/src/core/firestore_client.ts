@@ -27,15 +27,15 @@ import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
+  localStoreDisableIndexAutoCreation,
+  localStoreEnableIndexAutoCreation,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument,
-  localStoreEnableIndexAutoCreation,
-  localStoreDisableIndexAutoCreation
+  localStoreReadDocument
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
-import { QueryEngineFieldIndexPlugin } from '../local/query_engine';
+import { QueryEngineFieldIndexPluginFactory } from '../local/query_engine';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
@@ -95,6 +95,7 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { IndexedDbIndexManagerFieldIndexPluginFactory } from '../local/indexeddb_index_manager';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -821,13 +822,15 @@ function createBundleReader(
 
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
-  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin,
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
   indexes: FieldIndex[]
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
     return localStoreConfigureFieldIndexes(
       await getLocalStore(client),
-      queryEngineFieldIndexPlugin,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory,
       indexes
     );
   });
@@ -835,12 +838,14 @@ export function firestoreClientSetIndexConfiguration(
 
 export function firestoreClientEnablePersistentCacheIndexAutoCreation(
   client: FirestoreClient,
-  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
     return localStoreEnableIndexAutoCreation(
       await getLocalStore(client),
-      queryEngineFieldIndexPlugin
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
     );
   });
 }
@@ -854,9 +859,15 @@ export function firestoreClientDisablePersistentCacheIndexAutoCreation(
 }
 
 export function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient
+  client: FirestoreClient,
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
+    return localStoreDeleteAllFieldIndexes(
+      await getLocalStore(client),
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
   });
 }

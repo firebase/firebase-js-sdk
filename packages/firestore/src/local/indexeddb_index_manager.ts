@@ -69,7 +69,11 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager, IndexType } from './index_manager';
+import {
+  IndexManager,
+  IndexManagerFieldIndexPlugin,
+  IndexType
+} from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -122,17 +126,25 @@ export class IndexedDbIndexManager implements IndexManager {
 
   private readonly uid: string;
 
-  /**
-   * Maps from a target to its equivalent list of sub-targets. Each sub-target
-   * contains only one term from the target's disjunctive normal form (DNF).
-   */
-  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
-    t => canonifyTarget(t),
-    (l, r) => targetEquals(l, r)
-  );
-
   constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
+  }
+
+  private _fieldIndexPlugin: IndexManagerFieldIndexPlugin | null = null;
+
+  get fieldIndexPlugin(): IndexManagerFieldIndexPlugin | null {
+    return this._fieldIndexPlugin;
+  }
+
+  installFieldIndexPlugin(
+    factory: IndexedDbIndexManagerFieldIndexPluginFactory
+  ): void {
+    if (!this._fieldIndexPlugin) {
+      this._fieldIndexPlugin = factory.newIndexedDbIndexManagerFieldIndexPlugin(
+        this.uid,
+        this.databaseId
+      );
+    }
   }
 
   /**
@@ -193,6 +205,42 @@ export class IndexedDbIndexManager implements IndexManager {
         return parentPaths;
       });
   }
+}
+
+export interface IndexedDbIndexManagerFieldIndexPluginFactory {
+  newIndexedDbIndexManagerFieldIndexPlugin(
+    uid: string,
+    databaseId: DatabaseId
+  ): IndexedDbIndexManagerFieldIndexPlugin;
+}
+
+export class IndexedDbIndexManagerFieldIndexPluginFactoryImpl
+  implements IndexedDbIndexManagerFieldIndexPluginFactory
+{
+  newIndexedDbIndexManagerFieldIndexPlugin(
+    uid: string,
+    databaseId: DatabaseId
+  ): IndexedDbIndexManagerFieldIndexPlugin {
+    return new IndexedDbIndexManagerFieldIndexPlugin(uid, databaseId);
+  }
+}
+
+export class IndexedDbIndexManagerFieldIndexPlugin
+  implements IndexManagerFieldIndexPlugin
+{
+  constructor(
+    private readonly uid: string,
+    private readonly databaseId: DatabaseId
+  ) {}
+
+  /**
+   * Maps from a target to its equivalent list of sub-targets. Each sub-target
+   * contains only one term from the target's disjunctive normal form (DNF).
+   */
+  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
+    t => canonifyTarget(t),
+    (l, r) => targetEquals(l, r)
+  );
 
   addFieldIndex(
     transaction: PersistenceTransaction,

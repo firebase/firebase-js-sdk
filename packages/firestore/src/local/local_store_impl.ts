@@ -45,8 +45,8 @@ import {
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
 import {
-  mutationExtractBaseValue,
   Mutation,
+  mutationExtractBaseValue,
   PatchMutation,
   Precondition
 } from '../model/mutation';
@@ -83,13 +83,20 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryEngine, QueryEngineFieldIndexPlugin } from './query_engine';
+import {
+  QueryEngine,
+  QueryEngineFieldIndexPluginFactory
+} from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
+import {
+  IndexedDbIndexManager,
+  IndexedDbIndexManagerFieldIndexPluginFactory
+} from './indexeddb_index_manager';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1493,20 +1500,40 @@ export async function localStoreSaveNamedQuery(
   );
 }
 
+function initializeFieldIndexPlugin(
+  localStoreImpl: LocalStoreImpl,
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+): void {
+  const indexManager = localStoreImpl.indexManager;
+  hardAssert(indexManager instanceof IndexedDbIndexManager);
+  indexManager.installFieldIndexPlugin(indexManagerFieldIndexPluginFactory);
+  localStoreImpl.queryEngine.installFieldIndexPlugin(
+    queryEngineFieldIndexPluginFactory
+  );
+}
+
 export async function localStoreConfigureFieldIndexes(
   localStore: LocalStore,
-  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin,
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
   newFieldIndexes: FieldIndex[]
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.setFieldIndexPlugin(queryEngineFieldIndexPlugin);
-  const indexManager = localStoreImpl.indexManager;
+  initializeFieldIndexPlugin(
+    localStoreImpl,
+    queryEngineFieldIndexPluginFactory,
+    indexManagerFieldIndexPluginFactory
+  );
+  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
+
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
     'readwrite',
     transaction =>
-      indexManager
+      fieldIndexPlugin
         .getFieldIndexes(transaction)
         .next(oldFieldIndexes =>
           diffArrays(
@@ -1515,12 +1542,12 @@ export async function localStoreConfigureFieldIndexes(
             fieldIndexSemanticComparator,
             fieldIndex => {
               promises.push(
-                indexManager.addFieldIndex(transaction, fieldIndex)
+                fieldIndexPlugin.addFieldIndex(transaction, fieldIndex)
               );
             },
             fieldIndex => {
               promises.push(
-                indexManager.deleteFieldIndex(transaction, fieldIndex)
+                fieldIndexPlugin.deleteFieldIndex(transaction, fieldIndex)
               );
             }
           )
@@ -1531,11 +1558,18 @@ export async function localStoreConfigureFieldIndexes(
 
 export function localStoreEnableIndexAutoCreation(
   localStore: LocalStore,
-  queryEngineFieldIndexPlugin: QueryEngineFieldIndexPlugin
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.setFieldIndexPlugin(queryEngineFieldIndexPlugin);
-  queryEngineFieldIndexPlugin.indexAutoCreationEnabled = true;
+  initializeFieldIndexPlugin(
+    localStoreImpl,
+    queryEngineFieldIndexPluginFactory,
+    indexManagerFieldIndexPluginFactory
+  );
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
+  fieldIndexPlugin.indexAutoCreationEnabled = true;
 }
 
 export function localStoreDisableIndexAutoCreation(
@@ -1549,13 +1583,21 @@ export function localStoreDisableIndexAutoCreation(
 }
 
 export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore
+  localStore: LocalStore,
+  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  initializeFieldIndexPlugin(
+    localStoreImpl,
+    queryEngineFieldIndexPluginFactory,
+    indexManagerFieldIndexPluginFactory
+  );
+  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => indexManager.deleteAllFieldIndexes(transaction)
+    transaction => fieldIndexPlugin.deleteAllFieldIndexes(transaction)
   );
 }

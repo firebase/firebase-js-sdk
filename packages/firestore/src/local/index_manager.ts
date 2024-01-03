@@ -86,6 +86,14 @@ export interface IndexManager {
   ): PersistencePromise<ResourcePath[]>;
 
   /**
+   * The plugin that implements the logic for field indexes; may be null if
+   * it has not been set.
+   */
+  readonly fieldIndexPlugin: IndexManagerFieldIndexPlugin | null;
+}
+
+export interface IndexManagerFieldIndexPlugin {
+  /**
    * Adds a field path index.
    *
    * Values for this index are persisted via the index backfill, which runs

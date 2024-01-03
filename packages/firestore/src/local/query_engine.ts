@@ -42,7 +42,11 @@ import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager, IndexType } from './index_manager';
+import {
+  IndexManager,
+  IndexManagerFieldIndexPlugin,
+  IndexType
+} from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -119,16 +123,13 @@ export class QueryEngine {
     return this._fieldIndexPlugin;
   }
 
-  setFieldIndexPlugin(plugin: QueryEngineFieldIndexPlugin): void {
-    hardAssert(
-      this._fieldIndexPlugin === null || plugin === this._fieldIndexPlugin,
-      `setFieldIndexPlugin must be called with the exact same object every ` +
-        `time; however, it was called with ${plugin} after previously being ` +
-        `called with a different object: ${this._fieldIndexPlugin}.`
-    );
-    this._fieldIndexPlugin = plugin;
-    plugin.setIndexManager(this.indexManager);
-    plugin.setLocalDocumentsView(this.localDocumentsView);
+  installFieldIndexPlugin(factory: QueryEngineFieldIndexPluginFactory): void {
+    if (!this._fieldIndexPlugin) {
+      this._fieldIndexPlugin = factory.newQueryEngineFieldIndexPlugin(
+        this.indexManager,
+        this.localDocumentsView
+      );
+    }
   }
 
   /** Returns all local documents matching the specified query. */
@@ -293,29 +294,25 @@ export class QueryEngine {
   }
 }
 
-export interface QueryEngineFieldIndexPlugin {
-  indexAutoCreationEnabled: boolean;
-
-  setIndexManager(indexManager: IndexManager): void;
-
-  setLocalDocumentsView(localDocumentsView: LocalDocumentsView): void;
-
-  performQueryUsingIndex(
-    transaction: PersistenceTransaction,
-    query: Query
-  ): PersistencePromise<DocumentMap | null>;
-
-  createCacheIndexes(
-    transaction: PersistenceTransaction,
-    query: Query,
-    context: QueryContext,
-    resultSize: number
-  ): PersistencePromise<void>;
+export interface QueryEngineFieldIndexPluginFactory {
+  newQueryEngineFieldIndexPlugin(
+    indexManager: IndexManager,
+    localDocumentsView: LocalDocumentsView
+  ): QueryEngineFieldIndexPlugin;
 }
 
-export class QueryEngineFieldIndexPluginImpl
-  implements QueryEngineFieldIndexPlugin
+export class QueryEngineFieldIndexPluginFactoryImpl
+  implements QueryEngineFieldIndexPluginFactory
 {
+  newQueryEngineFieldIndexPlugin(
+    indexManager: IndexManager,
+    localDocumentsView: LocalDocumentsView
+  ): QueryEngineFieldIndexPlugin {
+    return new QueryEngineFieldIndexPlugin(indexManager, localDocumentsView);
+  }
+}
+
+export class QueryEngineFieldIndexPlugin {
   indexAutoCreationEnabled = false;
 
   /**
@@ -328,25 +325,20 @@ export class QueryEngineFieldIndexPluginImpl
   relativeIndexReadCostPerDocument =
     DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
 
-  private indexManager!: IndexManager;
-  private localDocumentsView!: LocalDocumentsView;
-
-  setIndexManager(indexManager: IndexManager): void {
+  get indexManagerFieldIndexPlugin(): IndexManagerFieldIndexPlugin {
+    const plugin = this.indexManager.fieldIndexPlugin;
     hardAssert(
-      !this.indexManager || this.indexManager === indexManager,
-      'setIndexManager() must be called with the same IndexManager instance'
+      !!plugin,
+      'The IndexManager specified to QueryEngineFieldIndexPlugin ' +
+        'must have a non-null field index plugin.'
     );
-    this.indexManager = indexManager;
+    return plugin;
   }
 
-  setLocalDocumentsView(localDocumentsView: LocalDocumentsView): void {
-    hardAssert(
-      !this.localDocumentsView ||
-        this.localDocumentsView === localDocumentsView,
-      'setLocalDocumentsView() must be called with the same LocalDocumentsView instance'
-    );
-    this.localDocumentsView = localDocumentsView;
-  }
+  constructor(
+    private readonly indexManager: IndexManager,
+    private readonly localDocumentsView: LocalDocumentsView
+  ) {}
 
   /**
    * Performs an indexed query that evaluates the query based on a collection's
@@ -367,7 +359,7 @@ export class QueryEngineFieldIndexPluginImpl
     }
 
     let target = queryToTarget(query);
-    return this.indexManager
+    return this.indexManagerFieldIndexPlugin
       .getIndexType(transaction, target)
       .next(indexType => {
         if (indexType === IndexType.NONE) {
@@ -387,7 +379,7 @@ export class QueryEngineFieldIndexPluginImpl
           target = queryToTarget(query);
         }
 
-        return this.indexManager
+        return this.indexManagerFieldIndexPlugin
           .getDocumentsMatchingTarget(transaction, target)
           .next(keys => {
             debugAssert(
@@ -398,7 +390,7 @@ export class QueryEngineFieldIndexPluginImpl
             return this.localDocumentsView
               .getDocuments(transaction, sortedKeys)
               .next(indexedDocuments => {
-                return this.indexManager
+                return this.indexManagerFieldIndexPlugin
                   .getMinOffset(transaction, target)
                   .next(offset => {
                     const previousResults = applyQuery(query, indexedDocuments);
@@ -485,7 +477,7 @@ export class QueryEngineFieldIndexPluginImpl
           'as using cache indexes may help improve performance.'
         );
       }
-      return this.indexManager.createTargetIndexes(
+      return this.indexManagerFieldIndexPlugin.createTargetIndexes(
         transaction,
         queryToTarget(query)
       );

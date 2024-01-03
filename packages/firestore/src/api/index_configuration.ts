@@ -24,12 +24,11 @@ import {
   IndexState
 } from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
-import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
-import { ensureFirestoreConfigured, Firestore } from './database';
+import { Firestore } from './database';
 import {
-  ensureQueryEngineFieldIndexPluginInitialized,
+  ensureFieldIndexPluginFactoriesInitialized,
   getPersistentCacheIndexManager
 } from './persistent_cache_index_manager';
 
@@ -187,10 +186,13 @@ export function setIndexConfiguration(
 
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
 
-  ensureQueryEngineFieldIndexPluginInitialized(persistentCacheIndexManager);
+  ensureFieldIndexPluginFactoriesInitialized(persistentCacheIndexManager);
   return firestoreClientSetIndexConfiguration(
     persistentCacheIndexManager._client,
-    persistentCacheIndexManager._queryEngineFieldIndexPlugin,
+    persistentCacheIndexManager._fieldIndexPluginFactories
+      .queryEngineFieldIndexPluginFactory,
+    persistentCacheIndexManager._fieldIndexPluginFactories
+      .indexManagerFieldIndexPluginFactory,
     parsedIndexes
   );
 }
