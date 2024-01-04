@@ -265,6 +265,11 @@ abstract class TestRunner {
   private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
 
+  private readonly queryEngineFieldIndexPluginFactory =
+    new QueryEngineFieldIndexPluginFactoryImpl();
+  private readonly indexedDbIndexManagerFieldIndexPluginFactory =
+    new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+
   protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
 
@@ -593,8 +598,8 @@ abstract class TestRunner {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
       return localStoreConfigureFieldIndexes(
         this.localStore,
-        new QueryEngineFieldIndexPluginFactoryImpl(),
-        new IndexedDbIndexManagerFieldIndexPluginFactoryImpl(),
+        this.queryEngineFieldIndexPluginFactory,
+        this.indexedDbIndexManagerFieldIndexPluginFactory,
         parsedIndexes
       );
     });
