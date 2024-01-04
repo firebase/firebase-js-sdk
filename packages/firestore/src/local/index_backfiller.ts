@@ -155,9 +155,10 @@ export class IndexBackfiller {
     maxDocumentsToProcess: number
   ): PersistencePromise<number> {
     const fieldIndexPlugin = this.localStore.indexManager.fieldIndexPlugin;
-    if (!fieldIndexPlugin) {
-      return PersistencePromise.resolve(0);
-    }
+    debugAssert(
+      !!fieldIndexPlugin,
+      'localStore.indexManager.fieldIndexPlugin must not be null'
+    );
 
     const processedCollectionGroups = new Set<string>();
     let documentsRemaining = maxDocumentsToProcess;
@@ -198,9 +199,10 @@ export class IndexBackfiller {
     documentsRemainingUnderCap: number
   ): PersistencePromise<number> {
     const fieldIndexPlugin = this.localStore.indexManager.fieldIndexPlugin;
-    if (!fieldIndexPlugin) {
-      return PersistencePromise.resolve(0);
-    }
+    debugAssert(
+      !!fieldIndexPlugin,
+      'localStore.indexManager.fieldIndexPlugin must not be null'
+    );
 
     // Use the earliest offset of all field indexes to query the local cache.
     return fieldIndexPlugin
