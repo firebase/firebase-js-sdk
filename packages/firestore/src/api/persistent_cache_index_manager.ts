@@ -151,13 +151,7 @@ export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
   indexManager._client.verifyNotTerminated();
-  ensureFieldIndexPluginFactoriesInitialized(indexManager);
-
-  firestoreClientDeleteAllFieldIndexes(
-    indexManager._client,
-    indexManager._fieldIndexPluginFactories.queryEngineFieldIndexPluginFactory,
-    indexManager._fieldIndexPluginFactories.indexManagerFieldIndexPluginFactory
-  )
+  firestoreClientDeleteAllFieldIndexes(indexManager._client)
     .then(_ => logDebug('deleteAllPersistentCacheIndexes() succeeded.'))
     .catch(error => logWarn('deleteAllPersistentCacheIndexes() failed', error));
 }

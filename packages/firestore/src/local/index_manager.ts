@@ -113,11 +113,6 @@ export interface IndexManagerFieldIndexPlugin {
     index: FieldIndex
   ): PersistencePromise<void>;
 
-  /** Removes all field indexes and deletes all index values. */
-  deleteAllFieldIndexes(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void>;
-
   /** Creates a full matched field index which serves the given target. */
   createTargetIndexes(
     transaction: PersistenceTransaction,

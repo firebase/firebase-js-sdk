@@ -306,19 +306,6 @@ export class IndexedDbIndexManagerFieldIndexPlugin
       );
   }
 
-  deleteAllFieldIndexes(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void> {
-    const indexes = indexConfigurationStore(transaction);
-    const entries = indexEntriesStore(transaction);
-    const states = indexStateStore(transaction);
-
-    return indexes
-      .deleteAll()
-      .next(() => entries.deleteAll())
-      .next(() => states.deleteAll());
-  }
-
   createTargetIndexes(
     transaction: PersistenceTransaction,
     target: Target
@@ -1187,4 +1174,22 @@ function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
     }
   }
   return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
+}
+
+// Make deleteAllFieldIndexes() a free function instead of a member function of
+// IndexedDbIndexManagerFieldIndexPlugin so that JavaScript bundlers can
+// tree-shake away the rest of IndexedDbIndexManagerFieldIndexPlugin if this
+// function is the only one that is used.
+/** Removes all field indexes and deletes all index values. */
+export function deleteAllFieldIndexes(
+  transaction: PersistenceTransaction
+): PersistencePromise<void> {
+  const indexes = indexConfigurationStore(transaction);
+  const entries = indexEntriesStore(transaction);
+  const states = indexStateStore(transaction);
+
+  return indexes
+    .deleteAll()
+    .next(() => entries.deleteAll())
+    .next(() => states.deleteAll());
 }

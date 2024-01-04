@@ -94,6 +94,7 @@ import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
 import {
+  deleteAllFieldIndexes,
   IndexedDbIndexManager,
   IndexedDbIndexManagerFieldIndexPluginFactory
 } from './indexeddb_index_manager';
@@ -1583,21 +1584,12 @@ export function localStoreDisableIndexAutoCreation(
 }
 
 export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+  localStore: LocalStore
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  initializeFieldIndexPlugin(
-    localStoreImpl,
-    queryEngineFieldIndexPluginFactory,
-    indexManagerFieldIndexPluginFactory
-  );
-  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
-  hardAssert(!!fieldIndexPlugin);
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => fieldIndexPlugin.deleteAllFieldIndexes(transaction)
+    transaction => deleteAllFieldIndexes(transaction)
   );
 }

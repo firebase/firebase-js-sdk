@@ -886,15 +886,9 @@ export function firestoreClientDisablePersistentCacheIndexAutoCreation(
 }
 
 export function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+  client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(
-      await getLocalStore(client),
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
 }
