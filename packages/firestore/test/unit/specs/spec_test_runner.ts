@@ -178,6 +178,14 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import {
+  QueryEngineFieldIndexPluginFactory,
+  QueryEngineFieldIndexPluginFactoryImpl
+} from '../../../src/local/query_engine';
+import {
+  IndexedDbIndexManagerFieldIndexPluginFactory,
+  IndexedDbIndexManagerFieldIndexPluginFactoryImpl
+} from '../../../src/local/indexeddb_index_manager';
 
 use(chaiExclude);
 
@@ -583,7 +591,12 @@ abstract class TestRunner {
   ): Promise<void> {
     return this.queue.enqueue(async () => {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
-      return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
+      return localStoreConfigureFieldIndexes(
+        this.localStore,
+        new QueryEngineFieldIndexPluginFactoryImpl(),
+        new IndexedDbIndexManagerFieldIndexPluginFactoryImpl(),
+        parsedIndexes
+      );
     });
   }
 
@@ -996,7 +1009,9 @@ abstract class TestRunner {
             'getFieldIndexes ',
             'readonly',
             transaction =>
-              this.localStore.indexManager.getFieldIndexes(transaction)
+              this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+                transaction
+              )
           );
 
         assert.deepEqualExcluding(
