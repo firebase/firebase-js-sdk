@@ -193,6 +193,8 @@ export function setIndexConfiguration(
       .queryEngineFieldIndexPluginFactory,
     persistentCacheIndexManager._fieldIndexPluginFactories
       .indexManagerFieldIndexPluginFactory,
+    persistentCacheIndexManager._fieldIndexPluginFactories
+      .indexBackfillerSchedulerFactory,
     parsedIndexes
   );
 }

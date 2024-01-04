@@ -71,6 +71,7 @@ import {
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
 import { OnlineStateSource } from './types';
+import { logDebug } from '../util/log';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -243,7 +244,9 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
         this.gcScheduler.start();
       }
 
-      this.startIndexBackfillerScheduler(/*primaryStateListenerNotified=*/ true);
+      this.startIndexBackfillerScheduler(
+        /*primaryStateListenerNotified=*/ true
+      );
 
       return Promise.resolve();
     });
@@ -281,14 +284,21 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     cfg: ComponentConfiguration,
     factory: IndexBackfillerSchedulerFactory
   ): void {
-    if (!this.indexBackfillerScheduler) {
-      this.indexBackfillerScheduler = factory.newIndexBackfillerScheduler(
-        this.localStore,
-        this.persistence,
-        cfg.asyncQueue
-      );
-      this.startIndexBackfillerScheduler(this.primaryStateListenerNotified);
+    if (this.indexBackfillerScheduler) {
+      return;
     }
+
+    logDebug(
+      'Installing IndexBackfiller into OfflineComponentProvider ' +
+        'to support persistent cache indexing.'
+    );
+    this.indexBackfillerScheduler = factory.newIndexBackfillerScheduler(
+      this.localStore,
+      this.persistence,
+      cfg.asyncQueue
+    );
+
+    this.startIndexBackfillerScheduler(this.primaryStateListenerNotified);
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {

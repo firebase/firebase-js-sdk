@@ -96,6 +96,7 @@ import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { IndexedDbIndexManagerFieldIndexPluginFactory } from '../local/indexeddb_index_manager';
+import { IndexBackfillerSchedulerFactory } from '../local/index_backfiller';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -820,34 +821,60 @@ function createBundleReader(
   return newBundleReader(toByteStreamReader(content), serializer);
 }
 
+function installIndexBackfillerSchedulerFactory(
+  client: FirestoreClient,
+  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory
+): void {
+  client._offlineComponents!!.installIndexBackfillerScheduler(
+    client.configuration,
+    indexBackfillerSchedulerFactory
+  );
+}
+
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
   queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
   indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
+  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory,
   indexes: FieldIndex[]
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreConfigureFieldIndexes(
-      await getLocalStore(client),
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory,
-      indexes
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreConfigureFieldIndexes(
+        await getLocalStore(client),
+        queryEngineFieldIndexPluginFactory,
+        indexManagerFieldIndexPluginFactory,
+        indexes
+      );
+    })
+    .then(() =>
+      installIndexBackfillerSchedulerFactory(
+        client,
+        indexBackfillerSchedulerFactory
+      )
     );
-  });
 }
 
 export function firestoreClientEnablePersistentCacheIndexAutoCreation(
   client: FirestoreClient,
   queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
+  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreEnableIndexAutoCreation(
-      await getLocalStore(client),
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreEnableIndexAutoCreation(
+        await getLocalStore(client),
+        queryEngineFieldIndexPluginFactory,
+        indexManagerFieldIndexPluginFactory
+      );
+    })
+    .then(() =>
+      installIndexBackfillerSchedulerFactory(
+        client,
+        indexBackfillerSchedulerFactory
+      )
     );
-  });
 }
 
 export function firestoreClientDisablePersistentCacheIndexAutoCreation(

@@ -139,12 +139,18 @@ export class IndexedDbIndexManager implements IndexManager {
   installFieldIndexPlugin(
     factory: IndexedDbIndexManagerFieldIndexPluginFactory
   ): void {
-    if (!this._fieldIndexPlugin) {
-      this._fieldIndexPlugin = factory.newIndexedDbIndexManagerFieldIndexPlugin(
-        this.uid,
-        this.databaseId
-      );
+    if (this._fieldIndexPlugin) {
+      return;
     }
+
+    logDebug(
+      'Installing IndexedDbIndexManagerFieldIndexPlugin into IndexedDbIndexManager ' +
+        'to support persistent cache indexing.'
+    );
+    this._fieldIndexPlugin = factory.newIndexedDbIndexManagerFieldIndexPlugin(
+      this.uid,
+      this.databaseId
+    );
   }
 
   /**

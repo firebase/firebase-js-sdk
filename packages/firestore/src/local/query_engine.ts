@@ -124,12 +124,18 @@ export class QueryEngine {
   }
 
   installFieldIndexPlugin(factory: QueryEngineFieldIndexPluginFactory): void {
-    if (!this._fieldIndexPlugin) {
-      this._fieldIndexPlugin = factory.newQueryEngineFieldIndexPlugin(
-        this.indexManager,
-        this.localDocumentsView
-      );
+    if (this._fieldIndexPlugin) {
+      return;
     }
+
+    logDebug(
+      'Installing QueryEngineFieldIndexPlugin into QueryEngine ' +
+        'to support persistent cache indexing.'
+    );
+    this._fieldIndexPlugin = factory.newQueryEngineFieldIndexPlugin(
+      this.indexManager,
+      this.localDocumentsView
+    );
   }
 
   /** Returns all local documents matching the specified query. */

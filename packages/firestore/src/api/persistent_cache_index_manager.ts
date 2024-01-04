@@ -16,10 +16,10 @@
  */
 
 import {
+  FirestoreClient,
   firestoreClientDeleteAllFieldIndexes,
-  firestoreClientEnablePersistentCacheIndexAutoCreation,
   firestoreClientDisablePersistentCacheIndexAutoCreation,
-  FirestoreClient
+  firestoreClientEnablePersistentCacheIndexAutoCreation
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
@@ -27,10 +27,12 @@ import { QueryEngineFieldIndexPluginFactoryImpl } from '../local/query_engine';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { IndexedDbIndexManagerFieldIndexPluginFactoryImpl } from '../local/indexeddb_index_manager';
+import { IndexBackfillerSchedulerFactoryImpl } from '../local/index_backfiller';
 
 interface FieldIndexPluginFactories {
   queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactoryImpl;
   indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactoryImpl;
+  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactoryImpl;
 }
 
 /**
@@ -84,11 +86,17 @@ export function ensureFieldIndexPluginFactoriesInitialized(
   indexManager: PersistentCacheIndexManager
 ): asserts indexManager is WithFieldIndexPluginFactories<PersistentCacheIndexManager> {
   if (!indexManager._fieldIndexPluginFactories) {
+    const queryEngineFieldIndexPluginFactory =
+      new QueryEngineFieldIndexPluginFactoryImpl();
+    const indexManagerFieldIndexPluginFactory =
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+    const indexBackfillerSchedulerFactory =
+      new IndexBackfillerSchedulerFactoryImpl();
+
     indexManager._fieldIndexPluginFactories = {
-      queryEngineFieldIndexPluginFactory:
-        new QueryEngineFieldIndexPluginFactoryImpl(),
-      indexManagerFieldIndexPluginFactory:
-        new IndexedDbIndexManagerFieldIndexPluginFactoryImpl()
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory,
+      indexBackfillerSchedulerFactory
     };
   }
 }
@@ -108,13 +116,12 @@ export function enablePersistentCacheIndexAutoCreation(
   firestoreClientEnablePersistentCacheIndexAutoCreation(
     indexManager._client,
     indexManager._fieldIndexPluginFactories.queryEngineFieldIndexPluginFactory,
-    indexManager._fieldIndexPluginFactories.indexManagerFieldIndexPluginFactory
+    indexManager._fieldIndexPluginFactories.indexManagerFieldIndexPluginFactory,
+    indexManager._fieldIndexPluginFactories.indexBackfillerSchedulerFactory
   )
-    .then(_ =>
-      logDebug('enabling persistent cache index auto creation succeeded')
-    )
+    .then(_ => logDebug('enablePersistentCacheIndexAutoCreation() succeeded.'))
     .catch(error =>
-      logWarn('enabling persistent cache index auto creation failed', error)
+      logWarn('enablePersistentCacheIndexAutoCreation() failed', error)
     );
 }
 
@@ -128,11 +135,9 @@ export function disablePersistentCacheIndexAutoCreation(
 ): void {
   indexManager._client.verifyNotTerminated();
   firestoreClientDisablePersistentCacheIndexAutoCreation(indexManager._client)
-    .then(_ =>
-      logDebug('disabling persistent cache index auto creation succeeded')
-    )
+    .then(_ => logDebug('disablePersistentCacheIndexAutoCreation() succeeded.'))
     .catch(error =>
-      logWarn('disabling persistent cache index auto creation failed', error)
+      logWarn('disablePersistentCacheIndexAutoCreation() failed', error)
     );
 }
 
@@ -153,10 +158,8 @@ export function deleteAllPersistentCacheIndexes(
     indexManager._fieldIndexPluginFactories.queryEngineFieldIndexPluginFactory,
     indexManager._fieldIndexPluginFactories.indexManagerFieldIndexPluginFactory
   )
-    .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
-    .catch(error =>
-      logWarn('deleting all persistent cache indexes failed', error)
-    );
+    .then(_ => logDebug('deleteAllPersistentCacheIndexes() succeeded.'))
+    .catch(error => logWarn('deleteAllPersistentCacheIndexes() failed', error));
 }
 
 /**
