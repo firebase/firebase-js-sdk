@@ -63,6 +63,13 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import {
+  IndexedDbIndexManager,
+  IndexedDbIndexManagerFieldIndexPlugin,
+  IndexedDbIndexManagerFieldIndexPluginFactory
+} from '../../../src/local/indexeddb_index_manager';
+import { DatabaseId } from '../../../src/core/database_info';
+import { TEST_DATABASE_ID } from './persistence_test_helpers';
 
 describe('index_manager.ts top-level functions', () => {
   describe('displayNameForIndexType()', () => {
@@ -104,6 +111,20 @@ describe('IndexedDbIndexManager', async () => {
   ): Promise<TestIndexManager> {
     const persistence = await persistencePromise;
     return new TestIndexManager(persistence, persistence.getIndexManager(user));
+  }
+
+  async function getIndexedDbIndexManager(
+    user = User.UNAUTHENTICATED
+  ): Promise<IndexedDbIndexManager> {
+    const persistence = await persistencePromise;
+    const indexManager = persistence.getIndexManager(user);
+    if (!(indexManager instanceof IndexedDbIndexManager)) {
+      throw new Error(
+        'persistence.getIndexManager() should have returned ' +
+          'an instance of IndexedDbIndexManager'
+      );
+    }
+    return indexManager;
   }
 
   genericIndexManagerTests(() => persistencePromise);
@@ -1749,6 +1770,72 @@ describe('IndexedDbIndexManager', async () => {
     await validateIsNoneIndex(query2);
   });
 
+  it('fieldIndexPlugin is initially null', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    expect(indexManager.fieldIndexPlugin).is.null;
+  });
+
+  it('installFieldIndexPlugin() specifies the correct arguments to the factory', async () => {
+    const indexManager = await getIndexedDbIndexManager(new User('abc'));
+    const factory = new TestIndexedDbIndexManagerFieldIndexPluginFactory();
+    indexManager.installFieldIndexPlugin(factory);
+    const invocation = factory.invocations[0];
+    expect(invocation.uid).to.equal('abc');
+    expect(invocation.databaseId.isEqual(TEST_DATABASE_ID)).to.be.true;
+  });
+
+  it('installFieldIndexPlugin() initializes fieldIndexPlugin on first invocation', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    const factory = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'foo'
+    ]);
+    indexManager.installFieldIndexPlugin(factory);
+    expect(indexManager.fieldIndexPlugin).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() does not modify fieldIndexPlugin on subsequent invocations', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    const factory = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'foo',
+      'bar'
+    ]);
+    indexManager.installFieldIndexPlugin(factory);
+    indexManager.installFieldIndexPlugin(factory);
+    expect(indexManager.fieldIndexPlugin).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() returns the object that was created by the factory', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    const factory = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'foo'
+    ]);
+    expect(indexManager.installFieldIndexPlugin(factory)).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() returns the object that was created by the first invocation', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    const factory = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'foo',
+      'bar'
+    ]);
+    indexManager.installFieldIndexPlugin(factory);
+    expect(indexManager.installFieldIndexPlugin(factory)).to.equal('bar');
+  });
+
+  it('installFieldIndexPlugin() throws if invoked with a different factory', async () => {
+    const indexManager = await getIndexedDbIndexManager();
+    const factory1 = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'foo'
+    ]);
+    const factory2 = new TestIndexedDbIndexManagerFieldIndexPluginFactory([
+      'bar'
+    ]);
+    indexManager.installFieldIndexPlugin(factory1);
+    expect(() => indexManager.installFieldIndexPlugin(factory2)).to.throw(
+      'factory object'
+    );
+  });
+
   async function validateIsPartialIndex(query: Query): Promise<void> {
     await validateIndexType(query, IndexType.PARTIAL);
   }
@@ -1882,4 +1969,35 @@ function genericIndexManagerTests(
       []
     );
   });
+}
+
+class TestIndexedDbIndexManagerFieldIndexPluginFactory
+  implements IndexedDbIndexManagerFieldIndexPluginFactory
+{
+  private readonly returnValuesIterator: Iterator<unknown>;
+
+  private readonly _invocations: TestIndexedDbIndexManagerFieldIndexPluginFactoryInvocation[] =
+    [];
+
+  get invocations(): TestIndexedDbIndexManagerFieldIndexPluginFactoryInvocation[] {
+    return Array.from(this._invocations);
+  }
+
+  constructor(returnValues: unknown[] = []) {
+    this.returnValuesIterator = returnValues[Symbol.iterator]();
+  }
+
+  newIndexedDbIndexManagerFieldIndexPlugin(
+    uid: string,
+    databaseId: DatabaseId
+  ): IndexedDbIndexManagerFieldIndexPlugin {
+    this._invocations.push({ uid, databaseId });
+    return this.returnValuesIterator.next()
+      .value as IndexedDbIndexManagerFieldIndexPlugin;
+  }
+}
+
+interface TestIndexedDbIndexManagerFieldIndexPluginFactoryInvocation {
+  uid: string;
+  databaseId: DatabaseId;
 }
