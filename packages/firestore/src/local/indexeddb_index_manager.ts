@@ -130,6 +130,8 @@ export class IndexedDbIndexManager implements IndexManager {
     this.uid = user.uid || '';
   }
 
+  private _fieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory | null =
+    null;
   private _fieldIndexPlugin: IndexManagerFieldIndexPlugin | null = null;
 
   get fieldIndexPlugin(): IndexManagerFieldIndexPlugin | null {
@@ -138,9 +140,16 @@ export class IndexedDbIndexManager implements IndexManager {
 
   installFieldIndexPlugin(
     factory: IndexedDbIndexManagerFieldIndexPluginFactory
-  ): void {
+  ): IndexManagerFieldIndexPlugin {
+    debugAssert(
+      !this._fieldIndexPluginFactory ||
+        this._fieldIndexPluginFactory === factory,
+      'The same factory object must be specified to each invocation'
+    );
+    this._fieldIndexPluginFactory = factory;
+
     if (this._fieldIndexPlugin) {
-      return;
+      return this._fieldIndexPlugin;
     }
 
     logDebug(
@@ -151,6 +160,8 @@ export class IndexedDbIndexManager implements IndexManager {
       this.uid,
       this.databaseId
     );
+
+    return this._fieldIndexPlugin;
   }
 
   /**

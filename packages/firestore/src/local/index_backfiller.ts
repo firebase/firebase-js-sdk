@@ -126,7 +126,7 @@ export class IndexBackfillerSchedulerFactoryImpl
 }
 
 /** Implements the steps for backfilling indexes. */
-class IndexBackfiller {
+export class IndexBackfiller {
   constructor(
     /**
      * LocalStore provides access to IndexManager and LocalDocumentView.
