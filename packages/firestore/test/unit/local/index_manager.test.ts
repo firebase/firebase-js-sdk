@@ -66,7 +66,8 @@ import { TestIndexManager } from './test_index_manager';
 import {
   IndexedDbIndexManager,
   IndexedDbIndexManagerFieldIndexPlugin,
-  IndexedDbIndexManagerFieldIndexPluginFactory
+  IndexedDbIndexManagerFieldIndexPluginFactory,
+  IndexedDbIndexManagerFieldIndexPluginFactoryImpl
 } from '../../../src/local/indexeddb_index_manager';
 import { DatabaseId } from '../../../src/core/database_info';
 import { TEST_DATABASE_ID } from './persistence_test_helpers';
@@ -110,7 +111,17 @@ describe('IndexedDbIndexManager', async () => {
     user = User.UNAUTHENTICATED
   ): Promise<TestIndexManager> {
     const persistence = await persistencePromise;
-    return new TestIndexManager(persistence, persistence.getIndexManager(user));
+    const indexManager = persistence.getIndexManager(user);
+    if (!(indexManager instanceof IndexedDbIndexManager)) {
+      throw new Error(
+        'persistence.getIndexManager() should have returned ' +
+          'an instance of IndexedDbIndexManager'
+      );
+    }
+    indexManager.installFieldIndexPlugin(
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl()
+    );
+    return new TestIndexManager(persistence, indexManager);
   }
 
   async function getIndexedDbIndexManager(
@@ -1819,7 +1830,7 @@ describe('IndexedDbIndexManager', async () => {
       'bar'
     ]);
     indexManager.installFieldIndexPlugin(factory);
-    expect(indexManager.installFieldIndexPlugin(factory)).to.equal('bar');
+    expect(indexManager.installFieldIndexPlugin(factory)).to.equal('foo');
   });
 
   it('installFieldIndexPlugin() throws if invoked with a different factory', async () => {
