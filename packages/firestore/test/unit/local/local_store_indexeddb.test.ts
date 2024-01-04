@@ -1012,7 +1012,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     const queryEngine = test.queryEngine;
 
     localStoreDisableIndexAutoCreation(localStore);
-    expect(queryEngine.fieldIndexPlugin).to.be.undefined;
+    expect(queryEngine.fieldIndexPlugin).to.be.null;
 
     localStoreEnableIndexAutoCreation(
       localStore,

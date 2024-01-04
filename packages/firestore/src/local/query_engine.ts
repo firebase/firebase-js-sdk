@@ -117,6 +117,12 @@ export class QueryEngine {
     this.initialized = true;
   }
 
+  private get indexAutoCreationEnabled(): boolean {
+    return this._fieldIndexPlugin
+      ? this._fieldIndexPlugin.indexAutoCreationEnabled
+      : false;
+  }
+
   private _fieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory | null =
     null;
   private _fieldIndexPlugin: QueryEngineFieldIndexPlugin | null = null;
@@ -190,12 +196,14 @@ export class QueryEngine {
         return this.executeFullCollectionScan(transaction, query, context).next(
           result => {
             queryResult.result = result;
-            return this.createCacheIndexes(
-              transaction,
-              query,
-              context,
-              result.size
-            );
+            if (this.indexAutoCreationEnabled) {
+              return this.createCacheIndexes(
+                transaction,
+                query,
+                context,
+                result.size
+              );
+            }
           }
         );
       })
