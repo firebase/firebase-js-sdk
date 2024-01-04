@@ -42,7 +42,8 @@ import {
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
-  localStoreSetIndexAutoCreationEnabled,
+  localStoreEnableIndexAutoCreation,
+  localStoreDisableIndexAutoCreation,
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
@@ -122,6 +123,14 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import {
+  QueryEngineFieldIndexPluginFactory,
+  QueryEngineFieldIndexPluginFactoryImpl
+} from '../../../src/local/query_engine';
+import {
+  IndexedDbIndexManagerFieldIndexPluginFactory,
+  IndexedDbIndexManagerFieldIndexPluginFactoryImpl
+} from '../../../src/local/indexeddb_index_manager';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -659,15 +668,58 @@ function genericLocalStoreTests(
     );
   }
 
-  it('localStoreSetIndexAutoCreationEnabled()', () => {
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+  it('localStoreEnableIndexAutoCreation()', () => {
+    const queryEngineFieldIndexPluginFactory =
+      new QueryEngineFieldIndexPluginFactoryImpl();
+    const indexManagerFieldIndexPluginFactory =
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+  });
+
+  it('localStoreDisableIndexAutoCreation()', () => {
+    const queryEngineFieldIndexPluginFactory =
+      new QueryEngineFieldIndexPluginFactoryImpl();
+    const indexManagerFieldIndexPluginFactory =
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin).to.be.undefined;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
   });
 
   it('handles SetMutation', () => {
