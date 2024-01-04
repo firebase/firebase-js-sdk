@@ -32,6 +32,7 @@ import { View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import {
   displayNameForIndexType,
+  IndexManager,
   IndexType
 } from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -41,7 +42,12 @@ import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryContext } from '../../../src/local/query_context';
-import { QueryEngine } from '../../../src/local/query_engine';
+import {
+  QueryEngine,
+  QueryEngineFieldIndexPlugin,
+  QueryEngineFieldIndexPluginFactory,
+  QueryEngineFieldIndexPluginFactoryImpl
+} from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import {
@@ -159,6 +165,7 @@ function genericQueryEngineTest(
   let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let indexManager!: TestIndexManager;
+  let underlyingIndexManager!: IndexManager;
   let mutationQueue!: MutationQueue;
   let localDocuments!: TestLocalDocumentsView;
 
@@ -265,9 +272,7 @@ function genericQueryEngineTest(
     targetCache = persistence.getTargetCache();
     queryEngine = new QueryEngine();
 
-    const underlyingIndexManager = persistence.getIndexManager(
-      User.UNAUTHENTICATED
-    );
+    underlyingIndexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(underlyingIndexManager);
     mutationQueue = persistence.getMutationQueue(
@@ -841,7 +846,7 @@ function genericQueryEngineTest(
     // A generic test for index auto-creation.
     // This function can be called with explicit parameters from it() methods.
     const testIndexAutoCreation = async (config: {
-      indexAutoCreationEnabled: boolean;
+      indexAutoCreationEnabled?: boolean;
       indexAutoCreationMinCollectionSize?: number;
       relativeIndexReadCostPerDocument?: number;
       matchingDocumentCount?: number;
@@ -849,6 +854,12 @@ function genericQueryEngineTest(
       expectedPostQueryExecutionIndexType: IndexType;
     }): Promise<void> => {
       debugAssert(configureCsi, 'Test requires durable persistence');
+
+      function ensureFieldIndexPluginInstalled(): QueryEngineFieldIndexPlugin {
+        return queryEngine.installFieldIndexPlugin(
+          new QueryEngineFieldIndexPluginFactoryImpl()
+        );
+      }
 
       const matchingDocuments: MutableDocument[] = [];
       for (let i = 0; i < (config.matchingDocumentCount ?? 3); i++) {
@@ -864,14 +875,16 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
-      queryEngine.indexAutoCreationEnabled = config.indexAutoCreationEnabled;
-
+      if (config.indexAutoCreationEnabled !== undefined) {
+        ensureFieldIndexPluginInstalled().indexAutoCreationEnabled =
+          config.indexAutoCreationEnabled;
+      }
       if (config.indexAutoCreationMinCollectionSize !== undefined) {
-        queryEngine.indexAutoCreationMinCollectionSize =
+        ensureFieldIndexPluginInstalled().indexAutoCreationMinCollectionSize =
           config.indexAutoCreationMinCollectionSize;
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
-        queryEngine.relativeIndexReadCostPerDocument =
+        ensureFieldIndexPluginInstalled().relativeIndexReadCostPerDocument =
           config.relativeIndexReadCostPerDocument;
       }
 
@@ -918,6 +931,11 @@ function genericQueryEngineTest(
         indexAutoCreationEnabled: false,
         indexAutoCreationMinCollectionSize: 0,
         relativeIndexReadCostPerDocument: 0,
+        expectedPostQueryExecutionIndexType: IndexType.NONE
+      }));
+
+    it('does not create indexes when no QueryEngineFieldIndexPlugin is installed ', () =>
+      testIndexAutoCreation({
         expectedPostQueryExecutionIndexType: IndexType.NONE
       }));
 
@@ -1533,6 +1551,51 @@ function genericQueryEngineTest(
     );
     verifyResult(result2, [doc1, doc4, doc6]);
   });
+
+  it('fieldIndexPlugin is initially null', () => {
+    expect(queryEngine.fieldIndexPlugin).is.null;
+  });
+
+  it('installFieldIndexPlugin() initializes specifies the correct arguments to the factory', () => {
+    const factory = new TestQueryEngineFieldIndexPluginFactory();
+    queryEngine.installFieldIndexPlugin(factory);
+    const invocation = factory.invocations[0];
+    expect(invocation.indexManager).to.equal(underlyingIndexManager);
+    expect(invocation.localDocumentsView).to.equal(localDocuments);
+  });
+
+  it('installFieldIndexPlugin() initializes fieldIndexPlugin on first invocation', () => {
+    const factory = new TestQueryEngineFieldIndexPluginFactory(['foo']);
+    queryEngine.installFieldIndexPlugin(factory);
+    expect(queryEngine.fieldIndexPlugin).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() does not modify fieldIndexPlugin on subsequent invocations', () => {
+    const factory = new TestQueryEngineFieldIndexPluginFactory(['foo', 'bar']);
+    queryEngine.installFieldIndexPlugin(factory);
+    queryEngine.installFieldIndexPlugin(factory);
+    expect(queryEngine.fieldIndexPlugin).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() returns the object that was created by the factory', () => {
+    const factory = new TestQueryEngineFieldIndexPluginFactory(['foo']);
+    expect(queryEngine.installFieldIndexPlugin(factory)).to.equal('foo');
+  });
+
+  it('installFieldIndexPlugin() returns the object that was created by the first invocation', () => {
+    const factory = new TestQueryEngineFieldIndexPluginFactory(['foo', 'bar']);
+    queryEngine.installFieldIndexPlugin(factory);
+    expect(queryEngine.installFieldIndexPlugin(factory)).to.equal('bar');
+  });
+
+  it('installFieldIndexPlugin() throws if invoked with a different factory', () => {
+    const factory1 = new TestQueryEngineFieldIndexPluginFactory(['foo']);
+    const factory2 = new TestQueryEngineFieldIndexPluginFactory(['bar']);
+    queryEngine.installFieldIndexPlugin(factory1);
+    expect(() => queryEngine.installFieldIndexPlugin(factory2)).to.throw(
+      'factory object'
+    );
+  });
 }
 
 function verifyResult(actualDocs: DocumentSet, expectedDocs: Document[]): void {
@@ -1547,4 +1610,35 @@ function verifyResult(actualDocs: DocumentSet, expectedDocs: Document[]): void {
     expectedDocs.length,
     'Result count does not match'
   );
+}
+
+class TestQueryEngineFieldIndexPluginFactory
+  implements QueryEngineFieldIndexPluginFactory
+{
+  private readonly returnValuesIterator: Iterator<unknown>;
+
+  private readonly _invocations: TestQueryEngineFieldIndexPluginFactoryInvocation[] =
+    [];
+
+  get invocations(): TestQueryEngineFieldIndexPluginFactoryInvocation[] {
+    return Array.from(this._invocations);
+  }
+
+  constructor(returnValues: unknown[] = []) {
+    this.returnValuesIterator = returnValues[Symbol.iterator]();
+  }
+
+  newQueryEngineFieldIndexPlugin(
+    indexManager: IndexManager,
+    localDocumentsView: LocalDocumentsView
+  ): QueryEngineFieldIndexPlugin {
+    this._invocations.push({ indexManager, localDocumentsView });
+    return this.returnValuesIterator.next()
+      .value as QueryEngineFieldIndexPlugin;
+  }
+}
+
+interface TestQueryEngineFieldIndexPluginFactoryInvocation {
+  indexManager: IndexManager;
+  localDocumentsView: LocalDocumentsView;
 }

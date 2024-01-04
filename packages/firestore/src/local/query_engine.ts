@@ -117,15 +117,26 @@ export class QueryEngine {
     this.initialized = true;
   }
 
+  private _fieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory | null =
+    null;
   private _fieldIndexPlugin: QueryEngineFieldIndexPlugin | null = null;
 
   get fieldIndexPlugin(): QueryEngineFieldIndexPlugin | null {
     return this._fieldIndexPlugin;
   }
 
-  installFieldIndexPlugin(factory: QueryEngineFieldIndexPluginFactory): void {
+  installFieldIndexPlugin(
+    factory: QueryEngineFieldIndexPluginFactory
+  ): QueryEngineFieldIndexPlugin {
+    debugAssert(
+      !this._fieldIndexPluginFactory ||
+        this._fieldIndexPluginFactory === factory,
+      'The same factory object must be specified to each invocation'
+    );
+    this._fieldIndexPluginFactory = factory;
+
     if (this._fieldIndexPlugin) {
-      return;
+      return this._fieldIndexPlugin;
     }
 
     logDebug(
@@ -136,6 +147,8 @@ export class QueryEngine {
       this.indexManager,
       this.localDocumentsView
     );
+
+    return this._fieldIndexPlugin;
   }
 
   /** Returns all local documents matching the specified query. */
