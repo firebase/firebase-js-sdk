@@ -411,7 +411,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('maintains correct DocumentChange indices', async () => {
+  it('maintains correct DocumentChange indexes', async () => {
     const testDocs = {
       'a': { order: 1 },
       'b': { order: 2 },
