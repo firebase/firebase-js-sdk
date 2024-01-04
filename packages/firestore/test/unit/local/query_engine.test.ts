@@ -934,7 +934,7 @@ function genericQueryEngineTest(
         expectedPostQueryExecutionIndexType: IndexType.NONE
       }));
 
-    it('does not create indexes when no QueryEngineFieldIndexPlugin is installed ', () =>
+    it('does not create indexes when no QueryEngineFieldIndexPlugin is installed', () =>
       testIndexAutoCreation({
         expectedPostQueryExecutionIndexType: IndexType.NONE
       }));
@@ -1556,7 +1556,7 @@ function genericQueryEngineTest(
     expect(queryEngine.fieldIndexPlugin).is.null;
   });
 
-  it('installFieldIndexPlugin() initializes specifies the correct arguments to the factory', () => {
+  it('installFieldIndexPlugin() specifies the correct arguments to the factory', () => {
     const factory = new TestQueryEngineFieldIndexPluginFactory();
     queryEngine.installFieldIndexPlugin(factory);
     const invocation = factory.invocations[0];
