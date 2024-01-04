@@ -1585,7 +1585,7 @@ function genericQueryEngineTest(
   it('installFieldIndexPlugin() returns the object that was created by the first invocation', () => {
     const factory = new TestQueryEngineFieldIndexPluginFactory(['foo', 'bar']);
     queryEngine.installFieldIndexPlugin(factory);
-    expect(queryEngine.installFieldIndexPlugin(factory)).to.equal('bar');
+    expect(queryEngine.installFieldIndexPlugin(factory)).to.equal('foo');
   });
 
   it('installFieldIndexPlugin() throws if invoked with a different factory', () => {

@@ -97,7 +97,7 @@ class AsyncLocalStoreTester {
   constructor(
     public localStore: LocalStore,
     private readonly persistence: Persistence,
-    private readonly queryEngine: CountingQueryEngine,
+    public readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
   ) {
     this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
@@ -968,6 +968,64 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
+  });
+
+  it('localStoreEnableIndexAutoCreation()', () => {
+    const queryEngineFieldIndexPluginFactory =
+      new QueryEngineFieldIndexPluginFactoryImpl();
+    const indexManagerFieldIndexPluginFactory =
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+    const localStore = test.localStore;
+    const queryEngine = test.queryEngine;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+  });
+
+  it('localStoreDisableIndexAutoCreation()', () => {
+    const queryEngineFieldIndexPluginFactory =
+      new QueryEngineFieldIndexPluginFactoryImpl();
+    const indexManagerFieldIndexPluginFactory =
+      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
+    const localStore = test.localStore;
+    const queryEngine = test.queryEngine;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin).to.be.undefined;
+
+    localStoreEnableIndexAutoCreation(
+      localStore,
+      queryEngineFieldIndexPluginFactory,
+      indexManagerFieldIndexPluginFactory
+    );
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
   });
 });
 

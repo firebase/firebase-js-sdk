@@ -668,60 +668,6 @@ function genericLocalStoreTests(
     );
   }
 
-  it('localStoreEnableIndexAutoCreation()', () => {
-    const queryEngineFieldIndexPluginFactory =
-      new QueryEngineFieldIndexPluginFactoryImpl();
-    const indexManagerFieldIndexPluginFactory =
-      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
-
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-
-    localStoreDisableIndexAutoCreation(localStore);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
-
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-  });
-
-  it('localStoreDisableIndexAutoCreation()', () => {
-    const queryEngineFieldIndexPluginFactory =
-      new QueryEngineFieldIndexPluginFactoryImpl();
-    const indexManagerFieldIndexPluginFactory =
-      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
-
-    localStoreDisableIndexAutoCreation(localStore);
-    expect(queryEngine.fieldIndexPlugin).to.be.undefined;
-
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-
-    localStoreDisableIndexAutoCreation(localStore);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
-
-    localStoreDisableIndexAutoCreation(localStore);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
-  });
-
   it('handles SetMutation', () => {
     return expectLocalStore()
       .after(setMutation('foo/bar', { foo: 'bar' }))
