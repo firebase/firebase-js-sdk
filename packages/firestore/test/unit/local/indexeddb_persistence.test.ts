@@ -264,6 +264,17 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return;
   }
 
+  if (
+    typeof process !== 'undefined' &&
+    process.env.MOCK_PERSISTENCE_MODE === 'memory'
+  ) {
+    console.warn(
+      'IndexedDB is configured to use an in-memory database. ' +
+        'Skipping createOrUpgradeDb() tests.'
+    );
+    return;
+  }
+
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
