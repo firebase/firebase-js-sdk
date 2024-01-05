@@ -103,18 +103,29 @@ const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
  * - Queries that have never been CURRENT or free of limbo documents.
  */
 export class QueryEngine {
-  private localDocumentsView!: LocalDocumentsView;
-  private indexManager!: IndexManager;
-  private initialized = false;
+  private _localDocumentsView!: LocalDocumentsView;
+  get localDocumentsView(): LocalDocumentsView {
+    return this._localDocumentsView;
+  }
+
+  private _indexManager!: IndexManager;
+  get indexManager(): IndexManager {
+    return this._indexManager;
+  }
+
+  private _initialized = false;
+  get initialized(): boolean {
+    return this._initialized;
+  }
 
   /** Sets the document view to query against. */
   initialize(
     localDocuments: LocalDocumentsView,
     indexManager: IndexManager
   ): void {
-    this.localDocumentsView = localDocuments;
-    this.indexManager = indexManager;
-    this.initialized = true;
+    this._localDocumentsView = localDocuments;
+    this._indexManager = indexManager;
+    this._initialized = true;
   }
 
   private get indexAutoCreationEnabled(): boolean {
@@ -123,38 +134,15 @@ export class QueryEngine {
       : false;
   }
 
-  private _fieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory | null =
-    null;
   private _fieldIndexPlugin: QueryEngineFieldIndexPlugin | null = null;
 
   get fieldIndexPlugin(): QueryEngineFieldIndexPlugin | null {
     return this._fieldIndexPlugin;
   }
 
-  installFieldIndexPlugin(
-    factory: QueryEngineFieldIndexPluginFactory
-  ): QueryEngineFieldIndexPlugin {
-    debugAssert(
-      !this._fieldIndexPluginFactory ||
-        this._fieldIndexPluginFactory === factory,
-      'The same factory object must be specified to each invocation'
-    );
-    this._fieldIndexPluginFactory = factory;
-
-    if (this._fieldIndexPlugin) {
-      return this._fieldIndexPlugin;
-    }
-
-    logDebug(
-      'Installing QueryEngineFieldIndexPlugin into QueryEngine ' +
-        'to support persistent cache indexing.'
-    );
-    this._fieldIndexPlugin = factory.newQueryEngineFieldIndexPlugin(
-      this.indexManager,
-      this.localDocumentsView
-    );
-
-    return this._fieldIndexPlugin;
+  installFieldIndexPlugin(plugin: QueryEngineFieldIndexPlugin): void {
+    hardAssert(!this._fieldIndexPlugin);
+    this._fieldIndexPlugin = plugin;
   }
 
   /** Returns all local documents matching the specified query. */
@@ -321,22 +309,21 @@ export class QueryEngine {
   }
 }
 
-export interface QueryEngineFieldIndexPluginFactory {
-  newQueryEngineFieldIndexPlugin(
-    indexManager: IndexManager,
-    localDocumentsView: LocalDocumentsView
-  ): QueryEngineFieldIndexPlugin;
-}
-
-export class QueryEngineFieldIndexPluginFactoryImpl
-  implements QueryEngineFieldIndexPluginFactory
-{
-  newQueryEngineFieldIndexPlugin(
-    indexManager: IndexManager,
-    localDocumentsView: LocalDocumentsView
-  ): QueryEngineFieldIndexPlugin {
-    return new QueryEngineFieldIndexPlugin(indexManager, localDocumentsView);
+export function queryEngineInstallFieldIndexPlugin(instance: QueryEngine) {
+  if (instance.fieldIndexPlugin) {
+    return;
   }
+
+  logDebug(
+    'Installing QueryEngineFieldIndexPlugin into ' +
+      'QueryEngine to support persistent cache indexing.'
+  );
+  instance.installFieldIndexPlugin(
+    new QueryEngineFieldIndexPlugin(
+      instance.indexManager,
+      instance.localDocumentsView
+    )
+  );
 }
 
 export class QueryEngineFieldIndexPlugin {

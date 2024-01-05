@@ -124,44 +124,22 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
-  private readonly uid: string;
+  readonly uid: string;
 
-  constructor(user: User, private readonly databaseId: DatabaseId) {
+  constructor(user: User, readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
-  private _fieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory | null =
+  private _fieldIndexPlugin: IndexedDbIndexManagerFieldIndexPlugin | null =
     null;
-  private _fieldIndexPlugin: IndexManagerFieldIndexPlugin | null = null;
 
-  get fieldIndexPlugin(): IndexManagerFieldIndexPlugin | null {
+  get fieldIndexPlugin(): IndexedDbIndexManagerFieldIndexPlugin | null {
     return this._fieldIndexPlugin;
   }
 
-  installFieldIndexPlugin(
-    factory: IndexedDbIndexManagerFieldIndexPluginFactory
-  ): IndexManagerFieldIndexPlugin {
-    debugAssert(
-      !this._fieldIndexPluginFactory ||
-        this._fieldIndexPluginFactory === factory,
-      'The same factory object must be specified to each invocation'
-    );
-    this._fieldIndexPluginFactory = factory;
-
-    if (this._fieldIndexPlugin) {
-      return this._fieldIndexPlugin;
-    }
-
-    logDebug(
-      'Installing IndexedDbIndexManagerFieldIndexPlugin into IndexedDbIndexManager ' +
-        'to support persistent cache indexing.'
-    );
-    this._fieldIndexPlugin = factory.newIndexedDbIndexManagerFieldIndexPlugin(
-      this.uid,
-      this.databaseId
-    );
-
-    return this._fieldIndexPlugin;
+  installFieldIndexPlugin(plugin: IndexedDbIndexManagerFieldIndexPlugin): void {
+    hardAssert(!this._fieldIndexPlugin);
+    this._fieldIndexPlugin = plugin;
   }
 
   /**
@@ -224,31 +202,26 @@ export class IndexedDbIndexManager implements IndexManager {
   }
 }
 
-export interface IndexedDbIndexManagerFieldIndexPluginFactory {
-  newIndexedDbIndexManagerFieldIndexPlugin(
-    uid: string,
-    databaseId: DatabaseId
-  ): IndexedDbIndexManagerFieldIndexPlugin;
-}
-
-export class IndexedDbIndexManagerFieldIndexPluginFactoryImpl
-  implements IndexedDbIndexManagerFieldIndexPluginFactory
-{
-  newIndexedDbIndexManagerFieldIndexPlugin(
-    uid: string,
-    databaseId: DatabaseId
-  ): IndexedDbIndexManagerFieldIndexPlugin {
-    return new IndexedDbIndexManagerFieldIndexPlugin(uid, databaseId);
+export function indexedDbIndexManagerInstallFieldIndexPlugin(
+  instance: IndexedDbIndexManager
+) {
+  if (instance.fieldIndexPlugin) {
+    return;
   }
+
+  logDebug(
+    'Installing IndexedDbIndexManagerFieldIndexPlugin into ' +
+      'IndexedDbIndexManager to support persistent cache indexing.'
+  );
+  instance.installFieldIndexPlugin(
+    new IndexedDbIndexManagerFieldIndexPlugin(instance.uid, instance.databaseId)
+  );
 }
 
 export class IndexedDbIndexManagerFieldIndexPlugin
   implements IndexManagerFieldIndexPlugin
 {
-  constructor(
-    private readonly uid: string,
-    private readonly databaseId: DatabaseId
-  ) {}
+  constructor(readonly uid: string, readonly databaseId: DatabaseId) {}
 
   /**
    * Maps from a target to its equivalent list of sub-targets. Each sub-target

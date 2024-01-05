@@ -35,7 +35,6 @@ import {
   localStoreReadDocument
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
-import { QueryEngineFieldIndexPluginFactory } from '../local/query_engine';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
@@ -52,7 +51,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
@@ -66,6 +65,8 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  IndexedDbOfflineComponentProvider,
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -95,8 +96,6 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { IndexedDbIndexManagerFieldIndexPluginFactory } from '../local/indexeddb_index_manager';
-import { IndexBackfillerSchedulerFactory } from '../local/index_backfiller';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -821,60 +820,39 @@ function createBundleReader(
   return newBundleReader(toByteStreamReader(content), serializer);
 }
 
-function installIndexBackfillerSchedulerFactory(
-  client: FirestoreClient,
-  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory
+function firestoreClientInstallFieldIndexPlugins(
+  client: FirestoreClient
 ): void {
-  client._offlineComponents!!.installIndexBackfillerScheduler(
-    client.configuration,
-    indexBackfillerSchedulerFactory
+  hardAssert(
+    client._offlineComponents instanceof IndexedDbOfflineComponentProvider
+  );
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin(
+    client._offlineComponents
   );
 }
 
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
-  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory,
   indexes: FieldIndex[]
 ): Promise<void> {
   return client.asyncQueue
     .enqueue(async () => {
       return localStoreConfigureFieldIndexes(
         await getLocalStore(client),
-        queryEngineFieldIndexPluginFactory,
-        indexManagerFieldIndexPluginFactory,
         indexes
       );
     })
-    .then(() =>
-      installIndexBackfillerSchedulerFactory(
-        client,
-        indexBackfillerSchedulerFactory
-      )
-    );
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
 }
 
 export function firestoreClientEnablePersistentCacheIndexAutoCreation(
-  client: FirestoreClient,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
-  indexBackfillerSchedulerFactory: IndexBackfillerSchedulerFactory
+  client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue
     .enqueue(async () => {
-      return localStoreEnableIndexAutoCreation(
-        await getLocalStore(client),
-        queryEngineFieldIndexPluginFactory,
-        indexManagerFieldIndexPluginFactory
-      );
+      return localStoreEnableIndexAutoCreation(await getLocalStore(client));
     })
-    .then(() =>
-      installIndexBackfillerSchedulerFactory(
-        client,
-        indexBackfillerSchedulerFactory
-      )
-    );
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
 }
 
 export function firestoreClientDisablePersistentCacheIndexAutoCreation(

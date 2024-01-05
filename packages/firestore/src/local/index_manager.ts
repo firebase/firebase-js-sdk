@@ -87,7 +87,8 @@ export interface IndexManager {
 
   /**
    * The plugin that implements the logic for field indexes; may be null if
-   * it has not been set.
+   * it has not been installed into this object, or if the implementation does
+   * not support the plugin.
    */
   readonly fieldIndexPlugin: IndexManagerFieldIndexPlugin | null;
 }

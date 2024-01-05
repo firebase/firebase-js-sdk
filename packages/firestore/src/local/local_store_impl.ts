@@ -85,7 +85,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import {
   QueryEngine,
-  QueryEngineFieldIndexPluginFactory
+  queryEngineInstallFieldIndexPlugin
 } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -96,7 +96,7 @@ import { TargetData, TargetPurpose } from './target_data';
 import {
   deleteAllFieldIndexes,
   IndexedDbIndexManager,
-  IndexedDbIndexManagerFieldIndexPluginFactory
+  indexedDbIndexManagerInstallFieldIndexPlugin
 } from './indexeddb_index_manager';
 
 export const LOG_TAG = 'LocalStore';
@@ -1501,31 +1501,24 @@ export async function localStoreSaveNamedQuery(
   );
 }
 
-function initializeFieldIndexPlugin(
-  localStoreImpl: LocalStoreImpl,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+export function localStoreInstallFieldIndexPlugins(
+  localStore: LocalStore
 ): void {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+
   const indexManager = localStoreImpl.indexManager;
   hardAssert(indexManager instanceof IndexedDbIndexManager);
-  indexManager.installFieldIndexPlugin(indexManagerFieldIndexPluginFactory);
-  localStoreImpl.queryEngine.installFieldIndexPlugin(
-    queryEngineFieldIndexPluginFactory
-  );
+  indexedDbIndexManagerInstallFieldIndexPlugin(indexManager);
+
+  queryEngineInstallFieldIndexPlugin(localStoreImpl.queryEngine);
 }
 
 export async function localStoreConfigureFieldIndexes(
   localStore: LocalStore,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory,
   newFieldIndexes: FieldIndex[]
 ): Promise<void> {
+  localStoreInstallFieldIndexPlugins(localStore);
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  initializeFieldIndexPlugin(
-    localStoreImpl,
-    queryEngineFieldIndexPluginFactory,
-    indexManagerFieldIndexPluginFactory
-  );
   const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
   hardAssert(!!fieldIndexPlugin);
 
@@ -1558,16 +1551,10 @@ export async function localStoreConfigureFieldIndexes(
 }
 
 export function localStoreEnableIndexAutoCreation(
-  localStore: LocalStore,
-  queryEngineFieldIndexPluginFactory: QueryEngineFieldIndexPluginFactory,
-  indexManagerFieldIndexPluginFactory: IndexedDbIndexManagerFieldIndexPluginFactory
+  localStore: LocalStore
 ): void {
+  localStoreInstallFieldIndexPlugins(localStore);
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  initializeFieldIndexPlugin(
-    localStoreImpl,
-    queryEngineFieldIndexPluginFactory,
-    indexManagerFieldIndexPluginFactory
-  );
   const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
   hardAssert(!!fieldIndexPlugin);
   fieldIndexPlugin.indexAutoCreationEnabled = true;

@@ -24,13 +24,10 @@ import {
   IndexState
 } from '../model/field_index';
 import { Code, FirestoreError } from '../util/error';
+import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
-import { Firestore } from './database';
-import {
-  ensureFieldIndexPluginFactoriesInitialized,
-  getPersistentCacheIndexManager
-} from './persistent_cache_index_manager';
+import { ensureFirestoreConfigured, Firestore } from './database';
 
 export {
   connectFirestoreEmulator,
@@ -174,29 +171,19 @@ export function setIndexConfiguration(
   firestore: Firestore,
   jsonOrConfiguration: string | IndexConfiguration
 ): Promise<void> {
-  const persistentCacheIndexManager = getPersistentCacheIndexManager(firestore);
-  if (!persistentCacheIndexManager) {
+  firestore = cast(firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  if (
+    !client._uninitializedComponentsProvider ||
+    client._uninitializedComponentsProvider?._offlineKind === 'memory'
+  ) {
     // PORTING NOTE: We don't return an error if the user has not enabled
     // persistence since `enableIndexeddbPersistence()` can fail on the Web.
     logWarn('Cannot enable indexes when persistence is disabled');
     return Promise.resolve();
   }
-
-  persistentCacheIndexManager._client.verifyNotTerminated();
-
   const parsedIndexes = parseIndexes(jsonOrConfiguration);
-
-  ensureFieldIndexPluginFactoriesInitialized(persistentCacheIndexManager);
-  return firestoreClientSetIndexConfiguration(
-    persistentCacheIndexManager._client,
-    persistentCacheIndexManager._fieldIndexPluginFactories
-      .queryEngineFieldIndexPluginFactory,
-    persistentCacheIndexManager._fieldIndexPluginFactories
-      .indexManagerFieldIndexPluginFactory,
-    persistentCacheIndexManager._fieldIndexPluginFactories
-      .indexBackfillerSchedulerFactory,
-    parsedIndexes
-  );
+  return firestoreClientSetIndexConfiguration(client, parsedIndexes);
 }
 
 export function parseIndexes(
