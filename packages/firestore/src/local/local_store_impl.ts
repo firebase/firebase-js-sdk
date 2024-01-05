@@ -45,8 +45,8 @@ import {
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
 import {
-  Mutation,
   mutationExtractBaseValue,
+  Mutation,
   PatchMutation,
   Precondition
 } from '../model/mutation';

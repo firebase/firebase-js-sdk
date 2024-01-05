@@ -22,8 +22,8 @@ import {
   IndexBackfillerScheduler
 } from '../local/index_backfiller';
 import {
-  IndexedDbPersistence,
-  indexedDbStoragePrefix
+  indexedDbStoragePrefix,
+  IndexedDbPersistence
 } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { newLocalStore } from '../local/local_store_impl';
@@ -34,7 +34,7 @@ import {
   MemoryLruDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
-import { Persistence, Scheduler } from '../local/persistence';
+import { Scheduler, Persistence } from '../local/persistence';
 import { QueryEngine } from '../local/query_engine';
 import {
   ClientId,

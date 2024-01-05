@@ -40,17 +40,17 @@ import {
   localStoreApplyRemoteEventToLocalCache,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
-  localStoreGetNamedQuery,
   localStoreGetTargetData,
+  localStoreGetNamedQuery,
   localStoreHasNewerBundle,
+  localStoreWriteLocally,
+  LocalWriteResult,
   localStoreNotifyLocalViewChanges,
   localStoreReadDocument,
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  localStoreWriteLocally,
-  LocalWriteResult,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';

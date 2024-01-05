@@ -41,12 +41,12 @@ import {
 import { Mutation } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { newAsyncQueue } from '../../../src/util/async_queue_impl';
-import * as Helpers from '../../util/helpers';
 import { key, version } from '../../util/helpers';
+import * as Helpers from '../../util/helpers';
 
 import { CountingQueryEngine } from './counting_query_engine';
-import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
+import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
 

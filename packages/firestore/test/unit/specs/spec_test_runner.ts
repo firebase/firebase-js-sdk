@@ -31,13 +31,13 @@ import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
-  addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
   eventManagerUnlisten,
   Observer,
   QueryListener,
-  removeSnapshotsInSyncListener
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -55,9 +55,9 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   syncEngineGetActiveLimboDocumentResolutions,
   syncEngineGetEnqueuedLimboDocumentResolutions,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
-  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine_impl';
@@ -101,13 +101,13 @@ import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
-  fillWritePipeline,
-  outstandingWrites,
   RemoteStore,
+  fillWritePipeline,
   remoteStoreDisableNetwork,
+  remoteStoreShutdown,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange,
-  remoteStoreShutdown
+  outstandingWrites
 } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
