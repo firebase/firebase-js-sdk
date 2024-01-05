@@ -82,6 +82,10 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 
 const TEST_TARGET_ID = 1;
 
@@ -271,6 +275,16 @@ function genericQueryEngineTest(
     queryEngine = new QueryEngine();
 
     underlyingIndexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
+    if (configureCsi) {
+      if (!(underlyingIndexManager instanceof IndexedDbIndexManager)) {
+        throw new Error(
+          'persistence.getIndexManager() should have ' +
+            'returned an instance of IndexedDbIndexManager'
+        );
+      }
+      indexedDbIndexManagerInstallFieldIndexPlugin(underlyingIndexManager);
+    }
+
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(underlyingIndexManager);
     mutationQueue = persistence.getMutationQueue(
@@ -287,6 +301,9 @@ function genericQueryEngineTest(
       underlyingIndexManager
     );
     queryEngine.initialize(localDocuments, underlyingIndexManager);
+    if (configureCsi) {
+      queryEngineInstallFieldIndexPlugin(queryEngine);
+    }
 
     indexManager = new TestIndexManager(persistence, underlyingIndexManager);
   });
