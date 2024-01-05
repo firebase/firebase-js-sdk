@@ -248,7 +248,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   });
 
   afterEach(async () => {
-    await persistence.shutdown();
+    await persistence?.shutdown();
     await persistenceHelpers.clearTestPersistence();
   });
 
