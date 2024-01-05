@@ -37,25 +37,11 @@ const globalAny = global as any;
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
 
 if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
-  const indexedDbShimOptions: Record<string, unknown> = {
-    checkOrigin: false
-  };
-
-  // Mocking persistence using an in-memory database, rather than the default
-  // on-disk database, can reduce test execution time by orders of magnitude;
-  // however, some tests have erratic behavior when using an in-memory database
-  // because they rely on the database persisting between opens (e.g. tests for
-  // upgrading the database schema). Therefore, setting the
-  // `MOCK_PERSISTENCE_MEMORY_DB` environment variable to `YES` is only
-  // recommended during local build/test development cycles.
-  if (process.env.MOCK_PERSISTENCE_MEMORY_DB === 'YES') {
-    indexedDbShimOptions.memoryDatabase = ':memory:';
-  } else {
-    indexedDbShimOptions.databaseBasePath = dbDir;
-    indexedDbShimOptions.deleteDatabaseFiles = true;
-  }
-
-  registerIndexedDBShim(null, indexedDbShimOptions);
+  registerIndexedDBShim(null, {
+    checkOrigin: false,
+    databaseBasePath: dbDir,
+    deleteDatabaseFiles: true
+  });
 
   // 'indexeddbshim' installs IndexedDB onto `globalAny`, which means we don't
   // have to register it ourselves.
