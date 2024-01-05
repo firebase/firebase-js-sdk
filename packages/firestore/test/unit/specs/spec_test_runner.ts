@@ -178,6 +178,10 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 
 use(chaiExclude);
 
@@ -991,6 +995,16 @@ abstract class TestRunner {
         expect(this.started).to.equal(!expectedState.isShutdown);
       }
       if ('indexes' in expectedState) {
+        if (!(this.localStore.indexManager instanceof IndexedDbIndexManager)) {
+          throw new Error(
+            'localStore.indexManager should be ' +
+              'an instance of IndexedDbIndexManager'
+          );
+        }
+        indexedDbIndexManagerInstallFieldIndexPlugin(
+          this.localStore.indexManager
+        );
+
         const fieldIndexes: FieldIndex[] =
           await this.persistence.runTransaction(
             'getFieldIndexes ',
