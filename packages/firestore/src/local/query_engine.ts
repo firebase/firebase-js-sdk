@@ -131,12 +131,13 @@ export class QueryEngine {
 
   installFieldIndexPlugin(
     factory: QueryEngineFieldIndexPluginConstructor
-  ): void {
+  ): QueryEngineFieldIndexPlugin {
     hardAssert(!this._fieldIndexPlugin);
     this._fieldIndexPlugin = new factory(
       this.indexManager,
       this.localDocumentsView
     );
+    return this._fieldIndexPlugin;
   }
 
   /** Returns all local documents matching the specified query. */
@@ -303,9 +304,11 @@ export class QueryEngine {
   }
 }
 
-export function queryEngineInstallFieldIndexPlugin(instance: QueryEngine) {
+export function queryEngineInstallFieldIndexPlugin(
+  instance: QueryEngine
+): QueryEngineFieldIndexPlugin {
   if (instance.fieldIndexPlugin) {
-    return;
+    return instance.fieldIndexPlugin;
   }
 
   logDebug(
@@ -313,7 +316,7 @@ export function queryEngineInstallFieldIndexPlugin(instance: QueryEngine) {
       'QueryEngine to support persistent cache indexing.'
   );
 
-  instance.installFieldIndexPlugin(QueryEngineFieldIndexPlugin);
+  return instance.installFieldIndexPlugin(QueryEngineFieldIndexPlugin);
 }
 
 interface QueryEngineFieldIndexPluginConstructor {
