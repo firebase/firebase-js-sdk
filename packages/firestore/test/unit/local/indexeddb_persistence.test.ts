@@ -264,6 +264,19 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return;
   }
 
+  if (
+    typeof process !== 'undefined' &&
+    process.env.MOCK_PERSISTENCE_MEMORY_DB === 'YES'
+  ) {
+    console.warn(
+      'IndexedDB is configured to use an in-memory database. ' +
+        'Skipping createOrUpgradeDb() tests because they require the ability ' +
+        'to close and re-open a database, which an in-memory database does ' +
+        'not support (the re-opened database will be unexpectedly empty).'
+    );
+    return;
+  }
+
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));

@@ -45,6 +45,8 @@ export class MemoryIndexManager implements IndexManager {
       this.collectionParentIndex.getEntries(collectionId)
     );
   }
+
+  readonly fieldIndexPlugin = null;
 }
 
 /**

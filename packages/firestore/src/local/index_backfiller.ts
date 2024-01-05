@@ -25,13 +25,12 @@ import { debugAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { logDebug } from '../util/log';
 
-import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
-import { LocalWriteResult } from '../local/local_store_impl';
-import { Persistence, Scheduler } from '../local/persistence';
-import { PersistencePromise } from '../local/persistence_promise';
-import { PersistenceTransaction } from '../local/persistence_transaction';
-import { isIndexedDbTransactionError } from '../local/simple_db';
-import { FieldIndexManagementApi } from './field_index_management_api';
+import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
+import { LocalWriteResult } from './local_store_impl';
+import { Persistence, Scheduler } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
+import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'IndexBackfiller';
 
@@ -116,8 +115,7 @@ export class IndexBackfiller {
      * an up-to-date references to IndexManager and LocalDocumentStore.
      */
     private readonly localStore: LocalStore,
-    private readonly persistence: Persistence,
-    private readonly fieldIndexManagementApi: FieldIndexManagementApi
+    private readonly persistence: Persistence
   ) {}
 
   async backfill(
@@ -135,13 +133,19 @@ export class IndexBackfiller {
     transation: PersistenceTransaction,
     maxDocumentsToProcess: number
   ): PersistencePromise<number> {
+    const fieldIndexPlugin = this.localStore.indexManager.fieldIndexPlugin;
+    debugAssert(
+      !!fieldIndexPlugin,
+      'localStore.indexManager.fieldIndexPlugin must not be null'
+    );
+
     const processedCollectionGroups = new Set<string>();
     let documentsRemaining = maxDocumentsToProcess;
     let continueLoop = true;
     return PersistencePromise.doWhile(
       () => continueLoop === true && documentsRemaining > 0,
       () => {
-        return this.fieldIndexManagementApi
+        return fieldIndexPlugin
           .getNextCollectionGroupToUpdate(transation)
           .next((collectionGroup: string | null) => {
             if (
@@ -173,8 +177,14 @@ export class IndexBackfiller {
     collectionGroup: string,
     documentsRemainingUnderCap: number
   ): PersistencePromise<number> {
+    const fieldIndexPlugin = this.localStore.indexManager.fieldIndexPlugin;
+    debugAssert(
+      !!fieldIndexPlugin,
+      'localStore.indexManager.fieldIndexPlugin must not be null'
+    );
+
     // Use the earliest offset of all field indexes to query the local cache.
-    return this.fieldIndexManagementApi
+    return fieldIndexPlugin
       .getMinOffsetFromCollectionGroup(transaction, collectionGroup)
       .next(existingOffset =>
         this.localStore.localDocuments
@@ -186,12 +196,12 @@ export class IndexBackfiller {
           )
           .next(nextBatch => {
             const docs: DocumentMap = nextBatch.changes;
-            return this.fieldIndexManagementApi
+            return fieldIndexPlugin
               .updateIndexEntries(transaction, docs)
               .next(() => this.getNewOffset(existingOffset, nextBatch))
               .next(newOffset => {
                 logDebug(LOG_TAG, `Updating offset: ${newOffset}`);
-                return this.fieldIndexManagementApi.updateCollectionGroup(
+                return fieldIndexPlugin.updateCollectionGroup(
                   transaction,
                   collectionGroup,
                   newOffset

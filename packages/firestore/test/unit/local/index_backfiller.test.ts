@@ -19,10 +19,13 @@ import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { Query, queryToTarget } from '../../../src/core/query';
-import { IndexBackfiller } from '../../../src/index/index_backfiller';
+import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import { newLocalStore } from '../../../src/local/local_store_impl';
+import {
+  localStoreInstallFieldIndexPlugins,
+  newLocalStore
+} from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
@@ -38,14 +41,14 @@ import {
 import { Mutation } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { newAsyncQueue } from '../../../src/util/async_queue_impl';
-import { key, version } from '../../util/helpers';
 import * as Helpers from '../../util/helpers';
+import { key, version } from '../../util/helpers';
 
-import { CountingQueryEngine } from '../local/counting_query_engine';
-import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
-import * as PersistenceTestHelpers from '../local/persistence_test_helpers';
-import { TestDocumentOverlayCache } from '../local/test_document_overlay_cache';
-import { TestIndexManager } from '../local/test_index_manager';
+import { CountingQueryEngine } from './counting_query_engine';
+import * as PersistenceTestHelpers from './persistence_test_helpers';
+import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { TestDocumentOverlayCache } from './test_document_overlay_cache';
+import { TestIndexManager } from './test_index_manager';
 
 describe('IndexedDb IndexBackfiller', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -70,9 +73,7 @@ function genericIndexBackfillerTests(
       }
     });
     persistence = await newPersistence(queue);
-    const indexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
-    remoteDocumentCache = persistence.getRemoteDocumentCache();
-    remoteDocumentCache.setIndexManager(indexManager);
+
     const queryEngine = new CountingQueryEngine();
     const localStore: LocalStore = newLocalStore(
       persistence,
@@ -80,9 +81,16 @@ function genericIndexBackfillerTests(
       User.UNAUTHENTICATED,
       JSON_SERIALIZER
     );
+    localStoreInstallFieldIndexPlugins(localStore);
+
+    remoteDocumentCache = persistence.getRemoteDocumentCache();
+    remoteDocumentCache.setIndexManager(localStore.indexManager);
     backfiller = new IndexBackfiller(localStore, persistence);
 
-    testIndexManager = new TestIndexManager(persistence, indexManager);
+    testIndexManager = new TestIndexManager(
+      persistence,
+      localStore.indexManager
+    );
     overlayCache = new TestDocumentOverlayCache(
       persistence,
       persistence.getDocumentOverlayCache(User.UNAUTHENTICATED)

@@ -27,8 +27,8 @@ import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
-  localStoreDisablePersistentCacheIndexAutoCreation,
-  localStoreEnablePersistentCacheIndexAutoCreation,
+  localStoreDisableIndexAutoCreation,
+  localStoreEnableIndexAutoCreation,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
@@ -51,7 +51,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
@@ -65,6 +65,8 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  IndexedDbOfflineComponentProvider,
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -94,7 +96,6 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { FieldIndexManagementApi } from '../index/field_index_management_api';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -819,75 +820,53 @@ function createBundleReader(
   return newBundleReader(toByteStreamReader(content), serializer);
 }
 
-export async function firestoreClientSetIndexConfiguration(
+function firestoreClientInstallFieldIndexPlugins(
+  client: FirestoreClient
+): void {
+  hardAssert(
+    client._offlineComponents instanceof IndexedDbOfflineComponentProvider
+  );
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin(
+    client._offlineComponents
+  );
+}
+
+export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
-  fieldIndexManagementApi: FieldIndexManagementApi,
   indexes: FieldIndex[]
 ): Promise<void> {
-  await client.asyncQueue.enqueue(async () => {
-    return localStoreConfigureFieldIndexes(
-      await getLocalStore(client),
-      fieldIndexManagementApi,
-      indexes
-    );
-  });
-
-  // TODO: Update the backfiller scheduler on user change.
-  await setIndexBackfiller(client, fieldIndexManagementApi);
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreConfigureFieldIndexes(
+        await getLocalStore(client),
+        indexes
+      );
+    })
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
 }
 
-async function setIndexBackfiller(
-  client: FirestoreClient,
-  fieldIndexManagementApi: FieldIndexManagementApi
+export function firestoreClientEnablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
 ): Promise<void> {
-  const localStore = await getLocalStore(client);
-  const persistence = await getPersistence(client);
-  const offlineComponents = await ensureOfflineComponents(client);
-  const indexBackfillerScheduler =
-    fieldIndexManagementApi.getIndexBackfillerScheduler(
-      client.asyncQueue,
-      localStore,
-      persistence
-    );
-  offlineComponents.setIndexBackfillerScheduler(indexBackfillerScheduler);
-}
-
-export async function firestoreClientEnablePersistentCacheIndexAutoCreation(
-  client: FirestoreClient,
-  fieldIndexManagementApi: FieldIndexManagementApi
-): Promise<void> {
-  await client.asyncQueue.enqueue(async () => {
-    return localStoreEnablePersistentCacheIndexAutoCreation(
-      await getLocalStore(client),
-      fieldIndexManagementApi
-    );
-  });
-
-  // TODO: Update the backfiller scheduler on user change.
-  await setIndexBackfiller(client, fieldIndexManagementApi);
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreEnableIndexAutoCreation(await getLocalStore(client));
+    })
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
 }
 
 export function firestoreClientDisablePersistentCacheIndexAutoCreation(
   client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreDisablePersistentCacheIndexAutoCreation(
-      await getLocalStore(client)
-    );
+    return localStoreDisableIndexAutoCreation(await getLocalStore(client));
   });
 }
 
-export async function firestoreClientDeleteAllFieldIndexes(
-  client: FirestoreClient,
-  fieldIndexManagementApi: FieldIndexManagementApi
+export function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient
 ): Promise<void> {
-  await client.asyncQueue.enqueue(async () => {
-    return localStoreDeleteAllFieldIndexes(
-      await getLocalStore(client),
-      fieldIndexManagementApi
-    );
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
-
-  // TODO: Update the backfiller scheduler on user change.
-  await setIndexBackfiller(client, fieldIndexManagementApi);
 }

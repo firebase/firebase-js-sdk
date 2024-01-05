@@ -31,13 +31,13 @@ import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
+  addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
   eventManagerUnlisten,
   Observer,
   QueryListener,
-  removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener
+  removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -55,9 +55,9 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   syncEngineGetActiveLimboDocumentResolutions,
   syncEngineGetEnqueuedLimboDocumentResolutions,
-  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine_impl';
@@ -66,6 +66,10 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from '../../../src/local/indexeddb_lru_delegate_impl';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -97,13 +101,13 @@ import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
-  RemoteStore,
   fillWritePipeline,
+  outstandingWrites,
+  RemoteStore,
   remoteStoreDisableNetwork,
-  remoteStoreShutdown,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange,
-  outstandingWrites
+  remoteStoreShutdown
 } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
@@ -178,7 +182,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 use(chaiExclude);
 
@@ -252,7 +255,6 @@ abstract class TestRunner {
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
   private lruGarbageCollector!: LruGarbageCollector;
   protected sharedClientState!: SharedClientState;
-  private fieldIndexManagementApi = new FieldIndexManagementApiImpl();
 
   private useEagerGCForMemory: boolean;
   private numClients: number;
@@ -585,11 +587,7 @@ abstract class TestRunner {
   ): Promise<void> {
     return this.queue.enqueue(async () => {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
-      return localStoreConfigureFieldIndexes(
-        this.localStore,
-        this.fieldIndexManagementApi,
-        parsedIndexes
-      );
+      return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });
   }
 
@@ -997,12 +995,24 @@ abstract class TestRunner {
         expect(this.started).to.equal(!expectedState.isShutdown);
       }
       if ('indexes' in expectedState) {
+        if (!(this.localStore.indexManager instanceof IndexedDbIndexManager)) {
+          throw new Error(
+            'localStore.indexManager should be ' +
+              'an instance of IndexedDbIndexManager'
+          );
+        }
+        indexedDbIndexManagerInstallFieldIndexPlugin(
+          this.localStore.indexManager
+        );
+
         const fieldIndexes: FieldIndex[] =
           await this.persistence.runTransaction(
             'getFieldIndexes ',
             'readonly',
             transaction =>
-              this.localStore.indexManager.getFieldIndexes(transaction)
+              this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+                transaction
+              )
           );
 
         assert.deepEqualExcluding(

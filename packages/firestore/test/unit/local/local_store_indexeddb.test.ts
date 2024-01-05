@@ -29,16 +29,17 @@ import {
 } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
-import { IndexBackfiller } from '../../../src/index/index_backfiller';
+import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { LocalStore } from '../../../src/local/local_store';
 import {
   localStoreAllocateTarget,
   localStoreApplyRemoteEventToLocalCache,
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
-  localStoreDisablePersistentCacheIndexAutoCreation,
-  localStoreEnablePersistentCacheIndexAutoCreation,
+  localStoreDisableIndexAutoCreation,
+  localStoreEnableIndexAutoCreation,
   localStoreExecuteQuery,
+  localStoreInstallFieldIndexPlugins,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
@@ -72,12 +73,10 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { FieldIndexManagementApiImpl } from '../../../src/index/field_index_management';
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
   private indexBackfiller: IndexBackfiller;
-  private fieldIndexManagementApi = new FieldIndexManagementApiImpl();
 
   private lastChanges: DocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
@@ -86,7 +85,7 @@ class AsyncLocalStoreTester {
   constructor(
     public localStore: LocalStore,
     private readonly persistence: Persistence,
-    private readonly queryEngine: CountingQueryEngine,
+    public readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
   ) {
     this.bundleConverter = new BundleConverterImpl(JSON_SERIALIZER);
@@ -145,23 +144,22 @@ class AsyncLocalStoreTester {
   }): void {
     this.prepareNextStep();
 
-    if (config.isEnabled !== undefined) {
-      if (config.isEnabled) {
-        localStoreEnablePersistentCacheIndexAutoCreation(
-          this.localStore,
-          this.fieldIndexManagementApi
-        );
-      } else {
-        localStoreDisablePersistentCacheIndexAutoCreation(this.localStore);
-      }
+    if (config.isEnabled === true) {
+      localStoreEnableIndexAutoCreation(this.localStore);
+    } else if (config.isEnabled === false) {
+      localStoreDisableIndexAutoCreation(this.localStore);
     }
 
     if (config.indexAutoCreationMinCollectionSize !== undefined) {
-      this.fieldIndexManagementApi.indexAutoCreationMinCollectionSize =
+      localStoreInstallFieldIndexPlugins(
+        this.localStore
+      ).indexAutoCreationMinCollectionSize =
         config.indexAutoCreationMinCollectionSize;
     }
     if (config.relativeIndexReadCostPerDocument !== undefined) {
-      this.fieldIndexManagementApi.relativeIndexReadCostPerDocument =
+      localStoreInstallFieldIndexPlugins(
+        this.localStore
+      ).relativeIndexReadCostPerDocument =
         config.relativeIndexReadCostPerDocument;
     }
   }
@@ -178,18 +176,17 @@ class AsyncLocalStoreTester {
   }
 
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
-    await localStoreConfigureFieldIndexes(
-      this.localStore,
-      this.fieldIndexManagementApi,
-      indexes
-    );
+    await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }
 
   async assertFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
     const fieldIndexes: FieldIndex[] = await this.persistence.runTransaction(
       'getFieldIndexes ',
       'readonly',
-      transaction => this.localStore.indexManager.getFieldIndexes(transaction)
+      transaction =>
+        this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+          transaction
+        )
     );
     expect(fieldIndexes).to.have.deep.members(indexes);
   }
@@ -266,9 +263,7 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   });
 
   afterEach(async () => {
-    if (persistence) {
-      await persistence.shutdown();
-    }
+    await persistence?.shutdown();
     await persistenceHelpers.clearTestPersistence();
   });
 
@@ -956,5 +951,39 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     await test.executeQuery(query_);
     test.assertRemoteDocumentsRead(0, 2);
     test.assertQueryReturned('coll/a', 'coll/e');
+  });
+
+  it('localStoreEnableIndexAutoCreation()', () => {
+    const localStore = test.localStore;
+    const queryEngine = test.queryEngine;
+
+    localStoreEnableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreEnableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreEnableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+  });
+
+  it('localStoreDisableIndexAutoCreation()', () => {
+    const localStore = test.localStore;
+    const queryEngine = test.queryEngine;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin).to.be.null;
+
+    localStoreEnableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
+
+    localStoreDisableIndexAutoCreation(localStore);
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
   });
 });

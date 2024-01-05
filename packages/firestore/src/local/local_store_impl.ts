@@ -71,6 +71,11 @@ import { BATCHID_UNKNOWN } from '../util/types';
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
+import {
+  deleteAllFieldIndexes,
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from './indexeddb_index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
@@ -83,14 +88,17 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
-import { QueryEngine } from './query_engine';
+import {
+  QueryEngine,
+  QueryEngineFieldIndexPlugin,
+  queryEngineInstallFieldIndexPlugin
+} from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import { FieldIndexManagementApi } from '../index/field_index_management_api';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -120,12 +128,6 @@ export interface UserChangeResult {
 export interface QueryResult {
   readonly documents: DocumentMap;
   readonly remoteKeys: DocumentKeySet;
-}
-
-interface FieldIndexManagementApiInfo {
-  api?: FieldIndexManagementApi;
-  initialIndexAutoCreationEnabled?: boolean;
-  initialUser?: User;
 }
 
 /**
@@ -190,14 +192,6 @@ class LocalStoreImpl implements LocalStore {
    */
   collectionGroupReadTime = new Map<string, SnapshotVersion>();
 
-  /**
-   * Information about the field indexes API. The field indexing (a.k.a.
-   * "client side indexing") functionality is "injectable" so that it is
-   * tree-shakeable if not used. That's why it is a bit more complicated than
-   * simply initializing it in the constructor.
-   */
-  fieldIndexManagement: FieldIndexManagementApiInfo = {};
-
   constructor(
     /** Manages our in-memory or durable persistence. */
     readonly persistence: Persistence,
@@ -232,13 +226,7 @@ class LocalStoreImpl implements LocalStore {
       this.indexManager
     );
     this.remoteDocuments.setIndexManager(this.indexManager);
-    this.queryEngine.initialize(this.localDocuments);
-
-    if (this.fieldIndexManagement.api) {
-      this.fieldIndexManagement.api.initialize(user);
-    } else {
-      this.fieldIndexManagement.initialUser = user;
-    }
+    this.queryEngine.initialize(this.localDocuments, this.indexManager);
   }
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
@@ -1514,21 +1502,33 @@ export async function localStoreSaveNamedQuery(
   );
 }
 
-export async function localStoreConfigureFieldIndexes(
-  localStore: LocalStore,
-  fieldIndexManagementApi: FieldIndexManagementApi,
-  newFieldIndexes: FieldIndex[]
-): Promise<void> {
+export function localStoreInstallFieldIndexPlugins(
+  localStore: LocalStore
+): QueryEngineFieldIndexPlugin {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
 
-  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
+  const indexManager = localStoreImpl.indexManager;
+  hardAssert(indexManager instanceof IndexedDbIndexManager);
+  indexedDbIndexManagerInstallFieldIndexPlugin(indexManager);
+
+  return queryEngineInstallFieldIndexPlugin(localStoreImpl.queryEngine);
+}
+
+export async function localStoreConfigureFieldIndexes(
+  localStore: LocalStore,
+  newFieldIndexes: FieldIndex[]
+): Promise<void> {
+  localStoreInstallFieldIndexPlugins(localStore);
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
 
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
     'readwrite',
     transaction =>
-      fieldIndexManagementApi
+      fieldIndexPlugin
         .getFieldIndexes(transaction)
         .next(oldFieldIndexes =>
           diffArrays(
@@ -1537,15 +1537,12 @@ export async function localStoreConfigureFieldIndexes(
             fieldIndexSemanticComparator,
             fieldIndex => {
               promises.push(
-                fieldIndexManagementApi.addFieldIndex(transaction, fieldIndex)
+                fieldIndexPlugin.addFieldIndex(transaction, fieldIndex)
               );
             },
             fieldIndex => {
               promises.push(
-                fieldIndexManagementApi.deleteFieldIndex(
-                  transaction,
-                  fieldIndex
-                )
+                fieldIndexPlugin.deleteFieldIndex(transaction, fieldIndex)
               );
             }
           )
@@ -1554,69 +1551,33 @@ export async function localStoreConfigureFieldIndexes(
   );
 }
 
-function installFieldIndexManagementApi(
-  localStoreImpl: LocalStoreImpl,
-  api: FieldIndexManagementApi
+export function localStoreEnableIndexAutoCreation(
+  localStore: LocalStore
 ): void {
-  if (localStoreImpl.fieldIndexManagement.api === api) {
-    return;
-  }
-
-  hardAssert(
-    localStoreImpl.fieldIndexManagement.api === undefined,
-    'The exact same FieldIndexManagementApi instance must be ' +
-      'specified to all localStoreXXX() functions for a given LocalStore ' +
-      'instance; however, two distinct instances have been specified for ' +
-      `LocalStore instance ${localStoreImpl}: ` +
-      `${localStoreImpl.fieldIndexManagement.api} and ${api}`
-  );
-
-  const initialIndexAutoCreationEnabled =
-    localStoreImpl.fieldIndexManagement.initialIndexAutoCreationEnabled;
-  if (initialIndexAutoCreationEnabled !== undefined) {
-    api.indexAutoCreationEnabled = initialIndexAutoCreationEnabled;
-  }
-
-  if (localStoreImpl.fieldIndexManagement.initialUser !== undefined) {
-    api.initialize(localStoreImpl.fieldIndexManagement.initialUser);
-  }
-
-  localStoreImpl.queryEngine.fieldIndexManagementApi = api;
-  localStoreImpl.fieldIndexManagement.api = api;
-}
-
-export function localStoreEnablePersistentCacheIndexAutoCreation(
-  localStore: LocalStore,
-  fieldIndexManagementApi: FieldIndexManagementApi
-): void {
+  localStoreInstallFieldIndexPlugins(localStore);
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
-  fieldIndexManagementApi.indexAutoCreationEnabled = true;
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
+  fieldIndexPlugin.indexAutoCreationEnabled = true;
 }
 
-export function localStoreDisablePersistentCacheIndexAutoCreation(
+export function localStoreDisableIndexAutoCreation(
   localStore: LocalStore
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  if (localStoreImpl.fieldIndexManagement.api) {
-    localStoreImpl.fieldIndexManagement.api.indexAutoCreationEnabled = false;
-  } else {
-    localStoreImpl.fieldIndexManagement.initialIndexAutoCreationEnabled = false;
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  if (fieldIndexPlugin) {
+    fieldIndexPlugin.indexAutoCreationEnabled = false;
   }
 }
 
 export function localStoreDeleteAllFieldIndexes(
-  localStore: LocalStore,
-  fieldIndexManagementApi: FieldIndexManagementApi
+  localStore: LocalStore
 ): Promise<void> {
-  // TODO: Remove FieldIndexManagementApi argument so that simply calling
-  // deleteAllFieldIndexes() does not preclude tree-shaking the rest of the
-  // CSI code.
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  installFieldIndexManagementApi(localStoreImpl, fieldIndexManagementApi);
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => fieldIndexManagementApi.deleteAllFieldIndexes(transaction)
+    transaction => deleteAllFieldIndexes(transaction)
   );
 }

@@ -34,6 +34,10 @@ import {
   displayNameForIndexType,
   IndexType
 } from '../../../src/local/index_manager';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
@@ -103,7 +107,15 @@ describe('IndexedDbIndexManager', async () => {
     user = User.UNAUTHENTICATED
   ): Promise<TestIndexManager> {
     const persistence = await persistencePromise;
-    return new TestIndexManager(persistence, persistence.getIndexManager(user));
+    const indexManager = persistence.getIndexManager(user);
+    if (!(indexManager instanceof IndexedDbIndexManager)) {
+      throw new Error(
+        'persistence.getIndexManager() should have returned ' +
+          'an instance of IndexedDbIndexManager'
+      );
+    }
+    indexedDbIndexManagerInstallFieldIndexPlugin(indexManager);
+    return new TestIndexManager(persistence, indexManager);
   }
 
   genericIndexManagerTests(() => persistencePromise);
