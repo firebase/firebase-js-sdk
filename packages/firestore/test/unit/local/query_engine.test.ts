@@ -35,6 +35,10 @@ import {
   IndexManager,
   IndexType
 } from '../../../src/local/index_manager';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
@@ -82,10 +86,6 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import {
-  IndexedDbIndexManager,
-  indexedDbIndexManagerInstallFieldIndexPlugin
-} from '../../../src/local/indexeddb_index_manager';
 
 const TEST_TARGET_ID = 1;
 

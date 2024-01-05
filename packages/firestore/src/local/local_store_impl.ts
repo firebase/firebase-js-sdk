@@ -71,6 +71,11 @@ import { BATCHID_UNKNOWN } from '../util/types';
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { IndexManager } from './index_manager';
+import {
+  deleteAllFieldIndexes,
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from './indexeddb_index_manager';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
@@ -94,11 +99,6 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
-import {
-  deleteAllFieldIndexes,
-  IndexedDbIndexManager,
-  indexedDbIndexManagerInstallFieldIndexPlugin
-} from './indexeddb_index_manager';
 
 export const LOG_TAG = 'LocalStore';
 

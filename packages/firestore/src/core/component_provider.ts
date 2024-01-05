@@ -57,6 +57,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
 
 import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
@@ -74,7 +75,6 @@ import {
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
 import { OnlineStateSource } from './types';
-import { logDebug } from '../util/log';
 
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
@@ -244,7 +244,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     });
   }
 
-  private startSchedulers() {
+  private startSchedulers(): void {
     if (!this.primaryStateListenerNotified) {
       return;
     }
@@ -387,7 +387,7 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     });
   }
 
-  private startOrStopSchedulers() {
+  private startOrStopSchedulers(): void {
     for (const scheduler of this.schedulers) {
       if (this.isPrimary === true && !scheduler.started) {
         scheduler.start();

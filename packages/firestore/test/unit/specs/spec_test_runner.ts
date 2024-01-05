@@ -66,6 +66,10 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from '../../../src/local/indexeddb_lru_delegate_impl';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -178,10 +182,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import {
-  IndexedDbIndexManager,
-  indexedDbIndexManagerInstallFieldIndexPlugin
-} from '../../../src/local/indexeddb_index_manager';
 
 use(chaiExclude);
 

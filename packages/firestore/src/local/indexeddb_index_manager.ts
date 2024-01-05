@@ -206,7 +206,7 @@ export class IndexedDbIndexManager implements IndexManager {
 
 export function indexedDbIndexManagerInstallFieldIndexPlugin(
   instance: IndexedDbIndexManager
-) {
+): void {
   if (instance.fieldIndexPlugin) {
     return;
   }

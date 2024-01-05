@@ -34,6 +34,10 @@ import {
   displayNameForIndexType,
   IndexType
 } from '../../../src/local/index_manager';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
@@ -63,10 +67,6 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import {
-  IndexedDbIndexManager,
-  indexedDbIndexManagerInstallFieldIndexPlugin
-} from '../../../src/local/indexeddb_index_manager';
 
 describe('index_manager.ts top-level functions', () => {
   describe('displayNameForIndexType()', () => {
@@ -116,20 +116,6 @@ describe('IndexedDbIndexManager', async () => {
     }
     indexedDbIndexManagerInstallFieldIndexPlugin(indexManager);
     return new TestIndexManager(persistence, indexManager);
-  }
-
-  async function getIndexedDbIndexManager(
-    user = User.UNAUTHENTICATED
-  ): Promise<IndexedDbIndexManager> {
-    const persistence = await persistencePromise;
-    const indexManager = persistence.getIndexManager(user);
-    if (!(indexManager instanceof IndexedDbIndexManager)) {
-      throw new Error(
-        'persistence.getIndexManager() should have returned ' +
-          'an instance of IndexedDbIndexManager'
-      );
-    }
-    return indexManager;
   }
 
   genericIndexManagerTests(() => persistencePromise);
