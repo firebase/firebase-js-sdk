@@ -23,7 +23,7 @@ import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import {
-  localStoreEnableIndexAutoCreation,
+  localStoreInstallFieldIndexPlugins,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
@@ -49,8 +49,6 @@ import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
-import { IndexedDbIndexManagerFieldIndexPluginFactoryImpl } from '../../../src/local/indexeddb_index_manager';
-import { QueryEngineFieldIndexPluginFactoryImpl } from '../../../src/local/query_engine';
 
 describe('IndexedDb IndexBackfiller', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -83,11 +81,7 @@ function genericIndexBackfillerTests(
       User.UNAUTHENTICATED,
       JSON_SERIALIZER
     );
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      new QueryEngineFieldIndexPluginFactoryImpl(),
-      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl()
-    );
+    localStoreInstallFieldIndexPlugins(localStore);
 
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(localStore.indexManager);
