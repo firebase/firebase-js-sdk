@@ -124,9 +124,9 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
-  readonly uid: string;
+  private readonly uid: string;
 
-  constructor(user: User, readonly databaseId: DatabaseId) {
+  constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -137,9 +137,11 @@ export class IndexedDbIndexManager implements IndexManager {
     return this._fieldIndexPlugin;
   }
 
-  installFieldIndexPlugin(plugin: IndexedDbIndexManagerFieldIndexPlugin): void {
+  installFieldIndexPlugin(
+    factory: IndexedDbIndexManagerFieldIndexPluginConstructor
+  ): void {
     hardAssert(!this._fieldIndexPlugin);
-    this._fieldIndexPlugin = plugin;
+    this._fieldIndexPlugin = new factory(this.uid, this.databaseId);
   }
 
   /**
@@ -213,9 +215,14 @@ export function indexedDbIndexManagerInstallFieldIndexPlugin(
     'Installing IndexedDbIndexManagerFieldIndexPlugin into ' +
       'IndexedDbIndexManager to support persistent cache indexing.'
   );
-  instance.installFieldIndexPlugin(
-    new IndexedDbIndexManagerFieldIndexPlugin(instance.uid, instance.databaseId)
-  );
+  instance.installFieldIndexPlugin(IndexedDbIndexManagerFieldIndexPlugin);
+}
+
+interface IndexedDbIndexManagerFieldIndexPluginConstructor {
+  new (
+    uid: string,
+    databaseId: DatabaseId
+  ): IndexedDbIndexManagerFieldIndexPlugin;
 }
 
 export class IndexedDbIndexManagerFieldIndexPlugin

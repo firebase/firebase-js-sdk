@@ -103,29 +103,18 @@ const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
  * - Queries that have never been CURRENT or free of limbo documents.
  */
 export class QueryEngine {
-  private _localDocumentsView!: LocalDocumentsView;
-  get localDocumentsView(): LocalDocumentsView {
-    return this._localDocumentsView;
-  }
-
-  private _indexManager!: IndexManager;
-  get indexManager(): IndexManager {
-    return this._indexManager;
-  }
-
-  private _initialized = false;
-  get initialized(): boolean {
-    return this._initialized;
-  }
+  private localDocumentsView!: LocalDocumentsView;
+  private indexManager!: IndexManager;
+  private initialized = false;
 
   /** Sets the document view to query against. */
   initialize(
     localDocuments: LocalDocumentsView,
     indexManager: IndexManager
   ): void {
-    this._localDocumentsView = localDocuments;
-    this._indexManager = indexManager;
-    this._initialized = true;
+    this.localDocumentsView = localDocuments;
+    this.indexManager = indexManager;
+    this.initialized = true;
   }
 
   private get indexAutoCreationEnabled(): boolean {
@@ -140,9 +129,14 @@ export class QueryEngine {
     return this._fieldIndexPlugin;
   }
 
-  installFieldIndexPlugin(plugin: QueryEngineFieldIndexPlugin): void {
+  installFieldIndexPlugin(
+    factory: QueryEngineFieldIndexPluginConstructor
+  ): void {
     hardAssert(!this._fieldIndexPlugin);
-    this._fieldIndexPlugin = plugin;
+    this._fieldIndexPlugin = new factory(
+      this.indexManager,
+      this.localDocumentsView
+    );
   }
 
   /** Returns all local documents matching the specified query. */
@@ -318,12 +312,15 @@ export function queryEngineInstallFieldIndexPlugin(instance: QueryEngine) {
     'Installing QueryEngineFieldIndexPlugin into ' +
       'QueryEngine to support persistent cache indexing.'
   );
-  instance.installFieldIndexPlugin(
-    new QueryEngineFieldIndexPlugin(
-      instance.indexManager,
-      instance.localDocumentsView
-    )
-  );
+
+  instance.installFieldIndexPlugin(QueryEngineFieldIndexPlugin);
+}
+
+interface QueryEngineFieldIndexPluginConstructor {
+  new (
+    indexManager: IndexManager,
+    localDocumentsView: LocalDocumentsView
+  ): QueryEngineFieldIndexPlugin;
 }
 
 export class QueryEngineFieldIndexPlugin {
