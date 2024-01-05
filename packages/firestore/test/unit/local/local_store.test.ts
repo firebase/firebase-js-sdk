@@ -40,19 +40,17 @@ import {
   localStoreApplyRemoteEventToLocalCache,
   localStoreExecuteQuery,
   localStoreGetHighestUnacknowledgedBatchId,
-  localStoreGetTargetData,
   localStoreGetNamedQuery,
-  localStoreEnableIndexAutoCreation,
-  localStoreDisableIndexAutoCreation,
+  localStoreGetTargetData,
   localStoreHasNewerBundle,
-  localStoreWriteLocally,
-  LocalWriteResult,
   localStoreNotifyLocalViewChanges,
   localStoreReadDocument,
   localStoreRejectBatch,
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
+  localStoreWriteLocally,
+  LocalWriteResult,
   newLocalStore
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
@@ -123,14 +121,6 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {
-  QueryEngineFieldIndexPluginFactory,
-  QueryEngineFieldIndexPluginFactoryImpl
-} from '../../../src/local/query_engine';
-import {
-  IndexedDbIndexManagerFieldIndexPluginFactory,
-  IndexedDbIndexManagerFieldIndexPluginFactoryImpl
-} from '../../../src/local/indexeddb_index_manager';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
