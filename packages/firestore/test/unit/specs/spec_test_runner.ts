@@ -31,13 +31,13 @@ import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
+  addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
   eventManagerUnlisten,
   Observer,
   QueryListener,
-  removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener
+  removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -55,9 +55,9 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   syncEngineGetActiveLimboDocumentResolutions,
   syncEngineGetEnqueuedLimboDocumentResolutions,
-  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine_impl';
@@ -97,13 +97,13 @@ import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
-  RemoteStore,
   fillWritePipeline,
+  outstandingWrites,
+  RemoteStore,
   remoteStoreDisableNetwork,
-  remoteStoreShutdown,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange,
-  outstandingWrites
+  remoteStoreShutdown
 } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
@@ -178,14 +178,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import {
-  QueryEngineFieldIndexPluginFactory,
-  QueryEngineFieldIndexPluginFactoryImpl
-} from '../../../src/local/query_engine';
-import {
-  IndexedDbIndexManagerFieldIndexPluginFactory,
-  IndexedDbIndexManagerFieldIndexPluginFactoryImpl
-} from '../../../src/local/indexeddb_index_manager';
 
 use(chaiExclude);
 
@@ -264,11 +256,6 @@ abstract class TestRunner {
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
-
-  private readonly queryEngineFieldIndexPluginFactory =
-    new QueryEngineFieldIndexPluginFactoryImpl();
-  private readonly indexedDbIndexManagerFieldIndexPluginFactory =
-    new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
 
   protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
@@ -596,12 +583,7 @@ abstract class TestRunner {
   ): Promise<void> {
     return this.queue.enqueue(async () => {
       const parsedIndexes = parseIndexes(jsonOrConfiguration);
-      return localStoreConfigureFieldIndexes(
-        this.localStore,
-        this.queryEngineFieldIndexPluginFactory,
-        this.indexedDbIndexManagerFieldIndexPluginFactory,
-        parsedIndexes
-      );
+      return localStoreConfigureFieldIndexes(this.localStore, parsedIndexes);
     });
   }
 
