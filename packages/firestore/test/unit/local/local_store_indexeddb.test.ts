@@ -39,6 +39,7 @@ import {
   localStoreDisableIndexAutoCreation,
   localStoreEnableIndexAutoCreation,
   localStoreExecuteQuery,
+  localStoreInstallFieldIndexPlugins,
   localStoreWriteLocally,
   newLocalStore
 } from '../../../src/local/local_store_impl';
@@ -72,14 +73,6 @@ import {
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import {
-  QueryEngineFieldIndexPlugin,
-  QueryEngineFieldIndexPluginFactory,
-  QueryEngineFieldIndexPluginFactoryImpl
-} from '../../../src/local/query_engine';
-import { IndexManager } from '../../../src/local/index_manager';
-import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { IndexedDbIndexManagerFieldIndexPluginFactoryImpl } from '../../../src/local/indexeddb_index_manager';
 
 class AsyncLocalStoreTester {
   private bundleConverter: BundleConverterImpl;
@@ -88,11 +81,6 @@ class AsyncLocalStoreTester {
   private lastChanges: DocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-
-  private readonly queryEngineFieldIndexPluginFactory =
-    new TestQueryEngineFieldIndexPluginFactory();
-  private readonly indexManagerFieldIndexPluginFactory =
-    new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
 
   constructor(
     public localStore: LocalStore,
@@ -157,21 +145,21 @@ class AsyncLocalStoreTester {
     this.prepareNextStep();
 
     if (config.isEnabled === true) {
-      localStoreEnableIndexAutoCreation(
-        this.localStore,
-        this.queryEngineFieldIndexPluginFactory,
-        this.indexManagerFieldIndexPluginFactory
-      );
+      localStoreEnableIndexAutoCreation(this.localStore);
     } else if (config.isEnabled === false) {
       localStoreDisableIndexAutoCreation(this.localStore);
     }
 
     if (config.indexAutoCreationMinCollectionSize !== undefined) {
-      this.queryEngineFieldIndexPluginFactory.indexAutoCreationMinCollectionSize =
+      localStoreInstallFieldIndexPlugins(
+        this.localStore
+      ).indexAutoCreationMinCollectionSize =
         config.indexAutoCreationMinCollectionSize;
     }
     if (config.relativeIndexReadCostPerDocument !== undefined) {
-      this.queryEngineFieldIndexPluginFactory.relativeIndexReadCostPerDocument =
+      localStoreInstallFieldIndexPlugins(
+        this.localStore
+      ).relativeIndexReadCostPerDocument =
         config.relativeIndexReadCostPerDocument;
     }
   }
@@ -188,12 +176,7 @@ class AsyncLocalStoreTester {
   }
 
   async configureFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
-    await localStoreConfigureFieldIndexes(
-      this.localStore,
-      this.queryEngineFieldIndexPluginFactory,
-      this.indexManagerFieldIndexPluginFactory,
-      indexes
-    );
+    await localStoreConfigureFieldIndexes(this.localStore, indexes);
   }
 
   async assertFieldsIndexes(...indexes: FieldIndex[]): Promise<void> {
@@ -973,54 +956,30 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   });
 
   it('localStoreEnableIndexAutoCreation()', () => {
-    const queryEngineFieldIndexPluginFactory =
-      new QueryEngineFieldIndexPluginFactoryImpl();
-    const indexManagerFieldIndexPluginFactory =
-      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
     const localStore = test.localStore;
     const queryEngine = test.queryEngine;
 
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
+    localStoreEnableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
 
     localStoreDisableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
 
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
+    localStoreEnableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
 
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
+    localStoreEnableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
   });
 
   it('localStoreDisableIndexAutoCreation()', () => {
-    const queryEngineFieldIndexPluginFactory =
-      new QueryEngineFieldIndexPluginFactoryImpl();
-    const indexManagerFieldIndexPluginFactory =
-      new IndexedDbIndexManagerFieldIndexPluginFactoryImpl();
     const localStore = test.localStore;
     const queryEngine = test.queryEngine;
 
     localStoreDisableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin).to.be.null;
 
-    localStoreEnableIndexAutoCreation(
-      localStore,
-      queryEngineFieldIndexPluginFactory,
-      indexManagerFieldIndexPluginFactory
-    );
+    localStoreEnableIndexAutoCreation(localStore);
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
 
     localStoreDisableIndexAutoCreation(localStore);
@@ -1030,57 +989,3 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
   });
 });
-
-class TestQueryEngineFieldIndexPluginFactory
-  implements QueryEngineFieldIndexPluginFactory
-{
-  private plugin?: QueryEngineFieldIndexPlugin;
-  private _indexAutoCreationMinCollectionSize?: number;
-  private _relativeIndexReadCostPerDocument?: number;
-
-  set indexAutoCreationMinCollectionSize(value: number) {
-    if (this.plugin) {
-      this.plugin.indexAutoCreationMinCollectionSize = value;
-    } else {
-      this._indexAutoCreationMinCollectionSize = value;
-    }
-  }
-
-  set relativeIndexReadCostPerDocument(value: number) {
-    if (this.plugin) {
-      this.plugin.relativeIndexReadCostPerDocument = value;
-    } else {
-      this._relativeIndexReadCostPerDocument = value;
-    }
-  }
-
-  newQueryEngineFieldIndexPlugin(
-    indexManager: IndexManager,
-    localDocumentsView: LocalDocumentsView
-  ): QueryEngineFieldIndexPlugin {
-    if (this.plugin) {
-      throw new Error(
-        'TestQueryEngineFieldIndexPluginFactory.' +
-          'newQueryEngineFieldIndexPlugin() should only be called at most once'
-      );
-    }
-
-    const factoryImpl = new QueryEngineFieldIndexPluginFactoryImpl();
-    const plugin = factoryImpl.newQueryEngineFieldIndexPlugin(
-      indexManager,
-      localDocumentsView
-    );
-
-    if (this._indexAutoCreationMinCollectionSize !== undefined) {
-      plugin.indexAutoCreationMinCollectionSize =
-        this._indexAutoCreationMinCollectionSize;
-    }
-    if (this._relativeIndexReadCostPerDocument !== undefined) {
-      plugin.relativeIndexReadCostPerDocument =
-        this._relativeIndexReadCostPerDocument;
-    }
-
-    this.plugin = plugin;
-    return plugin;
-  }
-}

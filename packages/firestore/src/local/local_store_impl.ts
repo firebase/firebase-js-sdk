@@ -85,6 +85,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import {
   QueryEngine,
+  QueryEngineFieldIndexPlugin,
   queryEngineInstallFieldIndexPlugin
 } from './query_engine';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -1503,14 +1504,14 @@ export async function localStoreSaveNamedQuery(
 
 export function localStoreInstallFieldIndexPlugins(
   localStore: LocalStore
-): void {
+): QueryEngineFieldIndexPlugin {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
 
   const indexManager = localStoreImpl.indexManager;
   hardAssert(indexManager instanceof IndexedDbIndexManager);
   indexedDbIndexManagerInstallFieldIndexPlugin(indexManager);
 
-  queryEngineInstallFieldIndexPlugin(localStoreImpl.queryEngine);
+  return queryEngineInstallFieldIndexPlugin(localStoreImpl.queryEngine);
 }
 
 export async function localStoreConfigureFieldIndexes(
