@@ -20,6 +20,7 @@ import { stub, spy } from 'sinon';
 import '../test/setup';
 import {
   initializeApp,
+  initializeServerApp,
   getApps,
   deleteApp,
   getApp,
@@ -28,7 +29,7 @@ import {
   onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { _FirebaseService } from './public-types';
+import { FirebaseServerAppSettings, _FirebaseService } from './public-types';
 import {
   _clearComponents,
   _components,
@@ -39,6 +40,7 @@ import { createTestComponent } from '../test/util';
 import { Component, ComponentType } from '@firebase/component';
 import { Logger } from '@firebase/logger';
 import { FirebaseAppImpl } from './firebaseApp';
+import { isBrowser } from '@firebase/util';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -54,7 +56,7 @@ describe('API tests', () => {
   });
 
   describe('initializeApp', () => {
-    it('creats DEFAULT App', () => {
+    it('creates DEFAULT App', () => {
       const app = initializeApp({});
       expect(app.name).to.equal(DEFAULT_ENTRY_NAME);
     });
@@ -91,7 +93,7 @@ describe('API tests', () => {
       ).to.equal(app);
     });
 
-    it('throws when creating duplicate DEDAULT Apps with different options', () => {
+    it('throws when creating duplicate DEFAULT Apps with different options', () => {
       initializeApp({
         apiKey: 'test1'
       });
@@ -120,7 +122,7 @@ describe('API tests', () => {
       ).throws(/'MyApp'.*exists/i);
     });
 
-    it('throws when creating duplicate DEDAULT Apps with different config values', () => {
+    it('throws when creating duplicate DEFAULT Apps with different config values', () => {
       initializeApp(
         {
           apiKey: 'test1'
@@ -161,12 +163,6 @@ describe('API tests', () => {
       expect(app.name).to.equal(appName);
     });
 
-    it('takes an object as the second parameter to create named App', () => {
-      const appName = 'MyApp';
-      const app = initializeApp({}, { name: appName });
-      expect(app.name).to.equal(appName);
-    });
-
     it('sets automaticDataCollectionEnabled', () => {
       const app = initializeApp({}, { automaticDataCollectionEnabled: true });
       expect(app.automaticDataCollectionEnabled).to.be.true;
@@ -184,6 +180,95 @@ describe('API tests', () => {
       expect(app.container.getProviders().length - 1).to.equal(
         _components.size
       );
+    });
+  });
+
+  describe('initializeServerApp', () => {
+    it('creates FirebaseServerApp with options', () => {
+      if (isBrowser()) {
+        const options = {
+          apiKey: 'APIKEY'
+        };
+        const serverAppSettings: FirebaseServerAppSettings = {};
+        expect(() => initializeServerApp(options, serverAppSettings)).throws(
+          /FirebaseServerApp is not for use in browser environments./
+        );
+      }
+    });
+
+    it('creates FirebaseServerApp with options', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {};
+
+      const app = initializeServerApp(options, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.false;
+    });
+
+    it('creates FirebaseServerApp with automaticDataCollectionEnabled', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: true
+      };
+
+      const app = initializeServerApp(options, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+    });
+
+    it('creates FirebaseServerApp with releaseOnDeref', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
+      const options = { apiKey: 'APIKEY' };
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: false,
+        releaseOnDeref: options
+      };
+
+      const app = initializeServerApp(options, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.false;
+    });
+
+    it('creates FirebaseServerApp with FirebaseApp', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'test1'
+      };
+      const standardApp = initializeApp(options);
+      expect(standardApp.name).to.equal(DEFAULT_ENTRY_NAME);
+      expect(standardApp.options.apiKey).to.equal('test1');
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: false
+      };
+
+      const serverApp = initializeServerApp(standardApp, serverAppSettings);
+      expect(serverApp).to.not.equal(null);
+      expect(serverApp.options.apiKey).to.equal('test1');
     });
   });
 

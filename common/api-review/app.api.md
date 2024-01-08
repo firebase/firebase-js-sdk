@@ -71,6 +71,23 @@ export interface FirebaseOptions {
     storageBucket?: string;
 }
 
+// @public
+export interface FirebaseServerApp extends FirebaseApp {
+    appCheckTokenVerified: () => Promise<void>;
+    authIdTokenVerified: () => Promise<void>;
+    installationTokenVerified: () => Promise<void>;
+    name: string;
+}
+
+// @public
+export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+    appCheckToken?: string;
+    authIdToken?: string;
+    installationsAuthToken?: string;
+    name?: undefined;
+    releaseOnDeref?: object;
+}
+
 // @internal (undocumented)
 export interface _FirebaseService {
     // (undocumented)
@@ -97,6 +114,12 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
+export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
+
+// @internal (undocumented)
+export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions): obj is FirebaseApp;
+
+// @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 
 // @internal (undocumented)
@@ -110,6 +133,9 @@ export function _removeServiceInstance<T extends Name>(app: FirebaseApp, name: T
 
 // @public
 export const SDK_VERSION: string;
+
+// @public (undocumented)
+export const _serverApps: Map<string, FirebaseServerApp>;
 
 // @public
 export function setLogLevel(logLevel: LogLevelString): void;
