@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WriteBatch class
 A write batch, used to perform multiple writes as a single atomic unit.
 
-A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
+A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
 
 <b>Signature:</b>
 
@@ -58,7 +58,7 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -80,7 +80,7 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -103,7 +103,7 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -117,7 +117,7 @@ set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReferen
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -131,7 +131,7 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -144,7 +144,7 @@ update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentRefe
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
@@ -160,7 +160,7 @@ Nested fields can be update by providing dot-separated field path strings or by 
 update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -175,7 +175,7 @@ update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentRefe
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 

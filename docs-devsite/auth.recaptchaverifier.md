@@ -53,7 +53,7 @@ Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted e
 constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

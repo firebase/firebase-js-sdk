@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "10.7.0",
+  "version": "10.7.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -362,13 +362,13 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app": "0.9.24",
-    "@firebase/app-compat": "0.2.24",
+    "@firebase/app": "0.9.25",
+    "@firebase/app-compat": "0.2.25",
     "@firebase/app-types": "0.9.0",
-    "@firebase/auth": "1.5.0",
-    "@firebase/auth-compat": "0.5.0",
-    "@firebase/database": "1.0.1",
-    "@firebase/database-compat": "1.0.1",
+    "@firebase/auth": "1.5.1",
+    "@firebase/auth-compat": "0.5.1",
+    "@firebase/database": "1.0.2",
+    "@firebase/database-compat": "1.0.2",
     "@firebase/firestore": "4.4.0",
     "@firebase/firestore-compat": "0.3.23",
     "@firebase/functions": "0.11.0",
@@ -385,8 +385,8 @@
     "@firebase/remote-config-compat": "0.2.4",
     "@firebase/analytics": "0.10.0",
     "@firebase/analytics-compat": "0.2.6",
-    "@firebase/app-check": "0.8.0",
-    "@firebase/app-check-compat": "0.3.7",
+    "@firebase/app-check": "0.8.1",
+    "@firebase/app-check-compat": "0.3.8",
     "@firebase/util": "1.9.3"
   },
   "devDependencies": {

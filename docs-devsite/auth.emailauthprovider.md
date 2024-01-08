@@ -85,7 +85,7 @@ Initialize an [AuthCredential](./auth.authcredential.md#authcredential_class) us
 static credential(email: string, password: string): EmailAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -125,7 +125,7 @@ Initialize an [AuthCredential](./auth.authcredential.md#authcredential_class) us
 static credentialWithLink(email: string, emailLink: string): EmailAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

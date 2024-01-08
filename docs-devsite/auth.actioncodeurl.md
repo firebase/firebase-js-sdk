@@ -107,7 +107,7 @@ Parses the email action link string and returns an [ActionCodeURL](./auth.action
 static parseLink(link: string): ActionCodeURL | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

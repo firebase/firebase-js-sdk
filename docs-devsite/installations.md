@@ -16,13 +16,13 @@ The Firebase Installations Web SDK. This SDK does not work in a Node.js environm
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getInstallations(app)](./installations.md#getinstallations) | Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-|  <b>function(installations...)</b> |
-|  [deleteInstallations(installations)](./installations.md#deleteinstallations) | Deletes the Firebase Installation and all associated data. |
-|  [getId(installations)](./installations.md#getid) | Creates a Firebase Installation if there isn't one for the app and returns the Installation ID. |
-|  [getToken(installations, forceRefresh)](./installations.md#gettoken) | Returns a Firebase Installations auth token, identifying the current Firebase Installation. |
-|  [onIdChange(installations, callback)](./installations.md#onidchange) | Sets a new callback that will get called when Installation ID changes. Returns an unsubscribe function that will remove the callback when called. |
+|  <b>function(app, ...)</b> |
+|  [getInstallations(app)](./installations.md#getinstallations_cf608e1) | Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+|  <b>function(installations, ...)</b> |
+|  [deleteInstallations(installations)](./installations.md#deleteinstallations_606c567) | Deletes the Firebase Installation and all associated data. |
+|  [getId(installations)](./installations.md#getid_606c567) | Creates a Firebase Installation if there isn't one for the app and returns the Installation ID. |
+|  [getToken(installations, forceRefresh)](./installations.md#gettoken_cf009a7) | Returns a Firebase Installations auth token, identifying the current Firebase Installation. |
+|  [onIdChange(installations, callback)](./installations.md#onidchange_b579e0e) | Sets a new callback that will get called when Installation ID changes. Returns an unsubscribe function that will remove the callback when called. |
 
 ## Interfaces
 
@@ -37,7 +37,9 @@ The Firebase Installations Web SDK. This SDK does not work in a Node.js environm
 |  [IdChangeCallbackFn](./installations.md#idchangecallbackfn) | An user defined callback function that gets called when Installations ID changes. |
 |  [IdChangeUnsubscribeFn](./installations.md#idchangeunsubscribefn) | Unsubscribe a callback function previously added via [IdChangeCallbackFn](./installations.md#idchangecallbackfn)<!-- -->. |
 
-## getInstallations()
+## function(app, ...)
+
+### getInstallations(app) {:#getinstallations_cf608e1}
 
 Returns an instance of [Installations](./installations.installations.md#installations_interface) associated with the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
 
@@ -47,7 +49,7 @@ Returns an instance of [Installations](./installations.installations.md#installa
 export declare function getInstallations(app?: FirebaseApp): Installations;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -57,7 +59,9 @@ export declare function getInstallations(app?: FirebaseApp): Installations;
 
 [Installations](./installations.installations.md#installations_interface)
 
-## deleteInstallations()
+## function(installations, ...)
+
+### deleteInstallations(installations) {:#deleteinstallations_606c567}
 
 Deletes the Firebase Installation and all associated data.
 
@@ -67,7 +71,7 @@ Deletes the Firebase Installation and all associated data.
 export declare function deleteInstallations(installations: Installations): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -77,7 +81,7 @@ export declare function deleteInstallations(installations: Installations): Promi
 
 Promise&lt;void&gt;
 
-## getId()
+### getId(installations) {:#getid_606c567}
 
 Creates a Firebase Installation if there isn't one for the app and returns the Installation ID.
 
@@ -87,7 +91,7 @@ Creates a Firebase Installation if there isn't one for the app and returns the I
 export declare function getId(installations: Installations): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -97,7 +101,7 @@ export declare function getId(installations: Installations): Promise<string>;
 
 Promise&lt;string&gt;
 
-## getToken()
+### getToken(installations, forceRefresh) {:#gettoken_cf009a7}
 
 Returns a Firebase Installations auth token, identifying the current Firebase Installation.
 
@@ -107,7 +111,7 @@ Returns a Firebase Installations auth token, identifying the current Firebase In
 export declare function getToken(installations: Installations, forceRefresh?: boolean): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -118,7 +122,7 @@ export declare function getToken(installations: Installations, forceRefresh?: bo
 
 Promise&lt;string&gt;
 
-## onIdChange()
+### onIdChange(installations, callback) {:#onidchange_b579e0e}
 
 Sets a new callback that will get called when Installation ID changes. Returns an unsubscribe function that will remove the callback when called.
 
@@ -128,7 +132,7 @@ Sets a new callback that will get called when Installation ID changes. Returns a
 export declare function onIdChange(installations: Installations, callback: IdChangeCallbackFn): IdChangeUnsubscribeFn;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

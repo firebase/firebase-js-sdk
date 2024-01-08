@@ -22,6 +22,7 @@ import * as grpc from '@grpc/grpc-js';
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';
 import { SDK_VERSION } from '../../core/version';
+import { ResourcePath } from '../../model/path';
 import { Connection, Stream } from '../../remote/connection';
 import { mapCodeFromRpcCode } from '../../remote/rpc_error';
 import { StreamBridge } from '../../remote/stream_bridge';
@@ -114,7 +115,7 @@ export class GrpcConnection implements Connection {
 
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null
@@ -166,7 +167,7 @@ export class GrpcConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
@@ -324,5 +325,18 @@ export class GrpcConnection implements Connection {
     }, 0);
 
     return stream;
+  }
+
+  /**
+   * Closes and cleans up any resources associated with the GrpcConnection.
+   * If a gRPC client has been generated for this connection, the gRPC client
+   * is closed. Failure to call terminate on a GrpcConnection can result
+   * in leaked resources of the gRPC client.
+   */
+  terminate(): void {
+    if (this.cachedStub) {
+      this.cachedStub.close();
+      this.cachedStub = undefined;
+    }
   }
 }

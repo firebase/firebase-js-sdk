@@ -70,7 +70,7 @@ Equivalent to calling `then(null, onRejected)`<!-- -->.
 catch(onRejected: (error: StorageError) => unknown): Promise<unknown>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -96,7 +96,7 @@ Callbacks can be passed either as three separate arguments <em>or</em> as the `n
 on(event: TaskEvent, nextOrObserver?: StorageObserver<UploadTaskSnapshot> | null | ((snapshot: UploadTaskSnapshot) => unknown), error?: ((a: StorageError) => unknown) | null, complete?: Unsubscribe | null): Unsubscribe | Subscribe<UploadTaskSnapshot>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -242,7 +242,7 @@ This object behaves like a Promise, and resolves with its snapshot data when the
 then(onFulfilled?: ((snapshot: UploadTaskSnapshot) => unknown) | null, onRejected?: ((error: StorageError) => unknown) | null): Promise<unknown>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

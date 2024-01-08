@@ -77,7 +77,8 @@ import {
   createEnumTables,
   createThrowsSection,
   createEntryPointTitleCell,
-  createExampleSection
+  createExampleSection,
+  getHeadingAnchorForApiItem
 } from './MarkdownDocumenterHelpers';
 import * as path from 'path';
 import { DocHeading } from '../nodes/DocHeading';
@@ -86,6 +87,7 @@ import { DocTable } from '../nodes/DocTable';
 import { DocTableRow } from '../nodes/DocTableRow';
 import { DocTableCell } from '../nodes/DocTableCell';
 import { DocEmphasisSpan } from '../nodes/DocEmphasisSpan';
+import { Utilities } from '../utils/Utilities';
 
 export interface IMarkdownDocumenterOptions {
   apiModel: ApiModel;
@@ -204,6 +206,14 @@ page_type: reference
     });
   }
 
+  _functionHeadingLevel(): number {
+    // If sorting functions by first parameter
+    // then the function heading will be under
+    // the parameter heading, so it will be level
+    // 2. Otherwise, it will be level 1.
+    return !!this._sortFunctions ? 2 : 1;
+  }
+
   _createCompleteOutputForApiItem(apiItem: ApiItem): DocNode[] {
     const configuration = this._tsdocConfiguration;
     const output: DocNode[] = [];
@@ -232,7 +242,15 @@ page_type: reference
         output.push(new DocHeading({ configuration, title: `${scopedName}` }));
         break;
       case ApiItemKind.Function:
-        output.push(new DocHeading({ configuration, title: `${scopedName}` }));
+        const anchor = getHeadingAnchorForApiItem(apiItem);
+        output.push(
+          new DocHeading({
+            configuration,
+            title: Utilities.getConciseSignature(apiItem),
+            anchor: anchor,
+            level: this._functionHeadingLevel()
+          })
+        );
         break;
       case ApiItemKind.Model:
         output.push(new DocHeading({ configuration, title: `API Reference` }));
@@ -329,9 +347,18 @@ page_type: reference
       case ApiItemKind.MethodSignature:
       case ApiItemKind.Function:
         output.push(
-          ...this._createParameterTables(apiItem as ApiParameterListMixin)
+          ...this._createParameterTables(
+            apiItem as ApiParameterListMixin,
+            this._functionHeadingLevel()
+          )
         );
-        output.push(...createThrowsSection(apiItem, configuration));
+        output.push(
+          ...createThrowsSection(
+            apiItem,
+            configuration,
+            this._functionHeadingLevel()
+          )
+        );
         break;
       case ApiItemKind.Namespace:
         output.push(
@@ -612,7 +639,8 @@ page_type: reference
    * GENERATE PAGE: FUNCTION-LIKE
    */
   private _createParameterTables(
-    apiParameterListMixin: ApiParameterListMixin
+    apiParameterListMixin: ApiParameterListMixin,
+    parentHeadingLevel: number
   ): DocNode[] {
     const configuration = this._tsdocConfiguration;
     const output: DocNode[] = [];
@@ -649,7 +677,11 @@ page_type: reference
 
     if (parametersTable.rows.length > 0) {
       output.push(
-        new DocHeading({ configuration, title: 'Parameters', level: 2 })
+        new DocHeading({
+          configuration,
+          title: 'Parameters',
+          level: parentHeadingLevel + 1
+        })
       );
       output.push(parametersTable);
     }
@@ -974,7 +1006,9 @@ page_type: reference
       for (const paramKey of sortedFunctionsFirstParamKeys) {
         // Header for each group of functions grouped by first param.
         // Doesn't make sense if there's only one group.
-        const headerText = paramKey ? `function(${paramKey}...)` : 'function()';
+        const headerText = paramKey
+          ? `function(${paramKey}, ...)`
+          : 'function()';
         if (sortedFunctionsFirstParamKeys.length > 1) {
           finalFunctionsTable.addRow(
             new DocTableRow({ configuration }, [
@@ -991,7 +1025,27 @@ page_type: reference
         for (const functionsRow of functionsRowGroup[paramKey]) {
           finalFunctionsTable.addRow(functionsRow);
         }
+
+        // Create a heading that groups functions by the first param
+        finalFunctionsDefinitions.push(
+          new DocHeading({
+            configuration,
+            title: headerText
+          })
+        );
+
         for (const functionDefinition of functionsDefinitionsGroup[paramKey]) {
+          // const originalDocHeading = functionDefinition as DocHeading;
+
+          // // Increase the doc heading level so that this is a sub-section
+          // // of the function grouping heading
+          // const newDocHeading = new DocHeading({
+          //   configuration: originalDocHeading.configuration,
+          //   title: originalDocHeading.title,
+          //   level: originalDocHeading.level + 1,
+          //   anchor: originalDocHeading.anchor
+          // })
+          // finalFunctionsDefinitions.push(newDocHeading);
           finalFunctionsDefinitions.push(functionDefinition);
         }
       }

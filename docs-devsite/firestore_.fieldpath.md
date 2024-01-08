@@ -42,7 +42,7 @@ Creates a `FieldPath` from the provided field names. If more than one field name
 constructor(...fieldNames: string[]);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -58,7 +58,7 @@ Returns true if this `FieldPath` is equal to the provided one.
 isEqual(other: FieldPath): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

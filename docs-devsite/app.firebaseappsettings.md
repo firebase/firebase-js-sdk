@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseAppSettings interface
-Configuration options given to [initializeApp()](./app.md#initializeapp)
+Configuration options given to [initializeApp()](./app.md#initializeapp_cb2f5e1)
 
 <b>Signature:</b>
 

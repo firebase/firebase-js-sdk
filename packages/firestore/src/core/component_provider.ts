@@ -166,10 +166,9 @@ export class MemoryOfflineComponentProvider
   }
 
   async terminate(): Promise<void> {
-    if (this.gcScheduler) {
-      this.gcScheduler.stop();
-    }
-    await this.sharedClientState.shutdown();
+    this.gcScheduler?.stop();
+    this.indexBackfillerScheduler?.stop();
+    this.sharedClientState.shutdown();
     await this.persistence.shutdown();
   }
 }
@@ -483,7 +482,8 @@ export class OnlineComponentProvider {
     );
   }
 
-  terminate(): Promise<void> {
-    return remoteStoreShutdown(this.remoteStore);
+  async terminate(): Promise<void> {
+    await remoteStoreShutdown(this.remoteStore);
+    this.datastore?.terminate();
   }
 }

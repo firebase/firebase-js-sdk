@@ -61,7 +61,7 @@ A helper function to help users complete sign in with a second factor using an [
 resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

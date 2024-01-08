@@ -100,7 +100,7 @@ Passing a relative path to the `child()` method of a DataSnapshot returns anothe
 child(path: string): DataSnapshot;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -154,7 +154,7 @@ If no explicit `orderBy*()` method is used, results are returned ordered by key 
 forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -176,7 +176,7 @@ Returns true if the specified child path has (non-null) data.
 hasChild(path: string): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
