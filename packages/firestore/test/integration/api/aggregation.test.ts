@@ -159,17 +159,9 @@ apiDescribe('Count queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        // TODO(b/316359394) Remove the special logic for non-default databases
-        // once cl/582465034 is rolled out to production.
-        if (coll.firestore._databaseId.isDefaultDatabase) {
-          await expect(
-            getCountFromServer(query_)
-          ).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
-        } else {
-          await expect(getCountFromServer(query_)).to.be.eventually.rejected;
-        }
+        await expect(getCountFromServer(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
       });
     }
   );
@@ -371,23 +363,13 @@ apiDescribe('Aggregation queries', persistence => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        // TODO(b/316359394) Remove the special logic for non-default databases
-        // once cl/582465034 is rolled out to production.
-        if (coll.firestore._databaseId.isDefaultDatabase) {
-          await expect(
-            getAggregateFromServer(query_, {
-              count: count()
-            })
-          ).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
-        } else {
-          await expect(
-            getAggregateFromServer(query_, {
-              count: count()
-            })
-          ).to.be.eventually.rejected;
-        }
+        await expect(
+          getAggregateFromServer(query_, {
+            count: count()
+          })
+        ).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
+        );
       });
     }
   );
