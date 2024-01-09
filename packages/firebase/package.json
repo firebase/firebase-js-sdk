@@ -83,17 +83,17 @@
       },
       "default": "./auth/cordova/dist/esm/index.esm.js"
     },
-    "./auth/chrome-extension": {
-      "types": "./auth/chrome-extension/dist/auth/chrome-extension/index.d.ts",
+    "./auth/web-extension": {
+      "types": "./auth/web-extension/dist/auth/web-extension/index.d.ts",
       "node": {
-        "require": "./auth/chrome-extension/dist/index.cjs.js",
-        "import": "./auth/chrome-extension/dist/index.mjs"
+        "require": "./auth/web-extension/dist/index.cjs.js",
+        "import": "./auth/web-extension/dist/index.mjs"
       },
       "browser": {
-        "require": "./auth/chrome-extension/dist/index.cjs.js",
-        "import": "./auth/chrome-extension/dist/esm/index.esm.js"
+        "require": "./auth/web-extension/dist/index.cjs.js",
+        "import": "./auth/web-extension/dist/esm/index.esm.js"
       },
-      "default": "./auth/chrome-extension/dist/esm/index.esm.js"
+      "default": "./auth/web-extension/dist/esm/index.esm.js"
     },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
@@ -421,7 +421,7 @@
     "app-check",
     "auth",
     "auth/cordova",
-    "auth/chrome-extension",
+    "auth/web-extension",
     "functions",
     "firestore",
     "firestore/lite",

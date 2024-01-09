@@ -57,10 +57,10 @@ describe('core/util/_getClientVersion', () => {
       });
     });
 
-    context('Chrome Extension', () => {
+    context('Web Extension', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.CHROME_EXTENSION)).to.eq(
-          `ChromeExtension/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        expect(_getClientVersion(ClientPlatform.WEB_EXTENSION)).to.eq(
+          `WebExtension/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });

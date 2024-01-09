@@ -8,7 +8,7 @@
   "browser": "dist/esm2017/index.js",
   "module": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.js",
-  "chrome-extension": "dist/chrome-extension-esm2017/index.js",
+  "web-extension": "dist/web-extension-esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "esm5": "dist/esm5/index.js",
   "exports": {
@@ -42,11 +42,11 @@
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
     },
-    "./chrome-extension": {
-      "types:": "./dist/chrome-extension-esm2017/index.chrome-extension.d.ts",
-      "import": "./dist/chrome-extension-esm2017/index.js",
-      "require": "./dist/chrome-extension-cjs/index.js",
-      "default": "./dist/chrome-extension-esm2017/index.js"
+    "./web-extension": {
+      "types:": "./dist/web-extension-esm2017/index.web-extension.d.ts",
+      "import": "./dist/web-extension-esm2017/index.js",
+      "require": "./dist/web-extension-cjs/index.js",
+      "default": "./dist/web-extension-esm2017/index.js"
     },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
@@ -68,11 +68,11 @@
         "require": "./dist/browser-cjs/internal.js",
         "import": "./dist/esm2017/internal.js"
       },
-      "chrome-extension": {
-        "types:": "./dist/chrome-extension-cjs/internal/index.d.ts",
-        "import": "./dist/chrome-extension-esm2017/internal.js",
-        "require": "./dist/chrome-extension-cjs/internal.js",
-        "default": "./dist/chrome-extension-esm2017/internal.js"
+      "web-extension": {
+        "types:": "./dist/web-extension-cjs/internal/index.d.ts",
+        "import": "./dist/web-extension-esm2017/internal.js",
+        "require": "./dist/web-extension-cjs/internal.js",
+        "default": "./dist/web-extension-esm2017/internal.js"
       },
       "default": "./dist/esm2017/internal.js"
     },
@@ -82,7 +82,7 @@
     "dist",
     "cordova/package.json",
     "internal/package.json",
-    "chrome-extension/package.json"
+    "web-extension/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",

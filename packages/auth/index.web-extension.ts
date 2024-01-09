@@ -58,7 +58,7 @@ function getAuth(app: FirebaseApp = getApp()): Auth {
   return auth;
 }
 
-registerAuth(ClientPlatform.CHROME_EXTENSION);
+registerAuth(ClientPlatform.WEB_EXTENSION);
 
 export {
   indexedDBLocalPersistence,

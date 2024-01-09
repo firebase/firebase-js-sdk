@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/auth/chrome-extension';
+export * from '@firebase/auth/web-extension';
