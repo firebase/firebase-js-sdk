@@ -266,8 +266,14 @@ export interface FirestoreDataConverter<
    * `snapshot.data(options)`.
    *
    * Generally, the data returned from `snapshot.data()` can be cast to
-   * `DbModelType`; however, this is not guaranteed as writes to the database
-   * may have occurred without a type converter enforcing this specific layout.
+   * `DbModelType`; however, this is not guaranteed because Firestore does not
+   * enforce a schema on the database. For example, writes from a previous
+   * version of the application or writes from another client that did not use a
+   * type converter could have written data with different properties and/or
+   * property types. The implementation will need to choose whether to
+   * gracefully recover from non-conforming data or throw an error.
+   *
+   * To override this method, see {@link (FirestoreDataConverter.fromFirestore:1)}.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
