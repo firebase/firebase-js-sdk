@@ -48,6 +48,22 @@ import { SnapshotListenOptions } from './reference_impl';
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
  *
+ * In this context, an "AppModel" is a class that is used in an application to
+ * package together related information and functionality. Such a class could,
+ * for example, have properties with complex, nested data types, properties used
+ * for memoization, properties of types not supported by Firestore (such as
+ * `symbol` and `bigint`), and helper functions that perform compound
+ * operations. Such classes are not suitable or possible to store into a
+ * Firestore database. Instead, instances of such classes need to be converted
+ * to "plain old JavaScript objects" (POJOs), objects with only primitive
+ * properties, potentially nested inside other objects or arrays. In this
+ * context, this type is referred to as the "DbModel" and would be an object
+ * suitable for persisting into Firestore. For convenience, applications can
+ * implement `FirestoreDataConverter` and register the converter with Firestore
+ * objects, such a `DocumentReference` or `Query`, to automatically convert
+ * `AppModel` to `DbModel` when storing into Firestore, and convert `DbModel`
+ * back to `AppModel` when retrieving from Firestore.
+ *
  * @example
  *
  * Simple Example
