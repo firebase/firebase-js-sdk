@@ -41,10 +41,10 @@ import { fieldPathFromArgument } from './user_data_reader';
  *
  * Using this function to count the documents is efficient because only the
  * final count, not the documents' data, is downloaded. This function can
- * count the documents in cases where the result set would be prohibitively
- * large to download entirely (thousands of documents).
+ * count the documents if the result set would be prohibitively large to
+ * download entirely (thousands of documents).
  *
- * @param query - The query whose result set size is calculated.
+ * @param query The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.

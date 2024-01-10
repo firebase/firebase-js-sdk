@@ -48,10 +48,10 @@ export {
  * considering any local state. That is, documents in the local cache are not
  * taken into consideration, neither are local modifications not yet
  * synchronized with the server. Previously-downloaded results, if any, are not
- * used. Every request using this source necessarily involves a round trip to
+ * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query - The query whose result set size is calculated.
+ * @param query The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
@@ -88,7 +88,7 @@ export function getCountFromServer<
  * considering any local state. That is, documents in the local cache are not
  * taken into consideration, neither are local modifications not yet
  * synchronized with the server. Previously-downloaded results, if any, are not
- * used. Every request using this source necessarily involves a round trip to
+ * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
  * @param query The query whose result set is aggregated over.
