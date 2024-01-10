@@ -32,24 +32,35 @@ import pkg from './package.json';
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertTransformer]
-    }),
-    json({ preferConst: true }),
-    replace({
-      '__GRPC_VERSION__': grpcVersion
-    })
-  ];
+const nodePlugins = function* (mode) {
+  if (mode !== 'production' && mode !== 'development') {
+    throw new Error(
+      `invalid mode specified to browserPlugins(): '${mode}' ` +
+        `(must be either 'production' or 'development')`
+    );
+  }
+
+  const typescriptPluginTransformers = [];
+  if (mode === 'production') {
+    typescriptPluginTransformers.push(util.removeAssertTransformer);
+  }
+  yield typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: typescriptPluginTransformers
+  });
+
+  yield json({ preferConst: true });
+
+  yield replace({
+    '__GRPC_VERSION__': grpcVersion
+  });
 };
 
 const browserPlugins = function* (mode) {
@@ -96,7 +107,10 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('node')),
+      ...nodePlugins('production')
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
