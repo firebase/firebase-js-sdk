@@ -41,7 +41,7 @@ import { fieldPathFromArgument } from './user_data_reader';
  *
  * Using this function to count the documents is efficient because only the
  * final count, not the documents' data, is downloaded. This function can
- * count the documents if the result set would be prohibitively large to
+ * count the documents in cases where the result set is prohibitively large to
  * download entirely (thousands of documents).
  *
  * @param query The query whose result set size is calculated.
@@ -71,8 +71,8 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
  *
  * Using this function to perform aggregations is efficient because only the
  * final aggregation values, not the documents' data, are downloaded. This
- * function can perform aggregations of the documents if the result set would be
- * prohibitively large to download entirely (thousands of documents).
+ * function can perform aggregations of the documents in cases where the result
+ * set is prohibitively large to download entirely (thousands of documents).
  *
  * @param query The query whose result set is aggregated over.
  * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates

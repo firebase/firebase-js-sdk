@@ -41,7 +41,7 @@ export {
  *
  * Using this function to count the documents is efficient because only the
  * final count, not the documents' data, is downloaded. This function can
- * count the documents if the result set would be prohibitively large to
+ * count the documents in cases where the result set is prohibitively large to
  * download entirely (thousands of documents).
  *
  * The result received from the server is presented, unaltered, without
@@ -81,8 +81,8 @@ export function getCountFromServer<
  *
  * Using this function to perform aggregations is efficient because only the
  * final aggregation values, not the documents' data, are downloaded. This
- * function can perform aggregations of the documents if the result set would be
- * prohibitively large to download entirely (thousands of documents).
+ * function can perform aggregations of the documents in cases where the result
+ * set is prohibitively large to download entirely (thousands of documents).
  *
  * The result received from the server is presented, unaltered, without
  * considering any local state. That is, documents in the local cache are not
