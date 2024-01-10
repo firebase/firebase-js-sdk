@@ -59,9 +59,7 @@ export async function get(
   const key = getKey(appConfig);
   const db = await getDbPromise();
   return db
-    .transaction(OBJECT_STORE_NAME)
-    .objectStore(OBJECT_STORE_NAME)
-    .get(key) as Promise<InstallationEntry>;
+    .get(OBJECT_STORE_NAME, key) as Promise<InstallationEntry>;
 }
 
 /** Assigns or overwrites the record for the given key with the given value. */
@@ -88,9 +86,7 @@ export async function set<ValueType extends InstallationEntry>(
 export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
   const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  await tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  await tx.done;
+  await db.delete(OBJECT_STORE_NAME, key);
 }
 
 /**
@@ -128,7 +124,5 @@ export async function update<ValueType extends InstallationEntry | undefined>(
 
 export async function clear(): Promise<void> {
   const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  await tx.objectStore(OBJECT_STORE_NAME).clear();
-  await tx.done;
+  await db.clear(OBJECT_STORE_NAME);
 }

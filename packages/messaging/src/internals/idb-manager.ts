@@ -59,9 +59,7 @@ export async function dbGet(
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
   const tokenDetails = (await db
-    .transaction(OBJECT_STORE_NAME)
-    .objectStore(OBJECT_STORE_NAME)
-    .get(key)) as TokenDetails;
+    .get(OBJECT_STORE_NAME, key)) as TokenDetails;
 
   if (tokenDetails) {
     return tokenDetails;
@@ -84,9 +82,7 @@ export async function dbSet(
 ): Promise<TokenDetails> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  await tx.objectStore(OBJECT_STORE_NAME).put(tokenDetails, key);
-  await tx.done;
+  await db.put(OBJECT_STORE_NAME, tokenDetails, key);
   return tokenDetails;
 }
 
@@ -96,9 +92,7 @@ export async function dbRemove(
 ): Promise<void> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  await tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  await tx.done;
+  await db.delete(OBJECT_STORE_NAME, key);
 }
 
 /** Deletes the DB. Useful for tests. */

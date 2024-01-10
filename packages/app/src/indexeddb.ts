@@ -69,10 +69,7 @@ export async function readHeartbeatsFromIndexedDB(
 ): Promise<HeartbeatsInIndexedDB | undefined> {
   try {
     const db = await getDbPromise();
-    const result = await db
-      .transaction(STORE_NAME)
-      .objectStore(STORE_NAME)
-      .get(computeKey(app));
+    const result = await db.get(STORE_NAME, computeKey(app));
     return result;
   } catch (e) {
     if (e instanceof FirebaseError) {
@@ -92,10 +89,7 @@ export async function writeHeartbeatsToIndexedDB(
 ): Promise<void> {
   try {
     const db = await getDbPromise();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const objectStore = tx.objectStore(STORE_NAME);
-    await objectStore.put(heartbeatObject, computeKey(app));
-    await tx.done;
+    await db.put(STORE_NAME, heartbeatObject, computeKey(app));
   } catch (e) {
     if (e instanceof FirebaseError) {
       logger.warn(e.message);

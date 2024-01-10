@@ -194,9 +194,7 @@ async function put(version: number, value: object): Promise<void> {
   });
 
   try {
-    const tx = db.transaction('fcm_token_object_Store', 'readwrite');
-    await tx.objectStore('fcm_token_object_Store').put(value);
-    await tx.done;
+    await db.put('fcm_token_object_Store', value);
   } finally {
     db.close();
   }
