@@ -32,13 +32,15 @@ import pkg from './package.json';
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
-function* nodePlugins(mode) {
-  if (mode !== 'production' && mode !== 'development') {
-    throw new Error(
-      `invalid mode specified to browserPlugins(): '${mode}' ` +
-        `(must be either 'production' or 'development')`
-    );
+function validateMode(mode) {
+  if (mode === 'production' || mode === 'development') {
+    return;
   }
+  throw new Error(`invalid mode: '${mode}' (must be either 'production' or 'development')`);
+}
+
+function* nodePlugins(mode) {
+  validateMode(mode);
 
   const typescriptPluginTransformers = [];
   if (mode === 'production') {
@@ -64,12 +66,7 @@ function* nodePlugins(mode) {
 }
 
 function* browserPlugins(mode) {
-  if (mode !== 'production' && mode !== 'development') {
-    throw new Error(
-      `invalid mode specified to browserPlugins(): '${mode}' ` +
-        `(must be either 'production' or 'development')`
-    );
-  }
+  validateMode(mode);
 
   const typescriptPluginTransformers = [];
   if (mode === 'production') {
@@ -96,32 +93,37 @@ function* browserPlugins(mode) {
   }
 }
 
-const allBuilds = [
+function* nodeBuilds(mode) {
+  validateMode(mode);
+
+  const intermediateOutputFile = (mode === 'production') ? pkg['main-esm'] : 'dist/index.node.debug.mjs';
+
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
-  {
+  yield {
     input: './src/index.node.ts',
     output: {
-      file: pkg['main-esm'],
+      file: intermediateOutputFile,
       format: 'es',
       sourcemap: true
     },
     plugins: [
       alias(util.generateAliasConfig('node')),
-      ...nodePlugins('production')
+      ...nodePlugins(mode)
     ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
     onwarn: util.onwarn
-  },
+  }
+
   // Node CJS build
-  {
-    input: pkg['main-esm'],
+  yield {
+    input: intermediateOutputFile,
     output: {
-      file: pkg.main,
+      file: (mode === 'production') ? pkg.main : 'dist/index.node.debug.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -133,12 +135,13 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  },
+  }
+
   // Node ESM build with build target reporting
-  {
-    input: pkg['main-esm'],
+  yield {
+    input: intermediateOutputFile,
     output: {
-      file: pkg['main-esm'],
+      file: intermediateOutputFile,
       format: 'es',
       sourcemap: true
     },
@@ -150,32 +153,40 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  },
+  }
+}
+
+function* browserBuilds(mode) {
+  validateMode(mode);
+
+  const intermediateOutputFile = (mode === 'production') ? pkg['browser'] : 'dist/index.esm2017.debug.js';
+
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
-  {
+  yield {
     input: './src/index.ts',
     output: {
-      file: pkg.browser,
+      file: intermediateOutputFile,
       format: 'es',
       sourcemap: true
     },
     plugins: [
       alias(util.generateAliasConfig('browser')),
-      ...browserPlugins('production')
+      ...browserPlugins(mode)
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
-  },
+  }
+
   // Convert es2017 build to ES5
-  {
-    input: pkg['browser'],
+  yield {
+    input: intermediateOutputFile,
     output: [
       {
-        file: pkg['esm5'],
+        file: (mode === 'production') ? pkg['esm5'] : 'dist/index.esm5.debug.js',
         format: 'es',
         sourcemap: true
       }
@@ -188,13 +199,14 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  },
+  }
+
   // Convert es2017 build to cjs
-  {
-    input: pkg['browser'],
+  yield {
+    input: intermediateOutputFile,
     output: [
       {
-        file: './dist/index.cjs.js',
+        file: (mode === 'production') ? './dist/index.cjs.js' : "./dist/index.cjs.debug.js",
         format: 'cjs',
         sourcemap: true
       }
@@ -207,13 +219,14 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  },
+  }
+
   // es2017 build with build target reporting
-  {
-    input: pkg['browser'],
+  yield {
+    input: intermediateOutputFile,
     output: [
       {
-        file: pkg['browser'],
+        file: intermediateOutputFile,
         format: 'es',
         sourcemap: true
       }
@@ -226,26 +239,34 @@ const allBuilds = [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  // RN build
-  {
+  }
+
+}
+
+function* reactNativeBuilds(mode) {
+  validateMode(mode);
+
+  yield {
     input: './src/index.rn.ts',
     output: {
-      file: pkg['react-native'],
+      file: (mode === 'production') ? pkg['react-native'] : 'dist/index.rn.debug.js',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       alias(util.generateAliasConfig('rn')),
-      ...browserPlugins('production'),
+      ...browserPlugins(mode),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  {
+  }
+}
+
+function globalIndexBuild() {
+  return {
     input: 'dist/firestore/src/index.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
@@ -257,6 +278,19 @@ const allBuilds = [
       })
     ]
   }
-];
+}
 
-export default allBuilds;
+function* allBuildsForMode(mode) {
+  validateMode(mode);
+  yield* nodeBuilds(mode);
+  yield* browserBuilds(mode);
+  yield* reactNativeBuilds(mode);
+}
+
+function* allBuilds() {
+  yield* allBuildsForMode('production');
+  yield* allBuildsForMode('development');
+  yield globalIndexBuild();
+}
+
+export default [...allBuilds()];
