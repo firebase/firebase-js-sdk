@@ -32,7 +32,7 @@ import pkg from './package.json';
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
-const nodePlugins = function* (mode) {
+function* nodePlugins(mode) {
   if (mode !== 'production' && mode !== 'development') {
     throw new Error(
       `invalid mode specified to browserPlugins(): '${mode}' ` +
@@ -61,9 +61,9 @@ const nodePlugins = function* (mode) {
   yield replace({
     '__GRPC_VERSION__': grpcVersion
   });
-};
+}
 
-const browserPlugins = function* (mode) {
+function* browserPlugins(mode) {
   if (mode !== 'production' && mode !== 'development') {
     throw new Error(
       `invalid mode specified to browserPlugins(): '${mode}' ` +
@@ -94,7 +94,7 @@ const browserPlugins = function* (mode) {
   if (mode === 'production') {
     yield terser(util.manglePrivatePropertiesOptions);
   }
-};
+}
 
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
