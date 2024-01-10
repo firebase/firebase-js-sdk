@@ -58,7 +58,7 @@ describe('EventManager', () => {
 
   // mock objects.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let onListenSpy: any, onUnlistenSpy: any;
+  let onListenSpy: any, onUnlistenSpy: any,  triggerRemoteStoreListen: any, triggerRemoteStoreUnlisten: any;
 
   beforeEach(() => {
     onListenSpy = sinon.stub().returns(Promise.resolve(0));
@@ -73,6 +73,8 @@ describe('EventManager', () => {
     const eventManager = newEventManager();
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManager.triggerRemoteStoreListen = triggerRemoteStoreListen.bind(null);
+    eventManager.triggerRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;

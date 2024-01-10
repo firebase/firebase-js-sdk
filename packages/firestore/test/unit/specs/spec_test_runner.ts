@@ -59,7 +59,9 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -349,6 +351,14 @@ abstract class TestRunner {
 
     this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
     this.eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      this.syncEngine
+    );
+    this.eventManager.triggerRemoteStoreListen = triggerRemoteStoreListen.bind(
+      null,
+      this.syncEngine
+    );
+    this.eventManager.triggerRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
       null,
       this.syncEngine
     );

@@ -78,7 +78,16 @@ export interface SnapshotListenOptions {
    * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
+
+  //Mila
+  readonly source? :ListenSource
 }
+
+export const enum ListenSource {
+  Default,
+  Cache
+}
+
 
 /**
  * Reads the document referred to by this `DocumentReference`.
@@ -668,7 +677,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
-    includeMetadataChanges: false
+    includeMetadataChanges: false,
+    source: ListenSource.Default
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
@@ -677,7 +687,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 
   const internalOptions = {
-    includeMetadataChanges: options.includeMetadataChanges
+    includeMetadataChanges: options.includeMetadataChanges,
+    source: options.source
   };
 
   if (isPartialObserver(args[currArg])) {

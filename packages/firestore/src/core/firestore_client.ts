@@ -86,7 +86,9 @@ import {
   syncEngineLoadBundle,
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -397,6 +399,14 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
+  eventManager.triggerRemoteStoreListen = triggerRemoteStoreListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.triggerRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
   return eventManager;
 }
 
@@ -446,6 +456,7 @@ export function firestoreClientListen(
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
+  console.log(options)
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
   client.asyncQueue.enqueueAndForget(async () => {

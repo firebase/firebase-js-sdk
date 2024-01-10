@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ListenSource } from '../api/reference_impl';
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
@@ -31,7 +32,8 @@ import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
  */
 class QueryListenersInfo {
   viewSnap: ViewSnapshot | undefined = undefined;
-  listeners: QueryListener[] = [];
+  serverListeners: QueryListener[] = [];
+  cacheListeners: QueryListener[] = [];
 }
 
 /**
@@ -52,8 +54,10 @@ export interface Observer<T> {
  * allows users to tree-shake the Watch logic.
  */
 export interface EventManager {
-  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  onListen?: (query: Query, enableRemoteListen: boolean) => Promise<ViewSnapshot>;
   onUnlisten?: (query: Query) => Promise<void>;
+  triggerRemoteStoreListen?: (query: Query) => Promise<void>;
+  triggerRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
@@ -71,9 +75,12 @@ export class EventManagerImpl implements EventManager {
   snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
   /** Callback invoked when a Query is first listen to. */
-  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  onListen?: (query: Query, enableRemoteListen: boolean) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query) => Promise<void>;
+
+  triggerRemoteStoreListen?: (query: Query) => Promise<void>;
+  triggerRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
 export async function eventManagerListen(
@@ -83,18 +90,23 @@ export async function eventManagerListen(
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
+  debugAssert(!!eventManagerImpl.triggerRemoteStoreListen, 'triggerRemoteStoreListen not set');
+
   const query = listener.query;
   let firstListen = false;
+  let listenToServer= (listener.options.source ?? ListenSource.Default) !== ListenSource.Cache;
 
   let queryInfo = eventManagerImpl.queries.get(query);
   if (!queryInfo) {
     firstListen = true;
     queryInfo = new QueryListenersInfo();
   }
+  console.log("firstListen", firstListen, listenToServer)
 
   if (firstListen) {
     try {
-      queryInfo.viewSnap = await eventManagerImpl.onListen(query);
+      queryInfo.viewSnap = await eventManagerImpl.onListen(query, listenToServer);
+      console.log(queryInfo.viewSnap)
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
         e as Error,
@@ -103,10 +115,13 @@ export async function eventManagerListen(
       listener.onError(firestoreError);
       return;
     }
+  } else if (listenToServer && queryInfo.serverListeners.length == 0) {
+    console.log("???")
+    await eventManagerImpl.triggerRemoteStoreListen(query)
   }
 
   eventManagerImpl.queries.set(query, queryInfo);
-  queryInfo.listeners.push(listener);
+  listenToServer? queryInfo.serverListeners.push(listener):queryInfo.cacheListeners.push(listener) ;
 
   // Run global snapshot listeners if a consistent snapshot has been emitted.
   const raisedEvent = listener.applyOnlineStateChange(
@@ -119,6 +134,7 @@ export async function eventManagerListen(
 
   if (queryInfo.viewSnap) {
     const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
+    console.log("......", raisedEvent)
     if (raisedEvent) {
       raiseSnapshotsInSyncEvent(eventManagerImpl);
     }
@@ -134,19 +150,28 @@ export async function eventManagerUnlisten(
   debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
   const query = listener.query;
   let lastListen = false;
+  let triggerRemoteStoreUnlisten = false;
 
   const queryInfo = eventManagerImpl.queries.get(query);
   if (queryInfo) {
-    const i = queryInfo.listeners.indexOf(listener);
+    const i = queryInfo.serverListeners.indexOf(listener);
     if (i >= 0) {
-      queryInfo.listeners.splice(i, 1);
-      lastListen = queryInfo.listeners.length === 0;
+      queryInfo.serverListeners.splice(i, 1);
     }
+    const j = queryInfo.cacheListeners.indexOf(listener);
+    if (j >= 0) {
+      queryInfo.serverListeners.splice(j, 1);
+    }
+
+    lastListen = queryInfo.serverListeners.length === 0 && queryInfo.cacheListeners.length === 0;
+    triggerRemoteStoreUnlisten = queryInfo.serverListeners.length === 0;
   }
 
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
     return eventManagerImpl.onUnlisten(query);
+  } else if (triggerRemoteStoreUnlisten) { 
+    return 
   }
 }
 
@@ -154,6 +179,7 @@ export function eventManagerOnWatchChange(
   eventManager: EventManager,
   viewSnaps: ViewSnapshot[]
 ): void {
+  console.log("eventManagerOnWatchChange")
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 
   let raisedEvent = false;
@@ -161,7 +187,12 @@ export function eventManagerOnWatchChange(
     const query = viewSnap.query;
     const queryInfo = eventManagerImpl.queries.get(query);
     if (queryInfo) {
-      for (const listener of queryInfo.listeners) {
+      for (const listener of queryInfo.serverListeners) {
+        if (listener.onViewSnapshot(viewSnap)) {
+          raisedEvent = true;
+        }
+      }
+      for (const listener of queryInfo.cacheListeners) {
         if (listener.onViewSnapshot(viewSnap)) {
           raisedEvent = true;
         }
@@ -183,7 +214,10 @@ export function eventManagerOnWatchError(
 
   const queryInfo = eventManagerImpl.queries.get(query);
   if (queryInfo) {
-    for (const listener of queryInfo.listeners) {
+    for (const listener of queryInfo.serverListeners) {
+      listener.onError(error);
+    }
+    for (const listener of queryInfo.cacheListeners) {
       listener.onError(error);
     }
   }
@@ -202,7 +236,13 @@ export function eventManagerOnOnlineStateChange(
   eventManagerImpl.onlineState = onlineState;
   let raisedEvent = false;
   eventManagerImpl.queries.forEach((_, queryInfo) => {
-    for (const listener of queryInfo.listeners) {
+    for (const listener of queryInfo.serverListeners) {
+      // Run global snapshot listeners if a consistent snapshot has been emitted.
+      if (listener.applyOnlineStateChange(onlineState)) {
+        raisedEvent = true;
+      }
+    }
+    for (const listener of queryInfo.cacheListeners) {
       // Run global snapshot listeners if a consistent snapshot has been emitted.
       if (listener.applyOnlineStateChange(onlineState)) {
         raisedEvent = true;
@@ -250,6 +290,9 @@ export interface ListenOptions {
    * offline.
    */
   readonly waitForSyncWhenOnline?: boolean;
+
+  // Mila
+  readonly source?: ListenSource
 }
 
 /**
@@ -265,7 +308,8 @@ export class QueryListener {
    */
   private raisedInitialEvent = false;
 
-  private options: ListenOptions;
+  // Mila
+  readonly options: ListenOptions;
 
   private snap: ViewSnapshot | null = null;
 
@@ -356,6 +400,11 @@ export class QueryListener {
 
     // Always raise the first event when we're synced
     if (!snap.fromCache) {
+      return true;
+    }
+
+    // Mila
+    if (this.options.source == ListenSource.Cache) {
       return true;
     }
 
