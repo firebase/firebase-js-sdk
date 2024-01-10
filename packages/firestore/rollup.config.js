@@ -52,22 +52,37 @@ const nodePlugins = function () {
   ];
 };
 
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
-    }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
-  ];
+const browserPlugins = function* (mode) {
+  if (mode !== 'production' && mode !== 'development') {
+    throw new Error(
+      `invalid mode specified to browserPlugins(): '${mode}' ` +
+        `(must be either 'production' or 'development')`
+    );
+  }
+
+  const typescriptPluginTransformers = [];
+  if (mode === 'production') {
+    typescriptPluginTransformers.push(
+      util.removeAssertAndPrefixInternalTransformer
+    );
+  }
+  yield typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: typescriptPluginTransformers
+  });
+
+  yield json({ preferConst: true });
+
+  if (mode === 'production') {
+    yield terser(util.manglePrivatePropertiesOptions);
+  }
 };
 
 const allBuilds = [
@@ -132,7 +147,10 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
+    plugins: [
+      alias(util.generateAliasConfig('browser')),
+      ...browserPlugins('production')
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -205,7 +223,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('rn')),
-      ...browserPlugins(),
+      ...browserPlugins('production'),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: util.resolveBrowserExterns,
