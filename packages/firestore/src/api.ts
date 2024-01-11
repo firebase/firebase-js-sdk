@@ -139,7 +139,7 @@ export {
   WhereFilterOp
 } from './api/filter';
 
-export { SnapshotListenOptions, Unsubscribe } from './api/reference_impl';
+export { SnapshotListenOptions, Unsubscribe, ListenSource } from './api/reference_impl';
 
 export { TransactionOptions } from './api/transaction_options';
 

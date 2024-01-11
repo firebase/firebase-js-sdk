@@ -23,6 +23,7 @@ export declare interface SnapshotListenOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [includeMetadataChanges](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionsincludemetadatachanges) | boolean | Include a change even if only the metadata of the query or of a document changed. Default is false. |
+|  [source](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionssource) | [ListenSource](./firestore_.md#listensource) |  |
 
 ## SnapshotListenOptions.includeMetadataChanges
 
@@ -32,4 +33,12 @@ Include a change even if only the metadata of the query or of a document changed
 
 ```typescript
 readonly includeMetadataChanges?: boolean;
+```
+
+## SnapshotListenOptions.source
+
+<b>Signature:</b>
+
+```typescript
+readonly source?: ListenSource;
 ```
