@@ -223,7 +223,6 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * order-bys.
  */
 export function queryNormalizedOrderBy(query: Query): OrderBy[] {
-  console.log("==============")
   const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedNormalizedOrderBy === null) {
     queryImpl.memoizedNormalizedOrderBy = [];
@@ -266,7 +265,6 @@ export function queryNormalizedOrderBy(query: Query): OrderBy[] {
       );
     }
   }
-  console.log("==========",JSON.stringify(queryImpl.memoizedNormalizedOrderBy))
   return queryImpl.memoizedNormalizedOrderBy;
 }
 

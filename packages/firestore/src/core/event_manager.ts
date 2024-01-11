@@ -54,8 +54,11 @@ export interface Observer<T> {
  * allows users to tree-shake the Watch logic.
  */
 export interface EventManager {
-  onListen?: (query: Query, enableRemoteListen: boolean) => Promise<ViewSnapshot>;
-  onUnlisten?: (query: Query) => Promise<void>;
+  onListen?: (
+    query: Query,
+    enableRemoteListen: boolean
+  ) => Promise<ViewSnapshot>;
+  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
   triggerRemoteStoreListen?: (query: Query) => Promise<void>;
   triggerRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
@@ -75,9 +78,12 @@ export class EventManagerImpl implements EventManager {
   snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
   /** Callback invoked when a Query is first listen to. */
-  onListen?: (query: Query, enableRemoteListen: boolean) => Promise<ViewSnapshot>;
+  onListen?: (
+    query: Query,
+    enableRemoteListen: boolean
+  ) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
-  onUnlisten?: (query: Query) => Promise<void>;
+  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
 
   triggerRemoteStoreListen?: (query: Query) => Promise<void>;
   triggerRemoteStoreUnlisten?: (query: Query) => Promise<void>;
@@ -88,25 +94,32 @@ export async function eventManagerListen(
   listener: QueryListener
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  const listenToServer =
+    (listener.options.source ?? ListenSource.Default) !== ListenSource.Cache;
 
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
-  debugAssert(!!eventManagerImpl.triggerRemoteStoreListen, 'triggerRemoteStoreListen not set');
+  debugAssert(
+    !!eventManagerImpl.triggerRemoteStoreListen,
+    'triggerRemoteStoreListen not set'
+  );
 
   const query = listener.query;
   let firstListen = false;
-  let listenToServer= (listener.options.source ?? ListenSource.Default) !== ListenSource.Cache;
 
   let queryInfo = eventManagerImpl.queries.get(query);
   if (!queryInfo) {
     firstListen = true;
     queryInfo = new QueryListenersInfo();
   }
-  console.log("firstListen", firstListen, listenToServer)
+  const firstListenToServer =
+    listenToServer && queryInfo.serverListeners.length === 0;
 
   if (firstListen) {
     try {
-      queryInfo.viewSnap = await eventManagerImpl.onListen(query, listenToServer);
-      console.log(queryInfo.viewSnap)
+      queryInfo.viewSnap = await eventManagerImpl.onListen(
+        query,
+        firstListenToServer
+      );
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
         e as Error,
@@ -115,13 +128,16 @@ export async function eventManagerListen(
       listener.onError(firestoreError);
       return;
     }
-  } else if (listenToServer && queryInfo.serverListeners.length == 0) {
-    console.log("???")
-    await eventManagerImpl.triggerRemoteStoreListen(query)
+  } else if (firstListenToServer) {
+    await eventManagerImpl.triggerRemoteStoreListen(query);
   }
 
   eventManagerImpl.queries.set(query, queryInfo);
-  listenToServer? queryInfo.serverListeners.push(listener):queryInfo.cacheListeners.push(listener) ;
+  if (listenToServer) {
+    queryInfo.serverListeners.push(listener);
+  } else {
+    queryInfo.cacheListeners.push(listener);
+  }
 
   // Run global snapshot listeners if a consistent snapshot has been emitted.
   const raisedEvent = listener.applyOnlineStateChange(
@@ -134,7 +150,6 @@ export async function eventManagerListen(
 
   if (queryInfo.viewSnap) {
     const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
-    console.log("......", raisedEvent)
     if (raisedEvent) {
       raiseSnapshotsInSyncEvent(eventManagerImpl);
     }
@@ -146,32 +161,45 @@ export async function eventManagerUnlisten(
   listener: QueryListener
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  const unlistenToServer =
+    (listener.options.source ?? ListenSource.Default) !== ListenSource.Cache;
 
   debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
+  debugAssert(
+    !!eventManagerImpl.triggerRemoteStoreUnlisten,
+    'triggerRemoteStoreUnlisten not set'
+  );
+
   const query = listener.query;
   let lastListen = false;
-  let triggerRemoteStoreUnlisten = false;
+  let lastListenToServer = false;
 
   const queryInfo = eventManagerImpl.queries.get(query);
+
   if (queryInfo) {
-    const i = queryInfo.serverListeners.indexOf(listener);
-    if (i >= 0) {
-      queryInfo.serverListeners.splice(i, 1);
-    }
-    const j = queryInfo.cacheListeners.indexOf(listener);
-    if (j >= 0) {
-      queryInfo.serverListeners.splice(j, 1);
+    if (unlistenToServer) {
+      const i = queryInfo.serverListeners.indexOf(listener);
+      if (i >= 0) {
+        queryInfo.serverListeners.splice(i, 1);
+      }
+      lastListenToServer = queryInfo.serverListeners.length === 0;
+    } else {
+      const j = queryInfo.cacheListeners.indexOf(listener);
+      if (j >= 0) {
+        queryInfo.cacheListeners.splice(j, 1);
+      }
     }
 
-    lastListen = queryInfo.serverListeners.length === 0 && queryInfo.cacheListeners.length === 0;
-    triggerRemoteStoreUnlisten = queryInfo.serverListeners.length === 0;
+    lastListen =
+      queryInfo.serverListeners.length === 0 &&
+      queryInfo.cacheListeners.length === 0;
   }
 
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
-    return eventManagerImpl.onUnlisten(query);
-  } else if (triggerRemoteStoreUnlisten) { 
-    return 
+    return eventManagerImpl.onUnlisten(query, lastListenToServer);
+  } else if (lastListenToServer) {
+    return eventManagerImpl.triggerRemoteStoreUnlisten(query);
   }
 }
 
@@ -179,7 +207,6 @@ export function eventManagerOnWatchChange(
   eventManager: EventManager,
   viewSnaps: ViewSnapshot[]
 ): void {
-  console.log("eventManagerOnWatchChange")
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 
   let raisedEvent = false;
@@ -292,7 +319,7 @@ export interface ListenOptions {
   readonly waitForSyncWhenOnline?: boolean;
 
   // Mila
-  readonly source?: ListenSource
+  readonly source?: ListenSource;
 }
 
 /**
@@ -403,8 +430,7 @@ export class QueryListener {
       return true;
     }
 
-    // Mila
-    if (this.options.source == ListenSource.Cache) {
+    if (this.options.source === ListenSource.Cache) {
       return true;
     }
 

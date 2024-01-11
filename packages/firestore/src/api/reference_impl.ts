@@ -80,14 +80,13 @@ export interface SnapshotListenOptions {
   readonly includeMetadataChanges?: boolean;
 
   //Mila
-  readonly source? :ListenSource
+  readonly source?: ListenSource;
 }
 
 export const enum ListenSource {
   Default,
   Cache
 }
-
 
 /**
  * Reads the document referred to by this `DocumentReference`.

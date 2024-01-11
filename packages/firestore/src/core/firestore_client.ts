@@ -456,7 +456,6 @@ export function firestoreClientListen(
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
-  console.log(options)
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
   client.asyncQueue.enqueueAndForget(async () => {

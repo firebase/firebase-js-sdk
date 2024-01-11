@@ -16,7 +16,6 @@
  */
 
 import { LoadBundleTask } from '../api/bundle';
-import { ListenSource } from '../api/reference_impl';
 import { User } from '../auth/user';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
 import {
@@ -83,8 +82,7 @@ import {
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError,
-  ListenOptions
+  eventManagerOnWatchError
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
@@ -314,10 +312,9 @@ export async function syncEngineListen(
     syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
     viewSnapshot = queryView.view.computeInitialSnapshot();
   } else {
-    console.log("???")
     const targetData = await localStoreAllocateTarget(
       syncEngineImpl.localStore,
-      queryToTarget(query),
+      queryToTarget(query)
     );
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
@@ -331,7 +328,6 @@ export async function syncEngineListen(
       status === 'current',
       targetData.resumeToken
     );
-    console.log("???", enableRemoteListen)
 
     if (syncEngineImpl.isPrimaryClient && enableRemoteListen) {
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
@@ -343,13 +339,13 @@ export async function syncEngineListen(
 
 export async function triggerRemoteStoreListen(
   syncEngine: SyncEngine,
-  query: Query,
-):Promise<void>{ 
+  query: Query
+): Promise<void> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
 
   const targetData = await localStoreAllocateTarget(
     syncEngineImpl.localStore,
-    queryToTarget(query),
+    queryToTarget(query)
   );
 
   if (syncEngineImpl.isPrimaryClient) {
@@ -414,7 +410,8 @@ async function initializeViewAndComputeSnapshot(
 /** Stops listening to the query. */
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
-  query: Query
+  query: Query,
+  disableRemoteListen: boolean = true
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
@@ -451,7 +448,9 @@ export async function syncEngineUnlisten(
       )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+          if (disableRemoteListen) {
+            remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+          }
           removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
         })
         .catch(ignoreIfPrimaryLeaseLoss);
@@ -469,7 +468,7 @@ export async function syncEngineUnlisten(
 export async function triggerRemoteStoreUnlisten(
   syncEngine: SyncEngine,
   query: Query
-): Promise<void> { 
+): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
   debugAssert(
@@ -477,7 +476,7 @@ export async function triggerRemoteStoreUnlisten(
     'Trying to unlisten on query not found:' + stringifyQuery(query)
   );
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
-  if (queries.length == 1) {
+  if (queries.length === 1) {
     remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
   }
 }
@@ -589,7 +588,6 @@ export function syncEngineApplyOnlineStateChange(
   onlineState: OnlineState,
   source: OnlineStateSource
 ): void {
-  console.log("syncEngineApplyOnlineStateChange")
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   // If we are the secondary client, we explicitly ignore the remote store's
   // online state (the local client may go offline, even though the primary
@@ -1046,7 +1044,6 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<void> {
-  console.log("syncEngineEmitNewSnapsAndNotifyLocalStore")
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const newSnaps: ViewSnapshot[] = [];
   const docChangesInAllViews: LocalViewChanges[] = [];
@@ -1295,7 +1292,6 @@ export async function syncEngineApplyPrimaryState(
   syncEngine: SyncEngine,
   isPrimary: boolean
 ): Promise<void> {
-  console.log("syncEngineApplyPrimaryState")
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   ensureWatchCallbacks(syncEngineImpl);
   syncEngineEnsureWriteCallbacks(syncEngineImpl);
@@ -1382,7 +1378,6 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
   targets: TargetId[],
   transitionToPrimary: boolean
 ): Promise<TargetData[]> {
-  console.log("synchronizeQueryViewsAndRaiseSnapshots")
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const activeQueries: TargetData[] = [];
   const newViewSnapshots: ViewSnapshot[] = [];
@@ -1539,7 +1534,6 @@ export async function syncEngineApplyActiveTargetsChange(
   added: TargetId[],
   removed: TargetId[]
 ): Promise<void> {
-  console.log("syncEngineApplyActiveTargetsChange")
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
   if (!syncEngineImpl._isPrimaryClient) {
     return;

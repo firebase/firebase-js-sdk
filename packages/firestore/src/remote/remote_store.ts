@@ -273,10 +273,8 @@ export function remoteStoreListen(
   remoteStore: RemoteStore,
   targetData: TargetData
 ): void {
-  console.log("remoteStoreListen")
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
 
-  console.log("remoteStoreImpl.listenTargets.has(targetData.targetId)", remoteStoreImpl.listenTargets.has(targetData.targetId))
   if (remoteStoreImpl.listenTargets.has(targetData.targetId)) {
     return;
   }
@@ -408,8 +406,6 @@ function cleanUpWatchStreamState(remoteStoreImpl: RemoteStoreImpl): void {
 async function onWatchStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
-  console.log("onWatchStreamOpen")
-
   remoteStoreImpl.listenTargets.forEach((targetData, targetId) => {
     sendWatchRequest(remoteStoreImpl, targetData);
   });
@@ -622,7 +618,6 @@ function raiseWatchSnapshot(
       targetPurpose,
       targetData.sequenceNumber
     );
-    console.log("raiseWatchSnapshot")
 
     sendWatchRequest(remoteStoreImpl, requestTargetData);
   });

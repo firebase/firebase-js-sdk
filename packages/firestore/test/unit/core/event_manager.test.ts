@@ -50,6 +50,7 @@ describe('EventManager', () => {
   function fakeQueryListener(query: Query): any {
     return {
       query,
+      options: {},
       onViewSnapshot: () => {},
       onError: () => {},
       applyOnlineStateChange: () => {}
@@ -58,11 +59,19 @@ describe('EventManager', () => {
 
   // mock objects.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let onListenSpy: any, onUnlistenSpy: any,  triggerRemoteStoreListen: any, triggerRemoteStoreUnlisten: any;
+  let onListenSpy: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onUnlistenSpy: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    triggerRemoteStoreListenSpy: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    triggerRemoteStoreUnlistenSpy: any;
 
   beforeEach(() => {
     onListenSpy = sinon.stub().returns(Promise.resolve(0));
     onUnlistenSpy = sinon.spy();
+    triggerRemoteStoreListenSpy = sinon.spy();
+    triggerRemoteStoreUnlistenSpy = sinon.spy();
   });
 
   it('handles many listenables per query', async () => {
@@ -73,8 +82,10 @@ describe('EventManager', () => {
     const eventManager = newEventManager();
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
-    eventManager.triggerRemoteStoreListen = triggerRemoteStoreListen.bind(null);
-    eventManager.triggerRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(null);
+    eventManager.triggerRemoteStoreListen =
+      triggerRemoteStoreListenSpy.bind(null);
+    eventManager.triggerRemoteStoreUnlisten =
+      triggerRemoteStoreUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;
@@ -96,6 +107,10 @@ describe('EventManager', () => {
     const eventManager = newEventManager();
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManager.triggerRemoteStoreListen =
+      triggerRemoteStoreListenSpy.bind(null);
+    eventManager.triggerRemoteStoreUnlisten =
+      triggerRemoteStoreUnlistenSpy.bind(null);
 
     await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.callCount).to.equal(0);
@@ -122,6 +137,10 @@ describe('EventManager', () => {
     const eventManager = newEventManager();
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManager.triggerRemoteStoreListen =
+      triggerRemoteStoreListenSpy.bind(null);
+    eventManager.triggerRemoteStoreUnlisten =
+      triggerRemoteStoreUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     await eventManagerListen(eventManager, fakeListener2);
@@ -154,6 +173,10 @@ describe('EventManager', () => {
     const eventManager = newEventManager();
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManager.triggerRemoteStoreListen =
+      triggerRemoteStoreListenSpy.bind(null);
+    eventManager.triggerRemoteStoreUnlisten =
+      triggerRemoteStoreUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);

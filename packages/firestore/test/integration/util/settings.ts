@@ -37,9 +37,9 @@ const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
 
-const TARGET_BACKEND: TargetBackend = TargetBackend.EMULATOR
+const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
-export const USE_EMULATOR: boolean = true
+export const USE_EMULATOR: boolean = true;
 
 export const DEFAULT_SETTINGS: PrivateSettings = {
   host: getFirestoreHost(TARGET_BACKEND),

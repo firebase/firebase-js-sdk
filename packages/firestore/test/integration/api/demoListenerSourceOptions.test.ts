@@ -17,69 +17,31 @@
 
 import { expect } from 'chai';
 
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { Deferred } from '../../util/promise';
+import { ListenSource } from '../../../src/api/reference_impl';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
-  and,
-  average,
-  Bytes,
-  collection,
-  collectionGroup,
-  count,
   deleteDoc,
   disableNetwork,
   doc,
-  DocumentChange,
-  DocumentChangeType,
-  DocumentData,
-  documentId,
   enableNetwork,
-  endAt,
-  endBefore,
-  FieldPath,
-  GeoPoint,
-  getAggregateFromServer,
-  getCountFromServer,
   getDocs,
   limit,
   limitToLast,
   onSnapshot,
-  or,
   orderBy,
   query,
   QuerySnapshot,
   setDoc,
-  startAfter,
-  startAt,
-  sum,
-  Timestamp,
   updateDoc,
-  where,
-  writeBatch,
-  CollectionReference,
-  WriteBatch,
-  Firestore
+  where
 } from '../util/firebase_export';
-import {
-  apiDescribe,
-  RetryError,
-  toChangesArray,
-  toDataArray,
-  toIds,
-  PERSISTENCE_MODE_UNSPECIFIED,
-  withEmptyTestCollection,
-  withRetry,
-  withTestCollection,
-  withTestDb,
-  checkOnlineAndOfflineResultsMatch
-} from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
-import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
-import { ListenSource } from '../../../src/api/reference_impl';
+import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
+
+import { verifyDocumentChange } from './query.test';
 
 apiDescribe('Snapshot Listener source options ', persistence => {
+  // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
     () => {
@@ -140,7 +102,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'b', sort: 1 }
           ]);
 
-          storeEvent.assertNoAdditionalEvents();
+          await storeEvent.assertNoAdditionalEvents();
           unsubscribe();
         });
       });
@@ -162,14 +124,14 @@ apiDescribe('Snapshot Listener source options ', persistence => {
               storeEvent.storeEvent
             );
 
-            let snapshot = await storeEvent.awaitEvent();
+            const snapshot = await storeEvent.awaitEvent();
             expect(snapshot.metadata.fromCache).to.equal(true);
             expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
             await disableNetwork(db);
             await enableNetwork(db);
 
-            storeEvent.assertNoAdditionalEvents();
+            await storeEvent.assertNoAdditionalEvents();
             unsubscribe();
           }
         );
@@ -230,7 +192,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'b', sort: 1 },
             { k: 'c', sort: 2 }
           ]);
-          storeEvent.assertNoAdditionalEvents();
+          await storeEvent.assertNoAdditionalEvents();
           unsubscribe2();
         });
       });
@@ -253,7 +215,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           // Setup `limit` query
           const storeLimitEvent = new EventsAccumulator<QuerySnapshot>();
-          const limitUnlisten = onSnapshot(
+          let limitUnlisten = onSnapshot(
             query(collection, orderBy('sort', 'asc'), limit(2)),
             { source: ListenSource.Cache },
             storeLimitEvent.storeEvent
@@ -261,7 +223,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           // Setup mirroring `limitToLast` query
           const storeLimitToLastEvent = new EventsAccumulator<QuerySnapshot>();
-          const limitToLastUnlisten = onSnapshot(
+          let limitToLastUnlisten = onSnapshot(
             query(collection, orderBy('sort', 'desc'), limitToLast(2)),
             { source: ListenSource.Cache },
             storeLimitToLastEvent.storeEvent
@@ -283,7 +245,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           // Unlisten then relisten limit query.
           limitUnlisten();
-          onSnapshot(
+          limitUnlisten = onSnapshot(
             query(collection, orderBy('sort', 'asc'), limit(2)),
             { source: ListenSource.Cache },
             storeLimitEvent.storeEvent
@@ -317,7 +279,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           // Unlisten to limitToLast, update a doc, then relisten limitToLast.
           limitToLastUnlisten();
           await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
-          onSnapshot(
+          limitToLastUnlisten = onSnapshot(
             query(collection, orderBy('sort', 'desc'), limitToLast(2)),
             { source: ListenSource.Cache },
             storeLimitToLastEvent.storeEvent
@@ -338,7 +300,108 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(snapshot.metadata.fromCache).to.equal(true);
 
           limitUnlisten();
-          // limitToLastUnlisten();
+          limitToLastUnlisten();
+        });
+      });
+
+      it('can listen/unlisten/relisten to same query with different source options', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 },
+          b: { k: 'b', sort: 1 }
+        };
+        return withTestCollection(persistence, testDocs, async collection => {
+          // Listen to the query with default options, which will also populates the cache
+          const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
+          let defaultUnlisten = onSnapshot(
+            query(collection, orderBy('sort', 'asc')),
+            storeDefaultEvent.storeEvent
+          );
+
+          let snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Listen to the same query from cache
+          const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
+          let cacheUnlisten = onSnapshot(
+            query(collection, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          // the cache is sync with server due to the other listener
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Unlisten and re-listen to the default listener.
+          defaultUnlisten();
+          defaultUnlisten = onSnapshot(
+            query(collection, orderBy('sort', 'asc')),
+            storeDefaultEvent.storeEvent
+          );
+
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Add a document that would change the result set.
+          await addDoc(collection, { k: 'c', sort: -1 });
+
+          // Verify both queries get expected results.
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'c', sort: -1 },
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'c', sort: -1 },
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Unlisten to cache, update a doc, then re-listen to cache.
+          cacheUnlisten();
+          await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
+          cacheUnlisten = onSnapshot(
+            query(collection, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+
+          // Verify both queries get expected results.
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: -2 },
+            { k: 'c', sort: -1 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: -2 },
+            { k: 'c', sort: -1 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          defaultUnlisten();
+          cacheUnlisten();
         });
       });
 
@@ -404,7 +467,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             storeEvent.storeEvent
           );
 
-          let snapshot = await storeEvent.awaitEvent();
+          const snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.fromCache).to.equal(true);
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
           unsubscribe();
@@ -413,9 +476,9 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
       it('can raise initial snapshot from cache, even if it is empty', () => {
         return withTestCollection(persistence, {}, async coll => {
-          const snapshot1 = await getDocs(coll); // Populate the cache.
-          expect(snapshot1.metadata.fromCache).to.be.false;
-          expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
+          let snapshot = await getDocs(coll); // Populate the cache.
+          expect(snapshot.metadata.fromCache).to.be.false;
+          expect(toDataArray(snapshot)).to.deep.equal([]); // Precondition check.
 
           // Add a snapshot listener whose first event should be raised from cache.
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
@@ -424,24 +487,11 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { source: ListenSource.Cache },
             storeEvent.storeEvent
           );
-          const snapshot2 = await storeEvent.awaitEvent();
-          expect(snapshot2.metadata.fromCache).to.be.true;
-          expect(toDataArray(snapshot2)).to.deep.equal([]);
+          snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.be.true;
+          expect(toDataArray(snapshot)).to.deep.equal([]);
         });
       });
     }
   );
-
-  function verifyDocumentChange<T>(
-    change: DocumentChange<T>,
-    id: string,
-    oldIndex: number,
-    newIndex: number,
-    type: DocumentChangeType
-  ): void {
-    expect(change.doc.id).to.equal(id);
-    expect(change.type).to.equal(type);
-    expect(change.oldIndex).to.equal(oldIndex);
-    expect(change.newIndex).to.equal(newIndex);
-  }
 });

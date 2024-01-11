@@ -358,10 +358,8 @@ abstract class TestRunner {
       null,
       this.syncEngine
     );
-    this.eventManager.triggerRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
-      null,
-      this.syncEngine
-    );
+    this.eventManager.triggerRemoteStoreUnlisten =
+      triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
