@@ -27,9 +27,9 @@ import typescript from 'typescript';
 
 import { externs } from './externs.json';
 import pkg from './package.json';
-import { extractPublicIdentifiers } from './scripts/extract-api';
-import { removeAsserts } from './scripts/remove-asserts';
-import { renameInternals } from './scripts/rename-internals';
+import { extractPublicIdentifiers } from './rollup/extract-api';
+import { removeAsserts } from './rollup/remove-asserts';
+import { renameInternals } from './rollup/rename-internals';
 
 // This file contains shared utilities for Firestore's rollup builds.
 
