@@ -79,7 +79,6 @@ export interface SnapshotListenOptions {
    */
   readonly includeMetadataChanges?: boolean;
 
-  //Mila
   readonly source?: ListenSource;
 }
 
