@@ -95,7 +95,7 @@ export function resolveNodeExterns(id: string): boolean {
 }
 
 /** Breaks the build if there is a circular dependency. */
-export function onwarn(
+export function circularDependencyBreakingOnWarn(
   warning: RollupWarning,
   defaultWarn: WarningHandler
 ): void {

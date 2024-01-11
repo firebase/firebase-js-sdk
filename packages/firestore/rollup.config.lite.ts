@@ -27,7 +27,14 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 import pkg from './lite/package.json';
-const util = require('./rollup.shared');
+import {
+  resolveNodeExterns,
+  manglePrivatePropertiesOptions,
+  generateAliasConfig,
+  removeAssertAndPrefixInternalTransformer,
+  removeAssertTransformer,
+  circularDependencyBreakingOnWarn, resolveBrowserExterns, es2017ToEs5Plugins
+} from './rollup.shared';
 
 function nodePlugins(): Plugin[] {
   return [
@@ -39,7 +46,7 @@ function nodePlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertTransformer],
+      transformers: [removeAssertTransformer],
       verbosity: 2
     }),
     json({ preferConst: true })
@@ -56,11 +63,11 @@ function browserPlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer],
+      transformers: [removeAssertAndPrefixInternalTransformer],
       verbosity: 2
     }),
     json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    terser(manglePrivatePropertiesOptions)
   ];
 }
 
@@ -76,17 +83,17 @@ const allBuilds: RollupOptions[] = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('node_lite')),
+      alias(generateAliasConfig('node_lite')),
       ...nodePlugins(),
       replace({
         '__RUNTIME_ENV__': 'node'
       })
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
-    onwarn: util.onwarn
+    onwarn: circularDependencyBreakingOnWarn
   },
   // Node CJS build
   {
@@ -106,7 +113,7 @@ const allBuilds: RollupOptions[] = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -123,7 +130,7 @@ const allBuilds: RollupOptions[] = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -139,14 +146,14 @@ const allBuilds: RollupOptions[] = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('browser_lite')),
+      alias(generateAliasConfig('browser_lite')),
       ...browserPlugins(),
       // setting it to empty string because browser is the default env
       replace({
         '__RUNTIME_ENV__': ''
       })
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -162,10 +169,10 @@ const allBuilds: RollupOptions[] = [
       }
     ],
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      ...es2017ToEs5Plugins(/* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -184,7 +191,7 @@ const allBuilds: RollupOptions[] = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -203,7 +210,7 @@ const allBuilds: RollupOptions[] = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -217,14 +224,14 @@ const allBuilds: RollupOptions[] = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn_lite')),
+      alias(generateAliasConfig('rn_lite')),
       ...browserPlugins(),
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': 'rn'
       })
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
