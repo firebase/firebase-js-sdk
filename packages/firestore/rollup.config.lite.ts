@@ -17,6 +17,7 @@
 
 import path from 'path';
 
+import type { Plugin, RollupOptions } from 'rollup';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
 import replace from 'rollup-plugin-replace';
@@ -24,14 +25,11 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-
 import pkg from './lite/package.json';
-
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
+function nodePlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -45,9 +43,9 @@ const nodePlugins = function () {
     }),
     json({ preferConst: true })
   ];
-};
+}
 
-const browserPlugins = function () {
+function browserPlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -62,9 +60,9 @@ const browserPlugins = function () {
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)
   ];
-};
+}
 
-const allBuilds = [
+const allBuilds: RollupOptions[] = [
   // Intermidiate Node ESM build without build target reporting
   // this is an intermidiate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -99,10 +97,6 @@ const allBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true,
-          target: 'es5'
-        },
         include: ['dist/lite/*.js']
       }),
       json(),
@@ -234,4 +228,6 @@ const allBuilds = [
   }
 ];
 
-export default allBuilds;
+export default function (command: Record<string, unknown>): RollupOptions[] {
+  return allBuilds;
+}

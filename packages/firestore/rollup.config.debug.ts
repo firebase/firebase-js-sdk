@@ -80,8 +80,6 @@ const rollupOptions: RollupOptions[] = [
   }
 ];
 
-export default function (
-  command: Record<string, unknown>
-): RollupOptions[] {
+export default function (command: Record<string, unknown>): RollupOptions[] {
   return rollupOptions;
 }

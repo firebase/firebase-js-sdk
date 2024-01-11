@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import type { Plugin, RollupOptions } from 'rollup';
 import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
@@ -22,18 +23,13 @@ import dts from 'rollup-plugin-dts';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import tmp from 'tmp';
 import typescript from 'typescript';
-
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
-
 import pkg from './package.json';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import * as util from './rollup.shared';
 
-const sourcemaps = require('rollup-plugin-sourcemaps');
-
-const util = require('./rollup.shared');
-
-const nodePlugins = function () {
+function nodePlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -42,7 +38,6 @@ const nodePlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
       transformers: [util.removeAssertTransformer]
     }),
@@ -51,9 +46,9 @@ const nodePlugins = function () {
       '__GRPC_VERSION__': grpcVersion
     })
   ];
-};
+}
 
-const browserPlugins = function () {
+function browserPlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -62,16 +57,15 @@ const browserPlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)
   ];
-};
+}
 
-const allBuilds = [
+const allBuilds: RollupOptions[] = [
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -228,4 +222,6 @@ const allBuilds = [
   }
 ];
 
-export default allBuilds;
+export default function (command: Record<string, unknown>): RollupOptions[] {
+  return allBuilds;
+}
