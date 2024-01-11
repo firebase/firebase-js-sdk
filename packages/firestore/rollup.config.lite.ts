@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
 import path from 'path';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
@@ -39,7 +38,6 @@ const nodePlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
       transformers: [util.removeAssertTransformer]
     }),
@@ -56,7 +54,6 @@ const browserPlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
       transformers: [util.removeAssertAndPrefixInternalTransformer]
     }),
