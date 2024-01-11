@@ -318,7 +318,6 @@ export interface ListenOptions {
    */
   readonly waitForSyncWhenOnline?: boolean;
 
-  // Mila
   readonly source?: ListenSource;
 }
 
@@ -335,7 +334,6 @@ export class QueryListener {
    */
   private raisedInitialEvent = false;
 
-  // Mila
   readonly options: ListenOptions;
 
   private snap: ViewSnapshot | null = null;
