@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 
-import { ListenSource } from '../../../src/api/reference_impl';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -28,6 +27,7 @@ import {
   getDocs,
   limit,
   limitToLast,
+  ListenSource,
   onSnapshot,
   orderBy,
   query,
