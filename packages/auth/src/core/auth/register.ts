@@ -79,6 +79,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           clientPlatform,
           apiHost: DefaultConfig.API_HOST,
           tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          browserIframeHost: DefaultConfig.BROWSER_IFRAME_HOST,
           apiScheme: DefaultConfig.API_SCHEME,
           sdkClientVersion: _getClientVersion(clientPlatform)
         };
