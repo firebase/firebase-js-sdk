@@ -82,8 +82,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
 |  <b>function(query, ...)</b> |
-|  [getAggregateFromServer(query, aggregateSpec)](./firestore_.md#getaggregatefromserver_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server. |
-|  [getCountFromServer(query)](./firestore_.md#getcountfromserver_4e56953) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server. |
+|  [getAggregateFromServer(query, aggregateSpec)](./firestore_.md#getaggregatefromserver_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
+|  [getCountFromServer(query)](./firestore_.md#getcountfromserver_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
 |  [getDocs(query)](./firestore_.md#getdocs_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code>.<!-- -->Note: <code>getDocs()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache_4e56953) or [getDocsFromServer()](./firestore_.md#getdocsfromserver_4e56953)<!-- -->. |
 |  [getDocsFromCache(query)](./firestore_.md#getdocsfromcache_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code> from cache. Returns an empty result set if no documents matching the query are currently cached. |
 |  [getDocsFromServer(query)](./firestore_.md#getdocsfromserver_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code> from the server. Returns an error if the network is not available. |
@@ -1489,11 +1489,11 @@ The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
 ### getAggregateFromServer(query, aggregateSpec) {:#getaggregatefromserver_2073a74}
 
-Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.
+Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.
 
-Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
 
-The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server.
+The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server.
 
 <b>Signature:</b>
 
@@ -1505,7 +1505,7 @@ export declare function getAggregateFromServer<AggregateSpecType extends Aggrega
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set to aggregate over. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set is aggregated over. |
 |  aggregateSpec | AggregateSpecType | An <code>AggregateSpec</code> object that specifies the aggregates to perform over the result set. The AggregateSpec specifies aliases for each aggregate, which can be used to retrieve the aggregate result. |
 
 <b>Returns:</b>
@@ -1530,11 +1530,11 @@ const averageScore: number | null = aggregateSnapshot.data().averageScore;
 
 ### getCountFromServer(query) {:#getcountfromserver_4e56953}
 
-Calculates the number of documents in the result set of the given query, without actually downloading the documents.
+Calculates the number of documents in the result set of the given query without actually downloading the documents.
 
-Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
 
-The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server.
+The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server.
 
 <b>Signature:</b>
 
@@ -1548,7 +1548,7 @@ export declare function getCountFromServer<AppModelType, DbModelType extends Doc
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size to calculate. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size is calculated. |
 
 <b>Returns:</b>
 
