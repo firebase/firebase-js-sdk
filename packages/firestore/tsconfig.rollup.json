@@ -8,7 +8,7 @@
     "lib": ["es2020"],
     "module": "es2020",
     "moduleResolution": "node",
-    "outDir": "tmp/rollup",
+    "outDir": "rollup/tsc_out",
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
