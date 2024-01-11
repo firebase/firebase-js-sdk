@@ -249,7 +249,8 @@ export function es2017ToEs5Plugins(mangled: boolean = false): Plugin[] {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js']
+        include: ['dist/**/*.js'],
+        verbosity: 2
       }),
       terser({
         output: {
@@ -274,7 +275,8 @@ export function es2017ToEs5Plugins(mangled: boolean = false): Plugin[] {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js']
+        include: ['dist/**/*.js'],
+        verbosity: 2
       }),
       sourcemaps()
     ];

@@ -39,7 +39,8 @@ function nodePlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertTransformer]
+      transformers: [util.removeAssertTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true })
   ];
@@ -55,7 +56,8 @@ function browserPlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
+      transformers: [util.removeAssertAndPrefixInternalTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)
@@ -97,7 +99,8 @@ const allBuilds: RollupOptions[] = [
     plugins: [
       typescriptPlugin({
         typescript,
-        include: ['dist/lite/*.js']
+        include: ['dist/lite/*.js'],
+        verbosity: 2
       }),
       json(),
       sourcemaps(),

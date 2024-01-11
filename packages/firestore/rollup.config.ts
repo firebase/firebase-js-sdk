@@ -39,7 +39,8 @@ function nodePlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertTransformer]
+      transformers: [util.removeAssertTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
     replace({
@@ -58,7 +59,8 @@ function browserPlugins(): Plugin[] {
         }
       },
       abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
+      transformers: [util.removeAssertAndPrefixInternalTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
     terser(util.manglePrivatePropertiesOptions)

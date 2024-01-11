@@ -40,7 +40,8 @@ function browserPlugins(): Plugin[] {
         }
       },
       clean: true,
-      abortOnError: true
+      abortOnError: true,
+      verbosity: 2
     }),
     json({ preferConst: true })
   ];
