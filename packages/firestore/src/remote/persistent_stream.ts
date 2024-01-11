@@ -638,6 +638,7 @@ export class PersistentListenStream extends PersistentStream<
   protected onMessage(watchChangeProto: ProtoListenResponse): Promise<void> {
     // A successful response means the stream is healthy
     this.backoff.reset();
+
     const watchChange = fromWatchChange(this.serializer, watchChangeProto);
     const snapshot = versionFromListenResponse(watchChangeProto);
     return this.listener!.onWatchChange(watchChange, snapshot);
@@ -658,6 +659,7 @@ export class PersistentListenStream extends PersistentStream<
     if (labels) {
       request.labels = labels;
     }
+
     this.sendRequest(request);
   }
 
@@ -669,7 +671,6 @@ export class PersistentListenStream extends PersistentStream<
     const request: ListenRequest = {};
     request.database = getEncodedDatabaseId(this.serializer);
     request.removeTarget = targetId;
-
     this.sendRequest(request);
   }
 }

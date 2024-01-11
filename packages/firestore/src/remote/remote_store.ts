@@ -618,7 +618,6 @@ function raiseWatchSnapshot(
       targetPurpose,
       targetData.sequenceNumber
     );
-
     sendWatchRequest(remoteStoreImpl, requestTargetData);
   });
 
