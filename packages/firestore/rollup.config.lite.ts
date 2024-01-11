@@ -16,16 +16,18 @@
  */
 
 import path from 'path';
-import json from '@rollup/plugin-json';
+
 import alias from '@rollup/plugin-alias';
+import json from '@rollup/plugin-json';
+import replace from 'rollup-plugin-replace';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import sourcemaps from 'rollup-plugin-sourcemaps';
-import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './lite/package.json';
-import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
 

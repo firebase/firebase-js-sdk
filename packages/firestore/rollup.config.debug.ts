@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import type { Plugin, RollupOptions } from 'rollup';
-import json from '@rollup/plugin-json';
+import type { RollupAliasOptions } from '@rollup/plugin-alias';
 import alias from '@rollup/plugin-alias';
+import json from '@rollup/plugin-json';
+import type { Plugin, RollupOptions } from 'rollup';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
@@ -43,9 +44,9 @@ function browserPlugins(): Plugin[] {
     }),
     json({ preferConst: true })
   ];
-};
+}
 
-const aliasConfig = {
+const aliasConfig: RollupAliasOptions = {
   entries: [
     {
       find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
@@ -59,7 +60,7 @@ const browserDeps: string[] = [
   '@firebase/app'
 ];
 
-const rollupOptions: RollupOptions[] =  [
+const rollupOptions: RollupOptions[] = [
   {
     input: './src/index.ts',
     output: {
@@ -79,4 +80,8 @@ const rollupOptions: RollupOptions[] =  [
   }
 ];
 
-export default rollupOptions;
+export default function (
+  command: Record<string, unknown>
+): RollupOptions[] {
+  return rollupOptions;
+}

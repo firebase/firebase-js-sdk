@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-const tmp = require('tmp');
-const json = require('@rollup/plugin-json');
-const alias = require('@rollup/plugin-alias');
-const typescriptPlugin = require('rollup-plugin-typescript2');
-const typescript = require('typescript');
-const { terser } = require('rollup-plugin-terser');
-const path = require('path');
-const sourcemaps = require('rollup-plugin-sourcemaps');
+import path from 'path';
 
-const { renameInternals } = require('./scripts/rename-internals');
-const { extractPublicIdentifiers } = require('./scripts/extract-api');
-const { removeAsserts } = require('./scripts/remove-asserts');
+import type { RollupAliasOptions } from '@rollup/plugin-alias';
+import type { RollupWarning, WarningHandler, Plugin } from 'rollup';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
+import type { Options as TerserOptions } from 'rollup-plugin-terser';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
 
-const { externs } = require('./externs.json');
-const pkg = require('./package.json');
+import { externs } from './externs.json';
+import pkg from './package.json';
+import { extractPublicIdentifiers } from './scripts/extract-api';
+import { removeAsserts } from './scripts/remove-asserts';
+import { renameInternals } from './scripts/rename-internals';
 
 // This file contains shared utilities for Firestore's rollup builds.
 
@@ -62,7 +62,7 @@ const pkg = require('./package.json');
  * references to platform-specific files with implementations for the provided
  * target platform.
  */
-function generateAliasConfig(platform) {
+export function generateAliasConfig(platform: string): RollupAliasOptions {
   return {
     entries: [
       {
@@ -72,40 +72,44 @@ function generateAliasConfig(platform) {
     ]
   };
 }
-exports.generateAliasConfig = generateAliasConfig;
 
-const browserDeps = [
+const browserDeps: string[] = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
   '@firebase/app'
 ];
 
-const nodeDeps = [...browserDeps, 'util', 'path', 'url'];
+const nodeDeps: string[] = [...browserDeps, 'util', 'path', 'url'];
 
 /** Resolves the external dependencies for the browser build. */
-exports.resolveBrowserExterns = function (id) {
+export function resolveBrowserExterns(id: string): boolean {
   return [...browserDeps, '@firebase/firestore'].some(
     dep => id === dep || id.startsWith(`${dep}/`)
   );
-};
+}
 
 /** Resolves the external dependencies for the Node build. */
-exports.resolveNodeExterns = function (id) {
+export function resolveNodeExterns(id: string): boolean {
   return [...nodeDeps, '@firebase/firestore'].some(
     dep => id === dep || id.startsWith(`${dep}/`)
   );
-};
+}
 
 /** Breaks the build if there is a circular dependency. */
-exports.onwarn = function (warning, defaultWarn) {
+export function onwarn(
+  warning: RollupWarning,
+  defaultWarn: WarningHandler
+): void {
   if (warning.code === 'CIRCULAR_DEPENDENCY') {
-    throw new Error(warning);
+    throw new Error(`circular dependency: ${JSON.stringify(warning)}`);
   }
   defaultWarn(warning);
-};
+}
 
-const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
+const externsPaths: string[] = externs.map(p =>
+  path.resolve(__dirname, '../../', p)
+);
 
-const publicIdentifiers = extractPublicIdentifiers(externsPaths);
+const publicIdentifiers: Set<string> = extractPublicIdentifiers(externsPaths);
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
 
@@ -113,33 +117,38 @@ publicIdentifiers.add('_delegate');
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and
  * `hardAssert`.
  */
-const removeAssertTransformer = service => ({
-  before: [removeAsserts(service.getProgram())],
-  after: []
-});
-exports.removeAssertTransformer = removeAssertTransformer;
+export function removeAssertTransformer(
+  service: typescript.LanguageService
+): typescript.CustomTransformers {
+  return {
+    before: [removeAsserts(service.getProgram()!)],
+    after: []
+  };
+}
 
 /**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-const removeAssertAndPrefixInternalTransformer = service => ({
-  before: [
-    removeAsserts(service.getProgram()),
-    renameInternals(service.getProgram(), {
-      publicIdentifiers,
-      prefix: '__PRIVATE_'
-    })
-  ],
-  after: []
-});
-exports.removeAssertAndPrefixInternalTransformer =
-  removeAssertAndPrefixInternalTransformer;
+export function removeAssertAndPrefixInternalTransformer(
+  service: typescript.LanguageService
+): typescript.CustomTransformers {
+  return {
+    before: [
+      removeAsserts(service.getProgram()!),
+      renameInternals(service.getProgram()!, {
+        publicIdentifiers,
+        prefix: '__PRIVATE_'
+      })
+    ],
+    after: []
+  };
+}
 
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
  */
-const manglePrivatePropertiesOptions = {
+export const manglePrivatePropertiesOptions: TerserOptions = {
   output: {
     comments: 'all',
     beautify: true
@@ -229,55 +238,8 @@ const manglePrivatePropertiesOptions = {
     }
   }
 };
-exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
 
-exports.applyPrebuilt = function (name = 'prebuilt.js') {
-  return alias({
-    entries: [
-      {
-        find: /^(.*)\/export$/,
-        replacement: `$1\/dist/${name}`
-      }
-    ]
-  });
-};
-
-exports.es2017Plugins = function (platform, mangled = false) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertAndPrefixInternalTransformer]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
-
-exports.es2017ToEs5Plugins = function (mangled = false) {
+export function es2017ToEs5Plugins(mangled: boolean = false): Plugin[] {
   if (mangled) {
     return [
       typescriptPlugin({
@@ -287,8 +249,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        include: ['dist/**/*.js']
       }),
       terser({
         output: {
@@ -313,54 +274,9 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        include: ['dist/**/*.js']
       }),
       sourcemaps()
     ];
   }
-};
-
-exports.es2017PluginsCompat = function (
-  platform,
-  pathTransformer,
-  mangled = false
-) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [
-          removeAssertAndPrefixInternalTransformer,
-          pathTransformer
-        ]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [removeAssertTransformer, pathTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
+}

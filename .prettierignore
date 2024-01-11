@@ -1,4 +1,3 @@
 # This file is pre-built and need not be formatted
 packages/firebase/firebase*
-packages/firestore/scripts
 dist
