@@ -234,6 +234,5 @@ const allBuilds: RollupOptions[] = [
 ];
 
 export default function (command: Record<string, unknown>): RollupOptions[] {
-  console.log(`zzyzx COMMAND: ${JSON.stringify(command)}`);
   return allBuilds;
 }
