@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
+import type { Plugin, RollupOptions } from 'rollup';
 import pkg from './package.json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { removeAssertTransformer } from '../firestore/rollup.shared';
 
-const util = require('../firestore/rollup.shared');
+const deps: string[] = Object.keys({
+  ...pkg.peerDependencies,
+  ...pkg.dependencies
+});
 
-const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
-
-const es2017Plugins = [
+const es2017Plugins: Plugin[] = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -33,20 +36,20 @@ const es2017Plugins = [
         target: 'es2017'
       }
     },
-    transformers: [util.removeAssertTransformer]
+    transformers: [removeAssertTransformer]
   }),
   json({ preferConst: true })
 ];
 
-const es5Plugins = [
+const es5Plugins: Plugin[] = [
   typescriptPlugin({
     typescript,
-    transformers: [util.removeAssertTransformer]
+    transformers: [removeAssertTransformer]
   }),
   json({ preferConst: true })
 ];
 
-const browserBuilds = [
+const browserBuilds: RollupOptions[] = [
   {
     input: './src/index.ts',
     output: {
@@ -83,7 +86,7 @@ const browserBuilds = [
   }
 ];
 
-const nodeBuilds = [
+const nodeBuilds: RollupOptions[] = [
   {
     input: './src/index.node.ts',
     output: {
@@ -106,7 +109,7 @@ const nodeBuilds = [
   }
 ];
 
-const rnBuilds = [
+const rnBuilds: RollupOptions[] = [
   {
     input: './src/index.rn.ts',
     output: {

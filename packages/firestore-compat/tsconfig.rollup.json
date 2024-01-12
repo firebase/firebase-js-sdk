@@ -1,0 +1,18 @@
+{
+  "include": ["rollup.config.ts"],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "lib": ["es2020"],
+    "module": "es2020",
+    "moduleResolution": "node",
+    "outDir": "rollup_build",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2020",
+    "typeRoots": ["../../node_modules/@types"]
+  }
+}
