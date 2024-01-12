@@ -17,15 +17,17 @@
 
 import path from 'path';
 
-import type { Plugin, RollupOptions } from 'rollup';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
+import type { Plugin, RollupOptions } from 'rollup';
 import replace from 'rollup-plugin-replace';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+
 import pkg from './lite/package.json';
 import {
   resolveNodeExterns,
