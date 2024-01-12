@@ -78,6 +78,6 @@ module.exports = {
         'import/no-default-export': 'off',
         'import/no-extraneous-dependencies': 'off'
       }
-    },
+    }
   ]
 };
