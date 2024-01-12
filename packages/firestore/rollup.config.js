@@ -36,7 +36,9 @@ function validateMode(mode) {
   if (mode === 'production' || mode === 'development') {
     return;
   }
-  throw new Error(`invalid mode: '${mode}' (must be either 'production' or 'development')`);
+  throw new Error(
+    `invalid mode: '${mode}' (must be either 'production' or 'development')`
+  );
 }
 
 function* nodePlugins(mode) {
@@ -96,7 +98,8 @@ function* browserPlugins(mode) {
 function* nodeBuilds(mode) {
   validateMode(mode);
 
-  const intermediateOutputFile = (mode === 'production') ? pkg['main-esm'] : 'dist/index.node.debug.mjs';
+  const intermediateOutputFile =
+    mode === 'production' ? pkg['main-esm'] : 'dist/index.node.debug.mjs';
 
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
@@ -108,22 +111,19 @@ function* nodeBuilds(mode) {
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      alias(util.generateAliasConfig('node')),
-      ...nodePlugins(mode)
-    ],
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins(mode)],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
     onwarn: util.onwarn
-  }
+  };
 
   // Node CJS build
   yield {
     input: intermediateOutputFile,
     output: {
-      file: (mode === 'production') ? pkg.main : 'dist/index.node.debug.cjs.js',
+      file: mode === 'production' ? pkg.main : 'dist/index.node.debug.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -135,7 +135,7 @@ function* nodeBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 
   // Node ESM build with build target reporting
   yield {
@@ -153,13 +153,14 @@ function* nodeBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 }
 
 function* browserBuilds(mode) {
   validateMode(mode);
 
-  const intermediateOutputFile = (mode === 'production') ? pkg['browser'] : 'dist/index.esm2017.debug.js';
+  const intermediateOutputFile =
+    mode === 'production' ? pkg['browser'] : 'dist/index.esm2017.debug.js';
 
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
@@ -179,14 +180,14 @@ function* browserBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 
   // Convert es2017 build to ES5
   yield {
     input: intermediateOutputFile,
     output: [
       {
-        file: (mode === 'production') ? pkg['esm5'] : 'dist/index.esm5.debug.js',
+        file: mode === 'production' ? pkg['esm5'] : 'dist/index.esm5.debug.js',
         format: 'es',
         sourcemap: true
       }
@@ -199,14 +200,17 @@ function* browserBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 
   // Convert es2017 build to cjs
   yield {
     input: intermediateOutputFile,
     output: [
       {
-        file: (mode === 'production') ? './dist/index.cjs.js' : "./dist/index.cjs.debug.js",
+        file:
+          mode === 'production'
+            ? './dist/index.cjs.js'
+            : './dist/index.cjs.debug.js',
         format: 'cjs',
         sourcemap: true
       }
@@ -219,7 +223,7 @@ function* browserBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 
   // es2017 build with build target reporting
   yield {
@@ -239,8 +243,7 @@ function* browserBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
-
+  };
 }
 
 function* reactNativeBuilds(mode) {
@@ -249,7 +252,8 @@ function* reactNativeBuilds(mode) {
   yield {
     input: './src/index.rn.ts',
     output: {
-      file: (mode === 'production') ? pkg['react-native'] : 'dist/index.rn.debug.js',
+      file:
+        mode === 'production' ? pkg['react-native'] : 'dist/index.rn.debug.js',
       format: 'es',
       sourcemap: true
     },
@@ -262,7 +266,7 @@ function* reactNativeBuilds(mode) {
     treeshake: {
       moduleSideEffects: false
     }
-  }
+  };
 }
 
 function globalIndexBuild() {
@@ -277,7 +281,7 @@ function globalIndexBuild() {
         respectExternal: true
       })
     ]
-  }
+  };
 }
 
 function* allBuildsForMode(mode) {
