@@ -30,14 +30,14 @@ import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_rep
 
 import pkg from './package.json';
 import {
-  resolveNodeExterns,
-  manglePrivatePropertiesOptions,
+  circularDependencyBreakingOnWarn,
+  es2017ToEs5Plugins,
   generateAliasConfig,
+  manglePrivatePropertiesOptions,
   removeAssertAndPrefixInternalTransformer,
   removeAssertTransformer,
-  circularDependencyBreakingOnWarn,
   resolveBrowserExterns,
-  es2017ToEs5Plugins
+  resolveNodeExterns
 } from './rollup.shared';
 
 function nodePlugins(): Plugin[] {
