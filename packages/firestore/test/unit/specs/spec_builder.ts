@@ -16,7 +16,10 @@
  */
 
 import { IndexConfiguration } from '../../../src/api/index_configuration';
-import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import {
+  ExpUserDataWriter,
+  ListenSource
+} from '../../../src/api/reference_impl';
 import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
   LimitType,
@@ -294,6 +297,40 @@ export class SpecBuilder {
     return this;
   }
 
+  userListensToCache(query: Query, resume?: ResumeSpec): this {
+    this.nextStep();
+
+    const target = queryToTarget(query);
+    let targetId: TargetId = 0;
+
+    if (this.injectFailures) {
+      this.currentStep = {
+        userListen: {
+          targetId,
+          query: SpecBuilder.queryToSpec(query),
+          options: { source: ListenSource.Cache }
+        }
+      };
+    } else {
+      if (this.queryMapping.has(target)) {
+        targetId = this.queryMapping.get(target)!;
+      } else {
+        targetId = this.queryIdGenerator.next(target);
+      }
+
+      this.queryMapping.set(target, targetId);
+      this.currentStep = {
+        userListen: {
+          targetId,
+          query: SpecBuilder.queryToSpec(query),
+          options: { source: ListenSource.Cache }
+        },
+        expectedState: { activeTargets: { ...this.activeTargets } }
+      };
+    }
+    return this;
+  }
+
   /**
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
@@ -328,6 +365,26 @@ export class SpecBuilder {
     }
     const targetId = this.queryMapping.get(target)!;
     this.removeQueryFromActiveTargets(query, targetId);
+
+    if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
+      this.queryMapping.delete(target);
+      this.queryIdGenerator.purge(target);
+    }
+
+    this.currentStep = {
+      userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
+      expectedState: { activeTargets: { ...this.activeTargets } }
+    };
+    return this;
+  }
+
+  userUnlistensToCache(query: Query): this {
+    this.nextStep();
+    const target = queryToTarget(query);
+    if (!this.queryMapping.has(target)) {
+      throw new Error('Unlistening to query not listened to: ' + query);
+    }
+    const targetId = this.queryMapping.get(target)!;
 
     if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);

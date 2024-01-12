@@ -293,7 +293,7 @@ export function newSyncEngine(
 export async function syncEngineListen(
   syncEngine: SyncEngine,
   query: Query,
-  enableRemoteListen: boolean = true
+  enableRemoteListen: boolean
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
 
@@ -411,7 +411,7 @@ async function initializeViewAndComputeSnapshot(
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
   query: Query,
-  disableRemoteListen: boolean = true
+  disableRemoteListen: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
