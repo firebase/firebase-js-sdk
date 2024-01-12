@@ -33,7 +33,9 @@ import {
   generateAliasConfig,
   removeAssertAndPrefixInternalTransformer,
   removeAssertTransformer,
-  circularDependencyBreakingOnWarn, resolveBrowserExterns, es2017ToEs5Plugins
+  circularDependencyBreakingOnWarn,
+  resolveBrowserExterns,
+  es2017ToEs5Plugins
 } from './rollup.shared';
 
 function nodePlugins(): Plugin[] {

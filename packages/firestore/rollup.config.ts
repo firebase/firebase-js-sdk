@@ -33,7 +33,9 @@ import {
   generateAliasConfig,
   removeAssertAndPrefixInternalTransformer,
   removeAssertTransformer,
-  circularDependencyBreakingOnWarn, resolveBrowserExterns, es2017ToEs5Plugins
+  circularDependencyBreakingOnWarn,
+  resolveBrowserExterns,
+  es2017ToEs5Plugins
 } from './rollup.shared';
 
 function nodePlugins(): Plugin[] {
@@ -232,6 +234,6 @@ const allBuilds: RollupOptions[] = [
 ];
 
 export default function (command: Record<string, unknown>): RollupOptions[] {
-  console.log(`zzyzx COMMAND: ${JSON.stringify(command)}`)
+  console.log(`zzyzx COMMAND: ${JSON.stringify(command)}`);
   return allBuilds;
 }
