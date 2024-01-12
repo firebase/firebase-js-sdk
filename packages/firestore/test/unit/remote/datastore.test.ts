@@ -24,6 +24,7 @@ import {
   Token
 } from '../../../src/api/credentials';
 import { DatabaseId } from '../../../src/core/database_info';
+import { ResourcePath } from '../../../src/model/path';
 import { Connection, Stream } from '../../../src/remote/connection';
 import {
   Datastore,
@@ -49,7 +50,7 @@ describe('Datastore', () => {
 
     invokeRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: ResourcePath,
       request: Req,
       token: Token | null
     ): Promise<Resp> {
@@ -58,7 +59,7 @@ describe('Datastore', () => {
 
     invokeStreamingRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: ResourcePath,
       request: Req,
       token: Token | null
     ): Promise<Resp[]> {
