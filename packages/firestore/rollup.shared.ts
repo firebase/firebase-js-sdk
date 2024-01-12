@@ -153,8 +153,8 @@ export const manglePrivatePropertiesOptions: TerserOptions = {
     comments: 'all',
     beautify: true
   },
-  keep_fnames: true,
-  keep_classnames: true,
+  keep_fnames: true, // eslint-disable-line camelcase
+  keep_classnames: true, // eslint-disable-line camelcase
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
