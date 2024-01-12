@@ -119,6 +119,11 @@ export function initializeServerApp(options: FirebaseOptions | FirebaseApp, conf
 // @internal (undocumented)
 export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions): obj is FirebaseApp;
 
+// Warning: (ae-forgotten-export) The symbol "FirebaseServerAppImpl" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _isFirebaseServerAppImpl(obj: FirebaseApp | FirebaseServerApp): obj is FirebaseServerAppImpl;
+
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 

@@ -73,19 +73,25 @@ export class StsTokenManager {
     );
   }
 
+  updateFromIdToken(idToken: string): void {
+    _assert(idToken.length !== 0, AuthErrorCode.INTERNAL_ERROR);
+    const expiresIn = _tokenExpiresIn(idToken);
+    this.updateTokensAndExpiration(idToken, null, expiresIn);
+  }
+
   async getToken(
     auth: AuthInternal,
     forceRefresh = false
   ): Promise<string | null> {
-    _assert(
-      !this.accessToken || this.refreshToken,
-      auth,
-      AuthErrorCode.TOKEN_EXPIRED
-    );
+    if (!this.accessToken) {
+      _assert(this.refreshToken, auth, AuthErrorCode.TOKEN_EXPIRED);
+    }
 
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
+
+    _assert(this.refreshToken, auth, AuthErrorCode.TOKEN_EXPIRED);
 
     if (this.refreshToken) {
       await this.refresh(auth, this.refreshToken!);
@@ -113,7 +119,7 @@ export class StsTokenManager {
 
   private updateTokensAndExpiration(
     accessToken: string,
-    refreshToken: string,
+    refreshToken: string | null,
     expiresInSec: number
   ): void {
     this.refreshToken = refreshToken || null;

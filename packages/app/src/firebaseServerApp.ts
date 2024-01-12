@@ -69,6 +69,8 @@ export class FirebaseServerAppImpl
       this.automaticCleanup
     );
 
+    this.authIdToken = serverConfig.authIdToken;
+
     if (this._serverConfig.releaseOnDeref !== undefined) {
       this._finalizationRegistry.register(
         this._serverConfig.releaseOnDeref,
@@ -87,6 +89,8 @@ export class FirebaseServerAppImpl
     this.checkDestroyed();
     return this._serverConfig;
   }
+
+  authIdToken?: string;
 
   authIdTokenVerified(): Promise<void> {
     this.checkDestroyed();
