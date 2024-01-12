@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
+import json from '@rollup/plugin-json';
 import type { Plugin, RollupOptions } from 'rollup';
-import pkg from './package.json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import json from '@rollup/plugin-json';
+
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import { removeAssertTransformer } from '../firestore/rollup.shared';
+
+import pkg from './package.json';
 
 const deps: string[] = Object.keys({
   ...pkg.peerDependencies,
