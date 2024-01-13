@@ -15,5 +15,4 @@
  * limitations under the License.
  */
 
-const fsz = require('@firebase/firestore');
 require('@babel/register')({ extensions: ['.js', '.ts'] });
