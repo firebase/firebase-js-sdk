@@ -2,7 +2,8 @@
   "name": "mainproj",
   "version": "1.0.0",
   "scripts": {
-    "test": "mocha --require babel-register.js --require mocha_init.ts test.ts"
+    "test:ts": "mocha --require babel-register.js --require mocha_init.ts test.ts",
+    "test:js": "mocha --require mocha_init.js test.js"
   },
   "dependencies": {
   },
