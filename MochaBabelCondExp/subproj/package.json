@@ -1,0 +1,23 @@
+{
+  "name": "subproj",
+  "version": "1.0.0",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "node": {
+        "require": {
+          "production": "./index.cjs",
+          "development": "./index.dev.cjs"
+        },
+        "import": {
+          "production": "./index.mjs",
+          "development": "./index.dev.mjs"
+        }
+      },
+      "default": "./default.mjs"
+    }
+  },
+  "main": "main.cjs",
+  "module": "main.mjs",
+  "typings": "index.d.ts"
+}
