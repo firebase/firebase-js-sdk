@@ -6,12 +6,12 @@
       "types": "./index.d.ts",
       "node": {
         "require": {
-          "production": "./index.cjs",
-          "development": "./index.dev.cjs"
+          "development": "./index.dev.cjs",
+          "default": "./index.cjs"
         },
         "import": {
-          "production": "./index.mjs",
-          "development": "./index.dev.mjs"
+          "development": "./index.dev.mjs",
+          "default": "./index.mjs"
         }
       },
       "default": "./default.mjs"
