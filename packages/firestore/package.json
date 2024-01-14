@@ -58,30 +58,30 @@
       "types": "./dist/index.d.ts",
       "node": {
         "require": {
-          "production": "./dist/index.node.cjs.js",
-          "development": "./dist/index.node.debug.cjs.js"
+          "development": "./dist/index.node.debug.cjs.js",
+          "default": "./dist/index.node.cjs.js"
         },
         "import": {
-          "production": "./dist/index.node.mjs",
-          "development": "./dist/index.node.debug.mjs"
+          "development": "./dist/index.node.debug.mjs",
+          "default": "./dist/index.node.mjs"
         }
       },
       "react-native": {
-        "production": "./dist/index.rn.js",
-        "development": "./dist/index.rn.debug.js"
+        "development": "./dist/index.rn.debug.js",
+        "default": "./dist/index.rn.js"
       },
       "esm5": {
-        "production": "./dist/index.esm5.js",
-        "development": "./dist/index.esm5.debug.js"
+        "development": "./dist/index.esm5.debug.js",
+        "default": "./dist/index.esm5.js"
       },
       "browser": {
         "require": {
-          "production": "./dist/index.cjs.js",
-          "development": "./dist/index.cjs.debug.js"
+          "development": "./dist/index.cjs.debug.js",
+          "default": "./dist/index.cjs.js"
         },
         "import": {
-          "production": "./dist/index.esm2017.js",
-          "development": "./dist/index.esm2017.debug.js"
+          "development": "./dist/index.esm2017.debug.js",
+          "default": "./dist/index.esm2017.js"
         }
       },
       "default": "./dist/index.esm2017.js"
