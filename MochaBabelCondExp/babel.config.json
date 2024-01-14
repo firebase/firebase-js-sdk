@@ -1,6 +1,0 @@
-{
-  "presets": [
-    "@babel/preset-typescript",
-    ["@babel/preset-env", { "targets": { "node": "10" }, "modules": "cjs" }]
-  ]
-}
