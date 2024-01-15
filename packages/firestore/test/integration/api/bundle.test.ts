@@ -41,7 +41,7 @@ import {
 
 export const encoder = new TextEncoder();
 
-function verifySuccessProgress(p: LoadBundleTaskProgress): void {
+export function verifySuccessProgress(p: LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
   expect(p.bytesLoaded).to.be.equal(p.totalBytes);
   expect(p.documentsLoaded).to.equal(p.totalDocuments);
@@ -55,6 +55,34 @@ function verifyInProgress(
   expect(p.bytesLoaded <= p.totalBytes).to.be.true;
   expect(p.documentsLoaded <= p.totalDocuments).to.be.true;
   expect(p.documentsLoaded).to.equal(expectedDocuments);
+}
+
+/**
+ * Returns a valid bundle string from replacing project id in `BUNDLE_TEMPLATE` with the given
+ * db project id (also recalculate length prefixes).
+ */
+export function bundleString(db: Firestore): string {
+  const projectId: string = db.app.options.projectId!;
+
+  // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
+  const elements = BUNDLE_TEMPLATE.map(e =>
+    e.replace('{0}', projectId).replace('(default)', db._databaseId.database)
+  );
+
+  // Recalculating length prefixes for elements that are not BundleMetadata.
+  let bundleContent = '';
+  for (const element of elements.slice(1)) {
+    const length = encoder.encode(element).byteLength;
+    bundleContent += `${length}${element}`;
+  }
+
+  // Update BundleMetadata with new totalBytes.
+  const totalBytes = encoder.encode(bundleContent).byteLength;
+  const metadata = JSON.parse(elements[0]);
+  metadata.metadata.totalBytes = totalBytes;
+  const metadataContent = JSON.stringify(metadata);
+  const metadataLength = encoder.encode(metadataContent).byteLength;
+  return `${metadataLength}${metadataContent}${bundleContent}`;
 }
 
 // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
@@ -75,34 +103,6 @@ apiDescribe('Bundles', persistence => {
       { k: 'a', bar: 1 },
       { k: 'b', bar: 2 }
     ]);
-  }
-
-  /**
-   * Returns a valid bundle string from replacing project id in `BUNDLE_TEMPLATE` with the given
-   * db project id (also recalculate length prefixes).
-   */
-  function bundleString(db: Firestore): string {
-    const projectId: string = db.app.options.projectId!;
-
-    // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
-    const elements = BUNDLE_TEMPLATE.map(e =>
-      e.replace('{0}', projectId).replace('(default)', db._databaseId.database)
-    );
-
-    // Recalculating length prefixes for elements that are not BundleMetadata.
-    let bundleContent = '';
-    for (const element of elements.slice(1)) {
-      const length = encoder.encode(element).byteLength;
-      bundleContent += `${length}${element}`;
-    }
-
-    // Update BundleMetadata with new totalBytes.
-    const totalBytes = encoder.encode(bundleContent).byteLength;
-    const metadata = JSON.parse(elements[0]);
-    metadata.metadata.totalBytes = totalBytes;
-    const metadataContent = JSON.stringify(metadata);
-    const metadataLength = encoder.encode(metadataContent).byteLength;
-    return `${metadataLength}${metadataContent}${bundleContent}`;
   }
 
   it('load with documents only with on progress and promise interface', () => {
