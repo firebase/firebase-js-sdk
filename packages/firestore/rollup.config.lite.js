@@ -16,7 +16,6 @@
  */
 
 import tmp from 'tmp';
-import path from 'path';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
@@ -25,7 +24,6 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 
-import pkg from './lite/package.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 const util = require('./rollup.shared');
@@ -70,9 +68,9 @@ const allBuilds = [
   // this is an intermidiate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: 'lite/index.ts',
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      file: 'dist/lite/index.node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -91,9 +89,9 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: 'dist/lite/index.node.mjs',
     output: {
-      file: path.resolve('./lite', pkg.main),
+      file: 'dist/lite/index.node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -117,9 +115,9 @@ const allBuilds = [
   },
   // Node ESM build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: 'dist/lite/index.node.mjs',
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      file: 'dist/lite/index.node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -136,9 +134,9 @@ const allBuilds = [
   // this is an intermidiate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: 'lite/index.ts',
     output: {
-      file: path.resolve('./lite', pkg.browser),
+      file: 'dist/lite/index.esm2017.js',
       format: 'es',
       sourcemap: true
     },
@@ -157,10 +155,10 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: 'dist/lite/index.esm2017.js',
     output: [
       {
-        file: path.resolve('./lite', pkg.esm5),
+        file: 'dist/lite/index.esm5.js',
         format: 'es',
         sourcemap: true
       }
@@ -176,10 +174,10 @@ const allBuilds = [
   },
   // Convert es2017 build to CJS
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: 'dist/lite/index.esm2017.js',
     output: [
       {
-        file: './dist/lite/index.cjs.js',
+        file: 'dist/lite/index.cjs.js',
         format: 'es',
         sourcemap: true
       }
@@ -195,10 +193,10 @@ const allBuilds = [
   },
   // Browser es2017 build
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: 'dist/lite/index.esm2017.js',
     output: [
       {
-        file: path.resolve('./lite', pkg.browser),
+        file: 'dist/lite/index.esm2017.js',
         format: 'es',
         sourcemap: true
       }
@@ -214,9 +212,9 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './lite/index.ts',
+    input: 'lite/index.ts',
     output: {
-      file: path.resolve('./lite', pkg['react-native']),
+      file: 'dist/lite/index.rn.js',
       format: 'es',
       sourcemap: true
     },
