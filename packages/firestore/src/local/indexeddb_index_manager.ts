@@ -69,7 +69,11 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager, IndexType } from './index_manager';
+import {
+  IndexManager,
+  IndexManagerFieldIndexPlugin,
+  IndexType
+} from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -122,17 +126,17 @@ export class IndexedDbIndexManager implements IndexManager {
 
   private readonly uid: string;
 
-  /**
-   * Maps from a target to its equivalent list of sub-targets. Each sub-target
-   * contains only one term from the target's disjunctive normal form (DNF).
-   */
-  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
-    t => canonifyTarget(t),
-    (l, r) => targetEquals(l, r)
-  );
+  readonly fieldIndexPlugin: IndexedDbIndexManagerFieldIndexPlugin;
 
   constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
+    // TODO(CsiTreeShake) Provide a means for the
+    //  `IndexedDbIndexManagerFieldIndexPlugin` to be installed separately from
+    //  this constructor.
+    this.fieldIndexPlugin = new IndexedDbIndexManagerFieldIndexPlugin(
+      this.uid,
+      databaseId
+    );
   }
 
   /**
@@ -193,6 +197,21 @@ export class IndexedDbIndexManager implements IndexManager {
         return parentPaths;
       });
   }
+}
+
+export class IndexedDbIndexManagerFieldIndexPlugin
+  implements IndexManagerFieldIndexPlugin
+{
+  constructor(readonly uid: string, readonly databaseId: DatabaseId) {}
+
+  /**
+   * Maps from a target to its equivalent list of sub-targets. Each sub-target
+   * contains only one term from the target's disjunctive normal form (DNF).
+   */
+  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
+    t => canonifyTarget(t),
+    (l, r) => targetEquals(l, r)
+  );
 
   addFieldIndex(
     transaction: PersistenceTransaction,

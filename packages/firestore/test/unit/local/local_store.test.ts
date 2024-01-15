@@ -661,13 +661,13 @@ function genericLocalStoreTests(
 
   it('localStoreSetIndexAutoCreationEnabled()', () => {
     localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
     localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
     localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
     localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
   });
 
   it('handles SetMutation', () => {

@@ -39,8 +39,7 @@ import {
   localStoreExecuteQuery,
   localStoreSetIndexAutoCreationEnabled,
   localStoreWriteLocally,
-  newLocalStore,
-  TestingHooks as LocalStoreTestingHooks
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
@@ -146,10 +145,20 @@ class AsyncLocalStoreTester {
     if (config.isEnabled !== undefined) {
       localStoreSetIndexAutoCreationEnabled(this.localStore, config.isEnabled);
     }
-    LocalStoreTestingHooks.setIndexAutoCreationSettings(
-      this.localStore,
-      config
-    );
+
+    const queryEngineFieldIndexPlugin = this.queryEngine.fieldIndexPlugin;
+    if (!queryEngineFieldIndexPlugin) {
+      throw new Error('queryEngine.fieldIndexPlugin should not be null');
+    }
+
+    if (config.indexAutoCreationMinCollectionSize !== undefined) {
+      queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
+        config.indexAutoCreationMinCollectionSize;
+    }
+    if (config.relativeIndexReadCostPerDocument !== undefined) {
+      queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
+        config.relativeIndexReadCostPerDocument;
+    }
   }
 
   deleteAllFieldIndexes(): Promise<void> {
@@ -171,7 +180,10 @@ class AsyncLocalStoreTester {
     const fieldIndexes: FieldIndex[] = await this.persistence.runTransaction(
       'getFieldIndexes ',
       'readonly',
-      transaction => this.localStore.indexManager.getFieldIndexes(transaction)
+      transaction =>
+        this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+          transaction
+        )
     );
     expect(fieldIndexes).to.have.deep.members(indexes);
   }
