@@ -144,8 +144,35 @@ describe('core/user/token_manager', () => {
       });
     });
 
-    it('returns non null if the refresh token is missing', async () => {
-      expect(await stsTokenManager.getToken(auth)).to.not.be.null;
+    it('returns non-null if the refresh token is missing but token still valid', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'access-token',
+        expirationTime: now + 100_000
+      });
+      const tokens = await stsTokenManager.getToken(auth, false);
+      expect(tokens).to.eql('new-access-token');
+    });
+
+    it('throws an error if the refresh token is missing and force refresh is true', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'access-token',
+        expirationTime: now + 100_000
+      });
+      await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
+        FirebaseError,
+        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+      );
+    });
+
+    it('throws an error if the refresh token is missing and token is no longer valid', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'old-access-token',
+        expirationTime: now - 1
+      });
+      await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
+        FirebaseError,
+        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+      );
     });
 
     it('throws an error if expired but refresh token is missing', async () => {
