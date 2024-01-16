@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.9.26
+
+### Patch Changes
+
+- [`16728cf3c`](https://github.com/firebase/firebase-js-sdk/commit/16728cf3c6b4e358dc3d12f80623e5966f104c31) [#7890](https://github.com/firebase/firebase-js-sdk/pull/7890) (fixes [#7829](https://github.com/firebase/firebase-js-sdk/issues/7829)) - Catch possible error in Safari browsers.
+
 ## 0.9.25
 
 ### Patch Changes
