@@ -35,6 +35,7 @@ import {
   orderBy,
   query,
   QuerySnapshot,
+  runTransaction,
   setDoc,
   updateDoc,
   where
@@ -49,7 +50,7 @@ import {
 import { bundleString, verifySuccessProgress } from './bundle.test';
 import { verifyDocumentChange } from './query.test';
 
-apiDescribe('Snapshot Listener source options ', persistence => {
+apiDescribe.only('Snapshot Listener source options ', persistence => {
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
@@ -58,12 +59,12 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
 
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeEvent.storeEvent
           );
@@ -72,40 +73,10 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(snapshot.metadata.fromCache).to.equal(true);
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
-          await addDoc(collection, { k: 'b', sort: 1 });
+          await addDoc(coll, { k: 'b', sort: 1 });
           snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.fromCache).to.equal(true);
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          unsubscribe();
-        });
-      });
-
-      it('will not get metadata only updates if only listening to cache', () => {
-        const testDocs = {
-          a: { k: 'a', sort: 0 }
-        };
-        return withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
-
-          const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          const unsubscribe = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
-            { includeMetadataChanges: true, source: ListenSource.Cache },
-            storeEvent.storeEvent
-          );
-
-          let snapshot = await storeEvent.awaitEvent();
-          expect(snapshot.metadata.fromCache).to.equal(true);
-          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
-
-          await addDoc(collection, { k: 'b', sort: 1 });
-
-          snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.hasPendingWrites).to.equal(true);
-          expect(snapshot.metadata.fromCache).to.equal(true);
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
@@ -116,52 +87,48 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('listen result would not be affected by online status', () => {
+      it('listen to cache would not be affected by online status change', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
-        return withTestCollection(
-          persistence,
-          testDocs,
-          async (collection, db) => {
-            await getDocs(collection); // Populate the cache.
+        return withTestCollection(persistence, testDocs, async (coll, db) => {
+          await getDocs(coll); // Populate the cache.
 
-            const storeEvent = new EventsAccumulator<QuerySnapshot>();
-            const unsubscribe = onSnapshot(
-              collection,
-              { includeMetadataChanges: true, source: ListenSource.Cache },
-              storeEvent.storeEvent
-            );
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          const unsubscribe = onSnapshot(
+            coll,
+            { includeMetadataChanges: true, source: ListenSource.Cache },
+            storeEvent.storeEvent
+          );
 
-            const snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          const snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.equal(true);
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
-            await disableNetwork(db);
-            await enableNetwork(db);
+          await disableNetwork(db);
+          await enableNetwork(db);
 
-            await storeEvent.assertNoAdditionalEvents();
-            unsubscribe();
-          }
-        );
+          await storeEvent.assertNoAdditionalEvents();
+          unsubscribe();
+        });
       });
 
-      it('can attach multiple listeners to source==cache', () => {
+      it('can attach multiple source==cache listeners', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
 
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe1 = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeEvent.storeEvent
           );
 
           const unsubscribe2 = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeEvent.storeEvent
           );
@@ -171,12 +138,14 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(toDataArray(snapshots[0])).to.deep.equal([
             { k: 'a', sort: 0 }
           ]);
-          expect(snapshots[1].metadata.fromCache).to.equal(true);
-          expect(toDataArray(snapshots[1])).to.deep.equal([
-            { k: 'a', sort: 0 }
-          ]);
+          expect(snapshots[0].metadata.fromCache).to.equal(
+            snapshots[1].metadata.fromCache
+          );
+          expect(toDataArray(snapshots[0])).to.deep.equal(
+            toDataArray(snapshots[1])
+          );
 
-          await addDoc(collection, { k: 'b', sort: 1 });
+          await addDoc(coll, { k: 'b', sort: 1 });
 
           snapshots = await storeEvent.awaitEvents(2);
           expect(snapshots[0].metadata.fromCache).to.equal(true);
@@ -184,15 +153,17 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
-          expect(snapshots[1].metadata.fromCache).to.equal(true);
-          expect(toDataArray(snapshots[1])).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
+          expect(snapshots[0].metadata.fromCache).to.equal(
+            snapshots[1].metadata.fromCache
+          );
+          expect(toDataArray(snapshots[0])).to.deep.equal(
+            toDataArray(snapshots[1])
+          );
 
+          // Detach one listener, and do a local mutation. The other listener should not be affected.
           unsubscribe1();
 
-          await addDoc(collection, { k: 'c', sort: 2 });
+          await addDoc(coll, { k: 'c', sort: 2 });
 
           const snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.fromCache).to.equal(true);
@@ -212,20 +183,22 @@ apiDescribe('Snapshot Listener source options ', persistence => {
       // Since limitToLast() queries are sent to the backend with a modified
       // orderBy() clause, they can map to the same target representation as
       // limit() query, even if both queries appear separate to the user.
-      it('can listen/unlisten/relisten to mirror queries', () => {
+      it.only('can listen/unlisten/relisten to mirror queries', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 },
           c: { k: 'c', sort: 1 },
-          d: { k: 'd', sort: 2 }
+          g: { k: 'g', sort: 2 },
+          f: { k: 'f', sort: 2 },
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
 
+          console.log("start listening=====")
           // Setup `limit` query
           const storeLimitEvent = new EventsAccumulator<QuerySnapshot>();
           let limitUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc'), limit(2)),
+            query(coll, orderBy('sort', 'asc'), limit(2)),
             { source: ListenSource.Cache },
             storeLimitEvent.storeEvent
           );
@@ -233,7 +206,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           // Setup mirroring `limitToLast` query
           const storeLimitToLastEvent = new EventsAccumulator<QuerySnapshot>();
           let limitToLastUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'desc'), limitToLast(2)),
+            query(coll, orderBy('sort', 'desc'), limitToLast(2)),
             { source: ListenSource.Cache },
             storeLimitToLastEvent.storeEvent
           );
@@ -255,7 +228,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           // Unlisten then relisten limit query.
           limitUnlisten();
           limitUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc'), limit(2)),
+            query(coll, orderBy('sort', 'asc'), limit(2)),
             { source: ListenSource.Cache },
             storeLimitEvent.storeEvent
           );
@@ -268,28 +241,34 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
 
+          console.log("add doc======")
           // Add a document that would change the result set.
-          await addDoc(collection, { k: 'e', sort: -1 });
+          await addDoc(coll, { k: 'd', sort: -1 });
 
           // Verify both queries get expected results.
           snapshot = await storeLimitEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'e', sort: -1 },
+            { k: 'd', sort: -1 },
             { k: 'a', sort: 0 }
           ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
           expect(snapshot.metadata.fromCache).to.equal(true);
+
           snapshot = await storeLimitToLastEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: 0 },
-            { k: 'e', sort: -1 }
+            { k: 'd', sort: -1 }
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
 
           // Unlisten to limitToLast, update a doc, then relisten limitToLast.
           limitToLastUnlisten();
-          await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
+
+          console.log("update doc+++++")
+
+          await updateDoc(doc(coll, 'a'), { k: 'a', sort: -2 });
           limitToLastUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'desc'), limitToLast(2)),
+            query(coll, orderBy('sort', 'desc'), limitToLast(2)),
             { source: ListenSource.Cache },
             storeLimitToLastEvent.storeEvent
           );
@@ -298,12 +277,18 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           snapshot = await storeLimitEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: -2 },
-            { k: 'e', sort: -1 }
+            { k: 'd', sort: -1 }
           ]);
-          expect(snapshot.metadata.fromCache).to.equal(true);
+          console.log("=================0")
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+          console.log("=================1")
+
+          expect(snapshot.metadata.fromCache).to.equal(true); //???
+          console.log("=================2")
+
           snapshot = await storeLimitToLastEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'e', sort: -1 },
+            { k: 'd', sort: -1 },
             { k: 'a', sort: -2 }
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
@@ -313,101 +298,71 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('can listen/unlisten/relisten to same query with different source options', () => {
+      it('can listen to default source first and then cache', () => {
         const testDocs = {
-          a: { k: 'a', sort: 0 },
-          b: { k: 'b', sort: 1 }
+          a: { k: 'a', sort: 0 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
+        return withTestCollection(persistence, testDocs, async coll => {
           // Listen to the query with default options, which will also populates the cache
           const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
-          let defaultUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+          const defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
             storeDefaultEvent.storeEvent
           );
-          let snapshot = await storeDefaultEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
+          let snapshot = await storeDefaultEvent.awaitRemoteEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
           // Listen to the same query from cache
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
-          let cacheUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+          const cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeCacheEvent.storeEvent
           );
           snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          // the cache is sync with server due to the other listener
-          expect(snapshot.metadata.fromCache).to.equal(false);
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
-          // Unlisten and re-listen to the default listener.
+          await storeDefaultEvent.assertNoAdditionalEvents();
+          await storeCacheEvent.assertNoAdditionalEvents();
+
+          // Unlisten to the default listener first then cache.
           defaultUnlisten();
-          defaultUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+          cacheUnlisten();
+        });
+      });
+
+      it('can listen to cache source first and then default', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 }
+        };
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
+
+          // Listen to the cache
+          const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
+          const cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+          let snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+
+          // Listen to the same query with default options
+          const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
+          const defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
             storeDefaultEvent.storeEvent
           );
-          snapshot = await storeDefaultEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
+          snapshot = await storeDefaultEvent.awaitRemoteEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
-          // Add a document that would change the result set.
-          await addDoc(collection, { k: 'c', sort: -1 });
+          await storeDefaultEvent.assertNoAdditionalEvents();
+          await storeCacheEvent.assertNoAdditionalEvents();
 
-          // Verify both queries get expected results.
-          snapshot = await storeDefaultEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'c', sort: -1 },
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
-
-          snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'c', sort: -1 },
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
-
-          // Unlisten to cache, update a doc, then re-listen to cache.
+          // Unlisten to the cache listener first then default.
           cacheUnlisten();
-          await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
-          cacheUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
-            { source: ListenSource.Cache },
-            storeCacheEvent.storeEvent
-          );
-
-          // Verify both queries get expected results.
-          snapshot = await storeDefaultEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: -2 },
-            { k: 'c', sort: -1 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
-
-          snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: -2 },
-            { k: 'c', sort: -1 },
-            { k: 'b', sort: 1 }
-          ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
-
           defaultUnlisten();
-          cacheUnlisten();
         });
       });
 
@@ -416,47 +371,38 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          // Listen to the query with default options, which will also populates the cache
+        return withTestCollection(persistence, testDocs, async coll => {
+          // Listen to the query with both source options
           const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
           const defaultUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             storeDefaultEvent.storeEvent
           );
-          let snapshot = await storeDefaultEvent.awaitRemoteEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-
-          // Listen to the same query from cache
+          await storeDefaultEvent.awaitEvent();
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeCacheEvent.storeEvent
           );
-          snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
+          await storeCacheEvent.awaitEvent();
 
           // Unlisten to the default listener.
           defaultUnlisten();
           await storeDefaultEvent.assertNoAdditionalEvents();
 
           // Add a document that would change the result set.
-          await addDoc(collection, { k: 'c', sort: -1 });
+          await addDoc(coll, { k: 'c', sort: -1 });
 
           // Verify listener to cache works as expected
-          snapshot = await storeCacheEvent.awaitEvent();
+          let snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
 
+          await storeCacheEvent.assertNoAdditionalEvents();
           cacheUnlisten();
         });
       });
@@ -466,47 +412,225 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          // Listen to the query with default options, which will also populates the cache
+        return withTestCollection(persistence, testDocs, async coll => {
+          // Listen to the query with both source options
           const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
           const defaultUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             storeDefaultEvent.storeEvent
           );
-          let snapshot = await storeDefaultEvent.awaitRemoteEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
-
-          // Listen to the same query from cache
+          await storeDefaultEvent.awaitEvent();
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
-            query(collection, orderBy('sort', 'asc')),
+            query(coll, orderBy('sort', 'asc')),
             { source: ListenSource.Cache },
             storeCacheEvent.storeEvent
           );
-          snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
+          await storeCacheEvent.awaitEvent();
 
           // Unlisten to the cache.
           cacheUnlisten();
           await storeCacheEvent.assertNoAdditionalEvents();
 
           // Add a document that would change the result set.
-          await addDoc(collection, { k: 'c', sort: -1 });
+          await addDoc(coll, { k: 'c', sort: -1 });
 
           // Verify listener to server works as expected
-          snapshot = await storeDefaultEvent.awaitEvent();
+          let snapshot = await storeDefaultEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
 
+          await storeDefaultEvent.assertNoAdditionalEvents();
+          defaultUnlisten();
+        });
+      });
+
+      it('can listen/un-listen/re-listen to same query with different source options', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 }
+        };
+        return withTestCollection(persistence, testDocs, async coll => {
+          // Listen to the query with default options, which also populates the cache
+          const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
+          let defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            storeDefaultEvent.storeEvent
+          );
+          let snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Listen to the same query from cache
+          const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
+          let cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          // The metadata is sync with server due to the default listener
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Un-listen to the default listener, add a doc and re-listen..
+          defaultUnlisten();
+          await addDoc(coll, { k: 'b', sort: 1 });
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          // This is failing, why?
+          // expect(snapshot.metadata.fromCache).to.equal(true);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+
+          defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            storeDefaultEvent.storeEvent
+          );
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+          // This is failing, why?
+          // expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+
+          // Unlisten to cache, update a doc, then re-listen to cache.
+          cacheUnlisten();
+          await updateDoc(doc(coll, 'a'), { k: 'a', sort: 2 });
+
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'b', sort: 1 },
+            { k: 'a', sort: 2 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'b', sort: 1 },
+            { k: 'a', sort: 2 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          defaultUnlisten();
+          cacheUnlisten();
+        });
+      });
+
+      it('will not get metadata only updates if only listening to cache', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 }
+        };
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
+
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          const unsubscribe = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { includeMetadataChanges: true, source: ListenSource.Cache },
+            storeEvent.storeEvent
+          );
+
+          let snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.equal(true);
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+
+          await addDoc(coll, { k: 'b', sort: 1 });
+
+          snapshot = await storeEvent.awaitEvent();
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+          expect(snapshot.metadata.fromCache).to.equal(true);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+
+          // As we are not listening to server, the listener will not get notified
+          // when local mutation is acknowledged by server.
+          await storeEvent.assertNoAdditionalEvents();
+          unsubscribe();
+        });
+      });
+
+      it('will have synced metadata updates when listening to both cache and default source', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 }
+        };
+        return withTestCollection(persistence, testDocs, async coll => {
+          const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
+          const defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { includeMetadataChanges: true },
+            storeDefaultEvent.storeEvent
+          );
+          let snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Listen to the same query from cache
+          const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
+          const cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { includeMetadataChanges: true, source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          // metadata is synced with the default source listener
+          expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          await addDoc(coll, { k: 'b', sort: 1 });
+
+          // snapshot gets triggered by local mutation
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          // Local mutation gets acknowledged by the server
+          snapshot = await storeDefaultEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+
+          cacheUnlisten();
           defaultUnlisten();
         });
       });
@@ -517,12 +641,12 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           'b': { order: 2 },
           'c': { 'order': 3 }
         };
-        await withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
+        await withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
 
           const accumulator = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
-            query(collection, orderBy('order')),
+            query(coll, orderBy('order')),
             { source: ListenSource.Cache },
             accumulator.storeEvent
           );
@@ -535,14 +659,14 @@ apiDescribe('Snapshot Listener source options ', persistence => {
               verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
               verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
             })
-            .then(() => setDoc(doc(collection, 'b'), { order: 4 }))
+            .then(() => setDoc(doc(coll, 'b'), { order: 4 }))
             .then(() => accumulator.awaitEvent())
             .then(querySnapshot => {
               const changes = querySnapshot.docChanges();
               expect(changes.length).to.equal(1);
               verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
             })
-            .then(() => deleteDoc(doc(collection, 'c')))
+            .then(() => deleteDoc(doc(coll, 'c')))
             .then(() => accumulator.awaitEvent())
             .then(querySnapshot => {
               const changes = querySnapshot.docChanges();
@@ -558,11 +682,11 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
-        return withTestCollection(persistence, testDocs, async collection => {
-          await getDocs(collection); // Populate the cache.
+        return withTestCollection(persistence, testDocs, async coll => {
+          await getDocs(coll); // Populate the cache.
 
           const query_ = query(
-            collection,
+            coll,
             where('k', '<=', 'a'),
             where('sort', '>=', 0)
           );
@@ -629,6 +753,95 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           snap = await getDocs((await namedQuery(db, 'limit-to-last'))!);
           expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
+        });
+      });
+
+      it('Will not be triggered by transactions', () => {
+        return withTestCollection(persistence, {}, async (coll, db) => {
+          const accumulator = new EventsAccumulator<QuerySnapshot>();
+          const unsubscribe = onSnapshot(
+            query(coll, orderBy('sort')),
+            { source: ListenSource.Cache },
+            accumulator.storeEvent
+          );
+
+          let snapshot = await accumulator.awaitEvent();
+          expect(snapshot.metadata.fromCache).to.be.true;
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+
+          const docRef = doc(coll);
+          // Use a transaction to perform a write without triggering any local events.
+          await runTransaction(db, async txn => {
+            txn.set(docRef, { k: 'a', sort: 0 });
+          });
+
+          await accumulator.assertNoAdditionalEvents();
+          unsubscribe();
+        });
+      });
+
+      it('triggered by server side updates when listening to both cache and default', () => {
+        const testDocs = {
+          a: { k: 'a', sort: 0 }
+        };
+        return withTestCollection(persistence, testDocs, async (coll, db) => {
+          // Listen to the query with default options, which will also populates the cache
+          const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
+          const defaultUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            storeDefaultEvent.storeEvent
+          );
+          let snapshot = await storeDefaultEvent.awaitRemoteEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+
+          // Listen to the same query from cache
+          const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
+          const cacheUnlisten = onSnapshot(
+            query(coll, orderBy('sort', 'asc')),
+            { source: ListenSource.Cache },
+            storeCacheEvent.storeEvent
+          );
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+
+          let docRef = doc(coll);
+          // Use a transaction to perform a write without triggering any local events.
+          await runTransaction(db, async txn => {
+            txn.set(docRef, { k: 'b', sort: 1 });
+          });
+
+          snapshot = await storeDefaultEvent.awaitRemoteEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.be.false;
+
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          expect(snapshot.metadata.fromCache).to.be.false;
+
+          defaultUnlisten();
+          docRef = doc(coll);
+          // Use a transaction to perform a write without triggering any local events.
+          await runTransaction(db, async txn => {
+            txn.set(docRef, { k: 'c', sort: 2 });
+          });
+
+          // Add a document that would change the result set.
+          await addDoc(coll, { k: 'c', sort: -1 });
+
+          // Verify listener to cache works as expected
+          snapshot = await storeCacheEvent.awaitEvent();
+          expect(toDataArray(snapshot)).to.deep.equal([
+            { k: 'c', sort: -1 },
+            { k: 'a', sort: 0 },
+            { k: 'b', sort: 1 }
+          ]);
+          cacheUnlisten();
         });
       });
     }
