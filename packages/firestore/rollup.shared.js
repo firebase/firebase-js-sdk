@@ -415,20 +415,32 @@ function getPackageJsonExportPaths() {
   }
 
   return {
-    main_types,
-    main_browser_require,
-    main_browser_import,
-    main_node_require,
-    main_node_import,
-    main_react_native,
-    main_esm5,
-    lite_types,
-    lite_browser_require,
-    lite_browser_import,
-    lite_node_require,
-    lite_node_import,
-    lite_react_native,
-    lite_esm5
+    main: {
+      types: main_types,
+      browser: {
+        require: main_browser_require,
+        import: main_browser_import
+      },
+      node: {
+        require: main_node_require,
+        import: main_node_import
+      },
+      rn: main_react_native,
+      esm5: main_esm5
+    },
+    lite: {
+      types: lite_types,
+      browser: {
+        require: lite_browser_require,
+        import: lite_browser_import
+      },
+      node: {
+        require: lite_node_require,
+        import: lite_node_import
+      },
+      rn: lite_react_native,
+      esm5: lite_esm5
+    }
   };
 }
 exports.getPackageJsonExportPaths = getPackageJsonExportPaths;
