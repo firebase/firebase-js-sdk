@@ -348,8 +348,9 @@ export class UserImpl implements UserInternal {
     _assert(coreAccount.localId !== undefined, AuthErrorCode.INTERNAL_ERROR);
 
     const providerData: UserInfo[] =
-      (coreAccount.providerUserInfo !== undefined) ?
-        extractProviderData(coreAccount.providerUserInfo) : [];
+      coreAccount.providerUserInfo !== undefined
+        ? extractProviderData(coreAccount.providerUserInfo)
+        : [];
 
     const isAnonymous =
       !(coreAccount.email && coreAccount.passwordHash) && !providerData?.length;

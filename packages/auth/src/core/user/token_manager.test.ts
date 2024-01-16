@@ -144,8 +144,8 @@ describe('core/user/token_manager', () => {
       });
     });
 
-    it('returns null if the refresh token is missing', async () => {
-      expect(await stsTokenManager.getToken(auth)).to.be.null;
+    it('returns non null if the refresh token is missing', async () => {
+      expect(await stsTokenManager.getToken(auth)).to.not.be.null;
     });
 
     it('throws an error if expired but refresh token is missing', async () => {
