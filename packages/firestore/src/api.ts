@@ -237,3 +237,4 @@ export {
   TestingHooks as _TestingHooks
 } from './util/testing_hooks';
 export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';
+export { PACKAGE_JSON_EXPORT_FILE as _PACKAGE_JSON_EXPORT_FILE } from './util/selfid';

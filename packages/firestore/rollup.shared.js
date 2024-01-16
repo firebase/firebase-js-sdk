@@ -22,6 +22,7 @@ const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
 const { terser } = require('rollup-plugin-terser');
 const path = require('path');
+const replace = require('rollup-plugin-replace');
 const sourcemaps = require('rollup-plugin-sourcemaps');
 
 const { renameInternals } = require('./scripts/rename-internals');
@@ -364,3 +365,12 @@ exports.es2017PluginsCompat = function (
     ];
   }
 };
+
+exports.selfIdReplacePlugin = function(file) {
+  return replace({
+    include: ['src/util/selfid.ts'],
+    values: {
+      __FIRESTORE_PACKAGE_JSON_EXPORT_FILE__: file
+    }
+  });
+}
