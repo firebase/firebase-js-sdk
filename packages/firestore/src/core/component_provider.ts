@@ -354,7 +354,10 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     });
   }
 
-  private startOrStopScheduler(scheduler: Scheduler | null, isPrimary: boolean): void {
+  private startOrStopScheduler(
+    scheduler: Scheduler | null,
+    isPrimary: boolean
+  ): void {
     if (!scheduler) {
       return;
     }
