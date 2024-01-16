@@ -136,7 +136,7 @@ const allBuilds = [
   {
     input: 'lite/index.ts',
     output: {
-      file: 'dist/lite/index.esm2017.js',
+      file: 'dist/lite/index.browser.esm2017.js',
       format: 'es',
       sourcemap: true
     },
@@ -155,10 +155,10 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: 'dist/lite/index.esm2017.js',
+    input: 'dist/lite/index.browser.esm2017.js',
     output: [
       {
-        file: 'dist/lite/index.esm5.js',
+        file: 'dist/lite/index.browser.esm5.js',
         format: 'es',
         sourcemap: true
       }
@@ -174,7 +174,7 @@ const allBuilds = [
   },
   // Convert es2017 build to CJS
   {
-    input: 'dist/lite/index.esm2017.js',
+    input: 'dist/lite/index.browser.esm2017.js',
     output: [
       {
         file: 'dist/lite/index.cjs.js',
@@ -193,10 +193,10 @@ const allBuilds = [
   },
   // Browser es2017 build
   {
-    input: 'dist/lite/index.esm2017.js',
+    input: 'dist/lite/index.browser.esm2017.js',
     output: [
       {
-        file: 'dist/lite/index.esm2017.js',
+        file: 'dist/lite/index.browser.esm2017.js',
         format: 'es',
         sourcemap: true
       }
@@ -214,7 +214,7 @@ const allBuilds = [
   {
     input: 'lite/index.ts',
     output: {
-      file: 'dist/lite/index.rn.js',
+      file: 'dist/lite/index.rn.esm2017.js',
       format: 'es',
       sourcemap: true
     },

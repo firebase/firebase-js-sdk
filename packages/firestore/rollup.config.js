@@ -160,7 +160,7 @@ const allBuilds = [
     input: 'dist/index.esm2017.js',
     output: [
       {
-        file: './dist/index.cjs.js',
+        file: 'dist/index.cjs.js',
         format: 'cjs',
         sourcemap: true
       }
