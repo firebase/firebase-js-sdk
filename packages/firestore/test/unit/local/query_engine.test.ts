@@ -850,11 +850,6 @@ function genericQueryEngineTest(
     }): Promise<void> => {
       debugAssert(configureCsi, 'Test requires durable persistence');
 
-      const queryEngineFieldIndexPlugin = queryEngine.fieldIndexPlugin;
-      if (!queryEngineFieldIndexPlugin) {
-        throw new Error('queryEngine.fieldIndexPlugin should not be null');
-      }
-
       const matchingDocuments: MutableDocument[] = [];
       for (let i = 0; i < (config.matchingDocumentCount ?? 3); i++) {
         const matchingDocument = doc(`coll/A${i}`, 1, { 'foo': 'match' });
@@ -869,15 +864,26 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
+      const queryEngineFieldIndexPlugin = queryEngine.fieldIndexPlugin;
+
       if (config.indexAutoCreationEnabled !== undefined) {
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
         queryEngineFieldIndexPlugin.indexAutoCreationEnabled =
           config.indexAutoCreationEnabled;
       }
       if (config.indexAutoCreationMinCollectionSize !== undefined) {
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
         queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
           config.indexAutoCreationMinCollectionSize;
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
         queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
           config.relativeIndexReadCostPerDocument;
       }

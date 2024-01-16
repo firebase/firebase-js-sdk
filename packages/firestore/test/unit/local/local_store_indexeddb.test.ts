@@ -37,6 +37,7 @@ import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
+  localStoreIsIndexAutoCreationEnabled,
   localStoreSetIndexAutoCreationEnabled,
   localStoreWriteLocally,
   newLocalStore
@@ -147,15 +148,18 @@ class AsyncLocalStoreTester {
     }
 
     const queryEngineFieldIndexPlugin = this.queryEngine.fieldIndexPlugin;
-    if (!queryEngineFieldIndexPlugin) {
-      throw new Error('queryEngine.fieldIndexPlugin should not be null');
-    }
 
     if (config.indexAutoCreationMinCollectionSize !== undefined) {
+      if (!queryEngineFieldIndexPlugin) {
+        throw new Error('queryEngine.fieldIndexPlugin should not be null');
+      }
       queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
         config.indexAutoCreationMinCollectionSize;
     }
     if (config.relativeIndexReadCostPerDocument !== undefined) {
+      if (!queryEngineFieldIndexPlugin) {
+        throw new Error('queryEngine.fieldIndexPlugin should not be null');
+      }
       queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
         config.relativeIndexReadCostPerDocument;
     }
@@ -262,6 +266,18 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   afterEach(async () => {
     await persistence?.shutdown();
     await persistenceHelpers.clearTestPersistence();
+  });
+
+  it('localStoreSetIndexAutoCreationEnabled()', () => {
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, true);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, false);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, true);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, false);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
   });
 
   it('Adds Indexes', async () => {

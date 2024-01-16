@@ -1535,10 +1535,20 @@ export function localStoreSetIndexAutoCreationEnabled(
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
-  if (isEnabled || fieldIndexPlugin) {
+  if (isEnabled) {
     hardAssert(!!fieldIndexPlugin);
-    fieldIndexPlugin.indexAutoCreationEnabled = isEnabled;
+    fieldIndexPlugin.indexAutoCreationEnabled = true;
+  } else if (fieldIndexPlugin) {
+    fieldIndexPlugin.indexAutoCreationEnabled = false;
   }
+}
+
+export function localStoreIsIndexAutoCreationEnabled(
+  localStore: LocalStore
+): boolean {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  return fieldIndexPlugin ? fieldIndexPlugin.indexAutoCreationEnabled : false;
 }
 
 export function localStoreDeleteAllFieldIndexes(

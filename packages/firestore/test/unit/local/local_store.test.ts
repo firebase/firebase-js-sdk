@@ -42,7 +42,6 @@ import {
   localStoreGetHighestUnacknowledgedBatchId,
   localStoreGetTargetData,
   localStoreGetNamedQuery,
-  localStoreSetIndexAutoCreationEnabled,
   localStoreHasNewerBundle,
   localStoreWriteLocally,
   LocalWriteResult,
@@ -658,17 +657,6 @@ function genericLocalStoreTests(
       gcIsEager
     );
   }
-
-  it('localStoreSetIndexAutoCreationEnabled()', () => {
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
-    localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.true;
-    localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.fieldIndexPlugin?.indexAutoCreationEnabled).to.be.false;
-  });
 
   it('handles SetMutation', () => {
     return expectLocalStore()
