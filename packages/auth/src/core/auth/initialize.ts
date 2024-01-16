@@ -73,13 +73,7 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
 
   if (_isFirebaseServerAppImpl(app)) {
     if (app.authIdToken !== undefined) {
-      _loadUserFromIdToken(auth, app.authIdToken)
-        .catch(err => {
-          console.log(err);
-        })
-        .then(() => {
-          console.log('ok!');
-        });
+      void _loadUserFromIdToken(auth, app.authIdToken);
     }
   }
 
