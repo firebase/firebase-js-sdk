@@ -146,16 +146,16 @@ describe('core/user/token_manager', () => {
 
     it('returns non-null if the refresh token is missing but token still valid', async () => {
       Object.assign(stsTokenManager, {
-        accessToken: 'access-token',
+        accessToken: 'token',
         expirationTime: now + 100_000
       });
       const tokens = await stsTokenManager.getToken(auth, false);
-      expect(tokens).to.eql('new-access-token');
+      expect(tokens).to.eql('token');
     });
 
     it('throws an error if the refresh token is missing and force refresh is true', async () => {
       Object.assign(stsTokenManager, {
-        accessToken: 'access-token',
+        accessToken: 'token',
         expirationTime: now + 100_000
       });
       await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
