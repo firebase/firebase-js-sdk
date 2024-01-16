@@ -44,7 +44,11 @@ import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { Iterable } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { IndexManager, IndexType } from './index_manager';
+import {
+  IndexManager,
+  IndexManagerFieldIndexPlugin,
+  IndexType
+} from './index_manager';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
@@ -113,38 +117,7 @@ function getDefaultRelativeIndexReadCostPerDocument(): number {
 export class QueryEngine {
   private localDocumentsView!: LocalDocumentsView;
   private indexManager!: IndexManager;
-  private fieldIndexPlugin!: QueryEngineFieldIndexPlugin;
   private initialized = false;
-
-  // TODO(CsiTreeShake) Remove this property once `QueryEngineFieldIndexPlugin`
-  //  is installed separately from the initialize() method.
-  get indexAutoCreationEnabled(): boolean {
-    return this.fieldIndexPlugin.indexAutoCreationEnabled;
-  }
-
-  set indexAutoCreationEnabled(value: boolean) {
-    this.fieldIndexPlugin.indexAutoCreationEnabled = value;
-  }
-
-  // TODO(CsiTreeShake) Remove this property once `QueryEngineFieldIndexPlugin`
-  //  is installed separately from the initialize() method.
-  get indexAutoCreationMinCollectionSize(): number {
-    return this.fieldIndexPlugin.indexAutoCreationMinCollectionSize;
-  }
-
-  set indexAutoCreationMinCollectionSize(value: number) {
-    this.fieldIndexPlugin.indexAutoCreationMinCollectionSize = value;
-  }
-
-  // TODO(CsiTreeShake) Remove this property once `QueryEngineFieldIndexPlugin`
-  //  is installed separately from the initialize() method.
-  get relativeIndexReadCostPerDocument(): number {
-    return this.fieldIndexPlugin.relativeIndexReadCostPerDocument;
-  }
-
-  set relativeIndexReadCostPerDocument(value: number) {
-    this.fieldIndexPlugin.relativeIndexReadCostPerDocument = value;
-  }
 
   /** Sets the document view to query against. */
   initialize(
@@ -155,11 +128,25 @@ export class QueryEngine {
     this.indexManager = indexManager;
     // TODO(CsiTreeShake) Provide a means for the `QueryEngineFieldIndexPlugin`
     //  to be installed separately from this initialize() method.
-    this.fieldIndexPlugin = new QueryEngineFieldIndexPlugin(
-      indexManager,
-      localDocuments
-    );
+    if (this.indexManager.fieldIndexPlugin) {
+      this._fieldIndexPlugin = new QueryEngineFieldIndexPlugin(
+        this.indexManager.fieldIndexPlugin,
+        localDocuments
+      );
+    }
     this.initialized = true;
+  }
+
+  private get indexAutoCreationEnabled(): boolean {
+    return this._fieldIndexPlugin
+      ? this._fieldIndexPlugin.indexAutoCreationEnabled
+      : false;
+  }
+
+  private _fieldIndexPlugin: QueryEngineFieldIndexPlugin | null = null;
+
+  get fieldIndexPlugin(): QueryEngineFieldIndexPlugin | null {
+    return this._fieldIndexPlugin;
   }
 
   /** Returns all local documents matching the specified query. */
@@ -221,11 +208,13 @@ export class QueryEngine {
     context: QueryContext,
     resultSize: number
   ): PersistencePromise<void> {
-    return this.fieldIndexPlugin.createCacheIndexes(
-      transaction,
-      query,
-      context,
-      resultSize
+    return (
+      this.fieldIndexPlugin?.createCacheIndexes(
+        transaction,
+        query,
+        context,
+        resultSize
+      ) ?? PersistencePromise.resolve()
     );
   }
 
@@ -233,7 +222,10 @@ export class QueryEngine {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap | null> {
-    return this.fieldIndexPlugin?.performQueryUsingIndex(transaction, query);
+    return (
+      this.fieldIndexPlugin?.performQueryUsingIndex(transaction, query) ??
+      PersistencePromise.resolve<DocumentMap | null>(null)
+    );
   }
 
   /**
@@ -335,7 +327,7 @@ export class QueryEngineFieldIndexPlugin {
     getDefaultRelativeIndexReadCostPerDocument();
 
   constructor(
-    private readonly indexManager: IndexManager,
+    private readonly indexManagerFieldIndexPlugin: IndexManagerFieldIndexPlugin,
     private readonly localDocumentsView: LocalDocumentsView
   ) {}
 
@@ -355,7 +347,7 @@ export class QueryEngineFieldIndexPlugin {
     }
 
     let target = queryToTarget(query);
-    return this.indexManager
+    return this.indexManagerFieldIndexPlugin
       .getIndexType(transaction, target)
       .next(indexType => {
         if (indexType === IndexType.NONE) {
@@ -375,7 +367,7 @@ export class QueryEngineFieldIndexPlugin {
           target = queryToTarget(query);
         }
 
-        return this.indexManager
+        return this.indexManagerFieldIndexPlugin
           .getDocumentsMatchingTarget(transaction, target)
           .next(keys => {
             debugAssert(
@@ -386,7 +378,7 @@ export class QueryEngineFieldIndexPlugin {
             return this.localDocumentsView
               .getDocuments(transaction, sortedKeys)
               .next(indexedDocuments => {
-                return this.indexManager
+                return this.indexManagerFieldIndexPlugin
                   .getMinOffset(transaction, target)
                   .next(offset => {
                     const previousResults = applyQuery(query, indexedDocuments);
@@ -470,7 +462,7 @@ export class QueryEngineFieldIndexPlugin {
           'as using cache indexes may help improve performance.'
         );
       }
-      return this.indexManager.createTargetIndexes(
+      return this.indexManagerFieldIndexPlugin.createTargetIndexes(
         transaction,
         queryToTarget(query)
       );

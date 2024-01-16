@@ -996,7 +996,9 @@ abstract class TestRunner {
             'getFieldIndexes ',
             'readonly',
             transaction =>
-              this.localStore.indexManager.getFieldIndexes(transaction)
+              this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+                transaction
+              )
           );
 
         assert.deepEqualExcluding(

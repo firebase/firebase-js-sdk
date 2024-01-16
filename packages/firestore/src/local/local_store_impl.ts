@@ -1498,13 +1498,15 @@ export async function localStoreConfigureFieldIndexes(
   newFieldIndexes: FieldIndex[]
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
+
   const promises: Array<PersistencePromise<void>> = [];
   return localStoreImpl.persistence.runTransaction(
     'Configure indexes',
     'readwrite',
     transaction =>
-      indexManager
+      fieldIndexPlugin
         .getFieldIndexes(transaction)
         .next(oldFieldIndexes =>
           diffArrays(
@@ -1513,12 +1515,12 @@ export async function localStoreConfigureFieldIndexes(
             fieldIndexSemanticComparator,
             fieldIndex => {
               promises.push(
-                indexManager.addFieldIndex(transaction, fieldIndex)
+                fieldIndexPlugin.addFieldIndex(transaction, fieldIndex)
               );
             },
             fieldIndex => {
               promises.push(
-                indexManager.deleteFieldIndex(transaction, fieldIndex)
+                fieldIndexPlugin.deleteFieldIndex(transaction, fieldIndex)
               );
             }
           )
@@ -1532,44 +1534,32 @@ export function localStoreSetIndexAutoCreationEnabled(
   isEnabled: boolean
 ): void {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  localStoreImpl.queryEngine.indexAutoCreationEnabled = isEnabled;
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  if (isEnabled) {
+    hardAssert(!!fieldIndexPlugin);
+    fieldIndexPlugin.indexAutoCreationEnabled = true;
+  } else if (fieldIndexPlugin) {
+    fieldIndexPlugin.indexAutoCreationEnabled = false;
+  }
+}
+
+export function localStoreIsIndexAutoCreationEnabled(
+  localStore: LocalStore
+): boolean {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const fieldIndexPlugin = localStoreImpl.queryEngine.fieldIndexPlugin;
+  return fieldIndexPlugin ? fieldIndexPlugin.indexAutoCreationEnabled : false;
 }
 
 export function localStoreDeleteAllFieldIndexes(
   localStore: LocalStore
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const indexManager = localStoreImpl.indexManager;
+  const fieldIndexPlugin = localStoreImpl.indexManager.fieldIndexPlugin;
+  hardAssert(!!fieldIndexPlugin);
   return localStoreImpl.persistence.runTransaction(
     'Delete All Indexes',
     'readwrite',
-    transaction => indexManager.deleteAllFieldIndexes(transaction)
+    transaction => fieldIndexPlugin.deleteAllFieldIndexes(transaction)
   );
-}
-
-/**
- * Test-only hooks into the SDK for use exclusively by tests.
- */
-export class TestingHooks {
-  private constructor() {
-    throw new Error('creating instances is not supported');
-  }
-
-  static setIndexAutoCreationSettings(
-    localStore: LocalStore,
-    settings: {
-      indexAutoCreationMinCollectionSize?: number;
-      relativeIndexReadCostPerDocument?: number;
-    }
-  ): void {
-    const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-    if (settings.indexAutoCreationMinCollectionSize !== undefined) {
-      localStoreImpl.queryEngine.indexAutoCreationMinCollectionSize =
-        settings.indexAutoCreationMinCollectionSize;
-    }
-    if (settings.relativeIndexReadCostPerDocument !== undefined) {
-      localStoreImpl.queryEngine.relativeIndexReadCostPerDocument =
-        settings.relativeIndexReadCostPerDocument;
-    }
-  }
 }

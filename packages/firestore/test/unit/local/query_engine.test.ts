@@ -841,7 +841,7 @@ function genericQueryEngineTest(
     // A generic test for index auto-creation.
     // This function can be called with explicit parameters from it() methods.
     const testIndexAutoCreation = async (config: {
-      indexAutoCreationEnabled: boolean;
+      indexAutoCreationEnabled?: boolean;
       indexAutoCreationMinCollectionSize?: number;
       relativeIndexReadCostPerDocument?: number;
       matchingDocumentCount?: number;
@@ -864,14 +864,27 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
-      queryEngine.indexAutoCreationEnabled = config.indexAutoCreationEnabled;
+      const queryEngineFieldIndexPlugin = queryEngine.fieldIndexPlugin;
 
+      if (config.indexAutoCreationEnabled !== undefined) {
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
+        queryEngineFieldIndexPlugin.indexAutoCreationEnabled =
+          config.indexAutoCreationEnabled;
+      }
       if (config.indexAutoCreationMinCollectionSize !== undefined) {
-        queryEngine.indexAutoCreationMinCollectionSize =
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
+        queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
           config.indexAutoCreationMinCollectionSize;
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
-        queryEngine.relativeIndexReadCostPerDocument =
+        if (!queryEngineFieldIndexPlugin) {
+          throw new Error('queryEngine.fieldIndexPlugin should not be null');
+        }
+        queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
           config.relativeIndexReadCostPerDocument;
       }
 
@@ -918,6 +931,11 @@ function genericQueryEngineTest(
         indexAutoCreationEnabled: false,
         indexAutoCreationMinCollectionSize: 0,
         relativeIndexReadCostPerDocument: 0,
+        expectedPostQueryExecutionIndexType: IndexType.NONE
+      }));
+
+    it('does not create indexes when no QueryEngineFieldIndexPlugin is installed', () =>
+      testIndexAutoCreation({
         expectedPostQueryExecutionIndexType: IndexType.NONE
       }));
 

@@ -37,10 +37,10 @@ import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
+  localStoreIsIndexAutoCreationEnabled,
   localStoreSetIndexAutoCreationEnabled,
   localStoreWriteLocally,
-  newLocalStore,
-  TestingHooks as LocalStoreTestingHooks
+  newLocalStore
 } from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
@@ -146,10 +146,23 @@ class AsyncLocalStoreTester {
     if (config.isEnabled !== undefined) {
       localStoreSetIndexAutoCreationEnabled(this.localStore, config.isEnabled);
     }
-    LocalStoreTestingHooks.setIndexAutoCreationSettings(
-      this.localStore,
-      config
-    );
+
+    const queryEngineFieldIndexPlugin = this.queryEngine.fieldIndexPlugin;
+
+    if (config.indexAutoCreationMinCollectionSize !== undefined) {
+      if (!queryEngineFieldIndexPlugin) {
+        throw new Error('queryEngine.fieldIndexPlugin should not be null');
+      }
+      queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
+        config.indexAutoCreationMinCollectionSize;
+    }
+    if (config.relativeIndexReadCostPerDocument !== undefined) {
+      if (!queryEngineFieldIndexPlugin) {
+        throw new Error('queryEngine.fieldIndexPlugin should not be null');
+      }
+      queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
+        config.relativeIndexReadCostPerDocument;
+    }
   }
 
   deleteAllFieldIndexes(): Promise<void> {
@@ -171,7 +184,10 @@ class AsyncLocalStoreTester {
     const fieldIndexes: FieldIndex[] = await this.persistence.runTransaction(
       'getFieldIndexes ',
       'readonly',
-      transaction => this.localStore.indexManager.getFieldIndexes(transaction)
+      transaction =>
+        this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+          transaction
+        )
     );
     expect(fieldIndexes).to.have.deep.members(indexes);
   }
@@ -250,6 +266,18 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
   afterEach(async () => {
     await persistence?.shutdown();
     await persistenceHelpers.clearTestPersistence();
+  });
+
+  it('localStoreSetIndexAutoCreationEnabled()', () => {
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, true);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, false);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, true);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.true;
+    localStoreSetIndexAutoCreationEnabled(test.localStore, false);
+    expect(localStoreIsIndexAutoCreationEnabled(test.localStore)).to.be.false;
   });
 
   it('Adds Indexes', async () => {
