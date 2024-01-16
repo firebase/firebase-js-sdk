@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryFieldFilterConstraint class
-A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by a Firestore query by filtering on one or more document fields. `QueryFieldFilterConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this `QueryFieldFilterConstraint`<!-- -->.
+A `QueryFieldFilterConstraint` is used to narrow the set of documents returned by a Firestore query by filtering on one or more document fields. `QueryFieldFilterConstraint`<!-- -->s are created by invoking [where()](./firestore_.md#where_0fae4bf) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this `QueryFieldFilterConstraint`<!-- -->.
 
 <b>Signature:</b>
 

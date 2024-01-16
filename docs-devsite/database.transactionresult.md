@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransactionResult class
-A type for the resolve value of [runTransaction()](./database.md#runtransaction)<!-- -->.
+A type for the resolve value of [runTransaction()](./database.md#runtransaction_a3641e5)<!-- -->.
 
 <b>Signature:</b>
 

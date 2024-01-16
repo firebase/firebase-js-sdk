@@ -140,7 +140,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       filter('sort', '>=', 2),
       orderBy('sort')
     );
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query1)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -157,7 +160,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
 
   it('returns saved collection group queries', async () => {
     const query = newQueryForCollectionGroup('collection');
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -179,7 +185,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       3,
       LimitType.First
     );
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query1)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -209,7 +218,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     const queryTarget = toQueryTarget(
       JSON_SERIALIZER,
       queryToTarget(limitQuery)
-    );
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',

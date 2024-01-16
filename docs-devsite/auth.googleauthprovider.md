@@ -80,7 +80,7 @@ Creates a credential for Google. At least one of ID token and access token is re
 static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -111,7 +111,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromError(error: FirebaseError): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -131,7 +131,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

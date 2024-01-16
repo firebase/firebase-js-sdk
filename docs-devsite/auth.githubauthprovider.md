@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # GithubAuthProvider class
 Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GITHUB.
 
-GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect directly, or use the [signInWithPopup()](./auth.md#signinwithpopup) handler:
+GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect directly, or use the [signInWithPopup()](./auth.md#signinwithpopup_770f816) handler:
 
 <b>Signature:</b>
 
@@ -82,7 +82,7 @@ Creates a credential for Github.
 static credential(accessToken: string): OAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -102,7 +102,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromError(error: FirebaseError): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -122,7 +122,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
