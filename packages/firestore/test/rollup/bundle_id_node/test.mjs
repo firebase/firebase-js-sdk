@@ -16,16 +16,6 @@
  */
 
 import { _ROLLUP_BUNDLE_ID } from '@firebase/firestore';
+import { stdout } from 'node:process';
 
-const EXPECTED_ROLLUP_BUNDLE_ID = 'node.mjs';
-
-if (_ROLLUP_BUNDLE_ID !== EXPECTED_ROLLUP_BUNDLE_ID) {
-  throw new Error(
-    `Test FAILED: _ROLLUP_BUNDLE_ID===${_ROLLUP_BUNDLE_ID}, ` +
-      `but expected ${EXPECTED_ROLLUP_BUNDLE_ID}`
-  );
-}
-
-console.log(
-  `Test Passed: _ROLLUP_BUNDLE_ID===${_ROLLUP_BUNDLE_ID} (as expected)`
-);
+stdout.write(_ROLLUP_BUNDLE_ID);
