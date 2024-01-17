@@ -2,5 +2,5 @@
   "extension": "ts",
   "require": "ts-node/register",
   "spec": "test.*ts",
-  "timeout": "10000"
+  "timeout": 10000
 }
