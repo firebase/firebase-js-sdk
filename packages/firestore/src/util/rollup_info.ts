@@ -16,10 +16,17 @@
  */
 
 /**
- * The file name of the exported JavaScript file from package.json.
+ * The unique ID for this bundled version of the Firestore SDK as assigned by
+ * rollup.js at bundling time, or some undefined value if the SDK was not
+ * bundled with rollup.
  *
- * The value is replaced by rollup during the bundling process.
+ * The ID can be used to determine which rollup.js plugins were used to bundle
+ * the SDK. See `../../rollup.shared.js` for details about how this value gets
+ * set by rollup at bundling time.
+ *
+ * The initial use case for this value is in tests that verify the bundled
+ * output of rollup.js.
  *
  * @internal
  */
-export const PACKAGE_JSON_EXPORT_FILE = '__FIRESTORE_PACKAGE_JSON_EXPORT_FILE__';
+export const ROLLUP_BUNDLE_ID = '__FIRESTORE_ROLLUP_BUNDLE_ID__';

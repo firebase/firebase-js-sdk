@@ -98,7 +98,8 @@ const allBuilds = [
     },
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ false),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'node.cjs' })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -115,7 +116,8 @@ const allBuilds = [
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'node.mjs' })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -150,7 +152,8 @@ const allBuilds = [
     ],
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      replace(generateBuildTargetReplaceConfig('esm', 5)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.esm5' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -169,7 +172,8 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.cjs' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -188,7 +192,8 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.mjs' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -206,7 +211,8 @@ const allBuilds = [
     plugins: [
       alias(util.generateAliasConfig('rn')),
       ...browserPlugins(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'rn' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

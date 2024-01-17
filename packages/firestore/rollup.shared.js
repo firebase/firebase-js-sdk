@@ -365,12 +365,3 @@ exports.es2017PluginsCompat = function (
     ];
   }
 };
-
-exports.selfIdReplacePlugin = function(file) {
-  return replace({
-    include: ['src/util/selfid.ts'],
-    values: {
-      __FIRESTORE_PACKAGE_JSON_EXPORT_FILE__: file
-    }
-  });
-}
