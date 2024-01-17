@@ -695,4 +695,82 @@ describe('FirestoreTypeConverter', () => {
       expect(data.numberProperty).to.equal(43);
     }
   });
+
+  it('setDoc() fails to compile if AppModelType argument is missing properties', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, {}>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      // @ts-expect-error The `foo` property declared in AppModelType is missing.
+      await setDoc(docRefWithConverter, {});
+    }));
+
+  it('setDoc() fails to compile if AppModelType argument contains undeclared properties', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { bar: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      // @ts-expect-error The `bar` property is not declared in AppModelType.
+      await setDoc(docRefWithConverter, { foo: 'foo', bar: 42 });
+    }));
+
+  it('setDoc() fails to compile if AppModelType argument contains a property with an incorrect type', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { foo: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      // @ts-expect-error The `foo` property is declared as `string` in
+      //  AppModelType, but a `number` is specified.
+      await setDoc(docRefWithConverter, { foo: 42 });
+    }));
+
+  it('updateDoc() successfully compiles even if DbModelType argument is missing properties', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { bar: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      await updateDoc(docRefWithConverter, {});
+    }));
+
+  it('updateDoc() fails to compile if DbModelType argument contains undeclared properties', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { bar: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      // @ts-expect-error The `foo` property is not declared in DbModelType.
+      await updateDoc(docRefWithConverter, { foo: 'foo', bar: 42 });
+    }));
+
+  it('updateDoc() fails to compile if DbModelType argument contains a property with an incorrect type', () =>
+    neverCall(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { foo: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      // @ts-expect-error The `foo` property is declared as `number` in
+      //  DbModelType, but a `string` is specified.
+      await updateDoc(docRefWithConverter, { foo: 'foo' });
+    }));
+
+  it('getDoc() returns AppModelType', () =>
+    neverCall<Promise<{ foo: string }>>(async docRef => {
+      const converter = fakeConverter<{ foo: string }, { bar: number }>();
+      const docRefWithConverter = docRef.withConverter(converter);
+      const snapshot = await getDoc(docRefWithConverter);
+      return snapshot.data()!;
+    }));
 });
+
+/**
+ * Does nothing; however, this function can be useful in tests that only check
+ * the compile-time behavior of the TypeScript compiler. For example, a test
+ * that ensures that a certain statement successfully compiles could pass the
+ * code block to this function to exercise the compiler but the code will not
+ * actually be executed at runtime.
+ */
+function neverCall<T>(_: (docRef: DocumentReference) => T): void {}
+
+/**
+ * Does nothing; this function does not actually exist but is merely _declared_
+ * to exist. This facilitates creating variables typed as FirestoreDataConverter
+ * with the given type parameters at compile time. This can be useful in tests
+ * that only check compile-time behavior of the TypeScript compiler but don't
+ * actually get executed at runtime.
+ */
+declare function fakeConverter<
+  AppModelType,
+  DbModelType extends DocumentData
+>(): FirestoreDataConverter<AppModelType, DbModelType>;
