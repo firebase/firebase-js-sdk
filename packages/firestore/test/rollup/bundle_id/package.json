@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "rollup": "rollup -c"
+    "rollup": "rollup --config rollup.config.ts --configPlugin typescript2='{\"tsconfig\":\"tsconfig.rollup.json\",\"verbosity\":2}'"
   },
   "dependencies": {
     "@firebase/firestore": "file:../../.."
@@ -8,6 +8,9 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "rollup": "^4.9.5"
+    "@tsconfig/node16": "^16.1.1",
+    "rollup": "^4.9.5",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.3.3"
   }
 }
