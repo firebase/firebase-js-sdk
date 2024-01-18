@@ -7,8 +7,8 @@
     <pass-parent-env>true</pass-parent-env>
     <ui>bdd</ui>
     <extra-mocha-options />
-    <test-kind>TEST_FILE</test-kind>
-    <test-file>$PROJECT_DIR$/test.ts</test-file>
+    <test-kind>PATTERN</test-kind>
+    <test-pattern>test/**/*.test.ts</test-pattern>
     <method v="2" />
   </configuration>
 </component>

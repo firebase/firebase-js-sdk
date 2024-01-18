@@ -2,39 +2,60 @@ import { expect } from 'chai';
 import { execFileSync } from 'node:child_process';
 
 // The path of the directory containing this file.
-const bundleIdDir = `${__dirname}/bundle_id`;
+const bundleIdDir = `${__dirname}/../bundle_id`;
 
-describe('Rollup Tests', () => {
+describe('bundle id in firestore bundles should match the expected', () => {
   before(() => {
     runNpmInstall(bundleIdDir);
     runNpmRollup(bundleIdDir);
   });
 
-  it('node.js commonjs scripts should use node.cjs bundle', () => {
+  it('node.js cjs scripts should use node cjs bundle', () => {
     verifyBundleId({
       jsScriptFile: `${bundleIdDir}/index.cjs`,
       expectedBundleId: 'fstrbid_node_cjs'
     });
   });
 
-  it('node.js esm scripts should use node.mjs bundle', () => {
+  it('node.js esm scripts should use node esm bundle', () => {
     verifyBundleId({
       jsScriptFile: `${bundleIdDir}/index.mjs`,
       expectedBundleId: 'fstrbid_node_esm'
     });
   });
 
-  it('browser esm scripts should use browser.mjs bundle', () => {
+  it('rollup browser cjs scripts should use browser cjs bundle', () => {
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/dist/index.browser.cjs`,
+      expectedBundleId: 'fstrbid_browser_cjs'
+    });
+  });
+
+  it('rollup browser esm scripts should use browser esm bundle', () => {
     verifyBundleId({
       jsScriptFile: `${bundleIdDir}/dist/index.browser.mjs`,
       expectedBundleId: 'fstrbid_browser_esm'
     });
   });
 
-  it('browser commonjs scripts should use browser.cjs bundle', () => {
+  it('rollup browser esm5 scripts should use browser esm5 bundle', () => {
     verifyBundleId({
-      jsScriptFile: `${bundleIdDir}/dist/index.browser.cjs`,
-      expectedBundleId: 'fstrbid_browser_cjs'
+      jsScriptFile: `${bundleIdDir}/dist/index.browser.esm5.mjs`,
+      expectedBundleId: 'fstrbid_browser_esm5'
+    });
+  });
+
+  it('rollup node cjs scripts should use node cjs bundle', () => {
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/dist/index.node.cjs`,
+      expectedBundleId: 'fstrbid_node_cjs'
+    });
+  });
+
+  it('rollup node esm scripts should use node esm bundle', () => {
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/dist/index.node.mjs`,
+      expectedBundleId: 'fstrbid_node_esm'
     });
   });
 });
