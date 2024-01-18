@@ -99,7 +99,7 @@ const allBuilds = [
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ false),
       replace(generateBuildTargetReplaceConfig('cjs', 2017)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'node.cjs' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': pkg.main })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -117,7 +117,7 @@ const allBuilds = [
     plugins: [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'node.mjs' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': pkg['main-esm'] })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -153,7 +153,7 @@ const allBuilds = [
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 5)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.esm5' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': pkg['esm5'] })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -173,7 +173,7 @@ const allBuilds = [
     plugins: [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.cjs' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'dist/index.cjs.js' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -193,7 +193,7 @@ const allBuilds = [
     plugins: [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'browser.mjs' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': pkg['browser'] })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -212,7 +212,7 @@ const allBuilds = [
       alias(util.generateAliasConfig('rn')),
       ...browserPlugins(),
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'rn' })
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': pkg['react-native'] })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
