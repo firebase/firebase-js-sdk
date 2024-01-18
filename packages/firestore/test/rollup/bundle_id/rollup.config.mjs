@@ -1,13 +1,14 @@
-import resolve from '@rollup/plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 export default [
   {
-    input: 'index.mjs',
+    input: 'index.cjs',
     output: {
       file: 'dist/index.browser.cjs',
       format: 'cjs'
     },
-    plugins: [resolve({ browser: true })]
+    plugins: [commonjs(), nodeResolve({ browser: true })]
   },
   {
     input: 'index.mjs',
@@ -15,6 +16,6 @@ export default [
       file: 'dist/index.browser.mjs',
       format: 'es'
     },
-    plugins: [resolve({ browser: true })]
+    plugins: [commonjs(), nodeResolve({ browser: true })]
   }
 ];

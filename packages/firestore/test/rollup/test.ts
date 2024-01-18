@@ -11,33 +11,41 @@ describe('Rollup Tests', () => {
   });
 
   it('node.js commonjs scripts should use node.cjs bundle', () => {
-    const rollupBundleId = runNodeScriptAndReturnOutput(
-      `${bundleIdDir}/index.cjs`
-    );
-    expect(rollupBundleId).to.equal('node.cjs');
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/index.cjs`,
+      expectedBundleId: 'fstrbid_node_cjs'
+    });
   });
 
   it('node.js esm scripts should use node.mjs bundle', () => {
-    const rollupBundleId = runNodeScriptAndReturnOutput(
-      `${bundleIdDir}/index.mjs`
-    );
-    expect(rollupBundleId).to.equal('node.mjs');
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/index.mjs`,
+      expectedBundleId: 'fstrbid_node_esm'
+    });
   });
 
   it('browser esm scripts should use browser.mjs bundle', () => {
-    const rollupBundleId = runNodeScriptAndReturnOutput(
-      `${bundleIdDir}/dist/index.browser.mjs`
-    );
-    expect(rollupBundleId).to.equal('browser.mjs');
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/dist/index.browser.mjs`,
+      expectedBundleId: 'fstrbid_browser_esm'
+    });
   });
 
   it('browser commonjs scripts should use browser.cjs bundle', () => {
-    const rollupBundleId = runNodeScriptAndReturnOutput(
-      `${bundleIdDir}/dist/index.browser.cjs`
-    );
-    expect(rollupBundleId).to.equal('browser.cjs');
+    verifyBundleId({
+      jsScriptFile: `${bundleIdDir}/dist/index.browser.cjs`,
+      expectedBundleId: 'fstrbid_browser_cjs'
+    });
   });
 });
+
+function verifyBundleId(args: {
+  jsScriptFile: string;
+  expectedBundleId: string;
+}): void {
+  const rollupBundleId = runNodeScriptAndReturnOutput(args.jsScriptFile);
+  expect(rollupBundleId).to.equal(args.expectedBundleId);
+}
 
 function runNpmInstall(dir: string): void {
   console.log(`npm install starting in directory: ${dir}`);
