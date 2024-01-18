@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "10.7.1",
+  "version": "10.7.2",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -362,15 +362,15 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app": "0.9.25",
-    "@firebase/app-compat": "0.2.25",
+    "@firebase/app": "0.9.26",
+    "@firebase/app-compat": "0.2.26",
     "@firebase/app-types": "0.9.0",
     "@firebase/auth": "1.5.1",
     "@firebase/auth-compat": "0.5.1",
     "@firebase/database": "1.0.2",
     "@firebase/database-compat": "1.0.2",
-    "@firebase/firestore": "4.4.0",
-    "@firebase/firestore-compat": "0.3.23",
+    "@firebase/firestore": "4.4.1",
+    "@firebase/firestore-compat": "0.3.24",
     "@firebase/functions": "0.11.0",
     "@firebase/functions-compat": "0.3.6",
     "@firebase/installations": "0.6.4",
