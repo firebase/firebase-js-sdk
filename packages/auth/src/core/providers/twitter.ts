@@ -43,7 +43,7 @@ import { BaseOAuthProvider } from './oauth';
 import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
- * Provider for generating an {@link OAuthCredential} for {@link ProviderId}.TWITTER.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId.TWITTER}.
  *
  * @example
  * ```javascript
@@ -84,7 +84,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
 export class TwitterAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod}.TWITTER. */
   static readonly TWITTER_SIGN_IN_METHOD: 'twitter.com' = SignInMethod.TWITTER;
-  /** Always set to {@link ProviderId}.TWITTER. */
+  /** Always set to {@link ProviderId.TWITTER}. */
   static readonly PROVIDER_ID: 'twitter.com' = ProviderId.TWITTER;
 
   constructor() {

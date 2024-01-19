@@ -26,7 +26,7 @@ import { BaseOAuthProvider } from './oauth';
 import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
- * Provider for generating an an {@link OAuthCredential} for {@link ProviderId}.GOOGLE.
+ * Provider for generating an an {@link OAuthCredential} for {@link ProviderId.GOOGLE}.
  *
  * @example
  * ```javascript
@@ -69,7 +69,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
 export class GoogleAuthProvider extends BaseOAuthProvider {
   /** Always set to {@link SignInMethod}.GOOGLE. */
   static readonly GOOGLE_SIGN_IN_METHOD: 'google.com' = SignInMethod.GOOGLE;
-  /** Always set to {@link ProviderId}.GOOGLE. */
+  /** Always set to {@link ProviderId.GOOGLE}. */
   static readonly PROVIDER_ID: 'google.com' = ProviderId.GOOGLE;
 
   constructor() {

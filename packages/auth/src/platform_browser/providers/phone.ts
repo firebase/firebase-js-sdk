@@ -54,12 +54,12 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * @public
  */
 export class PhoneAuthProvider {
-  /** Always set to {@link ProviderId}.PHONE. */
+  /** Always set to {@link ProviderId.PHONE}. */
   static readonly PROVIDER_ID: 'phone' = ProviderId.PHONE;
   /** Always set to {@link SignInMethod}.PHONE. */
   static readonly PHONE_SIGN_IN_METHOD: 'phone' = SignInMethod.PHONE;
 
-  /** Always set to {@link ProviderId}.PHONE. */
+  /** Always set to {@link ProviderId.PHONE}. */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
   private readonly auth: AuthInternal;
 
