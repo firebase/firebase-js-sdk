@@ -29,6 +29,14 @@ const git = simpleGit(root);
 const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
 
+const githubOutputFile = (function (): string {
+  const value = process.env.GITHUB_OUTPUT;
+  if (!value) {
+    throw new Error('GITHUB_OUTPUT environment variable must be set');
+  }
+  return value;
+})();
+
 // Version bump text converted to rankable numbers.
 const bumpRank: Record<string, number> = {
   'patch': 0,
@@ -208,7 +216,7 @@ async function main() {
    */
   if (errors.length > 0) {
     await writeFile(
-      process.env.GITHUB_OUTPUT,
+      githubOutputFile,
       `CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}\n`,
       { flag: 'a' }
     );
