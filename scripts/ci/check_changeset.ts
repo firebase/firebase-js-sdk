@@ -17,6 +17,7 @@
 
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git';
@@ -205,10 +206,13 @@ async function main() {
    * step. See:
    * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
    */
-  if (errors.length > 0)
-    await exec(
-      `echo "CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`
+  if (errors.length > 0) {
+    await writeFile(
+      process.env.GITHUB_OUTPUT,
+      `CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}\n`,
+      { flag: 'a' }
     );
+  }
   process.exit();
 }
 
