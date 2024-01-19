@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 4.4.1
+
+### Patch Changes
+
+- [`7481098d4`](https://github.com/firebase/firebase-js-sdk/commit/7481098d47d14acce901fa4c065ceff0cbf07d3d) [#7847](https://github.com/firebase/firebase-js-sdk/pull/7847) (fixes [#7747](https://github.com/firebase/firebase-js-sdk/issues/7747)) - Fixed leak of grpc-js resources on terminate.
+
+- [`f4788453e`](https://github.com/firebase/firebase-js-sdk/commit/f4788453eb989d30495ddc7a3832e13c6d11b34e) [#7402](https://github.com/firebase/firebase-js-sdk/pull/7402) - Support special characters in query paths sent to `getCountFromServer(...)`, `getCount(...)` (lite API), and `getDocs(...)` (lite API).
+
+- [`d7ace80d4`](https://github.com/firebase/firebase-js-sdk/commit/d7ace80d44ec870c3117cfed04ae6a1988c03c8e) [#7929](https://github.com/firebase/firebase-js-sdk/pull/7929) - Tweak the automatic index creation parameters to use more optimal values for the platform/browser detected at runtime.
+
+- [`a476c4692`](https://github.com/firebase/firebase-js-sdk/commit/a476c4692dd1c1affbbd3139290dac54257dc5d2) [#7861](https://github.com/firebase/firebase-js-sdk/pull/7861) (fixes [#7706](https://github.com/firebase/firebase-js-sdk/issues/7706)) - Update the `isEqual` function for arrayUnion, arrayRemove and increment.
+
 ## 4.4.0
 
 ### Minor Changes
