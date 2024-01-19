@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.9.25",
+  "version": "0.9.26",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
