@@ -354,6 +354,14 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     });
   }
 
+  /**
+   * Starts or stops a scheduler, taking into account its nullness and whether
+   * the SDK is acting as the "primary" tab.
+   * @param scheduler The scheduler to start or stop; if null, then this
+   * method does nothing.
+   * @param isPrimary true if the current tab is the primary tab, and false if
+   * it is a secondary tab.
+   */
   private startOrStopScheduler(
     scheduler: Scheduler | null,
     isPrimary: boolean
