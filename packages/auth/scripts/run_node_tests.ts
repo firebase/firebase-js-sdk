@@ -48,7 +48,9 @@ let testConfig = [
 ];
 
 if (argv.integration) {
-  testConfig = ['test/integration/flows/{email,anonymous,firebaseserverapp}.test.ts'];
+  testConfig = [
+    'test/integration/flows/{email,anonymous,firebaseserverapp}.test.ts'
+  ];
   if (argv.local) {
     testConfig.push('test/integration/flows/*.local.test.ts');
   }

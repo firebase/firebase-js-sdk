@@ -27,9 +27,9 @@ import {
   getAuth,
   onAuthStateChanged,
   signInAnonymously,
-  updateProfile,
+  updateProfile
 } from '@firebase/auth';
-import { FirebaseError } from '@firebase/util';
+import { isBrowser } from '@firebase/util';
 import { initializeServerApp } from '@firebase/app';
 
 import {
@@ -37,27 +37,28 @@ import {
   getTestInstance,
   randomEmail
 } from '../../helpers/integration/helpers';
-import { generateMiddlewareTests } from './middleware_test_generator';
 
 use(chaiAsPromised);
 
-const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
 const signInWaitDuration = 200;
 
-describe('Integration test: automatic user login via idToken in server apps', () => {
+describe('Integration test: Auth FirebaseServerApp tests', () => {
   let auth: Auth;
   let serverAppAuth: Auth;
 
   beforeEach(() => {
     auth = getTestInstance();
   });
-  
-  afterEach(() => {    
-    cleanUpTestInstance(auth);
-    cleanUpTestInstance(serverAppAuth);
+
+  afterEach(async () => {
+    await cleanUpTestInstance(auth);
+    await serverAppAuth.signOut();
   });
 
   it('signs in with anonymous user', async () => {
+    if (isBrowser()) {
+      return;
+    }
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -71,26 +72,35 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);    
+    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
     serverAppAuth = getAuth(serverApp);
     let numberServerLogins = 0;
-    onAuthStateChanged(serverAppAuth, function(serverAuthUser) {
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
-        
+
         // Note, the serverAuthUser does not fully equal the standard Auth user
         // since the serverAuthUser does not have a refresh token.
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(user.isAnonymous).to.be.equal(serverAuthUser.isAnonymous);
         expect(user.emailVerified).to.be.equal(serverAuthUser.emailVerified);
-        expect(user.providerData.length).to.eq(serverAuthUser.providerData.length);
-      } 
+        expect(user.providerData.length).to.eq(
+          serverAuthUser.providerData.length
+        );
+      }
     });
-    await sleep(signInWaitDuration);
+
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
     expect(numberServerLogins).to.equal(1);
   });
 
   it('getToken operations fullfilled or rejected', async () => {
+    if (isBrowser()) {
+      return;
+    }
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
@@ -102,28 +112,38 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);    
+    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
     serverAppAuth = getAuth(serverApp);
     let numberServerLogins = 0;
-    onAuthStateChanged(serverAppAuth, function(serverAuthUser) {
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
-        expect(serverAuthUser.getIdToken)
-      } 
+        expect(serverAuthUser.getIdToken);
+      }
     });
-    await sleep(signInWaitDuration);
+
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
     expect(numberServerLogins).to.equal(1);
     expect(serverAppAuth.currentUser).to.not.be.null;
-    if(serverAppAuth.currentUser) {
-      const idToken = await serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/false);
+    if (serverAppAuth.currentUser) {
+      const idToken = await serverAppAuth.currentUser.getIdToken(
+        /*forceRefresh=*/ false
+      );
       expect(idToken).to.not.be.null;
-      expect(serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/true)).to.be.rejected;
+      await expect(serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/ true))
+        .to.be.rejected;
     }
   });
 
   it('signs in with email crednetial user', async () => {
+    if (isBrowser()) {
+      return;
+    }
     const email = randomEmail();
     const password = 'password';
     const userCred = await createUserWithEmailAndPassword(
@@ -134,7 +154,7 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     const user = userCred.user;
     expect(auth.currentUser).to.eq(userCred.user);
     expect(userCred.operationType).to.eq(OperationType.SIGN_IN);
-    
+
     const additionalUserInfo = getAdditionalUserInfo(userCred)!;
     expect(additionalUserInfo.isNewUser).to.be.true;
     expect(additionalUserInfo.providerId).to.eq('password');
@@ -144,10 +164,10 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);    
+    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
     serverAppAuth = getAuth(serverApp);
     let numberServerLogins = 0;
-    onAuthStateChanged(serverAppAuth, function(serverAuthUser) {
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
@@ -155,44 +175,60 @@ describe('Integration test: automatic user login via idToken in server apps', ()
         expect(serverAuthUser.refreshToken).to.be.empty;
         expect(user.isAnonymous).to.be.equal(serverAuthUser.isAnonymous);
         expect(user.emailVerified).to.be.equal(serverAuthUser.emailVerified);
-        expect(user.providerData.length).to.eq(serverAuthUser.providerData.length);
+        expect(user.providerData.length).to.eq(
+          serverAuthUser.providerData.length
+        );
         expect(user.email).to.equal(serverAuthUser.email);
-      } 
+      }
     });
-    await sleep(signInWaitDuration);
+
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
     expect(numberServerLogins).to.equal(1);
   });
 
   it('can reload user', async () => {
+    if (isBrowser()) {
+      return;
+    }
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
 
     const user = userCred.user;
     expect(user).to.equal(auth.currentUser);
     expect(user.uid).to.be.a('string');
-    
+
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);    
+    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
     serverAppAuth = getAuth(serverApp);
     let numberServerLogins = 0;
-    onAuthStateChanged(serverAppAuth, function(serverAuthUser) {
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
-      } 
+      }
     });
-    await sleep(signInWaitDuration);
+
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
     expect(serverAppAuth.currentUser).to.not.be.null;
-    if(serverAppAuth.currentUser) {
+    if (serverAppAuth.currentUser) {
       await serverAppAuth.currentUser.reload();
     }
     expect(numberServerLogins).to.equal(1);
   });
 
   it('can update server based user profile', async () => {
+    if (isBrowser()) {
+      return;
+    }
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
 
@@ -204,24 +240,29 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);    
+    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
     serverAppAuth = getAuth(serverApp);
     let numberServerLogins = 0;
-    const newDisplayName = "newName";
-    onAuthStateChanged(serverAppAuth, function(serverAuthUser) {
+    const newDisplayName = 'newName';
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(user.displayName).to.be.null;
-        updateProfile(serverAuthUser, {
+        void updateProfile(serverAuthUser, {
           displayName: newDisplayName
         });
-      } 
+      }
     });
-    await sleep(signInWaitDuration);
+
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
     expect(serverAppAuth.currentUser).to.not.be.null;
-    if(serverAppAuth.currentUser) {
+
+    if (serverAppAuth.currentUser) {
       await serverAppAuth.currentUser.reload();
     }
 
@@ -230,5 +271,4 @@ describe('Integration test: automatic user login via idToken in server apps', ()
     expect(serverAppAuth.currentUser?.displayName).to.not.be.null;
     expect(serverAppAuth.currentUser?.displayName).to.equal(newDisplayName);
   });
-
 });
