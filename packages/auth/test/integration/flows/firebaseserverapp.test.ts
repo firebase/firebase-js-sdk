@@ -27,6 +27,7 @@ import {
   getAuth,
   onAuthStateChanged,
   signInAnonymously,
+  signOut,
   updateProfile
 } from '@firebase/auth';
 import { isBrowser } from '@firebase/util';
@@ -51,8 +52,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
   });
 
   afterEach(async () => {
+    await signOut(serverAppAuth);
     await cleanUpTestInstance(auth);
-    await serverAppAuth.signOut();
   });
 
   it('signs in with anonymous user', async () => {
