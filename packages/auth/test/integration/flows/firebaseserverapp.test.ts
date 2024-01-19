@@ -45,14 +45,17 @@ const signInWaitDuration = 200;
 
 describe('Integration test: Auth FirebaseServerApp tests', () => {
   let auth: Auth;
-  let serverAppAuth: Auth;
+  let serverAppAuth: Auth | null;
 
   beforeEach(() => {
     auth = getTestInstance();
   });
 
   afterEach(async () => {
-    await signOut(serverAppAuth);
+    if (serverAppAuth) {
+      await signOut(serverAppAuth);
+      serverAppAuth = null;
+    }
     await cleanUpTestInstance(auth);
   });
 
@@ -120,8 +123,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(user.uid).to.be.equal(serverAuthUser.uid);
-        expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        expect(serverAppAuth).to.not.be.null;
         expect(serverAuthUser.getIdToken);
+        if (serverAppAuth) {
+          expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        }
       }
     });
 
@@ -171,7 +177,10 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
-        expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        expect(serverAppAuth).to.not.be.null;
+        if (serverAppAuth) {
+          expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        }
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(serverAuthUser.refreshToken).to.be.empty;
         expect(user.isAnonymous).to.be.equal(serverAuthUser.isAnonymous);
@@ -211,7 +220,10 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       if (serverAuthUser) {
         numberServerLogins++;
         expect(user.uid).to.be.equal(serverAuthUser.uid);
-        expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        expect(serverAppAuth).to.not.be.null;
+        if (serverAppAuth) {
+          expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        }
       }
     });
 
@@ -248,7 +260,10 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
         numberServerLogins++;
-        expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        expect(serverAppAuth).to.not.be.null;
+        if (serverAppAuth) {
+          expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        }
         expect(user.uid).to.be.equal(serverAuthUser.uid);
         expect(user.displayName).to.be.null;
         void updateProfile(serverAuthUser, {
@@ -268,8 +283,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     }
 
     expect(numberServerLogins).to.equal(1);
-    expect(serverAppAuth.currentUser).to.not.be.null;
-    expect(serverAppAuth.currentUser?.displayName).to.not.be.null;
-    expect(serverAppAuth.currentUser?.displayName).to.equal(newDisplayName);
+    expect(serverAppAuth).to.not.be.null;
+    if (serverAppAuth) {
+      expect(serverAppAuth.currentUser).to.not.be.null;
+      expect(serverAppAuth.currentUser?.displayName).to.not.be.null;
+      expect(serverAppAuth.currentUser?.displayName).to.equal(newDisplayName);
+    }
   });
 });
