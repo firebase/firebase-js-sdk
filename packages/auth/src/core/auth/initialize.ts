@@ -72,6 +72,7 @@ export function _initializeAuthInstance(
   auth: AuthImpl,
   deps?: Dependencies
 ): void {
+  console.log("DEDB AUTH INITILAIZING!");
   const persistence = deps?.persistence || [];
   const hierarchy = (
     Array.isArray(persistence) ? persistence : [persistence]

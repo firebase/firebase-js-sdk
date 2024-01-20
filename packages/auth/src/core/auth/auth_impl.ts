@@ -43,8 +43,6 @@ import {
   Subscribe
 } from '@firebase/util';
 
-
-
 import { AuthInternal, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolverInternal } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
