@@ -36,7 +36,9 @@ export function stubTimeouts(ids?: number[]): TimerMap {
   let idCounter = 0;
 
   sinon.stub(window, 'setTimeout').callsFake((cb: () => void, duration) => {
-    callbacks[duration] = cb;
+    if (duration !== undefined) {
+      callbacks[duration] = cb;
+    }
     // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
     // which is flat-wrong. This is the easiest way to fix it.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
