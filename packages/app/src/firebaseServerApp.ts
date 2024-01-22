@@ -90,6 +90,8 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
+  // TODO: store the verified authIdToken somewhere. This is a placeholder waiting for the token
+  // validation work.
   authIdToken?: string;
 
   authIdTokenVerified(): Promise<void> {
