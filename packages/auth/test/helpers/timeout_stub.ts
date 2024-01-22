@@ -38,6 +38,8 @@ export function stubTimeouts(ids?: number[]): TimerMap {
   sinon.stub(window, 'setTimeout').callsFake((cb: () => void, duration) => {
     if (duration !== undefined) {
       callbacks[duration] = cb;
+    } else {
+      callbacks[0] = cb;
     }
     // For some bizarre reason setTimeout always get shoehorned into NodeJS.Timeout,
     // which is flat-wrong. This is the easiest way to fix it.
