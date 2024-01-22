@@ -83,10 +83,6 @@ export class StsTokenManager {
     auth: AuthInternal,
     forceRefresh = false
   ): Promise<string | null> {
-    if (!this.accessToken) {
-      _assert(this.refreshToken, auth, AuthErrorCode.TOKEN_EXPIRED);
-    }
-
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
