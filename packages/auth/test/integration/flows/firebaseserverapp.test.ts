@@ -290,4 +290,55 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       expect(serverAppAuth.currentUser?.displayName).to.equal(newDisplayName);
     }
   });
+
+  it('can sign out of main auth and still use server auth', async () => {
+    if (isBrowser()) {
+      return;
+    }
+    const userCred = await signInAnonymously(auth);
+    expect(auth.currentUser).to.eq(userCred.user);
+
+    const user = userCred.user;
+    expect(user).to.equal(auth.currentUser);
+    expect(user.uid).to.be.a('string');
+    expect(user.displayName).to.be.null;
+
+    const authIdToken = await user.getIdToken();
+    const firebaseServerAppSettings = { authIdToken };
+
+    const serverApp = initializeServerApp(
+      auth.app.options,
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getAuth(serverApp);
+    let numberServerLogins = 0;
+    onAuthStateChanged(serverAppAuth, serverAuthUser => {
+      if (serverAuthUser) {
+        numberServerLogins++;
+        expect(serverAppAuth).to.not.be.null;
+        expect(user.uid).to.be.equal(serverAuthUser.uid);
+        expect(user.displayName).to.be.null;
+        if (serverAppAuth) {
+          expect(serverAppAuth.currentUser).to.equal(serverAuthUser);
+        }
+      }
+    });
+
+    await signOut(auth);
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
+    expect(serverAppAuth.currentUser).to.not.be.null;
+
+    if (serverAppAuth.currentUser) {
+      await serverAppAuth.currentUser.reload();
+    }
+
+    expect(numberServerLogins).to.equal(1);
+    expect(serverAppAuth).to.not.be.null;
+    if (serverAppAuth) {
+      expect(serverAppAuth.currentUser).to.not.be.null;
+    }
+  });
 });
