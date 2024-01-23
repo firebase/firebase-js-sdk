@@ -36,15 +36,15 @@ import { LiteUserDataWriter } from './reference_impl';
 import { fieldPathFromArgument } from './user_data_reader';
 
 /**
- * Calculates the number of documents in the result set of the given query,
+ * Calculates the number of documents in the result set of the given query
  * without actually downloading the documents.
  *
  * Using this function to count the documents is efficient because only the
- * final count, not the documents' data, is downloaded. This function can even
- * count the documents if the result set would be prohibitively large to
- * download entirely (e.g. thousands of documents).
+ * final count, not the documents' data, is downloaded. This function can
+ * count the documents in cases where the result set is prohibitively large to
+ * download entirely (thousands of documents).
  *
- * @param query - The query whose result set size to calculate.
+ * @param query The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
@@ -67,14 +67,14 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
 
 /**
  * Calculates the specified aggregations over the documents in the result
- * set of the given query, without actually downloading the documents.
+ * set of the given query without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
  * final aggregation values, not the documents' data, are downloaded. This
- * function can even perform aggregations of the documents if the result set
- * would be prohibitively large to download entirely (e.g. thousands of documents).
+ * function can perform aggregations of the documents in cases where the result
+ * set is prohibitively large to download entirely (thousands of documents).
  *
- * @param query The query whose result set to aggregate over.
+ * @param query The query whose result set is aggregated over.
  * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.

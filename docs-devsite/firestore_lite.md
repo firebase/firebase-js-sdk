@@ -64,8 +64,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
 |  <b>function(query, ...)</b> |
-|  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents). |
-|  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents). |
+|  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
+|  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getDocs(query)](./firestore_lite.md#getdocs_4e56953) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
 |  [query(query, compositeFilter, queryConstraints)](./firestore_lite.md#query_9f7b0f4) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  [query(query, queryConstraints)](./firestore_lite.md#query_0f46da1) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
@@ -125,7 +125,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
 |  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
-|  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
+|  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
 |  [Settings](./firestore_lite.settings.md#settings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [TransactionOptions](./firestore_lite.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
 
@@ -982,9 +982,9 @@ The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
 ### getAggregate(query, aggregateSpec) {:#getaggregate_2073a74}
 
-Calculates the specified aggregations over the documents in the result set of the given query, without actually downloading the documents.
+Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.
 
-Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can even perform aggregations of the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
 
 <b>Signature:</b>
 
@@ -996,7 +996,7 @@ export declare function getAggregate<AggregateSpecType extends AggregateSpec, Ap
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set to aggregate over. |
+|  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set is aggregated over. |
 |  aggregateSpec | AggregateSpecType | An <code>AggregateSpec</code> object that specifies the aggregates to perform over the result set. The AggregateSpec specifies aliases for each aggregate, which can be used to retrieve the aggregate result. |
 
 <b>Returns:</b>
@@ -1021,9 +1021,9 @@ const averageScore: number | null = aggregateSnapshot.data().averageScore;
 
 ### getCount(query) {:#getcount_4e56953}
 
-Calculates the number of documents in the result set of the given query, without actually downloading the documents.
+Calculates the number of documents in the result set of the given query without actually downloading the documents.
 
-Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
 
 <b>Signature:</b>
 
@@ -1037,7 +1037,7 @@ export declare function getCount<AppModelType, DbModelType extends DocumentData>
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size to calculate. |
+|  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size is calculated. |
 
 <b>Returns:</b>
 

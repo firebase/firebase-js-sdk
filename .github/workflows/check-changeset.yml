@@ -47,7 +47,10 @@ jobs:
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
-      run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+      run: |
+        cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
+        ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
     - name: Print blocking failure status
       run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
