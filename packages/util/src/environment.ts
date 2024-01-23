@@ -138,6 +138,7 @@ export function isNodeSdk(): boolean {
 export function isSafari(): boolean {
   return (
     !isNode() &&
+    !!navigator.userAgent &&
     navigator.userAgent.includes('Safari') &&
     !navigator.userAgent.includes('Chrome')
   );
