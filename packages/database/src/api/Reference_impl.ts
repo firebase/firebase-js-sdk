@@ -1683,7 +1683,7 @@ export abstract class QueryConstraint {
 }
 
 class QueryEndAtConstraint extends QueryConstraint {
-  readonly type: 'endAt';
+  readonly type = 'endAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1748,7 +1748,7 @@ export function endAt(
 }
 
 class QueryEndBeforeConstraint extends QueryConstraint {
-  readonly type: 'endBefore';
+  readonly type = 'endBefore';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1809,7 +1809,7 @@ export function endBefore(
 }
 
 class QueryStartAtConstraint extends QueryConstraint {
-  readonly type: 'startAt';
+  readonly type = 'startAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1873,7 +1873,7 @@ export function startAt(
 }
 
 class QueryStartAfterConstraint extends QueryConstraint {
-  readonly type: 'startAfter';
+  readonly type = 'startAfter';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1933,7 +1933,7 @@ export function startAfter(
 }
 
 class QueryLimitToFirstConstraint extends QueryConstraint {
-  readonly type: 'limitToFirst';
+  readonly type = 'limitToFirst';
 
   constructor(private readonly _limit: number) {
     super();
@@ -1981,7 +1981,7 @@ export function limitToFirst(limit: number): QueryConstraint {
 }
 
 class QueryLimitToLastConstraint extends QueryConstraint {
-  readonly type: 'limitToLast';
+  readonly type = 'limitToLast';
 
   constructor(private readonly _limit: number) {
     super();
@@ -2030,7 +2030,7 @@ export function limitToLast(limit: number): QueryConstraint {
 }
 
 class QueryOrderByChildConstraint extends QueryConstraint {
-  readonly type: 'orderByChild';
+  readonly type = 'orderByChild';
 
   constructor(private readonly _path: string) {
     super();
@@ -2093,7 +2093,7 @@ export function orderByChild(path: string): QueryConstraint {
 }
 
 class QueryOrderByKeyConstraint extends QueryConstraint {
-  readonly type: 'orderByKey';
+  readonly type = 'orderByKey';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByKey');
@@ -2121,7 +2121,7 @@ export function orderByKey(): QueryConstraint {
 }
 
 class QueryOrderByPriorityConstraint extends QueryConstraint {
-  readonly type: 'orderByPriority';
+  readonly type = 'orderByPriority';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByPriority');
@@ -2149,7 +2149,7 @@ export function orderByPriority(): QueryConstraint {
 }
 
 class QueryOrderByValueConstraint extends QueryConstraint {
-  readonly type: 'orderByValue';
+  readonly type = 'orderByValue';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByValue');
@@ -2178,7 +2178,7 @@ export function orderByValue(): QueryConstraint {
 }
 
 class QueryEqualToValueConstraint extends QueryConstraint {
-  readonly type: 'equalTo';
+  readonly type = 'equalTo';
 
   constructor(
     private readonly _value: number | string | boolean | null,
