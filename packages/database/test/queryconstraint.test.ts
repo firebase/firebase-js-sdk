@@ -54,7 +54,7 @@ describe('Query Constraints', () => {
       { qc: equalTo(''), name: 'equalTo' }
     ];
     queryConstraintTypes.forEach(({ qc, name }) => {
-        expect(qc.type).to.equal(name);
+      expect(qc.type).to.equal(name);
     });
   });
 });
