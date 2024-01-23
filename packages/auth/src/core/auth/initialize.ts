@@ -84,17 +84,22 @@ export async function _loadUserFromIdToken(
   auth: Auth,
   idToken: string
 ): Promise<void> {
-  const response = await getAccountInfo(auth, { idToken });
-  const authInternal = _castAuth(auth);
-  await authInternal._initializationPromise;
-
-  const user = await UserImpl._fromGetAccountInfoResponse(
-    authInternal,
-    response,
-    idToken
-  );
-
-  await authInternal._updateCurrentUser(user);
+  try {
+    const response = await getAccountInfo(auth, { idToken });
+    const authInternal = _castAuth(auth);
+    await authInternal._initializationPromise;
+    const user = await UserImpl._fromGetAccountInfoResponse(
+      authInternal,
+      response,
+      idToken
+    );
+    await authInternal._updateCurrentUser(user);
+  } catch (err) {
+    console.warn(
+      'FirebaseServerApp could not login user with provided authIdToken: ',
+      err
+    );
+  }
 }
 
 export function _initializeAuthInstance(
