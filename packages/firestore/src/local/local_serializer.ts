@@ -16,7 +16,6 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { User } from '../auth/user';
 import { BundleMetadata, NamedQuery } from '../core/bundle';
 import { LimitType, Query, queryWithLimit } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -476,13 +475,13 @@ export function fromDbIndexConfiguration(
 
 export function toDbIndexState(
   indexId: number,
-  user: User,
+  uid: string,
   sequenceNumber: number,
   offset: IndexOffset
 ): DbIndexState {
   return {
     indexId,
-    uid: user.uid || '',
+    uid,
     sequenceNumber,
     readTime: toDbTimestamp(offset.readTime),
     documentKey: encodeResourcePath(offset.documentKey.path),
