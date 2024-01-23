@@ -58,6 +58,10 @@ export interface Config {
    */
   tokenApiHost: string;
   /**
+   * The host at witch the browser iframe code is hosted.
+   */
+  browserIframeHost: string;
+  /**
    * The SDK Client Version.
    */
   sdkClientVersion: string;

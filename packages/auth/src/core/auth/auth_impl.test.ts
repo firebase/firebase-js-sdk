@@ -76,6 +76,7 @@ describe('core/auth/auth_impl', () => {
         apiHost: DefaultConfig.API_HOST,
         apiScheme: DefaultConfig.API_SCHEME,
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+        browserIframeHost: DefaultConfig.BROWSER_IFRAME_HOST,
         clientPlatform: ClientPlatform.BROWSER,
         sdkClientVersion: 'v'
       }
@@ -597,6 +598,7 @@ describe('core/auth/auth_impl', () => {
           apiHost: DefaultConfig.API_HOST,
           apiScheme: DefaultConfig.API_SCHEME,
           tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          browserIframeHost: DefaultConfig.BROWSER_IFRAME_HOST,
           clientPlatform: ClientPlatform.BROWSER,
           sdkClientVersion: 'v'
         }

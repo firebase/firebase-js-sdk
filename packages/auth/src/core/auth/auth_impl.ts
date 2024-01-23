@@ -82,6 +82,7 @@ interface AsyncAction {
 export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
+  BROWSER_IFRAME_HOST = 'apis.google.com',
   API_SCHEME = 'https'
 }
 
