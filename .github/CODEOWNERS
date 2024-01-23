@@ -11,9 +11,9 @@
 *       @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
-packages/database-types @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-types @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
