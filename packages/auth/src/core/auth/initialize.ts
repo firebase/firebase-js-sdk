@@ -73,7 +73,10 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
 
   if (_isFirebaseServerAppImpl(app)) {
     if (app.authIdToken !== undefined) {
-      void _loadUserFromIdToken(auth, app.authIdToken);
+      const idToken = app.authIdToken;
+      // Start the auth operation in the next tick to allow a moment for the customer's app to
+      // attach an emulator, if desired.
+      setTimeout(() => void _loadUserFromIdToken(auth, idToken), 0);
     }
   }
 

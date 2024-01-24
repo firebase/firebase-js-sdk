@@ -24,7 +24,6 @@ import {
   OperationType,
   createUserWithEmailAndPassword,
   getAdditionalUserInfo,
-  getAuth,
   onAuthStateChanged,
   signInAnonymously,
   signOut,
@@ -36,8 +35,11 @@ import { initializeServerApp } from '@firebase/app';
 import {
   cleanUpTestInstance,
   getTestInstance,
+  getTestInstanceForServerApp,
   randomEmail
 } from '../../helpers/integration/helpers';
+
+import { getAppConfig } from '../../helpers/integration/settings';
 
 use(chaiAsPromised);
 
@@ -77,7 +79,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const firebaseServerAppSettings = { authIdToken };
 
     const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
+
+    console.log('auth.emulatorConfig ', auth.emulatorConfig);
+    console.log('serverAuth.emulatorConfig ', serverAppAuth.emulatorConfig);
+
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -116,8 +122,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -154,8 +163,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = '{ invalid token }';
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     expect(serverAppAuth.currentUser).to.be.null;
 
     let numberServerLogins = 0;
@@ -197,8 +209,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -239,8 +254,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -279,8 +297,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const authIdToken = await user.getIdToken();
     const firebaseServerAppSettings = { authIdToken };
 
-    const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getAuth(serverApp);
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     const newDisplayName = 'newName';
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
@@ -333,10 +354,10 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const firebaseServerAppSettings = { authIdToken };
 
     const serverApp = initializeServerApp(
-      auth.app.options,
+      getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getAuth(serverApp);
+    serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
