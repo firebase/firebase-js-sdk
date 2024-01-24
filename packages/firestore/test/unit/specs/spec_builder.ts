@@ -16,7 +16,11 @@
  */
 
 import { IndexConfiguration } from '../../../src/api/index_configuration';
-import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import {
+  ExpUserDataWriter,
+  ListenSource
+} from '../../../src/api/reference_impl';
+import { ListenOptions } from '../../../src/core/event_manager';
 import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
   LimitType,
@@ -266,7 +270,11 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(query: Query, resume?: ResumeSpec): this {
+  private addUserListenStep(
+    query: Query,
+    resume?: ResumeSpec,
+    options: ListenOptions = {}
+  ): void {
     this.nextStep();
 
     const target = queryToTarget(query);
@@ -275,7 +283,7 @@ export class SpecBuilder {
     if (this.injectFailures) {
       // Return a `userListens()` step but don't advance the target IDs.
       this.currentStep = {
-        userListen: { targetId, query: SpecBuilder.queryToSpec(query) }
+        userListen: { targetId, query: SpecBuilder.queryToSpec(query), options }
       };
     } else {
       if (this.queryMapping.has(target)) {
@@ -285,12 +293,30 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resume);
+
+      if (options?.source !== ListenSource.Cache) {
+        // Active targets are created if listener is not sourcing from cache
+        this.addQueryToActiveTargets(targetId, query, resume);
+      }
+
       this.currentStep = {
-        userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
+        userListen: {
+          targetId,
+          query: SpecBuilder.queryToSpec(query),
+          options
+        },
         expectedState: { activeTargets: { ...this.activeTargets } }
       };
     }
+  }
+
+  userListens(query: Query, resume?: ResumeSpec): this {
+    this.addUserListenStep(query, resume);
+    return this;
+  }
+
+  userListensToCache(query: Query, resume?: ResumeSpec): this {
+    this.addUserListenStep(query, resume, { source: ListenSource.Cache });
     return this;
   }
 
@@ -320,14 +346,16 @@ export class SpecBuilder {
     return this;
   }
 
-  userUnlistens(query: Query): this {
+  userUnlistens(query: Query, shouldRemoveWatchTarget: boolean = true): this {
     this.nextStep();
     const target = queryToTarget(query);
     if (!this.queryMapping.has(target)) {
       throw new Error('Unlistening to query not listened to: ' + query);
     }
     const targetId = this.queryMapping.get(target)!;
-    this.removeQueryFromActiveTargets(query, targetId);
+    if (shouldRemoveWatchTarget) {
+      this.removeQueryFromActiveTargets(query, targetId);
+    }
 
     if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
@@ -339,6 +367,11 @@ export class SpecBuilder {
       expectedState: { activeTargets: { ...this.activeTargets } }
     };
     return this;
+  }
+
+  userUnlistensToCache(query: Query): this {
+    // Listener sourced from cache do not need to close watch stream.
+    return this.userUnlistens(query, /** shouldRemoveWatchTarget= */ false);
   }
 
   userSets(key: string, value: JsonObject<unknown>): this {

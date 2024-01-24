@@ -27,6 +27,7 @@ import {
   IndexConfiguration,
   parseIndexes
 } from '../../../src/api/index_configuration';
+import { ListenSource } from '../../../src/api/reference_impl';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
@@ -37,7 +38,8 @@ import {
   Observer,
   QueryListener,
   removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener
+  addSnapshotsInSyncListener,
+  ListenOptions
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -59,7 +61,9 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -353,6 +357,15 @@ abstract class TestRunner {
       this.syncEngine
     );
 
+    this.eventManager.onRemoteStoreListen = triggerRemoteStoreListen.bind(
+      null,
+      this.syncEngine
+    );
+    this.eventManager.onRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
+      null,
+      this.syncEngine
+    );
+
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
     });
@@ -482,11 +495,14 @@ abstract class TestRunner {
       }
       this.pushEvent(e);
     });
-    // TODO(dimond): Allow customizing listen options in spec tests
+
     const options = {
-      includeMetadataChanges: true,
-      waitForSyncWhenOnline: false
+      includeMetadataChanges:
+        listenSpec.options?.includeMetadataChanges ?? true,
+      waitForSyncWhenOnline: false,
+      source: listenSpec.options?.source ?? ListenSource.Default
     };
+
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
@@ -509,8 +525,12 @@ abstract class TestRunner {
         );
       }
 
-      if (this.isPrimaryClient && this.networkEnabled) {
-        // Open should always have happened after a listen
+      if (
+        this.isPrimaryClient &&
+        this.networkEnabled &&
+        options.source !== ListenSource.Cache
+      ) {
+        // Unless listened to cache, open always have happened after a listen.
         await this.connection.waitForWatchOpen();
       }
     }
@@ -1542,6 +1562,7 @@ export interface SpecStep {
 export interface SpecUserListen {
   targetId: TargetId;
   query: string | SpecQuery;
+  options?: ListenOptions;
 }
 
 /** [<target-id>, <query-path>] */
