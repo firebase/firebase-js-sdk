@@ -78,6 +78,21 @@ export interface SnapshotListenOptions {
    * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
+
+  /**
+   * Set the source the query listens to. Default to ListenSource.Default, which
+   * listens to both cache and server.
+   */
+  readonly source?: ListenSource;
+}
+
+/** Describe the source a query listens to. */
+export const enum ListenSource {
+  /** Listen to both cache and server changes */
+  Default,
+
+  /** Listen to changes in cache only */
+  Cache
 }
 
 /**
@@ -668,7 +683,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   reference = getModularInstance(reference);
 
   let options: SnapshotListenOptions = {
-    includeMetadataChanges: false
+    includeMetadataChanges: false,
+    source: ListenSource.Default
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
@@ -677,7 +693,8 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
   }
 
   const internalOptions = {
-    includeMetadataChanges: options.includeMetadataChanges
+    includeMetadataChanges: options.includeMetadataChanges,
+    source: options.source
   };
 
   if (isPartialObserver(args[currArg])) {

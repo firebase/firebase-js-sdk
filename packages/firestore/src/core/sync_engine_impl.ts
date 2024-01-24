@@ -292,7 +292,8 @@ export function newSyncEngine(
  */
 export async function syncEngineListen(
   syncEngine: SyncEngine,
-  query: Query
+  query: Query,
+  shouldListenToRemote: boolean = true
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
 
@@ -319,6 +320,7 @@ export async function syncEngineListen(
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
     );
+
     targetId = targetData.targetId;
     viewSnapshot = await initializeViewAndComputeSnapshot(
       syncEngineImpl,
@@ -328,12 +330,28 @@ export async function syncEngineListen(
       targetData.resumeToken
     );
 
-    if (syncEngineImpl.isPrimaryClient) {
+    if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   }
 
   return viewSnapshot;
+}
+
+export async function triggerRemoteStoreListen(
+  syncEngine: SyncEngine,
+  query: Query
+): Promise<void> {
+  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
+
+  const targetData = await localStoreAllocateTarget(
+    syncEngineImpl.localStore,
+    queryToTarget(query)
+  );
+
+  if (syncEngineImpl.isPrimaryClient) {
+    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+  }
 }
 
 /**
@@ -393,7 +411,8 @@ async function initializeViewAndComputeSnapshot(
 /** Stops listening to the query. */
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
-  query: Query
+  query: Query,
+  disableRemoteListen: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
@@ -430,7 +449,9 @@ export async function syncEngineUnlisten(
       )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+          if (disableRemoteListen) {
+            remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+          }
           removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
         })
         .catch(ignoreIfPrimaryLeaseLoss);
@@ -442,6 +463,22 @@ export async function syncEngineUnlisten(
       queryView.targetId,
       /*keepPersistedTargetData=*/ true
     );
+  }
+}
+
+export async function triggerRemoteStoreUnlisten(
+  syncEngine: SyncEngine,
+  query: Query
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
+  debugAssert(
+    !!queryView,
+    'Trying to unlisten on query not found:' + stringifyQuery(query)
+  );
+  const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
+  if (queries.length === 1) {
+    remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
   }
 }
 
