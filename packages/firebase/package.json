@@ -83,6 +83,18 @@
       },
       "default": "./auth/cordova/dist/esm/index.esm.js"
     },
+    "./auth/web-extension": {
+      "types": "./auth/web-extension/dist/auth/web-extension/index.d.ts",
+      "node": {
+        "require": "./auth/web-extension/dist/index.cjs.js",
+        "import": "./auth/web-extension/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./auth/web-extension/dist/index.cjs.js",
+        "import": "./auth/web-extension/dist/esm/index.esm.js"
+      },
+      "default": "./auth/web-extension/dist/esm/index.esm.js"
+    },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
       "node": {
@@ -409,6 +421,7 @@
     "app-check",
     "auth",
     "auth/cordova",
+    "auth/web-extension",
     "functions",
     "firestore",
     "firestore/lite",

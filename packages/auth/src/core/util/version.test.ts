@@ -56,5 +56,13 @@ describe('core/util/_getClientVersion', () => {
         );
       });
     });
+
+    context('Web Extension', () => {
+      it('should set the correct version', () => {
+        expect(_getClientVersion(ClientPlatform.WEB_EXTENSION)).to.eq(
+          `WebExtension/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        );
+      });
+    });
   }
 });
