@@ -15,28 +15,41 @@
  * limitations under the License.
  */
 
-import { AuthErrorCode } from '../core/errors';
-import { _createError } from '../core/util/assert';
+interface ExternalJSProvider {
+  loadJS(url: string): Promise<Event>;
+  recaptchaV2Script: string;
+  recaptchaEnterpriseScript: string;
+  gapiScript: string;
+}
 
-function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
-  return document.getElementsByTagName('head')?.[0] ?? document;
+let externalJSProvider: ExternalJSProvider = {
+  async loadJS() {
+    throw new Error('Unable to load external scripts');
+  },
+
+  recaptchaV2Script: '',
+  recaptchaEnterpriseScript: '',
+  gapiScript: ''
+};
+
+export function _setExternalJSProvider(p: ExternalJSProvider): void {
+  externalJSProvider = p;
 }
 
 export function _loadJS(url: string): Promise<Event> {
-  // TODO: consider adding timeout support & cancellation
-  return new Promise((resolve, reject) => {
-    const el = document.createElement('script');
-    el.setAttribute('src', url);
-    el.onload = resolve;
-    el.onerror = e => {
-      const error = _createError(AuthErrorCode.INTERNAL_ERROR);
-      error.customData = e as unknown as Record<string, unknown>;
-      reject(error);
-    };
-    el.type = 'text/javascript';
-    el.charset = 'UTF-8';
-    getScriptParentElement().appendChild(el);
-  });
+  return externalJSProvider.loadJS(url);
+}
+
+export function _recaptchaV2ScriptUrl(): string {
+  return externalJSProvider.recaptchaV2Script;
+}
+
+export function _recaptchaEnterpriseScriptUrl(): string {
+  return externalJSProvider.recaptchaEnterpriseScript;
+}
+
+export function _gapiScriptUrl(): string {
+  return externalJSProvider.gapiScript;
 }
 
 export function _generateCallbackName(prefix: string): string {
