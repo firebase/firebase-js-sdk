@@ -17,7 +17,7 @@
 
 import {
   _getProvider,
-  _isFirebaseServerAppImpl,
+  _isFirebaseServerApp,
   FirebaseApp
 } from '@firebase/app';
 import { deepEqual } from '@firebase/util';
@@ -71,9 +71,9 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
 
   const auth = provider.initialize({ options: deps }) as AuthImpl;
 
-  if (_isFirebaseServerAppImpl(app)) {
-    if (app.authIdToken !== undefined) {
-      const idToken = app.authIdToken;
+  if (_isFirebaseServerApp(app)) {
+    if (app.settings.authIdToken !== undefined) {
+      const idToken = app.settings.authIdToken;
       // Start the auth operation in the next tick to allow a moment for the customer's app to
       // attach an emulator, if desired.
       setTimeout(() => void _loadUserFromIdToken(auth, idToken), 0);

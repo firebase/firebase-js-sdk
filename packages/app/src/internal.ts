@@ -163,10 +163,10 @@ export function _isFirebaseApp(
  *
  * @internal
  */
-export function _isFirebaseServerAppImpl(
+export function _isFirebaseServerApp(
   obj: FirebaseApp | FirebaseServerApp
-): obj is FirebaseServerAppImpl {
-  return (obj as FirebaseServerAppImpl).authIdToken !== undefined;
+): obj is FirebaseServerApp {
+  return (obj as FirebaseServerApp).authIdTokenVerified !== undefined;
 }
 
 /**

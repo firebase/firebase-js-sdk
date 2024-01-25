@@ -132,6 +132,18 @@ export interface FirebaseServerApp extends FirebaseApp {
    * string will always be empty for FirebaseServerApp instances.
    */
   name: string;
+
+  /**
+   * The (read-only) configuration settings for this server app. These are the original
+   * parameters given in {@link (initializeServerApp:1) | initializeServerApp()}.
+   *
+   * @example
+   * ```javascript
+   * const app = initializeServerApp(settings);
+   * console.log(app.settings.authIdToken === options.authIdToken);  // true
+   * ```
+   */
+  readonly settings: FirebaseServerAppSettings;
 }
 
 /**
