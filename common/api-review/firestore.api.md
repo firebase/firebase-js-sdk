@@ -351,6 +351,12 @@ export function limit(limit: number): QueryLimitConstraint;
 export function limitToLast(limit: number): QueryLimitConstraint;
 
 // @public
+export const enum ListenSource {
+    Cache = 1,
+    Default = 0
+}
+
+// @public
 export function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
 
 // @public
@@ -651,6 +657,7 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(le
 // @public
 export interface SnapshotListenOptions {
     readonly includeMetadataChanges?: boolean;
+    readonly source?: ListenSource;
 }
 
 // @public
