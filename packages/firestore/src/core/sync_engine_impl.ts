@@ -412,7 +412,7 @@ async function initializeViewAndComputeSnapshot(
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
   query: Query,
-  disableRemoteListen: boolean
+  shouldUnlistenToRemote: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
@@ -449,7 +449,7 @@ export async function syncEngineUnlisten(
       )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          if (disableRemoteListen) {
+          if (shouldUnlistenToRemote) {
             remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
           }
           removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
