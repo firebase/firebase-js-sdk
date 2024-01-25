@@ -16,11 +16,7 @@
  */
 
 import * as sinon from 'sinon';
-import {
-  FirebaseServerApp,
-  deleteApp,
-  initializeApp
-} from '@firebase/app';
+import { FirebaseServerApp, deleteApp, initializeApp } from '@firebase/app';
 import { Auth, User } from '@firebase/auth';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.

@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  _getProvider,
-  _isFirebaseServerApp,
-  FirebaseApp
-} from '@firebase/app';
+import { _getProvider, _isFirebaseServerApp, FirebaseApp } from '@firebase/app';
 import { deepEqual } from '@firebase/util';
 import { Auth, Dependencies } from '../../model/public_types';
 
