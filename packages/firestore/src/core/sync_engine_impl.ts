@@ -314,7 +314,8 @@ export async function syncEngineListen(
   } else {
     const targetData = await localStoreAllocateTarget(
       syncEngineImpl.localStore,
-      queryToTarget(query)
+      queryToTarget(query),
+      enableRemoteListen
     );
 
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
@@ -1417,18 +1418,18 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       );
       // For queries that never executed on this client, we need to
       // allocate the target in LocalStore and initialize a new View.
-      const target = await localStoreGetCachedTarget(
+      const cachedTargetData = await localStoreGetCachedTarget(
         syncEngineImpl.localStore,
         targetId
       );
-      debugAssert(!!target, `Target for id ${targetId} not found`);
+      debugAssert(!!cachedTargetData, `Target for id ${targetId} not found`);
       targetData = await localStoreAllocateTarget(
         syncEngineImpl.localStore,
-        target
+        cachedTargetData.target
       );
       await initializeViewAndComputeSnapshot(
         syncEngineImpl,
-        synthesizeTargetToQuery(target!),
+        synthesizeTargetToQuery(targetData.target!),
         targetId,
         /*current=*/ false,
         targetData.resumeToken
@@ -1546,18 +1547,23 @@ export async function syncEngineApplyActiveTargetsChange(
       continue;
     }
 
-    const target = await localStoreGetCachedTarget(
+    const cachedTargetData = await localStoreGetCachedTarget(
       syncEngineImpl.localStore,
       targetId
     );
-    debugAssert(!!target, `Query data for active target ${targetId} not found`);
+    debugAssert(
+      !!cachedTargetData,
+      `Query data for active target ${targetId} not found`
+    );
+
     const targetData = await localStoreAllocateTarget(
       syncEngineImpl.localStore,
-      target
+      cachedTargetData.target,
+      cachedTargetData.purpose === TargetPurpose.Listen
     );
     await initializeViewAndComputeSnapshot(
       syncEngineImpl,
-      synthesizeTargetToQuery(target),
+      synthesizeTargetToQuery(targetData.target),
       targetData.targetId,
       /*current=*/ false,
       targetData.resumeToken

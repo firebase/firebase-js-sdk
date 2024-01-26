@@ -935,7 +935,8 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target
+  target: Target,
+  shouldListenToServer: boolean = true
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence
@@ -949,6 +950,15 @@ export function localStoreAllocateTarget(
             // previous targetID.
             // TODO(mcg): freshen last accessed date?
             targetData = cached;
+            // The listen purpose might have changed when there are multiple listeners being
+            // listened/un-listened
+            if (
+              shouldListenToServer &&
+              targetData.purpose !== TargetPurpose.Listen
+            ) {
+              targetData = targetData.withTargetPurpose(TargetPurpose.Listen);
+              localStoreImpl.targetCache.addTargetData(txn, targetData);
+            }
             return PersistencePromise.resolve(targetData);
           } else {
             return localStoreImpl.targetCache
@@ -957,7 +967,9 @@ export function localStoreAllocateTarget(
                 targetData = new TargetData(
                   target,
                   targetId,
-                  TargetPurpose.Listen,
+                  shouldListenToServer
+                    ? TargetPurpose.Listen
+                    : TargetPurpose.ListenToCache,
                   txn.currentSequenceNumber
                 );
                 return localStoreImpl.targetCache
@@ -1212,7 +1224,7 @@ export function localStoreGetActiveClients(
 export function localStoreGetCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
-): Promise<Target | null> {
+): Promise<TargetData | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetCacheImpl = debugCast(
     localStoreImpl.targetCache,
@@ -1220,7 +1232,7 @@ export function localStoreGetCachedTarget(
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
   if (cachedTargetData) {
-    return Promise.resolve(cachedTargetData.target);
+    return Promise.resolve(cachedTargetData);
   } else {
     return localStoreImpl.persistence.runTransaction(
       'Get target data',
@@ -1228,7 +1240,7 @@ export function localStoreGetCachedTarget(
       txn => {
         return targetCacheImpl
           .getTargetDataForTarget(txn, targetId)
-          .next(targetData => (targetData ? targetData.target : null));
+          .next(targetData => (targetData ? targetData : null));
       }
     );
   }

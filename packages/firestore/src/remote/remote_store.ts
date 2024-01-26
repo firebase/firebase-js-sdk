@@ -24,7 +24,7 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
@@ -273,6 +273,10 @@ export function remoteStoreListen(
   remoteStore: RemoteStore,
   targetData: TargetData
 ): void {
+  // PORTING NOTE: Multi-tab only.
+  if (targetData.purpose === TargetPurpose.ListenToCache) {
+    return;
+  }
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
 
   if (remoteStoreImpl.listenTargets.has(targetData.targetId)) {

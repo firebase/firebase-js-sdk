@@ -254,6 +254,15 @@ export interface DbRemoteDocumentGlobal {
  */
 export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
 
+/** An enumeration of the different purposes we have for DbTargets. */
+export const enum DbTargetPurpose {
+  /** A regular, normal query target. */
+  Listen = 'TargetPurposeListen',
+
+  /** A regular, normal query target. */
+  ListenToCache = 'TargetPurposeListenToCache'
+}
+
 /**
  * An object to be stored in the 'targets' store in IndexedDb.
  *
@@ -330,6 +339,9 @@ export interface DbTarget {
    * duplicate translation logic to and from a `Query` object.
    */
   query: DbQuery;
+
+  /** The purpose of the target. */
+  purpose: DbTargetPurpose;
 }
 
 /**

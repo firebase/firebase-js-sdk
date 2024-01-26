@@ -987,29 +987,39 @@ export class SpecBuilder {
   }
 
   /** Registers a query that is active in another tab. */
-  expectListen(query: Query, resume?: ResumeSpec): this {
+  expectListen(query: Query, resume?: ResumeSpec, fromCache?: boolean): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resume);
-
+    if (!fromCache) {
+      this.addQueryToActiveTargets(targetId, query, resume);
+    }
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
+  /** Registers a query that is listening to cache and active in another tab. */
+  expectListenToCache(query: Query, resume?: ResumeSpec): this {
+    this.assertStep('Expectations require previous step');
+
+    return this.expectListen(query, resume, true);
+  }
+
   /** Removes a query that is no longer active in any tab. */
-  expectUnlisten(query: Query): this {
+  expectUnlisten(query: Query, shouldRemoveWatchTarget: boolean = true): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryMapping.get(target)!;
 
-    this.removeQueryFromActiveTargets(query, targetId);
+    if (shouldRemoveWatchTarget) {
+      this.removeQueryFromActiveTargets(query, targetId);
+    }
 
     if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
@@ -1020,6 +1030,11 @@ export class SpecBuilder {
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
+  }
+
+  /** Removes a query that is listening to cache and no longer active in any tab. */
+  expectUnlistenToCache(query: Query): this {
+    return this.expectUnlisten(query, false);
   }
 
   /**

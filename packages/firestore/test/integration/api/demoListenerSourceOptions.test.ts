@@ -50,7 +50,7 @@ import {
 import { bundleString, verifySuccessProgress } from './bundle.test';
 import { verifyDocumentChange } from './query.test';
 
-apiDescribe.only('Snapshot Listener source options ', persistence => {
+apiDescribe('Snapshot Listener source options ', persistence => {
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
@@ -183,18 +183,17 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
       // Since limitToLast() queries are sent to the backend with a modified
       // orderBy() clause, they can map to the same target representation as
       // limit() query, even if both queries appear separate to the user.
-      it.only('can listen/unlisten/relisten to mirror queries', () => {
+      it('can listen/unlisten/relisten to mirror queries', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 },
           c: { k: 'c', sort: 1 },
           g: { k: 'g', sort: 2 },
-          f: { k: 'f', sort: 2 },
+          f: { k: 'f', sort: 2 }
         };
         return withTestCollection(persistence, testDocs, async coll => {
           await getDocs(coll); // Populate the cache.
 
-          console.log("start listening=====")
           // Setup `limit` query
           const storeLimitEvent = new EventsAccumulator<QuerySnapshot>();
           let limitUnlisten = onSnapshot(
@@ -241,7 +240,6 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
 
-          console.log("add doc======")
           // Add a document that would change the result set.
           await addDoc(coll, { k: 'd', sort: -1 });
 
@@ -264,8 +262,6 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
           // Unlisten to limitToLast, update a doc, then relisten limitToLast.
           limitToLastUnlisten();
 
-          console.log("update doc+++++")
-
           await updateDoc(doc(coll, 'a'), { k: 'a', sort: -2 });
           limitToLastUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'desc'), limitToLast(2)),
@@ -279,12 +275,8 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: -2 },
             { k: 'd', sort: -1 }
           ]);
-          console.log("=================0")
           expect(snapshot.metadata.hasPendingWrites).to.equal(true);
-          console.log("=================1")
-
-          expect(snapshot.metadata.fromCache).to.equal(true); //???
-          console.log("=================2")
+          expect(snapshot.metadata.fromCache).to.equal(true);
 
           snapshot = await storeLimitToLastEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
@@ -395,7 +387,7 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
           await addDoc(coll, { k: 'c', sort: -1 });
 
           // Verify listener to cache works as expected
-          let snapshot = await storeCacheEvent.awaitEvent();
+          const snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
             { k: 'a', sort: 0 },
@@ -436,7 +428,7 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
           await addDoc(coll, { k: 'c', sort: -1 });
 
           // Verify listener to server works as expected
-          let snapshot = await storeDefaultEvent.awaitEvent();
+          const snapshot = await storeDefaultEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
             { k: 'a', sort: 0 },
@@ -765,7 +757,7 @@ apiDescribe.only('Snapshot Listener source options ', persistence => {
             accumulator.storeEvent
           );
 
-          let snapshot = await accumulator.awaitEvent();
+          const snapshot = await accumulator.awaitEvent();
           expect(snapshot.metadata.fromCache).to.be.true;
           expect(toDataArray(snapshot)).to.deep.equal([]);
 

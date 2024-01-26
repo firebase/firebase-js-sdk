@@ -67,6 +67,7 @@ import {
   DbQuery,
   DbRemoteDocument,
   DbTarget,
+  DbTargetPurpose,
   DbTimestamp
 } from './indexeddb_schema';
 import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
@@ -250,7 +251,7 @@ export function fromDbTarget(dbTarget: DbTarget): TargetData {
   return new TargetData(
     target,
     dbTarget.targetId,
-    TargetPurpose.Listen,
+    dbTarget.purpose as unknown as TargetPurpose,
     dbTarget.lastListenSequenceNumber,
     version,
     lastLimboFreeSnapshotVersion,
@@ -264,9 +265,12 @@ export function toDbTarget(
   targetData: TargetData
 ): DbTarget {
   debugAssert(
-    TargetPurpose.Listen === targetData.purpose,
+    TargetPurpose.Listen === targetData.purpose ||
+      TargetPurpose.ListenToCache === targetData.purpose,
     'Only queries with purpose ' +
       TargetPurpose.Listen +
+      'or' +
+      TargetPurpose.ListenToCache +
       ' may be stored, got ' +
       targetData.purpose
   );
@@ -299,7 +303,8 @@ export function toDbTarget(
     resumeToken,
     lastListenSequenceNumber: targetData.sequenceNumber,
     lastLimboFreeSnapshotVersion: dbLastLimboFreeTimestamp,
-    query: queryProto
+    query: queryProto,
+    purpose: targetData.purpose as unknown as DbTargetPurpose
   };
 }
 

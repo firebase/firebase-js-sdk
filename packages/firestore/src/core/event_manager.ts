@@ -160,7 +160,6 @@ export async function eventManagerUnlisten(
   eventManager: EventManager,
   listener: QueryListener
 ): Promise<void> {
-  console.log("eventManagerUnlisten")
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   const unlistenToServer =
     (listener.options.source ?? ListenSource.Default) !== ListenSource.Cache;
@@ -176,7 +175,6 @@ export async function eventManagerUnlisten(
   let lastListenToServer = false;
 
   const queryInfo = eventManagerImpl.queries.get(query);
-  // console.log("cacheListeners.length:", queryInfo?.cacheListeners.length, " serverListeners.length:",queryInfo?.serverListeners.length)
 
   if (queryInfo) {
     if (unlistenToServer) {
@@ -196,7 +194,6 @@ export async function eventManagerUnlisten(
       queryInfo.serverListeners.length === 0 &&
       queryInfo.cacheListeners.length === 0;
   }
-  // console.log("lastListen: ",lastListen,"lastListenToServer: ",lastListenToServer)
 
   if (lastListen) {
     eventManagerImpl.queries.delete(query);

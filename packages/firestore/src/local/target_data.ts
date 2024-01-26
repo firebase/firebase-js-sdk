@@ -25,6 +25,9 @@ export const enum TargetPurpose {
   /** A regular, normal query target. */
   Listen = 'TargetPurposeListen',
 
+  /** A regular, normal query target. */
+  ListenToCache = 'TargetPurposeListenToCache',
+
   /**
    * The query target was used to refill a query after an existence filter
    * mismatch.
@@ -146,6 +149,23 @@ export class TargetData {
       this.sequenceNumber,
       this.snapshotVersion,
       lastLimboFreeSnapshotVersion,
+      this.resumeToken,
+      this.expectedCount
+    );
+  }
+
+  /**
+   * Creates a new target data instance with an updated last limbo free
+   * snapshot version number.
+   */
+  withTargetPurpose(purpose: TargetPurpose): TargetData {
+    return new TargetData(
+      this.target,
+      this.targetId,
+      purpose,
+      this.sequenceNumber,
+      this.snapshotVersion,
+      this.lastLimboFreeSnapshotVersion,
       this.resumeToken,
       this.expectedCount
     );
