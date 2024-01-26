@@ -70,9 +70,7 @@ export async function readHeartbeatsFromIndexedDB(
   try {
     const db = await getDbPromise();
     const tx = db.transaction(STORE_NAME);
-    const result = await tx
-      .objectStore(STORE_NAME)
-      .get(computeKey(app));
+    const result = await tx.objectStore(STORE_NAME).get(computeKey(app));
     // We already have the value but tx.done can throw,
     // so we need to await it here to catch errors
     await tx.done;
