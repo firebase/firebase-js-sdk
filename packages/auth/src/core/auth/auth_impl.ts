@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { _FirebaseService, FirebaseApp } from '@firebase/app';
+import {
+  _isFirebaseServerApp,
+  _FirebaseService,
+  FirebaseApp
+} from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
@@ -167,7 +171,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         }
       }
 
-      await this.initializeCurrentUser(popupRedirectResolver);
+      // Skip loading users from persistence in FirebaseServerApp Auth instances.
+      if (!_isFirebaseServerApp(this.app)) {
+        await this.initializeCurrentUser(popupRedirectResolver);
+      }
+
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
       if (this._deleted) {
