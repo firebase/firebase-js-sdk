@@ -65,7 +65,7 @@
   "dependencies": {
     "@firebase/util": "1.9.3",
     "@firebase/component": "0.6.4",
-    "idb": "7.1.1",
+    "idb": "8.0.0",
     "tslib": "^2.1.0"
   }
 }
