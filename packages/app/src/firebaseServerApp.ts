@@ -83,7 +83,7 @@ export class FirebaseServerAppImpl
     void deleteApp(serverApp);
   }
 
-  get serverAppConfig(): FirebaseServerAppSettings {
+  get settings(): FirebaseServerAppSettings {
     this.checkDestroyed();
     return this._serverConfig;
   }

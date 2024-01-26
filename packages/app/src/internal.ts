@@ -156,6 +156,20 @@ export function _isFirebaseApp(
 }
 
 /**
+ *
+ * @param obj - an object of type FirebaseApp.
+ *
+ * @returns true if the provided object is of type FirebaseServerAppImpl.
+ *
+ * @internal
+ */
+export function _isFirebaseServerApp(
+  obj: FirebaseApp | FirebaseServerApp
+): obj is FirebaseServerApp {
+  return (obj as FirebaseServerApp).authIdTokenVerified !== undefined;
+}
+
+/**
  * Test only
  *
  * @internal

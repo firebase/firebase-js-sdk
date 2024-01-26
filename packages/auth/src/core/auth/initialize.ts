@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _getProvider, FirebaseApp } from '@firebase/app';
+import { _getProvider, _isFirebaseServerApp, FirebaseApp } from '@firebase/app';
 import { deepEqual } from '@firebase/util';
 import { Auth, Dependencies } from '../../model/public_types';
 
@@ -23,7 +23,9 @@ import { AuthErrorCode } from '../errors';
 import { PersistenceInternal } from '../persistence';
 import { _fail } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
-import { AuthImpl } from './auth_impl';
+import { AuthImpl, _castAuth } from './auth_impl';
+import { UserImpl } from '../user/user_impl';
+import { getAccountInfo } from '../../api/account_management/account';
 
 /**
  * Initializes an {@link Auth} instance with fine-grained control over
@@ -65,7 +67,38 @@ export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
 
   const auth = provider.initialize({ options: deps }) as AuthImpl;
 
+  if (_isFirebaseServerApp(app)) {
+    if (app.settings.authIdToken !== undefined) {
+      const idToken = app.settings.authIdToken;
+      // Start the auth operation in the next tick to allow a moment for the customer's app to
+      // attach an emulator, if desired.
+      setTimeout(() => void _loadUserFromIdToken(auth, idToken), 0);
+    }
+  }
+
   return auth;
+}
+
+export async function _loadUserFromIdToken(
+  auth: Auth,
+  idToken: string
+): Promise<void> {
+  try {
+    const response = await getAccountInfo(auth, { idToken });
+    const authInternal = _castAuth(auth);
+    await authInternal._initializationPromise;
+    const user = await UserImpl._fromGetAccountInfoResponse(
+      authInternal,
+      response,
+      idToken
+    );
+    await authInternal._updateCurrentUser(user);
+  } catch (err) {
+    console.warn(
+      'FirebaseServerApp could not login user with provided authIdToken: ',
+      err
+    );
+  }
 }
 
 export function _initializeAuthInstance(

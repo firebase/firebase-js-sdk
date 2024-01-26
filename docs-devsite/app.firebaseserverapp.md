@@ -29,6 +29,7 @@ export interface FirebaseServerApp extends FirebaseApp
 |  [authIdTokenVerified](./app.firebaseserverapp.md#firebaseserverappauthidtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the verification of the authIdToken provided to  has completed.<!-- -->It is recommend that your application awaits this promise if an authIdToken was provided during FirebaseServerApp initialization before invoking getAuth(). If an instance of Auth is created before the Auth ID Token is validated, then the token will not be used by that instance of the Auth SDK.<!-- -->The returned Promise is completed immediately if the optional authIdToken parameter was omitted from FirebaseServerApp initialization. |
 |  [installationTokenVerified](./app.firebaseserverapp.md#firebaseserverappinstallationtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the verification of the installationToken provided to  has completed.<!-- -->It is recommend that your application awaits this promise before initializing any Firebase products that use Firebase Installations. The Firebase SDKs will not use Installation Auth tokens that are determined to be invalid or those that have not yet completed validation.<!-- -->The returned Promise is completed immediately if the optional appCheckToken parameter was omitted from FirebaseServerApp initialization. |
 |  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no get for FirebaseServerApp, so the name is not relevant. However, it's declared here so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this string will always be empty for FirebaseServerApp instances. |
+|  [settings](./app.firebaseserverapp.md#firebaseserverappsettings) | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_30ab697)<!-- -->. |
 
 ## FirebaseServerApp.appCheckTokenVerified
 
@@ -81,3 +82,23 @@ There is no get for FirebaseServerApp, so the name is not relevant. However, it'
 ```typescript
 name: string;
 ```
+
+## FirebaseServerApp.settings
+
+The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_30ab697)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+readonly settings: FirebaseServerAppSettings;
+```
+
+### Example
+
+
+```javascript
+const app = initializeServerApp(settings);
+console.log(app.settings.authIdToken === options.authIdToken);  // true
+
+```
+

@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { IdTokenResult } from '../../model/public_types';
+import { IdTokenResult, UserInfo } from '../../model/public_types';
 import { NextFn } from '@firebase/util';
-
 import {
   APIUserInfo,
+  GetAccountInfoResponse,
   deleteAccount
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
@@ -36,7 +36,7 @@ import { _assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { ProactiveRefresh } from './proactive_refresh';
-import { _reloadWithoutSaving, reload } from './reload';
+import { extractProviderData, _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
 import { UserMetadata } from './user_metadata';
 import { ProviderId } from '../../model/enums';
@@ -331,6 +331,61 @@ export class UserImpl implements UserInternal {
 
     // Updates the user info and data and resolves with a user instance.
     await _reloadWithoutSaving(user);
+    return user;
+  }
+
+  /**
+   * Initialize a User from an idToken server response
+   * @param auth
+   * @param idTokenResponse
+   */
+  static async _fromGetAccountInfoResponse(
+    auth: AuthInternal,
+    response: GetAccountInfoResponse,
+    idToken: string
+  ): Promise<UserInternal> {
+    const coreAccount = response.users[0];
+    _assert(coreAccount.localId !== undefined, AuthErrorCode.INTERNAL_ERROR);
+
+    const providerData: UserInfo[] =
+      coreAccount.providerUserInfo !== undefined
+        ? extractProviderData(coreAccount.providerUserInfo)
+        : [];
+
+    const isAnonymous =
+      !(coreAccount.email && coreAccount.passwordHash) && !providerData?.length;
+
+    const stsTokenManager = new StsTokenManager();
+    stsTokenManager.updateFromIdToken(idToken);
+
+    // Initialize the Firebase Auth user.
+    const user = new UserImpl({
+      uid: coreAccount.localId,
+      auth,
+      stsTokenManager,
+      isAnonymous
+    });
+
+    // update the user with data from the GetAccountInfo response.
+    const updates: Partial<UserInternal> = {
+      uid: coreAccount.localId,
+      displayName: coreAccount.displayName || null,
+      photoURL: coreAccount.photoUrl || null,
+      email: coreAccount.email || null,
+      emailVerified: coreAccount.emailVerified || false,
+      phoneNumber: coreAccount.phoneNumber || null,
+      tenantId: coreAccount.tenantId || null,
+      providerData,
+      metadata: new UserMetadata(
+        coreAccount.createdAt,
+        coreAccount.lastLoginAt
+      ),
+      isAnonymous:
+        !(coreAccount.email && coreAccount.passwordHash) &&
+        !providerData?.length
+    };
+
+    Object.assign(user, updates);
     return user;
   }
 }

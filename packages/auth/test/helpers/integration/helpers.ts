@@ -16,7 +16,7 @@
  */
 
 import * as sinon from 'sinon';
-import { deleteApp, initializeApp } from '@firebase/app';
+import { FirebaseServerApp, deleteApp, initializeApp } from '@firebase/app';
 import { Auth, User } from '@firebase/auth';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
@@ -77,6 +77,33 @@ export function getTestInstance(requireEmulator = false): Auth {
     await deleteApp(app);
   };
 
+  return auth;
+}
+
+export function getTestInstanceForServerApp(
+  serverApp: FirebaseServerApp,
+  requireEmulator = false
+): Auth {
+  const auth = getAuth(serverApp) as IntegrationTestAuth;
+  auth.settings.appVerificationDisabledForTesting = true;
+  const emulatorUrl = getEmulatorUrl();
+
+  if (emulatorUrl) {
+    connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
+  } else if (requireEmulator) {
+    /* Emulator wasn't configured but test must use emulator */
+    throw new Error('Test may only be run using the Auth Emulator!');
+  }
+
+  // Don't track created users on the created Auth instance like we do for  Auth objects created in
+  // getTestInstance(...) above. FirebaseServerApp testing re-uses users created by the Auth
+  // instances returned by getTestInstance, so those Auth cleanup routines will suffice.
+  auth.cleanUp = async () => {
+    // If we're in an emulated environment, the emulator will clean up for us.
+    //if (emulatorUrl) {
+    //  await resetEmulator();
+    //}
+  };
   return auth;
 }
 

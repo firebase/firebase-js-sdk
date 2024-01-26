@@ -77,6 +77,7 @@ export interface FirebaseServerApp extends FirebaseApp {
     authIdTokenVerified: () => Promise<void>;
     installationTokenVerified: () => Promise<void>;
     name: string;
+    readonly settings: FirebaseServerAppSettings;
 }
 
 // @public
@@ -118,6 +119,9 @@ export function initializeServerApp(options: FirebaseOptions | FirebaseApp, conf
 
 // @internal (undocumented)
 export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions): obj is FirebaseApp;
+
+// @internal (undocumented)
+export function _isFirebaseServerApp(obj: FirebaseApp | FirebaseServerApp): obj is FirebaseServerApp;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
