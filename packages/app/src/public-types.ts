@@ -76,20 +76,18 @@ export interface FirebaseApp {
  * for a collection of services running in server enviornments.
  *
  * Do not call this constructor directly. Instead, use
- * {@link (initializeServerAppInstance:1) | initializeServerAppInstance()} to create
+ * {@link (initializeServerApp:1) | initializeServerApp()} to create
  * an app.
  *
  * @public
  */
 export interface FirebaseServerApp extends FirebaseApp {
   /**
-   * Checks to see if the verification of the authIdToken provided to
-   * @initializeServerApp has completed.
+   * Checks to see if the local verification of the authIdToken provided to
+   * {@link (initializeServerApp:1) | initializeServerApp()} has completed.
    *
-   * It is recommend that your application awaits this promise if an authIdToken was
-   * provided during FirebaseServerApp initialization before invoking getAuth(). If an
-   * instance of Auth is created before the Auth ID Token is validated, then the token
-   * will not be used by that instance of the Auth SDK.
+   * It is recommend that your application awaits this promise before invoking getAuth() if an
+   * authIdToken was provided in the FirebaseServerAppSettings.
    *
    * The returned Promise is completed immediately if the optional authIdToken parameter
    * was omitted from FirebaseServerApp initialization.
@@ -97,39 +95,9 @@ export interface FirebaseServerApp extends FirebaseApp {
   authIdTokenVerified: () => Promise<void>;
 
   /**
-   * Checks to see if the verification of the appCheckToken provided to
-   * @initializeServerApp has completed. If the optional appCheckToken parameter was
-   * omitted then the returned Promise is completed immediately.
-   *
-   * It is recommend that your application awaits this promise before initializing
-   * any Firebase products that use AppCheck. The Firebase SDKs will not
-   * use App Check tokens that are determined to be invalid or those that have not yet
-   * completed validation.
-   *
-   * The returned Promise is completed immediately if the optional appCheckToken
-   * parameter was omitted from FirebaseServerApp initialization.
-   */
-  appCheckTokenVerified: () => Promise<void>;
-
-  /**
-   * Checks to see if the verification of the installationToken provided to
-   * @initializeServerApp has completed.
-   *
-   * It is recommend that your application awaits this promise before initializing
-   * any Firebase products that use Firebase Installations. The Firebase SDKs will not
-   * use Installation Auth tokens that are determined to be invalid or those that have
-   * not yet completed validation.
-   *
-   * The returned Promise is completed immediately if the optional appCheckToken
-   * parameter was omitted from FirebaseServerApp initialization.
-   */
-
-  installationTokenVerified: () => Promise<void>;
-
-  /**
-   * There is no get for FirebaseServerApp, so the name is not relevant. However, it's declared here
-   * so that FirebaseServerApp conforms to the FirebaseApp interface declaration. Internally this
-   * string will always be empty for FirebaseServerApp instances.
+   * There is no getApp operation for FirebaseServerApps, so the name is not relevant for
+   * applications. However, it may be used internally, and is declared here so that
+   * FirebaseServerApp conforms to the FirebaseApp interface declaration.
    */
   name: string;
 
@@ -224,69 +192,42 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
    *
-   * If provided, the FirebaseServerApp instance will work to validate the token. The
-   * result of the validation can be queried via by the application by invoking the
-   * FirebaseServerApp.authIdTokenVerified(). Awaiting the Promise returned by
-   * authIdTokenVerified is highly recommended if an Auth ID token is provided.
+   * If provided, the FirebaseServerApp instance will work to validate the token even before Auth
+   * is initialized. The result of the validation can be queried via by the application by invoking
+   * {@link (FirebaseServerApp.authIdTokenVerified()}. Awaiting the Promise returned by
+   * {@link (FirebaseServerApp.authIdTokenVerified()} is highly recommended if an authIdToken token
+   * is provided.
    *
-   * Once the token has been properly verified then invoking getAuth() will attempt to
-   * automatically sign in a user with the provided Auth ID Token.
+   * Invoking getAuth() with a FirebaseServerApp configured with a validated authIdToken will cause
+   * an automatic attempt to sign in the user that the authIdToken represents. The token
+   * needs to have been recently minted for this operation to succeed, otherwise it will fail
+   * validation.
    *
-   * If the token fails verification then a warning is logged and Auth SDK will not
-   * attempt to sign in a user upon its initalization.
+   * If the token fails local verification, or if the Auth service has deemed it invalid when
+   * the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not
+   * sign in a user upon initalization.
+   *
+   * If a user is successfully signed-in, then the Auth instance's onAuthStateChanged callback
+   * will be invoked with the User as per standard Auth flows. However, users created via
+   * authIdTokens do not have a refresh token and any attempted refresh operation will fail.
    */
   authIdToken?: string;
-
-  /**
-   * An optional AppCheck token.
-   *
-   * If provided, the FirebaseServerApp instance will work to validate the token. The
-   * result of the validation can be monitored by invoking the
-   * FirebaseServerApp.appCheckTokenVerified(). Awaiting the Promise returned by
-   * appCheckTokenVerified is highly recommended if an AppCheck token is provided.
-   *
-   * If the token has been properly verified then the AppCheck token will be
-   * automatically used by Firebase SDKs that support App Check.
-   *
-   * If the token fails verification then a warning is logged and the token will not
-   * be used.
-   */
-  appCheckToken?: string;
-
-  /**
-   * An optional Installation Auth token.
-   *
-   * If provided, the FirebaseServerApp instance will work to validate the token. The
-   * result of the validation can be monitored by invoking the
-   * FirebaseServerApp.installationTokenVerified(). Awaiting the Promise returned by
-   * appCheckTokenVerified is highly recommended before initalization any other Firebase
-   * SDKs.
-   *
-   * If the token has been properly verified then the Installation Auth token will be
-   * automatically used by Firebase SDKs that support Firebase Installations.
-   *
-   * If the token fails verification then a warning is logged and the token will not
-   * be used.
-   */
-  installationsAuthToken?: string;
 
   /**
    * An optional object. If provided, the Firebase SDK will use a FinalizationRegistry
    * object to monitor the Garbage Collection status of the provided object, and the
    * Firebase SDK will release its refrence on the FirebaseServerApp instance when the
-   * provided object is collected. or.
+   * provided object is garbage collected.
    *
    * The intent of this field is to help reduce memory overhead for long-running cloud
-   * functions executing SSR fulfillment without the customer's app needing to
-   * orchestrate FirebaseServerApp cleanup. Additionally, prexisting FirebaseServerApp
-   * instances may reused if they're identical to a previously generated one that has
-   * yet to be deleted.
+   * functions. If provided, the customer's app running in a SSR pass need not worry about
+   * FirebaseServerApp cleanup, so long as the reference object is deleted (by falling out of
+   * SSR scope, for instance.)
    *
-   * If the object is not provided then the application must clean up the
-   * FirebaseServerApp instance through the applicationss own standard mechanisms by
-   * invoking deleteApp.
+   * If an object is not provided then the application must clean up the FirebaseServerApp instance
+   * by invoking deleteApp.
    *
-   * If the app provides an object in this parameter, but the application is
+   * If the application provides an object in this parameter, but the application is
    * executed in a JavaScript engine that predates the support of FinalizationRegistry
    * (introduced in node v14.6.0, for instance), then the Firebase SDK will not be able
    * to automatically clean up the FirebaseServerApp instance and an error will be
