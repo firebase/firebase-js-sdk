@@ -317,9 +317,12 @@ export async function syncEngineListen(
       queryToTarget(query)
     );
 
-    const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
-      targetData.targetId
-    );
+    // Multi-tab
+    const status = shouldListenToRemote
+      ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
+          targetData.targetId
+        )
+      : 'not-current';
 
     targetId = targetData.targetId;
     viewSnapshot = await initializeViewAndComputeSnapshot(
@@ -348,6 +351,9 @@ export async function triggerRemoteStoreListen(
     syncEngineImpl.localStore,
     queryToTarget(query)
   );
+
+  // Multi-tab
+  syncEngineImpl.sharedClientState.addLocalQueryTarget(targetData.targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
     remoteStoreListen(syncEngineImpl.remoteStore, targetData);
@@ -477,6 +483,10 @@ export async function triggerRemoteStoreUnlisten(
     'Trying to unlisten on query not found:' + stringifyQuery(query)
   );
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
+
+  // Multi-tab
+  syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
+
   if (queries.length === 1) {
     remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
   }
@@ -1541,8 +1551,12 @@ export async function syncEngineApplyActiveTargetsChange(
   }
 
   for (const targetId of added) {
-    if (syncEngineImpl.queriesByTarget.has(targetId)) {
-      // A target might have been added in a previous attempt
+    // A target might have been added in a previous attempt, or could have listened to cache,
+    // but no remote store connection has been established by the primary client.
+    const targetHasBeenListenedTo =
+      syncEngineImpl.queriesByTarget.has(targetId) &&
+      syncEngineImpl.sharedClientState.isActiveQueryTarget(targetId);
+    if (targetHasBeenListenedTo) {
       logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
       continue;
     }
@@ -1580,7 +1594,11 @@ export async function syncEngineApplyActiveTargetsChange(
       /* keepPersistedTargetData */ false
     )
       .then(() => {
-        remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
+        // A target could have listened to cache only and no remote store connection has been
+        // established by the primary client.
+        if (syncEngineImpl.sharedClientState.isActiveQueryTarget(targetId)) {
+          remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
+        }
         removeAndCleanupTarget(syncEngineImpl, targetId);
       })
       .catch(ignoreIfPrimaryLeaseLoss);

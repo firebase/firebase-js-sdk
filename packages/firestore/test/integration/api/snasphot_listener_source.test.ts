@@ -74,6 +74,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
           await addDoc(coll, { k: 'b', sort: 1 });
+
           snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.fromCache).to.equal(true);
           expect(snapshot.metadata.hasPendingWrites).to.equal(true);
@@ -301,6 +302,8 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           );
           let snapshot = await storeDefaultEvent.awaitRemoteEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          // No cached result, only raise snapshot from server result
+          expect(snapshot.metadata.fromCache).to.equal(false);
 
           // Listen to the same query from cache
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
@@ -311,6 +314,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           );
           snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
 
           await storeDefaultEvent.assertNoAdditionalEvents();
           await storeCacheEvent.assertNoAdditionalEvents();
@@ -337,15 +341,22 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           );
           let snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          expect(snapshot.metadata.fromCache).to.equal(true);
 
           // Listen to the same query with default options
           const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
           const defaultUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc')),
+            { includeMetadataChanges: true },
             storeDefaultEvent.storeEvent
           );
-          snapshot = await storeDefaultEvent.awaitRemoteEvent();
+          snapshot = await storeDefaultEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+          // First snapshot will be raised from cache.
+          expect(snapshot.metadata.fromCache).to.equal(true);
+          snapshot = await storeDefaultEvent.awaitEvent();
+          // Second snapshot raised from server result
+          expect(snapshot.metadata.fromCache).to.equal(false);
 
           await storeDefaultEvent.assertNoAdditionalEvents();
           await storeCacheEvent.assertNoAdditionalEvents();
@@ -391,6 +402,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
 
           await storeCacheEvent.assertNoAdditionalEvents();
           cacheUnlisten();
@@ -432,6 +444,8 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
+          expect(snapshot.metadata.fromCache).to.equal(false);
+          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
 
           await storeDefaultEvent.assertNoAdditionalEvents();
           defaultUnlisten();

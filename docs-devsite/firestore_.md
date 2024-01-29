@@ -157,6 +157,12 @@ https://github.com/firebase/firebase-js-sdk
 |  [Transaction](./firestore_.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
 |  [WriteBatch](./firestore_.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
+## Enumerations
+
+|  Enumeration | Description |
+|  --- | --- |
+|  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to. |
+
 ## Interfaces
 
 |  Interface | Description |
@@ -2716,3 +2722,21 @@ export declare type WithFieldValue<T> = T | (T extends Primitive ? T : T extends
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
 } : never);
 ```
+
+## ListenSource
+
+Describe the source a query listens to.
+
+<b>Signature:</b>
+
+```typescript
+export declare const enum ListenSource 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  Cache | <code>1</code> | Listen to changes in cache only |
+|  Default | <code>0</code> | Listen to both cache and server changes |
+

@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { deletedDoc, doc, filter, query } from '../../util/helpers';
+import { LimitType, queryWithLimit } from '../../../src/core/query';
+import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
 import { bundleWithDocumentAndQuery } from './bundle_spec.test';
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 
 describeSpec('Listens source options:', [], () => {
   specTest(
@@ -417,6 +418,344 @@ describeSpec('Listens source options:', [], () => {
             modified: [doc('collection/a', 1001, { value: 'fromBundle' })],
             fromCache: true
           })
+      );
+    }
+  );
+
+  specTest(
+    'Primary client should not invoke listen to server while all clients are listening to cache',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListensToCache(query1)
+        .expectEvents(query1, { added: [], fromCache: true })
+        .client(0)
+        .expectListenToCache(query1)
+        .client(1)
+        .userUnlistensToCache(query1)
+        .client(0)
+        .expectUnlistenToCache(query1);
+    }
+  );
+
+  specTest(
+    'Local mutations notifies listeners that source==cache in all tabs',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 0, {
+        key: 'a'
+      }).setHasLocalMutations();
+
+      return client(0)
+        .becomeVisible()
+        .userListensToCache(query1)
+        .expectEvents(query1, { added: [], fromCache: true })
+        .client(1)
+        .userListensToCache(query1)
+        .expectEvents(query1, { added: [], fromCache: true })
+        .client(0)
+        .userSets('collection/a', { key: 'a' })
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          added: [docA],
+          fromCache: true
+        })
+        .client(1)
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          added: [docA],
+          fromCache: true
+        });
+    }
+  );
+
+  specTest(
+    'Query is shared between primary and secondary clients',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'a' });
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to server in the primary client
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .client(1)
+          .userListensToCache(query1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+          .client(2)
+          .userListensToCache(query1)
+          .expectEvents(query1, { added: [docA], fromCache: true })
+          // Updates in the primary client notifies listeners sourcing from cache in secondary clients
+          .client(0)
+          .watchSends({ affects: [query1] }, docB)
+          .watchSnapshots(2000)
+          .expectEvents(query1, { added: [docB] })
+          .client(1)
+          .expectEvents(query1, { added: [docB] })
+          .client(2)
+          .expectEvents(query1, { added: [docB] })
+      );
+    }
+  );
+
+  specTest('Query is executed by primary client', ['multi-client'], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { key: 'a' });
+
+    return (
+      client(0)
+        .becomeVisible()
+        // Listen to cache in primary client
+        .userListensToCache(query1)
+        .expectEvents(query1, { added: [], fromCache: true })
+        // Listen to server in primary client
+        .client(1)
+        .userListens(query1)
+        // The query is executed in the primary client
+        .client(0)
+        .expectListen(query1)
+        // Updates in the primary client notifies both listeners
+        .watchAcks(query1)
+        .watchSends({ affects: [query1] }, docA)
+        .watchSnapshots(1000)
+        .expectEvents(query1, { added: [docA], fromCache: true })
+        .client(1)
+        .expectEvents(query1, { added: [docA], fromCache: true })
+        .client(0)
+        .watchCurrents(query1, 'resume-token-2000')
+        .watchSnapshots(2000)
+        // Listeners in both tabs are in sync
+        .expectEvents(query1, { fromCache: false })
+        .client(1)
+        .expectEvents(query1, { fromCache: false })
+    );
+  });
+
+  specTest(
+    'Query only raises events in participating clients',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .client(2)
+        .userListensToCache(query1)
+        .expectEvents(query1, { added: [], fromCache: true })
+        .client(3)
+        .userListens(query1)
+        .client(0) // No events
+        .expectListen(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .client(1) // No events
+        .client(2)
+        .expectEvents(query1, { added: [docA] })
+        .client(3)
+        .expectEvents(query1, { added: [docA] });
+    }
+  );
+
+  specTest('Mirror queries from different clients', ['multi-client'], () => {
+    const fullQuery = query('collection');
+    const limit = queryWithLimit(
+      query('collection', orderBy('sort', 'asc')),
+      2,
+      LimitType.First
+    );
+    const limitToLast = queryWithLimit(
+      query('collection', orderBy('sort', 'desc')),
+      2,
+      LimitType.Last
+    );
+    const docA = doc('collection/a', 1000, { sort: 0 });
+    const docB = doc('collection/b', 1000, { sort: 1 });
+    const docC = doc('collection/c', 1000, { sort: 1 });
+    const docCV2 = doc('collection/c', 2000, {
+      sort: -1
+    }).setHasLocalMutations();
+
+    return (
+      client(0)
+        .becomeVisible()
+        // Populate the cache first
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1000, docA, docB, docC)
+        .expectEvents(fullQuery, { added: [docA, docB, docC] })
+        .userUnlistens(fullQuery)
+        .watchRemoves(fullQuery)
+
+        // Listen to mirror queries in 2 tabs
+        .userListensToCache(limit)
+        .expectEvents(limit, { added: [docA, docB], fromCache: true })
+        .client(1)
+        .userListensToCache(limitToLast)
+        .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+        // Un-listen to the query in primary tab and do a local mutation
+        .client(0)
+        .userUnlistensToCache(limit)
+        .userSets('collection/c', { sort: -1 })
+        // Listener in the other tab should work as expected
+        .client(1)
+        .expectEvents(limitToLast, {
+          hasPendingWrites: true,
+          added: [docCV2],
+          removed: [docB],
+          fromCache: true
+        })
+    );
+  });
+
+  specTest(
+    'Mirror queries from same secondary client',
+    ['multi-client'],
+    () => {
+      const fullQuery = query('collection');
+      const limit = queryWithLimit(
+        query('collection', orderBy('sort', 'asc')),
+        2,
+        LimitType.First
+      );
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('sort', 'desc')),
+        2,
+        LimitType.Last
+      );
+      const docA = doc('collection/a', 1000, { sort: 0 });
+      const docB = doc('collection/b', 1000, { sort: 1 });
+      const docC = doc('collection/c', 1000, { sort: 1 });
+      const docCV2 = doc('collection/c', 2000, {
+        sort: -1
+      }).setHasLocalMutations();
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Populate the cache first
+          .userListens(fullQuery)
+          .watchAcksFull(fullQuery, 1000, docA, docB, docC)
+          .expectEvents(fullQuery, { added: [docA, docB, docC] })
+          .userUnlistens(fullQuery)
+          .watchRemoves(fullQuery)
+
+          // Listen to mirror queries in a secondary tab
+          .client(1)
+          .userListensToCache(limit)
+          .expectEvents(limit, { added: [docA, docB], fromCache: true })
+          .userListensToCache(limitToLast)
+          .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+          // Un-listen to one of the query and do a local mutation
+          .userUnlistensToCache(limit)
+          .userSets('collection/c', { sort: -1 })
+          // The other listener should work as expected
+          .expectEvents(limitToLast, {
+            hasPendingWrites: true,
+            added: [docCV2],
+            removed: [docB],
+            fromCache: true
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Mirror queries from different sources while listening to server in primary tab',
+    ['multi-client'],
+    () => {
+      const limit = queryWithLimit(
+        query('collection', orderBy('sort', 'asc')),
+        2,
+        LimitType.First
+      );
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('sort', 'desc')),
+        2,
+        LimitType.Last
+      );
+      const docA = doc('collection/a', 1000, { sort: 0 });
+      const docB = doc('collection/b', 1000, { sort: 1 });
+      const docC = doc('collection/c', 2000, { sort: -1 });
+
+      return (
+        // Listen to server in primary client
+        client(0)
+          .becomeVisible()
+          .userListens(limit)
+          .expectListen(limit)
+          .watchAcksFull(limit, 1000, docA, docB)
+          .expectEvents(limit, { added: [docA, docB] })
+          //Listen to cache in secondary client
+          .client(1)
+          .userListensToCache(limitToLast)
+          .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+          // Watch sends document changes
+          .client(0)
+          .watchSends({ affects: [limit] }, docC)
+          .watchSnapshots(2000)
+          .expectEvents(limit, { added: [docC], removed: [docB] })
+          // Cache listener gets notified as well.
+          .client(1)
+          .expectEvents(limitToLast, { added: [docC], removed: [docB] })
+          // Un-listen to both queries
+          .client(0)
+          .userUnlistens(limit)
+          .client(1)
+          .userUnlistensToCache(limitToLast)
+      );
+    }
+  );
+
+  specTest(
+    'Mirror queries from different sources while listening to server in secondary tab',
+    ['multi-client'],
+    () => {
+      const limit = queryWithLimit(
+        query('collection', orderBy('sort', 'asc')),
+        2,
+        LimitType.First
+      );
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('sort', 'desc')),
+        2,
+        LimitType.Last
+      );
+      const docA = doc('collection/a', 1000, { sort: 0 });
+      const docB = doc('collection/b', 1000, { sort: 1 });
+      const docC = doc('collection/c', 2000, { sort: -1 });
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to server in the secondary client
+          .client(1)
+          .userListens(limit)
+          .client(0)
+          .expectListen(limit)
+          .watchAcksFull(limit, 1000, docA, docB)
+          .client(1)
+          .expectEvents(limit, { added: [docA, docB] })
+
+          // Listen to cache in primary client
+          .client(0)
+          .userListensToCache(limitToLast)
+          .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+          // Watch sends document changes
+          .watchSends({ affects: [limit] }, docC)
+          .watchSnapshots(2000)
+          .expectEvents(limitToLast, { added: [docC], removed: [docB] })
+          .client(1)
+          .expectEvents(limit, { added: [docC], removed: [docB] })
       );
     }
   );

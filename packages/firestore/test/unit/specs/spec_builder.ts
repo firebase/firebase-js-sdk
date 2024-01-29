@@ -962,30 +962,46 @@ export class SpecBuilder {
     return this;
   }
 
-  /** Registers a query that is active in another tab. */
-  expectListen(query: Query, resume?: ResumeSpec): this {
+  private registerQuery(
+    query: Query,
+    shouldAddWatchTarget: boolean,
+    resume?: ResumeSpec
+  ): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resume);
-
+    if (shouldAddWatchTarget) {
+      this.addQueryToActiveTargets(targetId, query, resume);
+    }
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
   }
 
-  /** Removes a query that is no longer active in any tab. */
-  expectUnlisten(query: Query): this {
+  /** Registers a query that is active in another tab. */
+  expectListen(query: Query, resume?: ResumeSpec): this {
+    return this.registerQuery(query, true, resume);
+  }
+
+  /** Registers a query that is listening to cache and active in another tab. */
+  expectListenToCache(query: Query, resume?: ResumeSpec): this {
+    // Listeners that source from cache would not send watch request.
+    return this.registerQuery(query, false, resume);
+  }
+
+  removeQuery(query: Query, shouldRemoveWatchTarget: boolean = true): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryMapping.get(target)!;
 
-    this.removeQueryFromActiveTargets(query, targetId);
+    if (shouldRemoveWatchTarget) {
+      this.removeQueryFromActiveTargets(query, targetId);
+    }
 
     if (this.config.useEagerGCForMemory && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
@@ -996,6 +1012,17 @@ export class SpecBuilder {
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
     return this;
+  }
+
+  /** Removes a query that is no longer active in any tab. */
+  expectUnlisten(query: Query): this {
+    return this.removeQuery(query);
+  }
+
+  /** Removes a query that is listening to cache and no longer active in any tab. */
+  expectUnlistenToCache(query: Query): this {
+    // Listeners that source from cache did not establish watch connection, so no active targets to remove.
+    return this.removeQuery(query, false);
   }
 
   /**
