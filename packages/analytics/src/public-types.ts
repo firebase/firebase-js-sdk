@@ -299,6 +299,10 @@ export interface EventParams {
 export interface ConsentSettings {
   /** Enables storage, such as cookies, related to advertising */
   ad_storage?: ConsentStatusString;
+  /** Sets consent for sending user data to Google for advertising purposes. */
+  ad_user_data?: ConsentStatusString;
+  /** Sets consent for personalized advertising. */
+  ad_personalization?: ConsentStatusString;
   /** Enables storage, such as cookies, related to analytics (for example, visit duration) */
   analytics_storage?: ConsentStatusString;
   /**
