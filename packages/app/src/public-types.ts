@@ -88,7 +88,7 @@ export interface FirebaseServerApp extends FirebaseApp {
    *
    * It is recommend that your application awaits this promise before invoking getAuth() if an
    * authIdToken was provided in the FirebaseServerAppSettings.
-   * 
+   *
    * The returned Promise is completed immediately if the optional authIdToken parameter
    * was omitted from FirebaseServerApp initialization.
    */
@@ -203,10 +203,10 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * needs to have been recently minted for this operation to succeed, otherwise it will fail
    * validation.
    *
-   * If the token fails local verfiication, or if the Auth service has deemed it invalid when 
+   * If the token fails local verification, or if the Auth service has deemed it invalid when
    * the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not
    * sign in a user upon initalization.
-   * 
+   *
    * If a user is successfully signed-in, then the Auth instance's onAuthStateChanged callback
    * will be invoked with the User as per standard Auth flows. However, users created via
    * authIdTokens do not have a refresh token and any attempted refresh operation will fail.

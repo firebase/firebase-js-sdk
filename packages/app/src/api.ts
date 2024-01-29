@@ -184,7 +184,7 @@ export function initializeApp(
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
  * The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in
- * server side rendering environments only. Initialization will fail if invoked from a 
+ * server side rendering environments only. Initialization will fail if invoked from a
  * browser environment.
  *
  * See
