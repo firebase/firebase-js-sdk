@@ -184,7 +184,8 @@ export function initializeApp(
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
  * The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in
- * server side rendering environments only.
+ * server side rendering environments only. Initialization will fail if invoked from a 
+ * browser environment.
  *
  * See
  * {@link
@@ -248,8 +249,6 @@ export function initializeServerApp(
 
   const nameObj = {
     authIdToken: _serverAppConfig?.authIdToken,
-    appCheckToken: _serverAppConfig?.appCheckToken,
-    installationsAuthToken: _serverAppConfig?.installationsAuthToken,
     ...appOptions
   };
 
@@ -271,7 +270,7 @@ export function initializeServerApp(
   };
 
   const nameString = '' + hashCode(JSON.stringify(nameObj));
-  const existingApp = _serverApps.get(nameString) as FirebaseServerAppImpl;
+  const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
   if (existingApp) {
     // TODO:
     //   1: Register a new reference to finalization registry.

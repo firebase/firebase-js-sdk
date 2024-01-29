@@ -73,18 +73,14 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    appCheckTokenVerified: () => Promise<void>;
     authIdTokenVerified: () => Promise<void>;
-    installationTokenVerified: () => Promise<void>;
     name: string;
     readonly settings: FirebaseServerAppSettings;
 }
 
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
-    appCheckToken?: string;
     authIdToken?: string;
-    installationsAuthToken?: string;
     name?: undefined;
     releaseOnDeref?: object;
 }
