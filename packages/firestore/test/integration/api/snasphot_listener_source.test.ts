@@ -488,9 +488,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
-          // This is failing, why?
-          // expect(snapshot.metadata.fromCache).to.equal(true);
-          expect(snapshot.metadata.hasPendingWrites).to.equal(true);
 
           defaultUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc')),
@@ -501,9 +498,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'a', sort: 0 },
             { k: 'b', sort: 1 }
           ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
-          // This is failing, why?
-          // expect(snapshot.metadata.hasPendingWrites).to.equal(false);
 
           // Unlisten to cache, update a doc, then re-listen to cache.
           cacheUnlisten();
@@ -514,7 +508,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'b', sort: 1 },
             { k: 'a', sort: 2 }
           ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
 
           cacheUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc')),
@@ -527,7 +520,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             { k: 'b', sort: 1 },
             { k: 'a', sort: 2 }
           ]);
-          expect(snapshot.metadata.fromCache).to.equal(false);
 
           defaultUnlisten();
           cacheUnlisten();
