@@ -470,7 +470,11 @@ describeSpec('Listens source options:', [], () => {
           hasPendingWrites: true,
           added: [docA],
           fromCache: true
-        });
+        })
+        .userUnlistensToCache(query1)
+        .client(0)
+        .userUnlistensToCache(query1)
+        .expectUnlistenToCache(query1);
     }
   );
 
@@ -503,6 +507,46 @@ describeSpec('Listens source options:', [], () => {
           .client(1)
           .expectEvents(query1, { added: [docB] })
           .client(2)
+          .expectEvents(query1, { added: [docB] })
+          .client(0)
+          .userUnlistens(query1)
+          // There should be no active watch targets left
+          .expectActiveTargets()
+      );
+    }
+  );
+
+  specTest(
+    'Tabs can have multiple listeners with different sources',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'a' });
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to server in the primary client
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userListensToCache(query1)
+          .expectEvents(query1, { added: [docA] })
+          // Listen to server and cache in the secondary client
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA] })
+          .userListensToCache(query1)
+          .expectEvents(query1, { added: [docA] })
+          // Updates in the primary client notifies all listeners
+          .client(0)
+          .watchSends({ affects: [query1] }, docB)
+          .watchSnapshots(2000)
+          .expectEvents(query1, { added: [docB] })
+          .expectEvents(query1, { added: [docB] })
+          .client(1)
+          .expectEvents(query1, { added: [docB] })
           .expectEvents(query1, { added: [docB] })
       );
     }
@@ -567,7 +611,7 @@ describeSpec('Listens source options:', [], () => {
     }
   );
 
-  specTest('Mirror queries from different clients', ['multi-client'], () => {
+  specTest('Mirror queries in different clients', ['multi-client'], () => {
     const fullQuery = query('collection');
     const limit = queryWithLimit(
       query('collection', orderBy('sort', 'asc')),
@@ -596,7 +640,7 @@ describeSpec('Listens source options:', [], () => {
         .userUnlistens(fullQuery)
         .watchRemoves(fullQuery)
 
-        // Listen to mirror queries in 2 tabs
+        // Listen to mirror queries in 2 different tabs
         .userListensToCache(limit)
         .expectEvents(limit, { added: [docA, docB], fromCache: true })
         .client(1)

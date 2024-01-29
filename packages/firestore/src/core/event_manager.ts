@@ -34,10 +34,7 @@ class QueryListenersInfo {
   viewSnap: ViewSnapshot | undefined = undefined;
   listeners: QueryListener[] = [];
 
-  // Helper methods to filter by listener type
-  getCacheListeners(): QueryListener[] {
-    return this.listeners.filter(l => l.options.source === ListenSource.Cache);
-  }
+  // Helper methods to filter listeners that sends watch request.
   getServerListeners(): QueryListener[] {
     return this.listeners.filter(l => l.options.source !== ListenSource.Cache);
   }
