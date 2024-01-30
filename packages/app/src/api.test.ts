@@ -40,6 +40,7 @@ import { createTestComponent } from '../test/util';
 import { Component, ComponentType } from '@firebase/component';
 import { Logger } from '@firebase/logger';
 import { FirebaseAppImpl } from './firebaseApp';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
 import { isBrowser } from '@firebase/util';
 
 declare module '@firebase/component' {
@@ -184,7 +185,7 @@ describe('API tests', () => {
   });
 
   describe('initializeServerApp', () => {
-    it('creates FirebaseServerApp with options', () => {
+    it('creates FirebaseServerApp fails in browsers.', () => {
       if (isBrowser()) {
         const options = {
           apiKey: 'APIKEY'
@@ -196,7 +197,7 @@ describe('API tests', () => {
       }
     });
 
-    it('creates FirebaseServerApp with options', () => {
+    it('creates FirebaseServerApp with options', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser enviornments.
         return;
@@ -211,9 +212,10 @@ describe('API tests', () => {
       const app = initializeServerApp(options, serverAppSettings);
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.false;
+      await deleteApp(app);
     });
 
-    it('creates FirebaseServerApp with automaticDataCollectionEnabled', () => {
+    it('creates FirebaseServerApp with automaticDataCollectionEnabled', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser enviornments.
         return;
@@ -230,9 +232,10 @@ describe('API tests', () => {
       const app = initializeServerApp(options, serverAppSettings);
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.true;
+      await deleteApp(app);
     });
 
-    it('creates FirebaseServerApp with releaseOnDeref', () => {
+    it('creates FirebaseServerApp with releaseOnDeref', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser enviornments.
         return;
@@ -247,9 +250,10 @@ describe('API tests', () => {
       const app = initializeServerApp(options, serverAppSettings);
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.false;
+      await deleteApp(app);
     });
 
-    it('creates FirebaseServerApp with FirebaseApp', () => {
+    it('creates FirebaseServerApp with FirebaseApp', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser enviornments.
         return;
@@ -266,10 +270,63 @@ describe('API tests', () => {
         automaticDataCollectionEnabled: false
       };
 
-      const serverApp = initializeServerApp(standardApp, serverAppSettings);
-      expect(serverApp).to.not.equal(null);
-      expect(serverApp.options.apiKey).to.equal('test1');
+      const app = initializeServerApp(standardApp, serverAppSettings);
+      expect(app).to.not.equal(null);
+      expect(app.options.apiKey).to.equal('test1');
+      await deleteApp(app);
     });
+  });
+
+  it('create similar FirebaseServerApps does not return the same object', async () => {
+    if (isBrowser()) {
+      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const serverAppSettingsOne: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const serverAppSettingsTwo: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false
+    };
+
+    const appOne = initializeServerApp(options, serverAppSettingsOne);
+    expect(appOne).to.not.equal(null);
+    expect(appOne.automaticDataCollectionEnabled).to.be.false;
+    const appTwo = initializeServerApp(options, serverAppSettingsTwo);
+    expect(appTwo).to.not.equal(null);
+    expect(appTwo).to.not.equal(appOne);
+    await deleteApp(appOne);
+    await deleteApp(appTwo);
+  });
+
+  it('create duplicate FirebaseServerApps returns the same object', async () => {
+    if (isBrowser()) {
+      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const appOne = initializeServerApp(options, serverAppSettings);
+    expect(appOne).to.not.equal(null);
+    expect(appOne.automaticDataCollectionEnabled).to.be.false;
+    const appTwo = initializeServerApp(options, serverAppSettings);
+    expect(appTwo).to.not.equal(null);
+    expect(appTwo).to.equal(appOne);
+    await deleteApp(appOne);
+
+    // TODO: When Reference Counting works, update test. The following line should be false
+    // until and the app should be deleted a second time.
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;
+    // await deleteApp(appTwo);
   });
 
   describe('getApp', () => {

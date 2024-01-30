@@ -235,11 +235,6 @@ export function initializeServerApp(
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
-  const serverAppSettings: FirebaseServerAppSettings = {
-    automaticDataCollectionEnabled: false,
-    ..._serverAppConfig
-  };
-
   let appOptions: FirebaseOptions;
   if (_isFirebaseApp(_options)) {
     appOptions = _options.options;
@@ -247,9 +242,22 @@ export function initializeServerApp(
     appOptions = _options;
   }
 
+  // Mangle the ap name based on a hash of the FirebaseServerAppSettings, and FirebaseOptions
+  // objects and the authIdToken, if provided.
   const nameObj = {
-    authIdToken: _serverAppConfig?.authIdToken,
+    _serverAppConfig,
     ...appOptions
+  };
+  const hashCode = (s: string): number => {
+    return [...s].reduce(
+      (hash, c) => (Math.imul(31, hash) + c.charCodeAt(0)) | 0,
+      0
+    );
+  };
+
+  const serverAppSettings: FirebaseServerAppSettings = {
+    automaticDataCollectionEnabled: false,
+    ..._serverAppConfig
   };
 
   if (serverAppSettings.releaseOnDeref !== undefined) {
@@ -260,14 +268,6 @@ export function initializeServerApp(
       );
     }
   }
-
-  // TODO: move this into util.js.
-  const hashCode = (s: string): number => {
-    return [...s].reduce(
-      (hash, c) => (Math.imul(31, hash) + c.charCodeAt(0)) | 0,
-      0
-    );
-  };
 
   const nameString = '' + hashCode(JSON.stringify(nameObj));
   const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
@@ -286,8 +286,11 @@ export function initializeServerApp(
   const newApp = new FirebaseServerAppImpl(
     appOptions,
     serverAppSettings,
+    nameString,
     container
   );
+
+  _serverApps.set(nameString, newApp);
 
   return newApp;
 }
