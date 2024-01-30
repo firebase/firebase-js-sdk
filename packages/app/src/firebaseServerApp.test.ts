@@ -35,6 +35,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
+      "testName",
       new ComponentContainer('test')
     );
 
@@ -55,6 +56,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
+      "testName",
       new ComponentContainer('test')
     );
 
@@ -75,6 +77,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
+      "testName",
       new ComponentContainer('test')
     );
 
@@ -96,6 +99,7 @@ describe('FirebaseServerApp', () => {
     const app = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
+      "testName",
       new ComponentContainer('test')
     );
 
@@ -122,6 +126,7 @@ describe('FirebaseServerApp', () => {
     const app = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
+      "testName",
       new ComponentContainer('test')
     );
 
@@ -129,14 +134,6 @@ describe('FirebaseServerApp', () => {
     (app as unknown as FirebaseServerAppImpl).isDeleted = true;
 
     expect(() => app.authIdTokenVerified()).throws(
-      'Firebase Server App has been deleted'
-    );
-
-    expect(() => app.appCheckTokenVerified()).throws(
-      'Firebase Server App has been deleted'
-    );
-
-    expect(() => app.installationTokenVerified()).throws(
       'Firebase Server App has been deleted'
     );
   });

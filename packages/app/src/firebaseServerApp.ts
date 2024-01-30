@@ -36,6 +36,7 @@ export class FirebaseServerAppImpl
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
     serverConfig: FirebaseServerAppSettings,
+    name: string,
     container: ComponentContainer
   ) {
     // Build configuration parameters for the FirebaseAppImpl base class.
@@ -46,7 +47,7 @@ export class FirebaseServerAppImpl
 
     // Create the FirebaseAppSettings object for the FirebaseAppImp constructor.
     const config: Required<FirebaseAppSettings> = {
-      name: '',
+      name,
       automaticDataCollectionEnabled
     };
 
@@ -55,7 +56,6 @@ export class FirebaseServerAppImpl
       super(options as FirebaseOptions, config, container);
     } else {
       const appImpl: FirebaseAppImpl = options as FirebaseAppImpl;
-
       super(appImpl.options, config, container);
     }
 
@@ -89,18 +89,6 @@ export class FirebaseServerAppImpl
   }
 
   authIdTokenVerified(): Promise<void> {
-    this.checkDestroyed();
-    // TODO
-    return Promise.resolve();
-  }
-
-  appCheckTokenVerified(): Promise<void> {
-    this.checkDestroyed();
-    // TODO
-    return Promise.resolve();
-  }
-
-  installationTokenVerified(): Promise<void> {
     this.checkDestroyed();
     // TODO
     return Promise.resolve();
