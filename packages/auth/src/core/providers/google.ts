@@ -26,7 +26,7 @@ import { BaseOAuthProvider } from './oauth';
 import { ProviderId, SignInMethod } from '../../model/enums';
 
 /**
- * Provider for generating an an {@link OAuthCredential} for {@link ProviderId}.GOOGLE.
+ * Provider for generating an {@link OAuthCredential} for {@link ProviderId}.GOOGLE.
  *
  * @example
  * ```javascript

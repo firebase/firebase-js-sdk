@@ -195,7 +195,12 @@ export const doc2: BundleElement = {
     name: 'projects/test-project/databases/(default)/documents/collectionId/doc2',
     createTime: { seconds: 1, nanos: 2000000 },
     updateTime: { seconds: 3, nanos: 4000 },
-    fields: { foo: { stringValue: 'value1' }, bar: { integerValue: 42 } }
+    fields: {
+      foo: { stringValue: 'value1' },
+      bar: { integerValue: 42 },
+      emptyArray: { arrayValue: {} },
+      emptyMap: { mapValue: {} }
+    }
   }
 };
 export const doc2String = lengthPrefixedString(doc2);
