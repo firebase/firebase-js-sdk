@@ -290,9 +290,9 @@ describe('API tests', () => {
     };
 
     const serverAppSettingsTwo: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
+      automaticDataCollectionEnabled: false
     };
-    
+
     const appOne = initializeServerApp(options, serverAppSettingsOne);
     expect(appOne).to.not.equal(null);
     expect(appOne.automaticDataCollectionEnabled).to.be.false;
@@ -322,7 +322,7 @@ describe('API tests', () => {
     expect(appTwo).to.not.equal(null);
     expect(appTwo).to.equal(appOne);
     await deleteApp(appOne);
-    
+
     // TODO: When Reference Counting works, update test. The following line should be false
     // until and the app should be deleted a second time.
     expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;

@@ -35,7 +35,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
-      "testName",
+      'testName',
       new ComponentContainer('test')
     );
 
@@ -56,7 +56,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
-      "testName",
+      'testName',
       new ComponentContainer('test')
     );
 
@@ -77,7 +77,7 @@ describe('FirebaseServerApp', () => {
     const firebaseServerAppImpl = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
-      "testName",
+      'testName',
       new ComponentContainer('test')
     );
 
@@ -99,7 +99,7 @@ describe('FirebaseServerApp', () => {
     const app = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
-      "testName",
+      'testName',
       new ComponentContainer('test')
     );
 
@@ -126,7 +126,7 @@ describe('FirebaseServerApp', () => {
     const app = new FirebaseServerAppImpl(
       options,
       serverAppSettings,
-      "testName",
+      'testName',
       new ComponentContainer('test')
     );
 
