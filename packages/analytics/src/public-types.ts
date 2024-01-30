@@ -27,17 +27,17 @@ export interface GtagConfigParams {
    * Whether or not a page view should be sent.
    * If set to true (default), a page view is automatically sent upon initialization
    * of analytics.
-   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/views | Page views }
    */
   'send_page_view'?: boolean;
   /**
    * The title of the page.
-   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/views | Page views }
    */
   'page_title'?: string;
   /**
    * The URL of the page.
-   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view | Page views }
+   * See {@link https://developers.google.com/analytics/devguides/collection/ga4/views | Page views }
    */
   'page_location'?: string;
   /**
