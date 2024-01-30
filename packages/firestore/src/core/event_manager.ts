@@ -34,8 +34,8 @@ class QueryListenersInfo {
   viewSnap: ViewSnapshot | undefined = undefined;
   listeners: QueryListener[] = [];
 
-  // Helper methods to filter listeners that sends watch request.
-  getServerListeners(): QueryListener[] {
+  // Helper methods to filter listeners that listens to watch changes.
+  getRemoteListeners(): QueryListener[] {
     return this.listeners.filter(l => l.options.source !== ListenSource.Cache);
   }
 }
@@ -101,17 +101,29 @@ export class EventManagerImpl implements EventManager {
   onRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
-export async function eventManagerListen(
-  eventManager: EventManager,
-  listener: QueryListener
-): Promise<void> {
-  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+function listensToRemoteStore(listener: QueryListener): boolean {
+  return listener.options.source !== ListenSource.Cache;
+}
 
+function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
   debugAssert(
     !!eventManagerImpl.onRemoteStoreListen,
     'onRemoteStoreListen not set'
   );
+  debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
+  debugAssert(
+    !!eventManagerImpl.onRemoteStoreUnlisten,
+    'onRemoteStoreUnlisten not set'
+  );
+}
+
+export async function eventManagerListen(
+  eventManager: EventManager,
+  listener: QueryListener
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  validateEventManager(eventManagerImpl);
 
   const query = listener.query;
   let firstListen = false;
@@ -122,16 +134,17 @@ export async function eventManagerListen(
     queryInfo = new QueryListenersInfo();
   }
 
-  const listenToServer = listener.options.source !== ListenSource.Cache;
-  const firstListenToServer =
-    listenToServer && queryInfo.getServerListeners().length === 0;
+  const firstListenToRemoteStore =
+    listensToRemoteStore(listener) &&
+    queryInfo.getRemoteListeners().length === 0;
 
   if (firstListen) {
-    // When first listening to a query,
+    // When listening to a query for the first time, it may or may not establish
+    // watch connection based on the source the query is listening to.
     try {
-      queryInfo.viewSnap = await eventManagerImpl.onListen(
+      queryInfo.viewSnap = await eventManagerImpl.onListen!(
         query,
-        firstListenToServer
+        firstListenToRemoteStore
       );
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
@@ -141,8 +154,21 @@ export async function eventManagerListen(
       listener.onError(firestoreError);
       return;
     }
-  } else if (firstListenToServer) {
-    await eventManagerImpl.onRemoteStoreListen(query);
+  } else if (firstListenToRemoteStore) {
+    // A query might have listened to previously, but no watch connection is created
+    // as it has been listening to cache only.
+    try {
+      await eventManagerImpl.onRemoteStoreListen!(query);
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e as Error,
+        `Initialization of remote connection for query '${stringifyQuery(
+          listener.query
+        )}' failed`
+      );
+      listener.onError(firestoreError);
+      return;
+    }
   }
 
   eventManagerImpl.queries.set(query, queryInfo);
@@ -170,34 +196,34 @@ export async function eventManagerUnlisten(
   listener: QueryListener
 ): Promise<void> {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
-
-  debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
-  debugAssert(
-    !!eventManagerImpl.onRemoteStoreUnlisten,
-    'onRemoteStoreUnlisten not set'
-  );
+  validateEventManager(eventManagerImpl);
 
   const query = listener.query;
-  const listenToServer = listener.options.source !== ListenSource.Cache;
   let lastListen = false;
-  let lastListenToServer = false;
+  let lastListenToRemoteStore = false;
 
   const queryInfo = eventManagerImpl.queries.get(query);
   if (queryInfo) {
     const i = queryInfo.listeners.indexOf(listener);
     if (i >= 0) {
       queryInfo.listeners.splice(i, 1);
+
       lastListen = queryInfo.listeners.length === 0;
-      lastListenToServer =
-        listenToServer && queryInfo.getServerListeners().length === 0;
+      lastListenToRemoteStore =
+        listensToRemoteStore(listener) &&
+        queryInfo.getRemoteListeners().length === 0;
     }
   }
 
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
-    return eventManagerImpl.onUnlisten(query, lastListenToServer);
-  } else if (lastListenToServer) {
-    return eventManagerImpl.onRemoteStoreUnlisten(query);
+    // When removing the last listener, trigger remote store un-listen based
+    // on the source it is listening to. If it is cache, watch connection might
+    // have not been established previously or already been closed.
+    return eventManagerImpl.onUnlisten!(query, lastListenToRemoteStore);
+  } else if (lastListenToRemoteStore) {
+    // Un-listen to the remote store if there are no listeners sourced from watch left.
+    return eventManagerImpl.onRemoteStoreUnlisten!(query);
   }
 }
 

@@ -317,8 +317,10 @@ export async function syncEngineListen(
       queryToTarget(query)
     );
 
-    // Multi-tab
-    const status = shouldListenToRemote
+    // PORTING NOTE: When the query is listening to cache only, the target ID
+    // do not need to be registered as watch target with local Firestore client,
+    // to let primary tab listen to watch on behalf.
+    const status: QueryTargetState = shouldListenToRemote
       ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
           targetData.targetId
         )
@@ -352,7 +354,8 @@ export async function triggerRemoteStoreListen(
     queryToTarget(query)
   );
 
-  // Multi-tab
+  // PORTING NOTE: Register the target ID with local Firestore client as
+  // watch target.
   syncEngineImpl.sharedClientState.addLocalQueryTarget(targetData.targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
@@ -484,7 +487,8 @@ export async function triggerRemoteStoreUnlisten(
   );
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
 
-  // Multi-tab
+  // PORTING NOTE: Unregister the target ID with local Firestore client as
+  // watch target.
   syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
 
   if (queries.length === 1) {

@@ -55,7 +55,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
     () => {
-      it('can listen to source==cache', () => {
+      it('can raise snapshot from cache and local mutations', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
@@ -114,7 +114,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('can attach multiple source==cache listeners', () => {
+      it('Multiple listeners sourced from cache can work independently', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
@@ -161,7 +161,8 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             toDataArray(snapshots[1])
           );
 
-          // Detach one listener, and do a local mutation. The other listener should not be affected.
+          // Detach one listener, and do a local mutation. The other listener
+          // should not be affected.
           unsubscribe1();
 
           await addDoc(coll, { k: 'c', sort: 2 });
@@ -184,7 +185,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
       // Since limitToLast() queries are sent to the backend with a modified
       // orderBy() clause, they can map to the same target representation as
       // limit() query, even if both queries appear separate to the user.
-      it('can listen/unlisten/relisten to mirror queries', () => {
+      it('can listen/un-listen/re-listen to mirror queries', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 },
@@ -223,15 +224,13 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
 
-          // Unlisten then relisten limit query.
+          // Un-listen then re-listen to the limit query.
           limitUnlisten();
           limitUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc'), limit(2)),
             { source: ListenSource.Cache },
             storeLimitEvent.storeEvent
           );
-
-          // Verify `limit` query still works.
           snapshot = await storeLimitEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: 0 },
@@ -258,7 +257,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           ]);
           expect(snapshot.metadata.fromCache).to.equal(true);
 
-          // Unlisten to limitToLast, update a doc, then relisten limitToLast.
+          // Un-listen to limitToLast, update a doc, then re-listen limitToLast.
           limitToLastUnlisten();
 
           await updateDoc(doc(coll, 'a'), { k: 'a', sort: -2 });
@@ -302,7 +301,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           );
           let snapshot = await storeDefaultEvent.awaitRemoteEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
-          // No cached result, only raise snapshot from server result
           expect(snapshot.metadata.fromCache).to.equal(false);
 
           // Listen to the same query from cache
@@ -355,7 +353,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           // First snapshot will be raised from cache.
           expect(snapshot.metadata.fromCache).to.equal(true);
           snapshot = await storeDefaultEvent.awaitEvent();
-          // Second snapshot raised from server result
+          // Second snapshot will be raised from server result
           expect(snapshot.metadata.fromCache).to.equal(false);
 
           await storeDefaultEvent.assertNoAdditionalEvents();
@@ -367,7 +365,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('can unlisten to default source while still listening to cache', () => {
+      it('can un-listen to default source while still listening to cache', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 }
@@ -388,14 +386,13 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           );
           await storeCacheEvent.awaitEvent();
 
-          // Unlisten to the default listener.
+          // Un-listen to the default listener.
           defaultUnlisten();
           await storeDefaultEvent.assertNoAdditionalEvents();
 
-          // Add a document that would change the result set.
+          // Add a document and verify listener to cache works as expected
           await addDoc(coll, { k: 'c', sort: -1 });
 
-          // Verify listener to cache works as expected
           const snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
@@ -409,7 +406,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('can unlisten to cache while still listening to server', () => {
+      it('can un-listen to cache while still listening to server', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 },
           b: { k: 'b', sort: 1 }
@@ -434,10 +431,9 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           cacheUnlisten();
           await storeCacheEvent.assertNoAdditionalEvents();
 
-          // Add a document that would change the result set.
+          // Add a documentvand verify listener to server works as expected.
           await addDoc(coll, { k: 'c', sort: -1 });
 
-          // Verify listener to server works as expected
           const snapshot = await storeDefaultEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'c', sort: -1 },
@@ -526,7 +522,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('will not get metadata only updates if only listening to cache', () => {
+      it('will not get metadata only updates if listening to cache only', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
