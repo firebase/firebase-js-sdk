@@ -32,6 +32,7 @@ export class FirebaseServerAppImpl
 {
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object>;
+  private _refCount: number;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -69,18 +70,37 @@ export class FirebaseServerAppImpl
       this.automaticCleanup
     );
 
-    if (this._serverConfig.releaseOnDeref !== undefined) {
-      this._finalizationRegistry.register(
-        this._serverConfig.releaseOnDeref,
-        this
-      );
-      this._serverConfig.releaseOnDeref = undefined; // Don't keep a strong reference to the object.
+    this._refCount = 0;
+    this.incRefCount(this._serverConfig.releaseOnDeref);
+
+    // Do not retain a hard reference to the dref object, otherwise the FinalizationRegisry
+    // will never trigger.
+    this._serverConfig.releaseOnDeref = undefined;
+  }
+
+  get refCount(): number {
+    return this._refCount;
+  }
+
+  incRefCount(obj: Object | undefined) {
+    if (this.isDeleted) {
+      return;
+    }
+    this._refCount++;
+    if (obj !== undefined) {
+      this._finalizationRegistry.register(obj, this);
     }
   }
 
+  decRefCount(): number {
+    if (this.isDeleted) {
+      return 0;
+    }
+    return --this._refCount;
+  }
+
   private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
-    // TODO: implement reference counting.
-    void deleteApp(serverApp);
+    deleteApp(serverApp);
   }
 
   get settings(): FirebaseServerAppSettings {
