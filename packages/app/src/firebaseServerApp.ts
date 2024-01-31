@@ -82,7 +82,7 @@ export class FirebaseServerAppImpl
     return this._refCount;
   }
 
-  incRefCount(obj: object | undefined) : void {
+  incRefCount(obj: object | undefined): void {
     if (this.isDeleted) {
       return;
     }
