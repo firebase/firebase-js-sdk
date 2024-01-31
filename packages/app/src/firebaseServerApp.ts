@@ -82,7 +82,7 @@ export class FirebaseServerAppImpl
     return this._refCount;
   }
 
-  incRefCount(obj: Object | undefined) {
+  incRefCount(obj: object | undefined) : void {
     if (this.isDeleted) {
       return;
     }
@@ -100,7 +100,7 @@ export class FirebaseServerAppImpl
   }
 
   private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
-    deleteApp(serverApp);
+    void deleteApp(serverApp);
   }
 
   get settings(): FirebaseServerAppSettings {
