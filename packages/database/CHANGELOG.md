@@ -1,5 +1,15 @@
 # Unreleased
 
+## 1.0.3
+
+### Patch Changes
+
+- [`046ac8a39`](https://github.com/firebase/firebase-js-sdk/commit/046ac8a39b483e127a4bbe11a5390a3e6018f2a7) [#7973](https://github.com/firebase/firebase-js-sdk/pull/7973) (fixes [#7835](https://github.com/firebase/firebase-js-sdk/issues/7835)) - Fixed issue where queryConstraint.type was undefined
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
 ## 1.0.2
 
 ### Patch Changes
