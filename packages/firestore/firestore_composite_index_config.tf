@@ -144,9 +144,7 @@ locals {
         order      = "DESCENDING"
       },
     ]
-
-
-    index9 = [
+    index11 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
@@ -160,7 +158,7 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index10 = [
+    index12 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
@@ -178,7 +176,7 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index11 = [
+    index13 = [
       {
         field_path   = "rating"
         array_config = "CONTAINS"
@@ -196,44 +194,44 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index12 = [
-      {
-        field_path = "testId"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "key"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "sort"
-        order      = "ASCENDING"
-      }
-    ]
-    index13 = [
-      {
-        field_path = "testId"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "key"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "sort"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "v"
-        order      = "ASCENDING"
-      }
-    ]
     index14 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
       },
       {
+        field_path = "key"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "sort"
+        order      = "ASCENDING"
+      }
+    ]
+    index15 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "key"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "sort"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "v"
+        order      = "ASCENDING"
+      }
+    ]
+    index16 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
         field_path = "v"
         order      = "DESCENDING"
       },
@@ -246,7 +244,7 @@ locals {
         order      = "DESCENDING"
       },
     ]
-    index15 = [
+    index17 = [
       {
         field_path = "v"
         order      = "CONTAINS"
@@ -264,78 +262,43 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index16 = [
-      {
-        field_path = "key"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "testId"
-        order      = "ASCENDING"
-      },
-
-      {
-        field_path = "sort"
-        order      = "DESCENDING"
-      },
-      {
-        field_path = "v"
-        order      = "ASCENDING"
-      },
-    ]
-    index17 = [
-      {
-        field_path = "testId"
-        order      = "ASCENDING"
-      },
-
-      {
-        field_path = "sort"
-        order      = "DESCENDING"
-      },
-      {
-        field_path = "key"
-        order      = "ASCENDING"
-      },
-      {
-        field_path = "v"
-        order      = "ASCENDING"
-      },
-    ]
     index18 = [
       {
-        field_path = "testId"
+        field_path = "key"
         order      = "ASCENDING"
       },
       {
-        field_path = "v"
+        field_path = "testId"
         order      = "ASCENDING"
       },
 
       {
         field_path = "sort"
-        order      = "ASCENDING"
+        order      = "DESCENDING"
       },
       {
-        field_path = "key"
+        field_path = "v"
         order      = "ASCENDING"
       },
-
     ]
     index19 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
       },
+
       {
         field_path = "sort"
         order      = "DESCENDING"
       },
       {
         field_path = "key"
-        order      = "DESCENDING"
+        order      = "ASCENDING"
       },
-
+      {
+        field_path = "v"
+        order      = "ASCENDING"
+      },
     ]
     index20 = [
       {
@@ -344,6 +307,41 @@ locals {
       },
       {
         field_path = "v"
+        order      = "ASCENDING"
+      },
+
+      {
+        field_path = "sort"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "key"
+        order      = "ASCENDING"
+      },
+
+    ]
+    index21 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "sort"
+        order      = "DESCENDING"
+      },
+      {
+        field_path = "key"
+        order      = "DESCENDING"
+      },
+
+    ]
+    index22 = [
+      {
+        field_path = "testId"
+        order      = "ASCENDING"
+      },
+      {
+        field_path = "v"
         order      = "DESCENDING"
       },
       {
@@ -355,7 +353,7 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index21 = [
+    index23 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
@@ -369,7 +367,7 @@ locals {
         order      = "ASCENDING"
       },
     ]
-    index22 = [
+    index24 = [
       {
         field_path = "testId"
         order      = "ASCENDING"
