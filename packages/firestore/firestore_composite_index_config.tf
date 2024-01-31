@@ -246,8 +246,8 @@ locals {
     ]
     index17 = [
       {
-        field_path = "v"
-        order      = "CONTAINS"
+        field_path   = "v"
+        array_config = "CONTAINS"
       },
       {
         field_path = "testId"
