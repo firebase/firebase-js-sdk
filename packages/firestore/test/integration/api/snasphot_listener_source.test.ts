@@ -24,7 +24,9 @@ import {
   deleteDoc,
   disableNetwork,
   doc,
+  DocumentSnapshot,
   enableNetwork,
+  getDoc,
   getDocs,
   limit,
   limitToLast,
@@ -44,7 +46,8 @@ import {
   apiDescribe,
   toDataArray,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  withTestDocAndInitialData
 } from '../util/helpers';
 
 import { bundleString, verifySuccessProgress } from './bundle.test';
@@ -55,7 +58,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
     () => {
-      it('can raise snapshot from cache and local mutations', () => {
+      it('can raise snapshot from cache and local mutations for Query', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
@@ -86,6 +89,38 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           await storeEvent.assertNoAdditionalEvents();
           unsubscribe();
         });
+      });
+
+      it('can raise snapshot from cache and local mutations for DocumentReference', () => {
+        const testDocs = { k: 'a', sort: 0 };
+        return withTestDocAndInitialData(
+          persistence,
+          testDocs,
+          async docRef => {
+            await getDoc(docRef); // Populate the cache.
+
+            const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+            const unsubscribe = onSnapshot(
+              docRef,
+              { source: ListenSource.Cache },
+              storeEvent.storeEvent
+            );
+
+            let snapshot = await storeEvent.awaitEvent();
+            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(snapshot.data()).to.deep.equal({ k: 'a', sort: 0 });
+
+            await setDoc(docRef, { k: 'a', sort: 1 });
+
+            snapshot = await storeEvent.awaitEvent();
+            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+            expect(snapshot.data()).to.deep.equal({ k: 'a', sort: 1 });
+
+            await storeEvent.assertNoAdditionalEvents();
+            unsubscribe();
+          }
+        );
       });
 
       it('listen to cache would not be affected by online status change', () => {
