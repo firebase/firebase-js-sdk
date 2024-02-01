@@ -248,14 +248,14 @@ export function initializeServerApp(
 
   // Build an app name based on a hash of the configuration options.
   const nameObj = {
-    _serverAppConfig,
+    ..._serverAppConfig,
     ...appOptions
   };
 
   // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
   // construction of FirebaseServerApp instances. For example, if the object is the request headers.
-  if (nameObj._serverAppConfig.releaseOnDeref !== undefined) {
-    delete nameObj._serverAppConfig.releaseOnDeref;
+  if (nameObj.releaseOnDeref !== undefined) {
+    delete nameObj.releaseOnDeref;
   }
 
   const hashCode = (s: string): number => {

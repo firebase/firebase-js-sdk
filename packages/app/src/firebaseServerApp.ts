@@ -66,9 +66,9 @@ export class FirebaseServerAppImpl
       ...serverConfig
     };
 
-    this._finalizationRegistry = new FinalizationRegistry(
-      this.automaticCleanup
-    );
+    this._finalizationRegistry = new FinalizationRegistry(() => {
+      this.automaticCleanup();
+    });
 
     this._refCount = 0;
     this.incRefCount(this._serverConfig.releaseOnDeref);
@@ -76,12 +76,15 @@ export class FirebaseServerAppImpl
     // Do not retain a hard reference to the dref object, otherwise the FinalizationRegisry
     // will never trigger.
     this._serverConfig.releaseOnDeref = undefined;
+    serverConfig.releaseOnDeref = undefined;
   }
 
   get refCount(): number {
     return this._refCount;
   }
 
+  // Increment the reference count of this server app. If an object is provided, register it
+  // with the finalization registry.
   incRefCount(obj: object | undefined): void {
     if (this.isDeleted) {
       return;
@@ -92,6 +95,7 @@ export class FirebaseServerAppImpl
     }
   }
 
+  // Decrement the reference count.
   decRefCount(): number {
     if (this.isDeleted) {
       return 0;
@@ -99,8 +103,11 @@ export class FirebaseServerAppImpl
     return --this._refCount;
   }
 
-  private automaticCleanup(serverApp: FirebaseServerAppImpl): void {
-    void deleteApp(serverApp);
+  // Invoked by the FinalizationRegistry callback to note that this app should go through its
+  // reference counts and delete itself if no reference count remain. The coordinating logic that
+  // handles this is in deleteApp(...).
+  private automaticCleanup(): void {
+    void deleteApp(this);
   }
 
   get settings(): FirebaseServerAppSettings {
