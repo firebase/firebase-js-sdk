@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.9.4
+
+### Patch Changes
+
+- [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070) [#7963](https://github.com/firebase/firebase-js-sdk/pull/7963) (fixes [#7962](https://github.com/firebase/firebase-js-sdk/issues/7962)) - Fix isSafari() throwing on React Native
+
 ## 1.9.3
 
 ### Patch Changes

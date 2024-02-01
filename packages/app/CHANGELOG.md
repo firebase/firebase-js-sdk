@@ -1,5 +1,15 @@
 # @firebase/app
 
+## 0.9.27
+
+### Patch Changes
+
+- [`3f8cbcd18`](https://github.com/firebase/firebase-js-sdk/commit/3f8cbcd18f47fcae8c0d8060fd8c245c025784c0) [#7984](https://github.com/firebase/firebase-js-sdk/pull/7984) - Catch `transaction.done` errors in `readHeartbeatsFromIndexedDB` and log them as a warning, because platform logging errors should never throw or block user app functionality.
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
 ## 0.9.26
 
 ### Patch Changes

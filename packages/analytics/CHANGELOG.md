@@ -1,5 +1,16 @@
 # @firebase/analytics
 
+## 0.10.1
+
+### Patch Changes
+
+- [`bf59c0aed`](https://github.com/firebase/firebase-js-sdk/commit/bf59c0aedefabae9bff4d777e1591fe496259293) - Analytics - added two new consent options to the ConsentSettings interface: ad_personalization and ad_user_data.
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/installations@0.6.5
+  - @firebase/component@0.6.5
+
 ## 0.10.0
 
 ### Minor Changes
