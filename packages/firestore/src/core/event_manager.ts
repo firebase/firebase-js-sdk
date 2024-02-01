@@ -34,9 +34,9 @@ class QueryListenersInfo {
   viewSnap: ViewSnapshot | undefined = undefined;
   listeners: QueryListener[] = [];
 
-  // Helper methods to filter listeners that listens to watch changes.
-  getRemoteListeners(): QueryListener[] {
-    return this.listeners.filter(l => l.options.source !== ListenSource.Cache);
+  // Helper methods that checks if the query has listeners that listening to remote store
+  hasRemoteListeners(): boolean {
+    return this.listeners.some(listener => listensToRemoteStore(listener));
   }
 }
 
@@ -135,9 +135,7 @@ export async function eventManagerListen(
   }
 
   const firstListenToRemoteStore =
-    listensToRemoteStore(listener) &&
-    queryInfo.getRemoteListeners().length === 0;
-
+    !queryInfo.hasRemoteListeners() && listensToRemoteStore(listener);
   if (firstListen) {
     // When listening to a query for the first time, it may or may not establish
     // watch connection based on the source the query is listening to.
@@ -209,9 +207,9 @@ export async function eventManagerUnlisten(
       queryInfo.listeners.splice(i, 1);
 
       lastListen = queryInfo.listeners.length === 0;
+      // Check if the removed listener is the last one that sourced from watch.
       lastListenToRemoteStore =
-        listensToRemoteStore(listener) &&
-        queryInfo.getRemoteListeners().length === 0;
+        !queryInfo.hasRemoteListeners() && listensToRemoteStore(listener);
     }
   }
 
