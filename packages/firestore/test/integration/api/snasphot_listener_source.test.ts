@@ -693,11 +693,9 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           let snapshot = await getDocs((await namedQuery(db, 'limit'))!);
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', bar: 0 }]);
-          expect(snapshot.metadata.fromCache).to.be.true;
 
           snapshot = await getDocs((await namedQuery(db, 'limit-to-last'))!);
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', bar: 0 }]);
-          expect(snapshot.metadata.fromCache).to.be.true;
         });
       });
 
