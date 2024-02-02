@@ -213,6 +213,7 @@ describe('API tests', () => {
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.false;
       await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
 
     it('creates FirebaseServerApp with automaticDataCollectionEnabled', async () => {
@@ -233,6 +234,7 @@ describe('API tests', () => {
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.true;
       await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
 
     it('creates FirebaseServerApp with releaseOnDeref', async () => {
@@ -251,6 +253,7 @@ describe('API tests', () => {
       expect(app).to.not.equal(null);
       expect(app.automaticDataCollectionEnabled).to.be.false;
       await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
 
     it('creates FirebaseServerApp with FirebaseApp', async () => {
@@ -274,6 +277,7 @@ describe('API tests', () => {
       expect(app).to.not.equal(null);
       expect(app.options.apiKey).to.equal('test1');
       await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
   });
 
@@ -285,8 +289,7 @@ describe('API tests', () => {
 
     const options = { apiKey: 'APIKEY' };
     const serverAppSettingsOne: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options
+      automaticDataCollectionEnabled: true
     };
 
     const serverAppSettingsTwo: FirebaseServerAppSettings = {
@@ -295,10 +298,40 @@ describe('API tests', () => {
 
     const appOne = initializeServerApp(options, serverAppSettingsOne);
     expect(appOne).to.not.equal(null);
+    expect(appOne.automaticDataCollectionEnabled).to.be.true;
+    const appTwo = initializeServerApp(options, serverAppSettingsTwo);
+    expect(appTwo).to.not.equal(null);
+    expect(appTwo.automaticDataCollectionEnabled).to.be.false;
+    expect(appTwo).to.not.equal(appOne);
+    await deleteApp(appOne);
+    await deleteApp(appTwo);
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;
+    expect((appTwo as FirebaseServerAppImpl).isDeleted).to.be.true;
+  });
+
+  it('create FirebaseServerApps with varying deleteOnDeref, and they still return same object ', async () => {
+    if (isBrowser()) {
+      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const serverAppSettingsOne: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false
+    };
+
+    const serverAppSettingsTwo: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const appOne = initializeServerApp(options, serverAppSettingsOne);
+    expect(appOne).to.not.equal(null);
     expect(appOne.automaticDataCollectionEnabled).to.be.false;
     const appTwo = initializeServerApp(options, serverAppSettingsTwo);
     expect(appTwo).to.not.equal(null);
-    expect(appTwo).to.not.equal(appOne);
+    expect(appTwo.automaticDataCollectionEnabled).to.be.false;
+    expect(appTwo).to.equal(appOne);
     await deleteApp(appOne);
     await deleteApp(appTwo);
   });
@@ -322,11 +355,40 @@ describe('API tests', () => {
     expect(appTwo).to.not.equal(null);
     expect(appTwo).to.equal(appOne);
     await deleteApp(appOne);
+    await deleteApp(appTwo);
+  });
 
-    // TODO: When Reference Counting works, update test. The following line should be false
-    // until and the app should be deleted a second time.
+  it('deleting FirebaseServerApps is ref counted', async () => {
+    if (isBrowser()) {
+      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      return;
+    }
+
+    const options = { apiKey: 'APIKEY' };
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const appOne = initializeServerApp(options, serverAppSettings);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(1);
+
+    const appTwo = initializeServerApp(options, serverAppSettings);
+    expect(appTwo).to.equal(appOne);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(2);
+    expect((appTwo as FirebaseServerAppImpl).refCount).to.equal(2);
+
+    await deleteApp(appOne);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(1);
+    expect((appTwo as FirebaseServerAppImpl).refCount).to.equal(1);
+    expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.false;
+    expect((appTwo as FirebaseServerAppImpl).isDeleted).to.be.false;
+
+    await deleteApp(appTwo);
+    expect((appOne as FirebaseServerAppImpl).refCount).to.equal(0);
+    expect((appTwo as FirebaseServerAppImpl).refCount).to.equal(0);
     expect((appOne as FirebaseServerAppImpl).isDeleted).to.be.true;
-    // await deleteApp(appTwo);
+    expect((appTwo as FirebaseServerAppImpl).isDeleted).to.be.true;
   });
 
   describe('getApp', () => {

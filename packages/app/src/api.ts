@@ -235,6 +235,10 @@ export function initializeServerApp(
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 
+  if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
+    _serverAppConfig.automaticDataCollectionEnabled = false;
+  }
+
   let appOptions: FirebaseOptions;
   if (_isFirebaseApp(_options)) {
     appOptions = _options.options;
@@ -242,12 +246,18 @@ export function initializeServerApp(
     appOptions = _options;
   }
 
-  // Mangle the ap name based on a hash of the FirebaseServerAppSettings, and FirebaseOptions
-  // objects and the authIdToken, if provided.
+  // Build an app name based on a hash of the configuration options.
   const nameObj = {
-    _serverAppConfig,
+    ..._serverAppConfig,
     ...appOptions
   };
+
+  // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
+  // construction of FirebaseServerApp instances. For example, if the object is the request headers.
+  if (nameObj.releaseOnDeref !== undefined) {
+    delete nameObj.releaseOnDeref;
+  }
+
   const hashCode = (s: string): number => {
     return [...s].reduce(
       (hash, c) => (Math.imul(31, hash) + c.charCodeAt(0)) | 0,
@@ -255,12 +265,7 @@ export function initializeServerApp(
     );
   };
 
-  const serverAppSettings: FirebaseServerAppSettings = {
-    automaticDataCollectionEnabled: false,
-    ..._serverAppConfig
-  };
-
-  if (serverAppSettings.releaseOnDeref !== undefined) {
+  if (_serverAppConfig.releaseOnDeref !== undefined) {
     if (typeof FinalizationRegistry === 'undefined') {
       throw ERROR_FACTORY.create(
         AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
@@ -272,9 +277,9 @@ export function initializeServerApp(
   const nameString = '' + hashCode(JSON.stringify(nameObj));
   const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
   if (existingApp) {
-    // TODO:
-    //   1: Register a new reference to finalization registry.
-    //   2: Incrememnt reference count.
+    (existingApp as FirebaseServerAppImpl).incRefCount(
+      _serverAppConfig.releaseOnDeref
+    );
     return existingApp;
   }
 
@@ -285,7 +290,7 @@ export function initializeServerApp(
 
   const newApp = new FirebaseServerAppImpl(
     appOptions,
-    serverAppSettings,
+    _serverAppConfig,
     nameString,
     container
   );
@@ -362,16 +367,20 @@ export function getApps(): FirebaseApp[] {
  * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
-  let foundApp = false;
+  let cleanupProviders = false;
   const name = app.name;
   if (_apps.has(name)) {
-    foundApp = true;
+    cleanupProviders = true;
     _apps.delete(name);
   } else if (_serverApps.has(name)) {
-    foundApp = true;
-    _serverApps.delete(name);
+    const firebaseServerApp = app as FirebaseServerAppImpl;
+    if (firebaseServerApp.decRefCount() <= 0) {
+      _serverApps.delete(name);
+      cleanupProviders = true;
+    }
   }
-  if (foundApp) {
+
+  if (cleanupProviders) {
     await Promise.all(
       (app as FirebaseAppImpl).container
         .getProviders()
