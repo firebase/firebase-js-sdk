@@ -197,7 +197,7 @@ export interface FirebaseAnalytics {
    * automatically associates this logged event with this Firebase web
    * app instance on this device.
    * See
-   * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+   * {@link https://developers.google.com/analytics/devguides/collection/ga4/views
    * | Page views}.
    */
   logEvent(
