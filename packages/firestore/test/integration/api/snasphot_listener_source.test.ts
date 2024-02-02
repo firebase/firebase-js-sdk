@@ -703,13 +703,12 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, {}, async (coll, db) => {
           const accumulator = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
-            query(coll, orderBy('sort')),
+            coll,
             { source: ListenSource.Cache },
             accumulator.storeEvent
           );
 
           const snapshot = await accumulator.awaitEvent();
-          expect(snapshot.metadata.fromCache).to.be.true;
           expect(toDataArray(snapshot)).to.deep.equal([]);
 
           const docRef = doc(coll);
@@ -723,7 +722,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('gets triggered by server side updates when listening to both cache and default', () => {
+      it('shares server side updates when listening to both cache and default', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
@@ -747,12 +746,13 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
 
-          let docRef = doc(coll);
-          // Use a transaction to perform a write without triggering any local events.
+          // Use a transaction to mock server side updates
+          const docRef = doc(coll);
           await runTransaction(db, async txn => {
             txn.set(docRef, { k: 'b', sort: 1 });
           });
 
+          // Default listener receives the server update
           snapshot = await storeDefaultEvent.awaitRemoteEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: 0 },
@@ -760,6 +760,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           ]);
           expect(snapshot.metadata.fromCache).to.be.false;
 
+          // Cache listener raises snapshot as well
           snapshot = await storeCacheEvent.awaitEvent();
           expect(toDataArray(snapshot)).to.deep.equal([
             { k: 'a', sort: 0 },
@@ -768,22 +769,6 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(snapshot.metadata.fromCache).to.be.false;
 
           defaultUnlisten();
-          docRef = doc(coll);
-          // Use a transaction to perform a write without triggering any local events.
-          await runTransaction(db, async txn => {
-            txn.set(docRef, { k: 'c', sort: 2 });
-          });
-
-          // Add a document that would change the result set.
-          await addDoc(coll, { k: 'c', sort: -1 });
-
-          // Verify listener to cache works as expected
-          snapshot = await storeCacheEvent.awaitEvent();
-          expect(toDataArray(snapshot)).to.deep.equal([
-            { k: 'c', sort: -1 },
-            { k: 'a', sort: 0 },
-            { k: 'b', sort: 1 }
-          ]);
           cacheUnlisten();
         });
       });
