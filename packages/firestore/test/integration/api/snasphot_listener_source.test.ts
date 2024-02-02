@@ -624,7 +624,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('can listen to composite index queries', () => {
+      it('can listen to composite index queries from cache', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
@@ -666,7 +666,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('load with documents already pulled from backend', () => {
+      it('load documents pulled from backend while listening to cache', () => {
         return withTestDb(persistence, async db => {
           await setDoc(doc(db, 'coll-1/a'), { k: 'a', bar: 0 });
           await setDoc(doc(db, 'coll-1/b'), { k: 'b', bar: 0 });
@@ -699,7 +699,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         });
       });
 
-      it('will not be triggered by transactions', () => {
+      it('will not be triggered by transactions while listening to cache', () => {
         return withTestCollection(persistence, {}, async (coll, db) => {
           const accumulator = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
@@ -717,12 +717,13 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             txn.set(docRef, { k: 'a' });
           });
 
+          // There should be no events raised
           await accumulator.assertNoAdditionalEvents();
           unsubscribe();
         });
       });
 
-      it('shares server side updates when listening to both cache and default', () => {
+      it('share server side updates when listening to both cache and default', () => {
         const testDocs = {
           a: { k: 'a', sort: 0 }
         };
