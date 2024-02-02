@@ -1,0 +1,11 @@
+{
+  "extends": "../../config/tsconfig.rollup.base.json",
+  "include": [
+    "rollup.config.debug.ts",
+    "rollup.config.lite.ts",
+    "rollup.config.ts"
+  ],
+  "compilerOptions": {
+    "outDir": "rollup/tsc_out"
+  }
+}

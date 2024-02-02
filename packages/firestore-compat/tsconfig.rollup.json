@@ -1,0 +1,7 @@
+{
+  "extends": "../../config/tsconfig.rollup.base.json",
+  "include": ["rollup.config.ts"],
+  "compilerOptions": {
+    "outDir": "rollup_build"
+  }
+}

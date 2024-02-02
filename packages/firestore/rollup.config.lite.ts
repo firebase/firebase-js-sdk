@@ -15,22 +15,32 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
 import path from 'path';
-import json from '@rollup/plugin-json';
+
 import alias from '@rollup/plugin-alias';
+import json from '@rollup/plugin-json';
+import type { Plugin, RollupOptions } from 'rollup';
+import replace from 'rollup-plugin-replace';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import sourcemaps from 'rollup-plugin-sourcemaps';
-import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
 
-import pkg from './lite/package.json';
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
-const util = require('./rollup.shared');
+import pkg from './lite/package.json';
+import {
+  circularDependencyBreakingOnWarn,
+  es2017ToEs5Plugins,
+  generateAliasConfig,
+  manglePrivatePropertiesOptions,
+  removeAssertAndPrefixInternalTransformer,
+  removeAssertTransformer,
+  resolveBrowserExterns,
+  resolveNodeExterns
+} from './rollup.shared';
 
-const nodePlugins = function () {
+function nodePlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -39,15 +49,15 @@ const nodePlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
-      transformers: [util.removeAssertTransformer]
+      transformers: [removeAssertTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true })
   ];
-};
+}
 
-const browserPlugins = function () {
+function browserPlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -56,16 +66,16 @@ const browserPlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
+      transformers: [removeAssertAndPrefixInternalTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    terser(manglePrivatePropertiesOptions)
   ];
-};
+}
 
-const allBuilds = [
+const allBuilds: RollupOptions[] = [
   // Intermidiate Node ESM build without build target reporting
   // this is an intermidiate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -77,17 +87,17 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('node_lite')),
+      alias(generateAliasConfig('node_lite')),
       ...nodePlugins(),
       replace({
         '__RUNTIME_ENV__': 'node'
       })
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
-    onwarn: util.onwarn
+    onwarn: circularDependencyBreakingOnWarn
   },
   // Node CJS build
   {
@@ -100,17 +110,14 @@ const allBuilds = [
     plugins: [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true,
-          target: 'es5'
-        },
-        include: ['dist/lite/*.js']
+        include: ['dist/lite/*.js'],
+        verbosity: 2
       }),
       json(),
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -127,7 +134,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -143,14 +150,14 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('browser_lite')),
+      alias(generateAliasConfig('browser_lite')),
       ...browserPlugins(),
       // setting it to empty string because browser is the default env
       replace({
         '__RUNTIME_ENV__': ''
       })
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -166,10 +173,10 @@ const allBuilds = [
       }
     ],
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      ...es2017ToEs5Plugins(/* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -188,7 +195,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -207,7 +214,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -221,18 +228,20 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn_lite')),
+      alias(generateAliasConfig('rn_lite')),
       ...browserPlugins(),
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': 'rn'
       })
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   }
 ];
 
-export default allBuilds;
+export default function (command: Record<string, unknown>): RollupOptions[] {
+  return allBuilds;
+}

@@ -18,21 +18,29 @@
 import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 import alias from '@rollup/plugin-alias';
 import json from '@rollup/plugin-json';
-import replace from 'rollup-plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+import type { Plugin, RollupOptions } from 'rollup';
 import dts from 'rollup-plugin-dts';
+import replace from 'rollup-plugin-replace';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import tmp from 'tmp';
 import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
 import pkg from './package.json';
+import {
+  circularDependencyBreakingOnWarn,
+  es2017ToEs5Plugins,
+  generateAliasConfig,
+  manglePrivatePropertiesOptions,
+  removeAssertAndPrefixInternalTransformer,
+  removeAssertTransformer,
+  resolveBrowserExterns,
+  resolveNodeExterns
+} from './rollup.shared';
 
-const sourcemaps = require('rollup-plugin-sourcemaps');
-const util = require('./rollup.shared');
-
-const nodePlugins = function () {
+function nodePlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -41,18 +49,18 @@ const nodePlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
-      transformers: [util.removeAssertTransformer]
+      transformers: [removeAssertTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
     replace({
       '__GRPC_VERSION__': grpcVersion
     })
   ];
-};
+}
 
-const browserPlugins = function () {
+function browserPlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -61,16 +69,16 @@ const browserPlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
+      transformers: [removeAssertAndPrefixInternalTransformer],
+      verbosity: 2
     }),
     json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
+    terser(manglePrivatePropertiesOptions)
   ];
-};
+}
 
-const allBuilds = [
+const allBuilds: RollupOptions[] = [
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -81,12 +89,12 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins()],
-    external: util.resolveNodeExterns,
+    plugins: [alias(generateAliasConfig('node')), ...nodePlugins()],
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     },
-    onwarn: util.onwarn
+    onwarn: circularDependencyBreakingOnWarn
   },
   // Node CJS build
   {
@@ -97,10 +105,10 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ false),
+      ...es2017ToEs5Plugins(/* mangled= */ false),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -117,7 +125,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveNodeExterns,
+    external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -132,8 +140,8 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins()],
-    external: util.resolveBrowserExterns,
+    plugins: [alias(generateAliasConfig('browser')), ...browserPlugins()],
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -149,10 +157,10 @@ const allBuilds = [
       }
     ],
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
+      ...es2017ToEs5Plugins(/* mangled= */ true),
       replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -171,7 +179,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -190,7 +198,7 @@ const allBuilds = [
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -204,11 +212,11 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      alias(util.generateAliasConfig('rn')),
+      alias(generateAliasConfig('rn')),
       ...browserPlugins(),
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
-    external: util.resolveBrowserExterns,
+    external: resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
@@ -227,4 +235,6 @@ const allBuilds = [
   }
 ];
 
-export default allBuilds;
+export default function (command: Record<string, unknown>): RollupOptions[] {
+  return allBuilds;
+}

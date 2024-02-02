@@ -83,6 +83,19 @@ module.exports = {
         'import/no-extraneous-dependencies': 'off',
         '@typescript-eslint/no-require-imports': 'off'
       }
+    },
+    {
+      files: ['rollup.*.ts'],
+      rules: {
+        'import/no-default-export': 'off',
+        'import/no-extraneous-dependencies': 'off'
+      }
+    },
+    {
+      files: ['rollup/**/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off'
+      }
     }
   ]
 };

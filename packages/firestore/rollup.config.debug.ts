@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import tmp from 'tmp';
-import json from '@rollup/plugin-json';
+import type { RollupAliasOptions } from '@rollup/plugin-alias';
 import alias from '@rollup/plugin-alias';
+import json from '@rollup/plugin-json';
+import type { Plugin, RollupOptions } from 'rollup';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
@@ -29,7 +30,7 @@ import pkg from './package.json';
 // app as a replacement for
 // "node_modules/@firebase/firestore/dist/index.esm2017.js".
 
-const browserPlugins = function () {
+function browserPlugins(): Plugin[] {
   return [
     typescriptPlugin({
       typescript,
@@ -38,15 +39,15 @@ const browserPlugins = function () {
           target: 'es2017'
         }
       },
-      cacheDir: tmp.dirSync(),
       clean: true,
-      abortOnError: true
+      abortOnError: true,
+      verbosity: 2
     }),
     json({ preferConst: true })
   ];
-};
+}
 
-const aliasConfig = {
+const aliasConfig: RollupAliasOptions = {
   entries: [
     {
       find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
@@ -55,12 +56,12 @@ const aliasConfig = {
   ]
 };
 
-const browserDeps = [
+const browserDeps: string[] = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
   '@firebase/app'
 ];
 
-export default [
+const rollupOptions: RollupOptions[] = [
   {
     input: './src/index.ts',
     output: {
@@ -79,3 +80,7 @@ export default [
     }
   }
 ];
+
+export default function (command: Record<string, unknown>): RollupOptions[] {
+  return rollupOptions;
+}

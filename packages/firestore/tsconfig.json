@@ -3,5 +3,5 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "exclude": ["scripts/**/*", "dist/**/*"]
+  "exclude": ["scripts/**/*", "dist/**/*", "rollup.*.ts", "rollup/**/*"]
 }

@@ -3585,6 +3585,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/rollup-plugin-sourcemaps@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/@types/rollup-plugin-sourcemaps/-/rollup-plugin-sourcemaps-0.5.0.tgz#016469d5866849a54faec45bc777aa3846e232e3"
+  integrity sha512-3FP7u5/ljvEamdp45agnWrui/6Zw9GpxlsKqTqu+94jsOrjIQEpb4NVC8jIF4O1QBH46gvpCTmnh4L5QrH90zw==
+  dependencies:
+    rollup-plugin-sourcemaps "*"
+
 "@types/selenium-webdriver@^3.0.0":
   version "3.0.19"
   resolved "https://registry.npmjs.org/@types/selenium-webdriver/-/selenium-webdriver-3.0.19.tgz"
@@ -14820,7 +14827,7 @@ rollup-plugin-replace@2.2.0:
     magic-string "^0.25.2"
     rollup-pluginutils "^2.6.0"
 
-rollup-plugin-sourcemaps@0.6.3:
+rollup-plugin-sourcemaps@*, rollup-plugin-sourcemaps@0.6.3:
   version "0.6.3"
   resolved "https://registry.npmjs.org/rollup-plugin-sourcemaps/-/rollup-plugin-sourcemaps-0.6.3.tgz"
   integrity sha512-paFu+nT1xvuO1tPFYXGe+XnQvg4Hjqv/eIhG8i5EspfYYPBKL57X7iVbfv55aNVASg3dzWvES9dmWsL2KhfByw==
