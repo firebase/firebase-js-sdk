@@ -25,6 +25,33 @@ import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
+import { KeyObject, X509Certificate, createVerify } from 'node:crypto';
+
+let memoizedPublicKeys: Map<string, KeyObject> | undefined;
+let memoizedPublicKeysExpireAt: Date | undefined;
+
+async function getPublicKeys(): Promise<Map<string, KeyObject>> {
+  if (memoizedPublicKeys && memoizedPublicKeysExpireAt && memoizedPublicKeysExpireAt < new Date()) {
+    return memoizedPublicKeys;
+  }
+  const response = await fetch("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com");
+  if (!response.ok) {
+    return memoizedPublicKeys || Promise.reject();
+  }
+  const certificates = await response.json().catch(() => undefined);
+  if (!certificates) {
+    return memoizedPublicKeys || Promise.reject();
+  }
+  const cacheControl = response.headers.get("Cache-Control");
+  const maxAge = +(cacheControl?.match(/max-age=(\d+)/)?.[1] ?? 0);
+  memoizedPublicKeysExpireAt = new Date(+new Date() + maxAge * 1_000);
+  memoizedPublicKeys = new Map<string, KeyObject> (
+    Object.entries(certificates).map(([kid, pem]) =>
+      [kid, new X509Certificate(pem as string).publicKey]
+    )
+  );
+  return memoizedPublicKeys;
+}
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -33,6 +60,13 @@ export class FirebaseServerAppImpl
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object>;
   private _refCount: number;
+
+  private _authIdTokenVerified: Promise<void>;
+  private _authIdTokenVerification: Promise<void> | undefined;
+  private _resolveAuthIdTokenVerified: (() => void) | undefined;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _rejectAuthIdTokenVerified: ((reason: any) => void) | undefined;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -72,6 +106,19 @@ export class FirebaseServerAppImpl
 
     this._refCount = 0;
     this.incRefCount(this._serverConfig.releaseOnDeref);
+
+    if (serverConfig.authIdToken) {
+      this._authIdTokenVerified = new Promise((resolve, reject) => {
+        this._resolveAuthIdTokenVerified = resolve;
+        this._rejectAuthIdTokenVerified = reject;
+      });
+      this._authIdTokenVerified.finally(() => {
+        this._authIdTokenVerification ||= Promise.resolve();
+      });
+    } else {
+      this._authIdTokenVerified = Promise.resolve();
+      this._authIdTokenVerification = Promise.resolve();
+    }
 
     // Do not retain a hard reference to the dref object, otherwise the FinalizationRegisry
     // will never trigger.
@@ -115,10 +162,44 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  authIdTokenVerified(): Promise<void> {
+  async authIdTokenVerified(): Promise<void> {
     this.checkDestroyed();
-    // TODO
-    return Promise.resolve();
+    const publicKeys = await getPublicKeys();
+    // TODO handle emulated credentials, extract into utility?
+    this._authIdTokenVerification ||= new Promise<void>(async (resolve, reject) => {
+      const [rawHead, rawPayload, signature] = this._serverConfig.authIdToken!.split(".");
+      const head = JSON.parse(Buffer.from(rawHead, "base64url").toString("ascii"));
+      const publicKey = publicKeys.get(head.kid);
+      if (!publicKey || head.alg !== "RS256") {
+        return reject();
+      }
+      const validSignature = createVerify("RSA-SHA256")
+        .end(`${rawHead}.${rawPayload}`)
+        .verify(publicKey, signature, "base64url");
+      if (!validSignature) {
+        return reject();
+      }
+      const payload = JSON.parse(Buffer.from(rawPayload, "base64url").toString("utf8"));
+      console.log(payload);
+      const now = +new Date();
+      if (
+        +payload.exp <= now ||
+        +payload.iat > now ||
+        +payload.auth_time > now ||
+        payload.aud !== this._options.projectId ||
+        payload.iss !== `https://securetoken.google.com/${this._options.projectId}` ||
+        typeof payload.sub !== "string" ||
+        !payload.sub
+      ) {
+        return reject();
+      }
+      return resolve();
+    }).then(() => {
+      this._resolveAuthIdTokenVerified?.();
+    }, (reason) => {
+      this._rejectAuthIdTokenVerified?.(reason);
+    });
+    return this._authIdTokenVerified;
   }
 
   /**
