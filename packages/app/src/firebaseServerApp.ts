@@ -25,7 +25,7 @@ import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
-import { KeyObject, X509Certificate, createVerify } from 'node:crypto';
+import { KeyObject, X509Certificate, createVerify } from 'crypto';
 
 let memoizedPublicKeys: Map<string, KeyObject> | undefined;
 let memoizedPublicKeysExpireAt: Date | undefined;
