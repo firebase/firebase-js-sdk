@@ -31,10 +31,16 @@ let memoizedPublicKeys: Map<string, KeyObject> | undefined;
 let memoizedPublicKeysExpireAt: Date | undefined;
 
 async function getPublicKeys(): Promise<Map<string, KeyObject>> {
-  if (memoizedPublicKeys && memoizedPublicKeysExpireAt && memoizedPublicKeysExpireAt < new Date()) {
+  if (
+    memoizedPublicKeys &&
+    memoizedPublicKeysExpireAt &&
+    memoizedPublicKeysExpireAt < new Date()
+  ) {
     return memoizedPublicKeys;
   }
-  const response = await fetch("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com");
+  const response = await fetch(
+    'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+  );
   if (!response.ok) {
     return memoizedPublicKeys || Promise.reject();
   }
@@ -42,13 +48,14 @@ async function getPublicKeys(): Promise<Map<string, KeyObject>> {
   if (!certificates) {
     return memoizedPublicKeys || Promise.reject();
   }
-  const cacheControl = response.headers.get("Cache-Control");
+  const cacheControl = response.headers.get('Cache-Control');
   const maxAge = +(cacheControl?.match(/max-age=(\d+)/)?.[1] ?? 0);
   memoizedPublicKeysExpireAt = new Date(+new Date() + maxAge * 1_000);
-  memoizedPublicKeys = new Map<string, KeyObject> (
-    Object.entries(certificates).map(([kid, pem]) =>
-      [kid, new X509Certificate(pem as string).publicKey]
-    )
+  memoizedPublicKeys = new Map<string, KeyObject>(
+    Object.entries(certificates).map(([kid, pem]) => [
+      kid,
+      new X509Certificate(pem as string).publicKey
+    ])
   );
   return memoizedPublicKeys;
 }
@@ -166,39 +173,49 @@ export class FirebaseServerAppImpl
     this.checkDestroyed();
     const publicKeys = await getPublicKeys();
     // TODO handle emulated credentials, extract into utility?
-    this._authIdTokenVerification ||= new Promise<void>(async (resolve, reject) => {
-      const [rawHead, rawPayload, signature] = this._serverConfig.authIdToken!.split(".");
-      const head = JSON.parse(Buffer.from(rawHead, "base64url").toString("ascii"));
-      const publicKey = publicKeys.get(head.kid);
-      if (!publicKey || head.alg !== "RS256") {
-        return reject();
+    this._authIdTokenVerification ||= new Promise<void>(
+      async (resolve, reject) => {
+        const [rawHead, rawPayload, signature] =
+          this._serverConfig.authIdToken!.split('.');
+        const head = JSON.parse(
+          Buffer.from(rawHead, 'base64url').toString('ascii')
+        );
+        const publicKey = publicKeys.get(head.kid);
+        if (!publicKey || head.alg !== 'RS256') {
+          return reject();
+        }
+        const validSignature = createVerify('RSA-SHA256')
+          .end(`${rawHead}.${rawPayload}`)
+          .verify(publicKey, signature, 'base64url');
+        if (!validSignature) {
+          return reject();
+        }
+        const payload = JSON.parse(
+          Buffer.from(rawPayload, 'base64url').toString('utf8')
+        );
+        const now = +new Date();
+        if (
+          +payload.exp * 1_000 <= now ||
+          +payload.iat * 1_000 > now ||
+          +payload.auth_time * 1_000 > now ||
+          payload.aud !== this._options.projectId ||
+          payload.iss !==
+            `https://securetoken.google.com/${this._options.projectId}` ||
+          typeof payload.sub !== 'string' ||
+          !payload.sub
+        ) {
+          return reject();
+        }
+        return resolve();
       }
-      const validSignature = createVerify("RSA-SHA256")
-        .end(`${rawHead}.${rawPayload}`)
-        .verify(publicKey, signature, "base64url");
-      if (!validSignature) {
-        return reject();
+    ).then(
+      () => {
+        this._resolveAuthIdTokenVerified?.();
+      },
+      reason => {
+        this._rejectAuthIdTokenVerified?.(reason);
       }
-      const payload = JSON.parse(Buffer.from(rawPayload, "base64url").toString("utf8"));
-      console.log(payload);
-      const now = +new Date();
-      if (
-        +payload.exp <= now ||
-        +payload.iat > now ||
-        +payload.auth_time > now ||
-        payload.aud !== this._options.projectId ||
-        payload.iss !== `https://securetoken.google.com/${this._options.projectId}` ||
-        typeof payload.sub !== "string" ||
-        !payload.sub
-      ) {
-        return reject();
-      }
-      return resolve();
-    }).then(() => {
-      this._resolveAuthIdTokenVerified?.();
-    }, (reason) => {
-      this._rejectAuthIdTokenVerified?.(reason);
-    });
+    );
     return this._authIdTokenVerified;
   }
 
