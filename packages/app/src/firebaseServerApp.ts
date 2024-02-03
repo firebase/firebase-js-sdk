@@ -214,9 +214,7 @@ export class FirebaseServerAppImpl
       async (resolve, reject) => {
         const [rawHead, rawPayload, signature] =
           this._serverConfig.authIdToken!.split('.');
-        const head = JSON.parse(
-          Buffer.from(rawHead, 'base64url').toString('ascii')
-        );
+        const head = JSON.parse(base64decode(rawHead));
         const publicKey = publicKeys.get(head.kid);
         if (!publicKey || head.alg !== 'RS256') {
           return reject();
@@ -237,9 +235,7 @@ export class FirebaseServerAppImpl
         if (!validSignature) {
           return reject();
         }
-        const payload = JSON.parse(
-          Buffer.from(rawPayload, 'base64url').toString('utf8')
-        );
+        const payload = JSON.parse(base64decode(rawPayload));
         const now = +new Date();
         if (
           +payload.exp * 1_000 <= now ||
