@@ -25,12 +25,12 @@ import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
-import { KeyObject, X509Certificate, createVerify } from 'crypto';
+import type { KeyObject } from 'node:crypto';
 
-let memoizedPublicKeys: Map<string, KeyObject> | undefined;
+let memoizedPublicKeys: Map<string, CryptoKey | KeyObject> | undefined;
 let memoizedPublicKeysExpireAt: Date | undefined;
 
-async function getPublicKeys(): Promise<Map<string, KeyObject>> {
+async function getPublicKeys(): Promise<Map<string, CryptoKey | KeyObject>> {
   if (
     memoizedPublicKeys &&
     memoizedPublicKeysExpireAt &&
@@ -39,7 +39,7 @@ async function getPublicKeys(): Promise<Map<string, KeyObject>> {
     return memoizedPublicKeys;
   }
   const response = await fetch(
-    'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+    'https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com'
   );
   if (!response.ok) {
     return memoizedPublicKeys || Promise.reject();
@@ -51,13 +51,50 @@ async function getPublicKeys(): Promise<Map<string, KeyObject>> {
   const cacheControl = response.headers.get('Cache-Control');
   const maxAge = +(cacheControl?.match(/max-age=(\d+)/)?.[1] ?? 0);
   memoizedPublicKeysExpireAt = new Date(+new Date() + maxAge * 1_000);
-  memoizedPublicKeys = new Map<string, KeyObject>(
-    Object.entries(certificates).map(([kid, pem]) => [
-      kid,
-      new X509Certificate(pem as string).publicKey
-    ])
-  );
+  memoizedPublicKeys = new Map<string, CryptoKey | KeyObject>();
+  for (const jwk of certificates.keys as Array<{
+    kid: string;
+    [key: string]: string;
+  }>) {
+    const key =
+      typeof process !== 'undefined' && process.release?.name === 'node'
+        ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('node:crypto').createPublicKey({ key: jwk, format: 'jwk' })
+        : // @ts-expect-error
+          await crypto.subtle.importKey(
+            'jwk',
+            jwk,
+            {
+              name: 'RSASSA-PKCS1-v1_5',
+              hash: 'SHA-256'
+            },
+            false,
+            ['verify']
+          );
+    memoizedPublicKeys.set(jwk.kid, key);
+  }
   return memoizedPublicKeys;
+}
+
+function base64decode(base64Contents: string): string {
+  base64Contents = base64Contents
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+    .replace(/\s/g, '');
+  return atob(base64Contents);
+}
+
+function base64ToUint8Array(base64Contents: string): Uint8Array {
+  return new Uint8Array(
+    base64decode(base64Contents)
+      .split('')
+      .map(c => c.charCodeAt(0))
+  );
+}
+
+function stringToUint8Array(contents: string): Uint8Array {
+  const encoded = btoa(unescape(encodeURIComponent(contents)));
+  return base64ToUint8Array(encoded);
 }
 
 export class FirebaseServerAppImpl
@@ -184,9 +221,19 @@ export class FirebaseServerAppImpl
         if (!publicKey || head.alg !== 'RS256') {
           return reject();
         }
-        const validSignature = createVerify('RSA-SHA256')
-          .end(`${rawHead}.${rawPayload}`)
-          .verify(publicKey, signature, 'base64url');
+        const validSignature =
+          typeof process !== 'undefined' && process.release?.name === 'node'
+            ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+              require('node:crypto')
+                .createVerify('RSA-SHA256')
+                .end(`${rawHead}.${rawPayload}`)
+                .verify(publicKey, signature, 'base64url')
+            : await crypto.subtle.verify(
+                'RSASSA-PKCS1-v1_5',
+                publicKey as CryptoKey, // TODO don't coerce, put in a type-guard
+                base64ToUint8Array(signature),
+                stringToUint8Array(`${rawHead}.${rawPayload}`)
+              );
         if (!validSignature) {
           return reject();
         }
