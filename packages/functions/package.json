@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -50,7 +50,7 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.9.26",
+    "@firebase/app": "0.9.27",
     "rollup": "2.79.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
@@ -66,11 +66,11 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.4",
+    "@firebase/component": "0.6.5",
     "@firebase/messaging-interop-types": "0.2.0",
     "@firebase/auth-interop-types": "0.2.1",
     "@firebase/app-check-interop-types": "0.3.0",
-    "@firebase/util": "1.9.3",
+    "@firebase/util": "1.9.4",
     "undici": "5.26.5",
     "tslib": "^2.1.0"
   },
