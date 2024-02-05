@@ -273,7 +273,7 @@ export class SpecBuilder {
   private addUserListenStep(
     query: Query,
     resume?: ResumeSpec,
-    options: ListenOptions = {}
+    options?: ListenOptions
   ): void {
     this.nextStep();
 
