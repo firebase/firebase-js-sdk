@@ -63,8 +63,8 @@ export interface EventManager {
     enableRemoteListen: boolean
   ) => Promise<ViewSnapshot>;
   onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-  onRemoteStoreListen?: (query: Query) => Promise<void>;
-  onRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
@@ -93,24 +93,24 @@ export class EventManagerImpl implements EventManager {
    * Callback invoked when a Query starts listening to the remote store, while
    * already listening to the cache.
    */
-  onRemoteStoreListen?: (query: Query) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
   /**
    * Callback invoked when a Query stops listening to the remote store, while
    * still listening to the cache.
    */
-  onRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
 function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
   debugAssert(
-    !!eventManagerImpl.onRemoteStoreListen,
-    'onRemoteStoreListen not set'
+    !!eventManagerImpl.onFirstRemoteStoreListen,
+    'onFirstRemoteStoreListen not set'
   );
   debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
   debugAssert(
-    !!eventManagerImpl.onRemoteStoreUnlisten,
-    'onRemoteStoreUnlisten not set'
+    !!eventManagerImpl.onLastRemoteStoreUnlisten,
+    'onLastRemoteStoreUnlisten not set'
   );
 }
 
@@ -129,12 +129,18 @@ export async function eventManagerListen(
     firstListen = true;
     queryInfo = new QueryListenersInfo();
   }
-
   const firstListenToRemoteStore =
     !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
+
+  /**
+   * Different scenarios arise based on whether it's the initial listener and its listen source:
+   * a. First listener with source 'default': Register the query in the local store and establish a watch connection.
+   * b. First listener with source 'cache': Register the query in the local store.
+   * c. Previously listened to 'cache', first listener source from 'default': Establish a watch connection.
+   * d. Already listened to the 'default' source: No action required.
+   */
+
   if (firstListen) {
-    // When listening to a query for the first time, it may or may not establish
-    // watch connection based on the source the query is listening to.
     try {
       queryInfo.viewSnap = await eventManagerImpl.onListen!(
         query,
@@ -149,10 +155,8 @@ export async function eventManagerListen(
       return;
     }
   } else if (firstListenToRemoteStore) {
-    // A query might have listened to previously, but no watch connection is created
-    // as it has been listening to cache only.
     try {
-      await eventManagerImpl.onRemoteStoreListen!(query);
+      await eventManagerImpl.onFirstRemoteStoreListen!(query);
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
         e as Error,
@@ -208,16 +212,18 @@ export async function eventManagerUnlisten(
         !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
     }
   }
-
+  /**
+   * Different scenarios arise based on whether it's the last listener and its listen source:
+   * a. Last listener and source is 'default': Remove query from local store and remove the watch connection.
+   * b. Last listener and source is 'cache': Remove query from local store.
+   * c. Last listener source from 'default', but still have listeners listening to "cache": Remove the watch connection.
+   * d. Neither the last listener, nor the last listener source from 'default': No action required.
+   */
   if (lastListen) {
     eventManagerImpl.queries.delete(query);
-    // When removing the last listener, trigger remote store un-listen based
-    // on the source it is listening to. If it is cache, watch connection might
-    // have not been established previously or already been closed.
     return eventManagerImpl.onUnlisten!(query, lastListenToRemoteStore);
   } else if (lastListenToRemoteStore) {
-    // Un-listen to the remote store if there are no listeners sourced from watch left.
-    return eventManagerImpl.onRemoteStoreUnlisten!(query);
+    return eventManagerImpl.onLastRemoteStoreUnlisten!(query);
   }
 }
 

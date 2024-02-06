@@ -399,11 +399,11 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
-  eventManager.onRemoteStoreListen = triggerRemoteStoreListen.bind(
+  eventManager.onFirstRemoteStoreListen = triggerRemoteStoreListen.bind(
     null,
     onlineComponentProvider.syncEngine
   );
-  eventManager.onRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
+  eventManager.onLastRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
     null,
     onlineComponentProvider.syncEngine
   );

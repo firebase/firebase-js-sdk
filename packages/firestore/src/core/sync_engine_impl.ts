@@ -317,9 +317,9 @@ export async function syncEngineListen(
       queryToTarget(query)
     );
 
-    // PORTING NOTE: When the query is listening to cache only, the target ID
-    // do not need to be registered as watch target with local Firestore client,
-    // to let primary tab listen to watch on behalf.
+    // PORTING NOTE: When the query is listening to cache only, we skip sending it over to Watch by
+    // not registering it in shared client state, and directly calculate initial snapshots and
+    // subsequent updates from cache.
     const status: QueryTargetState = shouldListenToRemote
       ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
           targetData.targetId
@@ -354,7 +354,7 @@ export async function triggerRemoteStoreListen(
     queryToTarget(query)
   );
 
-  // PORTING NOTE: Register the target ID with local Firestore client as
+  // PORTING NOTE: Register the target ID with local Firestore client as active
   // watch target.
   syncEngineImpl.sharedClientState.addLocalQueryTarget(targetData.targetId);
 
@@ -487,11 +487,11 @@ export async function triggerRemoteStoreUnlisten(
   );
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
 
-  // PORTING NOTE: Unregister the target ID with local Firestore client as
-  // watch target.
-  syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
+  if (syncEngineImpl.isPrimaryClient && queries.length === 1) {
+    // PORTING NOTE: Unregister the target ID with local Firestore client as
+    // watch target.
+    syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
 
-  if (queries.length === 1) {
     remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
   }
 }
@@ -1555,12 +1555,12 @@ export async function syncEngineApplyActiveTargetsChange(
   }
 
   for (const targetId of added) {
-    // A target might have been added in a previous attempt, or could have listened to cache,
-    // but no remote store connection has been established by the primary client.
-    const targetHasBeenListenedTo =
+    // A target is already listening to remote store if it is already registered to
+    // sharedClientState.
+    const targetAlreadyListeningToRemoteStore =
       syncEngineImpl.queriesByTarget.has(targetId) &&
       syncEngineImpl.sharedClientState.isActiveQueryTarget(targetId);
-    if (targetHasBeenListenedTo) {
+    if (targetAlreadyListeningToRemoteStore) {
       logDebug(LOG_TAG, 'Adding an already active target ' + targetId);
       continue;
     }

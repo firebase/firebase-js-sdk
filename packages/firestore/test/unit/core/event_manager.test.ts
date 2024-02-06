@@ -63,22 +63,24 @@ describe('EventManager', () => {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   let onListenSpy: any,
     onUnlistenSpy: any,
-    onRemoteStoreListenSpy: any,
-    onRemoteStoreUnlistenSpy: any;
+    onFirstRemoteStoreListenSpy: any,
+    onLastRemoteStoreUnlistenSpy: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   beforeEach(() => {
     onListenSpy = sinon.stub().returns(Promise.resolve(0));
     onUnlistenSpy = sinon.spy();
-    onRemoteStoreListenSpy = sinon.spy();
-    onRemoteStoreUnlistenSpy = sinon.spy();
+    onFirstRemoteStoreListenSpy = sinon.spy();
+    onLastRemoteStoreUnlistenSpy = sinon.spy();
   });
 
   function eventManagerBindSpy(eventManager: EventManager): void {
     eventManager.onListen = onListenSpy.bind(null);
     eventManager.onUnlisten = onUnlistenSpy.bind(null);
-    eventManager.onRemoteStoreListen = onRemoteStoreListenSpy.bind(null);
-    eventManager.onRemoteStoreUnlisten = onRemoteStoreUnlistenSpy.bind(null);
+    eventManager.onFirstRemoteStoreListen =
+      onFirstRemoteStoreListenSpy.bind(null);
+    eventManager.onLastRemoteStoreUnlisten =
+      onLastRemoteStoreUnlistenSpy.bind(null);
   }
 
   it('handles many listenables per query', async () => {
