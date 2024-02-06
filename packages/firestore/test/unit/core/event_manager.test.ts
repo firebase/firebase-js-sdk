@@ -54,7 +54,8 @@ describe('EventManager', () => {
       options: {},
       onViewSnapshot: () => {},
       onError: () => {},
-      applyOnlineStateChange: () => {}
+      applyOnlineStateChange: () => {},
+      listensToRemoteStore: () => {}
     };
   }
 

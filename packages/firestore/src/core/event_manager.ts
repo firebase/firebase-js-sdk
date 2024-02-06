@@ -36,7 +36,7 @@ class QueryListenersInfo {
 
   // Helper methods that checks if the query has listeners that listening to remote store
   hasRemoteListeners(): boolean {
-    return this.listeners.some(listener => listensToRemoteStore(listener));
+    return this.listeners.some(listener => listener.listensToRemoteStore());
   }
 }
 
@@ -101,10 +101,6 @@ export class EventManagerImpl implements EventManager {
   onRemoteStoreUnlisten?: (query: Query) => Promise<void>;
 }
 
-function listensToRemoteStore(listener: QueryListener): boolean {
-  return listener.options.source !== ListenSource.Cache;
-}
-
 function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
   debugAssert(
@@ -135,7 +131,7 @@ export async function eventManagerListen(
   }
 
   const firstListenToRemoteStore =
-    !queryInfo.hasRemoteListeners() && listensToRemoteStore(listener);
+    !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
   if (firstListen) {
     // When listening to a query for the first time, it may or may not establish
     // watch connection based on the source the query is listening to.
@@ -209,7 +205,7 @@ export async function eventManagerUnlisten(
       lastListen = queryInfo.listeners.length === 0;
       // Check if the removed listener is the last one that sourced from watch.
       lastListenToRemoteStore =
-        !queryInfo.hasRemoteListeners() && listensToRemoteStore(listener);
+        !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
     }
   }
 
@@ -343,7 +339,7 @@ export class QueryListener {
    */
   private raisedInitialEvent = false;
 
-  readonly options: ListenOptions;
+  private options: ListenOptions;
 
   private snap: ViewSnapshot | null = null;
 
@@ -438,7 +434,7 @@ export class QueryListener {
     }
 
     // Always raise event if listening to cache
-    if (this.options.source === ListenSource.Cache) {
+    if (!this.listensToRemoteStore()) {
       return true;
     }
 
@@ -499,5 +495,9 @@ export class QueryListener {
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);
+  }
+
+  listensToRemoteStore(): boolean {
+    return this.options.source !== ListenSource.Cache;
   }
 }
