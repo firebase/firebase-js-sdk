@@ -114,6 +114,20 @@ function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   );
 }
 
+const enum ListenStatus {
+  FirstListenAndRequireWatchConnection,
+  FirstListenAndNotRequireWatchConnection,
+  NotFirstListenButRequireWatchConnection,
+  NoActionRequired
+}
+
+const enum UnlistenStatus {
+  LastListenAndRequireWatchDisconnection,
+  LastListenAndNotRequireWatchDisconnection,
+  NotLastListenButRequireWatchDisconnection,
+  NoActionRequired
+}
+
 export async function eventManagerListen(
   eventManager: EventManager,
   listener: QueryListener
@@ -121,52 +135,41 @@ export async function eventManagerListen(
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   validateEventManager(eventManagerImpl);
 
+  let listenerStatus = ListenStatus.NoActionRequired;
+
   const query = listener.query;
-  let firstListen = false;
 
   let queryInfo = eventManagerImpl.queries.get(query);
   if (!queryInfo) {
-    firstListen = true;
     queryInfo = new QueryListenersInfo();
+    listenerStatus = listener.listensToRemoteStore()
+      ? ListenStatus.FirstListenAndRequireWatchConnection
+      : ListenStatus.FirstListenAndNotRequireWatchConnection;
+  } else if (listener.listensToRemoteStore()) {
+    listenerStatus = ListenStatus.NotFirstListenButRequireWatchConnection;
   }
-  const firstListenToRemoteStore =
-    !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
 
-  /**
-   * Different scenarios arise based on whether it's the initial listener and its listen source:
-   * a. First listener with source 'default': Register the query in the local store and establish a watch connection.
-   * b. First listener with source 'cache': Register the query in the local store.
-   * c. Previously listened to 'cache', first listener source from 'default': Establish a watch connection.
-   * d. Already listened to the 'default' source: No action required.
-   */
-
-  if (firstListen) {
-    try {
-      queryInfo.viewSnap = await eventManagerImpl.onListen!(
-        query,
-        firstListenToRemoteStore
-      );
-    } catch (e) {
-      const firestoreError = wrapInUserErrorIfRecoverable(
-        e as Error,
-        `Initialization of query '${stringifyQuery(listener.query)}' failed`
-      );
-      listener.onError(firestoreError);
-      return;
+  try {
+    switch (listenerStatus) {
+      case ListenStatus.FirstListenAndRequireWatchConnection:
+        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, true);
+        break;
+      case ListenStatus.FirstListenAndNotRequireWatchConnection:
+        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, false);
+        break;
+      case ListenStatus.NotFirstListenButRequireWatchConnection:
+        await eventManagerImpl.onFirstRemoteStoreListen!(query);
+        break;
+      default:
+        break;
     }
-  } else if (firstListenToRemoteStore) {
-    try {
-      await eventManagerImpl.onFirstRemoteStoreListen!(query);
-    } catch (e) {
-      const firestoreError = wrapInUserErrorIfRecoverable(
-        e as Error,
-        `Initialization of remote connection for query '${stringifyQuery(
-          listener.query
-        )}' failed`
-      );
-      listener.onError(firestoreError);
-      return;
-    }
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Initialization of query '${stringifyQuery(listener.query)}' failed`
+    );
+    listener.onError(firestoreError);
+    return;
   }
 
   eventManagerImpl.queries.set(query, queryInfo);
@@ -197,8 +200,7 @@ export async function eventManagerUnlisten(
   validateEventManager(eventManagerImpl);
 
   const query = listener.query;
-  let lastListen = false;
-  let lastListenToRemoteStore = false;
+  let unlistenStatus = UnlistenStatus.NoActionRequired;
 
   const queryInfo = eventManagerImpl.queries.get(query);
   if (queryInfo) {
@@ -206,24 +208,31 @@ export async function eventManagerUnlisten(
     if (i >= 0) {
       queryInfo.listeners.splice(i, 1);
 
-      lastListen = queryInfo.listeners.length === 0;
-      // Check if the removed listener is the last one that sourced from watch.
-      lastListenToRemoteStore =
-        !queryInfo.hasRemoteListeners() && listener.listensToRemoteStore();
+      if (queryInfo.listeners.length === 0) {
+        unlistenStatus = listener.listensToRemoteStore()
+          ? UnlistenStatus.LastListenAndRequireWatchDisconnection
+          : UnlistenStatus.LastListenAndNotRequireWatchDisconnection;
+      } else if (
+        !queryInfo.hasRemoteListeners() &&
+        listener.listensToRemoteStore()
+      ) {
+        // The removed listener is the last one that sourced from watch.
+        unlistenStatus =
+          UnlistenStatus.NotLastListenButRequireWatchDisconnection;
+      }
     }
   }
-  /**
-   * Different scenarios arise based on whether it's the last listener and its listen source:
-   * a. Last listener and source is 'default': Remove query from local store and remove the watch connection.
-   * b. Last listener and source is 'cache': Remove query from local store.
-   * c. Last listener source from 'default', but still have listeners listening to "cache": Remove the watch connection.
-   * d. Neither the last listener, nor the last listener source from 'default': No action required.
-   */
-  if (lastListen) {
-    eventManagerImpl.queries.delete(query);
-    return eventManagerImpl.onUnlisten!(query, lastListenToRemoteStore);
-  } else if (lastListenToRemoteStore) {
-    return eventManagerImpl.onLastRemoteStoreUnlisten!(query);
+  switch (unlistenStatus) {
+    case UnlistenStatus.LastListenAndRequireWatchDisconnection:
+      eventManagerImpl.queries.delete(query);
+      return eventManagerImpl.onUnlisten!(query, true);
+    case UnlistenStatus.LastListenAndNotRequireWatchDisconnection:
+      eventManagerImpl.queries.delete(query);
+      return eventManagerImpl.onUnlisten!(query, false);
+    case UnlistenStatus.NotLastListenButRequireWatchDisconnection:
+      return eventManagerImpl.onLastRemoteStoreUnlisten!(query);
+    default:
+      return;
   }
 }
 
