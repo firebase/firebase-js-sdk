@@ -32,7 +32,7 @@ import {
 } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { _assert } from '../util/assert';
+import { _assert, _createError } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { ProactiveRefresh } from './proactive_refresh';
@@ -40,6 +40,7 @@ import { extractProviderData, _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
 import { UserMetadata } from './user_metadata';
 import { ProviderId } from '../../model/enums';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -200,6 +201,11 @@ export class UserImpl implements UserInternal {
   }
 
   async delete(): Promise<void> {
+    if (_isFirebaseServerApp(this.auth.app)) {
+      return Promise.reject(
+        _createError(this.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      );
+    }
     const idToken = await this.getIdToken();
     await _logoutIfInvalidated(this, deleteAccount(this.auth, { idToken }));
     this.stsTokenManager.clearRefreshToken();

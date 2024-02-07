@@ -44,6 +44,7 @@ import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from '../../core/strategies/abstract_popup_redirect_operation';
 import { FederatedAuthProvider } from '../../core/providers/federated';
 import { getModularInstance } from '@firebase/util';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /*
  * The event timeout is the same on mobile and desktop, no need for Delay. Set this to 8s since
@@ -63,7 +64,8 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * If succeeds, returns the signed in user along with the provider's credential. If sign in was
  * unsuccessful, returns an error object containing additional information about the error.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -91,6 +93,11 @@ export async function signInWithPopup(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+    );
+  }
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
@@ -111,7 +118,8 @@ export async function signInWithPopup(
  * If the reauthentication is successful, the returned result will contain the user and the
  * provider's credential.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -136,6 +144,11 @@ export async function reauthenticateWithPopup(
   resolver?: PopupRedirectResolver
 ): Promise<UserCredential> {
   const userInternal = getModularInstance(user) as UserInternal;
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _createError(userInternal.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+    );
+  }
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(

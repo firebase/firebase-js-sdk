@@ -322,6 +322,9 @@ export interface Auth {
   useDeviceLanguage(): void;
   /**
    * Signs out the current user. This does not automatically revoke the user's ID token.
+   *
+   * Note: This method is not supported by {@link Auth} instances created with a
+   * {@link FirebaseServerApp}.
    */
   signOut(): Promise<void>;
 }
@@ -1004,6 +1007,9 @@ export interface User extends UserInfo {
    * Important: this is a security-sensitive operation that requires the user to have recently
    * signed in. If this requirement isn't met, ask the user to authenticate again and then call
    * one of the reauthentication methods like {@link reauthenticateWithCredential}.
+   *
+   * Note: this method is not supported for any {@link User} signed in by {@link Auth} instances
+   * created with a {@link FirebaseServerApp}.
    */
   delete(): Promise<void>;
   /**

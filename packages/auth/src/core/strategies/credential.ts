@@ -27,12 +27,20 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _createError } from '../../core/util/assert';
+import { AuthErrorCode } from '../../core/errors';
 
 export async function _signInWithCredential(
   auth: AuthInternal,
   credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+    );
+  }
   const operationType = OperationType.SIGN_IN;
   const response = await _processCredentialSavingMfaContextIfNecessary(
     auth,
@@ -56,6 +64,9 @@ export async function _signInWithCredential(
  *
  * @remarks
  * An {@link AuthProvider} can be used to generate the credential.
+ *
+ * Note: This method is not supported by {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param credential - The auth credential.
@@ -98,6 +109,9 @@ export async function linkWithCredential(
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in
  * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error
  * or a `TOKEN_EXPIRED` error.
+ *
+ * Note: This method is not supported by {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @param user - The user.
  * @param credential - The auth credential.

@@ -46,7 +46,8 @@ export {
  * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -223,6 +224,9 @@ export function useDeviceLanguage(auth: Auth): void {
  * The operation fails with an error if the user to be updated belongs to a different Firebase
  * project.
  *
+ * Note: This method is not supported by {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
+ *
  * @param auth - The {@link Auth} instance.
  * @param user - The new {@link User}.
  *
@@ -236,6 +240,9 @@ export function updateCurrentUser(
 }
 /**
  * Signs out the current user.
+ *
+ * Note: This method is not supported by {@link Auth} instances created with a
+ * {@link FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  *
