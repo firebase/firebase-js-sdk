@@ -60,11 +60,9 @@ export interface Observer<T> {
 export interface EventManager {
   onListen?: (
     query: Query,
-    enableRemoteListen: boolean
+    listenStatus: ListenStatus
   ) => Promise<ViewSnapshot>;
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onUnlisten?: (query: Query, unlistenStatus: UnlistenStatus) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
@@ -84,44 +82,25 @@ export class EventManagerImpl implements EventManager {
   /** Callback invoked when a Query is first listen to. */
   onListen?: (
     query: Query,
-    enableRemoteListen: boolean
+    listenStatus: ListenStatus
   ) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-
-  /**
-   * Callback invoked when a Query starts listening to the remote store, while
-   * already listening to the cache.
-   */
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
-  /**
-   * Callback invoked when a Query stops listening to the remote store, while
-   * still listening to the cache.
-   */
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onUnlisten?: (query: Query, unlistenStatus: UnlistenStatus) => Promise<void>;
 }
 
 function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
-  debugAssert(
-    !!eventManagerImpl.onFirstRemoteStoreListen,
-    'onFirstRemoteStoreListen not set'
-  );
   debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
-  debugAssert(
-    !!eventManagerImpl.onLastRemoteStoreUnlisten,
-    'onLastRemoteStoreUnlisten not set'
-  );
 }
 
-const enum ListenStatus {
+export const enum ListenStatus {
   FirstListenAndRequireWatchConnection,
   FirstListenAndNotRequireWatchConnection,
   NotFirstListenButRequireWatchConnection,
   NoActionRequired
 }
 
-const enum UnlistenStatus {
+export const enum UnlistenStatus {
   LastListenAndRequireWatchDisconnection,
   LastListenAndNotRequireWatchDisconnection,
   NotLastListenButRequireWatchDisconnection,
@@ -149,27 +128,20 @@ export async function eventManagerListen(
     listenerStatus = ListenStatus.NotFirstListenButRequireWatchConnection;
   }
 
-  try {
-    switch (listenerStatus) {
-      case ListenStatus.FirstListenAndRequireWatchConnection:
-        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, true);
-        break;
-      case ListenStatus.FirstListenAndNotRequireWatchConnection:
-        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, false);
-        break;
-      case ListenStatus.NotFirstListenButRequireWatchConnection:
-        await eventManagerImpl.onFirstRemoteStoreListen!(query);
-        break;
-      default:
-        break;
+  if (listenerStatus !== ListenStatus.NoActionRequired) {
+    try {
+      queryInfo.viewSnap = await eventManagerImpl.onListen!(
+        query,
+        listenerStatus
+      );
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e as Error,
+        `Initialization of query '${stringifyQuery(listener.query)}' failed`
+      );
+      listener.onError(firestoreError);
+      return;
     }
-  } catch (e) {
-    const firestoreError = wrapInUserErrorIfRecoverable(
-      e as Error,
-      `Initialization of query '${stringifyQuery(listener.query)}' failed`
-    );
-    listener.onError(firestoreError);
-    return;
   }
 
   eventManagerImpl.queries.set(query, queryInfo);
@@ -222,17 +194,14 @@ export async function eventManagerUnlisten(
       }
     }
   }
-  switch (unlistenStatus) {
-    case UnlistenStatus.LastListenAndRequireWatchDisconnection:
+  if (unlistenStatus !== UnlistenStatus.NoActionRequired) {
+    if (
+      unlistenStatus !==
+      UnlistenStatus.NotLastListenButRequireWatchDisconnection
+    ) {
       eventManagerImpl.queries.delete(query);
-      return eventManagerImpl.onUnlisten!(query, true);
-    case UnlistenStatus.LastListenAndNotRequireWatchDisconnection:
-      eventManagerImpl.queries.delete(query);
-      return eventManagerImpl.onUnlisten!(query, false);
-    case UnlistenStatus.NotLastListenButRequireWatchDisconnection:
-      return eventManagerImpl.onLastRemoteStoreUnlisten!(query);
-    default:
-      return;
+    }
+    return eventManagerImpl.onUnlisten!(query, unlistenStatus);
   }
 }
 

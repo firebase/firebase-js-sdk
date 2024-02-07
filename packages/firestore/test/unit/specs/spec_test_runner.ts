@@ -61,9 +61,7 @@ import {
   syncEngineListen,
   syncEngineLoadBundle,
   syncEngineUnlisten,
-  syncEngineWrite,
-  triggerRemoteStoreListen,
-  triggerRemoteStoreUnlisten
+  syncEngineWrite
 } from '../../../src/core/sync_engine_impl';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -356,13 +354,6 @@ abstract class TestRunner {
       null,
       this.syncEngine
     );
-
-    this.eventManager.onFirstRemoteStoreListen = triggerRemoteStoreListen.bind(
-      null,
-      this.syncEngine
-    );
-    this.eventManager.onLastRemoteStoreUnlisten =
-      triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();

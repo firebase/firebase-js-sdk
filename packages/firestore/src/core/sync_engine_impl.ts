@@ -82,7 +82,9 @@ import {
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError
+  eventManagerOnWatchError,
+  ListenStatus,
+  UnlistenStatus
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
@@ -293,25 +295,18 @@ export function newSyncEngine(
 export async function syncEngineListen(
   syncEngine: SyncEngine,
   query: Query,
-  shouldListenToRemote: boolean = true
+  listenStatus: ListenStatus = ListenStatus.FirstListenAndRequireWatchConnection
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
 
   let targetId;
   let viewSnapshot;
-
   const queryView = syncEngineImpl.queryViewsByQuery.get(query);
-  if (queryView) {
-    // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
-    // already exists when EventManager calls us for the first time. This
-    // happens when the primary tab is already listening to this query on
-    // behalf of another tab and the user of the primary also starts listening
-    // to the query. EventManager will not have an assigned target ID in this
-    // case and calls `listen` to obtain this ID.
-    targetId = queryView.targetId;
-    syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
-    viewSnapshot = queryView.view.computeInitialSnapshot();
-  } else {
+
+  if (
+    !queryView ||
+    listenStatus == ListenStatus.NotFirstListenButRequireWatchConnection
+  ) {
     const targetData = await localStoreAllocateTarget(
       syncEngineImpl.localStore,
       queryToTarget(query)
@@ -320,11 +315,12 @@ export async function syncEngineListen(
     // PORTING NOTE: When the query is listening to cache only, we skip sending it over to Watch by
     // not registering it in shared client state, and directly calculate initial snapshots and
     // subsequent updates from cache.
-    const status: QueryTargetState = shouldListenToRemote
-      ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
-          targetData.targetId
-        )
-      : 'not-current';
+    const status: QueryTargetState =
+      listenStatus != ListenStatus.FirstListenAndNotRequireWatchConnection
+        ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
+            targetData.targetId
+          )
+        : 'not-current';
 
     targetId = targetData.targetId;
     viewSnapshot = await initializeViewAndComputeSnapshot(
@@ -335,32 +331,25 @@ export async function syncEngineListen(
       targetData.resumeToken
     );
 
-    if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
+    if (
+      syncEngineImpl.isPrimaryClient &&
+      listenStatus != ListenStatus.FirstListenAndNotRequireWatchConnection
+    ) {
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
+  } else {
+    // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
+    // already exists when EventManager calls us for the first time. This
+    // happens when the primary tab is already listening to this query on
+    // behalf of another tab and the user of the primary also starts listening
+    // to the query. EventManager will not have an assigned target ID in this
+    // case and calls `listen` to obtain this ID.
+    targetId = queryView.targetId;
+    syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
+    viewSnapshot = queryView.view.computeInitialSnapshot();
   }
 
   return viewSnapshot;
-}
-
-export async function triggerRemoteStoreListen(
-  syncEngine: SyncEngine,
-  query: Query
-): Promise<void> {
-  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
-
-  const targetData = await localStoreAllocateTarget(
-    syncEngineImpl.localStore,
-    queryToTarget(query)
-  );
-
-  // PORTING NOTE: Register the target ID with local Firestore client as active
-  // watch target.
-  syncEngineImpl.sharedClientState.addLocalQueryTarget(targetData.targetId);
-
-  if (syncEngineImpl.isPrimaryClient) {
-    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-  }
 }
 
 /**
@@ -421,7 +410,7 @@ async function initializeViewAndComputeSnapshot(
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
   query: Query,
-  shouldUnlistenToRemote: boolean
+  unlistenStatus: UnlistenStatus = UnlistenStatus.LastListenAndRequireWatchDisconnection
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
@@ -434,36 +423,65 @@ export async function syncEngineUnlisten(
   // to the target.
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
   if (queries.length > 1) {
-    syncEngineImpl.queriesByTarget.set(
-      queryView.targetId,
-      queries.filter(q => !queryEquals(q, query))
-    );
-    syncEngineImpl.queryViewsByQuery.delete(query);
+    if (
+      unlistenStatus !==
+      UnlistenStatus.NotLastListenButRequireWatchDisconnection
+    ) {
+      syncEngineImpl.queriesByTarget.set(
+        queryView.targetId,
+        queries.filter(q => !queryEquals(q, query))
+      );
+      syncEngineImpl.queryViewsByQuery.delete(query);
+    }
     return;
   }
 
   // No other queries are mapped to the target, clean up the query and the target.
   if (syncEngineImpl.isPrimaryClient) {
-    // We need to remove the local query target first to allow us to verify
-    // whether any other client is still interested in this target.
-    syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-    const targetRemainsActive =
-      syncEngineImpl.sharedClientState.isActiveQueryTarget(queryView.targetId);
+    if (
+      unlistenStatus == UnlistenStatus.NotLastListenButRequireWatchDisconnection
+    ) {
+      // PORTING NOTE: Unregister the target ID with local Firestore client as
+      // watch target.
+      syncEngineImpl.sharedClientState.removeLocalQueryTarget(
+        queryView.targetId
+      );
 
-    if (!targetRemainsActive) {
-      await localStoreReleaseTarget(
-        syncEngineImpl.localStore,
-        queryView.targetId,
-        /*keepPersistedTargetData=*/ false
-      )
-        .then(() => {
-          syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          if (shouldUnlistenToRemote) {
-            remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
-          }
-          removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
-        })
-        .catch(ignoreIfPrimaryLeaseLoss);
+      remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+    } else {
+      // We need to remove the local query target first to allow us to verify
+      // whether any other client is still interested in this target.
+      syncEngineImpl.sharedClientState.removeLocalQueryTarget(
+        queryView.targetId
+      );
+      const targetRemainsActive =
+        syncEngineImpl.sharedClientState.isActiveQueryTarget(
+          queryView.targetId
+        );
+
+      if (!targetRemainsActive) {
+        await localStoreReleaseTarget(
+          syncEngineImpl.localStore,
+          queryView.targetId,
+          /*keepPersistedTargetData=*/ false
+        )
+          .then(() => {
+            syncEngineImpl.sharedClientState.clearQueryState(
+              queryView.targetId
+            );
+            if (
+              unlistenStatus ==
+              UnlistenStatus.LastListenAndRequireWatchDisconnection
+            ) {
+              remoteStoreUnlisten(
+                syncEngineImpl.remoteStore,
+                queryView.targetId
+              );
+            }
+            removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
+          })
+          .catch(ignoreIfPrimaryLeaseLoss);
+      }
     }
   } else {
     removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
@@ -472,27 +490,6 @@ export async function syncEngineUnlisten(
       queryView.targetId,
       /*keepPersistedTargetData=*/ true
     );
-  }
-}
-
-export async function triggerRemoteStoreUnlisten(
-  syncEngine: SyncEngine,
-  query: Query
-): Promise<void> {
-  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
-  debugAssert(
-    !!queryView,
-    'Trying to unlisten on query not found:' + stringifyQuery(query)
-  );
-  const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
-
-  if (syncEngineImpl.isPrimaryClient && queries.length === 1) {
-    // PORTING NOTE: Unregister the target ID with local Firestore client as
-    // watch target.
-    syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-
-    remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
   }
 }
 
