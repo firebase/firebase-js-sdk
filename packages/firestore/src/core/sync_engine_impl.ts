@@ -1598,11 +1598,7 @@ export async function syncEngineApplyActiveTargetsChange(
       /* keepPersistedTargetData */ false
     )
       .then(() => {
-        // A target could have listened to cache only and no remote store connection has been
-        // established by the primary client.
-        if (syncEngineImpl.sharedClientState.isActiveQueryTarget(targetId)) {
-          remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
-        }
+        remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
         removeAndCleanupTarget(syncEngineImpl, targetId);
       })
       .catch(ignoreIfPrimaryLeaseLoss);
