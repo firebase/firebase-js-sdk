@@ -65,7 +65,7 @@ export async function _signInWithCredential(
  * @remarks
  * An {@link AuthProvider} can be used to generate the credential.
  *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
@@ -110,7 +110,7 @@ export async function linkWithCredential(
  * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error
  * or a `TOKEN_EXPIRED` error.
  *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param user - The user.

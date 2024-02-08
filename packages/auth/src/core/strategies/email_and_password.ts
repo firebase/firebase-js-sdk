@@ -254,11 +254,11 @@ export async function verifyPasswordResetCode(
  *
  * User account creation can fail if the account already exists or the password is invalid.
  *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: The email address acts as a unique identifier for the user and enables an email-based
  * password reset. This function will create a new user account and set the initial user password.
- *
- * Note: This method is not supported on {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
@@ -317,12 +317,13 @@ export async function createUserWithEmailAndPassword(
  * When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled,
  * this method fails with "auth/invalid-credential" in case of an invalid email/password.
  *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: The user's password is NOT the password used to access the user's email account. The
  * email address serves as a unique identifier for the user, and the password is used to access
  * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
  *
- * Note: This method is not supported on {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The users email address.

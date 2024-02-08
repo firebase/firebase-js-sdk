@@ -47,7 +47,7 @@ Firebase Authentication
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber_75b2560) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup_770f816) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect_770f816) | Authenticates a Firebase client using a full-page redirect flow. |
-|  [signOut(auth)](./auth.md#signout_2a61ea7) | Signs out the current user.<!-- -->Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->. |
+|  [signOut(auth)](./auth.md#signout_2a61ea7) | Signs out the current user. |
 |  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser_9d96fff) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage_2a61ea7) | Sets the current language to the default device/browser preference. |
 |  [validatePassword(auth, password)](./auth.md#validatepassword_4dc4ad2) | Validates the password against the password policy configured for the project or tenant. |
@@ -381,9 +381,9 @@ On successful creation of the user account, this user will also be signed in to 
 
 User account creation can fail if the account already exists or the password is invalid.
 
-Note: The email address acts as a unique identifier for the user and enables an email-based password reset. This function will create a new user account and set the initial user password.
+This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
-Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+Note: The email address acts as a unique identifier for the user and enables an email-based password reset. This function will create a new user account and set the initial user password.
 
 <b>Signature:</b>
 
@@ -765,7 +765,7 @@ Asynchronously signs in as an anonymous user.
 
 If there is already an anonymous user signed in, that user will be returned; otherwise, a new anonymous user identity will be created and returned.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -789,7 +789,7 @@ Asynchronously signs in with the given credentials.
 
 An [AuthProvider](./auth.authprovider.md#authprovider_interface) can be used to generate the credential.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -816,7 +816,7 @@ Custom tokens are used to integrate Firebase Auth with existing auth systems, an
 
 Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -841,9 +841,9 @@ Asynchronously signs in using an email and password.
 
 Fails with an error if the email address and password do not match. When \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
 
-Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword_21ad33b)<!-- -->.
+This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
-Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword_21ad33b)<!-- -->.
 
 <b>Signature:</b>
 
@@ -871,9 +871,9 @@ If no link is passed, the link is inferred from the current URL.
 
 Fails with an error if the email address is invalid or OTP in email link expires.
 
-Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
 
 <b>Signature:</b>
 
@@ -1057,7 +1057,7 @@ const operationType = result.operationType;
 
 Signs out the current user.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1085,7 +1085,7 @@ This will trigger [onAuthStateChanged()](./auth.md#onauthstatechanged_b0d07ab) a
 
 The operation fails with an error if the user to be updated belongs to a different Firebase project.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1427,7 +1427,7 @@ Re-authenticates a user using a fresh credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 

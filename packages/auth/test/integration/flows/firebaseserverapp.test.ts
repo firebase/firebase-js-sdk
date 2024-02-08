@@ -509,24 +509,11 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
         'operation-not-supported-in-this-environment'
       );
 
-      console.log('DEDB deleting user');
       await expect(serverAppAuth.currentUser.delete()).to.be.rejectedWith(
         FirebaseError,
         'operation-not-supported-in-this-environment'
       );
     }
-
-    // Note: the following methods aren't defined in this environment:
-    // Auth:
-    //  - setPersistence
-    //  - signInWithPhoneNumber
-    //  - signInWithPopup
-    //
-    // User:
-    //  - reauthenticateWithRedirect
-    //  - reauthenticateWithPhoneNumber
-    //  - reauthenticateWithPopup
-    //  - updatePhoneNumber
 
     await deleteApp(serverApp);
   });

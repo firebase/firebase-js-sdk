@@ -133,10 +133,10 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  *
  * Fails with an error if the email address is invalid or OTP in email link expires.
  *
- * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
- *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
+ *
+ * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
  *
  * @example
  * ```javascript

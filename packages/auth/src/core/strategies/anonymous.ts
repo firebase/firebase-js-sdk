@@ -32,7 +32,7 @@ import { AuthErrorCode } from '../../core/errors';
  * If there is already an anonymous user signed in, that user will be returned; otherwise, a
  * new anonymous user identity will be created and returned.
  *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.

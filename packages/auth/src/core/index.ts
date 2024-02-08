@@ -224,7 +224,7 @@ export function useDeviceLanguage(auth: Auth): void {
  * The operation fails with an error if the user to be updated belongs to a different Firebase
  * project.
  *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
@@ -241,7 +241,8 @@ export function updateCurrentUser(
 /**
  * Signs out the current user.
  *
- * Note: This method is not supported by {@link Auth} instances created with a
+ * @remarks
+ * This method is not supported by {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
