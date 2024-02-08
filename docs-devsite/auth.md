@@ -47,7 +47,7 @@ Firebase Authentication
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber_75b2560) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup_770f816) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect_770f816) | Authenticates a Firebase client using a full-page redirect flow. |
-|  [signOut(auth)](./auth.md#signout_2a61ea7) | Signs out the current user.<!-- -->Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a . |
+|  [signOut(auth)](./auth.md#signout_2a61ea7) | Signs out the current user.<!-- -->Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->. |
 |  [updateCurrentUser(auth, user)](./auth.md#updatecurrentuser_9d96fff) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage(auth)](./auth.md#usedevicelanguage_2a61ea7) | Sets the current language to the default device/browser preference. |
 |  [validatePassword(auth, password)](./auth.md#validatepassword_4dc4ad2) | Validates the password against the password policy configured for the project or tenant. |
@@ -383,7 +383,7 @@ User account creation can fail if the account already exists or the password is 
 
 Note: The email address acts as a unique identifier for the user and enables an email-based password reset. This function will create a new user account and set the initial user password.
 
-Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -453,7 +453,7 @@ Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) fr
 
 If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an error. If no redirect operation was called, returns `null`<!-- -->.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -730,7 +730,7 @@ Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) ins
 
 This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the `Auth` state for applications that are shared by other users or have sensitive data.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -765,7 +765,7 @@ Asynchronously signs in as an anonymous user.
 
 If there is already an anonymous user signed in, that user will be returned; otherwise, a new anonymous user identity will be created and returned.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -789,7 +789,7 @@ Asynchronously signs in with the given credentials.
 
 An [AuthProvider](./auth.authprovider.md#authprovider_interface) can be used to generate the credential.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -816,7 +816,7 @@ Custom tokens are used to integrate Firebase Auth with existing auth systems, an
 
 Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -843,7 +843,7 @@ Fails with an error if the email address and password do not match. When \[Email
 
 Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword_21ad33b)<!-- -->.
 
-Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -873,7 +873,7 @@ Fails with an error if the email address is invalid or OTP in email link expires
 
 Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -925,7 +925,7 @@ This method sends a code via SMS to the given phone number, and returns a [Confi
 
 For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -963,7 +963,7 @@ Authenticates a Firebase client using a popup-based OAuth authentication flow.
 
 If succeeds, returns the signed in user along with the provider's credential. If sign in was unsuccessful, returns an error object containing additional information about the error.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1005,7 +1005,7 @@ Authenticates a Firebase client using a full-page redirect flow.
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1057,7 +1057,7 @@ const operationType = result.operationType;
 
 Signs out the current user.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1085,7 +1085,7 @@ This will trigger [onAuthStateChanged()](./auth.md#onauthstatechanged_b0d07ab) a
 
 The operation fails with an error if the user to be updated belongs to a different Firebase project.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1363,7 +1363,7 @@ Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the us
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [linkWithRedirect()](./auth.md#linkwithredirect_41c0b31)<!-- -->.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1427,7 +1427,7 @@ Re-authenticates a user using a fresh credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1452,7 +1452,7 @@ Re-authenticates a user using a fresh phone credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1478,7 +1478,7 @@ Reauthenticates the current user with the specified [OAuthProvider](./auth.oauth
 
 If the reauthentication is successful, the returned result will contain the user and the provider's credential.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1516,7 +1516,7 @@ Reauthenticates the current user with the specified [OAuthProvider](./auth.oauth
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [reauthenticateWithRedirect()](./auth.md#reauthenticatewithredirect_41c0b31)<!-- -->.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1694,7 +1694,7 @@ Promise&lt;void&gt;
 
 Updates the user's phone number.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a .
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 

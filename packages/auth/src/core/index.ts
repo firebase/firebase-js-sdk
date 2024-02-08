@@ -47,7 +47,7 @@ export {
  * that are shared by other users or have sensitive data.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -225,7 +225,7 @@ export function useDeviceLanguage(auth: Auth): void {
  * project.
  *
  * Note: This method is not supported by {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param user - The new {@link User}.
@@ -242,7 +242,7 @@ export function updateCurrentUser(
  * Signs out the current user.
  *
  * Note: This method is not supported by {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  *

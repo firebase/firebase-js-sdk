@@ -84,7 +84,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * third-party {@link ApplicationVerifier} implementation.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -158,7 +158,7 @@ export async function linkWithPhoneNumber(
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -273,7 +273,7 @@ export async function _verifyPhoneNumber(
  *
  * @remarks
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```

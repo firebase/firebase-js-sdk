@@ -37,7 +37,7 @@ import { AuthErrorCode } from '../../core/errors';
  * Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
  *
  * Note: This method is not supported by {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param customToken - The custom token to sign in with.

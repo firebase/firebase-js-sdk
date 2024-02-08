@@ -324,7 +324,7 @@ export interface Auth {
    * Signs out the current user. This does not automatically revoke the user's ID token.
    *
    * Note: This method is not supported by {@link Auth} instances created with a
-   * {@link FirebaseServerApp}.
+   * {@link @firebase/app#FirebaseServerApp}.
    */
   signOut(): Promise<void>;
 }
@@ -1009,7 +1009,7 @@ export interface User extends UserInfo {
    * one of the reauthentication methods like {@link reauthenticateWithCredential}.
    *
    * Note: this method is not supported for any {@link User} signed in by {@link Auth} instances
-   * created with a {@link FirebaseServerApp}.
+   * created with a {@link @firebase/app#FirebaseServerApp}.
    */
   delete(): Promise<void>;
   /**

@@ -42,7 +42,7 @@ export interface Auth
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
 |  [setPersistence(persistence)](./auth.auth.md#authsetpersistence) | Changes the type of persistence on the <code>Auth</code> instance. |
-|  [signOut()](./auth.auth.md#authsignout) | Signs out the current user. This does not automatically revoke the user's ID token.<!-- -->Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a . |
+|  [signOut()](./auth.auth.md#authsignout) | Signs out the current user. This does not automatically revoke the user's ID token.<!-- -->Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->. |
 |  [updateCurrentUser(user)](./auth.auth.md#authupdatecurrentuser) | Asynchronously sets the provided user as [Auth.currentUser](./auth.auth.md#authcurrentuser) on the [Auth](./auth.auth.md#auth_interface) instance. |
 |  [useDeviceLanguage()](./auth.auth.md#authusedevicelanguage) | Sets the current language to the default device/browser preference. |
 
@@ -265,7 +265,7 @@ auth.setPersistence(browserSessionPersistence);
 
 Signs out the current user. This does not automatically revoke the user's ID token.
 
-Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a .
+Note: This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 

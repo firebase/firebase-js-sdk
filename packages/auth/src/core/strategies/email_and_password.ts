@@ -258,7 +258,7 @@ export async function verifyPasswordResetCode(
  * password reset. This function will create a new user account and set the initial user password.
  *
  * Note: This method is not supported on {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
@@ -322,7 +322,7 @@ export async function createUserWithEmailAndPassword(
  * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
  *
  * Note: This method is not supported on {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The users email address.

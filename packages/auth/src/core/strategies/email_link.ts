@@ -136,7 +136,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
  *
  * Note: This method is not supported by {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript

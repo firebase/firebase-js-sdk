@@ -48,7 +48,7 @@ import { AuthErrorCode } from '../../core/errors';
  * | best practices} when using {@link signInWithRedirect}.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -125,7 +125,7 @@ export async function _signInWithRedirect(
  * | best practices} when using {@link reauthenticateWithRedirect}.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -200,7 +200,7 @@ export async function _reauthenticateWithRedirect(
  * | best practices} when using {@link linkWithRedirect}.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -263,7 +263,7 @@ export async function _linkWithRedirect(
  * error. If no redirect operation was called, returns `null`.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript

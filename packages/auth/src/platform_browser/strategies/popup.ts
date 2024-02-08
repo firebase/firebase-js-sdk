@@ -65,7 +65,7 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * unsuccessful, returns an error object containing additional information about the error.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -119,7 +119,7 @@ export async function signInWithPopup(
  * provider's credential.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link FirebaseServerApp}.
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
