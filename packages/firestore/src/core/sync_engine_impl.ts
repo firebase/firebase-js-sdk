@@ -352,18 +352,21 @@ async function allocateTargetAndMaybeListen(
     ? syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId)
     : 'not-current';
 
-  if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
-    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-  }
-
+  let viewSnapshot;
   if (shouldInitializeView) {
-    return initializeViewAndComputeSnapshot(
+    viewSnapshot = await initializeViewAndComputeSnapshot(
       syncEngineImpl,
       query,
       targetId,
       status === 'current',
       targetData.resumeToken
     );
+
+    if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+    }
+
+    return viewSnapshot;
   }
 }
 
