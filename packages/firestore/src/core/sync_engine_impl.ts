@@ -297,7 +297,6 @@ export async function syncEngineListen(
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
 
-  let targetId;
   let viewSnapshot;
 
   const queryView = syncEngineImpl.queryViewsByQuery.get(query);
@@ -308,58 +307,63 @@ export async function syncEngineListen(
     // behalf of another tab and the user of the primary also starts listening
     // to the query. EventManager will not have an assigned target ID in this
     // case and calls `listen` to obtain this ID.
-    targetId = queryView.targetId;
-    syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
+    syncEngineImpl.sharedClientState.addLocalQueryTarget(queryView.targetId);
     viewSnapshot = queryView.view.computeInitialSnapshot();
   } else {
-    const targetData = await localStoreAllocateTarget(
-      syncEngineImpl.localStore,
-      queryToTarget(query)
+    viewSnapshot = await allocateTargetAndMaybeListen(
+      syncEngineImpl,
+      query,
+      shouldListenToRemote,
+      true
     );
+    debugAssert(!!viewSnapshot, 'viewSnapshot is not initialized');
+  }
 
-    // PORTING NOTE: When the query is listening to cache only, we skip sending it over to Watch by
-    // not registering it in shared client state, and directly calculate initial snapshots and
-    // subsequent updates from cache.
-    const status: QueryTargetState = shouldListenToRemote
-      ? syncEngineImpl.sharedClientState.addLocalQueryTarget(
-          targetData.targetId
-        )
-      : 'not-current';
+  return viewSnapshot;
+}
 
-    targetId = targetData.targetId;
-    viewSnapshot = await initializeViewAndComputeSnapshot(
+/** Query has been listening to the cache, and tries to initiate the remote store listen */
+export async function triggerRemoteStoreListen(
+  syncEngine: SyncEngine,
+  query: Query
+): Promise<void> {
+  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
+  await allocateTargetAndMaybeListen(syncEngineImpl, query, true, false);
+}
+
+async function allocateTargetAndMaybeListen(
+  syncEngineImpl: SyncEngineImpl,
+  query: Query,
+  shouldListenToRemote: boolean,
+  shouldInitializeView: boolean
+): Promise<ViewSnapshot | undefined> {
+  const targetData = await localStoreAllocateTarget(
+    syncEngineImpl.localStore,
+    queryToTarget(query)
+  );
+
+  const targetId = targetData.targetId;
+
+  // PORTING NOTE: When the query is listening to cache only, we skip sending it over to Watch by
+  // not registering it in shared client state, and directly calculate initial snapshots and
+  // subsequent updates from cache. Otherwise, register the target ID with local Firestore client
+  // as active watch target.
+  const status: QueryTargetState = shouldListenToRemote
+    ? syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId)
+    : 'not-current';
+
+  if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
+    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+  }
+
+  if (shouldInitializeView) {
+    return initializeViewAndComputeSnapshot(
       syncEngineImpl,
       query,
       targetId,
       status === 'current',
       targetData.resumeToken
     );
-
-    if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
-  }
-
-  return viewSnapshot;
-}
-
-export async function triggerRemoteStoreListen(
-  syncEngine: SyncEngine,
-  query: Query
-): Promise<void> {
-  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
-
-  const targetData = await localStoreAllocateTarget(
-    syncEngineImpl.localStore,
-    queryToTarget(query)
-  );
-
-  // PORTING NOTE: Register the target ID with local Firestore client as active
-  // watch target.
-  syncEngineImpl.sharedClientState.addLocalQueryTarget(targetData.targetId);
-
-  if (syncEngineImpl.isPrimaryClient) {
-    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
   }
 }
 
@@ -475,6 +479,7 @@ export async function syncEngineUnlisten(
   }
 }
 
+/** Unlistens to the remote store while still listening to the cache. */
 export async function triggerRemoteStoreUnlisten(
   syncEngine: SyncEngine,
   query: Query

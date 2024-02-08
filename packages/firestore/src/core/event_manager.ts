@@ -114,17 +114,17 @@ function validateEventManager(eventManagerImpl: EventManagerImpl): void {
   );
 }
 
-const enum ListenStatus {
-  FirstListenAndRequireWatchConnection,
-  FirstListenAndNotRequireWatchConnection,
-  NotFirstListenButRequireWatchConnection,
+const enum ListenerSetupAction {
+  InitializeLocalListenAndRequireWatchConnection,
+  InitializeLocalListenOnly,
+  RequireWatchConnectionOnly,
   NoActionRequired
 }
 
-const enum UnlistenStatus {
-  LastListenAndRequireWatchDisconnection,
-  LastListenAndNotRequireWatchDisconnection,
-  NotLastListenButRequireWatchDisconnection,
+const enum ListenerRemovalAction {
+  TerminateLocalListenAndRequireWatchDisconnection,
+  TerminateLocalListenOnly,
+  RequireWatchDisconnectionOnly,
   NoActionRequired
 }
 
@@ -135,29 +135,36 @@ export async function eventManagerListen(
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   validateEventManager(eventManagerImpl);
 
-  let listenerStatus = ListenStatus.NoActionRequired;
+  let listenerAction = ListenerSetupAction.NoActionRequired;
 
   const query = listener.query;
 
   let queryInfo = eventManagerImpl.queries.get(query);
   if (!queryInfo) {
     queryInfo = new QueryListenersInfo();
-    listenerStatus = listener.listensToRemoteStore()
-      ? ListenStatus.FirstListenAndRequireWatchConnection
-      : ListenStatus.FirstListenAndNotRequireWatchConnection;
+    listenerAction = listener.listensToRemoteStore()
+      ? ListenerSetupAction.InitializeLocalListenAndRequireWatchConnection
+      : ListenerSetupAction.InitializeLocalListenOnly;
   } else if (listener.listensToRemoteStore()) {
-    listenerStatus = ListenStatus.NotFirstListenButRequireWatchConnection;
+    // Query has been listening to local cache, and tries to add a new listener sourced from watch.
+    listenerAction = ListenerSetupAction.RequireWatchConnectionOnly;
   }
 
   try {
-    switch (listenerStatus) {
-      case ListenStatus.FirstListenAndRequireWatchConnection:
-        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, true);
+    switch (listenerAction) {
+      case ListenerSetupAction.InitializeLocalListenAndRequireWatchConnection:
+        queryInfo.viewSnap = await eventManagerImpl.onListen!(
+          query,
+          /** enableRemoteListen= */ true
+        );
         break;
-      case ListenStatus.FirstListenAndNotRequireWatchConnection:
-        queryInfo.viewSnap = await eventManagerImpl.onListen!(query, false);
+      case ListenerSetupAction.InitializeLocalListenOnly:
+        queryInfo.viewSnap = await eventManagerImpl.onListen!(
+          query,
+          /** enableRemoteListen= */ false
+        );
         break;
-      case ListenStatus.NotFirstListenButRequireWatchConnection:
+      case ListenerSetupAction.RequireWatchConnectionOnly:
         await eventManagerImpl.onFirstRemoteStoreListen!(query);
         break;
       default:
@@ -200,7 +207,7 @@ export async function eventManagerUnlisten(
   validateEventManager(eventManagerImpl);
 
   const query = listener.query;
-  let unlistenStatus = UnlistenStatus.NoActionRequired;
+  let listenerAction = ListenerRemovalAction.NoActionRequired;
 
   const queryInfo = eventManagerImpl.queries.get(query);
   if (queryInfo) {
@@ -209,27 +216,32 @@ export async function eventManagerUnlisten(
       queryInfo.listeners.splice(i, 1);
 
       if (queryInfo.listeners.length === 0) {
-        unlistenStatus = listener.listensToRemoteStore()
-          ? UnlistenStatus.LastListenAndRequireWatchDisconnection
-          : UnlistenStatus.LastListenAndNotRequireWatchDisconnection;
+        listenerAction = listener.listensToRemoteStore()
+          ? ListenerRemovalAction.TerminateLocalListenAndRequireWatchDisconnection
+          : ListenerRemovalAction.TerminateLocalListenOnly;
       } else if (
         !queryInfo.hasRemoteListeners() &&
         listener.listensToRemoteStore()
       ) {
         // The removed listener is the last one that sourced from watch.
-        unlistenStatus =
-          UnlistenStatus.NotLastListenButRequireWatchDisconnection;
+        listenerAction = ListenerRemovalAction.RequireWatchDisconnectionOnly;
       }
     }
   }
-  switch (unlistenStatus) {
-    case UnlistenStatus.LastListenAndRequireWatchDisconnection:
+  switch (listenerAction) {
+    case ListenerRemovalAction.TerminateLocalListenAndRequireWatchDisconnection:
       eventManagerImpl.queries.delete(query);
-      return eventManagerImpl.onUnlisten!(query, true);
-    case UnlistenStatus.LastListenAndNotRequireWatchDisconnection:
+      return eventManagerImpl.onUnlisten!(
+        query,
+        /** disableRemoteListen= */ true
+      );
+    case ListenerRemovalAction.TerminateLocalListenOnly:
       eventManagerImpl.queries.delete(query);
-      return eventManagerImpl.onUnlisten!(query, false);
-    case UnlistenStatus.NotLastListenButRequireWatchDisconnection:
+      return eventManagerImpl.onUnlisten!(
+        query,
+        /** disableRemoteListen= */ false
+      );
+    case ListenerRemovalAction.RequireWatchDisconnectionOnly:
       return eventManagerImpl.onLastRemoteStoreUnlisten!(query);
     default:
       return;
