@@ -361,13 +361,13 @@ async function allocateTargetAndMaybeListen(
       status === 'current',
       targetData.resumeToken
     );
-
-    if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
-      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-    }
-
-    return viewSnapshot;
   }
+
+  if (syncEngineImpl.isPrimaryClient && shouldListenToRemote) {
+    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
+  }
+
+  return viewSnapshot;
 }
 
 /**
