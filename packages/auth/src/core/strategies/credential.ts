@@ -110,8 +110,8 @@ export async function linkWithCredential(
  * attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error
  * or a `TOKEN_EXPIRED` error.
  *
- * This method is not supported by {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method is not supported on any {@link User} signed in by {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @param user - The user.
  * @param credential - The auth credential.

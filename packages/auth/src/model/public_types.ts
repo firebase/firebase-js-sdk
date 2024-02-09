@@ -1009,7 +1009,7 @@ export interface User extends UserInfo {
    * signed in. If this requirement isn't met, ask the user to authenticate again and then call
    * one of the reauthentication methods like {@link reauthenticateWithCredential}.
    *
-   * This method is not supported for any {@link User} signed in by {@link Auth} instances
+   * This method is not supported on any {@link User} signed in by {@link Auth} instances
    * created with a {@link @firebase/app#FirebaseServerApp}.
    */
   delete(): Promise<void>;

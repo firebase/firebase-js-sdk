@@ -118,8 +118,8 @@ export async function signInWithPopup(
  * If the reauthentication is successful, the returned result will contain the user and the
  * provider's credential.
  *
- * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method does not work in a Node.js environment or on any {@link User} signed in by
+ * {@link Auth} instances created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript

@@ -157,8 +157,8 @@ export async function linkWithPhoneNumber(
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
  *
- * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method does not work in a Node.js environment or on any {@link User} signed in by
+ * {@link Auth} instances created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -272,8 +272,8 @@ export async function _verifyPhoneNumber(
  * Updates the user's phone number.
  *
  * @remarks
- * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method does not work in a Node.js environment or on any {@link User} signed in by
+ * {@link Auth} instances created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```

@@ -124,8 +124,8 @@ export async function _signInWithRedirect(
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link reauthenticateWithRedirect}.
  *
- * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -199,8 +199,8 @@ export async function _reauthenticateWithRedirect(
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link linkWithRedirect}.
  *
- * This method does not work in a Node.js environment or with {@link Auth} instances created with a
- * {@link @firebase/app#FirebaseServerApp}.
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
