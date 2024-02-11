@@ -1427,7 +1427,7 @@ Re-authenticates a user using a fresh credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
 
-This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method is not supported on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1452,7 +1452,7 @@ Re-authenticates a user using a fresh phone credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1478,7 +1478,7 @@ Reauthenticates the current user with the specified [OAuthProvider](./auth.oauth
 
 If the reauthentication is successful, the returned result will contain the user and the provider's credential.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1694,7 +1694,7 @@ Promise&lt;void&gt;
 
 Updates the user's phone number.
 
-This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
