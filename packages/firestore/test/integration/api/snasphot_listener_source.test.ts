@@ -44,7 +44,7 @@ import {
   withTestDocAndInitialData
 } from '../util/helpers';
 
-apiDescribe.only('Snapshot Listener source options ', persistence => {
+apiDescribe('Snapshot Listener source options ', persistence => {
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
