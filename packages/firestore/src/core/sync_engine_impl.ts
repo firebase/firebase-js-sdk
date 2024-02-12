@@ -314,7 +314,7 @@ export async function syncEngineListen(
       syncEngineImpl,
       query,
       shouldListenToRemote,
-      true
+      /** shouldInitializeView= */ true
     );
     debugAssert(!!viewSnapshot, 'viewSnapshot is not initialized');
   }
@@ -328,7 +328,12 @@ export async function triggerRemoteStoreListen(
   query: Query
 ): Promise<void> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
-  await allocateTargetAndMaybeListen(syncEngineImpl, query, true, false);
+  await allocateTargetAndMaybeListen(
+    syncEngineImpl,
+    query,
+    /** shouldListenToRemote= */ true,
+    /** shouldInitializeView= */ false
+  );
 }
 
 async function allocateTargetAndMaybeListen(
