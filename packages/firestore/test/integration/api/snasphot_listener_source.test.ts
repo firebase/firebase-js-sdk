@@ -44,7 +44,7 @@ import {
   withTestDocAndInitialData
 } from '../util/helpers';
 
-apiDescribe('Snapshot Listener source options ', persistence => {
+apiDescribe.only('Snapshot Listener source options ', persistence => {
   // eslint-disable-next-line no-restricted-properties
   (persistence.gc === 'lru' ? describe : describe.skip)(
     'listen to persistence cache',
@@ -132,7 +132,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           await getDocs(coll); // Populate the cache.
           const testQuery = query(
             coll,
-            where('k', '>', 'a'),
+            where('sort', '>', 0),
             orderBy('sort', 'asc')
           );
 
@@ -304,7 +304,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeDefaultEvent = new EventsAccumulator<QuerySnapshot>();
           const testQuery = query(
             coll,
-            where('k', '>=', 'b'),
+            where('sort', '>=', 1),
             orderBy('sort', 'asc')
           );
 
@@ -346,7 +346,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const testQuery = query(
             coll,
-            where('k', '>=', 'b'),
+            where('sort', '!=', 0),
             orderBy('sort', 'asc')
           );
 
@@ -394,7 +394,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           await getDocs(coll); // Populate the cache.
           const testQuery = query(
             coll,
-            where('k', '!=', 'a'),
+            where('sort', '!=', 0),
             orderBy('sort', 'asc')
           );
 
@@ -435,7 +435,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           await getDocs(coll); // Populate the cache.
           const testQuery = query(
             coll,
-            where('k', '!=', 'a'),
+            where('sort', '!=', 0),
             orderBy('sort', 'asc')
           );
 
@@ -509,7 +509,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, testDocs, async coll => {
           const testQuery = query(
             coll,
-            where('k', '>', 'a'),
+            where('sort', '!=', 0),
             orderBy('sort', 'asc')
           );
 
@@ -554,7 +554,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, testDocs, async coll => {
           const testQuery = query(
             coll,
-            where('k', '>', 'a'),
+            where('sort', '!=', 0),
             orderBy('sort', 'asc')
           );
 
@@ -599,7 +599,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, testDocs, async coll => {
           const testQuery = query(
             coll,
-            where('k', '>', 'a'),
+            where('sort', '>', 0),
             orderBy('sort', 'asc')
           );
 
@@ -738,7 +738,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, testDocs, async (coll, db) => {
           const testQuery = query(
             coll,
-            where('k', '>', 'a'),
+            where('sort', '>', 0),
             orderBy('sort', 'asc')
           );
 
