@@ -37,6 +37,7 @@ import {
   signInWithRedirect,
   signOut,
   updateCurrentUser,
+  updateEmail,
   updateProfile
 } from '@firebase/auth';
 import { isBrowser, FirebaseError } from '@firebase/util';
@@ -510,6 +511,13 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       );
 
       await expect(serverAppAuth.currentUser.delete()).to.be.rejectedWith(
+        FirebaseError,
+        'operation-not-supported-in-this-environment'
+      );
+
+      await expect(
+        updateEmail(serverAppAuth.currentUser, email)
+      ).to.be.rejectedWith(
         FirebaseError,
         'operation-not-supported-in-this-environment'
       );

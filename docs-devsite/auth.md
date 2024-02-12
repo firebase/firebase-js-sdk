@@ -1648,6 +1648,8 @@ Updates the user's email address.
 
 An email will be sent to the original email address (if it was set) that allows to revoke the email address change, in order to protect them from account hijacking.
 
+This method is not supported on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
 
 <b>Signature:</b>
