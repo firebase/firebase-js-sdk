@@ -25,6 +25,8 @@ import { _assert, _fail } from '../util/assert';
 import { _parseToken } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserCredentialImpl } from './user_credential_impl';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _createError } from '../../core/util/assert';
 
 export async function _reauthenticate(
   user: UserInternal,
@@ -32,6 +34,11 @@ export async function _reauthenticate(
   bypassAuthState = false
 ): Promise<UserCredentialImpl> {
   const { auth } = user;
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+    );
+  }
   const operationType = OperationType.REAUTHENTICATE;
 
   try {

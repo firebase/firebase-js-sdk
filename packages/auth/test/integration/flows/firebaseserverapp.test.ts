@@ -21,16 +21,27 @@ import chaiAsPromised from 'chai-as-promised';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Auth,
-  OperationType,
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   getAdditionalUserInfo,
+  getRedirectResult,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  OperationType,
+  reauthenticateWithCredential,
   signInAnonymously,
+  signInWithCredential,
+  signInWithCustomToken,
+  signInWithEmailAndPassword,
+  signInWithEmailLink,
+  signInWithRedirect,
   signOut,
+  updateCurrentUser,
+  updateEmail,
   updateProfile
 } from '@firebase/auth';
-import { isBrowser } from '@firebase/util';
-import { initializeServerApp } from '@firebase/app';
+import { isBrowser, FirebaseError } from '@firebase/util';
+import { initializeServerApp, deleteApp } from '@firebase/app';
 
 import {
   cleanUpTestInstance,
@@ -47,17 +58,12 @@ const signInWaitDuration = 200;
 
 describe('Integration test: Auth FirebaseServerApp tests', () => {
   let auth: Auth;
-  let serverAppAuth: Auth | null;
 
   beforeEach(() => {
     auth = getTestInstance();
   });
 
   afterEach(async () => {
-    if (serverAppAuth) {
-      await signOut(serverAppAuth);
-      serverAppAuth = null;
-    }
     await cleanUpTestInstance(auth);
   });
 
@@ -79,7 +85,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     const firebaseServerAppSettings = { authIdToken };
 
     const serverApp = initializeServerApp(auth.app, firebaseServerAppSettings);
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
 
     console.log('auth.emulatorConfig ', auth.emulatorConfig);
     console.log('serverAuth.emulatorConfig ', serverAppAuth.emulatorConfig);
@@ -105,6 +111,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     });
 
     expect(numberServerLogins).to.equal(1);
+
+    await deleteApp(serverApp);
   });
 
   it('getToken operations fullfilled or rejected', async () => {
@@ -126,7 +134,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -154,6 +162,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       await expect(serverAppAuth.currentUser.getIdToken(/*forceRefresh=*/ true))
         .to.be.rejected;
     }
+
+    await deleteApp(serverApp);
   });
 
   it('invalid token does not sign in user', async () => {
@@ -167,7 +177,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     expect(serverAppAuth.currentUser).to.be.null;
 
     let numberServerLogins = 0;
@@ -183,6 +193,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
 
     expect(numberServerLogins).to.equal(0);
     expect(serverAppAuth.currentUser).to.be.null;
+
+    await deleteApp(serverApp);
   });
 
   it('signs in with email crednetial user', async () => {
@@ -213,7 +225,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -238,6 +250,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     });
 
     expect(numberServerLogins).to.equal(1);
+
+    await deleteApp(serverApp);
   });
 
   it('can reload user', async () => {
@@ -258,7 +272,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -280,6 +294,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       await serverAppAuth.currentUser.reload();
     }
     expect(numberServerLogins).to.equal(1);
+
+    await deleteApp(serverApp);
   });
 
   it('can update server based user profile', async () => {
@@ -301,7 +317,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     const newDisplayName = 'newName';
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
@@ -336,6 +352,8 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       expect(serverAppAuth.currentUser?.displayName).to.not.be.null;
       expect(serverAppAuth.currentUser?.displayName).to.equal(newDisplayName);
     }
+
+    await deleteApp(serverApp);
   });
 
   it('can sign out of main auth and still use server auth', async () => {
@@ -357,7 +375,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
       getAppConfig(),
       firebaseServerAppSettings
     );
-    serverAppAuth = getTestInstanceForServerApp(serverApp);
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
     let numberServerLogins = 0;
     onAuthStateChanged(serverAppAuth, serverAuthUser => {
       if (serverAuthUser) {
@@ -387,5 +405,124 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     if (serverAppAuth) {
       expect(serverAppAuth.currentUser).to.not.be.null;
     }
+
+    await deleteApp(serverApp);
+  });
+
+  it('auth operations fail correctly on FirebaseServerApp instances', async () => {
+    if (isBrowser()) {
+      return;
+    }
+    const userCred = await signInAnonymously(auth);
+    expect(auth.currentUser).to.eq(userCred.user);
+
+    const user = userCred.user;
+    expect(user).to.equal(auth.currentUser);
+    expect(user.uid).to.be.a('string');
+
+    const authIdToken = await user.getIdToken();
+    const firebaseServerAppSettings = { authIdToken };
+
+    const serverApp = initializeServerApp(
+      getAppConfig(),
+      firebaseServerAppSettings
+    );
+
+    const serverAppAuth = getTestInstanceForServerApp(serverApp);
+    await new Promise(resolve => {
+      setTimeout(resolve, signInWaitDuration);
+    });
+
+    expect(serverAppAuth.currentUser).to.not.be.null;
+    const email = randomEmail();
+    const password = 'password';
+
+    // Auth tests:
+    await expect(
+      createUserWithEmailAndPassword(serverAppAuth, email, password)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(
+      signInWithRedirect(serverAppAuth, new GoogleAuthProvider())
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(getRedirectResult(serverAppAuth)).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(signInAnonymously(serverAppAuth)).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+
+    const credential = EmailAuthProvider.credential(email, password);
+    await expect(
+      signInWithCredential(serverAppAuth, credential)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+
+    await expect(
+      signInWithCustomToken(serverAppAuth, 'custom token')
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(
+      signInWithEmailAndPassword(serverAppAuth, email, password)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(
+      signInWithEmailLink(serverAppAuth, email, 'email link')
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(
+      updateCurrentUser(serverAppAuth, serverAppAuth.currentUser)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(
+      updateCurrentUser(serverAppAuth, serverAppAuth.currentUser)
+    ).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+    await expect(signOut(serverAppAuth)).to.be.rejectedWith(
+      FirebaseError,
+      'operation-not-supported-in-this-environment'
+    );
+
+    if (serverAppAuth.currentUser !== null) {
+      await expect(
+        reauthenticateWithCredential(serverAppAuth.currentUser, credential)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'operation-not-supported-in-this-environment'
+      );
+
+      await expect(serverAppAuth.currentUser.delete()).to.be.rejectedWith(
+        FirebaseError,
+        'operation-not-supported-in-this-environment'
+      );
+
+      await expect(
+        updateEmail(serverAppAuth.currentUser, email)
+      ).to.be.rejectedWith(
+        FirebaseError,
+        'operation-not-supported-in-this-environment'
+      );
+    }
+
+    await deleteApp(serverApp);
   });
 });

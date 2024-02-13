@@ -34,6 +34,8 @@ import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _createError } from '../../core/util/assert';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -131,6 +133,9 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  *
  * Fails with an error if the email address is invalid or OTP in email link expires.
  *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
  *
  * @example
@@ -154,6 +159,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * }
  * ```
  *
+ *
  * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param emailLink - The link sent to the user's email address.
@@ -165,6 +171,11 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+    );
+  }
   const authModular = getModularInstance(auth);
   const credential = EmailAuthProvider.credentialWithLink(
     email,

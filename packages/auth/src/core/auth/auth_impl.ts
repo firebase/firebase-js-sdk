@@ -62,7 +62,7 @@ import {
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
-import { _assert } from '../util/assert';
+import { _assert, _createError } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
@@ -354,6 +354,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async updateCurrentUser(userExtern: User | null): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _createError(this, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      );
+    }
     // The public updateCurrentUser method needs to make a copy of the user,
     // and also check that the project matches
     const user = userExtern
@@ -395,6 +400,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async signOut(): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _createError(this, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      );
+    }
     // Run first, to block _setRedirectUser() if any callbacks fail.
     await this.beforeStateQueue.runMiddleware(null);
     // Clear the redirect user when signOut is called
@@ -408,6 +418,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setPersistence(persistence: Persistence): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _createError(this, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      );
+    }
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
