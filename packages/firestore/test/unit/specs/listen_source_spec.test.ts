@@ -16,7 +16,7 @@
  */
 
 import { LimitType, queryWithLimit } from '../../../src/core/query';
-import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
+import { doc, filter, orderBy, query } from '../../util/helpers';
 
 import { bundleWithDocumentAndQuery } from './bundle_spec.test';
 import { describeSpec, specTest } from './describe_spec';
@@ -28,22 +28,22 @@ describeSpec('Listens source options:', [], () => {
     ['eager-gc'],
     'Explicitly tests eager GC behavior',
     () => {
-      const query_ = query('collection');
+      const testQuery = query('collection');
       const docA = doc('collection/a', 0, { key: 'a' }).setHasLocalMutations();
       return (
         spec()
           .userSets('collection/a', { key: 'a' })
-          .userListensToCache(query_)
-          .expectEvents(query_, {
+          .userListensToCache(testQuery)
+          .expectEvents(testQuery, {
             added: [docA],
             hasPendingWrites: true,
             fromCache: true
           })
-          .userUnlistensToCache(query_)
+          .userUnlistensToCache(testQuery)
           .writeAcks('collection/a', 1000)
           // Cache is empty as docA is GCed.
-          .userListensToCache(query_)
-          .expectEvents(query_, { added: [], fromCache: true })
+          .userListensToCache(testQuery)
+          .expectEvents(testQuery, { added: [], fromCache: true })
       );
     }
   );
@@ -51,7 +51,6 @@ describeSpec('Listens source options:', [], () => {
   specTest(
     'Documents are cleared when listen is removed.',
     ['eager-gc'],
-    '',
     () => {
       const filteredQuery = query('collection', filter('matches', '==', true));
       const unfilteredQuery = query('collection');
@@ -91,15 +90,15 @@ describeSpec('Listens source options:', [], () => {
   );
 
   specTest("Doesn't include unknown documents in cached result", [], () => {
-    const query_ = query('collection');
+    const testQuery = query('collection');
     const existingDoc = doc('collection/exists', 0, {
       key: 'a'
     }).setHasLocalMutations();
     return spec()
       .userSets('collection/exists', { key: 'a' })
       .userPatches('collection/unknown', { key: 'b' })
-      .userListensToCache(query_)
-      .expectEvents(query_, {
+      .userListensToCache(testQuery)
+      .expectEvents(testQuery, {
         added: [existingDoc],
         fromCache: true,
         hasPendingWrites: true
@@ -107,26 +106,24 @@ describeSpec('Listens source options:', [], () => {
   });
 
   specTest("Doesn't raise 'hasPendingWrites' for deletes", [], () => {
-    const query_ = query('collection');
+    const testQuery = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
 
     return (
       spec()
         .ensureManualLruGC()
         // Populate the cache first
-        .userListens(query_)
-        .watchAcksFull(query_, 1000, docA)
-        .expectEvents(query_, { added: [docA] })
-        .userUnlistens(query_)
-        .watchRemoves(query_)
+        .userListens(testQuery)
+        .watchAcksFull(testQuery, 1000, docA)
+        .expectEvents(testQuery, { added: [docA] })
+        .userUnlistens(testQuery)
+        .watchRemoves(testQuery)
         // Listen to cache
-        .userListensToCache(query_)
-        .expectEvents(query_, { added: [docA], fromCache: true })
+        .userListensToCache(testQuery)
+        .expectEvents(testQuery, { added: [docA], fromCache: true })
         .userDeletes('collection/a')
-        .expectEvents(query_, { removed: [docA], fromCache: true })
+        .expectEvents(testQuery, { removed: [docA], fromCache: true })
         .writeAcks('collection/a', 2000)
-        .watchSends({ affects: [query_] }, deletedDoc('collection/a', 2000))
-        .watchSnapshots(2000)
     );
   });
 
@@ -554,7 +551,7 @@ describeSpec('Listens source options:', [], () => {
   );
 
   specTest(
-    'Query is executed by primary client even if it only includes listeners sourced from cache',
+    'Query is executed by primary client even if primary client only has listeners sourced from cache',
     ['multi-client'],
     () => {
       const query1 = query('collection');

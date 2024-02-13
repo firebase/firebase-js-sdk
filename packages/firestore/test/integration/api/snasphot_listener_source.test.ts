@@ -671,14 +671,14 @@ apiDescribe('Snapshot Listener source options ', persistence => {
         return withTestCollection(persistence, testDocs, async coll => {
           await getDocs(coll); // Populate the cache.
 
-          const query_ = query(
+          const testQuery = query(
             coll,
             where('k', '<=', 'a'),
             where('sort', '>=', 0)
           );
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
-            query_,
+            testQuery,
             { source: ListenSource.Cache },
             storeEvent.storeEvent
           );
