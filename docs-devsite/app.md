@@ -34,7 +34,7 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function(options, ...)</b> |
 |  [initializeApp(options, name)](./app.md#initializeapp_cb2f5e1) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 |  [initializeApp(options, config)](./app.md#initializeapp_079e917) | Creates and initializes a FirebaseApp instance. |
-|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
+|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The <code>FirebaseServerApp</code> is similar to <code>FirebaseApp</code>, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 
 ## Interfaces
 
@@ -317,7 +317,7 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 
 Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
 
-The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.
+The `FirebaseServerApp` is similar to `FirebaseApp`<!-- -->, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.
 
 See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation.
 
@@ -331,21 +331,21 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | Firebase.AppOptions to configure the app's services, or a a FirebaseApp instance which contains the AppOptions within. |
-|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | FirebaseServerApp configuration. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
+|  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | <code>FirebaseServerApp</code> configuration. |
 
 <b>Returns:</b>
 
 [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)
 
-The initialized FirebaseServerApp.
+The initialized `FirebaseServerApp`<!-- -->.
 
 ### Example
 
 
 ```javascript
 
-// Initialize a FirebaseServerApp.
+// Initialize an instance of `FirebaseServerApp`.
 // Retrieve your own options values by adding a web app on
 // https://console.firebase.google.com
 initializeServerApp({

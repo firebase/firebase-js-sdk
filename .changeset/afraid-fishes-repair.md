@@ -4,4 +4,5 @@
 'firebase': minor
 ---
 
-Added a new app type `FirebaseServerApp` which is intended to bridge state data between Client and Server runtime environments.
+Added a new interface `FirebaseServerApp` which extends FirebaseApp and is intended to bridge state
+data between client and server runtime environments.
