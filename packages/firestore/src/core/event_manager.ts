@@ -145,7 +145,10 @@ export async function eventManagerListen(
     listenerAction = listener.listensToRemoteStore()
       ? ListenerSetupAction.InitializeLocalListenAndRequireWatchConnection
       : ListenerSetupAction.InitializeLocalListenOnly;
-  } else if (listener.listensToRemoteStore()) {
+  } else if (
+    !queryInfo.hasRemoteListeners() &&
+    listener.listensToRemoteStore()
+  ) {
     // Query has been listening to local cache, and tries to add a new listener sourced from watch.
     listenerAction = ListenerSetupAction.RequireWatchConnectionOnly;
   }
