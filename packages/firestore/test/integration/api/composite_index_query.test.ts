@@ -933,7 +933,7 @@ apiDescribe('Composite Index Queries', persistence => {
         await expect(
           testHelper.getDocs(queryForRejection)
         ).to.be.eventually.rejectedWith(
-          /Order by clause cannot contain more fields after the key/
+          /order by clause cannot contain more fields after the key/i
         );
       });
     });

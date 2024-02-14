@@ -385,7 +385,7 @@ locals {
         order      = "DESCENDING"
       },
       {
-        field_path = "`field\\slash`"
+        field_path = "`field\\\\slash`"
         order      = "DESCENDING"
       },
     ]
