@@ -2,4 +2,4 @@
 '@firebase/firestore': minor
 'firebase': minor
 ---
-Enable snapshot listeners to source from local cache.
+Enable snapshot listener option to retrieve data from local cache only.
