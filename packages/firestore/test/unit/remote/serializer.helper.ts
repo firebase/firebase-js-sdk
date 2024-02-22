@@ -323,16 +323,19 @@ export function serializerTest(
       it('converts TimestampValue from proto', () => {
         const examples = [
           new Timestamp(1451730050, 850000000),
+          new Timestamp(1451730050, 850100000),
           new Timestamp(1466160615, 0)
         ];
 
         const expectedJson = [
-          '2016-01-02T10:20:50.850000000Z',
-          '2016-06-17T10:50:15.000000000Z'
+          '2016-01-02T10:20:50.850Z',
+          '2016-01-02T10:20:50.850100Z',
+          '2016-06-17T10:50:15Z'
         ];
 
         const expectedProtoJs = [
           { seconds: '1451730050', nanos: 850000000 },
+          { seconds: '1451730050', nanos: 850100000 },
           { seconds: '1466160615', nanos: 0 }
         ];
 
@@ -379,7 +382,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916123000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123Z' });
 
         expect(
           parseQueryValue(
@@ -387,7 +390,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916000000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916Z' });
 
         expect(
           parseQueryValue(
@@ -395,7 +398,15 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 916000)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916Z' });
+
+        expect(
+          parseQueryValue(
+            protobufJsonReader,
+            'timestampConversion',
+            new Timestamp(1488872578, 916999)
+          )
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916Z' });
 
         expect(
           parseQueryValue(
@@ -403,7 +414,7 @@ export function serializerTest(
             'timestampConversion',
             new Timestamp(1488872578, 0)
           )
-        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58Z' });
       });
 
       it('converts GeoPointValue', () => {

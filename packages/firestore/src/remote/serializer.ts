@@ -213,10 +213,18 @@ export function toTimestamp(
     const jsDateStr = new Date(timestamp.seconds * 1000).toISOString();
     // Remove .xxx frac part and Z in the end.
     const strUntilSeconds = jsDateStr.replace(/\.\d*/, '').replace('Z', '');
-    // Pad the fraction out to 9 digits (nanos).
-    const nanoStr = ('000000000' + timestamp.nanoseconds).slice(-9);
 
-    return `${strUntilSeconds}.${nanoStr}Z`;
+    // If nanoseconds is 0, omit the decimal
+    if (timestamp.nanoseconds === 0) {
+      return `${strUntilSeconds}Z`;
+    }
+
+    // Pad the fraction out to 3, 6, or 9 digits
+    let microStr = ('000000000' + timestamp.nanoseconds).slice(-9);
+    while (microStr.endsWith('000')) {
+      microStr = microStr.slice(0, microStr.length - 3);
+    }
+    return `${strUntilSeconds}.${microStr}Z`;
   } else {
     return {
       seconds: '' + timestamp.seconds,
