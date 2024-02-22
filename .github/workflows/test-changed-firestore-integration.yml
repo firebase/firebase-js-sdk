@@ -63,10 +63,10 @@ jobs:
         rm -f "$output_file"
       continue-on-error: true
 
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: install Chrome stable
       run: |
         sudo apt-get update

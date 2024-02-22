@@ -42,10 +42,10 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v3
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -81,10 +81,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -132,10 +132,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -175,10 +175,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -219,10 +219,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}

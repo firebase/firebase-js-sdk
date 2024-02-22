@@ -31,10 +31,10 @@ jobs:
       with:
         # get all history for the diff
         fetch-depth: 0
-    - name: Set up node (16)
+    - name: Set up Node (18)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 18.x
     - name: Yarn install
       run: yarn
     - name: Run formatting script

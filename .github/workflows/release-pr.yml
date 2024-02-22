@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node.js 16.x
         uses: actions/setup-node@master
         with:
-          node-version: 16.x
+          node-version: 18.x
 
       - name: Install Dependencies
         run: yarn
