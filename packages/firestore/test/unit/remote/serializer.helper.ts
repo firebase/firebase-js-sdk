@@ -415,6 +415,15 @@ export function serializerTest(
             new Timestamp(1488872578, 0)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58Z' });
+
+        // It truncates nanos to micros
+        expect(
+          parseQueryValue(
+            protobufJsonReader,
+            'timestampConversion',
+            new Timestamp(1488872578, 916123987)
+          )
+        ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123Z' });
       });
 
       it('converts GeoPointValue', () => {

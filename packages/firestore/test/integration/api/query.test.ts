@@ -60,7 +60,10 @@ import {
   writeBatch,
   CollectionReference,
   WriteBatch,
-  Firestore
+  Firestore,
+  setIndexConfiguration,
+  IndexConfiguration,
+  getDocsFromCache
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -571,25 +574,119 @@ apiDescribe('Queries', persistence => {
       '2': { id: '2', date: date2 },
       '3': { id: '3', date: date3 }
     };
-    return withTestCollection(persistence, testDocs, coll => {
+    return withTestCollection(persistence, testDocs, async coll => {
       // Make sure to issue the queries in parallel
       const docs1Promise = getDocs(query(coll, where('date', '>', date1)));
       const docs2Promise = getDocs(query(coll, where('date', '>', date2)));
+      const docs3Promise = getDocs(query(coll, where('date', '==', date2)));
 
-      return Promise.all([docs1Promise, docs2Promise]).then(results => {
-        const docs1 = results[0];
-        const docs2 = results[1];
+      await Promise.all([docs1Promise, docs2Promise, docs3Promise]).then(
+        results => {
+          const docs1 = results[0];
+          const docs2 = results[1];
+          const docs3 = results[2];
 
-        expect(toDataArray(docs1)).to.deep.equal([
-          { id: '2', date: Timestamp.fromDate(date2) },
-          { id: '3', date: Timestamp.fromDate(date3) }
-        ]);
-        expect(toDataArray(docs2)).to.deep.equal([
-          { id: '3', date: Timestamp.fromDate(date3) }
-        ]);
-      });
+          expect(toDataArray(docs1)).to.deep.equal([
+            { id: '2', date: Timestamp.fromDate(date2) },
+            { id: '3', date: Timestamp.fromDate(date3) }
+          ]);
+          expect(toDataArray(docs2)).to.deep.equal([
+            { id: '3', date: Timestamp.fromDate(date3) }
+          ]);
+          expect(toDataArray(docs3)).to.deep.equal([
+            { id: '2', date: Timestamp.fromDate(date2) }
+          ]);
+        }
+      );
     });
   });
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence.storage === 'indexeddb' ? it : it.skip)(
+    'can issue queries with Dates differing in milliseconds with CSI',
+    () => {
+      const date1 = new Date();
+      date1.setMilliseconds(0);
+      const date2 = new Date(date1.getTime());
+      date2.setMilliseconds(1);
+      const date3 = new Date(date1.getTime());
+      date3.setMilliseconds(2);
+
+      const testDocs = {
+        '1': { id: '1', date: date1 },
+        '2': { id: '2', date: date2 },
+        '3': { id: '3', date: date3 }
+      };
+      return withTestCollection(persistence, testDocs, async (coll, db) => {
+        const indexDefinition: IndexConfiguration = {
+          'indexes': [
+            {
+              'collectionGroup': coll.path,
+              'queryScope': 'COLLECTION',
+              'fields': [
+                {
+                  'fieldPath': 'date',
+                  'order': 'ASCENDING'
+                }
+              ]
+            }
+          ],
+          'fieldOverrides': []
+        };
+        await setIndexConfiguration(db, indexDefinition);
+
+        // Ensure cache is populated
+        await getDocs(coll);
+
+        // Wait 30 seconds for the index backfiller to run.
+        // This is non-deterministic, but we don't have a
+        // hook for this event.
+        await new Promise(resolve => {
+          setTimeout(resolve, 30_000);
+        });
+
+        // Make sure to issue the queries in parallel
+        const docs1Promise = getDocsFromCache(
+          query(coll, where('date', '>', date1))
+        );
+        const docs2Promise = getDocsFromCache(
+          query(coll, where('date', '>', date2))
+        );
+        const docs3Promise = getDocsFromCache(
+          query(coll, where('date', '==', date2))
+        );
+        const docs4Promise = getDocsFromCache(
+          query(coll, where('date', '==', date1))
+        );
+
+        await Promise.all([
+          docs1Promise,
+          docs2Promise,
+          docs3Promise,
+          docs4Promise
+        ]).then(results => {
+          const docs1 = results[0];
+          const docs2 = results[1];
+          const docs3 = results[2];
+          const docs4 = results[3];
+
+          expect(toDataArray(docs1)).to.deep.equal([
+            { id: '2', date: Timestamp.fromDate(date2) },
+            { id: '3', date: Timestamp.fromDate(date3) }
+          ]);
+          expect(toDataArray(docs2)).to.deep.equal([
+            { id: '3', date: Timestamp.fromDate(date3) }
+          ]);
+          expect(toDataArray(docs3)).to.deep.equal([
+            { id: '2', date: Timestamp.fromDate(date2) }
+          ]);
+          expect(toDataArray(docs4)).to.deep.equal([
+            { id: '1', date: Timestamp.fromDate(date1) }
+          ]);
+        });
+      });
+    }
+  ).timeout(45_000);
 
   it('can listen for QueryMetadata changes', () => {
     const testDocs = {
