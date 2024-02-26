@@ -50,7 +50,6 @@ This package coordinates the communication between the different Firebase compon
 
 |  Variable | Description |
 |  --- | --- |
-|  [\_serverApps](./app.md#_serverapps) |  |
 |  [SDK\_VERSION](./app.md#sdk_version) | The current SDK version. |
 
 ## function(app, ...)
@@ -359,14 +358,6 @@ initializeServerApp({
    authIdToken: "Your Auth ID Token"
   });
 
-```
-
-## \_serverApps
-
-<b>Signature:</b>
-
-```typescript
-_serverApps: Map<string, FirebaseServerApp>
 ```
 
 ## SDK\_VERSION
