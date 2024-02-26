@@ -44,7 +44,7 @@ export class DatabaseEmulator extends Emulator {
     return new Promise<number>((resolve, reject) => {
       request.put(
         {
-          uri: `http://localhost:${this.port}/.settings/rules.json?ns=${this.namespace}`,
+          uri: `http://127.0.0.1:${this.port}/.settings/rules.json?ns=${this.namespace}`,
           headers: { Authorization: 'Bearer owner' },
           body: jsonRules
         },
