@@ -24,7 +24,7 @@ env:
   # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
-  CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
+  CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public/
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
   CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
   artifactRetentionDays: 14
@@ -40,7 +40,7 @@ jobs:
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chrome@stable --base-url https://storage.googleapis.com/chrome-for-testing-public
     - uses: actions/checkout@v3
     - name: Set up Node (16)
       uses: actions/setup-node@v3
@@ -74,7 +74,7 @@ jobs:
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chrome@stable --base-url https://storage.googleapis.com/chrome-for-testing-public
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
@@ -116,7 +116,7 @@ jobs:
       # when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chrome@stable --base-url https://storage.googleapis.com/chrome-for-testing-public
         chromeVersionString=$(ls chrome)
         if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
         echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
@@ -168,7 +168,7 @@ jobs:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chrome@stable --base-url https://storage.googleapis.com/chrome-for-testing-public
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
@@ -212,7 +212,7 @@ jobs:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
-        npx @puppeteer/browsers install chrome@stable
+        npx @puppeteer/browsers install chrome@stable --base-url https://storage.googleapis.com/chrome-for-testing-public
     - name: Download build archive
       uses: actions/download-artifact@v3
       with:
