@@ -49,6 +49,7 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithEmailAndPassword,
+  signInWithEmailLink,
   TotpMultiFactorGenerator,
   TotpSecret,
   unlink,
@@ -1764,7 +1765,6 @@ function revokeAppleTokenAndDeleteUser() {
   provider.addScope('email');
   provider.addScope('name');
 
-  const auth = getAuth();
   signInWithPopup(auth, provider).then(result => {
     // The signed-in user info.
     const credential = OAuthProvider.credentialFromResult(result);
