@@ -23,7 +23,7 @@ env:
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public/
-  CHROME_VALIDATED_VERSION: linux-120.0.6099.71
+  CHROME_VALIDATED_VERSION: linux-122.0.6261.69
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
