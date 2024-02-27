@@ -1,5 +1,14 @@
 # @firebase/auth-compat
 
+## 0.5.3
+
+### Patch Changes
+
+- [`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0) [#8044](https://github.com/firebase/firebase-js-sdk/pull/8044) (fixes [#8038](https://github.com/firebase/firebase-js-sdk/issues/8038)) - Bump undici version to 5.28.3 due to security issue.
+
+- Updated dependencies [[`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0)]:
+  - @firebase/auth@1.6.1
+
 ## 0.5.2
 
 ### Patch Changes
