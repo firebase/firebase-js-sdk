@@ -73,7 +73,7 @@ export interface FirebaseApp {
 
 /**
  * A {@link @firebase/app#FirebaseServerApp} holds the initialization information
- * for a collection of services running in server enviornments.
+ * for a collection of services running in server environments.
  *
  * Do not call this constructor directly. Instead, use
  * {@link (initializeServerApp:1) | initializeServerApp()} to create
@@ -89,7 +89,7 @@ export interface FirebaseServerApp extends FirebaseApp {
    * It is recommend that your application awaits this `Promise` before invoking `getAuth` if an
    * `authIdToken` was provided in the `FirebaseServerAppSettings`.
    *
-   * The returned `Promise` is completed immediately if the optional authIdToken parameter
+   * The returned `Promise` is completed immediately if the optional `authIdToken` parameter
    * was omitted from `FirebaseServerApp` initialization.
    */
   authIdTokenVerified: () => Promise<void>;
@@ -219,8 +219,8 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * Firebase SDK releases its refrence on the `FirebaseServerApp` instance when the
    * provided `releaseOnDeref` object is garbage collected.
    *
-   * The intent of this field is to help reduce memory overhead for cloud functions.
-   * If provided, the customer's app running in a SSR pass need not worry about
+   * You can use this field to reduce memory management overhead for your application.
+   * If provided, an app running in a SSR pass does not need to perform
    * `FirebaseServerApp` cleanup, so long as the reference object is deleted (by falling out of
    * SSR scope, for instance.)
    *
@@ -235,8 +235,9 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
   releaseOnDeref?: object;
 
   /**
-   * There is no get for `FirebaseServerApp`, so the name is not relevant. However it's always
-   * a blank string so that `FirebaseServerAp`p` conforms to the `FirebaseApp` interface declaration.
+   * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
+   * applications. However, it may be used internally, and is declared here so that
+   * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
    */
   name?: undefined;
 }
