@@ -48,7 +48,7 @@
   "dependencies": {
     "@firebase/util": "1.9.4",
     "@firebase/component": "0.6.5",
-    "undici": "5.26.5",
+    "undici": "5.28.3",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
