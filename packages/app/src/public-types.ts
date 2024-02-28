@@ -216,7 +216,7 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
   /**
    * An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry`
    * object to monitor the garbage collection status of the provided object. The
-   * Firebase SDK releases its refrence on the `FirebaseServerApp` instance when the
+   * Firebase SDK releases its reference on the `FirebaseServerApp` instance when the
    * provided `releaseOnDeref` object is garbage collected.
    *
    * You can use this field to reduce memory management overhead for your application.
