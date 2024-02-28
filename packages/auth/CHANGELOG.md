@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.6.1
+
+### Patch Changes
+
+- [`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0) [#8044](https://github.com/firebase/firebase-js-sdk/pull/8044) (fixes [#8038](https://github.com/firebase/firebase-js-sdk/issues/8038)) - Bump undici version to 5.28.3 due to security issue.
+
 ## 1.6.0
 
 ### Minor Changes
