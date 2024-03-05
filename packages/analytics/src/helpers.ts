@@ -304,7 +304,8 @@ function wrapGtag(
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
-        const [gtagParams] = args;
+        // If CONSENT, second arg must be 'default' or 'update'
+        const [gtagMethod, gtagParams] = args;
         gtagCore(GtagCommand.CONSENT, 'update', gtagParams as ConsentSettings);
       } else if (command === GtagCommand.GET) {
         const [measurementId, fieldName, callback] = args;
