@@ -99,7 +99,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
     // Files that trigger full test suite.
-    if (fullTestTriggerFiles.includes(filename)) {
+    if (1===1) { //(fullTestTriggerFiles.includes(filename)) {
       console.log(
         chalk`{blue Running all tests because ${filename} was modified.}`
       );
