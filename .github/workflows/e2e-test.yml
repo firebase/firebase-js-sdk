@@ -18,7 +18,6 @@ name: E2E Smoke Tests
 on:
   repository_dispatch:
     types: [staging-tests,canary-tests]
-  push:
 
 env:
   # Bump Node memory limit
