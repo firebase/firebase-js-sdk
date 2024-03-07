@@ -81,8 +81,7 @@ export function getTestInstance(requireEmulator = false): Auth {
 }
 
 export function getTestInstanceForServerApp(
-  serverApp: FirebaseServerApp,
-  requireEmulator = false
+  serverApp: FirebaseServerApp
 ): Auth {
   const auth = getAuth(serverApp) as IntegrationTestAuth;
   auth.settings.appVerificationDisabledForTesting = true;
@@ -90,9 +89,6 @@ export function getTestInstanceForServerApp(
 
   if (emulatorUrl) {
     connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
-  } else if (requireEmulator) {
-    /* Emulator wasn't configured but test must use emulator */
-    throw new Error('Test may only be run using the Auth Emulator!');
   }
 
   // Don't track created users on the created Auth instance like we do for  Auth objects created in
