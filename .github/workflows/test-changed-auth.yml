@@ -22,7 +22,7 @@ env:
   # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
-  CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
+  CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
@@ -56,10 +56,10 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (16)
+      - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -88,10 +88,10 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (16)
+      - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json

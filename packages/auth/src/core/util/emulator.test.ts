@@ -23,23 +23,23 @@ import { _emulatorUrl } from './emulator';
 describe('core/util/emulator', () => {
   const config: ConfigInternal = {
     emulator: {
-      url: 'http://localhost:4000/'
+      url: 'http://127.0.0.1:4000/'
     }
   } as ConfigInternal;
 
   it('builds the proper URL with no path', () => {
-    expect(_emulatorUrl(config)).to.eq('http://localhost:4000/');
+    expect(_emulatorUrl(config)).to.eq('http://127.0.0.1:4000/');
   });
 
   it('builds the proper URL with a path', () => {
     expect(_emulatorUrl(config, '/test/path')).to.eq(
-      'http://localhost:4000/test/path'
+      'http://127.0.0.1:4000/test/path'
     );
   });
 
   it('builds the proper URL with a path missing separator', () => {
     expect(_emulatorUrl(config, 'test/path')).to.eq(
-      'http://localhost:4000/test/path'
+      'http://127.0.0.1:4000/test/path'
     );
   });
 });

@@ -1,5 +1,56 @@
 # firebase
 
+## 10.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0)]:
+  - @firebase/app@0.9.28
+  - @firebase/auth-compat@0.5.3
+  - @firebase/firestore@4.4.3
+  - @firebase/functions@0.11.2
+  - @firebase/storage@0.12.2
+  - @firebase/auth@1.6.1
+  - @firebase/app-compat@0.2.28
+  - @firebase/storage-compat@0.3.5
+  - @firebase/firestore-compat@0.3.26
+  - @firebase/functions-compat@0.3.8
+
+## 10.8.0
+
+### Minor Changes
+
+- [`2f7ad0ac4`](https://github.com/firebase/firebase-js-sdk/commit/2f7ad0ac43f5d085604324f6dc3921d9420bfccd) [#8001](https://github.com/firebase/firebase-js-sdk/pull/8001) - Added a Web-Extension package that strips the external JS loading for developers to use when building Chrome Extension app.
+
+### Patch Changes
+
+- Updated dependencies [[`046ac8a39`](https://github.com/firebase/firebase-js-sdk/commit/046ac8a39b483e127a4bbe11a5390a3e6018f2a7), [`3f8cbcd18`](https://github.com/firebase/firebase-js-sdk/commit/3f8cbcd18f47fcae8c0d8060fd8c245c025784c0), [`bf59c0aed`](https://github.com/firebase/firebase-js-sdk/commit/bf59c0aedefabae9bff4d777e1591fe496259293), [`2f7ad0ac4`](https://github.com/firebase/firebase-js-sdk/commit/2f7ad0ac43f5d085604324f6dc3921d9420bfccd), [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/database@1.0.3
+  - @firebase/app@0.9.27
+  - @firebase/analytics@0.10.1
+  - @firebase/auth@1.6.0
+  - @firebase/util@1.9.4
+  - @firebase/database-compat@1.0.3
+  - @firebase/app-check@0.8.2
+  - @firebase/app-compat@0.2.27
+  - @firebase/firestore@4.4.2
+  - @firebase/functions@0.11.1
+  - @firebase/installations@0.6.5
+  - @firebase/messaging@0.12.6
+  - @firebase/performance@0.6.5
+  - @firebase/remote-config@0.4.5
+  - @firebase/storage@0.12.1
+  - @firebase/analytics-compat@0.2.7
+  - @firebase/auth-compat@0.5.2
+  - @firebase/app-check-compat@0.3.9
+  - @firebase/firestore-compat@0.3.25
+  - @firebase/functions-compat@0.3.7
+  - @firebase/installations-compat@0.2.5
+  - @firebase/messaging-compat@0.2.6
+  - @firebase/performance-compat@0.2.5
+  - @firebase/remote-config-compat@0.2.5
+  - @firebase/storage-compat@0.3.4
+
 ## 10.7.2
 
 ### Patch Changes
