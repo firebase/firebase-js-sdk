@@ -351,10 +351,7 @@ export function limit(limit: number): QueryLimitConstraint;
 export function limitToLast(limit: number): QueryLimitConstraint;
 
 // @public
-export const enum ListenSource {
-    Cache = 1,
-    Default = 0
-}
+export type ListenSource = 'default' | 'cache';
 
 // @public
 export function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;

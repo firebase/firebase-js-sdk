@@ -23,7 +23,7 @@ export declare interface SnapshotListenOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [includeMetadataChanges](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionsincludemetadatachanges) | boolean | Include a change even if only the metadata of the query or of a document changed. Default is false. |
-|  [source](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionssource) | [ListenSource](./firestore_.md#listensource) | Set the source the query listens to. Default to ListenSource.Default, which listens to both cache and server. |
+|  [source](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionssource) | [ListenSource](./firestore_.md#listensource) | Set the source the query listens to. Default to "default", which listens to both cache and server. |
 
 ## SnapshotListenOptions.includeMetadataChanges
 
@@ -37,7 +37,7 @@ readonly includeMetadataChanges?: boolean;
 
 ## SnapshotListenOptions.source
 
-Set the source the query listens to. Default to ListenSource.Default, which listens to both cache and server.
+Set the source the query listens to. Default to "default", which listens to both cache and server.
 
 <b>Signature:</b>
 

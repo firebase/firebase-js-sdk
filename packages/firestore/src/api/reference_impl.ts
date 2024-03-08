@@ -24,6 +24,7 @@ import {
   NextFn,
   PartialObserver
 } from '../api/observer';
+import { ListenerDataSource } from '../core/event_manager';
 import {
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientGetDocumentFromLocalCache,
@@ -80,20 +81,18 @@ export interface SnapshotListenOptions {
   readonly includeMetadataChanges?: boolean;
 
   /**
-   * Set the source the query listens to. Default to ListenSource.Default, which
+   * Set the source the query listens to. Default to "default", which
    * listens to both cache and server.
    */
   readonly source?: ListenSource;
 }
 
-/** Describe the source a query listens to. */
-export const enum ListenSource {
-  /** Listen to both cache and server changes */
-  Default,
-
-  /** Listen to changes in cache only */
-  Cache
-}
+/** Describe the source a query listens to.
+ *
+ * `default`: listens to both cache and server changes
+ * `cache`: listens to changes in cache only
+ */
+export type ListenSource = 'default' | 'cache';
 
 /**
  * Reads the document referred to by this `DocumentReference`.
@@ -684,7 +683,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 
   let options: SnapshotListenOptions = {
     includeMetadataChanges: false,
-    source: ListenSource.Default
+    source: 'default'
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
@@ -694,7 +693,7 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
 
   const internalOptions = {
     includeMetadataChanges: options.includeMetadataChanges,
-    source: options.source
+    source: options.source as ListenerDataSource
   };
 
   if (isPartialObserver(args[currArg])) {

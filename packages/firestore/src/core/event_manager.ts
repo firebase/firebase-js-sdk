@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ListenSource } from '../api/reference_impl';
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
@@ -342,6 +341,14 @@ function raiseSnapshotsInSyncEvent(eventManagerImpl: EventManagerImpl): void {
   });
 }
 
+export enum ListenerDataSource {
+  /** Listen to both cache and server changes */
+  Default = 'default',
+
+  /** Listen to changes in cache only */
+  Cache = 'cache'
+}
+
 export interface ListenOptions {
   /** Raise events even when only the metadata changes */
   readonly includeMetadataChanges?: boolean;
@@ -353,7 +360,7 @@ export interface ListenOptions {
   readonly waitForSyncWhenOnline?: boolean;
 
   /** Set the source events raised from. */
-  readonly source?: ListenSource;
+  readonly source?: ListenerDataSource;
 }
 
 /**
@@ -528,6 +535,6 @@ export class QueryListener {
   }
 
   listensToRemoteStore(): boolean {
-    return this.options.source !== ListenSource.Cache;
+    return this.options.source !== ListenerDataSource.Cache;
   }
 }

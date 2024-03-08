@@ -27,7 +27,6 @@ import {
   IndexConfiguration,
   parseIndexes
 } from '../../../src/api/index_configuration';
-import { ListenSource } from '../../../src/api/reference_impl';
 import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
@@ -39,7 +38,8 @@ import {
   QueryListener,
   removeSnapshotsInSyncListener,
   addSnapshotsInSyncListener,
-  ListenOptions
+  ListenOptions,
+  ListenerDataSource as Source
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -498,7 +498,7 @@ abstract class TestRunner {
       includeMetadataChanges:
         listenSpec.options?.includeMetadataChanges ?? true,
       waitForSyncWhenOnline: false,
-      source: listenSpec.options?.source ?? ListenSource.Default
+      source: listenSpec.options?.source ?? Source.Default
     };
 
     const queryListener = new QueryListener(query, aggregator, options);
@@ -526,7 +526,7 @@ abstract class TestRunner {
       if (
         this.isPrimaryClient &&
         this.networkEnabled &&
-        options.source !== ListenSource.Cache
+        options.source !== Source.Cache
       ) {
         // Unless listened to cache, open always have happened after a listen.
         await this.connection.waitForWatchOpen();

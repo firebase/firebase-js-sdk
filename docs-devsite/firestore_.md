@@ -157,12 +157,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [Transaction](./firestore_.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
 |  [WriteBatch](./firestore_.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
-## Enumerations
-
-|  Enumeration | Description |
-|  --- | --- |
-|  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to. |
-
 ## Interfaces
 
 |  Interface | Description |
@@ -210,6 +204,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
+|  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<code>default</code>: listens to both cache and server changes <code>cache</code>: listens to changes in cache only |
 |  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support gabage collectors for memory local cache. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
@@ -2557,6 +2552,18 @@ Union type from all supported SDK cache layer.
 export declare type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 ```
 
+## ListenSource
+
+Describe the source a query listens to.
+
+`default`<!-- -->: listens to both cache and server changes `cache`<!-- -->: listens to changes in cache only
+
+<b>Signature:</b>
+
+```typescript
+export declare type ListenSource = 'default' | 'cache';
+```
+
 ## MemoryGarbageCollector
 
 Union type from all support gabage collectors for memory local cache.
@@ -2722,21 +2729,3 @@ export declare type WithFieldValue<T> = T | (T extends Primitive ? T : T extends
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
 } : never);
 ```
-
-## ListenSource
-
-Describe the source a query listens to.
-
-<b>Signature:</b>
-
-```typescript
-export declare const enum ListenSource 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  Cache | <code>1</code> | Listen to changes in cache only |
-|  Default | <code>0</code> | Listen to both cache and server changes |
-

@@ -16,11 +16,11 @@
  */
 
 import { IndexConfiguration } from '../../../src/api/index_configuration';
+import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import {
-  ExpUserDataWriter,
-  ListenSource
-} from '../../../src/api/reference_impl';
-import { ListenOptions } from '../../../src/core/event_manager';
+  ListenOptions,
+  ListenerDataSource as Source
+} from '../../../src/core/event_manager';
 import { FieldFilter, Filter } from '../../../src/core/filter';
 import {
   LimitType,
@@ -294,7 +294,7 @@ export class SpecBuilder {
 
       this.queryMapping.set(target, targetId);
 
-      if (options?.source !== ListenSource.Cache) {
+      if (options?.source !== Source.Cache) {
         // Active targets are created if listener is not sourcing from cache
         this.addQueryToActiveTargets(targetId, query, resume);
       }
@@ -316,7 +316,7 @@ export class SpecBuilder {
   }
 
   userListensToCache(query: Query, resume?: ResumeSpec): this {
-    this.addUserListenStep(query, resume, { source: ListenSource.Cache });
+    this.addUserListenStep(query, resume, { source: Source.Cache });
     return this;
   }
 

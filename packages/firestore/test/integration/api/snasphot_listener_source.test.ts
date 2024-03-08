@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { ListenerDataSource as Source } from '../../../src/core/event_manager';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -28,7 +29,6 @@ import {
   getDocs,
   limit,
   limitToLast,
-  ListenSource,
   onSnapshot,
   orderBy,
   query,
@@ -59,7 +59,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
             coll,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeEvent.storeEvent
           );
 
@@ -83,7 +83,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
             const storeEvent = new EventsAccumulator<DocumentSnapshot>();
             const unsubscribe = onSnapshot(
               docRef,
-              { source: ListenSource.Cache },
+              { source: Source.Cache },
               storeEvent.storeEvent
             );
 
@@ -107,7 +107,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
             coll,
-            { includeMetadataChanges: true, source: ListenSource.Cache },
+            { includeMetadataChanges: true, source: Source.Cache },
             storeEvent.storeEvent
           );
 
@@ -139,13 +139,13 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe1 = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeEvent.storeEvent
           );
 
           const unsubscribe2 = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeEvent.storeEvent
           );
 
@@ -207,7 +207,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeLimitEvent = new EventsAccumulator<QuerySnapshot>();
           let limitUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc'), limit(2)),
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeLimitEvent.storeEvent
           );
 
@@ -215,7 +215,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeLimitToLastEvent = new EventsAccumulator<QuerySnapshot>();
           let limitToLastUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'desc'), limitToLast(2)),
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeLimitToLastEvent.storeEvent
           );
 
@@ -235,7 +235,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           limitUnlisten();
           limitUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'asc'), limit(2)),
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeLimitEvent.storeEvent
           );
           snapshot = await storeLimitEvent.awaitEvent();
@@ -269,7 +269,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           await updateDoc(doc(coll, 'a'), { k: 'a', sort: -2 });
           limitToLastUnlisten = onSnapshot(
             query(coll, orderBy('sort', 'desc'), limitToLast(2)),
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeLimitToLastEvent.storeEvent
           );
 
@@ -320,7 +320,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           snapshot = await storeCacheEvent.awaitEvent();
@@ -352,7 +352,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           let snapshot = await storeCacheEvent.awaitEvent();
@@ -401,7 +401,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
             testQuery,
-            { includeMetadataChanges: true, source: ListenSource.Cache },
+            { includeMetadataChanges: true, source: Source.Cache },
             storeEvent.storeEvent
           );
 
@@ -443,7 +443,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { includeMetadataChanges: true, source: ListenSource.Cache },
+            { includeMetadataChanges: true, source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           let snapshot = await storeCacheEvent.awaitEvent();
@@ -523,7 +523,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           await storeCacheEvent.awaitEvent();
@@ -568,7 +568,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           await storeCacheEvent.awaitEvent();
@@ -617,7 +617,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           let cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           snapshot = await storeCacheEvent.awaitEvent();
@@ -651,7 +651,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
 
           cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
 
@@ -679,7 +679,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeEvent.storeEvent
           );
 
@@ -695,11 +695,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           expect(toDataArray(snapshot)).to.deep.equal([]); // Precondition check.
 
           const storeEvent = new EventsAccumulator<QuerySnapshot>();
-          onSnapshot(
-            coll,
-            { source: ListenSource.Cache },
-            storeEvent.storeEvent
-          );
+          onSnapshot(coll, { source: Source.Cache }, storeEvent.storeEvent);
           snapshot = await storeEvent.awaitEvent();
           expect(snapshot.metadata.fromCache).to.be.true;
           expect(toDataArray(snapshot)).to.deep.equal([]);
@@ -711,7 +707,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const accumulator = new EventsAccumulator<QuerySnapshot>();
           const unsubscribe = onSnapshot(
             coll,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             accumulator.storeEvent
           );
 
@@ -756,7 +752,7 @@ apiDescribe('Snapshot Listener source options ', persistence => {
           const storeCacheEvent = new EventsAccumulator<QuerySnapshot>();
           const cacheUnlisten = onSnapshot(
             testQuery,
-            { source: ListenSource.Cache },
+            { source: Source.Cache },
             storeCacheEvent.storeEvent
           );
           snapshot = await storeCacheEvent.awaitEvent();
