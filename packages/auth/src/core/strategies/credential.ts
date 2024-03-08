@@ -29,7 +29,6 @@ import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
 import { _isFirebaseServerApp } from '@firebase/app';
 import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
-import { AuthErrorCode } from '../../core/errors';
 
 export async function _signInWithCredential(
   auth: AuthInternal,

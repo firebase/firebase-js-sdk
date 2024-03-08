@@ -40,7 +40,6 @@ import {
 import { FederatedAuthProvider } from '../../core/providers/federated';
 import { getModularInstance } from '@firebase/util';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { AuthErrorCode } from '../../core/errors';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.

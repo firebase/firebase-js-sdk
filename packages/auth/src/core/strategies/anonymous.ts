@@ -23,7 +23,6 @@ import { _castAuth } from '../auth/auth_impl';
 import { OperationType } from '../../model/enums';
 import { _isFirebaseServerApp } from '@firebase/app';
 import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
-import { AuthErrorCode } from '../../core/errors';
 
 /**
  * Asynchronously signs in as an anonymous user.
