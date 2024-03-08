@@ -26,7 +26,7 @@ import { _parseToken } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserCredentialImpl } from './user_credential_impl';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { _createError } from '../../core/util/assert';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 export async function _reauthenticate(
   user: UserInternal,
@@ -36,7 +36,7 @@ export async function _reauthenticate(
   const { auth } = user;
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const operationType = OperationType.REAUTHENTICATE;

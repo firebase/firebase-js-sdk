@@ -35,7 +35,7 @@ import { _castAuth } from '../auth/auth_impl';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { _createError } from '../../core/util/assert';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -173,7 +173,7 @@ export async function signInWithEmailLink(
 ): Promise<UserCredential> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authModular = getModularInstance(auth);

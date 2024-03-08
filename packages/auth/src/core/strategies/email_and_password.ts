@@ -29,7 +29,10 @@ import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _assert, _createError } from '../util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
@@ -273,7 +276,7 @@ export async function createUserWithEmailAndPassword(
 ): Promise<UserCredential> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authInternal = _castAuth(auth);
@@ -338,7 +341,7 @@ export function signInWithEmailAndPassword(
 ): Promise<UserCredential> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   return signInWithCredential(

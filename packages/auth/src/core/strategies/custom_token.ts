@@ -23,8 +23,7 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { OperationType } from '../../model/enums';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { _createError } from '../../core/util/assert';
-import { AuthErrorCode } from '../../core/errors';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 /**
  * Asynchronously signs in using a custom token.
  *
@@ -50,7 +49,7 @@ export async function signInWithCustomToken(
 ): Promise<UserCredential> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authInternal = _castAuth(auth);

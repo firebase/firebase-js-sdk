@@ -32,7 +32,10 @@ import {
 } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { _assert, _createError } from '../util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { ProactiveRefresh } from './proactive_refresh';
@@ -203,7 +206,7 @@ export class UserImpl implements UserInternal {
   async delete(): Promise<void> {
     if (_isFirebaseServerApp(this.auth.app)) {
       return Promise.reject(
-        _createError(this.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+        _serverAppCurrentUserOperationNotSupportedError(this.auth)
       );
     }
     const idToken = await this.getIdToken();

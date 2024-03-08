@@ -31,7 +31,10 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert, _createError } from '../../core/util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -108,7 +111,7 @@ export async function signInWithPhoneNumber(
 ): Promise<ConfirmationResult> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authInternal = _castAuth(auth);
@@ -174,7 +177,7 @@ export async function reauthenticateWithPhoneNumber(
   const userInternal = getModularInstance(user) as UserInternal;
   if (_isFirebaseServerApp(userInternal.auth.app)) {
     return Promise.reject(
-      _createError(userInternal.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
     );
   }
   const verificationId = await _verifyPhoneNumber(
@@ -298,7 +301,7 @@ export async function updatePhoneNumber(
   const userInternal = getModularInstance(user) as UserInternal;
   if (_isFirebaseServerApp(userInternal.auth.app)) {
     return Promise.reject(
-      _createError(userInternal.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
     );
   }
   await _link(userInternal, credential);

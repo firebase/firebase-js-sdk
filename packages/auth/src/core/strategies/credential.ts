@@ -28,7 +28,7 @@ import { _castAuth } from '../auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { _createError } from '../../core/util/assert';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 import { AuthErrorCode } from '../../core/errors';
 
 export async function _signInWithCredential(
@@ -38,7 +38,7 @@ export async function _signInWithCredential(
 ): Promise<UserCredential> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const operationType = OperationType.SIGN_IN;

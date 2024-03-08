@@ -25,7 +25,10 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
-import { _assertInstanceOf, _createError } from '../../core/util/assert';
+import {
+  _assertInstanceOf,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
@@ -98,7 +101,7 @@ export async function _signInWithRedirect(
 ): Promise<void | never> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authInternal = _castAuth(auth);
@@ -172,7 +175,7 @@ export async function _reauthenticateWithRedirect(
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
   if (_isFirebaseServerApp(userInternal.auth.app)) {
     return Promise.reject(
-      _createError(userInternal.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
     );
   }
   // Wait for auth initialization to complete, this will process pending redirects and clear the
@@ -311,7 +314,7 @@ export async function _getRedirectResult(
 ): Promise<UserCredential | null> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
-      _createError(auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(auth)
     );
   }
   const authInternal = _castAuth(auth);

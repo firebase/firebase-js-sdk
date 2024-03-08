@@ -27,8 +27,7 @@ import { _logoutIfInvalidated } from './invalidation';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 import { _isFirebaseServerApp } from '@firebase/app';
-import { _createError } from '../../core/util/assert';
-import { AuthErrorCode } from '../../core/errors';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 /**
  * Updates a user's profile data.
@@ -103,7 +102,7 @@ export function updateEmail(user: User, newEmail: string): Promise<void> {
   const userInternal = getModularInstance(user) as UserInternal;
   if (_isFirebaseServerApp(userInternal.auth.app)) {
     return Promise.reject(
-      _createError(userInternal.auth, AuthErrorCode.OPERATION_NOT_SUPPORTED)
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
     );
   }
   return updateEmailOrPassword(userInternal, newEmail, null);
