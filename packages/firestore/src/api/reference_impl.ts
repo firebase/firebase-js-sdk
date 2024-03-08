@@ -87,10 +87,11 @@ export interface SnapshotListenOptions {
   readonly source?: ListenSource;
 }
 
-/** Describe the source a query listens to.
+/** 
+ * Describe the source a query listens to.
  *
- * `default`: listens to both cache and server changes
- * `cache`: listens to changes in cache only
+ * Set to `default` to listen to both cache and server changes. Set to `cache`
+ * to listen to changes in cache only.
  */
 export type ListenSource = 'default' | 'cache';
 
