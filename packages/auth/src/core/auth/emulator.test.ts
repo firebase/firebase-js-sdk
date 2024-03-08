@@ -45,7 +45,7 @@ describe('core/auth/emulator', () => {
     fetch.setUp();
     normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
     emulatorEndpoint = fetch.mock(
-      `http://localhost:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(
+      `http://127.0.0.1:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(
         /^.*:\/\//,
         ''
       )}`,
@@ -70,46 +70,46 @@ describe('core/auth/emulator', () => {
   context('connectAuthEmulator', () => {
     it('fails if a network request has already been made', async () => {
       await user.delete();
-      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).to.throw(
         FirebaseError,
         'auth/emulator-config-failed'
       );
     });
 
     it('updates the endpoint appropriately', async () => {
-      connectAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);
     });
 
     it('updates the endpoint appropriately with trailing slash', async () => {
-      connectAuthEmulator(auth, 'http://localhost:2020/');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020/');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);
     });
 
     it('checks the scheme properly', () => {
-      expect(() => connectAuthEmulator(auth, 'http://localhost:2020')).not.to
+      expect(() => connectAuthEmulator(auth, 'http://127.0.0.1:2020')).not.to
         .throw;
       delete auth.config.emulator;
-      expect(() => connectAuthEmulator(auth, 'https://localhost:2020')).not.to
+      expect(() => connectAuthEmulator(auth, 'https://127.0.0.1:2020')).not.to
         .throw;
       delete auth.config.emulator;
-      expect(() => connectAuthEmulator(auth, 'ssh://localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, 'ssh://127.0.0.1:2020')).to.throw(
         FirebaseError,
         'auth/invalid-emulator-scheme'
       );
       delete auth.config.emulator;
-      expect(() => connectAuthEmulator(auth, 'localhost:2020')).to.throw(
+      expect(() => connectAuthEmulator(auth, '127.0.0.1:2020')).to.throw(
         FirebaseError,
         'auth/invalid-emulator-scheme'
       );
     });
 
     it('attaches a banner to the DOM', () => {
-      connectAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       if (typeof document !== 'undefined') {
         const el = document.querySelector('.firebase-emulator-warning')!;
         expect(el).not.to.be.null;
@@ -122,7 +122,7 @@ describe('core/auth/emulator', () => {
 
     it('logs out a warning to the console', () => {
       sinon.stub(console, 'info');
-      connectAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       expect(console.info).to.have.been.calledWith(
         'WARNING: You are using the Auth Emulator,' +
           ' which is intended for local testing only.  Do not use with' +
@@ -132,7 +132,7 @@ describe('core/auth/emulator', () => {
 
     it('skips console info and has no banner if warnings disabled', () => {
       sinon.stub(console, 'info');
-      connectAuthEmulator(auth, 'http://localhost:2020', {
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020', {
         disableWarnings: true
       });
       expect(console.info).not.to.have.been.called;
@@ -142,10 +142,10 @@ describe('core/auth/emulator', () => {
     });
 
     it('sets emulatorConfig on the Auth object', async () => {
-      connectAuthEmulator(auth, 'http://localhost:2020');
+      connectAuthEmulator(auth, 'http://127.0.0.1:2020');
       expect(auth.emulatorConfig).to.eql({
         protocol: 'http',
-        host: 'localhost',
+        host: '127.0.0.1',
         port: 2020,
         options: { disableWarnings: false }
       });

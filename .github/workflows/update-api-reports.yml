@@ -30,10 +30,10 @@ jobs:
         # checkout HEAD commit instead of merge commit
         ref: ${{ github.event.pull_request.head.ref }}
         token: ${{ github.token }}
-    - name: Set up node (16)
+    - name: Set up node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Yarn install
       run: yarn
     - name: Update API reports
