@@ -36,10 +36,10 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      - name: Set up Node (18)
+      - name: Set up Node (20)
         uses: actions/setup-node@master
         with:
-          node-version: 18.x
+          node-version: 20.x
       - name: install Chrome stable
         run: |
           sudo apt-get update
