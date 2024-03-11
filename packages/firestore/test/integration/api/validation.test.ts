@@ -173,7 +173,7 @@ apiDescribe('Validation:', persistence => {
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
-        connectFirestoreEmulator(db, 'localhost', 9000);
+        connectFirestoreEmulator(db, '127.0.0.1', 9000);
       }
     );
 
@@ -185,7 +185,7 @@ apiDescribe('Validation:', persistence => {
           'Firestore has already been started and its settings can no longer be changed.';
 
         await setDoc(doc(db, 'foo/bar'), {});
-        expect(() => connectFirestoreEmulator(db, 'localhost', 9000)).to.throw(
+        expect(() => connectFirestoreEmulator(db, '127.0.0.1', 9000)).to.throw(
           errorMsg
         );
       }
@@ -197,7 +197,7 @@ apiDescribe('Validation:', persistence => {
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
-        connectFirestoreEmulator(db, 'localhost', 9000, {
+        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
           mockUserToken: { sub: 'foo' }
         });
       }
@@ -209,7 +209,7 @@ apiDescribe('Validation:', persistence => {
       () => {
         const db = newTestFirestore(newTestApp('test-project'));
         // Verify that this doesn't throw.
-        connectFirestoreEmulator(db, 'localhost', 9000, {
+        connectFirestoreEmulator(db, '127.0.0.1', 9000, {
           mockUserToken: 'my-mock-user-token'
         });
       }
@@ -222,7 +222,7 @@ apiDescribe('Validation:', persistence => {
         const errorMsg = "mockUserToken must contain 'sub' or 'user_id' field!";
 
         expect(() =>
-          connectFirestoreEmulator(db, 'localhost', 9000, {
+          connectFirestoreEmulator(db, '127.0.0.1', 9000, {
             mockUserToken: {} as any
           })
         ).to.throw(errorMsg);

@@ -16,7 +16,7 @@
     "remote-config"
   ],
   "files": [
-    "**/dist/",
+    "**/dist/**/*",
     "**/package.json",
     "/firebase*.js",
     "/firebase*.map",
