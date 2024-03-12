@@ -349,7 +349,7 @@ export class QueryTargetMetadata {
 
 /**
  * Metadata state of a single client denoting the query targets it is actively
- * listening to.
+ * listening to the watch.
  */
 // Visible for testing.
 export interface ClientState {
