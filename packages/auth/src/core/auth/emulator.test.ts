@@ -161,6 +161,16 @@ describe('core/auth/emulator', () => {
       });
     });
 
+    it('remove this test before merge', async () => {
+      connectAuthEmulator(auth, 'https://127.0.0.1', { disableWarnings: true });
+      expect(auth.emulatorConfig).to.eql({
+        protocol: 'https',
+        host: '127.0.0.1',
+        port: null,
+        options: { disableWarnings: true }
+      });
+    });
+
     it('quotes IPv6 address in emulatorConfig', async () => {
       connectAuthEmulator(auth, 'http://[::1]:2020/');
       expect(auth.emulatorConfig).to.eql({
