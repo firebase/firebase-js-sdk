@@ -49,7 +49,7 @@
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "ts-essentials": "9.3.0",
-    "typescript": "4.7.4"
+    "typescript": "4.9.5"
   },
   "repository": {
     "directory": "packages/messaging",

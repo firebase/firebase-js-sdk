@@ -412,7 +412,7 @@
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "gulp-replace": "1.1.4",
-    "typescript": "4.2.2",
+    "typescript": "4.9.5",
     "rollup-plugin-license": "3.0.1"
   },
   "components": [
