@@ -92,7 +92,9 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
   if (authTokenSyncPath) {
     // Reduce the chances of an XSS attack by only allowing secure contexts or the same origin.
-    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(location.hostname);
+    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(
+      location.hostname
+    );
     if (isSecureContext || isLocalHost) {
       const authTokenSyncUrl = new URL(authTokenSyncPath, location.origin);
       if (location.origin === authTokenSyncUrl.origin) {
