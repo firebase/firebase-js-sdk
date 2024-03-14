@@ -90,7 +90,9 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   });
 
   const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
+  // Only do the Cookie exchange in a secure context
   if (authTokenSyncPath && isSecureContext) {
+    // Don't allow urls (XSS possibility), only paths on the same domain
     const authTokenSyncUrl = new URL(authTokenSyncPath, location.origin);
     if (location.origin === authTokenSyncUrl.origin) {
       const mintCookie = mintCookieFactory(authTokenSyncUrl.toString());
