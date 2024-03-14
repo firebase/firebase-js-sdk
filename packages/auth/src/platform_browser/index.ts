@@ -90,14 +90,19 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   });
 
   const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
-  // Don't allow urls (XSS possibility), only paths on the same domain
-  // (starting with a single '/')
-  if (authTokenSyncPath && authTokenSyncPath.match(/^\/[^\/].*/)) {
-    const mintCookie = mintCookieFactory(authTokenSyncPath);
-    beforeAuthStateChanged(auth, mintCookie, () =>
-      mintCookie(auth.currentUser)
-    );
-    onIdTokenChanged(auth, user => mintCookie(user));
+  if (authTokenSyncPath) {
+    // Reduce the chances of an XSS attack by only allowing secure contexts or the same origin.
+    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(location.hostname);
+    if (isSecureContext || isLocalHost) {
+      const authTokenSyncUrl = new URL(authTokenSyncPath, location.origin);
+      if (location.origin === authTokenSyncUrl.origin) {
+        const mintCookie = mintCookieFactory(authTokenSyncUrl.toString());
+        beforeAuthStateChanged(auth, mintCookie, () =>
+          mintCookie(auth.currentUser)
+        );
+        onIdTokenChanged(auth, user => mintCookie(user));
+      }
+    }
   }
 
   const authEmulatorHost = getDefaultEmulatorHost('auth');
