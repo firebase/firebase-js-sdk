@@ -234,12 +234,28 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         'FirebaseServerApp could not login user with provided authIdToken: ',
         err
       );
+      await this.directlySetCurrentUser(null);
     }
   }
 
   private async initializeCurrentUser(
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      const idToken = this.app.settings.authIdToken;
+      if (idToken) {
+        // Start the auth operation in the next tick to allow a moment for the customer's app to
+        // attach an emulator, if desired.
+        return new Promise<void>(resolve => {
+          setTimeout(() =>
+            this.loadUserFromIdToken(idToken).then(resolve, resolve)
+          );
+        });
+      } else {
+        return this.directlySetCurrentUser(null);
+      }
+    }
+
     // First check to see if we have a pending redirect event.
     const previouslyStoredUser =
       (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
@@ -261,16 +277,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       ) {
         futureCurrentUser = result.user as UserInternal;
         needsTocheckMiddleware = true;
-      }
-    }
-
-    if (_isFirebaseServerApp(this.app)) {
-      const idToken = this.app.settings.authIdToken;
-      if (idToken) {
-        // Start the auth operation in the next tick to allow a moment for the customer's app to
-        // attach an emulator, if desired.
-        setTimeout(() => void this.loadUserFromIdToken(idToken), 0);
-        return;
       }
     }
 
