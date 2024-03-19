@@ -19,6 +19,7 @@ import {
   createWebChannelTransport,
   ErrorCode,
   EventType,
+  FetchXmlHttpFactory,
   WebChannel,
   WebChannelError,
   WebChannelOptions,
@@ -52,6 +53,13 @@ const LOG_TAG = 'WebChannelConnection';
 const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 
 const XHR_TIMEOUT_SECS = 15;
+
+function isWebWorker(): boolean {
+  return (
+    typeof WorkerGlobalScope !== 'undefined' &&
+    self instanceof WorkerGlobalScope
+  );
+}
 
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
@@ -208,7 +216,14 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.useFetchStreams = true;
+      if (isWebWorker()) {
+        // This uses fetch both ways. This config has a memory usage issue however,
+        // so we only enable it for web workers. See: b/242550738.
+        request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      } else {
+        // This uses xhr for requests and fetch for responses.
+        request.useFetchStreams = true;
+      }
     }
 
     this.modifyHeadersForRequest(
