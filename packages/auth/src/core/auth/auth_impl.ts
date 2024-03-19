@@ -81,6 +81,8 @@ import { _logWarn } from '../util/log';
 import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
 import { PasswordPolicyInternal } from '../../model/password_policy';
 import { PasswordPolicyImpl } from './password_policy_impl';
+import { getAccountInfo } from '../../api/account_management/account';
+import { UserImpl } from '../user/user_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -90,6 +92,28 @@ export const enum DefaultConfig {
   TOKEN_API_HOST = 'securetoken.googleapis.com',
   API_HOST = 'identitytoolkit.googleapis.com',
   API_SCHEME = 'https'
+}
+
+
+async function loadUserFromIdToken(
+  auth: AuthInternal,
+  idToken: string
+): Promise<UserInternal|null> {
+  try {
+    const response = await getAccountInfo(auth, { idToken });
+    const user = await UserImpl._fromGetAccountInfoResponse(
+      auth,
+      response,
+      idToken
+    );
+    return user;
+  } catch (err) {
+    console.warn(
+      'FirebaseServerApp could not login user with provided authIdToken: ',
+      err
+    );
+    return null;
+  }
 }
 
 export class AuthImpl implements AuthInternal, _FirebaseService {
@@ -174,10 +198,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         }
       }
 
-      // Skip loading users from persistence in FirebaseServerApp Auth instances.
-      if (!_isFirebaseServerApp(this.app)) {
-        await this.initializeCurrentUser(popupRedirectResolver);
-      }
+      await this.initializeCurrentUser(popupRedirectResolver);
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -245,6 +266,21 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       ) {
         futureCurrentUser = result.user as UserInternal;
         needsTocheckMiddleware = true;
+      }
+    }
+
+    if (_isFirebaseServerApp(this.app)) {
+      if (this.app.settings.authIdToken !== undefined) {
+        const idToken = this.app.settings.authIdToken;
+        // Start the auth operation in the next tick to allow a moment for the customer's app to
+        // attach an emulator, if desired.
+        setTimeout(() =>
+          void loadUserFromIdToken(this, idToken).then(user =>
+            void this.directlySetCurrentUser(user)
+          ),
+          0
+        );
+        return;
       }
     }
 
