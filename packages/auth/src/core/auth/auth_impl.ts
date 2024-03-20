@@ -81,6 +81,8 @@ import { _logWarn } from '../util/log';
 import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
 import { PasswordPolicyInternal } from '../../model/password_policy';
 import { PasswordPolicyImpl } from './password_policy_impl';
+import { getAccountInfo } from '../../api/account_management/account';
+import { UserImpl } from '../user/user_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -174,10 +176,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         }
       }
 
-      // Skip loading users from persistence in FirebaseServerApp Auth instances.
-      if (!_isFirebaseServerApp(this.app)) {
-        await this.initializeCurrentUser(popupRedirectResolver);
-      }
+      await this.initializeCurrentUser(popupRedirectResolver);
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
@@ -221,9 +220,47 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
+  private async initializeCurrentUserFromIdToken(
+    idToken: string
+  ): Promise<void> {
+    try {
+      const response = await getAccountInfo(this, { idToken });
+      const user = await UserImpl._fromGetAccountInfoResponse(
+        this,
+        response,
+        idToken
+      );
+      await this.directlySetCurrentUser(user);
+    } catch (err) {
+      console.warn(
+        'FirebaseServerApp could not login user with provided authIdToken: ',
+        err
+      );
+      await this.directlySetCurrentUser(null);
+    }
+  }
+
   private async initializeCurrentUser(
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      const idToken = this.app.settings.authIdToken;
+      if (idToken) {
+        // Start the auth operation in the next tick to allow a moment for the customer's app to
+        // attach an emulator, if desired.
+        return new Promise<void>(resolve => {
+          setTimeout(() =>
+            this.initializeCurrentUserFromIdToken(idToken).then(
+              resolve,
+              resolve
+            )
+          );
+        });
+      } else {
+        return this.directlySetCurrentUser(null);
+      }
+    }
+
     // First check to see if we have a pending redirect event.
     const previouslyStoredUser =
       (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
