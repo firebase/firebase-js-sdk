@@ -220,7 +220,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
-  private async loadUserFromIdToken(idToken: string): Promise<void> {
+  private async initializeCurrentUserFromIdToken(
+    idToken: string
+  ): Promise<void> {
     try {
       const response = await getAccountInfo(this, { idToken });
       const user = await UserImpl._fromGetAccountInfoResponse(
@@ -248,7 +250,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         // attach an emulator, if desired.
         return new Promise<void>(resolve => {
           setTimeout(() =>
-            this.loadUserFromIdToken(idToken).then(resolve, resolve)
+            this.initializeCurrentUserFromIdToken(idToken).then(
+              resolve,
+              resolve
+            )
           );
         });
       } else {
