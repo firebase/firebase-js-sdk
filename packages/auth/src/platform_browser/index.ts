@@ -90,14 +90,21 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   });
 
   const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
-  // Don't allow urls (XSS possibility), only paths on the same domain
-  // (starting with a single '/')
-  if (authTokenSyncPath && authTokenSyncPath.match(/^\/[^\/].*/)) {
-    const mintCookie = mintCookieFactory(authTokenSyncPath);
-    beforeAuthStateChanged(auth, mintCookie, () =>
-      mintCookie(auth.currentUser)
-    );
-    onIdTokenChanged(auth, user => mintCookie(user));
+  // Only do the Cookie exchange in a secure context
+  if (
+    authTokenSyncPath &&
+    typeof isSecureContext === 'boolean' &&
+    isSecureContext
+  ) {
+    // Don't allow urls (XSS possibility), only paths on the same domain
+    const authTokenSyncUrl = new URL(authTokenSyncPath, location.origin);
+    if (location.origin === authTokenSyncUrl.origin) {
+      const mintCookie = mintCookieFactory(authTokenSyncUrl.toString());
+      beforeAuthStateChanged(auth, mintCookie, () =>
+        mintCookie(auth.currentUser)
+      );
+      onIdTokenChanged(auth, user => mintCookie(user));
+    }
   }
 
   const authEmulatorHost = getDefaultEmulatorHost('auth');
