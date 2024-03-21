@@ -26,6 +26,7 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import type { KeyObject } from 'crypto';
+import { importJwk, verifyJWTSignature } from "@firebase/util";
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -36,11 +37,9 @@ export class FirebaseServerAppImpl
   private _refCount: number;
 
   private _authIdTokenVerified: Promise<void>;
-  private _authIdTokenVerification: Promise<void> | undefined;
-  private _resolveAuthIdTokenVerified: (() => void) | undefined;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _rejectAuthIdTokenVerified: ((reason: any) => void) | undefined;
+  _authIdTokenVerification: Promise<void> | undefined;
+  _resolveAuthIdTokenVerified: (() => void) | undefined;
+  _rejectAuthIdTokenVerified: ((reason: unknown) => void) | undefined;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -149,19 +148,7 @@ export class FirebaseServerAppImpl
         if (!publicKey || head.alg !== 'RS256') {
           return reject();
         }
-        const validSignature =
-          typeof process !== 'undefined' && process.release?.name === 'node'
-            ? // eslint-disable-next-line @typescript-eslint/no-require-imports
-              require('crypto')
-                .createVerify('RSA-SHA256')
-                .end(`${rawHead}.${rawPayload}`)
-                .verify(publicKey, signature, 'base64url')
-            : await crypto.subtle.verify(
-                'RSASSA-PKCS1-v1_5',
-                publicKey as CryptoKey, // TODO don't coerce, put in a type-guard
-                base64ToUint8Array(signature),
-                stringToUint8Array(`${rawHead}.${rawPayload}`)
-              );
+        const validSignature = await verifyJWTSignature(`${rawHead}.${rawPayload}`, publicKey, signature);
         if (!validSignature) {
           return reject();
         }
@@ -247,21 +234,7 @@ async function _fetchPublicKeys(): Promise<Map<string, CryptoKey | KeyObject>> {
     kid: string;
     [key: string]: string;
   }>) {
-    const key =
-      typeof process !== 'undefined' && process.release?.name === 'node'
-        ? // eslint-disable-next-line @typescript-eslint/no-require-imports
-          require('crypto').createPublicKey({ key: jwk, format: 'jwk' })
-        : // @ts-expect-error
-          await crypto.subtle.importKey(
-            'jwk',
-            jwk,
-            {
-              name: 'RSASSA-PKCS1-v1_5',
-              hash: 'SHA-256'
-            },
-            false,
-            ['verify']
-          );
+    const key = await importJwk(jwk);
     publicKeys.set(jwk.kid, key);
   }
   return publicKeys;
@@ -273,17 +246,4 @@ function base64decode(base64Contents: string): string {
     .replace(/_/g, '/')
     .replace(/\s/g, '');
   return atob(base64Contents);
-}
-
-function base64ToUint8Array(base64Contents: string): Uint8Array {
-  return new Uint8Array(
-    base64decode(base64Contents)
-      .split('')
-      .map(c => c.charCodeAt(0))
-  );
-}
-
-function stringToUint8Array(contents: string): Uint8Array {
-  const encoded = btoa(unescape(encodeURIComponent(contents)));
-  return base64ToUint8Array(encoded);
 }
