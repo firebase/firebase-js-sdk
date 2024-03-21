@@ -199,7 +199,7 @@ describe('API tests', () => {
 
     it('creates FirebaseServerApp with options', async () => {
       if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        // FirebaseServerApp isn't supported for execution in browser environments.
         return;
       }
 
@@ -218,7 +218,7 @@ describe('API tests', () => {
 
     it('creates FirebaseServerApp with automaticDataCollectionEnabled', async () => {
       if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        // FirebaseServerApp isn't supported for execution in browser environments.
         return;
       }
 
@@ -239,7 +239,7 @@ describe('API tests', () => {
 
     it('creates FirebaseServerApp with releaseOnDeref', async () => {
       if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        // FirebaseServerApp isn't supported for execution in browser environments.
         return;
       }
 
@@ -258,7 +258,7 @@ describe('API tests', () => {
 
     it('creates FirebaseServerApp with FirebaseApp', async () => {
       if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser enviornments.
+        // FirebaseServerApp isn't supported for execution in browser environments.
         return;
       }
 
@@ -283,7 +283,7 @@ describe('API tests', () => {
 
   it('create similar FirebaseServerApps does not return the same object', async () => {
     if (isBrowser()) {
-      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      // FirebaseServerApp isn't supported for execution in browser environments.
       return;
     }
 
@@ -311,7 +311,7 @@ describe('API tests', () => {
 
   it('create FirebaseServerApps with varying deleteOnDeref, and they still return same object ', async () => {
     if (isBrowser()) {
-      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      // FirebaseServerApp isn't supported for execution in browser environments.
       return;
     }
 
@@ -338,7 +338,7 @@ describe('API tests', () => {
 
   it('create duplicate FirebaseServerApps returns the same object', async () => {
     if (isBrowser()) {
-      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      // FirebaseServerApp isn't supported for execution in browser environments.
       return;
     }
 
@@ -360,7 +360,7 @@ describe('API tests', () => {
 
   it('deleting FirebaseServerApps is ref counted', async () => {
     if (isBrowser()) {
-      // FirebaseServerApp isn't supported for execution in browser enviornments.
+      // FirebaseServerApp isn't supported for execution in browser environments.
       return;
     }
 

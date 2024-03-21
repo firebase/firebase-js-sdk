@@ -37,9 +37,9 @@ export class FirebaseAppImpl implements FirebaseApp {
    * Updating automaticDataCollectionEnabled on the App instance will not change its value in _config.
    */
   private readonly _config: Required<FirebaseAppSettings>;
-  protected _automaticDataCollectionEnabled: boolean;
+  private _automaticDataCollectionEnabled: boolean;
   protected _isDeleted = false;
-  protected readonly _container: ComponentContainer;
+  private readonly _container: ComponentContainer;
 
   constructor(
     options: FirebaseOptions,

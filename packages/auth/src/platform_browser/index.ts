@@ -89,9 +89,11 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     ]
   });
 
-  const authTokenSyncUrl = getExperimentalSetting('authTokenSyncURL');
-  if (authTokenSyncUrl) {
-    const mintCookie = mintCookieFactory(authTokenSyncUrl);
+  const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
+  // Don't allow urls (XSS possibility), only paths on the same domain
+  // (starting with a single '/')
+  if (authTokenSyncPath && authTokenSyncPath.match(/^\/[^\/].*/)) {
+    const mintCookie = mintCookieFactory(authTokenSyncPath);
     beforeAuthStateChanged(auth, mintCookie, () =>
       mintCookie(auth.currentUser)
     );

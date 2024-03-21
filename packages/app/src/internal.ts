@@ -30,6 +30,10 @@ import { FirebaseServerAppImpl } from './firebaseServerApp';
  * @internal
  */
 export const _apps = new Map<string, FirebaseApp>();
+
+/**
+ * @internal
+ */
 export const _serverApps = new Map<string, FirebaseServerApp>();
 
 /**

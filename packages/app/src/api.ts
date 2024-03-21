@@ -183,7 +183,7 @@ export function initializeApp(
 /**
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
  *
- * The FirebaseServerApp is similar to FirebaseApp, but is intended for execution in
+ * The `FirebaseServerApp` is similar to `FirebaseApp`, but is intended for execution in
  * server side rendering environments only. Initialization will fail if invoked from a
  * browser environment.
  *
@@ -198,7 +198,7 @@ export function initializeApp(
  * @example
  * ```javascript
  *
- * // Initialize a FirebaseServerApp.
+ * // Initialize an instance of `FirebaseServerApp`.
  * // Retrieve your own options values by adding a web app on
  * // https://console.firebase.google.com
  * initializeServerApp({
@@ -213,11 +213,11 @@ export function initializeApp(
  *   });
  * ```
  *
- * @param options - Firebase.AppOptions to configure the app's services, or a
- *   a FirebaseApp instance which contains the AppOptions within.
- * @param config - FirebaseServerApp configuration.
+ * @param options - `Firebase.AppOptions` to configure the app's services, or a
+ *   a `FirebaseApp` instance which contains the `AppOptions` within.
+ * @param config - `FirebaseServerApp` configuration.
  *
- * @returns The initialized FirebaseServerApp.
+ * @returns The initialized `FirebaseServerApp`.
  *
  * @public
  */
@@ -231,7 +231,7 @@ export function initializeServerApp(
   _serverAppConfig: FirebaseServerAppSettings
 ): FirebaseServerApp {
   if (isBrowser()) {
-    // FirebaseServerApps aren't designed to be run in browsers.
+    // FirebaseServerApp isn't designed to be run in browsers.
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }
 

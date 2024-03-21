@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseServerApp interface
-A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server enviornments.
+A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server environments.
 
 Do not call this constructor directly. Instead, use [initializeServerApp()](./app.md#initializeserverapp_30ab697) to create an app.
 
@@ -25,17 +25,17 @@ export interface FirebaseServerApp extends FirebaseApp
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [authIdTokenVerified](./app.firebaseserverapp.md#firebaseserverappauthidtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the local verification of the authIdToken provided to [initializeServerApp()](./app.md#initializeserverapp_30ab697) has completed.<!-- -->It is recommend that your application awaits this promise before invoking getAuth() if an authIdToken was provided in the FirebaseServerAppSettings.<!-- -->The returned Promise is completed immediately if the optional authIdToken parameter was omitted from FirebaseServerApp initialization. |
-|  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no getApp operation for FirebaseServerApps, so the name is not relevant for applications. However, it may be used internally, and is declared here so that FirebaseServerApp conforms to the FirebaseApp interface declaration. |
+|  [authIdTokenVerified](./app.firebaseserverapp.md#firebaseserverappauthidtokenverified) | () =&gt; Promise&lt;void&gt; | Checks to see if the local verification of the <code>authIdToken</code> provided to [initializeServerApp()](./app.md#initializeserverapp_30ab697) has completed.<!-- -->It is recommend that your application awaits this <code>Promise</code> before invoking <code>getAuth</code> if an <code>authIdToken</code> was provided in the <code>FirebaseServerAppSettings</code>.<!-- -->The returned <code>Promise</code> is completed immediately if the optional <code>authIdToken</code> parameter was omitted from <code>FirebaseServerApp</code> initialization. |
+|  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no <code>getApp()</code> operation for <code>FirebaseServerApp</code>, so the name is not relevant for applications. However, it may be used internally, and is declared here so that <code>FirebaseServerApp</code> conforms to the <code>FirebaseApp</code> interface. |
 |  [settings](./app.firebaseserverapp.md#firebaseserverappsettings) | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_30ab697)<!-- -->. |
 
 ## FirebaseServerApp.authIdTokenVerified
 
-Checks to see if the local verification of the authIdToken provided to [initializeServerApp()](./app.md#initializeserverapp_30ab697) has completed.
+Checks to see if the local verification of the `authIdToken` provided to [initializeServerApp()](./app.md#initializeserverapp_30ab697) has completed.
 
-It is recommend that your application awaits this promise before invoking getAuth() if an authIdToken was provided in the FirebaseServerAppSettings.
+It is recommend that your application awaits this `Promise` before invoking `getAuth` if an `authIdToken` was provided in the `FirebaseServerAppSettings`<!-- -->.
 
-The returned Promise is completed immediately if the optional authIdToken parameter was omitted from FirebaseServerApp initialization.
+The returned `Promise` is completed immediately if the optional `authIdToken` parameter was omitted from `FirebaseServerApp` initialization.
 
 <b>Signature:</b>
 
@@ -45,7 +45,7 @@ authIdTokenVerified: () => Promise<void>;
 
 ## FirebaseServerApp.name
 
-There is no getApp operation for FirebaseServerApps, so the name is not relevant for applications. However, it may be used internally, and is declared here so that FirebaseServerApp conforms to the FirebaseApp interface declaration.
+There is no `getApp()` operation for `FirebaseServerApp`<!-- -->, so the name is not relevant for applications. However, it may be used internally, and is declared here so that `FirebaseServerApp` conforms to the `FirebaseApp` interface.
 
 <b>Signature:</b>
 

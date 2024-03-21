@@ -23,21 +23,21 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [authIdToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsauthidtoken) | string | An optional Auth ID token used to resume a signed in user session from a client runtime environment.<!-- -->If provided, the FirebaseServerApp instance will work to validate the token even before Auth is initialized. The result of the validation can be queried via by the application by invoking . Awaiting the Promise returned by  is highly recommended if an authIdToken token is provided.<!-- -->Invoking getAuth() with a FirebaseServerApp configured with a validated authIdToken will cause an automatic attempt to sign in the user that the authIdToken represents. The token needs to have been recently minted for this operation to succeed, otherwise it will fail validation.<!-- -->If the token fails local verification, or if the Auth service has deemed it invalid when the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not sign in a user upon initalization.<!-- -->If a user is successfully signed-in, then the Auth instance's onAuthStateChanged callback will be invoked with the User as per standard Auth flows. However, users created via authIdTokens do not have a refresh token and any attempted refresh operation will fail. |
-|  [name](./app.firebaseserverappsettings.md#firebaseserverappsettingsname) | undefined | There is no get for FirebaseServerApps, so the name is not relevant. however it's always a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration. |
-|  [releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) | object | An optional object. If provided, the Firebase SDK will use a FinalizationRegistry object to monitor the Garbage Collection status of the provided object, and the Firebase SDK will release its refrence on the FirebaseServerApp instance when the provided object is garbage collected.<!-- -->The intent of this field is to help reduce memory overhead for long-running cloud functions. If provided, the customer's app running in a SSR pass need not worry about FirebaseServerApp cleanup, so long as the reference object is deleted (by falling out of SSR scope, for instance.)<!-- -->If an object is not provided then the application must clean up the FirebaseServerApp instance by invoking deleteApp.<!-- -->If the application provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of FinalizationRegistry (introduced in node v14.6.0, for instance), then the Firebase SDK will not be able to automatically clean up the FirebaseServerApp instance and an error will be thrown. |
+|  [authIdToken](./app.firebaseserverappsettings.md#firebaseserverappsettingsauthidtoken) | string | An optional Auth ID token used to resume a signed in user session from a client runtime environment.<!-- -->If provided, the <code>FirebaseServerApp</code> works to validate the token even before <code>Auth</code> is initialized. The result of the validation can be queried via . Awaiting the <code>Promise</code> returned by  is highly recommended if an <code>authIdToken</code> token is provided.<!-- -->Invoking <code>getAuth</code> with a <code>FirebaseServerApp</code> configured with a validated <code>authIdToken</code> causes an automatic attempt to sign in the user that the <code>authIdToken</code> represents. The token needs to have been recently minted for this operation to succeed.<!-- -->If the token fails local verification, or if the Auth service has failed to validate it when the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not sign in a user on initalization.<!-- -->If a user is successfully signed in, then the Auth instance's <code>onAuthStateChanged</code> callback is invoked with the <code>User</code> object as per standard Auth flows. However, <code>User</code> objects created via an <code>authIdToken</code> do not have a refresh token. Attempted <code>refreshToken</code> operations fail. |
+|  [name](./app.firebaseserverappsettings.md#firebaseserverappsettingsname) | undefined | There is no <code>getApp()</code> operation for <code>FirebaseServerApp</code>, so the name is not relevant for applications. However, it may be used internally, and is declared here so that <code>FirebaseServerApp</code> conforms to the <code>FirebaseApp</code> interface. |
+|  [releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) | object | An optional object. If provided, the Firebase SDK uses a <code>FinalizationRegistry</code> object to monitor the garbage collection status of the provided object. The Firebase SDK releases its reference on the <code>FirebaseServerApp</code> instance when the provided <code>releaseOnDeref</code> object is garbage collected.<!-- -->You can use this field to reduce memory management overhead for your application. If provided, an app running in a SSR pass does not need to perform <code>FirebaseServerApp</code> cleanup, so long as the reference object is deleted (by falling out of SSR scope, for instance.)<!-- -->If an object is not provided then the application must clean up the <code>FirebaseServerApp</code> instance by invoking <code>deleteApp</code>.<!-- -->If the application provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of <code>FinalizationRegistry</code> (introduced in node v14.6.0, for instance), then an error is thrown at <code>FirebaseServerApp</code> initialization. |
 
 ## FirebaseServerAppSettings.authIdToken
 
 An optional Auth ID token used to resume a signed in user session from a client runtime environment.
 
-If provided, the FirebaseServerApp instance will work to validate the token even before Auth is initialized. The result of the validation can be queried via by the application by invoking . Awaiting the Promise returned by  is highly recommended if an authIdToken token is provided.
+If provided, the `FirebaseServerApp` works to validate the token even before `Auth` is initialized. The result of the validation can be queried via . Awaiting the `Promise` returned by  is highly recommended if an `authIdToken` token is provided.
 
-Invoking getAuth() with a FirebaseServerApp configured with a validated authIdToken will cause an automatic attempt to sign in the user that the authIdToken represents. The token needs to have been recently minted for this operation to succeed, otherwise it will fail validation.
+Invoking `getAuth` with a `FirebaseServerApp` configured with a validated `authIdToken` causes an automatic attempt to sign in the user that the `authIdToken` represents. The token needs to have been recently minted for this operation to succeed.
 
-If the token fails local verification, or if the Auth service has deemed it invalid when the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not sign in a user upon initalization.
+If the token fails local verification, or if the Auth service has failed to validate it when the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not sign in a user on initalization.
 
-If a user is successfully signed-in, then the Auth instance's onAuthStateChanged callback will be invoked with the User as per standard Auth flows. However, users created via authIdTokens do not have a refresh token and any attempted refresh operation will fail.
+If a user is successfully signed in, then the Auth instance's `onAuthStateChanged` callback is invoked with the `User` object as per standard Auth flows. However, `User` objects created via an `authIdToken` do not have a refresh token. Attempted `refreshToken` operations fail.
 
 <b>Signature:</b>
 
@@ -47,7 +47,7 @@ authIdToken?: string;
 
 ## FirebaseServerAppSettings.name
 
-There is no get for FirebaseServerApps, so the name is not relevant. however it's always a blank string so that FirebaseServerApp conforms to the FirebaseApp interface declaration.
+There is no `getApp()` operation for `FirebaseServerApp`<!-- -->, so the name is not relevant for applications. However, it may be used internally, and is declared here so that `FirebaseServerApp` conforms to the `FirebaseApp` interface.
 
 <b>Signature:</b>
 
@@ -57,13 +57,13 @@ name?: undefined;
 
 ## FirebaseServerAppSettings.releaseOnDeref
 
-An optional object. If provided, the Firebase SDK will use a FinalizationRegistry object to monitor the Garbage Collection status of the provided object, and the Firebase SDK will release its refrence on the FirebaseServerApp instance when the provided object is garbage collected.
+An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry` object to monitor the garbage collection status of the provided object. The Firebase SDK releases its reference on the `FirebaseServerApp` instance when the provided `releaseOnDeref` object is garbage collected.
 
-The intent of this field is to help reduce memory overhead for long-running cloud functions. If provided, the customer's app running in a SSR pass need not worry about FirebaseServerApp cleanup, so long as the reference object is deleted (by falling out of SSR scope, for instance.)
+You can use this field to reduce memory management overhead for your application. If provided, an app running in a SSR pass does not need to perform `FirebaseServerApp` cleanup, so long as the reference object is deleted (by falling out of SSR scope, for instance.)
 
-If an object is not provided then the application must clean up the FirebaseServerApp instance by invoking deleteApp.
+If an object is not provided then the application must clean up the `FirebaseServerApp` instance by invoking `deleteApp`<!-- -->.
 
-If the application provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of FinalizationRegistry (introduced in node v14.6.0, for instance), then the Firebase SDK will not be able to automatically clean up the FirebaseServerApp instance and an error will be thrown.
+If the application provides an object in this parameter, but the application is executed in a JavaScript engine that predates the support of `FinalizationRegistry` (introduced in node v14.6.0, for instance), then an error is thrown at `FirebaseServerApp` initialization.
 
 <b>Signature:</b>
 

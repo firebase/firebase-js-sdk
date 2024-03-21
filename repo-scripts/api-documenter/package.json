@@ -5,7 +5,7 @@
   "repository": {
     "directory": "repo-scripts/documenter",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "license": "Apache-2.0",
   "scripts": {
@@ -13,7 +13,7 @@
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "bin": {
-    "api-documenter-fire": "./dist/start.js"
+    "api-documenter-fire": "dist/start.js"
   },
   "files": [
     "dist"

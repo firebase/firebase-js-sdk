@@ -42,12 +42,12 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.4.0",
-    "@firebase/app": "0.9.27"
+    "@firebase/app": "0.9.29"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

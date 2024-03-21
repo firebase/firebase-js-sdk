@@ -52,7 +52,7 @@ interface TestBundledQuery {
   limitType?: LimitType;
 }
 
-function bundleWithDocumentAndQuery(
+export function bundleWithDocumentAndQuery(
   testDoc: TestBundleDocument,
   testQuery?: TestBundledQuery
 ): string {

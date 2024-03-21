@@ -134,7 +134,7 @@ export function _removeServiceInstance<T extends Name>(app: FirebaseApp, name: T
 // @public
 export const SDK_VERSION: string;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const _serverApps: Map<string, FirebaseServerApp>;
 
 // @public

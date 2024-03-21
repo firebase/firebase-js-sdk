@@ -22,7 +22,8 @@ import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { OperationType } from '../../model/enums';
-
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 /**
  * Asynchronously signs in using a custom token.
  *
@@ -34,6 +35,9 @@ import { OperationType } from '../../model/enums';
  *
  * Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
  *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * @param auth - The {@link Auth} instance.
  * @param customToken - The custom token to sign in with.
  *
@@ -43,6 +47,11 @@ export async function signInWithCustomToken(
   auth: Auth,
   customToken: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const response: IdTokenResponse = await getIdTokenResponse(authInternal, {
     token: customToken,
