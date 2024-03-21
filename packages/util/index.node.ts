@@ -22,7 +22,7 @@ CONSTANTS.NODE_CLIENT = true;
 
 export * from './src/assert';
 export * from './src/crypt';
-export * from "./src/crypto.node";
+export * from './src/crypto.node';
 export * from './src/constants';
 export * from './src/deepCopy';
 export * from './src/defaults';

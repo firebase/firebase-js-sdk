@@ -17,7 +17,7 @@
 
 export * from './src/assert';
 export * from './src/crypt';
-export * from "./src/crypto";
+export * from './src/crypto';
 export * from './src/constants';
 export * from './src/deepCopy';
 export * from './src/defaults';

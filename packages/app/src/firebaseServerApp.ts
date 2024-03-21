@@ -26,7 +26,7 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import type { KeyObject } from 'crypto';
-import { importJwk, verifyJWTSignature } from "@firebase/util";
+import { importJwk, verifyJWTSignature } from '@firebase/util';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -137,10 +137,9 @@ export class FirebaseServerAppImpl
 
   async authIdTokenVerified(): Promise<void> {
     this.checkDestroyed();
-    const publicKeys = await getPublicKeys();
-    // TODO handle emulated credentials, extract into utility?
     this._authIdTokenVerification ||= new Promise<void>(
       async (resolve, reject) => {
+        const publicKeys = await getPublicKeys();
         const [rawHead, rawPayload, signature] =
           this._serverConfig.authIdToken!.split('.');
         const head = JSON.parse(base64decode(rawHead));
@@ -148,7 +147,11 @@ export class FirebaseServerAppImpl
         if (!publicKey || head.alg !== 'RS256') {
           return reject();
         }
-        const validSignature = await verifyJWTSignature(`${rawHead}.${rawPayload}`, publicKey, signature);
+        const validSignature = await verifyJWTSignature(
+          `${rawHead}.${rawPayload}`,
+          publicKey,
+          signature
+        );
         if (!validSignature) {
           return reject();
         }

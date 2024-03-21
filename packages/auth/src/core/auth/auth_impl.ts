@@ -19,7 +19,7 @@ import {
   _isFirebaseServerApp,
   _FirebaseService,
   FirebaseApp,
-  FirebaseServerApp,
+  FirebaseServerApp
 } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
@@ -231,7 +231,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         response,
         idToken
       );
-      if (_isFirebaseServerApp(this.app) && this.app._resolveAuthIdTokenVerified) {
+      if (
+        _isFirebaseServerApp(this.app) &&
+        this.app._resolveAuthIdTokenVerified
+      ) {
         this.app._resolveAuthIdTokenVerified();
       }
       await this.directlySetCurrentUser(user);
@@ -240,7 +243,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         'FirebaseServerApp could not login user with provided authIdToken: ',
         err
       );
-      if (_isFirebaseServerApp(this.app) && this.app._rejectAuthIdTokenVerified) {
+      if (
+        _isFirebaseServerApp(this.app) &&
+        this.app._rejectAuthIdTokenVerified
+      ) {
         this.app._rejectAuthIdTokenVerified(err);
       }
       await this.directlySetCurrentUser(null);
