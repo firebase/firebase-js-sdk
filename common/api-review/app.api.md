@@ -73,8 +73,14 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
+    // (undocumented)
+    _authIdTokenVerification: Promise<void> | undefined;
     authIdTokenVerified: () => Promise<void>;
     name: string;
+    // (undocumented)
+    _rejectAuthIdTokenVerified: ((reason: unknown) => void) | undefined;
+    // (undocumented)
+    _resolveAuthIdTokenVerified: (() => void) | undefined;
     readonly settings: FirebaseServerAppSettings;
 }
 

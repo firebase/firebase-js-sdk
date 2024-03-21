@@ -112,6 +112,15 @@ export interface FirebaseServerApp extends FirebaseApp {
    * ```
    */
   readonly settings: FirebaseServerAppSettings;
+
+  // @internal
+  _authIdTokenVerification: Promise<void> | undefined;
+
+  // @internal
+  _resolveAuthIdTokenVerified: (() => void) | undefined;
+
+  // @internal
+  _rejectAuthIdTokenVerified: ((reason: unknown) => void) | undefined;
 }
 
 /**

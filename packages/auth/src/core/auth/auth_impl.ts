@@ -18,7 +18,8 @@
 import {
   _isFirebaseServerApp,
   _FirebaseService,
-  FirebaseApp
+  FirebaseApp,
+  FirebaseServerApp
 } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
@@ -132,7 +133,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   settings: AuthSettings = { appVerificationDisabledForTesting: false };
 
   constructor(
-    public readonly app: FirebaseApp,
+    public readonly app: FirebaseApp | FirebaseServerApp,
     private readonly heartbeatServiceProvider: Provider<'heartbeat'>,
     private readonly appCheckServiceProvider: Provider<AppCheckInternalComponentName>,
     public readonly config: ConfigInternal
@@ -230,12 +231,24 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         response,
         idToken
       );
+      if (
+        _isFirebaseServerApp(this.app) &&
+        this.app._resolveAuthIdTokenVerified
+      ) {
+        this.app._resolveAuthIdTokenVerified();
+      }
       await this.directlySetCurrentUser(user);
     } catch (err) {
       console.warn(
         'FirebaseServerApp could not login user with provided authIdToken: ',
         err
       );
+      if (
+        _isFirebaseServerApp(this.app) &&
+        this.app._rejectAuthIdTokenVerified
+      ) {
+        this.app._rejectAuthIdTokenVerified(err);
+      }
       await this.directlySetCurrentUser(null);
     }
   }
@@ -244,6 +257,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
     if (_isFirebaseServerApp(this.app)) {
+      this.app._authIdTokenVerification ||= Promise.resolve();
       const idToken = this.app.settings.authIdToken;
       if (idToken) {
         // Start the auth operation in the next tick to allow a moment for the customer's app to

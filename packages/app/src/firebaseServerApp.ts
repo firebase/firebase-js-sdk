@@ -25,6 +25,8 @@ import { deleteApp } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
+import type { KeyObject } from 'crypto';
+import { importJwk, verifyJWTSignature } from '@firebase/util';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -33,6 +35,11 @@ export class FirebaseServerAppImpl
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object>;
   private _refCount: number;
+
+  private _authIdTokenVerified: Promise<void>;
+  _authIdTokenVerification: Promise<void> | undefined;
+  _resolveAuthIdTokenVerified: (() => void) | undefined;
+  _rejectAuthIdTokenVerified: ((reason: unknown) => void) | undefined;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -72,6 +79,19 @@ export class FirebaseServerAppImpl
 
     this._refCount = 0;
     this.incRefCount(this._serverConfig.releaseOnDeref);
+
+    if (serverConfig.authIdToken) {
+      this._authIdTokenVerified = new Promise((resolve, reject) => {
+        this._resolveAuthIdTokenVerified = resolve;
+        this._rejectAuthIdTokenVerified = reject;
+      });
+      this._authIdTokenVerified.finally(() => {
+        this._authIdTokenVerification ||= Promise.resolve();
+      });
+    } else {
+      this._authIdTokenVerified = Promise.resolve();
+      this._authIdTokenVerification = Promise.resolve();
+    }
 
     // Do not retain a hard reference to the dref object, otherwise the FinalizationRegisry
     // will never trigger.
@@ -115,10 +135,51 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  authIdTokenVerified(): Promise<void> {
+  async authIdTokenVerified(): Promise<void> {
     this.checkDestroyed();
-    // TODO
-    return Promise.resolve();
+    this._authIdTokenVerification ||= new Promise<void>(
+      async (resolve, reject) => {
+        const publicKeys = await getPublicKeys();
+        const [rawHead, rawPayload, signature] =
+          this._serverConfig.authIdToken!.split('.');
+        const head = JSON.parse(base64decode(rawHead));
+        const publicKey = publicKeys.get(head.kid);
+        if (!publicKey || head.alg !== 'RS256') {
+          return reject();
+        }
+        const validSignature = await verifyJWTSignature(
+          `${rawHead}.${rawPayload}`,
+          publicKey,
+          signature
+        );
+        if (!validSignature) {
+          return reject();
+        }
+        const payload = JSON.parse(base64decode(rawPayload));
+        const now = +new Date();
+        if (
+          +payload.exp * 1_000 <= now ||
+          +payload.iat * 1_000 > now ||
+          +payload.auth_time * 1_000 > now ||
+          payload.aud !== this._options.projectId ||
+          payload.iss !==
+            `https://securetoken.google.com/${this._options.projectId}` ||
+          typeof payload.sub !== 'string' ||
+          !payload.sub
+        ) {
+          return reject();
+        }
+        return resolve();
+      }
+    ).then(
+      () => {
+        this._resolveAuthIdTokenVerified?.();
+      },
+      reason => {
+        this._rejectAuthIdTokenVerified?.(reason);
+      }
+    );
+    return this._authIdTokenVerified;
   }
 
   /**
@@ -130,4 +191,62 @@ export class FirebaseServerAppImpl
       throw ERROR_FACTORY.create(AppError.SERVER_APP_DELETED);
     }
   }
+}
+
+let _pendingPublicKeys = _fetchPublicKeys();
+
+async function getPublicKeys(): Promise<Map<string, CryptoKey | KeyObject>> {
+  return _pendingPublicKeys;
+}
+
+function _scheduleFetchPublicKeys(ms: number, fallbackMs: number): void {
+  setTimeout(
+    () =>
+      _fetchPublicKeys().then(
+        keys => (_pendingPublicKeys = Promise.resolve(keys)),
+        err => {
+          console.error(err);
+          _scheduleFetchPublicKeys(fallbackMs, fallbackMs * 2);
+        }
+      ),
+    ms
+  );
+}
+
+async function _fetchPublicKeys(): Promise<Map<string, CryptoKey | KeyObject>> {
+  const response = await fetch(
+    'https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com'
+  );
+  if (!response.ok) {
+    return Promise.reject();
+  }
+  // TODO better guard the shape of the response
+  const certificates = await response.json().catch(() => undefined);
+  if (!certificates) {
+    return Promise.reject();
+  }
+  const responseAge = +(response.headers.get('Age') ?? 0);
+  const cacheControlHeader = response.headers.get('Cache-Control');
+  const maxAge = cacheControlHeader?.match(/max-age=(\d+)/)?.[1];
+  if (!maxAge) {
+    return Promise.reject();
+  }
+  _scheduleFetchPublicKeys((+maxAge - responseAge) * 1_000, 30_000);
+  const publicKeys = new Map<string, CryptoKey | KeyObject>();
+  for (const jwk of certificates.keys as Array<{
+    kid: string;
+    [key: string]: string;
+  }>) {
+    const key = await importJwk(jwk);
+    publicKeys.set(jwk.kid, key);
+  }
+  return publicKeys;
+}
+
+function base64decode(base64Contents: string): string {
+  base64Contents = base64Contents
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+    .replace(/\s/g, '');
+  return atob(base64Contents);
 }

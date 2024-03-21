@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { KeyObject } from 'crypto';
+
 // Warning: (ae-missing-release-tag) "areCookiesEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -249,6 +251,14 @@ export function getModularInstance<ExpService>(service: Compat<ExpService> | Exp
 // @public
 export function getUA(): string;
 
+// Warning: (ae-missing-release-tag) "importJwk" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function importJwk(jwk: {
+    [key: string]: string;
+    kid: string;
+}): Promise<CryptoKey | KeyObject>;
+
 // Warning: (ae-missing-release-tag) "isAdmin" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -493,6 +503,11 @@ export function validateIndexedDBOpenable(): Promise<boolean>;
 //
 // @public (undocumented)
 export function validateNamespace(fnName: string, namespace: string, optional: boolean): void;
+
+// Warning: (ae-missing-release-tag) "verifyJWTSignature" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function verifyJWTSignature(content: string, publicKey: CryptoKey | KeyObject, signature: string): Promise<boolean>;
 
 
 // (No @packageDocumentation comment for this package)
