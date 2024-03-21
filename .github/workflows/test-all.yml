@@ -161,9 +161,6 @@ jobs:
     name: (Firestore) Node.js and Browser (Chrome) Tests
     needs: build
     runs-on: ubuntu-latest
-    if: false
-    # Disable test for now since it's failing 100% of the time since
-    # https://github.com/firebase/firebase-js-sdk/pull/7453 and it needs to be investigated.
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable

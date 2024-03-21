@@ -1,5 +1,23 @@
 # firebase
 
+## 10.9.0
+
+### Minor Changes
+
+- [`ce88e71e7`](https://github.com/firebase/firebase-js-sdk/commit/ce88e71e738ac7bb2cd5d63e4e314e2de82f72ef) [#7982](https://github.com/firebase/firebase-js-sdk/pull/7982) - Enable snapshot listener option to retrieve data from local cache only.
+
+### Patch Changes
+
+- [`2b22838aa`](https://github.com/firebase/firebase-js-sdk/commit/2b22838aa2c7ccec480b26c9702bbb98a0778250) [#8059](https://github.com/firebase/firebase-js-sdk/pull/8059) - Fix glob pattern to work with Node 20 and its NPM version.
+
+- Updated dependencies [[`6d487d7de`](https://github.com/firebase/firebase-js-sdk/commit/6d487d7dee631498bed1aeccbb45d8f14ae911d1), [`ce88e71e7`](https://github.com/firebase/firebase-js-sdk/commit/ce88e71e738ac7bb2cd5d63e4e314e2de82f72ef), [`245dd26e1`](https://github.com/firebase/firebase-js-sdk/commit/245dd26e19b6c16aca7e1b7e597ed5784c2984ba)]:
+  - @firebase/auth@1.6.2
+  - @firebase/app@0.9.29
+  - @firebase/firestore@4.5.0
+  - @firebase/auth-compat@0.5.4
+  - @firebase/app-compat@0.2.29
+  - @firebase/firestore-compat@0.3.27
+
 ## 10.8.1
 
 ### Patch Changes

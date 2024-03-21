@@ -2937,7 +2937,7 @@ apiDescribe('Hanging query issue - #7652', persistence => {
   }
 });
 
-function verifyDocumentChange<T>(
+export function verifyDocumentChange<T>(
   change: DocumentChange<T>,
   id: string,
   oldIndex: number,

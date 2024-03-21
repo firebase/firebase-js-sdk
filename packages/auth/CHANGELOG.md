@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 1.6.2
+
+### Patch Changes
+
+- [`6d487d7de`](https://github.com/firebase/firebase-js-sdk/commit/6d487d7dee631498bed1aeccbb45d8f14ae911d1) [#8060](https://github.com/firebase/firebase-js-sdk/pull/8060) - Do not allow double slash at beginning of authTokenSyncURL. (follow-up fix to https://github.com/firebase/firebase-js-sdk/pull/8056)
+
+- [`245dd26e1`](https://github.com/firebase/firebase-js-sdk/commit/245dd26e19b6c16aca7e1b7e597ed5784c2984ba) [#8056](https://github.com/firebase/firebase-js-sdk/pull/8056) - Fix possible XSS vulnerability through **FIREBASE_DEFAULTS** settings.
+
 ## 1.6.1
 
 ### Patch Changes
