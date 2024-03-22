@@ -21,12 +21,11 @@ import {
   FirebaseServerAppSettings,
   FirebaseOptions
 } from './public-types';
-import { deleteApp } from './api';
+import { deleteApp, registerVersion } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { name as packageName, version} from '../package.json';
-import { registerVersion } from './api';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
