@@ -115,12 +115,6 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  authIdTokenVerified(): Promise<void> {
-    this.checkDestroyed();
-    // TODO
-    return Promise.resolve();
-  }
-
   /**
    * This function will throw an Error if the App has already been deleted -
    * use before performing API actions on the App.

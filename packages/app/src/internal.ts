@@ -170,7 +170,7 @@ export function _isFirebaseApp(
 export function _isFirebaseServerApp(
   obj: FirebaseApp | FirebaseServerApp
 ): obj is FirebaseServerApp {
-  return (obj as FirebaseServerApp).authIdTokenVerified !== undefined;
+  return (obj as FirebaseServerApp).settings !== undefined;
 }
 
 /**

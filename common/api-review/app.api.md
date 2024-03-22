@@ -73,7 +73,6 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    authIdTokenVerified: () => Promise<void>;
     name: string;
     readonly settings: FirebaseServerAppSettings;
 }

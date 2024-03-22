@@ -130,11 +130,9 @@ describe('FirebaseServerApp', () => {
       new ComponentContainer('test')
     );
 
-    expect(() => app.authIdTokenVerified).to.not.throw();
+    expect(() => app.settings).to.not.throw();
     (app as unknown as FirebaseServerAppImpl).isDeleted = true;
 
-    expect(() => app.authIdTokenVerified()).throws(
-      'Firebase Server App has been deleted'
-    );
+    expect(() => app.settings).throws('Firebase Server App has been deleted');
   });
 });
