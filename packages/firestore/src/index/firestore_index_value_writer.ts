@@ -15,8 +15,13 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api';
 import { DocumentKey } from '../model/document_key';
-import { normalizeByteString, normalizeNumber } from '../model/normalize';
+import {
+  normalizeByteString,
+  normalizeNumber,
+  normalizeTimestamp
+} from '../model/normalize';
 import { isMaxValue } from '../model/values';
 import { ArrayValue, MapValue, Value } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
@@ -93,14 +98,17 @@ export class FirestoreIndexValueWriter {
         }
       }
     } else if ('timestampValue' in indexValue) {
-      const timestamp = indexValue.timestampValue!;
+      let timestamp = indexValue.timestampValue!;
       this.writeValueTypeLabel(encoder, INDEX_TYPE_TIMESTAMP);
       if (typeof timestamp === 'string') {
-        encoder.writeString(timestamp);
-      } else {
-        encoder.writeString(`${timestamp.seconds || ''}`);
-        encoder.writeNumber(timestamp.nanos || 0);
+        const normalizedValue = normalizeTimestamp(timestamp);
+        timestamp = new Timestamp(
+          normalizedValue.seconds,
+          normalizedValue.nanos
+        );
       }
+      encoder.writeString(`${timestamp.seconds || ''}`);
+      encoder.writeNumber(timestamp.nanos || 0);
     } else if ('stringValue' in indexValue) {
       this.writeIndexString(indexValue.stringValue!, encoder);
       this.writeTruncationMarker(encoder);
