@@ -37,7 +37,6 @@ export const testConfig: {
       '@firebase/firestore-compat',
       'firebase-firestore-integration-test',
       'firebase-messaging-integration-test',
-      'firebase-namespace-integration-test',
       'firebase-compat-typings-test',
       '@firebase/rules-unit-testing',
       '@firebase/auth',
@@ -56,9 +55,6 @@ export const testConfig: {
   },
   'misc': {
     'onlyIncludePackages': ['@firebase/rules-unit-testing']
-  },
-  'firebase-integration': {
-    'alwaysIncludePackages': ['firebase-namespace-integration-test']
   },
   'auth': {
     'onlyIncludePackages': ['@firebase/auth', '@firebase/auth-compat']
