@@ -83,18 +83,6 @@ export interface FirebaseApp {
  */
 export interface FirebaseServerApp extends FirebaseApp {
   /**
-   * Checks to see if the local verification of the `authIdToken` provided to
-   * {@link (initializeServerApp:1) | initializeServerApp()} has completed.
-   *
-   * It is recommend that your application awaits this `Promise` before invoking `getAuth` if an
-   * `authIdToken` was provided in the `FirebaseServerAppSettings`.
-   *
-   * The returned `Promise` is completed immediately if the optional `authIdToken` parameter
-   * was omitted from `FirebaseServerApp` initialization.
-   */
-  authIdTokenVerified: () => Promise<void>;
-
-  /**
    * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
    * applications. However, it may be used internally, and is declared here so that
    * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
@@ -191,12 +179,6 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
   /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
-   *
-   * If provided, the `FirebaseServerApp` works to validate the token even before
-   * `Auth` is initialized. The result of the validation can be queried via
-   * {@link (FirebaseServerApp.authIdTokenVerified()}. Awaiting the `Promise` returned by
-   * {@link (FirebaseServerApp.authIdTokenVerified()} is highly recommended if an `authIdToken`
-   * token is provided.
    *
    * Invoking `getAuth` with a `FirebaseServerApp` configured with a validated `authIdToken`
    * causes an automatic attempt to sign in the user that the `authIdToken` represents. The token
