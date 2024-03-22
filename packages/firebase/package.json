@@ -215,6 +215,18 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
+    "./vertexai": {
+      "types": "./vertexai/dist/vertexai/index.d.ts",
+      "node": {
+        "require": "./vertexai/dist/index.cjs.js",
+        "import": "./vertexai/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./vertexai/dist/index.cjs.js",
+        "import": "./vertexai/dist/esm/index.esm.js"
+      },
+      "default": "./vertexai/dist/esm/index.esm.js"
+    },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
       "node": {
@@ -399,7 +411,8 @@
     "@firebase/analytics-compat": "0.2.7",
     "@firebase/app-check": "0.8.2",
     "@firebase/app-check-compat": "0.3.9",
-    "@firebase/util": "1.9.4"
+    "@firebase/util": "1.9.4",
+    "@firebase/vertexai": "0.0.1"
   },
   "devDependencies": {
     "rollup": "2.79.1",
@@ -431,7 +444,8 @@
     "remote-config",
     "messaging",
     "messaging/sw",
-    "database"
+    "database",
+    "vertexai"
   ],
   "typings": "empty.d.ts"
 }
