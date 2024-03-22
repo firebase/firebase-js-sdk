@@ -25,7 +25,7 @@ import { deleteApp, registerVersion } from './api';
 import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
-import { name as packageName, version} from '../package.json';
+import { name as packageName, version } from '../package.json';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
@@ -79,7 +79,7 @@ export class FirebaseServerAppImpl
     this._serverConfig.releaseOnDeref = undefined;
     serverConfig.releaseOnDeref = undefined;
 
-    registerVersion(packageName, version, "serverapp");
+    registerVersion(packageName, version, 'serverapp');
   }
 
   get refCount(): number {
