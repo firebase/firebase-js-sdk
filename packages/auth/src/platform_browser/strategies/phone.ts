@@ -31,7 +31,10 @@ import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { _assert } from '../../core/util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../../core/util/assert';
 import { AuthInternal } from '../../model/auth';
 import {
   linkWithCredential,
@@ -47,6 +50,7 @@ import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<UserCredential>;
@@ -82,7 +86,8 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * {@link RecaptchaVerifier} (like React Native), but you need to use a
  * third-party {@link ApplicationVerifier} implementation.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -104,6 +109,11 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const verificationId = await _verifyPhoneNumber(
     authInternal,
@@ -150,7 +160,8 @@ export async function linkWithPhoneNumber(
  * @remarks
  * Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or on any {@link User} signed in by
+ * {@link Auth} instances created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @param user - The user.
  * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
@@ -164,6 +175,11 @@ export async function reauthenticateWithPhoneNumber(
   appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   const userInternal = getModularInstance(user) as UserInternal;
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
+    );
+  }
   const verificationId = await _verifyPhoneNumber(
     userInternal.auth,
     phoneNumber,
@@ -259,7 +275,8 @@ export async function _verifyPhoneNumber(
  * Updates the user's phone number.
  *
  * @remarks
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or on any {@link User} signed in by
+ * {@link Auth} instances created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```
@@ -281,5 +298,11 @@ export async function updatePhoneNumber(
   user: User,
   credential: PhoneAuthCredential
 ): Promise<void> {
-  await _link(getModularInstance(user) as UserInternal, credential);
+  const userInternal = getModularInstance(user) as UserInternal;
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
+    );
+  }
+  await _link(userInternal, credential);
 }
