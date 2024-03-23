@@ -65,7 +65,8 @@ function getTestFiles(argv) {
       'src/**/*.test.ts',
       'test/helpers/**/*.test.ts',
       'test/integration/flows/anonymous.test.ts',
-      'test/integration/flows/email.test.ts'
+      'test/integration/flows/email.test.ts',
+      'test/integration/flows/firebaseserverapp.test.ts'
     ];
   }
 }

@@ -102,7 +102,7 @@ function mergeProviderData(
   return [...deduped, ...newData];
 }
 
-function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {
+export function extractProviderData(providers: ProviderUserInfo[]): UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
     return {
       providerId,
