@@ -60,7 +60,7 @@ export class Trace implements PerformanceTrace {
    * @param performanceController The performance controller running.
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
-   * @param traceMeasureName The name of the measure marker in user timing specification. This field
+   * @param perfMeasureEntry A PerformanceMeasure entry from the user timing specification. This field
    * is only set when the trace is built for logging when the user directly uses the user timing
    * api (performance.mark and performance.measure).
    */
@@ -68,19 +68,17 @@ export class Trace implements PerformanceTrace {
     readonly performanceController: PerformanceController,
     readonly name: string,
     readonly isAuto = false,
-    traceMeasureName?: string
+    perfMeasureEntry?: PerformanceMeasure
   ) {
     if (!this.isAuto) {
       this.traceStartMark = `${TRACE_START_MARK_PREFIX}-${this.randomId}-${this.name}`;
       this.traceStopMark = `${TRACE_STOP_MARK_PREFIX}-${this.randomId}-${this.name}`;
       this.traceMeasure =
-        traceMeasureName ||
+        perfMeasureEntry?.name ||
         `${TRACE_MEASURE_PREFIX}-${this.randomId}-${this.name}`;
 
-      if (traceMeasureName) {
-        // For the case of direct user timing traces, no start stop will happen. The measure object
-        // is already available.
-        this.calculateTraceMetrics();
+      if (perfMeasureEntry) {
+        this.calculateTraceMetricsFromMeasure(perfMeasureEntry);
       }
     }
   }
@@ -110,12 +108,14 @@ export class Trace implements PerformanceTrace {
     }
     this.state = TraceState.TERMINATED;
     this.api.mark(this.traceStopMark);
-    this.api.measure(
+    const measure = this.api.measure(
       this.traceMeasure,
       this.traceStartMark,
       this.traceStopMark
     );
-    this.calculateTraceMetrics();
+    if (measure) { 
+      this.calculateTraceMetricsFromMeasure(measure);
+    }
     logTrace(this);
   }
 
@@ -258,15 +258,11 @@ export class Trace implements PerformanceTrace {
    * Calculates and assigns the duration and start time of the trace using the measure performance
    * entry.
    */
-  private calculateTraceMetrics(): void {
-    const perfMeasureEntries = this.api.getEntriesByName(this.traceMeasure);
-    const perfMeasureEntry = perfMeasureEntries && perfMeasureEntries[0];
-    if (perfMeasureEntry) {
+  private calculateTraceMetricsFromMeasure(perfMeasureEntry: PerformanceMeasure): void {
       this.durationUs = Math.floor(perfMeasureEntry.duration * 1000);
       this.startTimeUs = Math.floor(
         (perfMeasureEntry.startTime + this.api.getTimeOrigin()) * 1000
       );
-    }
   }
 
   /**
@@ -345,13 +341,13 @@ export class Trace implements PerformanceTrace {
 
   static createUserTimingTrace(
     performanceController: PerformanceController,
-    measureName: string
+    measureEntry: PerformanceMeasure
   ): void {
     const trace = new Trace(
       performanceController,
-      measureName,
+      measureEntry.name,
       false,
-      measureName
+      measureEntry
     );
     logTrace(trace);
   }
