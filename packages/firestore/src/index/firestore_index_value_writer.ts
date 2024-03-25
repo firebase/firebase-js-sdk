@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api/timestamp';
 import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,
@@ -101,11 +100,7 @@ export class FirestoreIndexValueWriter {
       let timestamp = indexValue.timestampValue!;
       this.writeValueTypeLabel(encoder, INDEX_TYPE_TIMESTAMP);
       if (typeof timestamp === 'string') {
-        const normalizedValue = normalizeTimestamp(timestamp);
-        timestamp = new Timestamp(
-          normalizedValue.seconds,
-          normalizedValue.nanos
-        );
+        timestamp = normalizeTimestamp(timestamp);
       }
       encoder.writeString(`${timestamp.seconds || ''}`);
       encoder.writeNumber(timestamp.nanos || 0);
