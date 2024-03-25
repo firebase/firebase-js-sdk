@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '../api';
+import { Timestamp } from '../api/timestamp';
 import { DocumentKey } from '../model/document_key';
 import {
   normalizeByteString,
