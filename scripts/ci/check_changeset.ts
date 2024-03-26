@@ -46,7 +46,7 @@ const bumpRank: Record<string, number> = {
 
 /**
  * Get highest bump that isn't the main firebase package, return
-// numerical rank, bump text, package name.
+ * numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
   const firebasePkgJson = require(resolve(

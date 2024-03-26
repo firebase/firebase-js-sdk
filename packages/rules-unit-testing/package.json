@@ -47,7 +47,7 @@
   "repository": {
     "directory": "packages/rules-unit-testing",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "typings": "dist/index.d.ts",
   "bugs": {

@@ -29,7 +29,10 @@ import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _assert } from '../util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
@@ -39,6 +42,7 @@ import { OperationType } from '../../model/enums';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
  * Updates the password policy cached in the {@link Auth} instance if a policy is already
@@ -253,6 +257,9 @@ export async function verifyPasswordResetCode(
  *
  * User account creation can fail if the account already exists or the password is invalid.
  *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: The email address acts as a unique identifier for the user and enables an email-based
  * password reset. This function will create a new user account and set the initial user password.
  *
@@ -267,6 +274,11 @@ export async function createUserWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const request: SignUpRequest = {
     returnSecureToken: true,
@@ -308,9 +320,13 @@ export async function createUserWithEmailAndPassword(
  * When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled,
  * this method fails with "auth/invalid-credential" in case of an invalid email/password.
  *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: The user's password is NOT the password used to access the user's email account. The
  * email address serves as a unique identifier for the user, and the password is used to access
  * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
+ *
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The users email address.
@@ -323,6 +339,11 @@ export function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
