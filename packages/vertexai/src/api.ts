@@ -21,6 +21,13 @@ import { getModularInstance } from '@firebase/util';
 import { VERTEX_TYPE } from './constants';
 import { VertexService } from './factory';
 import { Vertex } from './public-types';
+import { ERROR_FACTORY, VertexError } from './errors';
+import { ModelParams, RequestOptions } from './types';
+import { GenerativeModel } from './models/generative-model';
+
+export { ChatSession } from './methods/chat-session';
+
+export { GenerativeModel };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -47,24 +54,13 @@ export function getVertex(app: FirebaseApp = getApp()): Vertex {
   return vertexProvider.initialize();
 }
 
-export function getGenerativeModel(vertex: Vertex): GenerativeModel {
-  return new GenerativeModel(vertex, {});
-}
-
-// Just a stub
-class GenerativeModel {
-  private _apiKey?: string;
-  constructor(vertex: Vertex, modelParams: {}) {
-    if (!vertex.app.options.apiKey) {
-      // throw error
-    } else {
-      this._apiKey = vertex.app.options.apiKey;
-      //TODO: remove when we use this
-      console.log(this._apiKey);
-    }
-    //TODO: do something with modelParams
-    console.log(modelParams);
+export function getGenerativeModel(
+  vertex: Vertex,
+  modelParams: ModelParams,
+  requestOptions?: RequestOptions
+): GenerativeModel {
+  if (!modelParams.model) {
+    throw ERROR_FACTORY.create(VertexError.NO_MODEL);
   }
+  return new GenerativeModel(vertex, modelParams, requestOptions);
 }
-
-//TODO: add all top-level exportable methods and classes

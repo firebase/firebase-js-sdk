@@ -1,0 +1,64 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "1. **Definition:**\nQuantum mechanics is a fundamental theory in physics that provides the foundation for understanding the physical properties of nature at the scale of atoms and subatomic particles. It is based on the idea that energy, momentum, angular momentum, and other quantities are quantized, meaning they can only exist in discrete values. \n\n2. **Key Concepts:**\n   - **Wave-particle Duality:** Particles such as electrons and photons can exhibit both wave-like and particle-like behaviors. \n   - **Uncertainty Principle:** Proposed by Werner Heisenberg, it states that the more precisely the position of a particle is known, the less precisely its momentum can be known, and vice versa. \n   - **Quantum Superposition:** A quantum system can exist in multiple states simultaneously until it is measured. \n   - **Quantum Entanglement:** Two or more particles can become linked in such a way that the state of one affects the state of the others, regardless of the distance between them. \n\n3. **Implications and Applications:**\n   - **Atomic and Molecular Structure:** Quantum mechanics explains the structure of atoms, molecules, and chemical bonds. \n   - **Quantum Computing:** It enables the development of quantum computers that can solve certain computational problems much faster than classical computers. \n   - **Quantum Cryptography:** Quantum principles are used to develop secure communication methods. \n   - **Quantum Field Theory (QFT):** A relativistic theory that describes interactions between particles in quantum mechanics. It underpins the Standard Model of Physics. \n   - **Quantum Gravity:** Attempts to reconcile quantum mechanics with general relativity to explain the behavior of matter and gravity at very small scales. \n\n4. **Learning Resources:**\n   - **Books:**\n      - \"Quantum Mechanics for Mathematicians\" by James Glimm and Arthur Jaffe \n      - \"Principles of Quantum Mechanics\" by R. Shankar\n      - \"Quantum Mechanics: Concepts and Applications\" by Nouredine Zettili \n   - **Online Courses and Tutorials:**\n      - [Quantum Mechanics I](https://www.example.com) on Coursera\n      - [MIT OpenCourseWare](https://www.example.com) Quantum Physics I course materials \n      - [Khan Academy](https://www.example.com) Quantum Physics video tutorials \n   - **Videos and Documentaries:**\n      - [Quantum Mechanics - Crash Course Physics](https://www.example.com)\n      - [Quantum Mechanics: The Strangest Theory](https://www.example.com)\n      - [BBC: The Quantum World with Jim Al-Khalili](https://www.example.com)\n      - [NOVA: The Fabric of the Cosmos](https://www.example.com)"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "safetyRatings": [
+        {
+          "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          "probability": "NEGLIGIBLE"
+        },
+        {
+          "category": "HARM_CATEGORY_HATE_SPEECH",
+          "probability": "NEGLIGIBLE"
+        },
+        {
+          "category": "HARM_CATEGORY_HARASSMENT",
+          "probability": "NEGLIGIBLE"
+        },
+        {
+          "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+          "probability": "NEGLIGIBLE"
+        }
+      ],
+      "citationMetadata": {
+        "citationSources": [
+          {
+            "startIndex": 574,
+            "endIndex": 705,
+            "uri": "https://www.example.com",
+            "license": ""
+          }
+        ]
+      }
+    }
+  ],
+  "promptFeedback": {
+    "safetyRatings": [
+      {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "probability": "NEGLIGIBLE"
+      },
+      {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "probability": "NEGLIGIBLE"
+      },
+      {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "probability": "NEGLIGIBLE"
+      },
+      {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "probability": "NEGLIGIBLE"
+      }
+    ]
+  }
+}

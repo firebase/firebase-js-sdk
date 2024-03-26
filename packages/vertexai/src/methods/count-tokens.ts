@@ -15,22 +15,25 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import {
+  CountTokensRequest,
+  CountTokensResponse,
+  RequestOptions
+} from '../types';
+import { RequestUrl, Task, makeRequest } from '../requests/request';
+import { ApiSettings } from '../types/internal';
 
-export * from './types';
-
-/**
- * An instance of Firebase Vertex.
- * @public
- */
-export interface Vertex {
-  /**
-   * The {@link @firebase/app#FirebaseApp} this {@link Vertex} instance is associated with.
-   */
-  app: FirebaseApp;
-  region: string;
-}
-
-export interface VertexOptions {
-  region?: string;
+export async function countTokens(
+  apiSettings: ApiSettings,
+  model: string,
+  params: CountTokensRequest,
+  requestOptions?: RequestOptions
+): Promise<CountTokensResponse> {
+  const url = new RequestUrl(model, Task.COUNT_TOKENS, apiSettings, false, {});
+  const response = await makeRequest(
+    url,
+    JSON.stringify({ ...params, model }),
+    requestOptions
+  );
+  return response.json();
 }
