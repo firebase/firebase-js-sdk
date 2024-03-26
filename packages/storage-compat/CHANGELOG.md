@@ -1,5 +1,17 @@
 # @firebase/storage-compat
 
+## 0.3.6
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/storage-types@0.8.1
+  - @firebase/component@0.6.6
+  - @firebase/storage@0.12.3
+  - @firebase/util@1.9.5
+
 ## 0.3.5
 
 ### Patch Changes

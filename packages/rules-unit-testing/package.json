@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
