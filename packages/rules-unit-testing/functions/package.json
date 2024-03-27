@@ -8,7 +8,7 @@
   },
   "private": true,
   "dependencies": {
-    "firebase-admin": "11.10.1",
+    "firebase-admin": "11.11.1",
     "firebase-functions": "3.24.1"
   },
   "engines": {
