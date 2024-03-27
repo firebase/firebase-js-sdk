@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Deferred } from '@firebase/util';
+
 /**
  * @fileoverview Provides a method for running a function with exponential
  * backoff.
@@ -22,6 +24,95 @@
 type id = (p1: boolean) => void;
 
 export { id };
+
+type RequestOperation<T> = () => Promise<T>;
+
+enum CancelState {
+  RUNNING,
+  CANCELED,
+  STOPPED
+}
+
+export class ExponentialBackoff<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  retryTimeoutId?: any;
+  // Max time allows for the operation, including retries.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  globalTimeoutId?: any;
+  cancelState = CancelState.RUNNING;
+  private backoffDeferred = new Deferred<T>();
+  private waitTimeInS = 1;
+  private waitTimeInMS = 1;
+  private currentOperation?: Promise<T>;
+  constructor(
+    private operation: RequestOperation<T>,
+    private timeout: number
+  ) {}
+  isCanceled(): boolean {
+    return this.cancelState === CancelState.CANCELED;
+  }
+  getPromise(): Promise<T> {
+    return this.backoffDeferred.promise;
+  }
+  startGlobalTimeout(): void {
+    this.globalTimeoutId = setTimeout(() => {
+      this.clearRetryTimeout();
+      if (this.cancelState === CancelState.RUNNING) {
+        this.backoffDeferred.reject({ wasCanceled: false, connection: null });
+        this.cancelState = CancelState.STOPPED;
+      }
+    }, this.timeout);
+  }
+  clearGlobalTimeout(): void {
+    clearTimeout(this.globalTimeoutId);
+  }
+  clearRetryTimeout(): void {
+    clearTimeout(this.retryTimeoutId);
+  }
+  // Is there a chance that we have two operations going on at the same time?
+  runOperation(): void {
+    this.currentOperation = this.operation();
+    this.currentOperation
+      .then(res => {
+        if (this.cancelState === CancelState.RUNNING) {
+          this.clearGlobalTimeout();
+          this.backoffDeferred.resolve(res);
+          this.cancelState = CancelState.STOPPED;
+        }
+      })
+      .catch(errInfo => {
+        if (errInfo.retry) {
+          if (this.waitTimeInS < 64) {
+            this.waitTimeInS *= 2;
+          }
+          this.waitTimeInMS = (this.waitTimeInS + Math.random()) * 1000;
+          this.delayOperation();
+        } else {
+          this.clearGlobalTimeout();
+          this.backoffDeferred.reject(errInfo);
+        }
+      });
+  }
+  delayOperation(): void {
+    this.retryTimeoutId = setTimeout(() => {
+      this.runOperation();
+      this.retryTimeoutId = null;
+    }, this.waitTimeInMS);
+  }
+  start(): void {
+    this.startGlobalTimeout();
+    this.runOperation();
+    this.cancelState = CancelState.RUNNING;
+  }
+  stop(): void {
+    this.clearGlobalTimeout();
+    this.clearRetryTimeout();
+    if (this.cancelState === CancelState.RUNNING) {
+      this.backoffDeferred.reject({ wasCanceled: true, connection: null });
+      this.cancelState = CancelState.STOPPED;
+    }
+  }
+}
 
 /**
  * Accepts a callback for an action to perform (`doRequest`),
@@ -81,22 +172,25 @@ export function start(
     }
   }
 
+  // To be called whenever the `doRequest` is complete. Then calls the backoffComplete cb when we no longer need to backoff. AKA action is complete.
   function responseHandler(success: boolean, ...args: any[]): void {
+    // Check if the callback has already been triggered, if so, then clear the global timeout.
+    // Note: When would this happen?
     if (triggeredCallback) {
       clearGlobalTimeout();
       return;
     }
-    if (success) {
-      clearGlobalTimeout();
-      triggerCallback.call(null, success, ...args);
-      return;
-    }
     const mustStop = canceled() || hitTimeout;
-    if (mustStop) {
+    // If the action was already canceled or we hit the global timeout, or the operation was successful, we need to run the callback.
+    // What if the action was successful and we hit the timeout?
+    // For example, if the response comes back after the global timeout, and the response was successful, we'd get a proper callback response,
+    // but no error.
+    if (success || mustStop) {
       clearGlobalTimeout();
       triggerCallback.call(null, success, ...args);
       return;
     }
+
     if (waitSeconds < 64) {
       /* TODO(andysoto): don't back off so quickly if we know we're offline. */
       waitSeconds *= 2;
@@ -129,6 +223,7 @@ export function start(
       callWithDelay(0);
     } else {
       if (!wasTimeout) {
+        // Canceled because of an external stop.
         cancelState = 1;
       }
     }
