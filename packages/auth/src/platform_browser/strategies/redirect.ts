@@ -25,7 +25,10 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
-import { _assertInstanceOf } from '../../core/util/assert';
+import {
+  _assertInstanceOf,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
@@ -36,6 +39,7 @@ import {
 } from '../../core/strategies/redirect';
 import { FederatedAuthProvider } from '../../core/providers/federated';
 import { getModularInstance } from '@firebase/util';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
@@ -45,7 +49,8 @@ import { getModularInstance } from '@firebase/util';
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link signInWithRedirect}.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -93,6 +98,11 @@ export async function _signInWithRedirect(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
   // Wait for auth initialization to complete, this will process pending redirects and clear the
@@ -116,7 +126,8 @@ export async function _signInWithRedirect(
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link reauthenticateWithRedirect}.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -161,6 +172,11 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
+    );
+  }
   // Wait for auth initialization to complete, this will process pending redirects and clear the
   // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
   // redirect and creating a PENDING_REDIRECT_KEY entry.
@@ -185,7 +201,8 @@ export async function _reauthenticateWithRedirect(
  * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
  * | best practices} when using {@link linkWithRedirect}.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -247,7 +264,8 @@ export async function _linkWithRedirect(
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
  * error. If no redirect operation was called, returns `null`.
  *
- * This method does not work in a Node.js environment.
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -293,6 +311,11 @@ export async function _getRedirectResult(
   resolverExtern?: PopupRedirectResolver,
   bypassAuthState = false
 ): Promise<UserCredential | null> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);
   const action = new RedirectAction(authInternal, resolver, bypassAuthState);
