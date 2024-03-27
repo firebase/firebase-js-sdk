@@ -141,7 +141,7 @@
     "prettier": "2.8.7",
     "protractor": "5.4.2",
     "request": "2.88.2",
-    "semver": "7.3.8",
+    "semver": "7.5.2",
     "simple-git": "3.19.1",
     "sinon": "9.2.4",
     "sinon-chai": "3.7.0",
