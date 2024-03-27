@@ -407,13 +407,13 @@
     "@rollup/plugin-node-resolve": "13.3.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-terser": "7.0.2",
-    "rollup-plugin-typescript2": "0.31.2",
+    "rollup-plugin-typescript2": "0.36.0",
     "rollup-plugin-uglify": "6.0.4",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "3.0.0",
     "gulp-replace": "1.1.4",
     "typescript": "4.2.2",
-    "rollup-plugin-license": "3.0.1"
+    "rollup-plugin-license": "3.3.1"
   },
   "components": [
     "analytics",

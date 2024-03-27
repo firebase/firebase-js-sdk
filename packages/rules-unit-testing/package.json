@@ -39,7 +39,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "rollup": "2.79.1",
-    "rollup-plugin-typescript2": "0.31.2"
+    "rollup-plugin-typescript2": "0.36.0"
   },
   "peerDependencies": {
     "firebase": "^10.0.0"
@@ -54,7 +54,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "dependencies": {
-    "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.4"
+    "node-fetch": "2.7.0",
+    "@types/node-fetch": "2.6.11"
   }
 }
