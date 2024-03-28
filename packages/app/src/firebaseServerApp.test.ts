@@ -153,6 +153,6 @@ describe('FirebaseServerApp', () => {
       new ComponentContainer('test')
     );
 
-    expect(JSON.stringify(app)).to.eql("undefined");
+    expect(JSON.stringify(app)).to.eql(undefined);
   });
 });
