@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Enable queries with range & inequality filters on multiple field.
+Enable queries with range & inequality filters on multiple fields.
