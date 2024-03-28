@@ -70,6 +70,10 @@ import {
   ChangeType,
   DocumentViewChange
 } from '../../../src/core/view_snapshot';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from '../../../src/local/indexeddb_lru_delegate_impl';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -1009,12 +1013,24 @@ abstract class TestRunner {
         expect(this.started).to.equal(!expectedState.isShutdown);
       }
       if ('indexes' in expectedState) {
+        if (!(this.localStore.indexManager instanceof IndexedDbIndexManager)) {
+          throw new Error(
+            'localStore.indexManager should be ' +
+              'an instance of IndexedDbIndexManager'
+          );
+        }
+        indexedDbIndexManagerInstallFieldIndexPlugin(
+          this.localStore.indexManager
+        );
+
         const fieldIndexes: FieldIndex[] =
           await this.persistence.runTransaction(
             'getFieldIndexes ',
             'readonly',
             transaction =>
-              this.localStore.indexManager.getFieldIndexes(transaction)
+              this.localStore.indexManager.fieldIndexPlugin!.getFieldIndexes(
+                transaction
+              )
           );
 
         assert.deepEqualExcluding(

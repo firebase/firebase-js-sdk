@@ -57,6 +57,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
+import { logDebug } from '../util/log';
 
 import { DatabaseInfo } from './database_info';
 import { EventManager, newEventManager } from './event_manager';
@@ -90,6 +91,7 @@ export interface ComponentConfiguration {
  * cache. Implementations override `initialize()` to provide all components.
  */
 export interface OfflineComponentProvider {
+  asyncQueue: AsyncQueue;
   persistence: Persistence;
   sharedClientState: SharedClientState;
   localStore: LocalStore;
@@ -109,16 +111,23 @@ export interface OfflineComponentProvider {
 export class MemoryOfflineComponentProvider
   implements OfflineComponentProvider
 {
+  asyncQueue!: AsyncQueue;
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   gcScheduler!: Scheduler | null;
-  indexBackfillerScheduler!: Scheduler | null;
+  indexBackfillerScheduler: Scheduler | null = null;
   synchronizeTabs = false;
 
   serializer!: JsonProtoSerializer;
 
+  get schedulers(): Scheduler[] {
+    const schedulers = [this.gcScheduler, this.indexBackfillerScheduler];
+    return schedulers.filter(scheduler => !!scheduler) as Scheduler[];
+  }
+
   async initialize(cfg: ComponentConfiguration): Promise<void> {
+    this.asyncQueue = cfg.asyncQueue;
     this.serializer = newSerializer(cfg.databaseInfo.databaseId);
     this.sharedClientState = this.createSharedClientState(cfg);
     this.persistence = this.createPersistence(cfg);
@@ -128,20 +137,9 @@ export class MemoryOfflineComponentProvider
       cfg,
       this.localStore
     );
-    this.indexBackfillerScheduler = this.createIndexBackfillerScheduler(
-      cfg,
-      this.localStore
-    );
   }
 
   createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration,
-    localStore: LocalStore
-  ): Scheduler | null {
-    return null;
-  }
-
-  createIndexBackfillerScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore
   ): Scheduler | null {
@@ -166,8 +164,9 @@ export class MemoryOfflineComponentProvider
   }
 
   async terminate(): Promise<void> {
-    this.gcScheduler?.stop();
-    this.indexBackfillerScheduler?.stop();
+    for (const scheduler of this.schedulers) {
+      scheduler.stop();
+    }
     this.sharedClientState.shutdown();
     await this.persistence.shutdown();
   }
@@ -215,6 +214,8 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   indexBackfillerScheduler!: Scheduler | null;
   synchronizeTabs = false;
 
+  private primaryStateListenerNotified = false;
+
   constructor(
     protected readonly onlineComponentProvider: OnlineComponentProvider,
     protected readonly cacheSizeBytes: number | undefined,
@@ -237,17 +238,28 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(() => {
-      if (this.gcScheduler && !this.gcScheduler.started) {
-        this.gcScheduler.start();
-      }
-      if (
-        this.indexBackfillerScheduler &&
-        !this.indexBackfillerScheduler.started
-      ) {
-        this.indexBackfillerScheduler.start();
-      }
+      this.primaryStateListenerNotified = true;
+      this.startSchedulers();
       return Promise.resolve();
     });
+  }
+
+  private startSchedulers(): void {
+    if (!this.primaryStateListenerNotified) {
+      return;
+    }
+
+    for (const scheduler of this.schedulers) {
+      if (!scheduler.started) {
+        scheduler.start();
+      }
+    }
+  }
+
+  installIndexBackfillerScheduler(scheduler: IndexBackfillerScheduler): void {
+    hardAssert(!this.indexBackfillerScheduler);
+    this.indexBackfillerScheduler = scheduler;
+    this.startSchedulers();
   }
 
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
@@ -266,14 +278,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     const garbageCollector =
       this.persistence.referenceDelegate.garbageCollector;
     return new LruScheduler(garbageCollector, cfg.asyncQueue, localStore);
-  }
-
-  createIndexBackfillerScheduler(
-    cfg: ComponentConfiguration,
-    localStore: LocalStore
-  ): Scheduler | null {
-    const indexBackfiller = new IndexBackfiller(localStore, this.persistence);
-    return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {
@@ -305,6 +309,30 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   }
 }
 
+export function indexedDbOfflineComponentProviderInstallFieldIndexPlugin(
+  componentProvider: IndexedDbOfflineComponentProvider
+): void {
+  if (componentProvider.indexBackfillerScheduler) {
+    return;
+  }
+
+  logDebug(
+    'Installing IndexBackfillerScheduler into OfflineComponentProvider ' +
+      'to support persistent cache indexing.'
+  );
+
+  const indexBackfiller = new IndexBackfiller(
+    componentProvider.localStore,
+    componentProvider.persistence
+  );
+  const scheduler = new IndexBackfillerScheduler(
+    componentProvider.asyncQueue,
+    indexBackfiller
+  );
+
+  componentProvider.installIndexBackfillerScheduler(scheduler);
+}
+
 /**
  * Provides all components needed for Firestore with multi-tab IndexedDB
  * persistence.
@@ -315,6 +343,8 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
  */
 export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentProvider {
   synchronizeTabs = true;
+
+  private isPrimary: boolean | null = null;
 
   constructor(
     protected readonly onlineComponentProvider: OnlineComponentProvider,
@@ -346,25 +376,31 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
+      this.isPrimary = isPrimary;
+
       await syncEngineApplyPrimaryState(
         this.onlineComponentProvider.syncEngine,
         isPrimary
       );
-      if (this.gcScheduler) {
-        if (isPrimary && !this.gcScheduler.started) {
-          this.gcScheduler.start();
-        } else if (!isPrimary) {
-          this.gcScheduler.stop();
-        }
-      }
-      if (this.indexBackfillerScheduler) {
-        if (isPrimary && !this.indexBackfillerScheduler.started) {
-          this.indexBackfillerScheduler.start();
-        } else if (!isPrimary) {
-          this.indexBackfillerScheduler.stop();
-        }
-      }
+
+      this.startOrStopSchedulers();
     });
+  }
+
+  private startOrStopSchedulers(): void {
+    for (const scheduler of this.schedulers) {
+      if (this.isPrimary === true && !scheduler.started) {
+        scheduler.start();
+      } else if (this.isPrimary === false) {
+        scheduler.stop();
+      }
+    }
+  }
+
+  installIndexBackfillerScheduler(scheduler: IndexBackfillerScheduler): void {
+    hardAssert(!this.indexBackfillerScheduler);
+    this.indexBackfillerScheduler = scheduler;
+    this.startOrStopSchedulers();
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {

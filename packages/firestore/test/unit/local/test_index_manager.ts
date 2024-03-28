@@ -17,6 +17,7 @@
 
 import { Target } from '../../../src/core/target';
 import { IndexManager, IndexType } from '../../../src/local/index_manager';
+import { deleteAllFieldIndexes } from '../../../src/local/indexeddb_index_manager';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentMap } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -32,7 +33,6 @@ export class TestIndexManager {
     public persistence: Persistence,
     public indexManager: IndexManager
   ) {}
-
   addToCollectionParentIndex(collectionPath: ResourcePath): Promise<void> {
     return this.persistence.runTransaction(
       'addToCollectionParentIndex',
@@ -51,7 +51,7 @@ export class TestIndexManager {
 
   addFieldIndex(index: FieldIndex): Promise<void> {
     return this.persistence.runTransaction('addFieldIndex', 'readwrite', txn =>
-      this.indexManager.addFieldIndex(txn, index)
+      this.indexManager.fieldIndexPlugin!.addFieldIndex(txn, index)
     );
   }
 
@@ -59,7 +59,7 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'deleteFieldIndex',
       'readwrite',
-      txn => this.indexManager.deleteFieldIndex(txn, index)
+      txn => this.indexManager.fieldIndexPlugin!.deleteFieldIndex(txn, index)
     );
   }
 
@@ -67,7 +67,8 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'createTargetIndexes',
       'readwrite',
-      txn => this.indexManager.createTargetIndexes(txn, target)
+      txn =>
+        this.indexManager.fieldIndexPlugin!.createTargetIndexes(txn, target)
     );
   }
 
@@ -75,21 +76,24 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'deleteAllFieldIndexes',
       'readwrite',
-      txn => this.indexManager.deleteAllFieldIndexes(txn)
+      txn => deleteAllFieldIndexes(txn)
     );
   }
 
   getFieldIndexes(collectionGroup?: string): Promise<FieldIndex[]> {
     return this.persistence.runTransaction('getFieldIndexes', 'readonly', txn =>
       collectionGroup
-        ? this.indexManager.getFieldIndexes(txn, collectionGroup)
-        : this.indexManager.getFieldIndexes(txn)
+        ? this.indexManager.fieldIndexPlugin!.getFieldIndexes(
+            txn,
+            collectionGroup
+          )
+        : this.indexManager.fieldIndexPlugin!.getFieldIndexes(txn)
     );
   }
 
   getIndexType(target: Target): Promise<IndexType> {
     return this.persistence.runTransaction('getIndexType', 'readonly', txn =>
-      this.indexManager.getIndexType(txn, target)
+      this.indexManager.fieldIndexPlugin!.getIndexType(txn, target)
     );
   }
 
@@ -97,7 +101,11 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'getDocumentsMatchingTarget',
       'readonly',
-      txn => this.indexManager.getDocumentsMatchingTarget(txn, target)
+      txn =>
+        this.indexManager.fieldIndexPlugin!.getDocumentsMatchingTarget(
+          txn,
+          target
+        )
     );
   }
 
@@ -105,7 +113,8 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'getNextCollectionGroupToUpdate',
       'readonly',
-      txn => this.indexManager.getNextCollectionGroupToUpdate(txn)
+      txn =>
+        this.indexManager.fieldIndexPlugin!.getNextCollectionGroupToUpdate(txn)
     );
   }
 
@@ -117,7 +126,11 @@ export class TestIndexManager {
       'updateCollectionGroup',
       'readwrite-primary',
       txn =>
-        this.indexManager.updateCollectionGroup(txn, collectionGroup, offset)
+        this.indexManager.fieldIndexPlugin!.updateCollectionGroup(
+          txn,
+          collectionGroup,
+          offset
+        )
     );
   }
 
@@ -125,7 +138,8 @@ export class TestIndexManager {
     return this.persistence.runTransaction(
       'updateIndexEntries',
       'readwrite-primary',
-      txn => this.indexManager.updateIndexEntries(txn, documents)
+      txn =>
+        this.indexManager.fieldIndexPlugin!.updateIndexEntries(txn, documents)
     );
   }
 }

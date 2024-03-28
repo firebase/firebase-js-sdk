@@ -22,7 +22,10 @@ import { Query, queryToTarget } from '../../../src/core/query';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import { newLocalStore } from '../../../src/local/local_store_impl';
+import {
+  localStoreInstallFieldIndexPlugins,
+  newLocalStore
+} from '../../../src/local/local_store_impl';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
@@ -70,9 +73,7 @@ function genericIndexBackfillerTests(
       }
     });
     persistence = await newPersistence(queue);
-    const indexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
-    remoteDocumentCache = persistence.getRemoteDocumentCache();
-    remoteDocumentCache.setIndexManager(indexManager);
+
     const queryEngine = new CountingQueryEngine();
     const localStore: LocalStore = newLocalStore(
       persistence,
@@ -80,9 +81,16 @@ function genericIndexBackfillerTests(
       User.UNAUTHENTICATED,
       JSON_SERIALIZER
     );
+    localStoreInstallFieldIndexPlugins(localStore);
+
+    remoteDocumentCache = persistence.getRemoteDocumentCache();
+    remoteDocumentCache.setIndexManager(localStore.indexManager);
     backfiller = new IndexBackfiller(localStore, persistence);
 
-    testIndexManager = new TestIndexManager(persistence, indexManager);
+    testIndexManager = new TestIndexManager(
+      persistence,
+      localStore.indexManager
+    );
     overlayCache = new TestDocumentOverlayCache(
       persistence,
       persistence.getDocumentOverlayCache(User.UNAUTHENTICATED)
