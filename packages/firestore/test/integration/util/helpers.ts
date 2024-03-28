@@ -254,6 +254,51 @@ export function withTestDb(
   });
 }
 
+export function withEnsuredEagerGcTestDb(
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  const newSettings = { ...DEFAULT_SETTINGS };
+  newSettings.localCache = memoryLocalCache({
+    garbageCollector: memoryEagerGarbageCollector()
+  });
+  return withTestDbsSettings(
+    false,
+    DEFAULT_PROJECT_ID,
+    newSettings,
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
+export function withEnsuredLruGcTestDb(
+  persistence: boolean,
+  fn: (db: Firestore) => Promise<void>
+): Promise<void> {
+  const newSettings = { ...DEFAULT_SETTINGS };
+  if (persistence) {
+    newSettings.localCache = persistentLocalCache({
+      cacheSizeBytes: 1 * 1024 * 1024
+    });
+  } else {
+    newSettings.localCache = memoryLocalCache({
+      garbageCollector: memoryLruGarbageCollector({
+        cacheSizeBytes: 1 * 1024 * 1024
+      })
+    });
+  }
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    newSettings,
+    1,
+    async ([db]) => {
+      return fn(db);
+    }
+  );
+}
+
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,

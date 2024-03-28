@@ -64,6 +64,7 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  LruGcMemoryOfflineComponentProvider,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -339,7 +340,7 @@ async function ensureOfflineComponents(
       logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
       await setOfflineComponentProvider(
         client,
-        new MemoryOfflineComponentProvider()
+        new LruGcMemoryOfflineComponentProvider(undefined)
       );
     }
   }
