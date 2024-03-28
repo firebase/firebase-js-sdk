@@ -104,14 +104,14 @@ export class AuthCredential {
     protected constructor(
     providerId: string,
     signInMethod: string);
-    // Warning: (ae-forgotten-export) The symbol "AuthInternal" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "AuthInternal" needs to be exported by the entry point index.doc.d.ts
+    // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     _getIdTokenResponse(_auth: AuthInternal): Promise<PhoneOrOauthTokenResponse>;
     // @internal (undocumented)
     _getReauthenticationResolver(_auth: AuthInternal): Promise<IdTokenResponse>;
-    // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     _linkToIdToken(_auth: AuthInternal, _idToken: string): Promise<IdTokenResponse>;
@@ -294,6 +294,9 @@ export function connectAuthEmulator(auth: Auth, url: string, options?: {
 }): void;
 
 // @public
+export const cordovaPopupRedirectResolver: PopupRedirectResolver;
+
+// @public
 export function createUserWithEmailAndPassword(auth: Auth, email: string, password: string): Promise<UserCredential>;
 
 // @public
@@ -356,7 +359,7 @@ export interface EmulatorConfig {
 
 export { ErrorFn }
 
-// Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.doc.d.ts
 //
 // @public
 export class FacebookAuthProvider extends BaseOAuthProvider {
@@ -391,6 +394,9 @@ export function getIdTokenResult(user: User, forceRefresh?: boolean): Promise<Id
 
 // @public
 export function getMultiFactorResolver(auth: Auth, error: MultiFactorError): MultiFactorResolver;
+
+// @public
+export function getReactNativePersistence(storage: ReactNativeAsyncStorage): Persistence;
 
 // @public
 export function getRedirectResult(auth: Auth, resolver?: PopupRedirectResolver): Promise<UserCredential | null>;
@@ -445,7 +451,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 export function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
+export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function linkWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -504,7 +510,7 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 export class OAuthCredential extends AuthCredential {
     accessToken?: string;
     static fromJSON(json: string | object): OAuthCredential | null;
-    // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     static _fromParams(params: OAuthCredentialParams): OAuthCredential;
@@ -609,7 +615,7 @@ export class PhoneAuthCredential extends AuthCredential {
     _getReauthenticationResolver(auth: AuthInternal): Promise<IdTokenResponse>;
     // @internal (undocumented)
     _linkToIdToken(auth: AuthInternal, idToken: string): Promise<IdTokenResponse>;
-    // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     _makeVerificationRequest(): SignInWithPhoneNumberRequest;
@@ -625,7 +631,7 @@ export class PhoneAuthProvider {
     static readonly PHONE_SIGN_IN_METHOD: 'phone';
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
-    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?: ApplicationVerifier): Promise<string>;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
 }
 
 // @public
@@ -692,7 +698,7 @@ export interface ReactNativeAsyncStorage {
 export function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
+export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function reauthenticateWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -706,13 +712,13 @@ export interface RecaptchaParameters {
     [key: string]: any;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ApplicationVerifierInternal" needs to be exported by the entry point index.doc.d.ts
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
     constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
     clear(): void;
-    // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     readonly _recaptchaLoader: ReCaptchaLoader;
@@ -729,7 +735,7 @@ export function reload(user: User): Promise<void>;
 // @public
 export function revokeAccessToken(auth: Auth, token: string): Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.doc.d.ts
 //
 // @public
 export class SAMLAuthProvider extends FederatedAuthProvider {
@@ -778,7 +784,7 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -810,13 +816,13 @@ export class TotpSecret {
     readonly codeIntervalSeconds: number;
     readonly codeLength: number;
     readonly enrollmentCompletionDeadline: string;
-    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
     generateQrCodeUrl(accountName?: string, issuer?: string): string;
     readonly hashingAlgorithm: string;
-    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.doc.d.ts
     //
     // @internal (undocumented)
     _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;

@@ -171,7 +171,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      await signInWithPhoneNumber(auth, '+15105550000');
+      await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         phoneNumber: '+15105550000',
@@ -495,21 +495,6 @@ describe('platform_browser/strategies/phone', () => {
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
       const sessionInfo = await _verifyPhoneNumber(auth, 'number', v2Verifier);
-      expect(sessionInfo).to.eq('session-info');
-      expect(sendCodeEndpoint.calls[0].request).to.eql({
-        phoneNumber: 'number',
-        captchaResponse: RECAPTCHA_ENTERPRISE_TOKEN,
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE
-      });
-    });
-
-    it('works without v2 verifier when recaptcha enterprise is enabled', async () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      const sessionInfo = await _verifyPhoneNumber(auth, 'number');
       expect(sessionInfo).to.eq('session-info');
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         phoneNumber: 'number',

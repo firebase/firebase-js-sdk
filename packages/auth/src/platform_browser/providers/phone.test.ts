@@ -106,49 +106,6 @@ describe('platform_browser/providers/phone', () => {
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
     });
-
-    it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {
-      const recaptchaConfigResponseEnforce = {
-        recaptchaKey: 'foo/bar/to/site-key',
-        recaptchaEnforcementState: [
-          {
-            provider: RecaptchaProvider.PHONE_PROVIDER,
-            enforcementState: EnforcementState.ENFORCE
-          }
-        ]
-      };
-      const recaptcha = new MockGreCAPTCHATopLevel();
-      if (typeof window === 'undefined') {
-        return;
-      }
-      window.grecaptcha = recaptcha;
-      sinon
-        .stub(recaptcha.enterprise, 'execute')
-        .returns(Promise.resolve('enterprise-token'));
-
-      mockEndpointWithParams(
-        Endpoint.GET_RECAPTCHA_CONFIG,
-        {
-          clientType: RecaptchaClientType.WEB,
-          version: RecaptchaVersion.ENTERPRISE
-        },
-        recaptchaConfigResponseEnforce
-      );
-
-      const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
-        sessionInfo: 'verification-id'
-      });
-
-      const provider = new PhoneAuthProvider(auth);
-      const result = await provider.verifyPhoneNumber('+15105550000');
-      expect(result).to.eq('verification-id');
-      expect(route.calls[0].request).to.eql({
-        phoneNumber: '+15105550000',
-        captchaResponse: 'enterprise-token',
-        clientType: RecaptchaClientType.WEB,
-        recaptchaVersion: RecaptchaVersion.ENTERPRISE
-      });
-    });
   });
 
   context('.credential', () => {
