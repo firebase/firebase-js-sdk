@@ -129,7 +129,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
 export async function signInWithPhoneNumber(
   auth: Auth,
   phoneNumber: string,
-  appVerifier?: ApplicationVerifier
+  appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   if (_isFirebaseServerApp(auth.app)) {
     return Promise.reject(
@@ -162,7 +162,7 @@ export async function signInWithPhoneNumber(
 export async function linkWithPhoneNumber(
   user: User,
   phoneNumber: string,
-  appVerifier?: ApplicationVerifier
+  appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   const userInternal = getModularInstance(user) as UserInternal;
   await _assertLinkedStatus(false, userInternal, ProviderId.PHONE);
@@ -194,7 +194,7 @@ export async function linkWithPhoneNumber(
 export async function reauthenticateWithPhoneNumber(
   user: User,
   phoneNumber: string,
-  appVerifier?: ApplicationVerifier
+  appVerifier: ApplicationVerifier
 ): Promise<ConfirmationResult> {
   const userInternal = getModularInstance(user) as UserInternal;
   if (_isFirebaseServerApp(userInternal.auth.app)) {
@@ -224,7 +224,7 @@ type PhoneApiCaller<TRequest, TResponse> = (
 export async function _verifyPhoneNumber(
   auth: AuthInternal,
   options: PhoneInfoOptions | string,
-  verifier?: ApplicationVerifierInternal
+  verifier: ApplicationVerifierInternal
 ): Promise<string> {
   if (!auth._getRecaptchaConfig()) {
     const enterpriseVerifier = new RecaptchaEnterpriseVerifier(auth);
@@ -274,7 +274,7 @@ export async function _verifyPhoneNumber(
             request.phoneEnrollmentInfo.captchaResponse === FAKE_TOKEN
           ) {
             _assert(
-              verifier?.type === RECAPTCHA_VERIFIER_TYPE,
+              verifier.type === RECAPTCHA_VERIFIER_TYPE,
               authInstance,
               AuthErrorCode.ARGUMENT_ERROR
             );
@@ -336,7 +336,7 @@ export async function _verifyPhoneNumber(
             request.phoneSignInInfo.captchaResponse === FAKE_TOKEN
           ) {
             _assert(
-              verifier?.type === RECAPTCHA_VERIFIER_TYPE,
+              verifier.type === RECAPTCHA_VERIFIER_TYPE,
               authInstance,
               AuthErrorCode.ARGUMENT_ERROR
             );
@@ -387,7 +387,7 @@ export async function _verifyPhoneNumber(
           request.captchaResponse === FAKE_TOKEN
         ) {
           _assert(
-            verifier?.type === RECAPTCHA_VERIFIER_TYPE,
+            verifier.type === RECAPTCHA_VERIFIER_TYPE,
             authInstance,
             AuthErrorCode.ARGUMENT_ERROR
           );
@@ -421,7 +421,7 @@ export async function _verifyPhoneNumber(
       return response.sessionInfo;
     }
   } finally {
-    verifier?._reset();
+    verifier._reset();
   }
 }
 
