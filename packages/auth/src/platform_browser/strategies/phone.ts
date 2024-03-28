@@ -42,7 +42,7 @@ import {
 import {
   RecaptchaActionName,
   RecaptchaClientType,
-  RecaptchaProvider
+  RecaptchaAuthProvider
 } from '../../api';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
@@ -295,7 +295,7 @@ export async function _verifyPhoneNumber(
             startPhoneMfaEnrollmentRequest,
             RecaptchaActionName.MFA_SMS_ENROLLMENT,
             startEnrollPhoneMfaActionCallback,
-            RecaptchaProvider.PHONE_PROVIDER
+            RecaptchaAuthProvider.PHONE_PROVIDER
           );
 
         const response = await startPhoneMfaEnrollmentResponse.catch(error => {
@@ -357,7 +357,7 @@ export async function _verifyPhoneNumber(
             startPhoneMfaSignInRequest,
             RecaptchaActionName.MFA_SMS_SIGNIN,
             startSignInPhoneMfaActionCallback,
-            RecaptchaProvider.PHONE_PROVIDER
+            RecaptchaAuthProvider.PHONE_PROVIDER
           );
 
         const response = await startPhoneMfaSignInResponse.catch(error => {
@@ -411,7 +411,7 @@ export async function _verifyPhoneNumber(
           sendPhoneVerificationCodeRequest,
           RecaptchaActionName.SEND_VERIFICATION_CODE,
           sendPhoneVerificationCodeActionCallback,
-          RecaptchaProvider.PHONE_PROVIDER
+          RecaptchaAuthProvider.PHONE_PROVIDER
         );
 
       const response = await sendPhoneVerificationCodeResponse.catch(error => {

@@ -22,7 +22,7 @@ import {
   RecaptchaClientType,
   RecaptchaVersion,
   RecaptchaActionName,
-  RecaptchaProvider,
+  RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
 
@@ -34,9 +34,6 @@ import { AuthErrorCode } from '../../core/errors';
 import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
 import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
-
-const RECAPTCHA_ENTERPRISE_URL =
-  'https://www.google.com/recaptcha/enterprise.js?render=';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
@@ -246,13 +243,13 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
   request: TRequest,
   actionName: RecaptchaActionName,
   actionMethod: ActionMethod<TRequest, TResponse>,
-  recaptchaProvider: RecaptchaProvider
+  recaptchaAuthProvider: RecaptchaAuthProvider
 ): Promise<TResponse> {
-  if (recaptchaProvider === RecaptchaProvider.EMAIL_PASSWORD_PROVIDER) {
+  if (recaptchaAuthProvider === RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER) {
     if (
       authInstance
         ._getRecaptchaConfig()
-        ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
+        ?.isProviderEnabled(RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER)
     ) {
       const requestWithRecaptcha = await injectRecaptchaFields(
         authInstance,
@@ -279,11 +276,11 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
         }
       });
     }
-  } else if (recaptchaProvider === RecaptchaProvider.PHONE_PROVIDER) {
+  } else if (recaptchaAuthProvider === RecaptchaAuthProvider.PHONE_PROVIDER) {
     if (
       authInstance
         ._getRecaptchaConfig()
-        ?.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+        ?.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
     ) {
       const requestWithRecaptcha = await injectRecaptchaFields(
         authInstance,
@@ -297,7 +294,7 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
             authInstance
               ._getRecaptchaConfig()
               ?.getProviderEnforcementState(
-                RecaptchaProvider.PHONE_PROVIDER
+                RecaptchaAuthProvider.PHONE_PROVIDER
               ) === EnforcementState.AUDIT
           ) {
             // AUDIT mode
@@ -340,7 +337,9 @@ export async function handleRecaptchaFlow<TRequest, TResponse>(
       return actionMethod(authInstance, requestWithRecaptchaFields);
     }
   } else {
-    return Promise.reject(recaptchaProvider + ' provider is not supported.');
+    return Promise.reject(
+      recaptchaAuthProvider + ' provider is not supported.'
+    );
   }
 }
 

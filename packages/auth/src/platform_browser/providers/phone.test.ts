@@ -28,7 +28,7 @@ import {
   Endpoint,
   RecaptchaClientType,
   RecaptchaVersion,
-  RecaptchaProvider,
+  RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
@@ -56,7 +56,7 @@ describe('platform_browser/providers/phone', () => {
         recaptchaKey: 'foo/bar/to/site-key',
         recaptchaEnforcementState: [
           {
-            provider: RecaptchaProvider.PHONE_PROVIDER,
+            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
             enforcementState: EnforcementState.OFF
           }
         ]

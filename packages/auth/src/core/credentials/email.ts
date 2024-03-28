@@ -35,7 +35,7 @@ import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_
 import {
   RecaptchaActionName,
   RecaptchaClientType,
-  RecaptchaProvider
+  RecaptchaAuthProvider
 } from '../../api';
 import { SignUpRequest } from '../../api/authentication/sign_up';
 /**
@@ -133,7 +133,7 @@ export class EmailAuthCredential extends AuthCredential {
           request,
           RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
           signInWithPassword,
-          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+          RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         );
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
@@ -164,7 +164,7 @@ export class EmailAuthCredential extends AuthCredential {
           request,
           RecaptchaActionName.SIGN_UP_PASSWORD,
           linkEmailPassword,
-          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+          RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         );
       case SignInMethod.EMAIL_LINK:
         return signInWithEmailLinkForLinking(auth, {

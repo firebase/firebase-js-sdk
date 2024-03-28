@@ -25,7 +25,7 @@ import {
   RecaptchaClientType,
   RecaptchaVersion,
   RecaptchaActionName,
-  RecaptchaProvider,
+  RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
@@ -56,11 +56,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       }
     ]
@@ -72,11 +72,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.OFF
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.OFF
       }
     ]
@@ -86,11 +86,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.AUDIT
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.AUDIT
       }
     ]
@@ -198,7 +198,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
         mockActionMethod,
-        RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledOnce;
       expect(response).to.equal('testResponse');
@@ -228,7 +228,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
         mockActionMethod,
-        RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledTwice;
       expect(response).to.equal('testResponse');
@@ -258,7 +258,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
         mockActionMethod,
-        RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       await expect(response).to.be.rejectedWith(
         AuthErrorCode.RECAPTCHA_NOT_ENABLED
@@ -279,7 +279,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SEND_VERIFICATION_CODE,
         mockActionMethod,
-        RecaptchaProvider.PHONE_PROVIDER
+        RecaptchaAuthProvider.PHONE_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledOnce;
       expect(response).to.equal('testResponse');
@@ -308,7 +308,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SEND_VERIFICATION_CODE,
         mockActionMethod,
-        RecaptchaProvider.PHONE_PROVIDER
+        RecaptchaAuthProvider.PHONE_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledTwice;
       expect(response).to.equal('testResponse');
@@ -337,7 +337,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SEND_VERIFICATION_CODE,
         mockActionMethod,
-        RecaptchaProvider.PHONE_PROVIDER
+        RecaptchaAuthProvider.PHONE_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledTwice;
       expect(response).to.equal('testResponse');
@@ -367,7 +367,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockRequest,
         RecaptchaActionName.SEND_VERIFICATION_CODE,
         mockActionMethod,
-        RecaptchaProvider.PHONE_PROVIDER
+        RecaptchaAuthProvider.PHONE_PROVIDER
       );
       await expect(response).to.be.rejectedWith(
         AuthErrorCode.INVALID_RECAPTCHA_TOKEN

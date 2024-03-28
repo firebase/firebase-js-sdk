@@ -44,7 +44,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import {
   RecaptchaActionName,
   RecaptchaClientType,
-  RecaptchaProvider
+  RecaptchaAuthProvider
 } from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
 
@@ -121,7 +121,7 @@ export async function sendPasswordResetEmail(
     request,
     RecaptchaActionName.GET_OOB_CODE,
     authentication.sendPasswordResetEmail,
-    RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+    RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
   );
 }
 
@@ -296,7 +296,7 @@ export async function createUserWithEmailAndPassword(
     request,
     RecaptchaActionName.SIGN_UP_PASSWORD,
     signUp,
-    RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+    RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
   );
   const response = await signUpResponse.catch(error => {
     if (

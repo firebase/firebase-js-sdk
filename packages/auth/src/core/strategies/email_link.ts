@@ -36,7 +36,7 @@ import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_
 import {
   RecaptchaActionName,
   RecaptchaClientType,
-  RecaptchaProvider
+  RecaptchaAuthProvider
 } from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
 import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
@@ -113,7 +113,7 @@ export async function sendSignInLinkToEmail(
     request,
     RecaptchaActionName.GET_OOB_CODE,
     api.sendSignInLinkToEmail,
-    RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+    RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
   );
 }
 
