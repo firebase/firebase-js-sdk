@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { expect } from 'chai';
 
 import {
   query as internalQuery,
@@ -49,7 +50,8 @@ import {
   batchCommitDocsToCollection,
   checkOnlineAndOfflineResultsMatch,
   PERSISTENCE_MODE_UNSPECIFIED,
-  PersistenceMode
+  PersistenceMode,
+  toIds
 } from './helpers';
 import {
   COMPOSITE_INDEX_TEST_COLLECTION,
@@ -167,6 +169,15 @@ export class CompositeIndexTestHelper {
       query,
       ...this.toHashedIds(expectedDocs)
     );
+  }
+
+  // Asserts that the IDs in the query snapshot matches the expected Ids. The expected document
+  // IDs are hashed to match the actual document IDs created by the test helper.
+  assertSnapshotResultIdsMatch(
+    snapshot: QuerySnapshot,
+    expectedIds: string[]
+  ): void {
+    expect(toIds(snapshot)).to.deep.equal(this.toHashedIds(expectedIds));
   }
 
   // Adds a filter on test id for a query.
