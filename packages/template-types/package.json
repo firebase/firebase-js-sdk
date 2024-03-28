@@ -1,7 +1,7 @@
 {
   "name": "@firebase/template-types",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "@firebase/template Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
