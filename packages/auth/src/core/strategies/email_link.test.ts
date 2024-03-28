@@ -58,6 +58,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
     mockFetch.setUp();
   });
 

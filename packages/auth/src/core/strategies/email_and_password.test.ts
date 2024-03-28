@@ -74,6 +74,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
     mockFetch.setUp();
   });
 

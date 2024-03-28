@@ -137,6 +137,7 @@ describe('core/credentials/email', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
   });
 
   context('email & password', () => {
