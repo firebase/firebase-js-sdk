@@ -52,7 +52,10 @@ const browserBuilds = [
     output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
     plugins: [
       ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 5),
+        __PACKAGE_VERSION__: pkg.version
+      })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -65,7 +68,10 @@ const browserBuilds = [
     },
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({
+        ...generateBuildTargetReplaceConfig('esm', 2017),
+        __PACKAGE_VERSION__: pkg.version
+      }),
       emitModulePackageFile()
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -79,7 +85,10 @@ const browserBuilds = [
     },
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace({
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
+        __PACKAGE_VERSION__: pkg.version
+      })
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }

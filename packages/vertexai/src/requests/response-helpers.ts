@@ -55,12 +55,12 @@ export function addHelpers(
     }
     return '';
   };
-  (response as EnhancedGenerateContentResponse).functionCall = () => {
+  (response as EnhancedGenerateContentResponse).functionCalls = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
         console.warn(
           `This response had ${response.candidates.length} ` +
-            `candidates. Returning function call from the first candidate only. ` +
+            `candidates. Returning function calls from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
         );
       }
@@ -70,7 +70,7 @@ export function addHelpers(
           response
         });
       }
-      return getFunctionCall(response);
+      return getFunctionCalls(response);
     } else if (response.promptFeedback) {
       throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
         message: `Function call not available. ${formatBlockErrorMessage(
@@ -98,12 +98,24 @@ export function getText(response: GenerateContentResponse): string {
 }
 
 /**
- * Returns {@link FunctionCall} associated with first candidate.
+ * Returns {@link FunctionCall}s associated with first candidate.
  */
-export function getFunctionCall(
+export function getFunctionCalls(
   response: GenerateContentResponse
-): FunctionCall | undefined {
-  return response.candidates?.[0].content?.parts?.[0]?.functionCall;
+): FunctionCall[] | undefined {
+  const functionCalls: FunctionCall[] = [];
+  if (response.candidates?.[0].content?.parts) {
+    for (const part of response.candidates?.[0].content?.parts) {
+      if (part.functionCall) {
+        functionCalls.push(part.functionCall);
+      }
+    }
+  }
+  if (functionCalls.length > 0) {
+    return functionCalls;
+  } else {
+    return undefined;
+  }
 }
 
 const badFinishReasons = [FinishReason.RECITATION, FinishReason.SAFETY];

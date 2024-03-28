@@ -56,6 +56,27 @@ export interface InlineDataPart {
   inlineData: GenerativeContentBlob;
   functionCall?: never;
   functionResponse?: never;
+  /**
+   * Applicable if `inlineData` is a video.
+   */
+  videoMetadata?: VideoMetadata;
+}
+
+/**
+ * Describes the input video content.
+ * @public
+ */
+export interface VideoMetadata {
+  /**
+   * The start offset of the video in
+   * protobuf {@link https://cloud.google.com/ruby/docs/reference/google-cloud-workflows-v1/latest/Google-Protobuf-Duration#json-mapping | Duration} format.
+   */
+  startOffset: string;
+  /**
+   * The end offset of the video in
+   * protobuf {@link https://cloud.google.com/ruby/docs/reference/google-cloud-workflows-v1/latest/Google-Protobuf-Duration#json-mapping | Duration} format.
+   */
+  endOffset: string;
 }
 
 /**

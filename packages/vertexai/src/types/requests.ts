@@ -16,7 +16,7 @@
  */
 
 import { Content } from './content';
-import { HarmBlockThreshold, HarmCategory, TaskType } from './enums';
+import { HarmBlockThreshold, HarmCategory } from './enums';
 
 /**
  * Base parameters for a number of methods.
@@ -85,25 +85,7 @@ export interface CountTokensRequest {
 }
 
 /**
- * Params for calling {@link GenerativeModel.embedContent}
- * @public
- */
-export interface EmbedContentRequest {
-  content: Content;
-  taskType?: TaskType;
-  title?: string;
-}
-
-/**
- * Params for calling  {@link GenerativeModel.batchEmbedContents}
- * @public
- */
-export interface BatchEmbedContentsRequest {
-  requests: EmbedContentRequest[];
-}
-
-/**
- * Params passed to {@link GoogleGenerativeAI.getGenerativeModel}.
+ * Params passed to {@link getGenerativeModel}.
  * @public
  */
 export interface RequestOptions {
@@ -116,6 +98,10 @@ export interface RequestOptions {
    * defaults to latest stable version.
    */
   apiVersion?: string;
+  /**
+   * Base url for endpoint. Defaults to https://firebaseml.googleapis.com
+   */
+  baseUrl?: string;
 }
 
 /**

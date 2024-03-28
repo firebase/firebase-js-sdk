@@ -20,12 +20,8 @@ import {
   generateContentStream
 } from '../methods/generate-content';
 import {
-  BatchEmbedContentsRequest,
-  BatchEmbedContentsResponse,
   CountTokensRequest,
   CountTokensResponse,
-  EmbedContentRequest,
-  EmbedContentResponse,
   GenerateContentRequest,
   GenerateContentResult,
   GenerateContentStreamResult,
@@ -39,11 +35,7 @@ import {
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
-import { batchEmbedContents, embedContent } from '../methods/embed-content';
-import {
-  formatEmbedContentInput,
-  formatGenerateContentInput
-} from '../requests/request-helpers';
+import { formatGenerateContentInput } from '../requests/request-helpers';
 import { Vertex } from '../public-types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
@@ -162,29 +154,5 @@ export class GenerativeModel {
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
     return countTokens(this._apiSettings, this.model, formattedParams);
-  }
-
-  /**
-   * Embeds the provided content.
-   */
-  async embedContent(
-    request: EmbedContentRequest | string | Array<string | Part>
-  ): Promise<EmbedContentResponse> {
-    const formattedParams = formatEmbedContentInput(request);
-    return embedContent(this._apiSettings, this.model, formattedParams);
-  }
-
-  /**
-   * Embeds an array of {@link EmbedContentRequest}s.
-   */
-  async batchEmbedContents(
-    batchEmbedContentRequest: BatchEmbedContentsRequest
-  ): Promise<BatchEmbedContentsResponse> {
-    return batchEmbedContents(
-      this._apiSettings,
-      this.model,
-      batchEmbedContentRequest,
-      this.requestOptions
-    );
   }
 }

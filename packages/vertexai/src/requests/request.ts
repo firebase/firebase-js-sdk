@@ -18,24 +18,19 @@
 import { RequestOptions } from '../types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
+import { version } from '../../package.json';
 
-const BASE_URL = 'https://staging-firebaseml.sandbox.googleapis.com';
+const DEFAULT_BASE_URL = 'https://firebaseml.googleapis.com';
 
 export const DEFAULT_API_VERSION = 'v2beta';
 
-/**
- * We can't `require` package.json if this runs on web. We will use rollup to
- * swap in the version number here at build time.
- */
-const PACKAGE_VERSION = '__PACKAGE_VERSION__';
+const PACKAGE_VERSION = version;
 const PACKAGE_LOG_HEADER = 'firebase-vertexai-js';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
-  COUNT_TOKENS = 'countTokens',
-  EMBED_CONTENT = 'embedContent',
-  BATCH_EMBED_CONTENTS = 'batchEmbedContents'
+  COUNT_TOKENS = 'countTokens'
 }
 
 export class RequestUrl {
@@ -48,7 +43,8 @@ export class RequestUrl {
   ) {}
   toString(): string {
     const apiVersion = this.requestOptions?.apiVersion || DEFAULT_API_VERSION;
-    let url = `${BASE_URL}/${apiVersion}`;
+    const baseUrl = this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
+    let url = `${baseUrl}/${apiVersion}`;
     url += `/projects/${this.apiSettings.project}`;
     url += `/locations/${this.apiSettings.location}`;
     url += `/${this.model}`;
@@ -57,6 +53,17 @@ export class RequestUrl {
       url += '?alt=sse';
     }
     return url;
+  }
+
+  /**
+   * If the model needs to be passed to the backend, it needs to
+   * include project and location path.
+   */
+  get fullModelString(): string {
+    let modelString = `projects/${this.apiSettings.project}`;
+    modelString += `/locations/${this.apiSettings.location}`;
+    modelString += `/${this.model}`;
+    return modelString;
   }
 }
 

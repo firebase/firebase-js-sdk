@@ -90,6 +90,16 @@ describe('request methods', () => {
         '/v100omega/projects/my-project/locations/us-central1/models/model-name'
       );
     });
+    it('custom baseUrl', async () => {
+      const url = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        { baseUrl: 'https://my.special.endpoint' }
+      );
+      expect(url.toString()).to.include('https://my.special.endpoint');
+    });
     it('non-stream - tunedModels/', async () => {
       const url = new RequestUrl(
         'tunedModels/model-name',

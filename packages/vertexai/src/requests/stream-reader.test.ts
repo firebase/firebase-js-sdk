@@ -120,17 +120,21 @@ describe('processStream', () => {
     const result = processStream(fakeResponse as Response);
     for await (const response of result.stream) {
       expect(response.text()).to.be.empty;
-      expect(response.functionCall()).to.be.deep.equal({
-        name: 'getTemperature',
-        args: { city: 'San Jose' }
-      });
+      expect(response.functionCalls()).to.be.deep.equal([
+        {
+          name: 'getTemperature',
+          args: { city: 'San Jose' }
+        }
+      ]);
     }
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.be.empty;
-    expect(aggregatedResponse.functionCall()).to.be.deep.equal({
-      name: 'getTemperature',
-      args: { city: 'San Jose' }
-    });
+    expect(aggregatedResponse.functionCalls()).to.be.deep.equal([
+      {
+        name: 'getTemperature',
+        args: { city: 'San Jose' }
+      }
+    ]);
   });
   it('candidate had finishReason', async () => {
     const fakeResponse = getMockResponseStreaming(
@@ -202,8 +206,7 @@ describe('processStream', () => {
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
-      aggregatedResponse.candidates?.[0].citationMetadata?.citationSources
-        .length
+      aggregatedResponse.candidates?.[0].citationMetadata?.citations.length
     ).to.equal(2);
     let foundCitationMetadata = false;
     for await (const response of result.stream) {
@@ -284,7 +287,7 @@ describe('aggregateResponses', () => {
                 }
               ],
               citationMetadata: {
-                citationSources: [
+                citations: [
                   {
                     startIndex: 0,
                     endIndex: 20,
@@ -322,7 +325,7 @@ describe('aggregateResponses', () => {
                 }
               ],
               citationMetadata: {
-                citationSources: [
+                citations: [
                   {
                     startIndex: 0,
                     endIndex: 20,
@@ -385,15 +388,15 @@ describe('aggregateResponses', () => {
       );
     });
 
-    it('collects all citationSources into one array', () => {
+    it('collects all citations into one array', () => {
       expect(
-        response.candidates?.[0].citationMetadata?.citationSources.length
+        response.candidates?.[0].citationMetadata?.citations.length
       ).to.equal(2);
       expect(
-        response.candidates?.[0].citationMetadata?.citationSources[0].startIndex
+        response.candidates?.[0].citationMetadata?.citations[0].startIndex
       ).to.equal(0);
       expect(
-        response.candidates?.[0].citationMetadata?.citationSources[1].startIndex
+        response.candidates?.[0].citationMetadata?.citations[1].startIndex
       ).to.equal(150);
     });
   });

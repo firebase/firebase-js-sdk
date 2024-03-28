@@ -104,7 +104,7 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Quantum mechanics is');
     expect(
-      result.response.candidates?.[0].citationMetadata?.citationSources.length
+      result.response.candidates?.[0].citationMetadata?.citations.length
     ).to.equal(1);
     expect(makeRequestStub).to.be.calledWith(
       match.instanceOf(request.RequestUrl),

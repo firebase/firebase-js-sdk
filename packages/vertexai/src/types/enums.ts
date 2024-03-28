@@ -104,16 +104,3 @@ export enum FinishReason {
   // Unknown reason.
   OTHER = 'OTHER'
 }
-
-/**
- * Task type for embedding content.
- * @public
- */
-export enum TaskType {
-  TASK_TYPE_UNSPECIFIED = 'TASK_TYPE_UNSPECIFIED',
-  RETRIEVAL_QUERY = 'RETRIEVAL_QUERY',
-  RETRIEVAL_DOCUMENT = 'RETRIEVAL_DOCUMENT',
-  SEMANTIC_SIMILARITY = 'SEMANTIC_SIMILARITY',
-  CLASSIFICATION = 'CLASSIFICATION',
-  CLUSTERING = 'CLUSTERING'
-}

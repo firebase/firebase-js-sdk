@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Content,
-  EmbedContentRequest,
-  GenerateContentRequest,
-  Part
-} from '../types';
+import { Content, GenerateContentRequest, Part } from '../types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 
 export function formatNewContent(
@@ -95,14 +90,4 @@ export function formatGenerateContentInput(
     const content = formatNewContent(params as string | Array<string | Part>);
     return { contents: [content] };
   }
-}
-
-export function formatEmbedContentInput(
-  params: EmbedContentRequest | string | Array<string | Part>
-): EmbedContentRequest {
-  if (typeof params === 'string' || Array.isArray(params)) {
-    const content = formatNewContent(params);
-    return { content };
-  }
-  return params;
 }

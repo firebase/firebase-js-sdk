@@ -57,7 +57,7 @@ export interface EnhancedGenerateContentResponse
    * Throws if the prompt or candidate was blocked.
    */
   text: () => string;
-  functionCall: () => FunctionCall | undefined;
+  functionCalls: () => FunctionCall[] | undefined;
 }
 
 /**
@@ -70,6 +70,13 @@ export interface EnhancedGenerateContentResponse
 export interface GenerateContentResponse {
   candidates?: GenerateContentCandidate[];
   promptFeedback?: PromptFeedback;
+  usageMetadata?: UsageMetadata;
+}
+
+export interface UsageMetadata {
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+  totalTokenCount: number;
 }
 
 /**
@@ -101,18 +108,30 @@ export interface GenerateContentCandidate {
  * @public
  */
 export interface CitationMetadata {
-  citationSources: CitationSource[];
+  citations: Citation[];
 }
 
 /**
- * A single citation source.
+ * A single citation.
  * @public
  */
-export interface CitationSource {
+export interface Citation {
   startIndex?: number;
   endIndex?: number;
   uri?: string;
   license?: string;
+  title?: string;
+  publicationDate?: Date;
+}
+
+/**
+ * Protobuf google.type.Date
+ * @public
+ */
+export interface Date {
+  year: number;
+  month: number;
+  day: number;
 }
 
 /**
@@ -130,28 +149,4 @@ export interface SafetyRating {
  */
 export interface CountTokensResponse {
   totalTokens: number;
-}
-
-/**
- * Response from calling {@link GenerativeModel.embedContent}.
- * @public
- */
-export interface EmbedContentResponse {
-  embedding: ContentEmbedding;
-}
-
-/**
- * Response from calling {@link GenerativeModel.batchEmbedContents}.
- * @public
- */
-export interface BatchEmbedContentsResponse {
-  embeddings: ContentEmbedding[];
-}
-
-/**
- * A single content embedding.
- * @public
- */
-export interface ContentEmbedding {
-  values: number[];
 }

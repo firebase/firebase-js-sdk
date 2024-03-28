@@ -39,6 +39,7 @@ const fakeResponseText: GenerateContentResponse = {
     }
   ]
 };
+
 const fakeResponseFunctionCall: GenerateContentResponse = {
   candidates: [
     {
@@ -52,6 +53,38 @@ const fakeResponseFunctionCall: GenerateContentResponse = {
               args: {
                 location: 'Mountain View, CA',
                 movie: 'Barbie'
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+};
+
+const fakeResponseFunctionCalls: GenerateContentResponse = {
+  candidates: [
+    {
+      index: 0,
+      content: {
+        role: 'model',
+        parts: [
+          {
+            functionCall: {
+              name: 'find_theaters',
+              args: {
+                location: 'Mountain View, CA',
+                movie: 'Barbie'
+              }
+            }
+          },
+          {
+            functionCall: {
+              name: 'find_times',
+              args: {
+                location: 'Mountain View, CA',
+                movie: 'Barbie',
+                time: '20:00'
               }
             }
           }
@@ -79,9 +112,16 @@ describe('response-helpers methods', () => {
     });
     it('good response functionCall', async () => {
       const enhancedResponse = addHelpers(fakeResponseFunctionCall);
-      expect(enhancedResponse.functionCall()).to.deep.equal(
+      expect(enhancedResponse.functionCalls()).to.deep.equal([
         fakeResponseFunctionCall.candidates?.[0].content.parts[0].functionCall
-      );
+      ]);
+    });
+    it('good response functionCalls', async () => {
+      const enhancedResponse = addHelpers(fakeResponseFunctionCalls);
+      expect(enhancedResponse.functionCalls()).to.deep.equal([
+        fakeResponseFunctionCalls.candidates?.[0].content.parts[0].functionCall,
+        fakeResponseFunctionCalls.candidates?.[0].content.parts[1].functionCall
+      ]);
     });
     it('bad response safety', async () => {
       const enhancedResponse = addHelpers(badFakeResponse);

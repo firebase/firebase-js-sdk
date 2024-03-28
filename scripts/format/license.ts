@@ -81,7 +81,14 @@ export async function doLicense(changedFiles?: string[]) {
     filesToChange = await new Promise(resolve => {
       glob(
         '+(packages|repo-scripts)/**/*.+(ts|js)',
-        { ignore: ['**/node_modules/**', './node_modules/**', '**/dist/**'] },
+        {
+          ignore: [
+            '**/node_modules/**',
+            './node_modules/**',
+            '**/dist/**',
+            '**/mocks-lookup.ts'
+          ]
+        },
         (err, res) => resolve(res)
       );
     });
