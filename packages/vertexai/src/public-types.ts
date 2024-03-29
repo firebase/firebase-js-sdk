@@ -28,9 +28,9 @@ export interface Vertex {
    * The {@link @firebase/app#FirebaseApp} this {@link Vertex} instance is associated with.
    */
   app: FirebaseApp;
-  region: string;
+  location: string;
 }
 
 export interface VertexOptions {
-  region?: string;
+  location?: string;
 }

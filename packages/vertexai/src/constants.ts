@@ -17,4 +17,4 @@
 
 export const VERTEX_TYPE = 'vertex';
 
-export const DEFAULT_REGION = 'us-central1';
+export const DEFAULT_LOCATION = 'us-central1';

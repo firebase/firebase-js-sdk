@@ -49,18 +49,6 @@ const es2017BuildPlugins = [
 const browserBuilds = [
   {
     input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    plugins: [
-      ...es5BuildPlugins,
-      replace({
-        ...generateBuildTargetReplaceConfig('esm', 5),
-        __PACKAGE_VERSION__: pkg.version
-      })
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/index.ts',
     output: {
       file: pkg.module,
       format: 'es',

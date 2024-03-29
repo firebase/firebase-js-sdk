@@ -65,7 +65,7 @@ export class GenerativeModel {
       this._apiSettings = {
         apiKey: vertex.app.options.apiKey,
         project: vertex.app.options.projectId,
-        location: vertex.region
+        location: vertex.location
       };
     }
     if (modelParams.model.includes('/')) {

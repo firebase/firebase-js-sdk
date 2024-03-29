@@ -22,7 +22,7 @@ import {
   FirebaseAppCheckInternal
 } from '@firebase/app-check-interop-types';
 import { Provider } from '@firebase/component';
-import { DEFAULT_REGION } from './constants';
+import { DEFAULT_LOCATION } from './constants';
 
 export function factory(
   app: FirebaseApp,
@@ -34,7 +34,7 @@ export function factory(
 
 export class VertexService implements Vertex, _FirebaseService {
   appCheck: FirebaseAppCheckInternal | null;
-  region: string;
+  location: string;
 
   constructor(
     public app: FirebaseApp,
@@ -43,7 +43,7 @@ export class VertexService implements Vertex, _FirebaseService {
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     this.appCheck = appCheck || null;
-    this.region = this.options?.region || DEFAULT_REGION;
+    this.location = this.options?.location || DEFAULT_LOCATION;
   }
 
   _delete(): Promise<void> {

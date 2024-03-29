@@ -30,7 +30,7 @@ const fakeVertex: Vertex = {
       projectId: 'my-project'
     }
   },
-  region: 'us-central1'
+  location: 'us-central1'
 };
 
 describe('Top level API', () => {
