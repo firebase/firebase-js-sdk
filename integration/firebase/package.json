@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "firebase": "10.10.0",
-    "@types/chai": "4.3.5",
+    "@types/chai": "4.3.14",
     "@types/mocha": "9.1.1",
     "chai": "4.3.7",
     "karma": "6.4.2",

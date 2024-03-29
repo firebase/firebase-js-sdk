@@ -21,9 +21,9 @@
     "firebase": "9.23.0"
   },
   "devDependencies": {
-    "@babel/core": "7.22.11",
+    "@babel/core": "7.24.3",
     "@babel/preset-env": "7.22.10",
-    "@types/chai": "4.3.5",
+    "@types/chai": "4.3.14",
     "@types/mocha": "9.1.1",
     "babel-loader": "8.3.0",
     "chai": "4.3.7",
