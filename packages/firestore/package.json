@@ -120,7 +120,7 @@
     "json-stable-stringify": "1.1.1",
     "protobufjs": "7.2.4",
     "rollup": "2.79.1",
-    "rollup-plugin-copy": "3.4.0",
+    "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.3",
