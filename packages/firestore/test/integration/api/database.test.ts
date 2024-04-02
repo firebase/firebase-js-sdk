@@ -1967,4 +1967,17 @@ apiDescribe('Database', persistence => {
       });
     });
   });
+
+  it('Lru GC is enabled by default.', () => {
+    const initialData = { key: 'value' };
+    return withTestDb(persistence, async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDocFromCache(docRef).then(doc => {
+        expect(doc.exists()).to.be.true;
+        expect(doc.metadata.fromCache).to.be.true;
+        expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
+  });
 });

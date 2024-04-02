@@ -181,9 +181,7 @@ function apiDescribeInternal(
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes: PersistenceMode[] = [
-    new MemoryEagerPersistenceMode()
-  ];
+  const persistenceModes: PersistenceMode[] = [new MemoryLruPersistenceMode()];
   if (isPersistenceAvailable()) {
     persistenceModes.push(new IndexedDbPersistenceMode());
   }
@@ -252,51 +250,6 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
-}
-
-export function withEnsuredEagerGcTestDb(
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  const newSettings = { ...DEFAULT_SETTINGS };
-  newSettings.localCache = memoryLocalCache({
-    garbageCollector: memoryEagerGarbageCollector()
-  });
-  return withTestDbsSettings(
-    false,
-    DEFAULT_PROJECT_ID,
-    newSettings,
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
-export function withEnsuredLruGcTestDb(
-  persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  const newSettings = { ...DEFAULT_SETTINGS };
-  if (persistence) {
-    newSettings.localCache = persistentLocalCache({
-      cacheSizeBytes: 1 * 1024 * 1024
-    });
-  } else {
-    newSettings.localCache = memoryLocalCache({
-      garbageCollector: memoryLruGarbageCollector({
-        cacheSizeBytes: 1 * 1024 * 1024
-      })
-    });
-  }
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    newSettings,
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
