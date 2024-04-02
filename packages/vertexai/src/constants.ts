@@ -15,6 +15,16 @@
  * limitations under the License.
  */
 
+import { version } from '../package.json';
+
 export const VERTEX_TYPE = 'vertex';
 
 export const DEFAULT_LOCATION = 'us-central1';
+
+export const DEFAULT_BASE_URL = 'https://firebaseml.googleapis.com';
+
+export const DEFAULT_API_VERSION = 'v2beta';
+
+export const PACKAGE_VERSION = version;
+
+export const LANGUAGE_TAG = 'gl-js';

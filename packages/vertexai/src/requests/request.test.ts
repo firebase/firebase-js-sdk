@@ -19,8 +19,9 @@ import { expect, use } from 'chai';
 import { restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { DEFAULT_API_VERSION, RequestUrl, Task, makeRequest } from './request';
+import { RequestUrl, Task, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
+import { DEFAULT_API_VERSION } from '../constants';
 
 use(sinonChai);
 use(chaiAsPromised);

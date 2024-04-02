@@ -18,14 +18,12 @@
 import { RequestOptions } from '../types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { version } from '../../package.json';
-
-const DEFAULT_BASE_URL = 'https://firebaseml.googleapis.com';
-
-export const DEFAULT_API_VERSION = 'v2beta';
-
-const PACKAGE_VERSION = version;
-const PACKAGE_LOG_HEADER = 'firebase-vertexai-js';
+import {
+  DEFAULT_API_VERSION,
+  DEFAULT_BASE_URL,
+  LANGUAGE_TAG,
+  PACKAGE_VERSION
+} from '../constants';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -68,10 +66,13 @@ export class RequestUrl {
 }
 
 /**
- * Simple, but may become more complex if we add more versions to log.
+ * Log language and "fire/version" to x-goog-api-client
  */
 function getClientHeaders(): string {
-  return `${PACKAGE_LOG_HEADER}/${PACKAGE_VERSION}`;
+  const loggingTags = [];
+  loggingTags.push(`${LANGUAGE_TAG}/`);
+  loggingTags.push(`fire/${PACKAGE_VERSION}`);
+  return loggingTags.join(' ');
 }
 
 export async function makeRequest(
