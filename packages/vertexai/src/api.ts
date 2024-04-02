@@ -18,7 +18,7 @@
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
-import { VERTEX_TYPE } from './constants';
+import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
 import { VertexService } from './factory';
 import { Vertex, VertexOptions } from './public-types';
 import { ERROR_FACTORY, VertexError } from './errors';
@@ -51,7 +51,7 @@ export function getVertex(
   const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
 
   return vertexProvider.getImmediate({
-    identifier: options?.location || 'DEFAULT'
+    identifier: options?.location || DEFAULT_LOCATION
   });
 }
 
