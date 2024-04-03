@@ -118,7 +118,7 @@
     "@types/json-stable-stringify": "1.0.36",
     "chai-exclude": "2.1.0",
     "json-stable-stringify": "1.1.1",
-    "protobufjs": "7.2.4",
+    "protobufjs": "7.2.6",
     "rollup": "2.79.1",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",
