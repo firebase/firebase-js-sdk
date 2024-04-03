@@ -102,6 +102,16 @@ export function _errorWithCustomMessage(
   });
 }
 
+export function _serverAppCurrentUserOperationNotSupportedError(
+  auth: Auth
+): FirebaseError {
+  return _errorWithCustomMessage(
+    auth,
+    AuthErrorCode.OPERATION_NOT_SUPPORTED,
+    'Operations that alter the current user are not supported in conjunction with FirebaseServerApp'
+  );
+}
+
 export function _assertInstanceOf(
   auth: Auth,
   object: object,

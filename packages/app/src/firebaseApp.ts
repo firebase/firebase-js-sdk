@@ -28,8 +28,8 @@ import {
 import { ERROR_FACTORY, AppError } from './errors';
 
 export class FirebaseAppImpl implements FirebaseApp {
-  private readonly _options: FirebaseOptions;
-  private readonly _name: string;
+  protected readonly _options: FirebaseOptions;
+  protected readonly _name: string;
   /**
    * Original config values passed in as a constructor parameter.
    * It is only used to compare with another config object to support idempotent initializeApp().
@@ -38,7 +38,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    */
   private readonly _config: Required<FirebaseAppSettings>;
   private _automaticDataCollectionEnabled: boolean;
-  private _isDeleted = false;
+  protected _isDeleted = false;
   private readonly _container: ComponentContainer;
 
   constructor(
@@ -98,7 +98,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    * This function will throw an Error if the App has already been deleted -
    * use before performing API actions on the App.
    */
-  private checkDestroyed(): void {
+  protected checkDestroyed(): void {
     if (this.isDeleted) {
       throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this._name });
     }

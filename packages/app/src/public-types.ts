@@ -72,6 +72,37 @@ export interface FirebaseApp {
 }
 
 /**
+ * A {@link @firebase/app#FirebaseServerApp} holds the initialization information
+ * for a collection of services running in server environments.
+ *
+ * Do not call this constructor directly. Instead, use
+ * {@link (initializeServerApp:1) | initializeServerApp()} to create
+ * an app.
+ *
+ * @public
+ */
+export interface FirebaseServerApp extends FirebaseApp {
+  /**
+   * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
+   * applications. However, it may be used internally, and is declared here so that
+   * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
+   */
+  name: string;
+
+  /**
+   * The (read-only) configuration settings for this server app. These are the original
+   * parameters given in {@link (initializeServerApp:1) | initializeServerApp()}.
+   *
+   * @example
+   * ```javascript
+   * const app = initializeServerApp(settings);
+   * console.log(app.settings.authIdToken === options.authIdToken);  // true
+   * ```
+   */
+  readonly settings: FirebaseServerAppSettings;
+}
+
+/**
  * @public
  *
  * Firebase configuration object. Contains a set of parameters required by
@@ -137,6 +168,60 @@ export interface FirebaseAppSettings {
    * The settable config flag for GDPR opt-in/opt-out
    */
   automaticDataCollectionEnabled?: boolean;
+}
+
+/**
+ * @public
+ *
+ * Configuration options given to {@link (initializeServerApp:1) | initializeServerApp()}
+ */
+export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+  /**
+   * An optional Auth ID token used to resume a signed in user session from a client
+   * runtime environment.
+   *
+   * Invoking `getAuth` with a `FirebaseServerApp` configured with a validated `authIdToken`
+   * causes an automatic attempt to sign in the user that the `authIdToken` represents. The token
+   * needs to have been recently minted for this operation to succeed.
+   *
+   * If the token fails local verification, or if the Auth service has failed to validate it when
+   * the Auth SDK is initialized, then a warning is logged to the console and the Auth SDK will not
+   * sign in a user on initialization.
+   *
+   * If a user is successfully signed in, then the Auth instance's `onAuthStateChanged` callback
+   * is invoked with the `User` object as per standard Auth flows. However, `User` objects
+   * created via an `authIdToken` do not have a refresh token. Attempted `refreshToken`
+   * operations fail.
+   */
+  authIdToken?: string;
+
+  /**
+   * An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry`
+   * object to monitor the garbage collection status of the provided object. The
+   * Firebase SDK releases its reference on the `FirebaseServerApp` instance when the
+   * provided `releaseOnDeref` object is garbage collected.
+   *
+   * You can use this field to reduce memory management overhead for your application.
+   * If provided, an app running in a SSR pass does not need to perform
+   * `FirebaseServerApp` cleanup, so long as the reference object is deleted (by falling out of
+   * SSR scope, for instance.)
+   *
+   * If an object is not provided then the application must clean up the `FirebaseServerApp`
+   * instance by invoking `deleteApp`.
+   *
+   * If the application provides an object in this parameter, but the application is
+   * executed in a JavaScript engine that predates the support of `FinalizationRegistry`
+   * (introduced in node v14.6.0, for instance), then an error is thrown at `FirebaseServerApp`
+   * initialization.
+   */
+  releaseOnDeref?: object;
+
+  /**
+   * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
+   * applications. However, it may be used internally, and is declared here so that
+   * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
+   */
+  name?: undefined;
 }
 
 /**

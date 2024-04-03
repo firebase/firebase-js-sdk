@@ -265,6 +265,8 @@ auth.setPersistence(browserSessionPersistence);
 
 Signs out the current user. This does not automatically revoke the user's ID token.
 
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
