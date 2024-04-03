@@ -16,9 +16,9 @@
  */
 import { expect } from 'chai';
 import { GenerativeModel } from './generative-model';
-import { Vertex } from '../public-types';
+import { VertexAI } from '../public-types';
 
-const fakeVertex: Vertex = {
+const fakeVertex: VertexAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,

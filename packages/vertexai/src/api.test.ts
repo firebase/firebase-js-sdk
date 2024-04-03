@@ -17,11 +17,11 @@
 import { ModelParams } from './types';
 import { getGenerativeModel } from './api';
 import { expect } from 'chai';
-import { Vertex } from './public-types';
+import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { VertexError } from './errors';
 
-const fakeVertex: Vertex = {
+const fakeVertex: VertexAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -43,7 +43,7 @@ describe('Top level API', () => {
     const fakeVertexNoApiKey = {
       ...fakeVertex,
       app: { options: { projectId: 'my-project' } }
-    } as Vertex;
+    } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' })
     ).to.throw(VertexError.NO_API_KEY);
@@ -52,7 +52,7 @@ describe('Top level API', () => {
     const fakeVertexNoProject = {
       ...fakeVertex,
       app: { options: { apiKey: 'my-key' } }
-    } as Vertex;
+    } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' })
     ).to.throw(VertexError.NO_PROJECT_ID);
