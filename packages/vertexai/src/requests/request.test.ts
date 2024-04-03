@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import { restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { RequestUrl, Task, makeRequest } from './request';
+import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 
@@ -31,14 +31,6 @@ const fakeApiSettings: ApiSettings = {
   project: 'my-project',
   location: 'us-central1'
 };
-
-const fakeRequestUrl = new RequestUrl(
-  'model-name',
-  Task.GENERATE_CONTENT,
-  fakeApiSettings,
-  true,
-  {}
-);
 
 describe('request methods', () => {
   afterEach(() => {
@@ -116,12 +108,94 @@ describe('request methods', () => {
       expect(url.toString()).to.not.include('alt=sse');
     });
   });
+  describe('getHeaders', () => {
+    const fakeApiSettings: ApiSettings = {
+      apiKey: 'key',
+      project: 'myproject',
+      location: 'moon',
+      getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
+    };
+    const fakeUrl = new RequestUrl(
+      'models/model-name',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      true,
+      {}
+    );
+    it('adds client headers', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('x-goog-api-client')).to.include('gl-js/ fire/');
+    });
+    it('adds api key', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('x-goog-api-key')).to.equal('key');
+    });
+    it('adds app check token if it exists', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
+    });
+    it('ignores app check token header if no appcheck service', async () => {
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        {
+          apiKey: 'key',
+          project: 'myproject',
+          location: 'moon'
+        },
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+    });
+    it('ignores app check token header if returned token was undefined', async () => {
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        {
+          apiKey: 'key',
+          project: 'myproject',
+          location: 'moon',
+          //@ts-ignore
+          getAppCheckToken: () => Promise.resolve()
+        },
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+    });
+    it('ignores app check token header if returned token had error', async () => {
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        {
+          apiKey: 'key',
+          project: 'myproject',
+          location: 'moon',
+          getAppCheckToken: () =>
+            Promise.resolve({ token: 'token', error: Error('oops') })
+        },
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+    });
+  });
   describe('makeRequest', () => {
     it('no error', async () => {
       const fetchStub = stub(globalThis, 'fetch').resolves({
         ok: true
       } as Response);
-      const response = await makeRequest(fakeRequestUrl, '');
+      const response = await makeRequest(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        ''
+      );
       expect(fetchStub).to.be.calledOnce;
       expect(response.ok).to.be.true;
     });
@@ -133,9 +207,16 @@ describe('request methods', () => {
       } as Response);
 
       await expect(
-        makeRequest(fakeRequestUrl, '', {
-          timeout: 0
-        })
+        makeRequest(
+          'models/model-name',
+          Task.GENERATE_CONTENT,
+          fakeApiSettings,
+          false,
+          '',
+          {
+            timeout: 0
+          }
+        )
       ).to.be.rejectedWith('500 AbortError');
       expect(fetchStub).to.be.calledOnce;
     });
@@ -145,9 +226,15 @@ describe('request methods', () => {
         status: 500,
         statusText: 'Server Error'
       } as Response);
-      await expect(makeRequest(fakeRequestUrl, '')).to.be.rejectedWith(
-        /500 Server Error/
-      );
+      await expect(
+        makeRequest(
+          'models/model-name',
+          Task.GENERATE_CONTENT,
+          fakeApiSettings,
+          false,
+          ''
+        )
+      ).to.be.rejectedWith(/500 Server Error/);
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json()', async () => {
@@ -157,9 +244,15 @@ describe('request methods', () => {
         statusText: 'Server Error',
         json: () => Promise.resolve({ error: { message: 'extra info' } })
       } as Response);
-      await expect(makeRequest(fakeRequestUrl, '')).to.be.rejectedWith(
-        /500 Server Error.*extra info/
-      );
+      await expect(
+        makeRequest(
+          'models/model-name',
+          Task.GENERATE_CONTENT,
+          fakeApiSettings,
+          false,
+          ''
+        )
+      ).to.be.rejectedWith(/500 Server Error.*extra info/);
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json() and details', async () => {
@@ -181,7 +274,15 @@ describe('request methods', () => {
             }
           })
       } as Response);
-      await expect(makeRequest(fakeRequestUrl, '')).to.be.rejectedWith(
+      await expect(
+        makeRequest(
+          'models/model-name',
+          Task.GENERATE_CONTENT,
+          fakeApiSettings,
+          false,
+          ''
+        )
+      ).to.be.rejectedWith(
         /500 Server Error.*extra info.*generic::invalid_argument/
       );
       expect(fetchStub).to.be.calledOnce;

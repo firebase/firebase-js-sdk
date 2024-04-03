@@ -19,7 +19,7 @@ import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
-import { VertexService } from './factory';
+import { VertexService } from './service';
 import { Vertex, VertexOptions } from './public-types';
 import { ERROR_FACTORY, VertexError } from './errors';
 import { ModelParams, RequestOptions } from './types';

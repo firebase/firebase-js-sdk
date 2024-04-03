@@ -39,6 +39,7 @@ import { formatGenerateContentInput } from '../requests/request-helpers';
 import { Vertex } from '../public-types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
+import { VertexService } from '../service';
 
 /**
  * Class for generative model APIs.
@@ -67,6 +68,10 @@ export class GenerativeModel {
         project: vertex.app.options.projectId,
         location: vertex.location
       };
+      if ((vertex as VertexService).appCheck) {
+        this._apiSettings.getAppCheckToken = () =>
+          (vertex as VertexService).appCheck!.getToken();
+      }
     }
     if (modelParams.model.includes('/')) {
       if (modelParams.model.startsWith('models/')) {

@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
+import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
+
 export interface ApiSettings {
   apiKey: string;
   project: string;
   location: string;
+  getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }

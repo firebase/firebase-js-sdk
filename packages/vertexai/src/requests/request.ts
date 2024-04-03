@@ -75,23 +75,60 @@ function getClientHeaders(): string {
   return loggingTags.join(' ');
 }
 
+export async function getHeaders(url: RequestUrl): Promise<Headers> {
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  headers.append('x-goog-api-client', getClientHeaders());
+  headers.append('x-goog-api-key', url.apiSettings.apiKey);
+  if (url.apiSettings.getAppCheckToken) {
+    const appCheckToken = await url.apiSettings.getAppCheckToken();
+    if (appCheckToken && !appCheckToken.error) {
+      headers.append('X-Firebase-AppCheck', appCheckToken.token);
+    }
+  }
+  return headers;
+}
+
+export async function constructRequest(
+  model: string,
+  task: Task,
+  apiSettings: ApiSettings,
+  stream: boolean,
+  body: string,
+  requestOptions?: RequestOptions
+): Promise<{ url: string; fetchOptions: RequestInit }> {
+  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
+  return {
+    url: url.toString(),
+    fetchOptions: {
+      ...buildFetchOptions(requestOptions),
+      method: 'POST',
+      headers: await getHeaders(url),
+      body
+    }
+  };
+}
+
 export async function makeRequest(
-  url: RequestUrl,
+  model: string,
+  task: Task,
+  apiSettings: ApiSettings,
+  stream: boolean,
   body: string,
   requestOptions?: RequestOptions
 ): Promise<Response> {
+  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
   let response;
   try {
-    response = await fetch(url.toString(), {
-      ...buildFetchOptions(requestOptions),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-client': getClientHeaders(),
-        'x-goog-api-key': url.apiSettings.apiKey
-      },
-      body
-    });
+    const request = await constructRequest(
+      model,
+      task,
+      apiSettings,
+      stream,
+      body,
+      requestOptions
+    );
+    response = await fetch(request.url, request.fetchOptions);
     if (!response.ok) {
       let message = '';
       try {

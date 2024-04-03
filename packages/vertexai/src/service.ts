@@ -24,14 +24,6 @@ import {
 import { Provider } from '@firebase/component';
 import { DEFAULT_LOCATION } from './constants';
 
-export function factory(
-  app: FirebaseApp,
-  appCheckProvider?: Provider<AppCheckInternalComponentName>,
-  options?: VertexOptions
-): VertexService {
-  return new VertexService(app, appCheckProvider, options);
-}
-
 export class VertexService implements Vertex, _FirebaseService {
   appCheck: FirebaseAppCheckInternal | null;
   location: string;

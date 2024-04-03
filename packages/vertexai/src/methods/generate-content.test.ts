@@ -28,6 +28,7 @@ import {
   HarmCategory
 } from '../types';
 import { ApiSettings } from '../types/internal';
+import { Task } from '../requests/request';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -69,10 +70,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Helena');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match((value: string) => {
         return value.includes('contents');
-      })
+      }),
+      undefined
     );
   });
   it('long response', async () => {
@@ -88,7 +93,10 @@ describe('generateContent()', () => {
     expect(result.response.text()).to.include('Use Freshly Ground Coffee');
     expect(result.response.text()).to.include('30 minutes of brewing');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
@@ -107,7 +115,10 @@ describe('generateContent()', () => {
       result.response.candidates?.[0].citationMetadata?.citations.length
     ).to.equal(1);
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
@@ -125,7 +136,10 @@ describe('generateContent()', () => {
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
@@ -143,7 +157,10 @@ describe('generateContent()', () => {
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
@@ -159,7 +176,10 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.equal('');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
@@ -175,7 +195,10 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('30 minutes of brewing');
     expect(makeRequestStub).to.be.calledWith(
-      match.instanceOf(request.RequestUrl),
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
       match.any
     );
   });
