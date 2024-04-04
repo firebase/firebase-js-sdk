@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { Vertex } from './public-types';
+import { VertexAI } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -24,7 +24,7 @@ import {
 import { Provider } from '@firebase/component';
 import { DEFAULT_LOCATION } from './constants';
 
-export class VertexService implements Vertex, _FirebaseService {
+export class VertexAIService implements VertexAI, _FirebaseService {
   appCheck: FirebaseAppCheckInternal | null;
   location: string;
 

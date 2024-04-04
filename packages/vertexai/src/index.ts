@@ -22,7 +22,7 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app';
-import { VertexService } from './service';
+import { VertexAIService } from './service';
 import { VERTEX_TYPE } from './constants';
 import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
@@ -41,7 +41,7 @@ function registerVertex(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexService(app, appCheckProvider);
+        return new VertexAIService(app, appCheckProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

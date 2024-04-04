@@ -75,9 +75,13 @@ export async function publishInCI(
         continue;
       }
     } catch (e) {
-      // 404 from NPM indicates the package doesn't exist there.
-      console.log(`Skipping pkg: ${pkg} - it has never been published to NPM.`);
-      continue;
+      if (version !== '0.0.1') {
+        // 404 from NPM indicates the package doesn't exist there.
+        console.log(
+          `Skipping pkg: ${pkg} - it has never been published to NPM.`
+        );
+        continue;
+      }
     }
 
     const tag = `${pkg}@${version}`;
