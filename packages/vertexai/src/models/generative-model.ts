@@ -36,10 +36,10 @@ import {
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
 import { formatGenerateContentInput } from '../requests/request-helpers';
-import { Vertex } from '../public-types';
+import { VertexAI } from '../public-types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { VertexService } from '../service';
+import { VertexAIService } from '../service';
 
 /**
  * Class for generative model APIs.
@@ -54,23 +54,23 @@ export class GenerativeModel {
   tools?: Tool[];
 
   constructor(
-    vertex: Vertex,
+    vertexAI: VertexAI,
     modelParams: ModelParams,
     requestOptions?: RequestOptions
   ) {
-    if (!vertex.app?.options?.apiKey) {
+    if (!vertexAI.app?.options?.apiKey) {
       throw ERROR_FACTORY.create(VertexError.NO_API_KEY);
-    } else if (!vertex.app?.options?.projectId) {
+    } else if (!vertexAI.app?.options?.projectId) {
       throw ERROR_FACTORY.create(VertexError.NO_PROJECT_ID);
     } else {
       this._apiSettings = {
-        apiKey: vertex.app.options.apiKey,
-        project: vertex.app.options.projectId,
-        location: vertex.location
+        apiKey: vertexAI.app.options.apiKey,
+        project: vertexAI.app.options.projectId,
+        location: vertexAI.location
       };
-      if ((vertex as VertexService).appCheck) {
+      if ((vertexAI as VertexAIService).appCheck) {
         this._apiSettings.getAppCheckToken = () =>
-          (vertex as VertexService).appCheck!.getToken();
+          (vertexAI as VertexAIService).appCheck!.getToken();
       }
     }
     if (modelParams.model.includes('/')) {

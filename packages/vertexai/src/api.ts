@@ -19,8 +19,8 @@ import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
-import { VertexService } from './service';
-import { Vertex, VertexOptions } from './public-types';
+import { VertexAIService } from './service';
+import { VertexAI, VertexAIOptions } from './public-types';
 import { ERROR_FACTORY, VertexError } from './errors';
 import { ModelParams, RequestOptions } from './types';
 import { GenerativeModel } from './models/generative-model';
@@ -31,21 +31,21 @@ export { GenerativeModel };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    [VERTEX_TYPE]: VertexService;
+    [VERTEX_TYPE]: VertexAIService;
   }
 }
 
 /**
- * Returns an {@link Vertex} instance for the given app.
+ * Returns an {@link VertexAI} instance for the given app.
  *
  * @public
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
-export function getVertex(
+export function getVertexAI(
   app: FirebaseApp = getApp(),
-  options?: VertexOptions
-): Vertex {
+  options?: VertexAIOptions
+): VertexAI {
   app = getModularInstance(app);
   // Dependencies
   const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
@@ -56,7 +56,7 @@ export function getVertex(
 }
 
 export function getGenerativeModel(
-  vertex: Vertex,
+  vertex: VertexAI,
   modelParams: ModelParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {

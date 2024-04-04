@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { Vertex, VertexOptions } from './public-types';
+import { VertexAI, VertexAIOptions } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -24,14 +24,14 @@ import {
 import { Provider } from '@firebase/component';
 import { DEFAULT_LOCATION } from './constants';
 
-export class VertexService implements Vertex, _FirebaseService {
+export class VertexAIService implements VertexAI, _FirebaseService {
   appCheck: FirebaseAppCheckInternal | null;
   location: string;
 
   constructor(
     public app: FirebaseApp,
     appCheckProvider?: Provider<AppCheckInternalComponentName>,
-    public options?: VertexOptions
+    public options?: VertexAIOptions
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     this.appCheck = appCheck || null;

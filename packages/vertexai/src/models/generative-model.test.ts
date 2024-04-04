@@ -16,9 +16,9 @@
  */
 import { expect } from 'chai';
 import { GenerativeModel } from './generative-model';
-import { Vertex } from '../public-types';
+import { VertexAI } from '../public-types';
 
-const fakeVertex: Vertex = {
+const fakeVertexAI: VertexAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -32,23 +32,23 @@ const fakeVertex: Vertex = {
 
 describe('GenerativeModel', () => {
   it('handles plain model name', () => {
-    const genModel = new GenerativeModel(fakeVertex, { model: 'my-model' });
+    const genModel = new GenerativeModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles models/ prefixed model name', () => {
-    const genModel = new GenerativeModel(fakeVertex, {
+    const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'models/my-model'
     });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles full model name', () => {
-    const genModel = new GenerativeModel(fakeVertex, {
+    const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'publishers/google/models/my-model'
     });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('handles prefixed tuned model name', () => {
-    const genModel = new GenerativeModel(fakeVertex, {
+    const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'tunedModels/my-model'
     });
     expect(genModel.model).to.equal('tunedModels/my-model');

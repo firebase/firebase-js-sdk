@@ -17,11 +17,11 @@
 import { ModelParams } from './types';
 import { getGenerativeModel } from './api';
 import { expect } from 'chai';
-import { Vertex } from './public-types';
+import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { VertexError } from './errors';
 
-const fakeVertex: Vertex = {
+const fakeVertexAI: VertexAI = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -35,30 +35,30 @@ const fakeVertex: Vertex = {
 
 describe('Top level API', () => {
   it('getGenerativeModel throws if no model is provided', () => {
-    expect(() => getGenerativeModel(fakeVertex, {} as ModelParams)).to.throw(
+    expect(() => getGenerativeModel(fakeVertexAI, {} as ModelParams)).to.throw(
       VertexError.NO_MODEL
     );
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
-      ...fakeVertex,
+      ...fakeVertexAI,
       app: { options: { projectId: 'my-project' } }
-    } as Vertex;
+    } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' })
     ).to.throw(VertexError.NO_API_KEY);
   });
   it('getGenerativeModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
-      ...fakeVertex,
+      ...fakeVertexAI,
       app: { options: { apiKey: 'my-key' } }
-    } as Vertex;
+    } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' })
     ).to.throw(VertexError.NO_PROJECT_ID);
   });
   it('getGenerativeModel gets a GenerativeModel', () => {
-    const genModel = getGenerativeModel(fakeVertex, { model: 'my-model' });
+    const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
