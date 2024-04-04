@@ -42,8 +42,7 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signInAnonymously } from './anonymous';
 
 const DEFAULT_PASSKEY_ACCOUNT_NAME = 'Unnamed account (Web)';
-const PASSKEY_LOOK_UP_ERROR_MESSAGE =
-  'The operation either timed out or was not allowed.';
+const PASSKEY_LOOK_UP_ERROR_NAME = 'NotAllowedError';
 
 /**
  * Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
@@ -94,7 +93,8 @@ export async function signInWithPasskey(
     return userCredential;
   } catch (error) {
     if (
-      (error as Error).message.includes(PASSKEY_LOOK_UP_ERROR_MESSAGE) &&
+      error instanceof DOMException &&
+      error.name === PASSKEY_LOOK_UP_ERROR_NAME &&
       !manualSignUp
     ) {
       // If the user is not signed up, sign them up anonymously
