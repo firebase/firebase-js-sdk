@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { Vertex, VertexOptions } from './public-types';
+import { Vertex } from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -30,12 +30,12 @@ export class VertexService implements Vertex, _FirebaseService {
 
   constructor(
     public app: FirebaseApp,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>,
-    public options?: VertexOptions
+    appCheckProvider?: Provider<AppCheckInternalComponentName>
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     this.appCheck = appCheck || null;
-    this.location = this.options?.location || DEFAULT_LOCATION;
+    // TODO: add in user-set location option when that feature is available
+    this.location = DEFAULT_LOCATION;
   }
 
   _delete(): Promise<void> {

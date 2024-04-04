@@ -20,7 +20,7 @@ import { Provider } from '@firebase/component';
 import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
 import { VertexService } from './service';
-import { Vertex, VertexOptions } from './public-types';
+import { Vertex } from './public-types';
 import { ERROR_FACTORY, VertexError } from './errors';
 import { ModelParams, RequestOptions } from './types';
 import { GenerativeModel } from './models/generative-model';
@@ -42,16 +42,13 @@ declare module '@firebase/component' {
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
-export function getVertex(
-  app: FirebaseApp = getApp(),
-  options?: VertexOptions
-): Vertex {
+export function getVertex(app: FirebaseApp = getApp()): Vertex {
   app = getModularInstance(app);
   // Dependencies
   const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
 
   return vertexProvider.getImmediate({
-    identifier: options?.location || DEFAULT_LOCATION
+    identifier: DEFAULT_LOCATION
   });
 }
 
