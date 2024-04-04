@@ -42,9 +42,7 @@ declare module '@firebase/component' {
  *
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  */
-export function getVertexAI(
-  app: FirebaseApp = getApp()
-): VertexAI {
+export function getVertexAI(app: FirebaseApp = getApp()): VertexAI {
   app = getModularInstance(app);
   // Dependencies
   const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
