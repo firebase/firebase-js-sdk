@@ -40,7 +40,8 @@ export class RequestUrl {
     public requestOptions?: RequestOptions
   ) {}
   toString(): string {
-    const apiVersion = this.requestOptions?.apiVersion || DEFAULT_API_VERSION;
+    // TODO: allow user-set option if that feature becomes available
+    const apiVersion = DEFAULT_API_VERSION;
     const baseUrl = this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
     let url = `${baseUrl}/${apiVersion}`;
     url += `/projects/${this.apiSettings.project}`;

@@ -30,7 +30,3 @@ export interface VertexAI {
   app: FirebaseApp;
   location: string;
 }
-
-export interface VertexAIOptions {
-  location?: string;
-}
