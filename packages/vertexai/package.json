@@ -1,7 +1,6 @@
 {
   "name": "@firebase/vertexai",
   "version": "0.0.1",
-  "private": true,
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
