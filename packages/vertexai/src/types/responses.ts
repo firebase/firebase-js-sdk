@@ -148,5 +148,13 @@ export interface SafetyRating {
  * @public
  */
 export interface CountTokensResponse {
+  /**
+   * The total number of tokens counted across all instances from the request.
+   */
   totalTokens: number;
+  /**
+   * The total number of billable characters counted across all instances
+   * from the request.
+   */
+  totalBillableCharacters?: number;
 }
