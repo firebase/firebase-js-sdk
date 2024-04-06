@@ -135,4 +135,24 @@ describe('FirebaseServerApp', () => {
 
     expect(() => app.settings).throws('Firebase Server App has been deleted');
   });
+
+  it('should not be JSON serializable', () => {
+    const options = {
+      apiKey: 'APIKEY'
+    };
+
+    const serverAppSettings: FirebaseServerAppSettings = {
+      automaticDataCollectionEnabled: false,
+      releaseOnDeref: options
+    };
+
+    const app = new FirebaseServerAppImpl(
+      options,
+      serverAppSettings,
+      'testName',
+      new ComponentContainer('test')
+    );
+
+    expect(JSON.stringify(app)).to.eql(undefined);
+  });
 });
