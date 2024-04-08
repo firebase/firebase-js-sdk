@@ -35,14 +35,20 @@ import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_ve
 import { PhoneAuthProvider } from './phone';
 import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../recaptcha/recaptcha_mock';
+import { ApplicationVerifierInternal } from '../../model/application_verifier';
 
 describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
+  let v2Verifier: ApplicationVerifierInternal;
 
   beforeEach(async () => {
     fetch.setUp();
     auth = await testAuth();
     auth.settings.appVerificationDisabledForTesting = false;
+    v2Verifier = new RecaptchaVerifier(auth, document.createElement('div'), {});
+    sinon
+      .stub(v2Verifier, 'verify')
+      .returns(Promise.resolve('verification-code'));
   });
 
   afterEach(() => {
@@ -83,15 +89,6 @@ describe('platform_browser/providers/phone', () => {
         sessionInfo: 'verification-id'
       });
 
-      const v2Verifier = new RecaptchaVerifier(
-        auth,
-        document.createElement('div'),
-        {}
-      );
-      sinon
-        .stub(v2Verifier, 'verify')
-        .returns(Promise.resolve('verification-code'));
-
       const provider = new PhoneAuthProvider(auth);
       const result = await provider.verifyPhoneNumber(
         '+15105550000',
@@ -102,6 +99,52 @@ describe('platform_browser/providers/phone', () => {
         phoneNumber: '+15105550000',
         recaptchaToken: 'verification-code',
         captchaResponse: FAKE_TOKEN,
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('calls the server when recaptcha enterprise is enabled', async () => {
+      const recaptchaConfigResponseEnforce = {
+        recaptchaKey: 'foo/bar/to/site-key',
+        recaptchaEnforcementState: [
+          {
+            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+            enforcementState: EnforcementState.ENFORCE
+          }
+        ]
+      };
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+
+      const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
+        sessionInfo: 'verification-id'
+      });
+
+      const provider = new PhoneAuthProvider(auth);
+      const result = await provider.verifyPhoneNumber(
+        '+15105550000',
+        v2Verifier
+      );
+      expect(result).to.eq('verification-id');
+      expect(route.calls[0].request).to.eql({
+        phoneNumber: '+15105550000',
+        captchaResponse: 'enterprise-token',
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
