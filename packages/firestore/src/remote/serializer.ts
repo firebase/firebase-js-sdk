@@ -252,7 +252,7 @@ export function toBytes(
  */
 export function fromBytes(
   serializer: JsonProtoSerializer,
-  value: string | Uint8Array | undefined
+  value: string | Uint8Array | Buffer | undefined
 ): ByteString {
   if (serializer.useProto3Json) {
     hardAssert(
@@ -262,8 +262,10 @@ export function fromBytes(
     return ByteString.fromBase64String(value ? value : '');
   } else {
     hardAssert(
-      value === undefined || value instanceof Uint8Array,
-      'value must be undefined or Uint8Array'
+      value === undefined ||
+        value instanceof Buffer ||
+        value instanceof Uint8Array,
+      'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
   }
