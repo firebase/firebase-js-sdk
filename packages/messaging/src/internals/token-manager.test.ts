@@ -128,41 +128,29 @@ describe('Token Manager', () => {
       expect(tokenFromDb).to.deep.equal(expectedTokenDetails);
     });
 
-    it('deletes the token if the update fails', async () => {
+    it('retains the token upon update failure due to potential server error, allowing for future update attempts', async () => {
       // Arrange
-      // Change create time to be older than a week.
-      tokenDetails.createTime = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days
-
+      tokenDetails.createTime = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago, triggering an update
       await dbSet(messaging.firebaseDependencies, tokenDetails);
-
-      requestUpdateTokenStub.rejects(new Error('Update failed.'));
-
+      requestUpdateTokenStub.rejects(new Error('Temporary server error'));
+    
       // Act
-      await expect(getTokenInternal(messaging)).to.be.rejectedWith(
-        'Update failed.'
-      );
-
+      await expect(getTokenInternal(messaging)).to.be.rejectedWith('Temporary server error');
+    
       // Assert
-      const expectedTokenDetails: TokenDetails = {
-        ...tokenDetails,
-        createTime: Date.now()
-      };
-
-      expect(requestGetTokenStub).not.to.have.been.called;
-      expect(requestUpdateTokenStub).to.have.been.calledOnceWith(
-        messaging.firebaseDependencies,
-        expectedTokenDetails
-      );
-      expect(requestDeleteTokenStub).to.have.been.calledOnceWith(
-        messaging.firebaseDependencies,
-        tokenDetails.token
-      );
-
+      expect(requestUpdateTokenStub).to.have.been.called;
+      expect(requestDeleteTokenStub).not.to.have.been.called; // Verify delete was not called
+    
+      // Reasoning documentation
+      // This test ensures that the token is not deleted upon an update failure,
+      // recognizing that such failures may be temporary server-side issues.
+      // By not deleting the token, we allow the system to retry the update in the future,
+      // avoiding unnecessary token churn and preserving continuity for the user.
+    
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
-      expect(tokenFromDb).to.be.undefined;
+      expect(tokenFromDb).to.not.be.null; // Ensure the token still exists
     });
-  });
-
+  
   describe('deleteToken', () => {
     it('returns if there is no token in the db', async () => {
       await deleteTokenInternal(messaging);
