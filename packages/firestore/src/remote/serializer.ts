@@ -252,7 +252,7 @@ export function toBytes(
  */
 export function fromBytes(
   serializer: JsonProtoSerializer,
-  value: string | Uint8Array | Buffer | undefined
+  value: string | Uint8Array | undefined
 ): ByteString {
   if (serializer.useProto3Json) {
     hardAssert(
@@ -263,6 +263,10 @@ export function fromBytes(
   } else {
     hardAssert(
       value === undefined ||
+        // The Buffer interface extends the Uint8Array interface, however
+        // the Uint8ArrayConstructor is not in the prototype chain of
+        // Buffer, so we have to test `value instanceof Buffer` and
+        // `value instanceof Uint8Array`.
         value instanceof Buffer ||
         value instanceof Uint8Array,
       'value must be undefined, Buffer, or Uint8Array'
