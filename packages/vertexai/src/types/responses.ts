@@ -20,7 +20,8 @@ import {
   BlockReason,
   FinishReason,
   HarmCategory,
-  HarmProbability
+  HarmProbability,
+  HarmSeverity
 } from './enums';
 
 /**
@@ -101,6 +102,7 @@ export interface GenerateContentCandidate {
   finishMessage?: string;
   safetyRatings?: SafetyRating[];
   citationMetadata?: CitationMetadata;
+  groundingMetadata?: GroundingMetadata;
 }
 
 /**
@@ -125,6 +127,51 @@ export interface Citation {
 }
 
 /**
+ * Metadata returned to client when grounding is enabled.
+ * @public
+ */
+export interface GroundingMetadata {
+  webSearchQueries?: string[];
+  retrievalQueries?: string[];
+  groundingAttributions: GroundingAttribution[];
+}
+
+/**
+ * @public
+ */
+export interface GroundingAttribution {
+  segment: Segment;
+  confidenceScore?: number;
+  web?: WebAttribution;
+  retrievedContext?: RetrievedContextAttribution;
+}
+
+/**
+ * @public
+ */
+export interface Segment {
+  partIndex: number;
+  startIndex: number;
+  endIndex: number;
+}
+
+/**
+ * @public
+ */
+export interface WebAttribution {
+  uri: string;
+  title: string;
+}
+
+/**
+ * @public
+ */
+export interface RetrievedContextAttribution {
+  uri: string;
+  title: string;
+}
+
+/**
  * Protobuf google.type.Date
  * @public
  */
@@ -141,6 +188,10 @@ export interface Date {
 export interface SafetyRating {
   category: HarmCategory;
   probability: HarmProbability;
+  severity: HarmSeverity;
+  probabilityScore: number;
+  severityScore: number;
+  blocked: boolean;
 }
 
 /**

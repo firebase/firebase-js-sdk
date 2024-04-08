@@ -16,7 +16,7 @@
  */
 
 import { Content } from './content';
-import { HarmBlockThreshold, HarmCategory } from './enums';
+import { HarmBlockMethod, HarmBlockThreshold, HarmCategory } from './enums';
 
 /**
  * Base parameters for a number of methods.
@@ -52,6 +52,7 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
+  method: HarmBlockMethod;
 }
 
 /**
@@ -65,6 +66,8 @@ export interface GenerationConfig {
   temperature?: number;
   topP?: number;
   topK?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
 }
 
 /**

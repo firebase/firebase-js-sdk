@@ -57,6 +57,18 @@ export enum HarmBlockThreshold {
 }
 
 /**
+ * @public
+ */
+export enum HarmBlockMethod {
+  // The harm block method is unspecified.
+  HARM_BLOCK_METHOD_UNSPECIFIED = 'HARM_BLOCK_METHOD_UNSPECIFIED',
+  // The harm block method uses both probability and severity scores.
+  SEVERITY = 'SEVERITY',
+  // The harm block method uses the probability score.
+  PROBABILITY = 'PROBABILITY'
+}
+
+/**
  * Probability that a prompt or candidate matches a harm category.
  * @public
  */
@@ -71,6 +83,23 @@ export enum HarmProbability {
   MEDIUM = 'MEDIUM',
   // Content has a high chance of being unsafe.
   HIGH = 'HIGH'
+}
+
+/**
+ * Harm severity levels.
+ * @public
+ */
+export enum HarmSeverity {
+  // Harm severity unspecified.
+  HARM_SEVERITY_UNSPECIFIED = 'HARM_SEVERITY_UNSPECIFIED',
+  // Negligible level of harm severity.
+  HARM_SEVERITY_NEGLIGIBLE = 'HARM_SEVERITY_NEGLIGIBLE',
+  // Low level of harm severity.
+  HARM_SEVERITY_LOW = 'HARM_SEVERITY_LOW',
+  // Medium level of harm severity.
+  HARM_SEVERITY_MEDIUM = 'HARM_SEVERITY_MEDIUM',
+  // High level of harm severity.
+  HARM_SEVERITY_HIGH = 'HARM_SEVERITY_HIGH'
 }
 
 /**
