@@ -40,7 +40,10 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   onConnected(callback: () => void): void {
-    debugAssert(!this.wrappedOnConnected, 'Called onConnected on stream twice!');
+    debugAssert(
+      !this.wrappedOnConnected,
+      'Called onConnected on stream twice!'
+    );
     this.wrappedOnConnected = callback;
   }
 
