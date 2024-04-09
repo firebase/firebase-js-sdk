@@ -113,6 +113,7 @@ export interface Connection {
  * be called if the stream successfully established a connection.
  */
 export interface Stream<I, O> {
+  onConnected(callback: () => void): void;
   onOpen(callback: () => void): void;
   onClose(callback: (err?: FirestoreError) => void): void;
   onMessage(callback: (msg: O) => void): void;
