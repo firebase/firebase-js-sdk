@@ -127,7 +127,6 @@ async function updateToken(
     await dbSet(messaging.firebaseDependencies, updatedTokenDetails);
     return updatedToken;
   } catch (e) {
-    await deleteTokenInternal(messaging);
     throw e;
   }
 }

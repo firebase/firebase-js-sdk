@@ -82,6 +82,10 @@ export class FirebaseServerAppImpl
     registerVersion(packageName, version, 'serverapp');
   }
 
+  toJSON(): undefined {
+    return undefined;
+  }
+
   get refCount(): number {
     return this._refCount;
   }
