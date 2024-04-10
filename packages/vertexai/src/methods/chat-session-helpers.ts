@@ -30,13 +30,17 @@ const VALID_PART_FIELDS: Array<keyof Part> = [
 const VALID_PARTS_PER_ROLE: { [key in Role]: Array<keyof Part> } = {
   user: ['text', 'inlineData'],
   function: ['functionResponse'],
-  model: ['text', 'functionCall']
+  model: ['text', 'functionCall'],
+  // System instructions shouldn't be in history anyway.
+  system: ['text']
 };
 
 const VALID_PREVIOUS_CONTENT_ROLES: { [key in Role]: Role[] } = {
   user: ['model'],
   function: ['model'],
-  model: ['user', 'function']
+  model: ['user', 'function'],
+  // System instructions shouldn't be in history.
+  system: []
 };
 
 export function validateChatHistory(history: Content[]): void {
