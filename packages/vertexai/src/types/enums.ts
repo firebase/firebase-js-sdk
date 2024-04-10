@@ -144,7 +144,7 @@ export enum FunctionCallingMode {
   // or a natural language repspose.
   AUTO = 'AUTO',
   // Model is constrained to always predicting a function call only.
-  // If "allowed_function_names" are set, the predicted function call will be
+  // If "allowed_function_names" is set, the predicted function call will be
   // limited to any one of "allowed_function_names", else the predicted
   // function call will be any one of the provided "function_declarations".
   ANY = 'ANY',
