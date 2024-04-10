@@ -25,7 +25,7 @@ import {
   RecaptchaClientType,
   RecaptchaVersion,
   RecaptchaActionName,
-  RecaptchaProvider,
+  RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
@@ -56,11 +56,11 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       }
     ]
@@ -72,16 +72,32 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     recaptchaKey: 'foo/bar/to/site-key',
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.OFF
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.OFF
       }
     ]
   };
   const recaptchaConfigOff = new RecaptchaConfig(recaptchaConfigResponseOff);
+  const recaptchaConfigResponseAudit = {
+    recaptchaKey: 'foo/bar/to/site-key',
+    recaptchaEnforcementState: [
+      {
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      },
+      {
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      }
+    ]
+  };
+  const recaptchaConfigAudit = new RecaptchaConfig(
+    recaptchaConfigResponseAudit
+  );
 
   const getRecaptchaConfigRequest = {
     clientType: RecaptchaClientType.WEB,
@@ -92,6 +108,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.settings.appVerificationDisabledForTesting = false;
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
@@ -150,55 +167,51 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     });
   });
 
-  context('handleRecaptchaFlow', () => {
+  context('#handleRecaptchaFlow', () => {
     let mockAuthInstance: AuthInternal;
     let mockRequest: any;
     let mockActionMethod: sinon.SinonStub;
 
     beforeEach(async () => {
       mockAuthInstance = await testAuth();
-      mockRequest = {};
+      mockRequest = { foo: 'bar' };
       mockActionMethod = sinon.stub();
+      sinon
+        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
+        .resolves('recaptcha-response');
     });
 
     afterEach(() => {
       sinon.restore();
     });
 
-    it('should call actionMethod with request if emailPasswordEnabled is true', async () => {
+    it('EMAIL_PASSWORD_PROVIDER - should call actionMethod with request if recaptcha enterprise is enabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigEnforce);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       mockActionMethod = sinon.stub().resolves('testResponse');
       const response = await handleRecaptchaFlow(
         mockAuthInstance,
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
-        mockActionMethod
+        mockActionMethod,
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledOnce;
       expect(response).to.equal('testResponse');
     });
 
-    // "Errors like "MISSING_RECAPTCHA_TOKEN" will be handled irrespective of the enablement status of "emailPasswordEnabled", but this test verifies the more likely scenario where emailPasswordEnabled is false"
-    it('should handle MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
+    // "Errors like "MISSING_RECAPTCHA_TOKEN" will be handled irrespective of the enablement status of EMAIL_PASSWORD_PROVIDER, but this test verifies the more likely scenario where EMAIL_PASSWORD_PROVIDER is disabled"
+    it('EMAIL_PASSWORD_PROVIDER - should handle MISSING_RECAPTCHA_TOKEN error when recaptcha enterprise is disabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigOff);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -214,23 +227,20 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockAuthInstance,
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
-        mockActionMethod
+        mockActionMethod,
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       expect(mockActionMethod).to.have.been.calledTwice;
       expect(response).to.equal('testResponse');
     });
 
-    it('should handle non MISSING_RECAPTCHA_TOKEN error when emailPasswordEnabled is false', async () => {
+    it('EMAIL_PASSWORD_PROVIDER - should handle non MISSING_RECAPTCHA_TOKEN error when recaptcha enterprise is disabled', async () => {
       if (typeof window === 'undefined') {
         return;
       }
       sinon
         .stub(mockAuthInstance, '_getRecaptchaConfig')
         .returns(recaptchaConfigOff);
-      sinon
-        .stub(RecaptchaEnterpriseVerifier.prototype, 'verify')
-        .resolves('recaptcha-response');
-      mockRequest = { foo: 'bar' };
       let callCount = 0;
       mockActionMethod = sinon.stub().callsFake(() => {
         callCount++;
@@ -247,10 +257,120 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mockAuthInstance,
         mockRequest,
         RecaptchaActionName.SIGN_IN_WITH_PASSWORD,
-        mockActionMethod
+        mockActionMethod,
+        RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
       );
       await expect(response).to.be.rejectedWith(
         AuthErrorCode.RECAPTCHA_NOT_ENABLED
+      );
+      expect(mockActionMethod).to.have.been.calledOnce;
+    });
+
+    it('PHONE_PROVIDER - should call actionMethod with request if recaptcha enterprise is enabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns(recaptchaConfigEnforce);
+      mockActionMethod = sinon.stub().resolves('testResponse');
+      const response = await handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SEND_VERIFICATION_CODE,
+        mockActionMethod,
+        RecaptchaAuthProvider.PHONE_PROVIDER
+      );
+      expect(mockActionMethod).to.have.been.calledOnce;
+      expect(response).to.equal('testResponse');
+    });
+
+    it('PHONE_PROVIDER - should handle MISSING_RECAPTCHA_TOKEN error when the enforcement state is audit', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns(recaptchaConfigAudit);
+      let callCount = 0;
+      mockActionMethod = sinon.stub().callsFake(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(
+            _createError(AuthErrorCode.MISSING_RECAPTCHA_TOKEN)
+          );
+        } else {
+          return Promise.resolve('testResponse');
+        }
+      });
+      const response = await handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SEND_VERIFICATION_CODE,
+        mockActionMethod,
+        RecaptchaAuthProvider.PHONE_PROVIDER
+      );
+      expect(mockActionMethod).to.have.been.calledTwice;
+      expect(response).to.equal('testResponse');
+    });
+
+    it('PHONE_PROVIDER - should handle INVALID_APP_CREDENTIAL error when the enforcement state is audit', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns(recaptchaConfigAudit);
+      let callCount = 0;
+      mockActionMethod = sinon.stub().callsFake(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(
+            _createError(AuthErrorCode.INVALID_APP_CREDENTIAL)
+          );
+        } else {
+          return Promise.resolve('testResponse');
+        }
+      });
+      const response = await handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SEND_VERIFICATION_CODE,
+        mockActionMethod,
+        RecaptchaAuthProvider.PHONE_PROVIDER
+      );
+      expect(mockActionMethod).to.have.been.calledTwice;
+      expect(response).to.equal('testResponse');
+    });
+
+    it('PHONE_PROVIDER - should handle non MISSING_RECAPTCHA_TOKEN and non INVALID_APP_CREDENTIAL error', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      sinon
+        .stub(mockAuthInstance, '_getRecaptchaConfig')
+        .returns(recaptchaConfigAudit);
+      let callCount = 0;
+      mockActionMethod = sinon.stub().callsFake(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(
+            _createError(AuthErrorCode.INVALID_RECAPTCHA_TOKEN)
+          );
+        } else {
+          return Promise.resolve('testResponse');
+        }
+      });
+
+      const response = handleRecaptchaFlow(
+        mockAuthInstance,
+        mockRequest,
+        RecaptchaActionName.SEND_VERIFICATION_CODE,
+        mockActionMethod,
+        RecaptchaAuthProvider.PHONE_PROVIDER
+      );
+      await expect(response).to.be.rejectedWith(
+        AuthErrorCode.INVALID_RECAPTCHA_TOKEN
       );
       expect(mockActionMethod).to.have.been.calledOnce;
     });
@@ -337,7 +457,8 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         idToken: 'idToken',
         phoneEnrollmentInfo: {
           phoneNumber: '123456',
-          recaptchaToken: 'recaptchaToken'
+          recaptchaToken: 'recaptcha-token',
+          clientType: RecaptchaClientType.WEB
         }
       };
       const requestWithRecaptcha = await injectRecaptchaFields(
@@ -350,7 +471,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         idToken: 'idToken',
         phoneEnrollmentInfo: {
           phoneNumber: '123456',
-          recaptchaToken: 'recaptchaToken',
+          recaptchaToken: 'recaptcha-token',
           captchaResponse: 'recaptcha-response',
           clientType: RecaptchaClientType.WEB,
           recaptchaVersion: RecaptchaVersion.ENTERPRISE
@@ -374,7 +495,8 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mfaPendingCredential: 'mfaPendingCredential',
         mfaEnrollmentId: 'mfaEnrollmentId',
         phoneSignInInfo: {
-          recaptchaToken: 'recaptchaToken'
+          recaptchaToken: 'recaptcha-token',
+          clientType: RecaptchaClientType.WEB
         }
       };
       const requestWithRecaptcha = await injectRecaptchaFields(
@@ -387,7 +509,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
         mfaPendingCredential: 'mfaPendingCredential',
         mfaEnrollmentId: 'mfaEnrollmentId',
         phoneSignInInfo: {
-          recaptchaToken: 'recaptchaToken',
+          recaptchaToken: 'recaptcha-token',
           captchaResponse: 'recaptcha-response',
           clientType: RecaptchaClientType.WEB,
           recaptchaVersion: RecaptchaVersion.ENTERPRISE

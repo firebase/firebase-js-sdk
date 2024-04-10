@@ -22,7 +22,7 @@ import {
 } from '../../api/authentication/recaptcha';
 import {
   EnforcementState,
-  RecaptchaProvider,
+  RecaptchaAuthProvider,
   _parseEnforcementState
 } from '../../api/index';
 
@@ -148,8 +148,8 @@ export class RecaptchaConfig {
    */
   isAnyProviderEnabled(): boolean {
     return (
-      this.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER) ||
-      this.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+      this.isProviderEnabled(RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER) ||
+      this.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
     );
   }
 }
