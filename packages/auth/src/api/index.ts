@@ -100,7 +100,7 @@ export const enum EnforcementState {
 }
 
 // Providers that have reCAPTCHA Enterprise support.
-export const enum RecaptchaProvider {
+export const enum RecaptchaAuthProvider {
   EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER',
   PHONE_PROVIDER = 'PHONE_PROVIDER'
 }

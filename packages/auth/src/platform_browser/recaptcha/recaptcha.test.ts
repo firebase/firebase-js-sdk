@@ -29,7 +29,7 @@ import {
 
 import { isV2, isEnterprise, RecaptchaConfig } from './recaptcha';
 import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
-import { EnforcementState, RecaptchaProvider } from '../../api/index';
+import { EnforcementState, RecaptchaAuthProvider } from '../../api/index';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -46,11 +46,11 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.AUDIT
       }
     ]
@@ -60,11 +60,11 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
     recaptchaEnforcementState: [
       {
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.OFF
       },
       {
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.OFF
       }
     ]
@@ -75,11 +75,11 @@ describe('platform_browser/recaptcha/recaptcha', () => {
       recaptchaKey: 'projects/testproj/keys/' + TEST_SITE_KEY,
       recaptchaEnforcementState: [
         {
-          provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+          provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
           enforcementState: EnforcementState.ENFORCE
         },
         {
-          provider: RecaptchaProvider.PHONE_PROVIDER,
+          provider: RecaptchaAuthProvider.PHONE_PROVIDER,
           enforcementState: EnforcementState.OFF
         }
       ]
@@ -120,15 +120,15 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     it('should construct the recaptcha config from the backend response', () => {
       expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
       expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
-        provider: RecaptchaProvider.EMAIL_PASSWORD_PROVIDER,
+        provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       });
       expect(recaptchaConfig.recaptchaEnforcementState[1]).to.eql({
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.AUDIT
       });
       expect(recaptchaConfigEnforceAndOff.recaptchaEnforcementState[1]).to.eql({
-        provider: RecaptchaProvider.PHONE_PROVIDER,
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.OFF
       });
     });
@@ -136,17 +136,17 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     it('#getProviderEnforcementState should return the correct enforcement state of the provider', () => {
       expect(
         recaptchaConfig.getProviderEnforcementState(
-          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+          RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         )
       ).to.eq(EnforcementState.ENFORCE);
       expect(
         recaptchaConfig.getProviderEnforcementState(
-          RecaptchaProvider.PHONE_PROVIDER
+          RecaptchaAuthProvider.PHONE_PROVIDER
         )
       ).to.eq(EnforcementState.AUDIT);
       expect(
         recaptchaConfigEnforceAndOff.getProviderEnforcementState(
-          RecaptchaProvider.PHONE_PROVIDER
+          RecaptchaAuthProvider.PHONE_PROVIDER
         )
       ).to.eq(EnforcementState.OFF);
       expect(recaptchaConfig.getProviderEnforcementState('invalid-provider')).to
@@ -156,15 +156,15 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     it('#isProviderEnabled should return the enablement state of the provider', () => {
       expect(
         recaptchaConfig.isProviderEnabled(
-          RecaptchaProvider.EMAIL_PASSWORD_PROVIDER
+          RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         )
       ).to.be.true;
       expect(
-        recaptchaConfig.isProviderEnabled(RecaptchaProvider.PHONE_PROVIDER)
+        recaptchaConfig.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
       ).to.be.true;
       expect(
         recaptchaConfigEnforceAndOff.isProviderEnabled(
-          RecaptchaProvider.PHONE_PROVIDER
+          RecaptchaAuthProvider.PHONE_PROVIDER
         )
       ).to.be.false;
       expect(recaptchaConfig.isProviderEnabled('invalid-provider')).to.be.false;
