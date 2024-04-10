@@ -16,7 +16,12 @@
  */
 
 import { Content } from './content';
-import { HarmBlockMethod, HarmBlockThreshold, HarmCategory } from './enums';
+import {
+  FunctionCallingMode,
+  HarmBlockMethod,
+  HarmBlockThreshold,
+  HarmCategory
+} from './enums';
 
 /**
  * Base parameters for a number of methods.
@@ -34,6 +39,8 @@ export interface BaseParams {
 export interface ModelParams extends BaseParams {
   model: string;
   tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: Content;
 }
 
 /**
@@ -43,6 +50,8 @@ export interface ModelParams extends BaseParams {
 export interface GenerateContentRequest extends BaseParams {
   contents: Content[];
   tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: Content;
 }
 
 /**
@@ -77,6 +86,8 @@ export interface GenerationConfig {
 export interface StartChatParams extends BaseParams {
   history?: Content[];
   tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: Content;
 }
 
 /**
@@ -219,4 +230,20 @@ export interface FunctionDeclarationSchemaProperty {
   required?: string[];
   /** Optional. The example of the property. */
   example?: unknown;
+}
+
+/**
+ * Tool config. This config is shared for all tools provided in the request.
+ * @public
+ */
+export interface ToolConfig {
+  functionCallingConfig: FunctionCallingConfig;
+}
+
+/**
+ * @public
+ */
+export interface FunctionCallingConfig {
+  mode?: FunctionCallingMode;
+  allowedFunctionNames?: string[];
 }

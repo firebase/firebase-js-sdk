@@ -14,9 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { use, expect } from 'chai';
 import { GenerativeModel } from './generative-model';
-import { VertexAI } from '../public-types';
+import { FunctionCallingMode, VertexAI } from '../public-types';
+import * as request from '../requests/request';
+import { match, restore, stub } from 'sinon';
+import { getMockResponse } from '../../test-utils/mock-response';
+import { Task } from '../requests/request';
+import sinonChai from 'sinon-chai';
+
+use(sinonChai);
 
 const fakeVertexAI: VertexAI = {
   app: {
@@ -52,5 +59,158 @@ describe('GenerativeModel', () => {
       model: 'tunedModels/my-model'
     });
     expect(genModel.model).to.equal('tunedModels/my-model');
+  });
+  it('passes params through to generateContent', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+    });
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.generateContent('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('myfunc') &&
+          value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('generateContent overrides model values', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+    });
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: 'hello' }] }],
+      tools: [{ functionDeclarations: [{ name: 'otherfunc' }] }],
+      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.AUTO } },
+      systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
+    });
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('otherfunc') &&
+          value.includes(FunctionCallingMode.AUTO) &&
+          value.includes('be formal')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('passes params through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+    });
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('myfunc') &&
+          value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('startChat overrides model values', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+    });
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel
+      .startChat({
+        tools: [{ functionDeclarations: [{ name: 'otherfunc' }] }],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.AUTO }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
+      })
+      .sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('otherfunc') &&
+          value.includes(FunctionCallingMode.AUTO) &&
+          value.includes('be formal')
+        );
+      }),
+      {}
+    );
+    restore();
   });
 });

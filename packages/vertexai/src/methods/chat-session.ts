@@ -82,6 +82,8 @@ export class ChatSession {
       safetySettings: this.params?.safetySettings,
       generationConfig: this.params?.generationConfig,
       tools: this.params?.tools,
+      toolConfig: this.params?.toolConfig,
+      systemInstruction: this.params?.systemInstruction,
       contents: [...this._history, newContent]
     };
     let finalResult = {} as GenerateContentResult;
@@ -135,6 +137,8 @@ export class ChatSession {
       safetySettings: this.params?.safetySettings,
       generationConfig: this.params?.generationConfig,
       tools: this.params?.tools,
+      toolConfig: this.params?.toolConfig,
+      systemInstruction: this.params?.systemInstruction,
       contents: [...this._history, newContent]
     };
     const streamPromise = generateContentStream(
