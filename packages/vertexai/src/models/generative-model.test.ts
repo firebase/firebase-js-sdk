@@ -20,7 +20,6 @@ import { FunctionCallingMode, VertexAI } from '../public-types';
 import * as request from '../requests/request';
 import { match, restore, stub } from 'sinon';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { Task } from '../requests/request';
 import sinonChai from 'sinon-chai';
 
 use(sinonChai);
@@ -81,7 +80,7 @@ describe('GenerativeModel', () => {
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
-      Task.GENERATE_CONTENT,
+      request.Task.GENERATE_CONTENT,
       match.any,
       false,
       match((value: string) => {
@@ -121,7 +120,7 @@ describe('GenerativeModel', () => {
     });
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
-      Task.GENERATE_CONTENT,
+      request.Task.GENERATE_CONTENT,
       match.any,
       false,
       match((value: string) => {
@@ -156,7 +155,7 @@ describe('GenerativeModel', () => {
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
-      Task.GENERATE_CONTENT,
+      request.Task.GENERATE_CONTENT,
       match.any,
       false,
       match((value: string) => {
@@ -199,7 +198,7 @@ describe('GenerativeModel', () => {
       .sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
       'publishers/google/models/my-model',
-      Task.GENERATE_CONTENT,
+      request.Task.GENERATE_CONTENT,
       match.any,
       false,
       match((value: string) => {
