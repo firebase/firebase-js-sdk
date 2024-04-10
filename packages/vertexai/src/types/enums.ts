@@ -25,7 +25,7 @@ export type Role = (typeof POSSIBLE_ROLES)[number];
  * Possible roles.
  * @public
  */
-export const POSSIBLE_ROLES = ['user', 'model', 'function'] as const;
+export const POSSIBLE_ROLES = ['user', 'model', 'function', 'system'] as const;
 
 /**
  * Harm categories that would cause prompts or candidates to be blocked.
@@ -132,4 +132,23 @@ export enum FinishReason {
   RECITATION = 'RECITATION',
   // Unknown reason.
   OTHER = 'OTHER'
+}
+
+/**
+ * @public
+ */
+export enum FunctionCallingMode {
+  // Unspecified function calling mode. This value should not be used.
+  MODE_UNSPECIFIED = 'MODE_UNSPECIFIED',
+  // Default model behavior, model decides to predict either a function call
+  // or a natural language repspose.
+  AUTO = 'AUTO',
+  // Model is constrained to always predicting a function call only.
+  // If "allowed_function_names" is set, the predicted function call will be
+  // limited to any one of "allowed_function_names", else the predicted
+  // function call will be any one of the provided "function_declarations".
+  ANY = 'ANY',
+  // Model will not predict any function call. Model behavior is same as when
+  // not passing any function declarations.
+  NONE = 'NONE'
 }

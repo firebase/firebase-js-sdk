@@ -20,6 +20,7 @@ import {
   generateContentStream
 } from '../methods/generate-content';
 import {
+  Content,
   CountTokensRequest,
   CountTokensResponse,
   GenerateContentRequest,
@@ -31,7 +32,8 @@ import {
   RequestOptions,
   SafetySetting,
   StartChatParams,
-  Tool
+  Tool,
+  ToolConfig
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
@@ -52,6 +54,8 @@ export class GenerativeModel {
   safetySettings: SafetySetting[];
   requestOptions?: RequestOptions;
   tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: Content;
 
   constructor(
     vertexAI: VertexAI,
@@ -88,6 +92,8 @@ export class GenerativeModel {
     this.generationConfig = modelParams.generationConfig || {};
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
+    this.toolConfig = modelParams.toolConfig;
+    this.systemInstruction = modelParams.systemInstruction;
     this.requestOptions = requestOptions || {};
   }
 
@@ -106,6 +112,8 @@ export class GenerativeModel {
         generationConfig: this.generationConfig,
         safetySettings: this.safetySettings,
         tools: this.tools,
+        toolConfig: this.toolConfig,
+        systemInstruction: this.systemInstruction,
         ...formattedParams
       },
       this.requestOptions
@@ -129,6 +137,8 @@ export class GenerativeModel {
         generationConfig: this.generationConfig,
         safetySettings: this.safetySettings,
         tools: this.tools,
+        toolConfig: this.toolConfig,
+        systemInstruction: this.systemInstruction,
         ...formattedParams
       },
       this.requestOptions
@@ -145,6 +155,8 @@ export class GenerativeModel {
       this.model,
       {
         tools: this.tools,
+        toolConfig: this.toolConfig,
+        systemInstruction: this.systemInstruction,
         ...startChatParams
       },
       this.requestOptions
