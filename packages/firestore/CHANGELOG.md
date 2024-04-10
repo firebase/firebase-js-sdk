@@ -1,5 +1,21 @@
 # @firebase/firestore
 
+## 4.6.0
+
+### Minor Changes
+
+- [`666dddae0`](https://github.com/firebase/firebase-js-sdk/commit/666dddae0b050204c59f70e74010fd92a6b54187) [#7999](https://github.com/firebase/firebase-js-sdk/pull/7999) - Enable queries with range & inequality filters on multiple fields.
+
+### Patch Changes
+
+- [`fe09d8338`](https://github.com/firebase/firebase-js-sdk/commit/fe09d8338d7d5f7a82d8cd73cf825adbe5551975) [#8138](https://github.com/firebase/firebase-js-sdk/pull/8138) (fixes [#8132](https://github.com/firebase/firebase-js-sdk/issues/8132)) - Update undici version to 5.28.4 due to CVE-2024-30260.
+
+- [`c6ecac8ac`](https://github.com/firebase/firebase-js-sdk/commit/c6ecac8ac7110622d178d9450446318a4d0c474e) [#8090](https://github.com/firebase/firebase-js-sdk/pull/8090) (fixes [#8031](https://github.com/firebase/firebase-js-sdk/issues/8031)) - Fixed the CSI issue where indexing on timestamp fields leads to incorrect query results.
+
+- [`a6fa54417`](https://github.com/firebase/firebase-js-sdk/commit/a6fa544173aeeee9d4f35e1ebd36fe2c2f461d19) [#8142](https://github.com/firebase/firebase-js-sdk/pull/8142) - Fix internal assertion due to Buffer value not evaluating to instanceof Uint8Array, encountered when testing with jsdom.
+
+- [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414) [#8134](https://github.com/firebase/firebase-js-sdk/pull/8134) - Updated dependencies. See GitHub PR #8098.
+
 ## 4.5.1
 
 ### Patch Changes
