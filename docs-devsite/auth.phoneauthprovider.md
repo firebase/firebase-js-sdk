@@ -217,7 +217,7 @@ verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: 
 
 Promise&lt;string&gt;
 
-A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.md#phoneauthprovidercredential) to identify this flow..
+A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.md#phoneauthprovidercredential) to identify this flow.
 
 ### Example 1
 
