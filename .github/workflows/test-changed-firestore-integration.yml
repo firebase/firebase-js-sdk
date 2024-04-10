@@ -33,24 +33,24 @@ jobs:
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
-    - uses: 'google-github-actions/auth@v0'
-      if: ${{ env.run_terraform_steps }}
+    - uses: 'google-github-actions/auth@v2'
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       with:
         credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
 
     # create composite indexes with Terraform
     - name: Setup Terraform
-      if: ${{ env.run_terraform_steps }}
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       uses: hashicorp/setup-terraform@v2
     - name: Terraform Init
-      if: ${{ env.run_terraform_steps }}
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       run: |
         cp config/ci.config.json config/project.json
         cd packages/firestore
         terraform init
       continue-on-error: true
     - name: Terraform Apply
-      if: github.event_name == 'pull_request' && env.run_terraform_steps
+      if: github.event_name == 'pull_request' && fromJSON(env.run_terraform_steps)
       run: |
         cd packages/firestore
 
