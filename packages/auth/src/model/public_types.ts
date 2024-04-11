@@ -328,6 +328,8 @@ export interface Auth {
    * {@link @firebase/app#FirebaseServerApp}.
    */
   signOut(): Promise<void>;
+
+  updateApiHost(apiHost: string): void;
 }
 
 /**
