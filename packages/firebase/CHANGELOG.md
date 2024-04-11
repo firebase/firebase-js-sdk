@@ -1,5 +1,27 @@
 # firebase
 
+## 10.11.0
+
+### Minor Changes
+
+- [`666dddae0`](https://github.com/firebase/firebase-js-sdk/commit/666dddae0b050204c59f70e74010fd92a6b54187) [#7999](https://github.com/firebase/firebase-js-sdk/pull/7999) - Enable queries with range & inequality filters on multiple fields.
+
+### Patch Changes
+
+- Updated dependencies [[`fe09d8338`](https://github.com/firebase/firebase-js-sdk/commit/fe09d8338d7d5f7a82d8cd73cf825adbe5551975), [`f1a57d00d`](https://github.com/firebase/firebase-js-sdk/commit/f1a57d00d05c202ca676f22ed89ad636e8a708c6), [`c6ecac8ac`](https://github.com/firebase/firebase-js-sdk/commit/c6ecac8ac7110622d178d9450446318a4d0c474e), [`a6fa54417`](https://github.com/firebase/firebase-js-sdk/commit/a6fa544173aeeee9d4f35e1ebd36fe2c2f461d19), [`666dddae0`](https://github.com/firebase/firebase-js-sdk/commit/666dddae0b050204c59f70e74010fd92a6b54187), [`6d31930b3`](https://github.com/firebase/firebase-js-sdk/commit/6d31930b3abe1588ae81a5c14b59cd386fddc718), [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414)]:
+  - @firebase/auth-compat@0.5.6
+  - @firebase/firestore@4.6.0
+  - @firebase/functions@0.11.4
+  - @firebase/storage@0.12.4
+  - @firebase/auth@1.7.1
+  - @firebase/messaging@0.12.8
+  - @firebase/app@0.10.1
+  - @firebase/storage-compat@0.3.7
+  - @firebase/firestore-compat@0.3.29
+  - @firebase/functions-compat@0.3.10
+  - @firebase/messaging-compat@0.2.8
+  - @firebase/app-compat@0.2.31
+
 ## 10.10.0
 
 ### Minor Changes
