@@ -1,5 +1,13 @@
 # @firebase/app
 
+## 0.10.1
+
+### Patch Changes
+
+- [`6d31930b3`](https://github.com/firebase/firebase-js-sdk/commit/6d31930b3abe1588ae81a5c14b59cd386fddc718) [#8109](https://github.com/firebase/firebase-js-sdk/pull/8109) - FirebaseServerApp should not be JSON serializable
+
+- [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414) [#8134](https://github.com/firebase/firebase-js-sdk/pull/8134) - Updated dependencies. See GitHub PR #8098.
+
 ## 0.10.0
 
 ### Minor Changes
