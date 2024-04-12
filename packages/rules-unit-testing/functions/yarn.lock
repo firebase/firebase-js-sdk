@@ -78,7 +78,7 @@
   dependencies:
     tslib "^2.1.0"
 
-"@google-cloud/firestore@^6.6.0":
+"@google-cloud/firestore@^6.8.0":
   version "6.8.0"
   resolved "https://registry.npmjs.org/@google-cloud/firestore/-/firestore-6.8.0.tgz#d8c852844c381afaf62592796606c10e178400b5"
   integrity sha512-JRpk06SmZXLGz0pNx1x7yU3YhkUXheKgH5hbDZ4kMsdhtfV5qPLJLRI4wv69K0cZorIk+zTMOwptue7hizo0eA==
@@ -803,10 +803,10 @@ finalhandler@~1.1.2:
     statuses "~1.5.0"
     unpipe "~1.0.0"
 
-firebase-admin@11.10.1:
-  version "11.10.1"
-  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-11.10.1.tgz#5f0f83a44627e89938d350c5e4bbac76596c963e"
-  integrity sha512-atv1E6GbuvcvWaD3eHwrjeP5dAVs+EaHEJhu9CThMzPY6In8QYDiUR6tq5SwGl4SdA/GcAU0nhwWc/FSJsAzfQ==
+firebase-admin@11.11.1:
+  version "11.11.1"
+  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-11.11.1.tgz#6712923de70d218c9f514d73005d976d03339605"
+  integrity sha512-UyEbq+3u6jWzCYbUntv/HuJiTixwh36G1R9j0v71mSvGAx/YZEWEW7uSGLYxBYE6ckVRQoKMr40PYUEzrm/4dg==
   dependencies:
     "@fastify/busboy" "^1.2.1"
     "@firebase/database-compat" "^0.3.4"
@@ -817,7 +817,7 @@ firebase-admin@11.10.1:
     node-forge "^1.3.1"
     uuid "^9.0.0"
   optionalDependencies:
-    "@google-cloud/firestore" "^6.6.0"
+    "@google-cloud/firestore" "^6.8.0"
     "@google-cloud/storage" "^6.9.5"
 
 firebase-functions@3.24.1:
@@ -1641,17 +1641,10 @@ safe-buffer@>=5.1.0, safe-buffer@^5.0.1, safe-buffer@~5.2.0:
   resolved "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-semver@^7.1.2:
-  version "7.3.8"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
-  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
-  dependencies:
-    lru-cache "^6.0.0"
-
-semver@^7.5.4:
-  version "7.5.4"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.5.4.tgz#483986ec4ed38e1c6c48c34894a9182dbff68a6e"
-  integrity sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==
+semver@^7.1.2, semver@^7.5.4:
+  version "7.6.0"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
+  integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
   dependencies:
     lru-cache "^6.0.0"
 
