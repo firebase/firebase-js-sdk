@@ -35,7 +35,7 @@ env:
 jobs:
   binary-size:
     name: Binary Size
-    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork) && github.actor != 'dependabot[bot]'
+    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -52,7 +52,7 @@ jobs:
         run: yarn size-report
   modular-export-size:
     name: Binary Size For Modular Exports
-    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork) && github.actor != 'dependabot[bot]'
+    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
