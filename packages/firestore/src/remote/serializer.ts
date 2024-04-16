@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Aggregate } from '../core/aggregate';
+import { Aggregate, AggregateImpl } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -32,6 +32,7 @@ import {
   newQuery,
   newQueryForPath,
   Query,
+  queryToAggregateTarget,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -104,6 +105,8 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { AggregateSpec } from '../lite-api/aggregate_types';
+import { mapToArray } from '../util/obj';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -898,6 +901,38 @@ export function toQueryTarget(
   }
 
   return { queryTarget, parent };
+}
+
+export function queryToProtoQueryTarget(
+  serializer: JsonProtoSerializer,
+  query: Query
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
+  return toQueryTarget(serializer, queryToTarget(query));
+}
+
+export function aggregationQueryToProtoRunAggregationQueryRequest<
+  AggregateSpecType extends AggregateSpec
+>(
+  serializer: JsonProtoSerializer,
+  query: Query,
+  aggregateSpec: AggregateSpecType
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+  parent: ResourcePath;
+} {
+  const aggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
+    return new AggregateImpl(
+      alias,
+      aggregate.aggregateType,
+      aggregate._internalFieldPath
+    );
+  });
+  return toRunAggregationQueryRequest(
+    serializer,
+    queryToAggregateTarget(query),
+    aggregates
+  );
 }
 
 export function toRunAggregationQueryRequest(
