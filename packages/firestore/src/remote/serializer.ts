@@ -94,7 +94,7 @@ import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-
+import { Query as ApiQuery } from '../lite-api/reference';
 import { ExistenceFilter } from './existence_filter';
 import { Serializer } from './number_serializer';
 import { mapCodeFromRpcCode } from './rpc_error';
@@ -107,6 +107,8 @@ import {
 } from './watch_change';
 import { AggregateSpec } from '../lite-api/aggregate_types';
 import { mapToArray } from '../util/obj';
+import {ensureFirestoreConfigured, Firestore} from "../api/database";
+import {cast} from "../util/input_validation";
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -904,23 +906,27 @@ export function toQueryTarget(
 }
 
 export function queryToProtoQueryTarget(
-  serializer: JsonProtoSerializer,
-  query: Query
-): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
-  return toQueryTarget(serializer, queryToTarget(query));
+  query: ApiQuery
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } | null {
+  const firestore = cast(query.firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  const serializer = client._onlineComponents?.datastore.serializer;
+  if (serializer === undefined) {
+    return null;
+  }
+  return toQueryTarget(serializer!, queryToTarget(query._query));
 }
 
 export function aggregationQueryToProtoRunAggregationQueryRequest<
   AggregateSpecType extends AggregateSpec
 >(
-  serializer: JsonProtoSerializer,
-  query: Query,
+  query: ApiQuery,
   aggregateSpec: AggregateSpecType
 ): {
   request: ProtoRunAggregationQueryRequest;
   aliasMap: Record<string, string>;
   parent: ResourcePath;
-} {
+} | null {
   const aggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
@@ -928,9 +934,16 @@ export function aggregationQueryToProtoRunAggregationQueryRequest<
       aggregate._internalFieldPath
     );
   });
+  const firestore = cast(query.firestore, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  const serializer = client._onlineComponents?.datastore.serializer;
+  if (serializer === undefined) {
+    return null;
+  }
+
   return toRunAggregationQueryRequest(
-    serializer,
-    queryToAggregateTarget(query),
+    serializer!,
+    queryToAggregateTarget(query._query),
     aggregates
   );
 }
