@@ -63,6 +63,10 @@ describeFn('WebChannel', () => {
       }
     };
 
+    // Register an "onConnected" callback since it's required, even though we
+    // don't care about this event.
+    stream.onConnected(() => {});
+
     // Once the stream is open, send an "add_target" request
     stream.onOpen(() => {
       stream.send(payload);
