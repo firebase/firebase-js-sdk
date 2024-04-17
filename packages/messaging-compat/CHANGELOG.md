@@ -1,5 +1,12 @@
 # @firebase/messaging-compat
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`f1a57d00d`](https://github.com/firebase/firebase-js-sdk/commit/f1a57d00d05c202ca676f22ed89ad636e8a708c6)]:
+  - @firebase/messaging@0.12.8
+
 ## 0.2.7
 
 ### Patch Changes

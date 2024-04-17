@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.12.8
+
+### Patch Changes
+
+- [`f1a57d00d`](https://github.com/firebase/firebase-js-sdk/commit/f1a57d00d05c202ca676f22ed89ad636e8a708c6) [#8141](https://github.com/firebase/firebase-js-sdk/pull/8141) - Revised token update logic to keep existing tokens during update failures, preventing unnecessary deletions for transient issues.
+
 ## 0.12.7
 
 ### Patch Changes
