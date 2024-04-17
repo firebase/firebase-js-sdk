@@ -23,7 +23,7 @@ export interface User extends UserInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [emailVerified](./auth.user.md#useremailverified) | boolean | Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification_6a885d6) and [applyActionCode()](./auth.md#applyactioncode_d2ae15a)<!-- -->. |
+|  [emailVerified](./auth.user.md#useremailverified) | boolean | Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification) and [applyActionCode()](./auth.md#applyactioncode)<!-- -->. |
 |  [enrolledPasskeys](./auth.user.md#userenrolledpasskeys) | [PasskeyInfo](./auth.passkeyinfo.md#passkeyinfo_interface)<!-- -->\[\] | An array of PasskeyInfo objects representing the passkeys that the user has enrolled. |
 |  [isAnonymous](./auth.user.md#userisanonymous) | boolean | Whether the user is authenticated using the [ProviderId](./auth.md#providerid)<!-- -->.ANONYMOUS provider. |
 |  [metadata](./auth.user.md#usermetadata) | [UserMetadata](./auth.usermetadata.md#usermetadata_interface) | Additional metadata around user creation and sign-in times. |
