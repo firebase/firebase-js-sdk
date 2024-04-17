@@ -220,9 +220,9 @@ export {
 export { isBase64Available as _isBase64Available } from './platform/base64';
 export { DatabaseId as _DatabaseId } from './core/database_info';
 export {
-  queryToProtoQueryTarget as _queryToQueryTargetProto,
-  aggregationQueryToProtoRunAggregationQueryRequest as _aggregationQueryToProtoRunAggregationQueryRequest
-} from './remote/serializer';
+  _internalQueryToProtoQueryTarget,
+  _internalAggregationQueryToProtoRunAggregationQueryRequest
+} from './remote/internal_serializer';
 export {
   cast as _cast,
   validateIsNotUsedTogether as _validateIsNotUsedTogether

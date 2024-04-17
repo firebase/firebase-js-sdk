@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Aggregate, AggregateImpl } from '../core/aggregate';
+import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -32,7 +32,6 @@ import {
   newQuery,
   newQueryForPath,
   Query,
-  queryToAggregateTarget,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -94,7 +93,7 @@ import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import { Query as ApiQuery } from '../lite-api/reference';
+
 import { ExistenceFilter } from './existence_filter';
 import { Serializer } from './number_serializer';
 import { mapCodeFromRpcCode } from './rpc_error';
@@ -105,10 +104,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { AggregateSpec } from '../lite-api/aggregate_types';
-import { mapToArray } from '../util/obj';
-import {ensureFirestoreConfigured, Firestore} from "../api/database";
-import {cast} from "../util/input_validation";
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -903,49 +898,6 @@ export function toQueryTarget(
   }
 
   return { queryTarget, parent };
-}
-
-export function queryToProtoQueryTarget(
-  query: ApiQuery
-): { queryTarget: ProtoQueryTarget; parent: ResourcePath } | null {
-  const firestore = cast(query.firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-  const serializer = client._onlineComponents?.datastore.serializer;
-  if (serializer === undefined) {
-    return null;
-  }
-  return toQueryTarget(serializer!, queryToTarget(query._query));
-}
-
-export function aggregationQueryToProtoRunAggregationQueryRequest<
-  AggregateSpecType extends AggregateSpec
->(
-  query: ApiQuery,
-  aggregateSpec: AggregateSpecType
-): {
-  request: ProtoRunAggregationQueryRequest;
-  aliasMap: Record<string, string>;
-  parent: ResourcePath;
-} | null {
-  const aggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    return new AggregateImpl(
-      alias,
-      aggregate.aggregateType,
-      aggregate._internalFieldPath
-    );
-  });
-  const firestore = cast(query.firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-  const serializer = client._onlineComponents?.datastore.serializer;
-  if (serializer === undefined) {
-    return null;
-  }
-
-  return toRunAggregationQueryRequest(
-    serializer!,
-    queryToAggregateTarget(query._query),
-    aggregates
-  );
 }
 
 export function toRunAggregationQueryRequest(
