@@ -96,7 +96,12 @@ describe('passkey', async () => {
     }
     sinon
       .stub(navigator.credentials, 'get')
-      .throws(new Error('The operation either timed out or was not allowed.'));
+      .throws(
+        new DOMException(
+          'The operation either timed out or was not allowed.',
+          'NotAllowedError'
+        )
+      );
 
     sinon.stub(navigator.credentials, 'create').resolves(mockCredential);
 
@@ -166,7 +171,12 @@ describe('passkey', async () => {
     }
     sinon
       .stub(navigator.credentials, 'get')
-      .throws(new Error('The operation either timed out or was not allowed.'));
+      .throws(
+        new DOMException(
+          'The operation either timed out or was not allowed.',
+          'NotAllowedError'
+        )
+      );
 
     mockEndpoint(Endpoint.START_PASSKEY_SIGNIN, {
       credentialRequestOptions: {
@@ -243,7 +253,12 @@ describe('passkey', async () => {
     }
     sinon
       .stub(navigator.credentials, 'create')
-      .throws(new Error('The operation either timed out or was not allowed.'));
+      .throws(
+        new DOMException(
+          'The operation either timed out or was not allowed.',
+          'NotAllowedError'
+        )
+      );
 
     mockEndpoint(Endpoint.START_PASSKEY_ENROLLMENT, {
       credentialCreationOptions: {
