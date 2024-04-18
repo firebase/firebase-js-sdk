@@ -3,4 +3,4 @@
 'firebase': patch
 ---
 
-Reduce code size that accidentally regressed in 10.7.2 due to https://github.com/firebase/firebase-js-sdk/pull/7929 for application that did _not_ use IndexedDB persistence
+Reduce code bundle size by 6.5 kB in applications that only use memory persistence (the default persistence mode). This bundle size regression was accidentally introduced in v10.7.2.
