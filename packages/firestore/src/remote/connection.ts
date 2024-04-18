@@ -109,8 +109,11 @@ export interface Connection {
  * A bidirectional stream that can be used to send an receive messages.
  *
  * A stream can be closed locally with close() or can be closed remotely or
- * through network errors. onClose is guaranteed to be called. onOpen will only
- * be called if the stream successfully established a connection.
+ * through network errors. onClose is guaranteed to be called. onOpen will be
+ * called once the stream is ready to send messages (which may or may not be
+ * before an actual connection to the backend has been established). The
+ * onConnected event is called when an actual, physical connection with the
+ * backend has been established, and may occur before or after the onOpen event.
  */
 export interface Stream<I, O> {
   onConnected(callback: () => void): void;
