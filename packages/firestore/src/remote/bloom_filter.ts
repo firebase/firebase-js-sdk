@@ -14,9 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Md5, Integer } from '@firebase/webchannel-wrapper';
-
 import { newTextEncoder } from '../platform/text_serializer';
+
+
+declare class Md5 {
+  reset(): void;
+  digest(): Array<number>;
+  update(bytes: Array<number> | Uint8Array | string, opt_length?: number): void;
+}
+
+declare class Integer {
+  constructor(bits: Array<number>, sign: number);
+  add(other: Integer): Integer;
+  multiply(other: Integer): Integer;
+  modulo(other: Integer): Integer;
+  compare(other: Integer): number;
+  toNumber(): number;
+  toString(opt_radix?: number): string;
+  getBits(index: number): number;
+  static fromNumber(value: number): Integer;
+  static fromString(str: string, opt_radix?: number): Integer;
+}
 
 const MAX_64_BIT_UNSIGNED_INTEGER = new Integer([0xffffffff, 0xffffffff], 0);
 
