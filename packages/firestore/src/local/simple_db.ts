@@ -201,7 +201,7 @@ export class SimpleDb {
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
     // Android browser: Disable for userse running version < 4.5.
-    const androidVersion = SimpleDb.getAndroidVersion(ua);
+    const androidVersion = getAndroidVersion(ua);
     const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.5;
 
     if (
@@ -242,16 +242,6 @@ export class SimpleDb {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
     const version = iOSVersionRegex
       ? iOSVersionRegex[1].split('_').slice(0, 2).join('.')
-      : '-1';
-    return Number(version);
-  }
-
-  // visible for testing
-  /** Parse User Agent to determine Android version. Returns -1 if not found. */
-  static getAndroidVersion(ua: string): number {
-    const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
-    const version = androidVersionRegex
-      ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }
@@ -468,6 +458,15 @@ export class SimpleDb {
     }
     this.db = undefined;
   }
+}
+
+/** Parse User Agent to determine Android version. Returns -1 if not found. */
+export function getAndroidVersion(ua: string): number {
+  const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
+  const version = androidVersionRegex
+    ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
+    : '-1';
+  return Number(version);
 }
 
 /**
