@@ -1,0 +1,7 @@
+{
+  "name": "@firebase/webchannel-wrapper/test",
+  "description": "A Cordova-specific build of the Firebase Auth JS SDK",
+  "browser": "../test/blah.js",
+  "module": "../test/blah.js",
+  "typings": "../src/index.d.ts"
+}

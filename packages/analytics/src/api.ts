@@ -54,6 +54,10 @@ import {
   internalGetGoogleAnalyticsClientId
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
+import * as ww from '@firebase/webchannel-wrapper/test';
+// import * as cordova from '@firebase/auth/cordova';
+
+console.log(ww);
 
 export { settings } from './factory';
 
