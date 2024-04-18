@@ -34,8 +34,9 @@ import { getModularInstance } from '@firebase/util';
 
 /**
  * Gets the list of possible sign in methods for the given email address. This method returns an
- * empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of
- * authentication methods available for the given email.
+ * empty list when
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}
+ * is enabled, irrespective of the number of authentication methods available for the given email.
  *
  * @remarks
  * This is useful to differentiate methods of sign-in for the same provider, eg.
@@ -47,7 +48,8 @@ import { getModularInstance } from '@firebase/util';
  * @param email - The user's email address.
  *
  * Deprecated. Migrating off of this method is recommended as a security best-practice.
- * Learn more in the Identity Platform documentation for [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection).
+ * Learn more in the Identity Platform documentation for
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}.
  * @public
  */
 export async function fetchSignInMethodsForEmail(

@@ -70,7 +70,7 @@ export interface Config {
 /**
  * Interface representing reCAPTCHA parameters.
  *
- * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param)
+ * See the {@link https://developers.google.com/recaptcha/docs/display#render_param | reCAPTCHA docs}
  * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth
  * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
  *
