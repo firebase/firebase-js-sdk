@@ -17372,9 +17372,9 @@ typeson@7.0.2, typeson@^7.0.1:
   integrity sha512-Rc/BXqUq+pgAc9D3Na+A2iiTlenfzZW9VA2H9DzpYWKOqUMwUaLyu6OQWXCIEiFs1AQ6Fssbed1/subMY/cEag==
 
 ua-parser-js@^0.7.30:
-  version "0.7.31"
-  resolved "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.31.tgz"
-  integrity sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==
+  version "0.7.37"
+  resolved "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.37.tgz#e464e66dac2d33a7a1251d7d7a99d6157ec27832"
+  integrity sha512-xV8kqRKM+jhMvcHWUKthV9fNebIzrNy//2O9ZwWcfiBFR5f25XVZPLlEajk/sf3Ra15V92isyQqnIEXRDaZWEA==
 
 uglify-js@^3.1.4, uglify-js@^3.4.9:
   version "3.14.2"
