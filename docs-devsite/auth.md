@@ -28,7 +28,7 @@ Firebase Authentication
 |  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset_749dad8) | Completes the password reset process, given a confirmation code and new password. |
 |  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator_657c7e5) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
 |  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword_21ad33b) | Creates a new user account associated with the specified email address and password. |
-|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
+|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver_201ba61) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult_c35dc1f) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
 |  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig_2a61ea7) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
@@ -36,7 +36,7 @@ Firebase Authentication
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged_b0d07ab) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged_b0d07ab) | Adds an observer for changes to the signed-in user's ID token. |
 |  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken_5556ad5) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail_95b079b) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail_95b079b) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail_95b079b) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence_a3592ac) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
 |  [signInAnonymously(auth)](./auth.md#signinanonymously_2a61ea7) | Asynchronously signs in as an anonymous user. |
@@ -136,7 +136,7 @@ Firebase Authentication
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
-|  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
+|  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
 |  [TotpMultiFactorInfo](./auth.totpmultifactorinfo.md#totpmultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for TOTP second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.TOTP. |
 |  [User](./auth.user.md#user_interface) | A user account. |
@@ -405,7 +405,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 ### fetchSignInMethodsForEmail(auth, email) {:#fetchsigninmethodsforemail_efb3887}
 
-Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
+Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
 
 This is useful to differentiate methods of sign-in for the same provider, eg. [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) which has 2 methods of sign-in, [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_PASSWORD and [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_LINK.
 
@@ -420,7 +420,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection). |
+|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -630,7 +630,7 @@ Promise&lt;void&gt;
 
 ### sendPasswordResetEmail(auth, email, actionCodeSettings) {:#sendpasswordresetemail_95b079b}
 
-Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
+Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
 To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset_749dad8) with the code supplied in the email sent to the user, along with the new password specified by the user.
 
@@ -839,7 +839,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Asynchronously signs in using an email and password.
 
-Fails with an error if the email address and password do not match. When \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
+Fails with an error if the email address and password do not match. When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
 
 This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
@@ -1663,7 +1663,7 @@ export declare function updateEmail(user: User, newEmail: string): Promise<void>
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
-|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail_09d6f11) instead. |
+|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail_09d6f11) instead. |
 
 <b>Returns:</b>
 
