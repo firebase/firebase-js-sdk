@@ -306,6 +306,7 @@ export class WebChannelConnection extends RestConnection {
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} transport opened.`
         );
+        streamBridge.callOnConnected();
       }
     });
 

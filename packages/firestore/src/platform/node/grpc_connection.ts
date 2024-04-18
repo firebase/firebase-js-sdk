@@ -286,9 +286,15 @@ export class GrpcConnection implements Connection {
       }
     });
 
+    let onConnectedSent = false;
     grpcStream.on('data', (msg: Resp) => {
       if (!closed) {
         logDebug(LOG_TAG, `RPC '${rpcName}' stream ${streamId} received:`, msg);
+        // Emulate the "onConnected" event that WebChannelConnection sends.
+        if (!onConnectedSent) {
+          stream.callOnConnected();
+          onConnectedSent = true;
+        }
         stream.callOnMessage(msg);
       }
     });
