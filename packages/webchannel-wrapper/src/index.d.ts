@@ -138,28 +138,3 @@ export function getStatEventTarget(): EventTarget;
 export class FetchXmlHttpFactory {
   constructor(options: {});
 }
-
-// See https://google.github.io/closure-library/api/goog.crypt.Md5.html
-// Unit test are written in
-// packages/firestore/test/unit/core/webchannel_wrapper.test.ts
-export class Md5 {
-  reset(): void;
-  digest(): Array<number>;
-  update(bytes: Array<number> | Uint8Array | string, opt_length?: number): void;
-}
-
-// See https://google.github.io/closure-library/api/goog.math.Integer.html
-// Unit test are written in
-// packages/firestore/test/unit/core/webchannel_wrapper.test.ts
-export class Integer {
-  constructor(bits: Array<number>, sign: number);
-  add(other: Integer): Integer;
-  multiply(other: Integer): Integer;
-  modulo(other: Integer): Integer;
-  compare(other: Integer): number;
-  toNumber(): number;
-  toString(opt_radix?: number): string;
-  getBits(index: number): number;
-  static fromNumber(value: number): Integer;
-  static fromString(str: string, opt_radix?: number): Integer;
-}
