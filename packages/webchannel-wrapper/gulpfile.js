@@ -19,15 +19,19 @@ const gulp = require('gulp');
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeBloomBlobs', () => {
-  return gulp.src('closure-net/firebase/bloom_blob_*')
+  return gulp
+    .src('closure-net/firebase/bloom_blob_*')
     .pipe(gulp.dest('dist/bloom-blob/'));
 });
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeWebchannelBlobs', () => {
-  return gulp.src('closure-net/firebase/webchannel_blob_*')
+  return gulp
+    .src('closure-net/firebase/webchannel_blob_*')
     .pipe(gulp.dest('dist/webchannel-blob/'));
 });
 
-gulp.task('default',
-  gulp.series('distributeBloomBlobs','distributeWebchannelBlobs'));
+gulp.task(
+  'default',
+  gulp.series('distributeBloomBlobs', 'distributeWebchannelBlobs')
+);
