@@ -30,6 +30,7 @@ jobs:
         # checkout HEAD commit instead of merge commit
         ref: ${{ github.event.pull_request.head.ref }}
         token: ${{ github.token }}
+        submodules: true
     - name: Set up node (20)
       uses: actions/setup-node@v3
       with:

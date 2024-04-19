@@ -1,0 +1,3 @@
+[submodule "packages/webchannel-wrapper/closure-net"]
+	path = packages/webchannel-wrapper/closure-net
+	url = https://github.com/google/closure-net.git

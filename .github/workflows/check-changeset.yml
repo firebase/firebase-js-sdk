@@ -34,6 +34,7 @@ jobs:
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
+        submodules: true
     - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
