@@ -43,7 +43,7 @@ jobs:
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v3
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Test setup and yarn install
@@ -82,7 +82,7 @@ jobs:
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Test setup and yarn install
@@ -133,7 +133,7 @@ jobs:
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Test setup and yarn install
@@ -173,7 +173,7 @@ jobs:
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Test setup and yarn install
@@ -217,7 +217,7 @@ jobs:
     - name: Unzip build artifact
       run: tar xf build.tar.gz
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - run: cp config/ci.config.json config/project.json
