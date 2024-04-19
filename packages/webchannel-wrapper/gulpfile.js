@@ -16,6 +16,7 @@
  */
 
 const gulp = require('gulp');
+const concat = require('gulp-concat');
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeBloomBlobs', () => {
@@ -25,13 +26,28 @@ gulp.task('distributeBloomBlobs', () => {
 });
 
 // A task to distribute bloom blobs into 'dist'
-gulp.task('distributeWebchannelBlobs', () => {
+gulp.task('distributeWebChannelBlobs', () => {
   return gulp
     .src('closure-net/firebase/webchannel_blob_*')
     .pipe(gulp.dest('dist/webchannel-blob/'));
 });
 
+// A task to concatenate typings of all blobs into 'dist'
+gulp.task('createAllTypings', () => {
+  return gulp
+    .src([
+      'closure-net/firebase/bloom_blob_types.d.ts',
+      'closure-net/firebase/webchannel_blob_types.d.ts'
+    ])
+    .pipe(concat('types.d.ts'))
+    .pipe(gulp.dest('dist/'));
+});
+
 gulp.task(
   'default',
-  gulp.series('distributeBloomBlobs', 'distributeWebchannelBlobs')
+  gulp.series(
+    'distributeBloomBlobs',
+    'distributeWebChannelBlobs',
+    'createAllTypings'
+  )
 );
