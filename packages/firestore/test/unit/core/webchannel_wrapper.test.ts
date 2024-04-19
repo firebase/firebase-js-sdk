@@ -24,7 +24,7 @@ import { expect } from 'chai';
 
 import { newTextEncoder } from '../../../src/platform/text_serializer';
 
-describe.only('Md5', () => {
+describe('Md5', () => {
   // The precomputed MD5 digests of the 3-character strings "abc" and "def".
   const DIGEST_OF_ABC = Object.freeze([
     144, 1, 80, 152, 60, 210, 79, 176, 214, 150, 63, 125, 40, 225, 127, 114
