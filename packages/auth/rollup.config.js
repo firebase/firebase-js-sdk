@@ -125,7 +125,8 @@ const browserWebExtensionBuilds = [
     },
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      emitModulePackageFile()
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
