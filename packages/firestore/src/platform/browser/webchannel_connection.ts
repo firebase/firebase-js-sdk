@@ -28,7 +28,7 @@ import {
   StatEvent,
   Event,
   Stat
-} from '@firebase/webchannel-wrapper';
+} from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
 import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';

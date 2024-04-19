@@ -16,6 +16,7 @@
  */
 
 const gulp = require('gulp');
+const rename = require("gulp-rename");
 const rollup = require('rollup');
 const closureCompiler = require('google-closure-compiler').gulp();
 const del = require('del');
@@ -215,4 +216,21 @@ gulp.task(
 
 gulp.task('buildAll', gulp.parallel('cjs', 'allEsm'));
 
-gulp.task('default', gulp.series('buildAll', deleteIntermediateFiles));
+// A task to distribute bloom blobs into 'dist'
+gulp.task('distributeBloomBlobs', () => {
+  return gulp.src('closure-net/firebase/bloom_blob_*')
+    // .pipe(rename(function (path) {
+    //   path.basename += "index";
+    //   path.extname = ".md";
+    // }))
+    .pipe(gulp.dest('dist/bloom-blob/'));
+});
+
+// A task to distribute bloom blobs into 'dist'
+gulp.task('distributeWebchannelBlobs', () => {
+  return gulp.src('closure-net/firebase/webchannel_blob_*')
+    .pipe(gulp.dest('dist/webchannel-blob/'));
+});
+
+gulp.task('default', gulp.series('buildAll', 'distributeBloomBlobs', 'distributeWebchannelBlobs', deleteIntermediateFiles));
+//gulp.task('default', gulp.series('buildAll', deleteIntermediateFiles));

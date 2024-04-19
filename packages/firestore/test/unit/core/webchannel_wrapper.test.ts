@@ -19,12 +19,12 @@
 // These tests are mostly to ensure that the exported classes correctly map to
 // underlying functionality from google-closure-library.
 
-import { Md5, Integer } from '@firebase/webchannel-wrapper';
+import { Md5, Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 import { expect } from 'chai';
 
 import { newTextEncoder } from '../../../src/platform/text_serializer';
 
-describe('Md5', () => {
+describe.only('Md5', () => {
   // The precomputed MD5 digests of the 3-character strings "abc" and "def".
   const DIGEST_OF_ABC = Object.freeze([
     144, 1, 80, 152, 60, 210, 79, 176, 214, 150, 63, 125, 40, 225, 127, 114
