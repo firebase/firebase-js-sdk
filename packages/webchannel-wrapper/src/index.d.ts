@@ -38,7 +38,27 @@ export var Event: {
 export var Stat: {
   PROXY: number;
   NOPROXY: number;
+  BACKCHANNEL_DEAD: number;
+  BACKCHANNEL_MISSING: number;
+  BROWSER_OFFLINE: number;
+  CONNECT_ATTEMPT: number;
+  ERROR_NETWORK: number;
+  ERROR_OTHER: number;
+  REQUEST_BAD_DATA: number;
+  REQUEST_BAD_STATUS: number;
+  REQUEST_INCOMPLETE_DATA: number;
+  REQUEST_NO_DATA: number;
+  REQUEST_TIMEOUT: number;
+  REQUEST_UNKNOWN_SESSION_ID: number;
+  TEST_STAGE_ONE_FAILED: number;
+  TEST_STAGE_ONE_START: number;
+  TEST_STAGE_TWO_DATA_BOTH: number;
+  TEST_STAGE_TWO_DATA_ONE: number;
+  TEST_STAGE_TWO_DATA_TWO: number;
+  TEST_STAGE_TWO_FAILED: number;
+  TEST_STAGE_TWO_START: number;
 };
+
 
 export var ErrorCode: {
   NO_ERROR: number;
