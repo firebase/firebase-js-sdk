@@ -411,7 +411,7 @@ export class WebChannelConnection extends RestConnection {
       } else {
         logWarn(
           LOG_TAG,
-          `\`STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${event.stat}`
+          `STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${event.stat}`
         );
       }
     });
