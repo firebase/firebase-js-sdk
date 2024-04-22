@@ -154,7 +154,7 @@ That's it! Thank you for your contribution!
 
 #### Adding changeset to PR
 The repository uses changesets to associate PR contributions with major and minor version releases
-adn patch releases. If your change is a feature or a behavioral change (either of which should
+and patch releases. If your change is a feature or a behavioral change (either of which should
 correspond to a version bump) then you will need to generate a changeset in your PR to track the
 change.
 
@@ -165,8 +165,7 @@ repository:
 yarn changeset
 ```
 
-You will be asked to create a description (here's an
-[example]((https://github.com/firebase/firebase-js-sdk/pull/3284#issuecomment-649718617)). You
+You will be asked to create a description (here's an [example](https://github.com/firebase/firebase-js-sdk/pull/3284#issuecomment-649718617)). You
 should include the version bump for your package as well as the description for the change. Valid
 version bump types are major, minor or patch, where:
 
