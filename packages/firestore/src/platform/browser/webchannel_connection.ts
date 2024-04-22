@@ -396,7 +396,9 @@ export class WebChannelConnection extends RestConnection {
     );
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (event.stat === Stat.PROXY) {
+      if (event.stat === 0) {
+        return;
+      } else if (event.stat === Stat.PROXY) {
         logDebug(
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
@@ -405,6 +407,11 @@ export class WebChannelConnection extends RestConnection {
         logDebug(
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
+        );
+      } else {
+        logWarn(
+          LOG_TAG,
+          `STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${event.stat}`
         );
       }
     });
