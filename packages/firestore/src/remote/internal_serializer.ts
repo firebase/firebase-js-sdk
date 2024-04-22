@@ -31,16 +31,9 @@ import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
  *
  * This function is for internal use only.
  *
- * Returns
- * ```
- * {
- *   queryTarget: QueryTarget;
- *   parent: ResourcePath
- * }
- * ```
- * which contains the proto representation of the given query. Returns `null` if
- * the Firestore client associated with the given query has not been initialized
- * or has been terminated.
+ * Returns the `QueryTarget` representation of the given query. Returns `null`
+ * if the Firestore client associated with the given query has not been
+ * initialized or has been terminated.
  *
  * @param query - The Query to convert to proto representation.
  */
@@ -52,7 +45,7 @@ export function _internalQueryToProtoQueryTarget(query: Query): any {
   if (serializer === undefined) {
     return null;
   }
-  return toQueryTarget(serializer!, queryToTarget(query._query));
+  return toQueryTarget(serializer!, queryToTarget(query._query)).queryTarget;
 }
 
 /**
