@@ -43,7 +43,7 @@ import { StreamBridge } from '../../remote/stream_bridge';
 import { fail, hardAssert } from '../../util/assert';
 import { generateUniqueDebugId } from '../../util/debug_uid';
 import { Code, FirestoreError } from '../../util/error';
-import { logDebug, logError, logWarn } from '../../util/log';
+import { logDebug, logWarn } from '../../util/log';
 import { Rejecter, Resolver } from '../../util/promise';
 import { StringMap } from '../../util/types';
 
@@ -396,7 +396,9 @@ export class WebChannelConnection extends RestConnection {
     );
 
     unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (event.stat === Stat.PROXY) {
+      if (event.stat === 0) {
+        return;
+      } else if (event.stat === Stat.PROXY) {
         logDebug(
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
@@ -407,9 +409,9 @@ export class WebChannelConnection extends RestConnection {
           `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
         );
       } else {
-        logError(
+        logWarn(
           LOG_TAG,
-          `\`RPC '${rpcName}' stream ${streamId} detected error ${this.statEventName(
+          `\`STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${this.statEventName(
             event.stat
           )}`
         );
