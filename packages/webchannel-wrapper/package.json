@@ -3,6 +3,9 @@
   "version": "0.10.7",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "esm5": "dist/index.esm.js",
   "exports": {
     "./webchannel-blob": {
       "types": "./dist/webchannel-blob/webchannel_blob_types.d.ts",

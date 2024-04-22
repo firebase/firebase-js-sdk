@@ -33,7 +33,7 @@ gulp.task('distributeWebChannelBlobs', () => {
 });
 
 // A task to concatenate typings of all blobs into 'dist'
-gulp.task('createAllTypings', () => {
+gulp.task('aggregateTypings', () => {
   return gulp
     .src([
       'closure-net/firebase/bloom_blob_types.d.ts',
@@ -43,11 +43,38 @@ gulp.task('createAllTypings', () => {
     .pipe(gulp.dest('dist/'));
 });
 
+// A task to concatenate all blobs into one file in 'dist'.
+// This is only used to report the total size of this package.
+gulp.task(
+  'aggregateBlobs',
+  gulp.parallel(
+    function () {
+      return gulp
+        .src([
+          'closure-net/firebase/bloom_blob_es2018.js',
+          'closure-net/firebase/webchannel_blob_es2018.js'
+        ])
+        .pipe(concat('index.js'))
+        .pipe(gulp.dest('dist/'));
+    },
+    function () {
+      return gulp
+        .src([
+          'closure-net/firebase/bloom_blob_es5.js',
+          'closure-net/firebase/webchannel_blob_es5.js'
+        ])
+        .pipe(concat('index.esm.js'))
+        .pipe(gulp.dest('dist/'));
+    }
+  )
+);
+
 gulp.task(
   'default',
   gulp.series(
     'distributeBloomBlobs',
     'distributeWebChannelBlobs',
-    'createAllTypings'
+    'aggregateTypings',
+    'aggregateBlobs'
   )
 );
