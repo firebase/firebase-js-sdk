@@ -24,6 +24,8 @@ jobs:
   test:
     name: Test Firestore Integration If Changed
     runs-on: ubuntu-latest
+    env:
+        run_terraform_steps: ${{ secrets.JSSDK_ACTIONS_SA_KEY != '' }}
 
     steps:
     - name: Checkout Repo
@@ -32,20 +34,23 @@ jobs:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0
     - uses: 'google-github-actions/auth@v0'
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       with:
         credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
-    
+
     # create composite indexes with Terraform
-    - name: Setup Terraform 
+    - name: Setup Terraform
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       uses: hashicorp/setup-terraform@v2
     - name: Terraform Init
+      if: ${{ fromJSON(env.run_terraform_steps) }}
       run: |
         cp config/ci.config.json config/project.json
         cd packages/firestore
         terraform init
       continue-on-error: true
     - name: Terraform Apply
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && fromJSON(env.run_terraform_steps)
       run: |
         cd packages/firestore
 

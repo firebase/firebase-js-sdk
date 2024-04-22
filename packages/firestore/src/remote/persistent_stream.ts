@@ -126,6 +126,11 @@ const enum PersistentStreamState {
  */
 export interface PersistentStreamListener {
   /**
+   * Called after receiving an acknowledgement from the server, confirming that
+   * we are able to connect to it.
+   */
+  onConnected: () => Promise<void>;
+  /**
    * Called after the stream was established and can accept outgoing
    * messages
    */
@@ -483,6 +488,9 @@ export abstract class PersistentStream<
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
     this.stream = this.startRpc(authToken, appCheckToken);
+    this.stream.onConnected(() => {
+      dispatchIfNotClosed(() => this.listener!.onConnected());
+    });
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
         debugAssert(

@@ -262,8 +262,14 @@ export function fromBytes(
     return ByteString.fromBase64String(value ? value : '');
   } else {
     hardAssert(
-      value === undefined || value instanceof Uint8Array,
-      'value must be undefined or Uint8Array'
+      value === undefined ||
+        // Check if the value is an instance of both Buffer and Uint8Array,
+        // despite the fact that Buffer extends Uint8Array. In some
+        // environments, such as jsdom, the prototype chain of Buffer
+        // does not indicate that it extends Uint8Array.
+        value instanceof Buffer ||
+        value instanceof Uint8Array,
+      'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
   }

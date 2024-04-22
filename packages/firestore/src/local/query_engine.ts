@@ -49,7 +49,7 @@ import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
-import { SimpleDb } from './simple_db';
+import { getAndroidVersion } from './simple_db';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
 
@@ -65,7 +65,7 @@ function getDefaultRelativeIndexReadCostPerDocument(): number {
   // Googlers can see b/299284287 for details.
   if (isSafari()) {
     return 8;
-  } else if (SimpleDb.getAndroidVersion(getUA()) > 0) {
+  } else if (getAndroidVersion(getUA()) > 0) {
     return 6;
   } else {
     return 4;

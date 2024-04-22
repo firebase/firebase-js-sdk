@@ -26,6 +26,7 @@ import { Stream } from './connection';
  * interface. The stream callbacks are invoked with the callOn... methods.
  */
 export class StreamBridge<I, O> implements Stream<I, O> {
+  private wrappedOnConnected: (() => void) | undefined;
   private wrappedOnOpen: (() => void) | undefined;
   private wrappedOnClose: ((err?: FirestoreError) => void) | undefined;
   private wrappedOnMessage: ((msg: O) => void) | undefined;
@@ -36,6 +37,14 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   constructor(args: { sendFn: (msg: I) => void; closeFn: () => void }) {
     this.sendFn = args.sendFn;
     this.closeFn = args.closeFn;
+  }
+
+  onConnected(callback: () => void): void {
+    debugAssert(
+      !this.wrappedOnConnected,
+      'Called onConnected on stream twice!'
+    );
+    this.wrappedOnConnected = callback;
   }
 
   onOpen(callback: () => void): void {
@@ -59,6 +68,14 @@ export class StreamBridge<I, O> implements Stream<I, O> {
 
   send(msg: I): void {
     this.sendFn(msg);
+  }
+
+  callOnConnected(): void {
+    debugAssert(
+      this.wrappedOnConnected !== undefined,
+      'Cannot call onConnected because no callback was set'
+    );
+    this.wrappedOnConnected();
   }
 
   callOnOpen(): void {
