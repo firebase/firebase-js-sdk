@@ -71,6 +71,7 @@ body:
         - Performance
         - Remote-Config
         - Storage
+        - VertexAI
     validations:
       required: true
   - type: textarea
