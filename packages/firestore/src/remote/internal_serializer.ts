@@ -22,6 +22,7 @@ import { AggregateSpec } from '../lite-api/aggregate_types';
 import { Query } from '../lite-api/reference';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
+
 import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
 
 /**
