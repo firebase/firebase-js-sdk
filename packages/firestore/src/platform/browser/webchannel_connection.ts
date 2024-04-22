@@ -411,9 +411,7 @@ export class WebChannelConnection extends RestConnection {
       } else {
         logWarn(
           LOG_TAG,
-          `\`STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${this.statEventName(
-            event.stat
-          )}`
+          `\`STAT_EVENT: RPC '${rpcName}' stream ${streamId} event ${event.stat}`
         );
       }
     });
@@ -426,54 +424,5 @@ export class WebChannelConnection extends RestConnection {
       streamBridge.callOnOpen();
     }, 0);
     return streamBridge;
-  }
-
-  statEventName(statEventCode: number): string {
-    switch (statEventCode) {
-      case Stat.PROXY:
-        return 'PROXY';
-      case Stat.NOPROXY:
-        return 'NOPROXY';
-      case Stat.BACKCHANNEL_DEAD:
-        return 'BACKCHANNEL_DEAD';
-      case Stat.BACKCHANNEL_MISSING:
-        return 'BACKCHANNEL_MISSING';
-      case Stat.BROWSER_OFFLINE:
-        return 'BROWSER_OFFLINE';
-      case Stat.CONNECT_ATTEMPT:
-        return 'CONNECT_ATTEMPT';
-      case Stat.ERROR_NETWORK:
-        return 'ERROR_NETWORK';
-      case Stat.ERROR_OTHER:
-        return 'ERROR_OTHER';
-      case Stat.REQUEST_BAD_DATA:
-        return 'REQUEST_BAD_DATA';
-      case Stat.REQUEST_BAD_STATUS:
-        return 'REQUEST_BAD_STATUS';
-      case Stat.REQUEST_INCOMPLETE_DATA:
-        return 'REQUEST_INCOMPLETE_DATA';
-      case Stat.REQUEST_NO_DATA:
-        return 'REQUEST_NO_DATA';
-      case Stat.REQUEST_TIMEOUT:
-        return 'REQUEST_TIMEOUT';
-      case Stat.REQUEST_UNKNOWN_SESSION_ID:
-        return 'REQUEST_UNKNOWN_SESSION_ID';
-      case Stat.TEST_STAGE_ONE_FAILED:
-        return 'TEST_STAGE_ONE_FAILED';
-      case Stat.TEST_STAGE_ONE_START:
-        return 'TEST_STAGE_ONE_START';
-      case Stat.TEST_STAGE_TWO_DATA_BOTH:
-        return 'TEST_STAGE_TWO_DATA_BOTH';
-      case Stat.TEST_STAGE_TWO_DATA_ONE:
-        return 'TEST_STAGE_TWO_DATA_ONE';
-      case Stat.TEST_STAGE_TWO_DATA_TWO:
-        return 'TEST_STAGE_TWO_DATA_TWO';
-      case Stat.TEST_STAGE_TWO_FAILED:
-        return 'TEST_STAGE_TWO_FAILED';
-      case Stat.TEST_STAGE_TWO_START:
-        return 'TEST_STAGE_TWO_START';
-      default:
-        return `unknown code ${statEventCode}`;
-    }
   }
 }
