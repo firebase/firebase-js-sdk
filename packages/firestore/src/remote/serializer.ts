@@ -900,15 +900,19 @@ export function toQueryTarget(
   return { queryTarget, parent };
 }
 
+// Note: keep this interface declaration in order to avoid its minification when
+// used by _internalAggregationQueryToProtoRunAggregationQueryRequest.
+declare interface toRunAggregationQueryRequestReturn {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+  parent: ResourcePath;
+}
+
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
   aggregates: Aggregate[]
-): {
-  request: ProtoRunAggregationQueryRequest;
-  aliasMap: Record<string, string>;
-  parent: ResourcePath;
-} {
+): toRunAggregationQueryRequestReturn {
   const { queryTarget, parent } = toQueryTarget(serializer, target);
   const aliasMap: Record<string, string> = {};
 
