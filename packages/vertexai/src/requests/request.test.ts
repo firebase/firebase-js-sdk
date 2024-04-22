@@ -112,7 +112,9 @@ describe('request methods', () => {
     );
     it('adds client headers', async () => {
       const headers = await getHeaders(fakeUrl);
-      expect(headers.get('x-goog-api-client')).to.include('gl-js/ fire/');
+      expect(headers.get('x-goog-api-client')).to.match(
+        /gl-js\/[0-9\.]+ fire\/[0-9\.]+/
+      );
     });
     it('adds api key', async () => {
       const headers = await getHeaders(fakeUrl);

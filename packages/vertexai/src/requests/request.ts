@@ -71,7 +71,7 @@ export class RequestUrl {
  */
 function getClientHeaders(): string {
   const loggingTags = [];
-  loggingTags.push(`${LANGUAGE_TAG}/`);
+  loggingTags.push(`${LANGUAGE_TAG}/${PACKAGE_VERSION}`);
   loggingTags.push(`fire/${PACKAGE_VERSION}`);
   return loggingTags.join(' ');
 }
