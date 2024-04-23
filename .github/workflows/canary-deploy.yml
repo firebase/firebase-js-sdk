@@ -31,7 +31,6 @@ jobs:
       with:
         # Canary release script requires git history and tags.
         fetch-depth: 0
-        submodules: true
     - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:

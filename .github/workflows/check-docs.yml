@@ -27,7 +27,6 @@ jobs:
       with:
         # get all history for the diff
         fetch-depth: 0
-        submodules: true
     - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:

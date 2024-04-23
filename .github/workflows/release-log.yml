@@ -27,8 +27,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-        with:
-          submodules: true
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@master

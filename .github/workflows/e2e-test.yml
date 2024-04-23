@@ -36,8 +36,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-        with:
-          submodules: true
       - name: Set up Node (20)
         uses: actions/setup-node@master
         with:

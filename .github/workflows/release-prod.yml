@@ -43,7 +43,6 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
         token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        submodules: true
     - name: Yarn install
       run: yarn
     - name: Publish to NPM

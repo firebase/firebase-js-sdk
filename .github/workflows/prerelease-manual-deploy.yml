@@ -34,7 +34,6 @@ jobs:
           with:
             # Canary release script requires git history and tags.
             fetch-depth: 0
-            submodules: true
         - name: Set up node (20)
           uses: actions/setup-node@v3
           with:
@@ -94,3 +93,4 @@ jobs:
             NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
             NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
             CI: true
+    
