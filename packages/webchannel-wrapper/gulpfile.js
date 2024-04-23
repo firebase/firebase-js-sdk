@@ -17,7 +17,7 @@
 
 const gulp = require('gulp');
 const concat = require('gulp-concat');
-const closureBlobsDir = '../../node_modules/closure-net/firebase/'
+const closureBlobsDir = '../../node_modules/closure-net/firebase/';
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeBloomBlobs', () => {
