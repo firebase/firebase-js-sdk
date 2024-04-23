@@ -30,6 +30,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "closure-net": "git+https://github.com/google/closure-net.git#9844d60",
     "@rollup/plugin-commonjs": "21.1.0",
     "gulp": "4.0.2",
     "gulp-concat": "2.6.1",

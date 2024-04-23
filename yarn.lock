@@ -5883,6 +5883,10 @@ cloneable-readable@^1.0.0:
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
 
+"closure-net@git+https://github.com/google/closure-net.git#9844d60":
+  version "0.0.0"
+  resolved "git+https://github.com/google/closure-net.git#9844d605191623eaba4b184775610fe875e78ac4"
+
 cmd-shim@^4.1.0:
   version "4.1.0"
   resolved "https://registry.npmjs.org/cmd-shim/-/cmd-shim-4.1.0.tgz"

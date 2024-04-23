@@ -17,18 +17,19 @@
 
 const gulp = require('gulp');
 const concat = require('gulp-concat');
+const closureBlobsDir = '../../node_modules/closure-net/firebase/'
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeBloomBlobs', () => {
   return gulp
-    .src('closure-net/firebase/bloom_blob_*')
+    .src(closureBlobsDir + 'bloom_blob_*')
     .pipe(gulp.dest('dist/bloom-blob/'));
 });
 
 // A task to distribute bloom blobs into 'dist'
 gulp.task('distributeWebChannelBlobs', () => {
   return gulp
-    .src('closure-net/firebase/webchannel_blob_*')
+    .src(closureBlobsDir + 'webchannel_blob_*')
     .pipe(gulp.dest('dist/webchannel-blob/'));
 });
 
@@ -36,8 +37,8 @@ gulp.task('distributeWebChannelBlobs', () => {
 gulp.task('aggregateTypings', () => {
   return gulp
     .src([
-      'closure-net/firebase/bloom_blob_types.d.ts',
-      'closure-net/firebase/webchannel_blob_types.d.ts'
+      closureBlobsDir + 'bloom_blob_types.d.ts',
+      closureBlobsDir + 'webchannel_blob_types.d.ts'
     ])
     .pipe(concat('types.d.ts'))
     .pipe(gulp.dest('dist/'));
@@ -51,8 +52,8 @@ gulp.task(
     function () {
       return gulp
         .src([
-          'closure-net/firebase/bloom_blob_es2018.js',
-          'closure-net/firebase/webchannel_blob_es2018.js'
+          closureBlobsDir + 'bloom_blob_es2018.js',
+          closureBlobsDir + 'webchannel_blob_es2018.js'
         ])
         .pipe(concat('index.js'))
         .pipe(gulp.dest('dist/'));
@@ -60,8 +61,8 @@ gulp.task(
     function () {
       return gulp
         .src([
-          'closure-net/firebase/bloom_blob_es5.js',
-          'closure-net/firebase/webchannel_blob_es5.js'
+          closureBlobsDir + 'bloom_blob_es5.js',
+          closureBlobsDir + 'webchannel_blob_es5.js'
         ])
         .pipe(concat('index.esm.js'))
         .pipe(gulp.dest('dist/'));
