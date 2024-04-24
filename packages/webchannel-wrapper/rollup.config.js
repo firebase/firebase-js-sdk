@@ -25,10 +25,6 @@ import pkg from './package.json';
 
 const closureBlobsDir = '../../node_modules/closure-net/firebase/';
 
-const deps = [
-  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))
-];
-
 const es2017BuildPlugins = [
   copy({
     targets: [
@@ -58,7 +54,6 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
       emitModulePackageFile()
@@ -71,7 +66,6 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
       emitModulePackageFile()
