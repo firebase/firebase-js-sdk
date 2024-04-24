@@ -27,6 +27,7 @@ jobs:
   test:
     name: Deploy Firebase Project Rules and Functions
     runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
 
     steps:
     - name: Checkout Repo
