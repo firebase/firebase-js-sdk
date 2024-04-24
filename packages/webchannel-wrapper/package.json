@@ -3,17 +3,19 @@
   "version": "0.10.7",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "esm5": "dist/index.esm.js",
+  "main": "empty.js",
   "exports": {
     "./webchannel-blob": {
       "types": "./dist/webchannel-blob/webchannel_blob_types.d.ts",
-      "default": "./dist/webchannel-blob/webchannel_blob_es2018.js"
+      "require": "./dist/webchannel-blob/webchannel_blob_es2018.js",
+      "esm5": "./dist/webchannel-blob/webchannel_blob_es5.js",
+      "default": "./dist/webchannel-blob/esm/webchannel_blob_es2018.js"
     },
     "./bloom-blob": {
       "types": "./dist/bloom-blob/bloom_blob_types.d.ts",
-      "default": "./dist/bloom-blob/bloom_blob_es2018.js"
+      "require": "./dist/bloom-blob/bloom_blob_es2018.js",
+      "es5": "./dist/bloom-blob/bloom_blob_es5.js",
+      "default": "./dist/bloom-blob/esm/bloom_blob_es2018.js"
     },
     "./package.json": "./package.json"
   },
@@ -24,7 +26,7 @@
   ],
   "scripts": {
     "dev": "watch 'yarn build' src",
-    "build": "gulp",
+    "build": "rollup -c",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'"
   },
@@ -32,10 +34,8 @@
   "devDependencies": {
     "closure-net": "git+https://github.com/google/closure-net.git#9844d60",
     "@rollup/plugin-commonjs": "21.1.0",
-    "gulp": "4.0.2",
-    "gulp-concat": "2.6.1",
-    "gulp-sourcemaps": "3.0.0",
     "rollup": "2.79.1",
+    "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.7.4"
@@ -45,7 +45,7 @@
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "./dist/types.d.ts",
+  "typings": "./dist/webchannel-blob/webchannel_blob_types.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
