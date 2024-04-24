@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,11 @@ const closureBlobsDir = '../../node_modules/closure-net/firebase/';
 const es2017BuildPlugins = [
   copy({
     targets: [
-      { src: join(closureBlobsDir, 'webchannel_blob_*.*'), dest: 'dist/webchannel-blob'},
-      { src: join(closureBlobsDir, 'bloom_blob_*.*'), dest: 'dist/bloom-blob'},
+      {
+        src: join(closureBlobsDir, 'webchannel_blob_*.*'),
+        dest: 'dist/webchannel-blob'
+      },
+      { src: join(closureBlobsDir, 'bloom_blob_*.*'), dest: 'dist/bloom-blob' }
     ]
   }),
   typescriptPlugin({
@@ -54,10 +57,7 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      ...es2017BuildPlugins,
-      emitModulePackageFile()
-    ]
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()]
   },
   {
     input: join(closureBlobsDir, 'bloom_blob_es2018.js'),
@@ -66,10 +66,7 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      ...es2017BuildPlugins,
-      emitModulePackageFile()
-    ]
+    plugins: [...es2017BuildPlugins, emitModulePackageFile()]
   }
 ];
 
