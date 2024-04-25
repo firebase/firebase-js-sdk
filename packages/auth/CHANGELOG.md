@@ -1,5 +1,13 @@
 # @firebase/auth
 
+## 1.7.2
+
+### Patch Changes
+
+- [`36b283f3f`](https://github.com/firebase/firebase-js-sdk/commit/36b283f3fc317d0fa7dde47e1048d2ee3690a9a0) [#8191](https://github.com/firebase/firebase-js-sdk/pull/8191) (fixes [#8115](https://github.com/firebase/firebase-js-sdk/issues/8115)) - Emit a module package file with esm2017 auth browser extension builds
+
+- [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906) [#7001](https://github.com/firebase/firebase-js-sdk/pull/7001) - Update jszip transient dependency from 3.7.1 to 3.10.1 in auth.
+
 ## 1.7.1
 
 ### Patch Changes

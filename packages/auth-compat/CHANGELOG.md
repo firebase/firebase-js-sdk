@@ -1,5 +1,14 @@
 # @firebase/auth-compat
 
+## 0.5.7
+
+### Patch Changes
+
+- [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906) [#7001](https://github.com/firebase/firebase-js-sdk/pull/7001) - Update jszip transient dependency from 3.7.1 to 3.10.1 in auth.
+
+- Updated dependencies [[`36b283f3f`](https://github.com/firebase/firebase-js-sdk/commit/36b283f3fc317d0fa7dde47e1048d2ee3690a9a0), [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906)]:
+  - @firebase/auth@1.7.2
+
 ## 0.5.6
 
 ### Patch Changes
