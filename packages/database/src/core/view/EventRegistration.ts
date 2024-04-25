@@ -63,7 +63,7 @@ export class CallbackContext {
       this.hasCancelCallback,
       'Raising a cancel event on a listener with no cancel callback'
     );
-    return this.cancelCallback.call(null, error);
+    return this.cancelCallback.call(error);
   }
 
   get hasCancelCallback(): boolean {
