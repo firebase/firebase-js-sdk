@@ -94,6 +94,33 @@ describe('GenerativeModel', () => {
     );
     restore();
   });
+  it('passes text-only systemInstruction through to generateContent', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      systemInstruction: 'be friendly'
+    });
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.generateContent('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('be friendly')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
   it('generateContent overrides model values', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
@@ -162,6 +189,33 @@ describe('GenerativeModel', () => {
         return (
           value.includes('myfunc') &&
           value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('passes text-only systemInstruction through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, {
+      model: 'my-model',
+      systemInstruction: "be friendly"
+    });
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
           value.includes('be friendly')
         );
       }),

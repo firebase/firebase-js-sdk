@@ -37,7 +37,10 @@ import {
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
-import { formatGenerateContentInput } from '../requests/request-helpers';
+import {
+  formatGenerateContentInput,
+  formatSystemInstruction
+} from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
@@ -93,7 +96,9 @@ export class GenerativeModel {
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
     this.toolConfig = modelParams.toolConfig;
-    this.systemInstruction = modelParams.systemInstruction;
+    this.systemInstruction = formatSystemInstruction(
+      modelParams.systemInstruction
+    );
     this.requestOptions = requestOptions || {};
   }
 
