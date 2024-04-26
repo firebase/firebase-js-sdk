@@ -27,6 +27,7 @@ import {
   EventTarget,
   StatEvent,
   Event,
+  FetchXmlHttpFactory,
   Stat
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
@@ -208,7 +209,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.useFetchStreams = true;
+      request.xmlHttpFactory = new FetchXmlHttpFactory({});
     }
 
     this.modifyHeadersForRequest(
@@ -306,6 +307,7 @@ export class WebChannelConnection extends RestConnection {
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} transport opened.`
         );
+        streamBridge.callOnConnected();
       }
     });
 
