@@ -113,9 +113,7 @@ describe('GenerativeModel', () => {
       match.any,
       false,
       match((value: string) => {
-        return (
-          value.includes('be friendly')
-        );
+        return value.includes('be friendly');
       }),
       {}
     );
@@ -199,7 +197,7 @@ describe('GenerativeModel', () => {
   it('passes text-only systemInstruction through to chat.sendMessage', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
-      systemInstruction: "be friendly"
+      systemInstruction: 'be friendly'
     });
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
@@ -215,9 +213,7 @@ describe('GenerativeModel', () => {
       match.any,
       false,
       match((value: string) => {
-        return (
-          value.includes('be friendly')
-        );
+        return value.includes('be friendly');
       }),
       {}
     );
