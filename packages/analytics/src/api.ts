@@ -768,7 +768,7 @@ export type CustomEventName<T> = T extends EventNameString ? never : T;
 export function setConsent(consentSettings: ConsentSettings): void {
   // Check if reference to existing gtag function on window object exists
   if (wrappedGtagFunction) {
-    wrappedGtagFunction(GtagCommand.CONSENT, 'update', consentSettings);
+    wrappedGtagFunction(GtagCommand.CONSENT, consentSettings);
   } else {
     _setConsentDefaultForInit(consentSettings);
   }
