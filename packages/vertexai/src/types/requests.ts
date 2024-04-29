@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Content } from './content';
+import { Content, Part } from './content';
 import {
   FunctionCallingMode,
   HarmBlockMethod,
@@ -40,7 +40,7 @@ export interface ModelParams extends BaseParams {
   model: string;
   tools?: Tool[];
   toolConfig?: ToolConfig;
-  systemInstruction?: Content;
+  systemInstruction?: string | Part | Content;
 }
 
 /**
@@ -51,7 +51,7 @@ export interface GenerateContentRequest extends BaseParams {
   contents: Content[];
   tools?: Tool[];
   toolConfig?: ToolConfig;
-  systemInstruction?: Content;
+  systemInstruction?: string | Part | Content;
 }
 
 /**
@@ -87,7 +87,7 @@ export interface StartChatParams extends BaseParams {
   history?: Content[];
   tools?: Tool[];
   toolConfig?: ToolConfig;
-  systemInstruction?: Content;
+  systemInstruction?: string | Part | Content;
 }
 
 /**

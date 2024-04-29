@@ -18,6 +18,25 @@
 import { Content, GenerateContentRequest, Part } from '../types';
 import { ERROR_FACTORY, VertexError } from '../errors';
 
+export function formatSystemInstruction(
+  input?: string | Part | Content
+): Content | undefined {
+  // null or undefined
+  if (input == null) {
+    return undefined;
+  } else if (typeof input === 'string') {
+    return { role: 'system', parts: [{ text: input }] } as Content;
+  } else if ((input as Part).text) {
+    return { role: 'system', parts: [input as Part] };
+  } else if ((input as Content).parts) {
+    if (!(input as Content).role) {
+      return { role: 'system', parts: (input as Content).parts };
+    } else {
+      return input as Content;
+    }
+  }
+}
+
 export function formatNewContent(
   request: string | Array<string | Part>
 ): Content {
@@ -84,10 +103,18 @@ function assignRoleToPartsAndValidateSendMessageRequest(
 export function formatGenerateContentInput(
   params: GenerateContentRequest | string | Array<string | Part>
 ): GenerateContentRequest {
+  let formattedRequest: GenerateContentRequest;
   if ((params as GenerateContentRequest).contents) {
-    return params as GenerateContentRequest;
+    formattedRequest = params as GenerateContentRequest;
   } else {
+    // Array or string
     const content = formatNewContent(params as string | Array<string | Part>);
-    return { contents: [content] };
+    formattedRequest = { contents: [content] };
   }
+  if ((params as GenerateContentRequest).systemInstruction) {
+    formattedRequest.systemInstruction = formatSystemInstruction(
+      (params as GenerateContentRequest).systemInstruction
+    );
+  }
+  return formattedRequest;
 }
