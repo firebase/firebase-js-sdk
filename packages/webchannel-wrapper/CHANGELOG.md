@@ -1,9 +1,5 @@
 # @firebase/webchannel-wrapper
 
-## 0.10.7
-
-- Change the Closure library dependency to closure-net.
-
 ## 0.10.6
 
 ### Patch Changes
