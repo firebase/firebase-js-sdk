@@ -15,7 +15,7 @@
   "dependencies": {
     "eslint": "7.32.0",
     "eslint-plugin-unused-imports": "2.0.0",
-    "prettier": "2.8.7"
+    "prettier": "2.8.8"
   },
   "repository": {
     "directory": "repo-scripts/prune-dts",
