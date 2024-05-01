@@ -4,5 +4,6 @@
     "declaration": false,
     "outDir": "dist",
     "downlevelIteration": true,
-  }
+  },
+  "include": ["../../node_modules/closure-net/firebase"]
 }
