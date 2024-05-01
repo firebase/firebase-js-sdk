@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,10 @@
  * limitations under the License.
  */
 
-/** @type {!Object} */
-const module = {};
+/**
+ * This package has no main entry point and only allows imports from its
+ * two subpaths. This file is provided for the top-level package.json
+ * "main" field to point to.
+ */
+
+export default {};
