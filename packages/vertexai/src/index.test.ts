@@ -15,22 +15,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { expect } from 'chai';
 
-export * from './types';
-
-/**
- * An instance of Firebase Vertex AI.
- * @public
- */
-export interface VertexAI {
-  /**
-   * The {@link @firebase/app#FirebaseApp} this {@link VertexAI} instance is associated with.
-   */
-  app: FirebaseApp;
-  location: string;
-}
-
-export interface VertexAIOptions {
-  location?: string;
-}
+describe('Simple test', () => {
+  it('Should skip this test');
+  it('Should test this async thing', async () => {
+    // Do some async assertions, you can use `await` syntax if it helps
+    const val = await Promise.resolve(42);
+    expect(val).to.equal(42);
+  });
+});

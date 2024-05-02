@@ -71,6 +71,18 @@ describe('request methods', () => {
       );
       expect(url.toString()).to.include(DEFAULT_API_VERSION);
     });
+    it('custom apiVersion', async () => {
+      const url = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        { apiVersion: 'v100omega' }
+      );
+      expect(url.toString()).to.include(
+        '/v100omega/projects/my-project/locations/us-central1/models/model-name'
+      );
+    });
     it('custom baseUrl', async () => {
       const url = new RequestUrl(
         'models/model-name',

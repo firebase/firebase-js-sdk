@@ -108,6 +108,11 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
+   * Version of API endpoint to call (e.g. "v1" or "v1beta"). If not specified,
+   * defaults to latest stable version.
+   */
+  apiVersion?: string;
+  /**
    * Base url for endpoint. Defaults to https://firebaseml.googleapis.com
    */
   baseUrl?: string;
