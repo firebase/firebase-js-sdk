@@ -19,7 +19,7 @@
 // These tests are mostly to ensure that the exported classes correctly map to
 // underlying functionality from google-closure-library.
 
-import { Md5, Integer } from '@firebase/webchannel-wrapper';
+import { Md5, Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 import { expect } from 'chai';
 
 import { newTextEncoder } from '../../../src/platform/text_serializer';

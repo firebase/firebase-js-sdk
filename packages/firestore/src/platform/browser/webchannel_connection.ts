@@ -27,8 +27,9 @@ import {
   EventTarget,
   StatEvent,
   Event,
+  FetchXmlHttpFactory,
   Stat
-} from '@firebase/webchannel-wrapper';
+} from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
 import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';
@@ -208,7 +209,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.useFetchStreams = true;
+      request.xmlHttpFactory = new FetchXmlHttpFactory({});
     }
 
     this.modifyHeadersForRequest(
