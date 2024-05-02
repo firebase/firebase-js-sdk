@@ -55,7 +55,7 @@ export function getVertexAI(app: FirebaseApp = getApp()): VertexAI {
 /**
  * Returns a {@link GenerativeModel} class with methods for inference
  * and other functionality.
- * 
+ *
  * @public
  */
 export function getGenerativeModel(
