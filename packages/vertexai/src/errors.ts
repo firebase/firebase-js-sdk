@@ -39,7 +39,7 @@ const ERRORS: ErrorMap<VertexError> = {
     `contain a valid project ID.`,
   [VertexError.NO_MODEL]:
     `Must provide a model name. ` +
-    `Example: genai.getGenerativeModel({ model: 'my-model-name' })`,
+    `Example: getGenerativeModel({ model: 'my-model-name' })`,
   [VertexError.PARSE_FAILED]: `Parsing failed: {$message}`,
   [VertexError.RESPONSE_ERROR]:
     `Response error: {$message}. Response body stored in ` +

@@ -74,6 +74,11 @@ export interface GenerateContentResponse {
   usageMetadata?: UsageMetadata;
 }
 
+/**
+ * Usage metadata about response.
+ * 
+ * @public
+ */
 export interface UsageMetadata {
   promptTokenCount: number;
   candidatesTokenCount: number;
