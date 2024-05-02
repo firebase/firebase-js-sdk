@@ -328,7 +328,7 @@ export class GenerativeModel {
     tools?: Tool[];
 }
 
-// @public (undocumented)
+// @public
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @public
@@ -549,7 +549,7 @@ export interface ToolConfig {
     functionCallingConfig: FunctionCallingConfig;
 }
 
-// @public (undocumented)
+// @public
 export interface UsageMetadata {
     // (undocumented)
     candidatesTokenCount: number;

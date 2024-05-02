@@ -80,7 +80,7 @@ export interface VideoMetadata {
 }
 
 /**
- * Content part interface if the part represents a {@link FunctionCall}`.
+ * Content part interface if the part represents a {@link FunctionCall}.
  * @public
  */
 export interface FunctionCallPart {
