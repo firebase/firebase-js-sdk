@@ -20,6 +20,7 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -63,7 +64,8 @@ import {
   FieldPath,
   newTestFirestore,
   SnapshotOptions,
-  newTestApp
+  newTestApp,
+  QuerySnapshot
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -73,7 +75,8 @@ import {
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData,
-  withNamedTestDbsOrSkipUnlessUsingEmulator
+  withNamedTestDbsOrSkipUnlessUsingEmulator,
+  toDataArray
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -573,6 +576,172 @@ apiDescribe('Database', persistence => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ field: 200 });
         });
+    });
+  });
+
+  describe('vector embeddings', () => {
+    it('can write and read vector embeddings', async () => {
+      return withTestCollection(persistence, {}, async coll => {
+        const ref = await addDoc(coll, {
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99])
+        });
+        await setDoc(ref, {
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99]),
+          vector2: vector([0, 0, 0])
+        });
+        await updateDoc(ref, {
+          vector3: vector([-1, -200, -999])
+        });
+
+        const snap1 = await getDoc(ref);
+        expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
+        expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+        expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
+          .true;
+      });
+    });
+
+    it('can listen to documents with vectors', async () => {
+      return withTestCollection(persistence, {}, async randomCol => {
+        const ref = doc(randomCol);
+        const initialDeferred = new Deferred<void>();
+        const createDeferred = new Deferred<void>();
+        const setDeferred = new Deferred<void>();
+        const updateDeferred = new Deferred<void>();
+        const deleteDeferred = new Deferred<void>();
+
+        const expected = [
+          initialDeferred,
+          createDeferred,
+          setDeferred,
+          updateDeferred,
+          deleteDeferred
+        ];
+        let idx = 0;
+        let document: DocumentSnapshot | null = null;
+
+        const q = query(randomCol, where('purpose', '==', 'vector tests'));
+        const unlisten = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
+          expected[idx].resolve();
+          idx += 1;
+          if (snap.docs.length > 0) {
+            document = snap.docs[0];
+          } else {
+            document = null;
+          }
+        });
+
+        await initialDeferred.promise;
+        expect(document).to.be.null;
+
+        await setDoc(ref, {
+          purpose: 'vector tests',
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99])
+        });
+
+        await createDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+
+        await setDoc(ref, {
+          purpose: 'vector tests',
+          vector0: vector([0.0]),
+          vector1: vector([1, 2, 3.99]),
+          vector2: vector([0, 0, 0])
+        });
+        await setDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+
+        await updateDoc(ref, {
+          vector3: vector([-1, -200, -999])
+        });
+        await updateDeferred.promise;
+        expect(document).to.be.not.null;
+        expect(document!.get('vector0').isEqual(vector([0.0]))).to.be.true;
+        expect(document!.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be
+          .true;
+        expect(document!.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+        expect(document!.get('vector3').isEqual(vector([-1, -200, -999]))).to.be
+          .true;
+
+        await deleteDoc(ref);
+        await deleteDeferred.promise;
+        expect(document).to.be.null;
+
+        unlisten();
+      });
+    });
+
+    it('SDK orders vector field same way as backend', async () => {
+      // Test data in the order that we expect the backend to sort it.
+      const docsInOrder = [
+        { embedding: [1, 2, 3, 4, 5, 6] },
+        { embedding: [100] },
+        { embedding: vector([Number.NEGATIVE_INFINITY]) },
+        { embedding: vector([-100]) },
+        { embedding: vector([100]) },
+        { embedding: vector([Number.POSITIVE_INFINITY]) },
+        { embedding: vector([1, 2]) },
+        { embedding: vector([2, 2]) },
+        { embedding: vector([1, 2, 3]) },
+        { embedding: vector([1, 2, 3, 4]) },
+        { embedding: vector([1, 2, 3, 4, 5]) },
+        { embedding: vector([1, 2, 100, 4, 4]) },
+        { embedding: vector([100, 2, 3, 4, 5]) },
+        { embedding: { HELLO: 'WORLD' } },
+        { embedding: { hello: 'world' } }
+      ];
+
+      const docs = docsInOrder.reduce((obj, doc) => {
+        obj[Math.random().toString()] = doc;
+        return obj;
+      }, {} as { [i: string]: DocumentData });
+
+      return withTestCollection(persistence, docs, async randomCol => {
+        // We validate that the SDK orders the vector field the same way as the backend
+        // by comparing the sort order of vector fields from a Query.get() and
+        // Query.onSnapshot(). Query.onSnapshot() will return sort order of the SDK,
+        // and Query.get() will return sort order of the backend.
+
+        const orderedQuery = query(randomCol, orderBy('embedding'));
+        const gotInitialSnapshot = new Deferred<QuerySnapshot>();
+
+        const unsubscribe = onSnapshot(
+          orderedQuery,
+          snapshot => {
+            gotInitialSnapshot.resolve(snapshot);
+          },
+          err => {
+            gotInitialSnapshot.reject!(err);
+          }
+        );
+
+        const watchSnapshot = await gotInitialSnapshot.promise;
+        unsubscribe();
+
+        const getSnapshot = await getDocs(orderedQuery);
+
+        // Compare the snapshot (including sort order) of a snapshot
+        // from Query.onSnapshot() to an actual snapshot from Query.get()
+        expect(toDataArray(watchSnapshot)).to.deep.equal(
+          toDataArray(getSnapshot)
+        );
+
+        // Compare the snapshot (including sort order) of a snapshot
+        // from Query.onSnapshot() to the expected sort order from
+        // the backend.
+        expect(toDataArray(watchSnapshot)).to.deep.equal(docsInOrder);
+      });
     });
   });
 

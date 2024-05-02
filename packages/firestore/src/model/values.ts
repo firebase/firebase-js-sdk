@@ -29,6 +29,7 @@ import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
 import { DocumentKey } from './document_key';
+import { isVectorValue, VECTOR_MAP_VECTORS_KEY } from './map_type';
 import {
   normalizeByteString,
   normalizeNumber,
@@ -79,6 +80,8 @@ export function typeOrder(value: Value): TypeOrder {
       return TypeOrder.ServerTimestampValue;
     } else if (isMaxValue(value)) {
       return TypeOrder.MaxValue;
+    } else if (isVectorValue(value)) {
+      return TypeOrder.VectorValue;
     }
     return TypeOrder.ObjectValue;
   } else {
@@ -123,6 +126,7 @@ export function valueEquals(left: Value, right: Value): boolean {
         right.arrayValue!.values || [],
         valueEquals
       );
+    case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return objectEquals(left, right);
     case TypeOrder.MaxValue:
@@ -252,6 +256,8 @@ export function valueCompare(left: Value, right: Value): number {
       return compareGeoPoints(left.geoPointValue!, right.geoPointValue!);
     case TypeOrder.ArrayValue:
       return compareArrays(left.arrayValue!, right.arrayValue!);
+    case TypeOrder.VectorValue:
+      return compareVectors(left.mapValue!, right.mapValue!);
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
     default:
@@ -347,6 +353,25 @@ function compareArrays(left: ArrayValue, right: ArrayValue): number {
     }
   }
   return primitiveComparator(leftArray.length, rightArray.length);
+}
+
+function compareVectors(left: MapValue, right: MapValue): number {
+  const leftMap = left.fields || {};
+  const rightMap = right.fields || {};
+
+  // The vector is a map, but only vector value is compared.
+  const leftArrayValue = leftMap[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
+  const rightArrayValue = rightMap[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
+
+  const lengthCompare = primitiveComparator(
+    leftArrayValue?.values?.length || 0,
+    rightArrayValue?.values?.length || 0
+  );
+  if (lengthCompare !== 0) {
+    return lengthCompare;
+  }
+
+  return compareArrays(leftArrayValue!, rightArrayValue!);
 }
 
 function compareMaps(left: MapValue, right: MapValue): number {
@@ -504,6 +529,7 @@ export function estimateByteSize(value: Value): number {
       return 16;
     case TypeOrder.ArrayValue:
       return estimateArrayByteSize(value.arrayValue!);
+    case TypeOrder.VectorValue:
     case TypeOrder.ObjectValue:
       return estimateMapByteSize(value.mapValue!);
     default:

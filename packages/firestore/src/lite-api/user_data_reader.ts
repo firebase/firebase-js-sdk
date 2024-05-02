@@ -26,6 +26,7 @@ import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
+import { vectorValue } from '../model/map_type';
 import {
   FieldTransform,
   Mutation,
@@ -69,6 +70,7 @@ import {
   WithFieldValue
 } from './reference';
 import { Timestamp } from './timestamp';
+import { VectorValue } from './vector_value';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -901,6 +903,9 @@ function parseScalarValue(
         value._key.path
       )
     };
+  }
+  if (value instanceof VectorValue) {
+    return vectorValue(value);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -925,7 +930,8 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof GeoPoint) &&
     !(input instanceof Bytes) &&
     !(input instanceof DocumentReference) &&
-    !(input instanceof FieldValue)
+    !(input instanceof FieldValue) &&
+    !(input instanceof VectorValue)
   );
 }
 

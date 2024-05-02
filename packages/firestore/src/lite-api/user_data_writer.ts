@@ -19,6 +19,7 @@ import { DocumentData } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
+import { VECTOR_MAP_VECTORS_KEY } from '../model/map_type';
 import {
   normalizeByteString,
   normalizeNumber,
@@ -48,6 +49,7 @@ import { forEach } from '../util/obj';
 
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
+import { VectorValue } from './vector_value';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -85,6 +87,8 @@ export abstract class AbstractUserDataWriter {
         return this.convertArray(value.arrayValue!, serverTimestampBehavior);
       case TypeOrder.ObjectValue:
         return this.convertObject(value.mapValue!, serverTimestampBehavior);
+      case TypeOrder.VectorValue:
+        return this.convertVectorValue(value.mapValue!);
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }
@@ -109,6 +113,19 @@ export abstract class AbstractUserDataWriter {
       result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;
+  }
+
+  /**
+   * @internal
+   */
+  convertVectorValue(mapValue: ProtoMapValue): VectorValue {
+    const values = mapValue.fields?.[
+      VECTOR_MAP_VECTORS_KEY
+    ].arrayValue?.values?.map(value => {
+      return normalizeNumber(value.doubleValue);
+    });
+
+    return new VectorValue(values);
   }
 
   private convertGeoPoint(value: ProtoLatLng): GeoPoint {
