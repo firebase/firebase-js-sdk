@@ -108,7 +108,6 @@ const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
-publicIdentifiers.add('ToRunAggregationQueryRequestReturnType');
 
 /**
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and

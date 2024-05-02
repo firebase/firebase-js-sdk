@@ -900,19 +900,16 @@ export function toQueryTarget(
   return { queryTarget, parent };
 }
 
-// Note: keep this interface declaration in order to avoid its minification when
-// used by _internalAggregationQueryToProtoRunAggregationQueryRequest.
-declare interface ToRunAggregationQueryRequestReturnType {
-  request: ProtoRunAggregationQueryRequest;
-  aliasMap: Record<string, string>;
-  parent: ResourcePath;
-}
-
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
-  aggregates: Aggregate[]
-): ToRunAggregationQueryRequestReturnType {
+  aggregates: Aggregate[],
+  skipAliasing?: boolean
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+  parent: ResourcePath;
+} {
   const { queryTarget, parent } = toQueryTarget(serializer, target);
   const aliasMap: Record<string, string> = {};
 
@@ -923,7 +920,9 @@ export function toRunAggregationQueryRequest(
     // Map all client-side aliases to a unique short-form
     // alias. This avoids issues with client-side aliases that
     // exceed the 1500-byte string size limit.
-    const serverAlias = `aggregate_${aggregationNum++}`;
+    const serverAlias = skipAliasing
+      ? aggregate.alias
+      : `aggregate_${aggregationNum++}`;
     aliasMap[serverAlias] = aggregate.alias;
 
     if (aggregate.aggregateType === 'count') {

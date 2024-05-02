@@ -54,15 +54,10 @@ export function _internalQueryToProtoQueryTarget(query: Query): any {
  *
  * This function is for internal use only.
  *
- * Returns
- * {
- *   request: RunAggregationQueryRequest;
- *   aliasMap: Record<string, string>;
- *   parent: ResourcePath;
- * }
- * which contains the proto representation of the given aggregation query.
- * Returns null if the Firestore client associated with the given query has not
- * been initialized or has been terminated.
+ * Returns `RunAggregationQueryRequest` which contains the proto representation
+ * of the given aggregation query request. Returns null if the Firestore client
+ * associated with the given query has not been initialized or has been
+ * terminated.
  *
  * @param query - The Query to convert to proto representation.
  * @param aggregateSpec - The set of aggregations and their aliases.
@@ -88,6 +83,7 @@ export function _internalAggregationQueryToProtoRunAggregationQueryRequest<
   return toRunAggregationQueryRequest(
     serializer!,
     queryToAggregateTarget(query._query),
-    aggregates
-  );
+    aggregates,
+    /* skipAliasing= */ true
+  ).request;
 }
