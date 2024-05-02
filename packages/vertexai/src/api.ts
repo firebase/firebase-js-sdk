@@ -45,7 +45,7 @@ declare module '@firebase/component' {
 export function getVertexAI(app: FirebaseApp = getApp()): VertexAI {
   app = getModularInstance(app);
   // Dependencies
-  const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
+  const vertexProvider: Provider<'vertexAI'> = _getProvider(app, VERTEX_TYPE);
 
   return vertexProvider.getImmediate({
     identifier: DEFAULT_LOCATION
@@ -53,12 +53,12 @@ export function getVertexAI(app: FirebaseApp = getApp()): VertexAI {
 }
 
 export function getGenerativeModel(
-  vertex: VertexAI,
+  vertexAI: VertexAI,
   modelParams: ModelParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
   if (!modelParams.model) {
     throw ERROR_FACTORY.create(VertexError.NO_MODEL);
   }
-  return new GenerativeModel(vertex, modelParams, requestOptions);
+  return new GenerativeModel(vertexAI, modelParams, requestOptions);
 }

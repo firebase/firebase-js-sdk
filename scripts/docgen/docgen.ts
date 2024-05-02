@@ -54,7 +54,8 @@ const PREFERRED_PARAMS = [
   'messaging',
   'performance',
   'remoteConfig',
-  'storage'
+  'storage',
+  'vertexAI'
 ];
 
 yargs

@@ -57,7 +57,7 @@ interface ErrorParams {
 }
 
 export const ERROR_FACTORY = new ErrorFactory<VertexError, ErrorParams>(
-  'vertex',
-  'Vertex',
+  'vertexAI',
+  'VertexAI',
   ERRORS
 );

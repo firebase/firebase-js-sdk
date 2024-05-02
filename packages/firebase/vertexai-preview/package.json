@@ -1,5 +1,5 @@
 {
-  "name": "firebase/vertexai",
+  "name": "firebase/vertexai-preview",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm.js",
   "module": "dist/esm/index.esm.js",
