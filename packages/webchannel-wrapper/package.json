@@ -32,7 +32,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "closure-net": "git+https://github.com/google/closure-net.git#9844d60",
+    "closure-net": "git+https://github.com/google/closure-net.git#0412666",
     "@rollup/plugin-commonjs": "21.1.0",
     "rollup": "2.79.1",
     "rollup-plugin-copy": "3.5.0",
