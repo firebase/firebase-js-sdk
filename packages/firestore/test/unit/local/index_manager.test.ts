@@ -1124,13 +1124,13 @@ describe('IndexedDbIndexManager', async () => {
       query('coll'),
       filter('embedding', '>', vector([4, 5, 6]))
     );
-    await verifyResults(q, 'coll/map2');
+    await verifyResults(q);
 
     q = queryWithAddedFilter(
       query('coll'),
       filter('embedding', '>=', vector([4]))
     );
-    await verifyResults(q, 'coll/doc4', 'coll/doc3', 'coll/map2');
+    await verifyResults(q, 'coll/doc4', 'coll/doc3');
   });
 
   it('support advances queries', async () => {

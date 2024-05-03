@@ -19,7 +19,6 @@ import { DocumentData } from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { VECTOR_MAP_VECTORS_KEY } from '../model/map_type';
 import {
   normalizeByteString,
   normalizeNumber,
@@ -31,7 +30,7 @@ import {
   getPreviousValue
 } from '../model/server_timestamps';
 import { TypeOrder } from '../model/type_order';
-import { typeOrder } from '../model/values';
+import { VECTOR_MAP_VECTORS_KEY, typeOrder } from '../model/values';
 import {
   ApiClientObjectMap,
   ArrayValue as ProtoArrayValue,

@@ -42,7 +42,8 @@ import {
   arrayUnion,
   deleteField,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  vector
 } from '../../src/lite-api/field_value_impl';
 import {
   endAt,
@@ -2933,4 +2934,29 @@ describe('Aggregate queries - sum / average', () => {
       });
     }
   );
+});
+
+describe('Vectors', () => {
+  it('can be read and written using the lite SDK', async () => {
+    return withTestCollection(async coll => {
+      const ref = await addDoc(coll, {
+        vector0: vector([0.0]),
+        vector1: vector([1, 2, 3.99])
+      });
+      await setDoc(ref, {
+        vector0: vector([0.0]),
+        vector1: vector([1, 2, 3.99]),
+        vector2: vector([0, 0, 0])
+      });
+      await updateDoc(ref, {
+        vector3: vector([-1, -200, -999])
+      });
+
+      const snap1 = await getDoc(ref);
+      expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
+      expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
+      expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+      expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be.true;
+    });
+  });
 });

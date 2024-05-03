@@ -16,13 +16,16 @@
  */
 
 import { DocumentKey } from '../model/document_key';
-import { isVectorValue, VECTOR_MAP_VECTORS_KEY } from '../model/map_type';
 import {
   normalizeByteString,
   normalizeNumber,
   normalizeTimestamp
 } from '../model/normalize';
-import { isMaxValue } from '../model/values';
+import {
+  isVectorValue,
+  VECTOR_MAP_VECTORS_KEY,
+  isMaxValue
+} from '../model/values';
 import { ArrayValue, MapValue, Value } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
 import { isNegativeZero } from '../util/types';

@@ -21,6 +21,7 @@ import {
   LatLng,
   MapValue,
   Timestamp,
+  Value as ProtoValue,
   Value
 } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
@@ -29,7 +30,6 @@ import { forEach, objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
 import { DocumentKey } from './document_key';
-import { isVectorValue, VECTOR_MAP_VECTORS_KEY } from './map_type';
 import {
   normalizeByteString,
   normalizeNumber,
@@ -42,6 +42,7 @@ import {
 } from './server_timestamps';
 import { TypeOrder } from './type_order';
 
+export const TYPE_KEY = '__type__';
 const MAX_VALUE_TYPE = '__max__';
 export const MAX_VALUE: Value = {
   mapValue: {
@@ -50,6 +51,9 @@ export const MAX_VALUE: Value = {
     }
   }
 };
+
+export const VECTOR_VALUE_SENTINEL = '__vector__';
+export const VECTOR_MAP_VECTORS_KEY = 'value';
 
 export const MIN_VALUE: Value = {
   nullValue: 'NULL_VALUE'
@@ -615,6 +619,12 @@ export function isMapValue(
   return !!value && 'mapValue' in value;
 }
 
+/** Returns true if `value` is a VetorValue. */
+export function isVectorValue(value: ProtoValue | null): boolean {
+  const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
+  return type === VECTOR_VALUE_SENTINEL;
+}
+
 /** Creates a deep copy of `source`. */
 export function deepClone(source: Value): Value {
   if (source.geoPointValue) {
@@ -650,6 +660,17 @@ export function isMaxValue(value: Value): boolean {
   );
 }
 
+export const MIN_VECTOR_VALUE = {
+  mapValue: {
+    fields: {
+      [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
+      [VECTOR_MAP_VECTORS_KEY]: {
+        arrayValue: {}
+      }
+    }
+  }
+};
+
 /** Returns the lowest value for the given value type (inclusive). */
 export function valuesGetLowerBound(value: Value): Value {
   if ('nullValue' in value) {
@@ -671,6 +692,9 @@ export function valuesGetLowerBound(value: Value): Value {
   } else if ('arrayValue' in value) {
     return { arrayValue: {} };
   } else if ('mapValue' in value) {
+    if (isVectorValue(value)) {
+      return MIN_VECTOR_VALUE;
+    }
     return { mapValue: {} };
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));
@@ -696,8 +720,11 @@ export function valuesGetUpperBound(value: Value): Value {
   } else if ('geoPointValue' in value) {
     return { arrayValue: {} };
   } else if ('arrayValue' in value) {
-    return { mapValue: {} };
+    return MIN_VECTOR_VALUE;
   } else if ('mapValue' in value) {
+    if (isVectorValue(value)) {
+      return { mapValue: {} };
+    }
     return MAX_VALUE;
   } else {
     return fail('Invalid value type: ' + JSON.stringify(value));

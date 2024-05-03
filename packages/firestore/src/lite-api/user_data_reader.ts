@@ -26,7 +26,6 @@ import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import { FieldMask } from '../model/field_mask';
-import { vectorValue } from '../model/map_type';
 import {
   FieldTransform,
   Mutation,
@@ -42,6 +41,11 @@ import {
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
+import {
+  TYPE_KEY,
+  VECTOR_MAP_VECTORS_KEY,
+  VECTOR_VALUE_SENTINEL
+} from '../model/values';
 import { newSerializer } from '../platform/serializer';
 import {
   MapValue as ProtoMapValue,
@@ -903,14 +907,37 @@ function parseScalarValue(
         value._key.path
       )
     };
-  }
-  if (value instanceof VectorValue) {
-    return vectorValue(value);
+  } else if (value instanceof VectorValue) {
+    return parseVectorValue(value);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
     );
   }
+}
+
+/**
+ * Creates a new VectorValue proto value (using the internal format).
+ */
+export function parseVectorValue(value: VectorValue): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [TYPE_KEY]: {
+        stringValue: VECTOR_VALUE_SENTINEL
+      },
+      [VECTOR_MAP_VECTORS_KEY]: {
+        arrayValue: {
+          values: value.toArray().map(value => {
+            return {
+              doubleValue: value
+            };
+          })
+        }
+      }
+    }
+  };
+
+  return { mapValue };
 }
 
 /**
