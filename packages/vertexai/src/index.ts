@@ -40,8 +40,9 @@ function registerVertex(): void {
       (container, { instanceIdentifier: location }) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
+        const auth = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexAIService(app, appCheckProvider, { location });
+        return new VertexAIService(app, auth, appCheckProvider, { location });
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

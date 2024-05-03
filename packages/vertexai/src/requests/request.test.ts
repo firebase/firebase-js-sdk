@@ -101,6 +101,7 @@ describe('request methods', () => {
       apiKey: 'key',
       project: 'myproject',
       location: 'moon',
+      getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
     const fakeUrl = new RequestUrl(
@@ -172,6 +173,42 @@ describe('request methods', () => {
       );
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+    });
+    it('adds auth token if it exists', async () => {
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.get('Authorization')).to.equal('Firebase authtoken');
+    });
+    it('ignores auth token header if no auth service', async () => {
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        {
+          apiKey: 'key',
+          project: 'myproject',
+          location: 'moon'
+        },
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.has('Authorization')).to.be.false;
+    });
+    it('ignores auth token header if returned token was undefined', async () => {
+      const fakeUrl = new RequestUrl(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        {
+          apiKey: 'key',
+          project: 'myproject',
+          location: 'moon',
+          //@ts-ignore
+          getAppCheckToken: () => Promise.resolve()
+        },
+        true,
+        {}
+      );
+      const headers = await getHeaders(fakeUrl);
+      expect(headers.has('Authorization')).to.be.false;
     });
   });
   describe('makeRequest', () => {

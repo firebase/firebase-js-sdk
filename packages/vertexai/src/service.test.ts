@@ -35,6 +35,7 @@ describe('VertexAIService', () => {
   it('uses custom location if specified', () => {
     const vertexAI = new VertexAIService(
       fakeApp,
+      /* authProvider */ undefined,
       /* appCheckProvider */ undefined,
       { location: 'somewhere' }
     );
