@@ -20,7 +20,6 @@ import { Deferred } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { vector } from '../../../src/lite-api/field_value_impl';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -65,7 +64,8 @@ import {
   newTestFirestore,
   SnapshotOptions,
   newTestApp,
-  QuerySnapshot
+  QuerySnapshot,
+  vector
 } from '../util/firebase_export';
 import {
   apiDescribe,
