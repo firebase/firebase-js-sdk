@@ -32,7 +32,8 @@ import {
   FinishReason,
   GenerateContentResponse,
   HarmCategory,
-  HarmProbability
+  HarmProbability,
+  SafetyRating
 } from '../types';
 
 use(sinonChai);
@@ -229,7 +230,7 @@ describe('aggregateResponses', () => {
             {
               category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
               probability: HarmProbability.LOW
-            }
+            } as SafetyRating
           ]
         }
       }
@@ -256,7 +257,7 @@ describe('aggregateResponses', () => {
                 {
                   category: HarmCategory.HARM_CATEGORY_HARASSMENT,
                   probability: HarmProbability.NEGLIGIBLE
-                }
+                } as SafetyRating
               ]
             }
           ],
@@ -266,7 +267,7 @@ describe('aggregateResponses', () => {
               {
                 category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                 probability: HarmProbability.LOW
-              }
+              } as SafetyRating
             ]
           }
         },
@@ -284,7 +285,7 @@ describe('aggregateResponses', () => {
                 {
                   category: HarmCategory.HARM_CATEGORY_HARASSMENT,
                   probability: HarmProbability.NEGLIGIBLE
-                }
+                } as SafetyRating
               ],
               citationMetadata: {
                 citations: [
@@ -304,7 +305,7 @@ describe('aggregateResponses', () => {
               {
                 category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
                 probability: HarmProbability.HIGH
-              }
+              } as SafetyRating
             ]
           }
         },
@@ -322,7 +323,7 @@ describe('aggregateResponses', () => {
                 {
                   category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
                   probability: HarmProbability.MEDIUM
-                }
+                } as SafetyRating
               ],
               citationMetadata: {
                 citations: [
@@ -348,7 +349,7 @@ describe('aggregateResponses', () => {
               {
                 category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
                 probability: HarmProbability.HIGH
-              }
+              } as SafetyRating
             ]
           }
         }

@@ -30,3 +30,11 @@ export interface VertexAI {
   app: FirebaseApp;
   location: string;
 }
+
+/**
+ * Options when initializing the Firebase Vertex AI SDK.
+ * @public
+ */
+export interface VertexAIOptions {
+  location?: string;
+}

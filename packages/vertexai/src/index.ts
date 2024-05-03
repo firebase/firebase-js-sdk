@@ -37,11 +37,12 @@ function registerVertex(): void {
   _registerComponent(
     new Component(
       VERTEX_TYPE,
-      container => {
+      (container, { instanceIdentifier: location }) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        return new VertexAIService(app, appCheckProvider);
+        console.log(location);
+        return new VertexAIService(app, appCheckProvider, { location });
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
