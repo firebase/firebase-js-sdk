@@ -75,7 +75,7 @@ export interface GenerateContentResponse {
 }
 
 /**
- * Usage metadata about response.
+ * Usage metadata about a {@link GenerateContentResponse}.
  *
  * @public
  */

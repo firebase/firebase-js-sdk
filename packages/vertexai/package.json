@@ -1,7 +1,7 @@
 {
   "name": "@firebase/vertexai-preview",
   "version": "0.0.0",
-  "description": "A Firebase SDK for VertexAI",
+  "description": "A Firebase SDK for VertexAI (preview)",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
     "node": ">=18.0.0"
