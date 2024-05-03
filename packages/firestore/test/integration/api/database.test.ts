@@ -76,7 +76,8 @@ import {
   withTestDoc,
   withTestDocAndInitialData,
   withNamedTestDbsOrSkipUnlessUsingEmulator,
-  toDataArray
+  toDataArray,
+  checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -741,6 +742,63 @@ apiDescribe('Database', persistence => {
         // from Query.onSnapshot() to the expected sort order from
         // the backend.
         expect(toDataArray(watchSnapshot)).to.deep.equal(docsInOrder);
+      });
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('From Cache', () => {
+      it('SDK orders vector field the same way online and offline', async () => {
+        // Test data in the order that we expect the SDK to sort it.
+        const docsInOrder = [
+          { embedding: [1, 2, 3, 4, 5, 6] },
+          { embedding: [100] },
+          { embedding: vector([Number.NEGATIVE_INFINITY]) },
+          { embedding: vector([-100]) },
+          { embedding: vector([100]) },
+          { embedding: vector([Number.POSITIVE_INFINITY]) },
+          { embedding: vector([1, 2]) },
+          { embedding: vector([2, 2]) },
+          { embedding: vector([1, 2, 3]) },
+          { embedding: vector([1, 2, 3, 4]) },
+          { embedding: vector([1, 2, 3, 4, 5]) },
+          { embedding: vector([1, 2, 100, 4, 4]) },
+          { embedding: vector([100, 2, 3, 4, 5]) },
+          { embedding: { HELLO: 'WORLD' } },
+          { embedding: { hello: 'world' } }
+        ];
+
+        const documentIds: string[] = [];
+        const docs = docsInOrder.reduce((obj, doc, index) => {
+          const documentId = index.toString();
+          documentIds.push(documentId);
+          obj[documentId] = doc;
+          return obj;
+        }, {} as { [i: string]: DocumentData });
+
+        return withTestCollection(persistence, docs, async randomCol => {
+          const orderedQuery = query(randomCol, orderBy('embedding'));
+          await checkOnlineAndOfflineResultsMatch(orderedQuery, ...documentIds);
+
+          const orderedQueryLessThan = query(
+            randomCol,
+            orderBy('embedding'),
+            where('embedding', '<', vector([1, 2, 100, 4, 4]))
+          );
+          await checkOnlineAndOfflineResultsMatch(
+            orderedQueryLessThan,
+            ...documentIds.slice(2, 11)
+          );
+
+          const orderedQueryGreaterThan = query(
+            randomCol,
+            orderBy('embedding'),
+            where('embedding', '>', vector([1, 2, 100, 4, 4]))
+          );
+          await checkOnlineAndOfflineResultsMatch(
+            orderedQueryGreaterThan,
+            ...documentIds.slice(12, 13)
+          );
+        });
       });
     });
   });

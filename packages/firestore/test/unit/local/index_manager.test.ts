@@ -30,6 +30,7 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { Timestamp } from '../../../src/lite-api/timestamp';
 import {
   displayNameForIndexType,
@@ -1098,6 +1099,38 @@ describe('IndexedDbIndexManager', async () => {
       filter('date', '>', new Timestamp(1451730050, 0))
     );
     await verifyResults(q, 'coll/val6', 'coll/val3', 'coll/val4', 'coll/val5');
+  });
+
+  it('can index VectorValue fields', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['embedding', IndexKind.ASCENDING]] })
+    );
+
+    await addDoc('coll/arr1', { 'embedding': [1, 2, 3] });
+    await addDoc('coll/map2', { 'embedding': {} });
+    await addDoc('coll/doc3', { 'embedding': vector([4, 5, 6]) });
+    await addDoc('coll/doc4', { 'embedding': vector([5]) });
+
+    let q = queryWithAddedOrderBy(query('coll'), orderBy('embedding'));
+    await verifyResults(q, 'coll/arr1', 'coll/doc4', 'coll/doc3', 'coll/map2');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('embedding', '==', vector([4, 5, 6]))
+    );
+    await verifyResults(q, 'coll/doc3');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('embedding', '>', vector([4, 5, 6]))
+    );
+    await verifyResults(q, 'coll/map2');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('embedding', '>=', vector([4]))
+    );
+    await verifyResults(q, 'coll/doc4', 'coll/doc3', 'coll/map2');
   });
 
   it('support advances queries', async () => {
