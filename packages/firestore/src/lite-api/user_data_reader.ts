@@ -51,7 +51,7 @@ import {
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-import { toNumber } from '../remote/number_serializer';
+import { toDouble, toNumber } from '../remote/number_serializer';
 import {
   JsonProtoSerializer,
   toBytes,
@@ -908,7 +908,7 @@ function parseScalarValue(
       )
     };
   } else if (value instanceof VectorValue) {
-    return parseVectorValue(value);
+    return parseVectorValue(value, context);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
@@ -919,7 +919,10 @@ function parseScalarValue(
 /**
  * Creates a new VectorValue proto value (using the internal format).
  */
-export function parseVectorValue(value: VectorValue): ProtoValue {
+export function parseVectorValue(
+  value: VectorValue,
+  context: ParseContextImpl
+): ProtoValue {
   const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
@@ -928,9 +931,13 @@ export function parseVectorValue(value: VectorValue): ProtoValue {
       [VECTOR_MAP_VECTORS_KEY]: {
         arrayValue: {
           values: value.toArray().map(value => {
-            return {
-              doubleValue: value
-            };
+            if (typeof value !== 'number') {
+              throw context.createError(
+                'VectorValues must only contain numeric values.'
+              );
+            }
+
+            return toDouble(context.serializer, value);
           })
         }
       }
