@@ -216,7 +216,7 @@
       "default": "./storage/dist/esm/index.esm.js"
     },
     "./vertexai-preview": {
-      "types": "./vertexai-preview/dist/vertexai/index.d.ts",
+      "types": "./vertexai-preview/dist/vertexai-preview/index.d.ts",
       "node": {
         "require": "./vertexai-preview/dist/index.cjs.js",
         "import": "./vertexai-preview/dist/index.mjs"
