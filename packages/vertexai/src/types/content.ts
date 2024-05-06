@@ -34,7 +34,8 @@ export type Part =
   | TextPart
   | InlineDataPart
   | FunctionCallPart
-  | FunctionResponsePart;
+  | FunctionResponsePart
+  | FileDataPart;
 
 /**
  * Content part interface if the part represents a text string.
@@ -102,6 +103,18 @@ export interface FunctionResponsePart {
 }
 
 /**
+ * Content part interface if the part represents {@link FileData}
+ * @public
+ */
+export interface FileDataPart {
+  text?: never;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData: FileData;
+}
+
+/**
  * A predicted [FunctionCall] returned from the model
  * that contains a string representing the [FunctionDeclaration.name]
  * and a structured JSON object containing the parameters and their values.
@@ -136,4 +149,13 @@ export interface GenerativeContentBlob {
    * Image as a base64 string.
    */
   data: string;
+}
+
+/**
+ * Data pointing to a file uploaded on Google Cloud Storage.
+ * @public
+ */
+export interface FileData {
+  mimeType: string;
+  fileUri: string;
 }

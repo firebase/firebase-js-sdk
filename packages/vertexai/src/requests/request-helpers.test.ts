@@ -170,6 +170,33 @@ describe('request formatting methods', () => {
         ],
         systemInstruction: { role: 'system', parts: [{ text: 'be excited' }] }
       });
-    });
+    }),
+      it('formats fileData as part if provided as part', () => {
+        const result = formatGenerateContentInput([
+          'What is this?',
+          {
+            fileData: {
+              mimeType: 'image/jpeg',
+              fileUri: 'gs://sample.appspot.com/image.jpeg'
+            }
+          }
+        ]);
+        expect(result).to.be.deep.equal({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  fileData: {
+                    mimeType: 'image/jpeg',
+                    fileUri: 'gs://sample.appspot.com/image.jpeg'
+                  }
+                },
+                { text: 'What is this?' }
+              ]
+            }
+          ]
+        });
+      });
   });
 });
