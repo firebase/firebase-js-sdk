@@ -79,6 +79,11 @@ export class GenerativeModel {
         this._apiSettings.getAppCheckToken = () =>
           (vertexAI as VertexAIService).appCheck!.getToken();
       }
+
+      if ((vertexAI as VertexAIService).auth) {
+        this._apiSettings.getAuthToken = () =>
+          (vertexAI as VertexAIService).auth!.getToken();
+      }
     }
     if (modelParams.model.includes('/')) {
       if (modelParams.model.startsWith('models/')) {

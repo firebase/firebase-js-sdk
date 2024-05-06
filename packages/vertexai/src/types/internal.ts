@@ -16,10 +16,12 @@
  */
 
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
+import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 
 export interface ApiSettings {
   apiKey: string;
   project: string;
   location: string;
+  getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
 }

@@ -87,6 +87,14 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
     }
   }
+
+  if (url.apiSettings.getAuthToken) {
+    const authToken = await url.apiSettings.getAuthToken();
+    if (authToken) {
+      headers.append('Authorization', `Firebase ${authToken.accessToken}`);
+    }
+  }
+
   return headers;
 }
 
