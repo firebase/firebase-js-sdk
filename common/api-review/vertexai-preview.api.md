@@ -6,6 +6,7 @@
 
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 
 // @public
 export interface BaseParams {
@@ -99,6 +100,28 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     text: () => string;
+}
+
+// @public
+export interface FileData {
+    // (undocumented)
+    fileUri: string;
+    // (undocumented)
+    mimeType: string;
+}
+
+// @public
+export interface FileDataPart {
+    // (undocumented)
+    fileData: FileData;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
 }
 
 // @public
@@ -332,7 +355,7 @@ export class GenerativeModel {
 export function getGenerativeModel(vertexAI: VertexAI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
 
 // @public
-export function getVertexAI(app?: FirebaseApp): VertexAI;
+export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
 
 // @public (undocumented)
 export interface GroundingAttribution {
@@ -448,7 +471,7 @@ export interface ModelParams extends BaseParams {
 }
 
 // @public
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart;
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
@@ -564,6 +587,12 @@ export interface VertexAI {
     app: FirebaseApp;
     // (undocumented)
     location: string;
+}
+
+// @public
+export interface VertexAIOptions {
+    // (undocumented)
+    location?: string;
 }
 
 // @public
