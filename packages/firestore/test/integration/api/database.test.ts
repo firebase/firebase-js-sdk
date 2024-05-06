@@ -65,7 +65,8 @@ import {
   SnapshotOptions,
   newTestApp,
   QuerySnapshot,
-  vector
+  vector,
+  getDocsFromServer
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -710,9 +711,9 @@ apiDescribe('Database', persistence => {
 
       return withTestCollection(persistence, docs, async randomCol => {
         // We validate that the SDK orders the vector field the same way as the backend
-        // by comparing the sort order of vector fields from a Query.get() and
-        // Query.onSnapshot(). Query.onSnapshot() will return sort order of the SDK,
-        // and Query.get() will return sort order of the backend.
+        // by comparing the sort order of vector fields from getDocsFromServer and
+        // onSnapshot. onSnapshot will return sort order of the SDK,
+        // and getDocsFromServer will return sort order of the backend.
 
         const orderedQuery = query(randomCol, orderBy('embedding'));
         const gotInitialSnapshot = new Deferred<QuerySnapshot>();
@@ -730,7 +731,7 @@ apiDescribe('Database', persistence => {
         const watchSnapshot = await gotInitialSnapshot.promise;
         unsubscribe();
 
-        const getSnapshot = await getDocs(orderedQuery);
+        const getSnapshot = await getDocsFromServer(orderedQuery);
 
         // Compare the snapshot (including sort order) of a snapshot
         // from Query.onSnapshot() to an actual snapshot from Query.get()
