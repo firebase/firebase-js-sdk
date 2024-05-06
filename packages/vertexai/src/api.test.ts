@@ -19,7 +19,6 @@ import { getGenerativeModel } from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { VertexError } from './errors';
 
 const fakeVertexAI: VertexAI = {
   app: {
@@ -36,7 +35,7 @@ const fakeVertexAI: VertexAI = {
 describe('Top level API', () => {
   it('getGenerativeModel throws if no model is provided', () => {
     expect(() => getGenerativeModel(fakeVertexAI, {} as ModelParams)).to.throw(
-      VertexError.NO_MODEL
+      'Missing model parameter'
     );
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
@@ -46,7 +45,7 @@ describe('Top level API', () => {
     } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' })
-    ).to.throw(VertexError.NO_API_KEY);
+    ).to.throw("Missing Firebase app API key");
   });
   it('getGenerativeModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
@@ -55,7 +54,7 @@ describe('Top level API', () => {
     } as VertexAI;
     expect(() =>
       getGenerativeModel(fakeVertexNoProject, { model: 'my-model' })
-    ).to.throw(VertexError.NO_PROJECT_ID);
+    ).to.throw("Missing Firebase app project ID");
   });
   it('getGenerativeModel gets a GenerativeModel', () => {
     const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });

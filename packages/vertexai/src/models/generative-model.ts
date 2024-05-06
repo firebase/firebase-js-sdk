@@ -42,7 +42,7 @@ import {
   formatSystemInstruction
 } from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import { VertexAIError, VertexAIErrorCode } from '../errors';
 import { ApiSettings } from '../types/internal';
 import { VertexAIService } from '../service';
 
@@ -66,9 +66,15 @@ export class GenerativeModel {
     requestOptions?: RequestOptions
   ) {
     if (!vertexAI.app?.options?.apiKey) {
-      throw ERROR_FACTORY.create(VertexError.NO_API_KEY);
+      throw new VertexAIError(
+        VertexAIErrorCode.NO_API_KEY,
+        'Missing Firebase app API key'
+      );
     } else if (!vertexAI.app?.options?.projectId) {
-      throw ERROR_FACTORY.create(VertexError.NO_PROJECT_ID);
+      throw new VertexAIError(
+        VertexAIErrorCode.NO_PROJECT_ID,
+        'Missing Firebase app project ID'
+      );
     } else {
       this._apiSettings = {
         apiKey: vertexAI.app.options.apiKey,

@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FirebaseError } from '@firebase/util';
+import { VERTEX_TYPE } from './constants';
 
-import { ErrorFactory, ErrorMap } from '@firebase/util';
-import { GenerateContentResponse } from './types';
-
-export const enum VertexError {
+export const enum VertexAIErrorCode {
+  REQUEST_ERROR = 'request-error',
   FETCH_ERROR = 'fetch-error',
   INVALID_CONTENT = 'invalid-content',
   NO_API_KEY = 'no-api-key',
@@ -28,36 +28,24 @@ export const enum VertexError {
   RESPONSE_ERROR = 'response-error'
 }
 
-const ERRORS: ErrorMap<VertexError> = {
-  [VertexError.FETCH_ERROR]: `Error fetching from {$url}: {$message}`,
-  [VertexError.INVALID_CONTENT]: `Content formatting error: {$message}`,
-  [VertexError.NO_API_KEY]:
-    `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to` +
-    `contain a valid API key.`,
-  [VertexError.NO_PROJECT_ID]:
-    `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to` +
-    `contain a valid project ID.`,
-  [VertexError.NO_MODEL]:
-    `Must provide a model name. ` +
-    `Example: genai.getGenerativeModel({ model: 'my-model-name' })`,
-  [VertexError.PARSE_FAILED]: `Parsing failed: {$message}`,
-  [VertexError.RESPONSE_ERROR]:
-    `Response error: {$message}. Response body stored in ` +
-    `error.customData.response`
-};
-
-interface ErrorParams {
-  [VertexError.FETCH_ERROR]: { url: string; message: string };
-  [VertexError.INVALID_CONTENT]: { message: string };
-  [VertexError.PARSE_FAILED]: { message: string };
-  [VertexError.RESPONSE_ERROR]: {
-    message: string;
-    response: GenerateContentResponse;
-  };
+interface ErrorDetails {
+  "@type"?: string;
+  reason?: string;
+  domain?: string;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
-export const ERROR_FACTORY = new ErrorFactory<VertexError, ErrorParams>(
-  'vertex',
-  'Vertex',
-  ERRORS
-);
+export class VertexAIError extends FirebaseError {
+  readonly stack?: string;
+
+  constructor(
+    readonly code: VertexAIErrorCode,
+    readonly message: string,
+    readonly status?: number,
+    readonly statusText?: string,
+    readonly errorDetails?: ErrorDetails[]
+  ) {
+    super(`${VERTEX_TYPE}/${code}`, message);
+  }
+}

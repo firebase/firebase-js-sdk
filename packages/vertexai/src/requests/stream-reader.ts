@@ -22,7 +22,7 @@ import {
   GenerateContentStreamResult,
   Part
 } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import { VertexAIError, VertexAIErrorCode } from '../errors';
 import { addHelpers } from './response-helpers';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
@@ -93,9 +93,10 @@ export function getResponseStream<T>(
           if (done) {
             if (currentText.trim()) {
               controller.error(
-                ERROR_FACTORY.create(VertexError.PARSE_FAILED, {
-                  message: 'Failed to parse stream'
-                })
+                new VertexAIError(
+                  VertexAIErrorCode.PARSE_FAILED,
+                  'Failed to parse stream'
+                )
               );
               return;
             }
@@ -111,9 +112,10 @@ export function getResponseStream<T>(
               parsedResponse = JSON.parse(match[1]);
             } catch (e) {
               controller.error(
-                ERROR_FACTORY.create(VertexError.PARSE_FAILED, {
-                  message: `Error parsing JSON response: "${match[1]}"`
-                })
+                new VertexAIError(
+                  VertexAIErrorCode.PARSE_FAILED,
+                  `Error parsing JSON response: "${match[1]}`
+                )
               );
               return;
             }

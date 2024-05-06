@@ -16,7 +16,7 @@
  */
 
 import { RequestOptions } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import { VertexAIError, VertexAIErrorCode } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
@@ -24,6 +24,7 @@ import {
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
+import { FirebaseError } from '@firebase/util';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -132,24 +133,39 @@ export async function makeRequest(
     response = await fetch(request.url, request.fetchOptions);
     if (!response.ok) {
       let message = '';
+      let errorDetails;
       try {
         const json = await response.json();
         message = json.error.message;
         if (json.error.details) {
           message += ` ${JSON.stringify(json.error.details)}`;
+          errorDetails = json.error.details;
         }
       } catch (e) {
         // ignored
       }
-      throw new Error(`[${response.status} ${response.statusText}] ${message}`);
+      throw new VertexAIError(
+        VertexAIErrorCode.FETCH_ERROR,
+        `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
+        response.status,
+        response.statusText,
+        errorDetails
+      );
     }
-  } catch (caughtError) {
-    const e = caughtError as Error;
-    const err = ERROR_FACTORY.create(VertexError.FETCH_ERROR, {
-      url: url.toString(),
-      message: e.message
-    });
-    err.stack = e.stack;
+  } catch (e) {
+    let err = e as Error;
+    if (
+      (e as FirebaseError).code !== VertexAIErrorCode.FETCH_ERROR &&
+      e instanceof Error
+    ) {
+      // FIXME: This should be a more general error to mirror what we throw in the Google AI SDK
+      err = new VertexAIError(
+        VertexAIErrorCode.FETCH_ERROR,
+        `Error fetching from ${url.toString()}: ${e.message}`
+      );
+      err.stack = e.stack;
+    }
+
     throw err;
   }
   return response;
