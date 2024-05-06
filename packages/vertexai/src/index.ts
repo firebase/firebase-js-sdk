@@ -41,7 +41,6 @@ function registerVertex(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        console.log(location);
         return new VertexAIService(app, appCheckProvider, { location });
       },
       ComponentType.PUBLIC
