@@ -22,6 +22,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
+import { VertexAIError, VertexAIErrorCode } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -233,8 +234,8 @@ describe('request methods', () => {
         statusText: 'AbortError'
       } as Response);
 
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
@@ -243,8 +244,16 @@ describe('request methods', () => {
           {
             timeout: 0
           }
-        )
-      ).to.be.rejectedWith('500 AbortError');
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).status).to.equal(500);
+        expect((e as VertexAIError).statusText).to.equal('AbortError');
+        expect((e as VertexAIError).message).to.include('500 AbortError');
+      }
+
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, no response.json()', async () => {
@@ -253,15 +262,22 @@ describe('request methods', () => {
         status: 500,
         statusText: 'Server Error'
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(/500 Server Error/);
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).status).to.equal(500);
+        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+      }
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json()', async () => {
@@ -271,15 +287,23 @@ describe('request methods', () => {
         statusText: 'Server Error',
         json: () => Promise.resolve({ error: { message: 'extra info' } })
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(/500 Server Error.*extra info/);
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).status).to.equal(500);
+        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as VertexAIError).message).to.include('extra info');
+      }
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json() and details', async () => {
@@ -301,17 +325,26 @@ describe('request methods', () => {
             }
           })
       } as Response);
-      await expect(
-        makeRequest(
+      try {
+        await makeRequest(
           'models/model-name',
           Task.GENERATE_CONTENT,
           fakeApiSettings,
           false,
           ''
-        )
-      ).to.be.rejectedWith(
-        /500 Server Error.*extra info.*generic::invalid_argument/
-      );
+        );
+      } catch (e) {
+        expect((e as VertexAIError).code).to.equal(
+          VertexAIErrorCode.FETCH_ERROR
+        );
+        expect((e as VertexAIError).status).to.equal(500);
+        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).message).to.include('500 Server Error');
+        expect((e as VertexAIError).message).to.include('extra info');
+        expect((e as VertexAIError).message).to.include(
+          'generic::invalid_argument'
+        );
+      }
       expect(fetchStub).to.be.calledOnce;
     });
   });

@@ -15,8 +15,13 @@
  * limitations under the License.
  */
 
-import { Content, GenerateContentRequest, Part } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
+import {
+  Content,
+  GenerateContentRequest,
+  Part,
+  VertexAIError,
+  VertexAIErrorCode
+} from '../types';
 
 export function formatSystemInstruction(
   input?: string | Part | Content
@@ -81,16 +86,17 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   }
 
   if (hasUserContent && hasFunctionContent) {
-    throw ERROR_FACTORY.create(VertexError.INVALID_CONTENT, {
-      message:
-        'Within a single message, FunctionResponse cannot be mixed with other type of part in the request for sending chat message.'
-    });
+    throw new VertexAIError(
+      VertexAIErrorCode.INVALID_CONTENT,
+      'Within a single message, FunctionResponse cannot be mixed with other type of part in the request for sending chat message.'
+    );
   }
 
   if (!hasUserContent && !hasFunctionContent) {
-    throw ERROR_FACTORY.create(VertexError.INVALID_CONTENT, {
-      message: 'No content is provided for sending chat message.'
-    });
+    throw new VertexAIError(
+      VertexAIErrorCode.INVALID_CONTENT,
+      'No content is provided for sending chat message.'
+    );
   }
 
   if (hasUserContent) {

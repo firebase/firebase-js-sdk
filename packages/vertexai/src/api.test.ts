@@ -14,12 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModelParams } from './types';
+import { ModelParams, VertexAIError, VertexAIErrorCode } from './types';
 import { getGenerativeModel } from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { VertexError } from './errors';
 
 const fakeVertexAI: VertexAI = {
   app: {
@@ -35,27 +34,42 @@ const fakeVertexAI: VertexAI = {
 
 describe('Top level API', () => {
   it('getGenerativeModel throws if no model is provided', () => {
-    expect(() => getGenerativeModel(fakeVertexAI, {} as ModelParams)).to.throw(
-      VertexError.NO_MODEL
-    );
+    try {
+      getGenerativeModel(fakeVertexAI, {} as ModelParams);
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_MODEL);
+      expect((e as VertexAIError).message).equals('Missing model parameter');
+    }
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
     const fakeVertexNoApiKey = {
       ...fakeVertexAI,
       app: { options: { projectId: 'my-project' } }
     } as VertexAI;
-    expect(() =>
-      getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' })
-    ).to.throw(VertexError.NO_API_KEY);
+    try {
+      getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_API_KEY);
+      expect((e as VertexAIError).message).equals(
+        'Missing Firebase app API key'
+      );
+    }
   });
   it('getGenerativeModel throws if no projectId is provided', () => {
     const fakeVertexNoProject = {
       ...fakeVertexAI,
       app: { options: { apiKey: 'my-key' } }
     } as VertexAI;
-    expect(() =>
-      getGenerativeModel(fakeVertexNoProject, { model: 'my-model' })
-    ).to.throw(VertexError.NO_PROJECT_ID);
+    try {
+      getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+    } catch (e) {
+      expect((e as VertexAIError).code).includes(
+        VertexAIErrorCode.NO_PROJECT_ID
+      );
+      expect((e as VertexAIError).message).equals(
+        'Missing Firebase app project ID'
+      );
+    }
   });
   it('getGenerativeModel gets a GenerativeModel', () => {
     const genModel = getGenerativeModel(fakeVertexAI, { model: 'my-model' });

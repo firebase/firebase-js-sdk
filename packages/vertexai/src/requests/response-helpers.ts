@@ -20,9 +20,10 @@ import {
   FinishReason,
   FunctionCall,
   GenerateContentCandidate,
-  GenerateContentResponse
+  GenerateContentResponse,
+  VertexAIError,
+  VertexAIErrorCode
 } from '../types';
-import { ERROR_FACTORY, VertexError } from '../errors';
 
 /**
  * Adds convenience helper methods to a response object, including stream
@@ -41,17 +42,19 @@ export function addHelpers(
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-          message: `${formatBlockErrorMessage(response)}`,
-          response
-        });
+        throw new VertexAIError(
+          VertexAIErrorCode.REQUEST_ERROR,
+          `Response error: ${formatBlockErrorMessage(
+            response
+          )}. Response body stored in error.customData.response`
+        );
       }
       return getText(response);
     } else if (response.promptFeedback) {
-      throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-        message: `Text not available. ${formatBlockErrorMessage(response)}`,
-        response
-      });
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Text not available. ${formatBlockErrorMessage(response)}`
+      );
     }
     return '';
   };
@@ -65,19 +68,17 @@ export function addHelpers(
         );
       }
       if (hadBadFinishReason(response.candidates[0])) {
-        throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-          message: `${formatBlockErrorMessage(response)}`,
-          response
-        });
+        throw new VertexAIError(
+          VertexAIErrorCode.RESPONSE_ERROR,
+          `${formatBlockErrorMessage(response)}`
+        );
       }
       return getFunctionCalls(response);
     } else if (response.promptFeedback) {
-      throw ERROR_FACTORY.create(VertexError.RESPONSE_ERROR, {
-        message: `Function call not available. ${formatBlockErrorMessage(
-          response
-        )}`,
-        response
-      });
+      throw new VertexAIError(
+        VertexAIErrorCode.RESPONSE_ERROR,
+        `Function call not available. ${formatBlockErrorMessage(response)}`
+      );
     }
     return undefined;
   };
