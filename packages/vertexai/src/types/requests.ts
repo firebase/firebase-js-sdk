@@ -33,7 +33,7 @@ export interface BaseParams {
 }
 
 /**
- * Params passed to {@link GoogleGenerativeAI.getGenerativeModel}.
+ * Params passed to {@link getGenerativeModel}.
  * @public
  */
 export interface ModelParams extends BaseParams {

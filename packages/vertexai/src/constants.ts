@@ -17,7 +17,7 @@
 
 import { version } from '../package.json';
 
-export const VERTEX_TYPE = 'vertex';
+export const VERTEX_TYPE = 'vertexAI';
 
 export const DEFAULT_LOCATION = 'us-central1';
 

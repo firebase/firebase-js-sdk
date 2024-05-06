@@ -74,6 +74,11 @@ export interface GenerateContentResponse {
   usageMetadata?: UsageMetadata;
 }
 
+/**
+ * Usage metadata about a {@link GenerateContentResponse}.
+ *
+ * @public
+ */
 export interface UsageMetadata {
   promptTokenCount: number;
   candidatesTokenCount: number;

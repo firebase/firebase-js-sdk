@@ -215,17 +215,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./vertexai": {
-      "types": "./vertexai/dist/vertexai/index.d.ts",
+    "./vertexai-preview": {
+      "types": "./vertexai-preview/dist/vertexai-preview/index.d.ts",
       "node": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/index.mjs"
+        "require": "./vertexai-preview/dist/index.cjs.js",
+        "import": "./vertexai-preview/dist/index.mjs"
       },
       "browser": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/esm/index.esm.js"
+        "require": "./vertexai-preview/dist/index.cjs.js",
+        "import": "./vertexai-preview/dist/esm/index.esm.js"
       },
-      "default": "./vertexai/dist/esm/index.esm.js"
+      "default": "./vertexai-preview/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -412,7 +412,7 @@
     "@firebase/app-check": "0.8.3",
     "@firebase/app-check-compat": "0.3.10",
     "@firebase/util": "1.9.5",
-    "@firebase/vertexai": "0.0.1"
+    "@firebase/vertexai-preview": "0.0.0"
   },
   "devDependencies": {
     "rollup": "2.79.1",
@@ -445,7 +445,7 @@
     "messaging",
     "messaging/sw",
     "database",
-    "vertexai"
+    "vertexai-preview"
   ],
   "typings": "empty.d.ts"
 }

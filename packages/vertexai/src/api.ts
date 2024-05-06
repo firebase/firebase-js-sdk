@@ -48,20 +48,26 @@ export function getVertexAI(
 ): VertexAI {
   app = getModularInstance(app);
   // Dependencies
-  const vertexProvider: Provider<'vertex'> = _getProvider(app, VERTEX_TYPE);
+  const vertexProvider: Provider<'vertexAI'> = _getProvider(app, VERTEX_TYPE);
 
   return vertexProvider.getImmediate({
     identifier: options?.location || DEFAULT_LOCATION
   });
 }
 
+/**
+ * Returns a {@link GenerativeModel} class with methods for inference
+ * and other functionality.
+ *
+ * @public
+ */
 export function getGenerativeModel(
-  vertex: VertexAI,
+  vertexAI: VertexAI,
   modelParams: ModelParams,
   requestOptions?: RequestOptions
 ): GenerativeModel {
   if (!modelParams.model) {
     throw ERROR_FACTORY.create(VertexError.NO_MODEL);
   }
-  return new GenerativeModel(vertex, modelParams, requestOptions);
+  return new GenerativeModel(vertexAI, modelParams, requestOptions);
 }
