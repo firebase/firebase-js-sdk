@@ -207,7 +207,7 @@ which is licensed under BSD-3-Clause, both licenses given below.
 
 For tslib.
 
-file: [source code root]/packages/auth
+file: [source code root]/packages/firebase
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted.
