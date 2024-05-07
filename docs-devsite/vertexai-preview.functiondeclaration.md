@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionDeclaration interface
-Structured representation of a function declaration as defined by the \[OpenAPI 3.0 specification\](https://spec.openapis.org/oas/v3.0.3). Included in this declaration are the function name and parameters. This FunctionDeclaration is a representation of a block of code that can be used as a Tool by the model and executed by the client.
+Structured representation of a function declaration as defined by the [OpenAPI 3.0 specification](https://spec.openapis.org/oas/v3.0.3)<!-- -->. Included in this declaration are the function name and parameters. This `FunctionDeclaration` is a representation of a block of code that can be used as a Tool by the model and executed by the client.
 
 <b>Signature:</b>
 

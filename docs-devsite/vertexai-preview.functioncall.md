@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionCall interface
-A predicted \[FunctionCall\] returned from the model that contains a string representing the \[FunctionDeclaration.name\] and a structured JSON object containing the parameters and their values.
+A predicted [FunctionCall](./vertexai-preview.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./vertexai-preview.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values.
 
 <b>Signature:</b>
 

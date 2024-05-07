@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GenerateContentResult interface
-Result object returned from generateContent() call.
+Result object returned from [GenerativeModel.generateContent()](./vertexai-preview.generativemodel.md#generativemodelgeneratecontent) call.
 
 <b>Signature:</b>
 

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GenerateContentStreamResult interface
-Result object returned from generateContentStream() call. Iterate over `stream` to get chunks as they come in and/or use the `response` promise to get the aggregated response when the stream is done.
+Result object returned from [GenerativeModel.generateContentStream()](./vertexai-preview.generativemodel.md#generativemodelgeneratecontentstream) call. Iterate over `stream` to get chunks as they come in and/or use the `response` promise to get the aggregated response when the stream is done.
 
 <b>Signature:</b>
 

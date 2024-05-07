@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GenerateContentRequest interface
-Request sent to `generateContent` endpoint.
+Request sent through [GenerativeModel.generateContent()](./vertexai-preview.generativemodel.md#generativemodelgeneratecontent)
 
 <b>Signature:</b>
 
