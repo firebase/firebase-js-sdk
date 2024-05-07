@@ -186,13 +186,13 @@ describe('request formatting methods', () => {
             {
               role: 'user',
               parts: [
+                { text: 'What is this?' },
                 {
                   fileData: {
                     mimeType: 'image/jpeg',
                     fileUri: 'gs://sample.appspot.com/image.jpeg'
                   }
-                },
-                { text: 'What is this?' }
+                }
               ]
             }
           ]
