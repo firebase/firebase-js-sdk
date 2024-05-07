@@ -27,7 +27,8 @@ export interface Content {
 }
 
 /**
- * Content part - includes text, image/video, or function call/response part types.
+ * Content part - includes text, image/video, or function call/response
+ * part types.
  * @public
  */
 export type Part =
@@ -115,8 +116,8 @@ export interface FileDataPart {
 }
 
 /**
- * A predicted [FunctionCall] returned from the model
- * that contains a string representing the [FunctionDeclaration.name]
+ * A predicted {@link FunctionCall} returned from the model
+ * that contains a string representing the {@link FunctionDeclaration.name}
  * and a structured JSON object containing the parameters and their values.
  * @public
  */
@@ -126,11 +127,11 @@ export interface FunctionCall {
 }
 
 /**
- * The result output from a [FunctionCall] that contains a string
- * representing the [FunctionDeclaration.name]
+ * The result output from a {@link FunctionCall} that contains a string
+ * representing the {@link FunctionDeclaration.name}
  * and a structured JSON object containing any output
  * from the function is used as context to the model.
- * This should contain the result of a [FunctionCall]
+ * This should contain the result of a {@link FunctionCall}
  * made based on model prediction.
  * @public
  */
