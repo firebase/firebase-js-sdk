@@ -25,7 +25,7 @@ import {
 } from './enums';
 
 /**
- * Result object returned from generateContent() call.
+ * Result object returned from {@link GenerativeModel.generateContent} call.
  *
  * @public
  */
@@ -34,7 +34,7 @@ export interface GenerateContentResult {
 }
 
 /**
- * Result object returned from generateContentStream() call.
+ * Result object returned from {@link GenerativeModel.generateContentStream} call.
  * Iterate over `stream` to get chunks as they come in and/or
  * use the `response` promise to get the aggregated response when
  * the stream is done.

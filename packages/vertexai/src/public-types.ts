@@ -20,7 +20,7 @@ import { FirebaseApp } from '@firebase/app';
 export * from './types';
 
 /**
- * An instance of Firebase Vertex AI.
+ * An instance of the Vertex AI for Firebase SDK.
  * @public
  */
 export interface VertexAI {
