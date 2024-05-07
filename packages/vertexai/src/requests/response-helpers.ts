@@ -85,13 +85,19 @@ export function addHelpers(
 }
 
 /**
- * Returns text of first candidate.
+ * Returns all text found in all parts of first candidate.
  */
 export function getText(response: GenerateContentResponse): string {
-  if (response.candidates?.[0].content?.parts?.[0]?.text) {
-    return response.candidates[0].content.parts
-      .map(({ text }) => text)
-      .join('');
+  const textStrings = [];
+  if (response.candidates?.[0].content?.parts) {
+    for (const part of response.candidates?.[0].content?.parts) {
+      if (part.text) {
+        textStrings.push(part.text);
+      }
+    }
+  }
+  if (textStrings.length > 0) {
+    return textStrings.join('');
   } else {
     return '';
   }
