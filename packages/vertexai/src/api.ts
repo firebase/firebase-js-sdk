@@ -36,7 +36,7 @@ declare module '@firebase/component' {
 }
 
 /**
- * Returns an {@link VertexAI} instance for the given app.
+ * Returns a {@link VertexAI} instance for the given app.
  *
  * @public
  *
