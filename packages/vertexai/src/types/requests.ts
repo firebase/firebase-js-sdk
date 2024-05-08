@@ -44,7 +44,7 @@ export interface ModelParams extends BaseParams {
 }
 
 /**
- * Request sent to `generateContent` endpoint.
+ * Request sent through {@link GenerativeModel.generateContent}
  * @public
  */
 export interface GenerateContentRequest extends BaseParams {
@@ -122,9 +122,10 @@ export declare type Tool = FunctionDeclarationsTool;
 
 /**
  * Structured representation of a function declaration as defined by the
- * [OpenAPI 3.0 specification](https://spec.openapis.org/oas/v3.0.3). Included
+ * {@link https://spec.openapis.org/oas/v3.0.3 | OpenAPI 3.0 specification}.
+ * Included
  * in this declaration are the function name and parameters. This
- * FunctionDeclaration is a representation of a block of code that can be used
+ * `FunctionDeclaration` is a representation of a block of code that can be used
  * as a Tool by the model and executed by the client.
  * @public
  */
@@ -149,7 +150,7 @@ export declare interface FunctionDeclaration {
 }
 
 /**
- * A FunctionDeclarationsTool is a piece of code that enables the system to
+ * A `FunctionDeclarationsTool` is a piece of code that enables the system to
  * interact with external systems to perform an action, or set of actions,
  * outside of knowledge and scope of the model.
  * @public
