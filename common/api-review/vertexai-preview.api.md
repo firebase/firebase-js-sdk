@@ -311,7 +311,6 @@ export interface GenerationConfig {
     maxOutputTokens?: number;
     // (undocumented)
     presencePenalty?: number;
-    // (undocumented)
     responseMimeType?: string;
     // (undocumented)
     stopSequences?: string[];
