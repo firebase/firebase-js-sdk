@@ -77,6 +77,7 @@ export interface GenerationConfig {
   topK?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
+  responseMimeType?: string;
 }
 
 /**

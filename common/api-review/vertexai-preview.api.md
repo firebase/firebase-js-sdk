@@ -312,6 +312,8 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     // (undocumented)
+    responseMimeType?: string;
+    // (undocumented)
     stopSequences?: string[];
     // (undocumented)
     temperature?: number;
