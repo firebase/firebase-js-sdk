@@ -22,7 +22,7 @@ import {
   FirebaseAuthTokenData
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { logger } from '../logger';
+import { logDebug, logError } from '../logger';
 
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null>;
@@ -56,12 +56,12 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
     }
     return this.auth_.getToken(forceRefresh).catch(error => {
       if (error && error.code === 'auth/token-not-initialized') {
-        logger.debug(
+        logDebug(
           'Got auth/token-not-initialized error.  Treating as null token.'
         );
         return null;
       } else {
-        logger.error(
+        logError(
           'Error received when attempting to retrieve token: ' +
             JSON.stringify(error)
         );

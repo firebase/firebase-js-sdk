@@ -9,6 +9,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 import { FirebaseOptions } from '@firebase/app';
+import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
 // @public (undocumented)
@@ -211,9 +212,6 @@ export interface OpResult<Data> {
 }
 
 // @public (undocumented)
-export function parseOptions(fullHost: string): TransportOptions;
-
-// @public (undocumented)
 export interface ProjectOptions {
     // (undocumented)
     connector: string;
@@ -285,6 +283,9 @@ export interface SerializedRef<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     refInfo: RefInfo<Variables>;
 }
+
+// @public (undocumented)
+export function setLogLevel(logLevel: LogLevelString): void;
 
 // @public (undocumented)
 export const SOURCE_CACHE = "CACHE";

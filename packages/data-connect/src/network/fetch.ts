@@ -16,7 +16,7 @@
  */
 
 import { Code, DataConnectError } from '../core/error';
-import { logger } from '../logger';
+import { logDebug, logError } from '../logger';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch) {
@@ -38,7 +38,7 @@ export function dcFetch<T, U>(
     headers['X-Firebase-Auth-Token'] = accessToken;
   }
   const bodyStr = JSON.stringify(body);
-  logger.info(`Making request out to ${url} with body: ${bodyStr}`);
+  logDebug(`Making request out to ${url} with body: ${bodyStr}`);
   return connectFetch(url, {
     body: bodyStr,
     method: 'POST',
@@ -53,7 +53,7 @@ export function dcFetch<T, U>(
         throw new DataConnectError(Code.OTHER, JSON.stringify(e));
       }
       if (response.status >= 400) {
-        logger.error(
+        logError(
           'Error while performing request: ' + JSON.stringify(jsonResponse)
         );
         throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
@@ -63,7 +63,7 @@ export function dcFetch<T, U>(
     .then(res => {
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
-        logger.error(
+        logError(
           'DataConnect error while performing request: ' + stringified
         );
         throw new DataConnectError(Code.OTHER, stringified);

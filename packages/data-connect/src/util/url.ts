@@ -17,7 +17,7 @@
 
 import { ProjectOptions, TransportOptions } from '../api/DataConnect';
 import { Code, DataConnectError } from '../core/error';
-import { logger } from '../logger';
+import { logError } from '../logger';
 
 export function urlBuilder(
   projectConfig: ProjectOptions,
@@ -31,7 +31,7 @@ export function urlBuilder(
   if (typeof port === 'number') {
     baseUrl += `:${port}`;
   } else if (typeof port !== 'undefined') {
-    logger.error('Port type is of an invalid type');
+    logError('Port type is of an invalid type');
     throw new DataConnectError(
       Code.INVALID_ARGUMENT,
       'Incorrect type for port passed in!'

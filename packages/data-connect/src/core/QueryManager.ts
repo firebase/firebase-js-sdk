@@ -32,7 +32,7 @@ import {
   DataSource,
   SOURCE_CACHE
 } from '../api/Reference';
-import { logger } from '../logger';
+import { logDebug } from '../logger';
 import { DataConnectTransport } from '../network';
 import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
@@ -119,7 +119,7 @@ export class QueryManager {
       );
     };
     if (initialCache && trackedQuery.currentCache !== initialCache) {
-      logger.debug('Initial cache found. Comparing dates.');
+      logDebug('Initial cache found. Comparing dates.');
       if (
         !trackedQuery.currentCache ||
         (trackedQuery.currentCache &&
@@ -155,7 +155,7 @@ export class QueryManager {
       unsubscribe
     });
     if (!trackedQuery.currentCache) {
-      logger.info(
+      logDebug(
         `No cache available for query ${
           queryRef.name
         } with variables ${JSON.stringify(
