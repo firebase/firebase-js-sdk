@@ -32,7 +32,7 @@ export interface VertexAI {
 }
 
 /**
- * Options when initializing the Firebase Vertex AI SDK.
+ * Options when initializing the VertexAI for Firebase SDK.
  * @public
  */
 export interface VertexAIOptions {
