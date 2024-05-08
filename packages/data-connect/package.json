@@ -2,7 +2,6 @@
   "name": "@firebase/data-connect",
   "version": "0.0.1",
   "description": "",
-  "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.esm2017.js",
