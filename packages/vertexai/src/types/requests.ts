@@ -77,7 +77,7 @@ export interface GenerationConfig {
   topK?: number;
   presencePenalty?: number;
   frequencyPenalty?: number;
-  /** 
+  /**
    * Output response mimetype of the generated candidate text.
    * Supported mimetype:
    *   `text/plain`: (default) Text output.
