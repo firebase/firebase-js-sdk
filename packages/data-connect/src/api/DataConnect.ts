@@ -17,7 +17,6 @@
 
 import {
   FirebaseApp,
-  FirebaseError,
   _getProvider,
   _removeServiceInstance,
   getApp
@@ -25,13 +24,18 @@ import {
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { AuthTokenProvider, EmulatorTokenProvider, FirebaseAuthProvider } from '../core/FirebaseAuthProvider';
+import {
+  AuthTokenProvider,
+  EmulatorTokenProvider,
+  FirebaseAuthProvider
+} from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
 import { DataConnectTransport, TransportClass } from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
 import { Code, DataConnectError } from '../core/error';
+import { logger } from '../logger';
 
 export interface ProjectOptions {
   location: string;
@@ -83,6 +87,7 @@ export class DataConnect {
     if (typeof process !== 'undefined' && process.env) {
       const host = process.env[FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR];
       if (host) {
+        logger.info("Found custom host. Using emulator");
         this.isEmulator = true;
         this.transportOptions = parseOptions(host);
       }
@@ -108,10 +113,10 @@ export class DataConnect {
       return;
     }
     if (this.transportClass === undefined) {
+      logger.info("transportClass not provided. Defaulting to RESTTransport.");
       this.transportClass = RESTTransport;
     }
 
-    
     if (this.authProvider) {
       this.authTokenProvider = this.isEmulator
         ? new EmulatorTokenProvider(EmulatorTokenProvider.OWNER)
@@ -121,6 +126,7 @@ export class DataConnect {
             this.authProvider
           );
       this.authTokenProvider.addTokenChangeListener(token => {
+        logger.info(`New Token Available: ${token}`);
         this._transport.onTokenChanged(token);
       });
     }
@@ -144,6 +150,7 @@ export class DataConnect {
 
   enableEmulator(transportOptions: TransportOptions) {
     if (this.initialized) {
+      logger.error("enableEmulator called without initializing");
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,
         'DataConnect instance already initialized!'
@@ -152,7 +159,6 @@ export class DataConnect {
     this.transportOptions = transportOptions;
     this.isEmulator = true;
   }
-  
 }
 
 export function connectDataConnectEmulator(
@@ -193,12 +199,14 @@ export function getDataConnect(
     const options = provider.getOptions(identifier);
     const optionsValid = Object.keys(options).length > 0;
     if (optionsValid) {
+      logger.debug("Re-using cached instance");
       return dcInstance;
     }
   }
   if (!dcOptions) {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
   }
+  logger.debug("Creating new DataConnect instance");
   // Initialize with options.
   return provider.initialize({
     instanceIdentifier: identifier,

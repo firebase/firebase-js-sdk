@@ -20,3 +20,4 @@ export * from './DataConnect';
 export * from './Reference';
 export * from './Mutation';
 export * from './query';
+export * from '../logger';

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,7 @@ export function registerDataConnect(variant?: string): void {
   _registerComponent(
     new Component(
       'data-connect',
-      (
-        container,
-        { instanceIdentifier: settings, options }
-      ) => {
+      (container, { instanceIdentifier: settings, options }) => {
         const app = container.getProvider('app').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         let newOpts = options as ConnectorConfig;

@@ -36,7 +36,7 @@ export const Code = {
   PARTIAL_ERROR: 'partial-error' as DataConnectErrorCode
 };
 
-/** An error returned by a Firestore operation. */
+/** An error returned by a DataConnect operation. */
 export class DataConnectError extends FirebaseError {
   /** The stack of the error. */
   readonly stack?: string;
