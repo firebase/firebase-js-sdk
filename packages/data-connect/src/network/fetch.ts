@@ -53,7 +53,9 @@ export function dcFetch<T, U>(
         throw new DataConnectError(Code.OTHER, JSON.stringify(e));
       }
       if (response.status >= 400) {
-        logger.error("Error while performing request: " + JSON.stringify(jsonResponse));
+        logger.error(
+          'Error while performing request: ' + JSON.stringify(jsonResponse)
+        );
         throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
       }
       return jsonResponse;
@@ -61,7 +63,9 @@ export function dcFetch<T, U>(
     .then(res => {
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
-        logger.error("DataConnect error while performing request: " + stringified);
+        logger.error(
+          'DataConnect error while performing request: ' + stringified
+        );
         throw new DataConnectError(Code.OTHER, stringified);
       }
       return res as { data: T; errors: Error[] };

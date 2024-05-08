@@ -155,7 +155,13 @@ export class QueryManager {
       unsubscribe
     });
     if (!trackedQuery.currentCache) {
-      logger.info(`No cache available for query ${queryRef.name} with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery.`);
+      logger.info(
+        `No cache available for query ${
+          queryRef.name
+        } with variables ${JSON.stringify(
+          queryRef.variables
+        )}. Calling executeQuery.`
+      );
       const promise = this.executeQuery(
         queryRef as QueryRef<Response, Variables>
       );

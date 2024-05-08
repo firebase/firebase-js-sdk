@@ -87,7 +87,7 @@ export class DataConnect {
     if (typeof process !== 'undefined' && process.env) {
       const host = process.env[FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR];
       if (host) {
-        logger.info("Found custom host. Using emulator");
+        logger.info('Found custom host. Using emulator');
         this.isEmulator = true;
         this.transportOptions = parseOptions(host);
       }
@@ -113,7 +113,7 @@ export class DataConnect {
       return;
     }
     if (this.transportClass === undefined) {
-      logger.info("transportClass not provided. Defaulting to RESTTransport.");
+      logger.info('transportClass not provided. Defaulting to RESTTransport.');
       this.transportClass = RESTTransport;
     }
 
@@ -150,7 +150,7 @@ export class DataConnect {
 
   enableEmulator(transportOptions: TransportOptions) {
     if (this.initialized) {
-      logger.error("enableEmulator called without initializing");
+      logger.error('enableEmulator called without initializing');
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,
         'DataConnect instance already initialized!'
@@ -199,14 +199,14 @@ export function getDataConnect(
     const options = provider.getOptions(identifier);
     const optionsValid = Object.keys(options).length > 0;
     if (optionsValid) {
-      logger.debug("Re-using cached instance");
+      logger.debug('Re-using cached instance');
       return dcInstance;
     }
   }
   if (!dcOptions) {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
   }
-  logger.debug("Creating new DataConnect instance");
+  logger.debug('Creating new DataConnect instance');
   // Initialize with options.
   return provider.initialize({
     instanceIdentifier: identifier,

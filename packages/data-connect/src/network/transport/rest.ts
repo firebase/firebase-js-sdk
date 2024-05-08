@@ -18,9 +18,7 @@
 import { DataConnectTransport } from '.';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { DataConnectError, Code } from '../../core/error';
-import {
-  AuthTokenProvider,
-} from '../../core/FirebaseAuthProvider';
+import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 

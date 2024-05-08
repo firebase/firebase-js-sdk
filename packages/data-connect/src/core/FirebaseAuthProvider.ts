@@ -56,14 +56,15 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
     }
     return this.auth_.getToken(forceRefresh).catch(error => {
       if (error && error.code === 'auth/token-not-initialized') {
-          logger.debug(
-            'Got auth/token-not-initialized error.  Treating as null token.'
-          );
+        logger.debug(
+          'Got auth/token-not-initialized error.  Treating as null token.'
+        );
         return null;
       } else {
-         logger.error(
-           'Error received when attempting to retrieve token: ' + JSON.stringify(error)
-         );
+        logger.error(
+          'Error received when attempting to retrieve token: ' +
+            JSON.stringify(error)
+        );
         return Promise.reject(error);
       }
     });

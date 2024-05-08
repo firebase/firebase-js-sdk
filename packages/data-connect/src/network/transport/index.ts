@@ -16,9 +16,7 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import {
-  AuthTokenProvider,
-} from '../../core/FirebaseAuthProvider';
+import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 
 // Change this to only specify specific args.
 export interface DataConnectTransport {
