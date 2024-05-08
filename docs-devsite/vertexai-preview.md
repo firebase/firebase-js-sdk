@@ -87,7 +87,7 @@ The Vertex AI For Firebase Web SDK.
 |  [ToolConfig](./vertexai-preview.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [UsageMetadata](./vertexai-preview.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VertexAI](./vertexai-preview.vertexai.md#vertexai_interface) | An instance of the Vertex AI for Firebase SDK. |
-|  [VertexAIOptions](./vertexai-preview.vertexaioptions.md#vertexaioptions_interface) | Options when initializing the VertexAI for Firebase SDK. |
+|  [VertexAIOptions](./vertexai-preview.vertexaioptions.md#vertexaioptions_interface) | Options when initializing the Vertex AI for Firebase SDK. |
 |  [VideoMetadata](./vertexai-preview.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [WebAttribution](./vertexai-preview.webattribution.md#webattribution_interface) |  |
 
