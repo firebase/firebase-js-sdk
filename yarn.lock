@@ -5518,20 +5518,10 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   resolved "https://registry.npmjs.org/camelcase/-/camelcase-6.2.0.tgz"
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
-caniuse-lite@^1.0.30001259:
-  version "1.0.30001429"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001429.tgz"
-  integrity sha512-511ThLu1hF+5RRRt0zYCf2U2yRr9GPF6m5y90SBCWsvSoYoW7yAGlv/elyPaNfvGCkp6kj/KFZWU0BMA69Prsg==
-
-caniuse-lite@^1.0.30001517:
-  version "1.0.30001524"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001524.tgz"
-  integrity sha512-Jj917pJtYg9HSJBF95HVX3Cdr89JUyLT4IZ8SvM5aDRni95swKgYi3TgYLH5hnGfPE/U1dg6IfZ50UsIlLkwSA==
-
-caniuse-lite@^1.0.30001587:
-  version "1.0.30001600"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001600.tgz#93a3ee17a35aa6a9f0c6ef1b2ab49507d1ab9079"
-  integrity sha512-+2S9/2JFhYmYaDpZvo0lKkfvuKIglrx68MwOBqMGHhQsNkLjB5xtc/TGoEPs+MxjSyN/72qer2g97nzR641mOQ==
+caniuse-lite@^1.0.30001259, caniuse-lite@^1.0.30001517, caniuse-lite@^1.0.30001587:
+  version "1.0.30001611"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001611.tgz"
+  integrity sha512-19NuN1/3PjA3QI8Eki55N8my4LzfkMCRLgCVfrl/slbSAchQfV0+GwjPrK3rq37As4UCLlM/DHajbKkAqbv92Q==
 
 cardinal@^2.1.1:
   version "2.1.1"
@@ -5573,7 +5563,7 @@ chai@4.4.1:
     pathval "^1.1.1"
     type-detect "^4.0.8"
 
-chalk@4.1.2, chalk@4.x, chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
+chalk@4.1.2, chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
   version "4.1.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz"
   integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
@@ -5892,6 +5882,10 @@ cloneable-readable@^1.0.0:
     inherits "^2.0.1"
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
+
+"closure-net@git+https://github.com/google/closure-net.git#0412666":
+  version "0.0.0"
+  resolved "git+https://github.com/google/closure-net.git#0412666e8f29b8ae69decb1fdc7ead635a5cf43e"
 
 cmd-shim@^4.1.0:
   version "4.1.0"
@@ -9195,45 +9189,6 @@ google-auth-library@^8.0.2:
     jws "^4.0.0"
     lru-cache "^6.0.0"
 
-google-closure-compiler-java@^20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-java/-/google-closure-compiler-java-20230228.0.0.tgz"
-  integrity sha512-t0sXYJbhfkuNTF6zniwrTv4gLap620D32v6GwBJQzlYUg0lb7yQHN9KswwqBsuuO917cPNwW4okI0O40G7GrMQ==
-
-google-closure-compiler-linux@^20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20230228.0.0.tgz#17cb6187015e0e2ae8c2dd5b560228fdf5625818"
-  integrity sha512-5YLxfWS8lvHkD/a0+pitTuDV1X9QPBToGQ5mnLFg7HcbBR1w6I5ZKHjl7FAsAOHEXYwIrStwwaLzrNzbolrZLg==
-
-google-closure-compiler-osx@^20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20230228.0.0.tgz"
-  integrity sha512-ORveHpHuNhJEJIGir35+xP4UuBOldSO8XeOwJV5yunUhZAPzR4aixdTdtm6i0GsqW4/Eu2cjcHrkIR3eFCcwSg==
-
-google-closure-compiler-windows@^20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler-windows/-/google-closure-compiler-windows-20230228.0.0.tgz#dff4afcd6d21a831b38a9bdb873eed0daca79807"
-  integrity sha512-xKMjUq6JwEOFqS97S86TWkn+BMiDHjP85mMgAmR8vRmKxgfHIyxMcr+RlMz0msgY9jedgj119KXyOe32lIQTjA==
-
-google-closure-compiler@20230228.0.0:
-  version "20230228.0.0"
-  resolved "https://registry.npmjs.org/google-closure-compiler/-/google-closure-compiler-20230228.0.0.tgz"
-  integrity sha512-jFI4QNZgM4WhNIoaRNwA5kHq6n6NKSWZj3N9HgRsJE9bN4LUrkIURI+svChbEp/WmGh3Bt3o3/5kUlOOWyCo3Q==
-  dependencies:
-    chalk "4.x"
-    google-closure-compiler-java "^20230228.0.0"
-    minimist "1.x"
-    vinyl "2.x"
-    vinyl-sourcemaps-apply "^0.2.0"
-  optionalDependencies:
-    google-closure-compiler-linux "^20230228.0.0"
-    google-closure-compiler-osx "^20230228.0.0"
-    google-closure-compiler-windows "^20230228.0.0"
-
-"google-closure-library@git+https://github.com/google/closure-library.git#7818ff7":
-  version "20230802.0.0"
-  resolved "git+https://git@github.com/google/closure-library.git#7818ff7dc0b53555a7fb3c3427e6761e88bde3a2"
-
 google-gax@^3.0.1:
   version "3.1.3"
   resolved "https://registry.npmjs.org/google-gax/-/google-gax-3.1.3.tgz"
@@ -12517,7 +12472,7 @@ minimist-options@4.1.0, minimist-options@^4.0.2:
     is-plain-obj "^1.1.0"
     kind-of "^6.0.3"
 
-minimist@1.x, minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5:
+minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5:
   version "1.2.5"
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz"
   integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
@@ -16058,7 +16013,7 @@ source-map-url@^0.4.0:
   resolved "https://registry.npmjs.org/source-map-url/-/source-map-url-0.4.1.tgz"
   integrity sha512-cPiFOTLUKvJFIg4SKVScy4ilPPW6rFgMgfuZJPNoDuMs3nC1HbMUycBoJw77xFIp6z1UJQJOfx6C9GMH80DiTw==
 
-source-map@^0.5.0, source-map@^0.5.1, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.3:
+source-map@^0.5.0, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.3:
   version "0.5.7"
   resolved "https://registry.npmjs.org/source-map/-/source-map-0.5.7.tgz"
   integrity sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=
@@ -17809,14 +17764,7 @@ vinyl-sourcemap@^1.1.0:
     remove-bom-buffer "^3.0.0"
     vinyl "^2.0.0"
 
-vinyl-sourcemaps-apply@^0.2.0:
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/vinyl-sourcemaps-apply/-/vinyl-sourcemaps-apply-0.2.1.tgz"
-  integrity sha1-q2VJ1h0XLCsbh75cUI0jnI74dwU=
-  dependencies:
-    source-map "^0.5.1"
-
-vinyl@2.x, vinyl@^2.0.0, vinyl@^2.1.0, vinyl@^2.2.1:
+vinyl@^2.0.0, vinyl@^2.1.0, vinyl@^2.2.1:
   version "2.2.1"
   resolved "https://registry.npmjs.org/vinyl/-/vinyl-2.2.1.tgz"
   integrity sha512-LII3bXRFBZLlezoG5FfZVcXflZgWP/4dCwKtxd5ky9+LOtM4CS3bIRQsmR1KMnMW07jpE8fqR2lcxPZ+8sJIcw==
