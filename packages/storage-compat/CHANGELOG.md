@@ -1,5 +1,17 @@
 # @firebase/storage-compat
 
+## 0.3.8
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/storage@0.12.5
+  - @firebase/storage-types@0.8.2
+  - @firebase/util@1.9.6
+
 ## 0.3.7
 
 ### Patch Changes

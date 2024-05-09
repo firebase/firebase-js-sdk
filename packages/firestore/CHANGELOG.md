@@ -1,5 +1,19 @@
 # @firebase/firestore
 
+## 4.6.2
+
+### Patch Changes
+
+- [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd) [#8190](https://github.com/firebase/firebase-js-sdk/pull/8190) - Use closure-net as a dependency of webchannel-wrapper and Firestore.
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`14f9da66f`](https://github.com/firebase/firebase-js-sdk/commit/14f9da66fed45ac3f932ec590ca49c8a827d9fc5), [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd), [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/webchannel-wrapper@1.0.0
+  - @firebase/component@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
 ## 4.6.1
 
 ### Patch Changes

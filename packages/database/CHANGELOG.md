@@ -1,5 +1,18 @@
 # Unreleased
 
+## 1.0.5
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/app-check-interop-types@0.3.2
+  - @firebase/auth-interop-types@0.2.3
+  - @firebase/component@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
 ## 1.0.4
 
 ### Patch Changes
