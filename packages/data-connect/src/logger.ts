@@ -14,21 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Logger, LogLevel, LogLevelString } from "@firebase/logger";
-import { SDK_VERSION } from "./core/version";
+import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
+import { SDK_VERSION } from './core/version';
 
 const logger = new Logger('@firebase/data-connect');
 export function setLogLevel(logLevel: LogLevelString) {
   logger.setLogLevel(logLevel);
 }
 export function logDebug(msg: string): void {
-  // if (logger.logLevel <= LogLevel.DEBUG) {
-    logger.debug(`DataConnect (${SDK_VERSION}): ${msg}`);
-  // }
+  logger.debug(`DataConnect (${SDK_VERSION}): ${msg}`);
 }
 
 export function logError(msg: string): void {
-  // if (logger.logLevel <= LogLevel.ERROR) {
-    logger.error(`DataConnect (${SDK_VERSION}): ${msg}`);
-  // }
+  logger.error(`DataConnect (${SDK_VERSION}): ${msg}`);
 }

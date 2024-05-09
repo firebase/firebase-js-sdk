@@ -63,9 +63,7 @@ export function dcFetch<T, U>(
     .then(res => {
       if (res.errors && res.errors.length) {
         const stringified = JSON.stringify(res.errors);
-        logError(
-          'DataConnect error while performing request: ' + stringified
-        );
+        logError('DataConnect error while performing request: ' + stringified);
         throw new DataConnectError(Code.OTHER, stringified);
       }
       return res as { data: T; errors: Error[] };

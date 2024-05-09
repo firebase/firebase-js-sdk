@@ -19,6 +19,7 @@ import { DataConnectTransport } from '.';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { DataConnectError, Code } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
@@ -62,6 +63,10 @@ export class RESTTransport implements DataConnectTransport {
       );
     }
     this.connectorName = connector;
+    this.authProvider?.addTokenChangeListener(token => {
+      logDebug(`New Token Available: ${token}`);
+      this.accessToken = token;
+    });
   }
   get endpointUrl(): string {
     return urlBuilder(

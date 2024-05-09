@@ -60,8 +60,8 @@ export const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
   'FIREBASE_DATA_CONNECT_EMULATOR_HOST';
 
 /**
- * 
- * @param fullHost 
+ *
+ * @param fullHost
  * @returns TransportOptions
  * @internal
  */
@@ -131,10 +131,6 @@ export class DataConnect {
             this.app.options,
             this.authProvider
           );
-      this.authTokenProvider.addTokenChangeListener(token => {
-        logDebug(`New Token Available: ${token}`);
-        this._transport.onTokenChanged(token);
-      });
     }
 
     this.initialized = true;
