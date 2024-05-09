@@ -26,7 +26,6 @@ import { Provider } from '@firebase/component';
 
 import {
   AuthTokenProvider,
-  EmulatorTokenProvider,
   FirebaseAuthProvider
 } from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
@@ -124,9 +123,7 @@ export class DataConnect {
     }
 
     if (this.authProvider) {
-      this.authTokenProvider = this.isEmulator
-        ? new EmulatorTokenProvider(EmulatorTokenProvider.OWNER)
-        : new FirebaseAuthProvider(
+      this.authTokenProvider = new FirebaseAuthProvider(
             this.app.name,
             this.app.options,
             this.authProvider
