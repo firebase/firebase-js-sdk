@@ -105,20 +105,6 @@ export interface DataConnectTransport {
 export type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
 
 // @public (undocumented)
-export class EmulatorTokenProvider implements AuthTokenProvider {
-    constructor(accessToken: string);
-    // (undocumented)
-    addTokenChangeListener(listener: AuthTokenListener): void;
-    // (undocumented)
-    getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
-    // (undocumented)
-    notifyForInvalidToken(): void;
-    static OWNER: string;
-    // (undocumented)
-    removeTokenChangeListener(listener: (token: string | null) => void): void;
-}
-
-// @public (undocumented)
 export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, Variables>): MutationPromise<Data, Variables>;
 
 // @public (undocumented)

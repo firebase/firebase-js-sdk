@@ -78,25 +78,4 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
       .then(auth => auth.removeAuthTokenListener(listener));
   }
 }
-export class EmulatorTokenProvider implements AuthTokenProvider {
-  /** A string that is treated as an admin access token by the RTDB emulator. Used by Admin SDK. */
-  static OWNER = 'owner';
 
-  constructor(private accessToken: string) {}
-
-  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
-    return Promise.resolve({
-      accessToken: this.accessToken
-    });
-  }
-
-  addTokenChangeListener(listener: AuthTokenListener): void {
-    // Invoke the listener immediately to match the behavior in Firebase Auth
-    // (see packages/auth/src/auth.js#L1807)
-    listener(this.accessToken);
-  }
-
-  removeTokenChangeListener(listener: (token: string | null) => void): void {}
-
-  notifyForInvalidToken(): void {}
-}
