@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Md5, Integer } from '@firebase/webchannel-wrapper';
+
+import { Md5, Integer } from '@firebase/webchannel-wrapper/bloom-blob';
 
 import { newTextEncoder } from '../platform/text_serializer';
 

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "1.9.3",
+  "version": "1.9.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -53,7 +53,7 @@
   "repository": {
     "directory": "packages/util",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

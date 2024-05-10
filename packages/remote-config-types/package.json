@@ -1,6 +1,6 @@
 {
   "name": "@firebase/remote-config-types",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "@firebase/remote-config Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
   "repository": {
     "directory": "packages/remote-config-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

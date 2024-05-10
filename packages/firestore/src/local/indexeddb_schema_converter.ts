@@ -256,6 +256,19 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       p = p.next(() => createFieldIndex(db));
     }
 
+    if (fromVersion < 16 && toVersion >= 16) {
+      // Clear the object stores to remove possibly corrupted index entries
+      p = p
+        .next(() => {
+          const indexStateStore = txn.objectStore(DbIndexStateStore);
+          indexStateStore.clear();
+        })
+        .next(() => {
+          const indexEntryStore = txn.objectStore(DbIndexEntryStore);
+          indexEntryStore.clear();
+        });
+    }
+
     return p;
   }
 

@@ -1,5 +1,26 @@
 # @firebase/analytics-compat
 
+## 0.2.8
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/analytics-types@0.8.1
+  - @firebase/analytics@0.10.2
+  - @firebase/component@0.6.6
+  - @firebase/util@1.9.5
+
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies [[`bf59c0aed`](https://github.com/firebase/firebase-js-sdk/commit/bf59c0aedefabae9bff4d777e1591fe496259293), [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/analytics@0.10.1
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
 ## 0.2.6
 
 ### Patch Changes

@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { _FirebaseService, FirebaseApp } from '@firebase/app';
+import {
+  _isFirebaseServerApp,
+  _FirebaseService,
+  FirebaseApp
+} from '@firebase/app';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import {
@@ -58,7 +62,10 @@ import {
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
-import { _assert } from '../util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion } from '../util/version';
@@ -74,6 +81,8 @@ import { _logWarn } from '../util/log';
 import { _getPasswordPolicy } from '../../api/password_policy/get_password_policy';
 import { PasswordPolicyInternal } from '../../model/password_policy';
 import { PasswordPolicyImpl } from './password_policy_impl';
+import { getAccountInfo } from '../../api/account_management/account';
+import { UserImpl } from '../user/user_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -168,6 +177,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       }
 
       await this.initializeCurrentUser(popupRedirectResolver);
+
       this.lastNotifiedUid = this.currentUser?.uid || null;
 
       if (this._deleted) {
@@ -210,9 +220,47 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     await this._updateCurrentUser(user, /* skipBeforeStateCallbacks */ true);
   }
 
+  private async initializeCurrentUserFromIdToken(
+    idToken: string
+  ): Promise<void> {
+    try {
+      const response = await getAccountInfo(this, { idToken });
+      const user = await UserImpl._fromGetAccountInfoResponse(
+        this,
+        response,
+        idToken
+      );
+      await this.directlySetCurrentUser(user);
+    } catch (err) {
+      console.warn(
+        'FirebaseServerApp could not login user with provided authIdToken: ',
+        err
+      );
+      await this.directlySetCurrentUser(null);
+    }
+  }
+
   private async initializeCurrentUser(
     popupRedirectResolver?: PopupRedirectResolver
   ): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      const idToken = this.app.settings.authIdToken;
+      if (idToken) {
+        // Start the auth operation in the next tick to allow a moment for the customer's app to
+        // attach an emulator, if desired.
+        return new Promise<void>(resolve => {
+          setTimeout(() =>
+            this.initializeCurrentUserFromIdToken(idToken).then(
+              resolve,
+              resolve
+            )
+          );
+        });
+      } else {
+        return this.directlySetCurrentUser(null);
+      }
+    }
+
     // First check to see if we have a pending redirect event.
     const previouslyStoredUser =
       (await this.assertedPersistence.getCurrentUser()) as UserInternal | null;
@@ -346,6 +394,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async updateCurrentUser(userExtern: User | null): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _serverAppCurrentUserOperationNotSupportedError(this)
+      );
+    }
     // The public updateCurrentUser method needs to make a copy of the user,
     // and also check that the project matches
     const user = userExtern
@@ -387,6 +440,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   async signOut(): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _serverAppCurrentUserOperationNotSupportedError(this)
+      );
+    }
     // Run first, to block _setRedirectUser() if any callbacks fail.
     await this.beforeStateQueue.runMiddleware(null);
     // Clear the redirect user when signOut is called
@@ -400,6 +458,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   setPersistence(persistence: Persistence): Promise<void> {
+    if (_isFirebaseServerApp(this.app)) {
+      return Promise.reject(
+        _serverAppCurrentUserOperationNotSupportedError(this)
+      );
+    }
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });

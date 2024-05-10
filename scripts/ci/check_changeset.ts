@@ -17,6 +17,7 @@
 
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git';
@@ -28,6 +29,14 @@ const git = simpleGit(root);
 const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
 
+const githubOutputFile = (function (): string {
+  const value = process.env.GITHUB_OUTPUT;
+  if (!value) {
+    throw new Error('GITHUB_OUTPUT environment variable must be set');
+  }
+  return value;
+})();
+
 // Version bump text converted to rankable numbers.
 const bumpRank: Record<string, number> = {
   'patch': 0,
@@ -37,7 +46,7 @@ const bumpRank: Record<string, number> = {
 
 /**
  * Get highest bump that isn't the main firebase package, return
-// numerical rank, bump text, package name.
+ * numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
   const firebasePkgJson = require(resolve(
@@ -205,10 +214,13 @@ async function main() {
    * step. See:
    * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
    */
-  if (errors.length > 0)
-    await exec(
-      `echo "CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`
+  if (errors.length > 0) {
+    await writeFile(
+      githubOutputFile,
+      `CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}\n`,
+      { flag: 'a' }
     );
+  }
   process.exit();
 }
 

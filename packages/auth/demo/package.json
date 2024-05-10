@@ -17,10 +17,10 @@
     "dev": "rollup -c -w"
   },
   "dependencies": {
-    "@firebase/app": "0.7.24",
+    "@firebase/app": "*",
     "@firebase/auth": "file:..",
-    "@firebase/logger": "0.3.2",
-    "@firebase/util": "1.6.0",
+    "@firebase/logger": "*",
+    "@firebase/util": "*",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
@@ -38,7 +38,7 @@
   "repository": {
     "directory": "packages/auth/demo",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

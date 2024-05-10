@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -47,7 +47,7 @@
   "repository": {
     "directory": "packages/rules-unit-testing",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "typings": "dist/index.d.ts",
   "bugs": {

@@ -403,6 +403,13 @@ function cleanUpWatchStreamState(remoteStoreImpl: RemoteStoreImpl): void {
   remoteStoreImpl.watchChangeAggregator = undefined;
 }
 
+async function onWatchStreamConnected(
+  remoteStoreImpl: RemoteStoreImpl
+): Promise<void> {
+  // Mark the client as online since we got a "connected" notification.
+  remoteStoreImpl.onlineStateTracker.set(OnlineState.Online);
+}
+
 async function onWatchStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
@@ -923,6 +930,7 @@ function ensureWatchStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
       {
+        onConnected: onWatchStreamConnected.bind(null, remoteStoreImpl),
         onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
         onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl)
@@ -969,6 +977,7 @@ function ensureWriteStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
       {
+        onConnected: () => Promise.resolve(),
         onOpen: onWriteStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWriteStreamClose.bind(null, remoteStoreImpl),
         onHandshakeComplete: onWriteHandshakeComplete.bind(

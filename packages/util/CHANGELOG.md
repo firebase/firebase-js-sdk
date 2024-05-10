@@ -1,5 +1,17 @@
 # @firebase/util
 
+## 1.9.5
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+## 1.9.4
+
+### Patch Changes
+
+- [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070) [#7963](https://github.com/firebase/firebase-js-sdk/pull/7963) (fixes [#7962](https://github.com/firebase/firebase-js-sdk/issues/7962)) - Fix isSafari() throwing on React Native
+
 ## 1.9.3
 
 ### Patch Changes

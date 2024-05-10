@@ -46,6 +46,22 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
  *
+ * In this context, an "AppModel" is a class that is used in an application to
+ * package together related information and functionality. Such a class could,
+ * for example, have properties with complex, nested data types, properties used
+ * for memoization, properties of types not supported by Firestore (such as
+ * `symbol` and `bigint`), and helper functions that perform compound
+ * operations. Such classes are not suitable and/or possible to store into a
+ * Firestore database. Instead, instances of such classes need to be converted
+ * to "plain old JavaScript objects" (POJOs) with exclusively primitive
+ * properties, potentially nested inside other POJOs or arrays of POJOs. In this
+ * context, this type is referred to as the "DbModel" and would be an object
+ * suitable for persisting into Firestore. For convenience, applications can
+ * implement `FirestoreDataConverter` and register the converter with Firestore
+ * objects, such as `DocumentReference` or `Query`, to automatically convert
+ * `AppModel` to `DbModel` when storing into Firestore, and convert `DbModel`
+ * to `AppModel` when retrieving from Firestore.
+ *
  * @example
  *
  * Simple Example
@@ -250,9 +266,14 @@ export interface FirestoreDataConverter<
    * type `AppModelType`. You can access your data by calling:
    * `snapshot.data()`.
    *
+   *
    * Generally, the data returned from `snapshot.data()` can be cast to
-   * `DbModelType`; however, this is not guaranteed as writes to the database
-   * may have occurred without a type converter enforcing this specific layout.
+   * `DbModelType`; however, this is not guaranteed because Firestore does not
+   * enforce a schema on the database. For example, writes from a previous
+   * version of the application or writes from another client that did not use a
+   * type converter could have written data with different properties and/or
+   * property types. The implementation will need to choose whether to
+   * gracefully recover from non-conforming data or throw an error.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and
    * metadata.

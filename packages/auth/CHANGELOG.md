@@ -1,5 +1,67 @@
 # @firebase/auth
 
+## 1.7.2
+
+### Patch Changes
+
+- [`36b283f3f`](https://github.com/firebase/firebase-js-sdk/commit/36b283f3fc317d0fa7dde47e1048d2ee3690a9a0) [#8191](https://github.com/firebase/firebase-js-sdk/pull/8191) (fixes [#8115](https://github.com/firebase/firebase-js-sdk/issues/8115)) - Emit a module package file with esm2017 auth browser extension builds
+
+- [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906) [#7001](https://github.com/firebase/firebase-js-sdk/pull/7001) - Update jszip transient dependency from 3.7.1 to 3.10.1 in auth.
+
+## 1.7.1
+
+### Patch Changes
+
+- [`fe09d8338`](https://github.com/firebase/firebase-js-sdk/commit/fe09d8338d7d5f7a82d8cd73cf825adbe5551975) [#8138](https://github.com/firebase/firebase-js-sdk/pull/8138) (fixes [#8132](https://github.com/firebase/firebase-js-sdk/issues/8132)) - Update undici version to 5.28.4 due to CVE-2024-30260.
+
+- [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414) [#8134](https://github.com/firebase/firebase-js-sdk/pull/8134) - Updated dependencies. See GitHub PR #8098.
+
+## 1.7.0
+
+### Minor Changes
+
+- [`ed84efe50`](https://github.com/firebase/firebase-js-sdk/commit/ed84efe50bfc365da8ebfacdd2b17b5cc2a9e596) [#8005](https://github.com/firebase/firebase-js-sdk/pull/8005) - Added the new `FirebaseServerApp` interface to bridge state
+  data between client and server runtime environments. This interface extends `FirebaseApp`.
+
+### Patch Changes
+
+- [`9ca1a4e4f`](https://github.com/firebase/firebase-js-sdk/commit/9ca1a4e4f9f13d56cde93cab6d83a8bc54f83539) [#8076](https://github.com/firebase/firebase-js-sdk/pull/8076) - Additional protection against misuse of the authTokenSyncURL experiment
+
+- [`c8a2568dd`](https://github.com/firebase/firebase-js-sdk/commit/c8a2568ddd2acd9162a99bce9ff4203fe8d6e0da) [#8097](https://github.com/firebase/firebase-js-sdk/pull/8097) - Updated transitive dependencies based on generated dependabot security reports. For more information see [PR #8088](https://github.com/firebase/firebase-js-sdk/pull/8088/files).
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/component@0.6.6
+  - @firebase/logger@0.4.1
+  - @firebase/util@1.9.5
+
+## 1.6.2
+
+### Patch Changes
+
+- [`6d487d7de`](https://github.com/firebase/firebase-js-sdk/commit/6d487d7dee631498bed1aeccbb45d8f14ae911d1) [#8060](https://github.com/firebase/firebase-js-sdk/pull/8060) - Do not allow double slash at beginning of authTokenSyncURL. (follow-up fix to https://github.com/firebase/firebase-js-sdk/pull/8056)
+
+- [`245dd26e1`](https://github.com/firebase/firebase-js-sdk/commit/245dd26e19b6c16aca7e1b7e597ed5784c2984ba) [#8056](https://github.com/firebase/firebase-js-sdk/pull/8056) - Fix possible XSS vulnerability through **FIREBASE_DEFAULTS** settings.
+
+## 1.6.1
+
+### Patch Changes
+
+- [`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0) [#8044](https://github.com/firebase/firebase-js-sdk/pull/8044) (fixes [#8038](https://github.com/firebase/firebase-js-sdk/issues/8038)) - Bump undici version to 5.28.3 due to security issue.
+
+## 1.6.0
+
+### Minor Changes
+
+- [`2f7ad0ac4`](https://github.com/firebase/firebase-js-sdk/commit/2f7ad0ac43f5d085604324f6dc3921d9420bfccd) [#8001](https://github.com/firebase/firebase-js-sdk/pull/8001) - Added a Web-Extension package that strips the external JS loading for developers to use when building Chrome Extension app.
+
+### Patch Changes
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
 ## 1.5.1
 
 ### Patch Changes

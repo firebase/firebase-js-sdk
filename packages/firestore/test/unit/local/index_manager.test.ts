@@ -30,6 +30,7 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
+import { Timestamp } from '../../../src/lite-api/timestamp';
 import {
   displayNameForIndexType,
   IndexType
@@ -41,7 +42,7 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
-import { Document } from '../../../src/model/document';
+import { Document, MutableDocument } from '../../../src/model/document';
 import {
   IndexKind,
   IndexOffset,
@@ -49,6 +50,18 @@ import {
 } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { canonicalId } from '../../../src/model/values';
+import {
+  ApiClientObjectMap as ProtoObjectMap,
+  Document as ProtoDocument,
+  Value as ProtoValue
+} from '../../../src/protos/firestore_proto_api';
+import {
+  fromDocument,
+  JsonProtoSerializer,
+  toName,
+  toTimestamp,
+  toVersion
+} from '../../../src/remote/serializer';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -99,6 +112,11 @@ describe('IndexedDbIndexManager', async () => {
   }
 
   let persistencePromise: Promise<Persistence>;
+  const serializer = new JsonProtoSerializer(
+    persistenceHelpers.TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
+
   beforeEach(async () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
@@ -1038,6 +1056,62 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(testingQuery, 'coll/val3');
   });
 
+  it('can index timestamp fields of different format', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['date', IndexKind.ASCENDING]] })
+    );
+
+    await addDocFromProto('coll/val1', {
+      'date': { timestampValue: '2016-01-02T10:20:50Z' }
+    });
+    await addDocFromProto('coll/val2', {
+      'date': { timestampValue: '2016-01-02T10:20:50.000000000Z' }
+    });
+    await addDocFromProto('coll/val3', {
+      'date': { timestampValue: '2016-01-02T10:20:50.850Z' }
+    });
+    await addDocFromProto('coll/val4', {
+      'date': { timestampValue: '2016-01-02T10:20:50.850000000Z' }
+    });
+    await addDocFromProto('coll/val5', {
+      'date': { timestampValue: { seconds: 1451730050, nanos: 999999999 } }
+    });
+    await addDocFromProto('coll/val6', {
+      'date': {
+        timestampValue: toTimestamp(serializer, new Timestamp(1451730050, 1))
+      }
+    });
+
+    let q = queryWithAddedOrderBy(query('coll'), orderBy('date'));
+    await verifyResults(
+      q,
+      'coll/val1',
+      'coll/val2',
+      'coll/val6',
+      'coll/val3',
+      'coll/val4',
+      'coll/val5'
+    );
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '==', new Timestamp(1451730050, 850000000))
+    );
+    await verifyResults(q, 'coll/val3', 'coll/val4');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '>=', new Timestamp(1451730050, 850000000))
+    );
+    await verifyResults(q, 'coll/val3', 'coll/val4', 'coll/val5');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '>', new Timestamp(1451730050, 0))
+    );
+    await verifyResults(q, 'coll/val6', 'coll/val3', 'coll/val4', 'coll/val5');
+  });
+
   it('support advances queries', async () => {
     // This test compares local query results with those received from the Java
     // Server SDK.
@@ -1838,6 +1912,31 @@ describe('IndexedDbIndexManager', async () => {
 
   function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {
     return addDocs(doc(key, 1, data));
+  }
+
+  function addDocFromProto(
+    key: string,
+    data: ProtoObjectMap<ProtoValue> | undefined
+  ): Promise<void> {
+    return addDocs(docFromProto(key, 1, data));
+  }
+
+  function docFromProto(
+    keyStr: string,
+    versionNumber: number,
+    data: ProtoObjectMap<ProtoValue> | undefined
+  ): MutableDocument {
+    const proto: ProtoDocument = {
+      name: toName(serializer, key(keyStr)),
+      fields: data,
+      updateTime: toVersion(serializer, version(versionNumber)),
+      createTime: toVersion(serializer, version(versionNumber))
+    };
+    return fromDocument(
+      serializer,
+      proto,
+      /* hasCommittedMutations= */ undefined
+    );
   }
 
   async function verifyResults(query: Query, ...keys: string[]): Promise<void> {

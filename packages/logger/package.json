@@ -1,6 +1,6 @@
 {
   "name": "@firebase/logger",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -43,7 +43,7 @@
   "repository": {
     "directory": "packages/logger",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

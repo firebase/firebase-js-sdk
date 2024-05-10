@@ -89,7 +89,9 @@ import {
   syncEngineLoadBundle,
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -397,6 +399,14 @@ export async function getEventManager(
     onlineComponentProvider.syncEngine
   );
   eventManager.onUnlisten = syncEngineUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onFirstRemoteStoreListen = triggerRemoteStoreListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onLastRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
     null,
     onlineComponentProvider.syncEngine
   );
