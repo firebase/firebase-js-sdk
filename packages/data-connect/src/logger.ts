@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
+import { Logger, LogLevelString } from '@firebase/logger';
+
 import { SDK_VERSION } from './core/version';
 
 const logger = new Logger('@firebase/data-connect');

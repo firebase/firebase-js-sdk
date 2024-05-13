@@ -25,7 +25,7 @@ import {
 } from '../api/query';
 import {
   OperationRef,
-  QueryStr,
+  QUERY_STR,
   OpResult,
   SerializedRef,
   SOURCE_SERVER,
@@ -36,12 +36,13 @@ import { logDebug } from '../logger';
 import { DataConnectTransport } from '../network';
 import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
+
 import { DataConnectError } from './error';
 
-interface TrackedQuery<Response, Variables> {
-  ref: Omit<OperationRef<Response, Variables>, 'dataConnect'>;
-  subscriptions: Array<DataConnectSubscription<Response, Variables>>;
-  currentCache: OpResult<Response> | null;
+interface TrackedQuery<Data, Variables> {
+  ref: Omit<OperationRef<Data, Variables>, 'dataConnect'>;
+  subscriptions: Array<DataConnectSubscription<Data, Variables>>;
+  currentCache: OpResult<Data> | null;
   lastError: DataConnectError | null;
 }
 
@@ -72,18 +73,18 @@ export class QueryManager {
   constructor(private transport: DataConnectTransport) {
     this._queries = new Map();
   }
-  track<Response, Variables>(
+  track<Data, Variables>(
     queryName: string,
     variables: Variables,
-    initialCache?: OpResult<Response>
+    initialCache?: OpResult<Data>
   ) {
-    const ref: TrackedQuery<Response, Variables>['ref'] = {
+    const ref: TrackedQuery<Data, Variables>['ref'] = {
       name: queryName,
       variables,
-      refType: QueryStr
+      refType: QUERY_STR
     };
     const key = encoderImpl(ref);
-    const newTrackedQuery: TrackedQuery<Response, Variables> = {
+    const newTrackedQuery: TrackedQuery<Data, Variables> = {
       ref,
       subscriptions: [],
       currentCache: initialCache || null,
@@ -93,19 +94,19 @@ export class QueryManager {
     setIfNotExists(this._queries, key, newTrackedQuery);
     return this._queries.get(key);
   }
-  addSubscription<Response, Variables>(
-    queryRef: OperationRef<Response, Variables>,
-    onResultCallback: OnResultSubscription<Response, Variables>,
+  addSubscription<Data, Variables>(
+    queryRef: OperationRef<Data, Variables>,
+    onResultCallback: OnResultSubscription<Data, Variables>,
     onErrorCallback?: OnErrorSubscription,
-    initialCache?: OpResult<Response>
-  ) {
+    initialCache?: OpResult<Data>
+  ): () => void {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
-      refType: QueryStr
+      refType: QUERY_STR
     });
     const trackedQuery = this._queries.get(key) as TrackedQuery<
-      Response,
+      Data,
       Variables
     >;
     const subscription = {
@@ -136,9 +137,9 @@ export class QueryManager {
       onResultCallback({
         data: cachedData,
         source: SOURCE_CACHE,
-        ref: queryRef as QueryRef<Response, Variables>,
+        ref: queryRef as QueryRef<Data, Variables>,
         toJSON: getRefSerializer(
-          queryRef as QueryRef<Response, Variables>,
+          queryRef as QueryRef<Data, Variables>,
           trackedQuery.currentCache.data,
           SOURCE_CACHE
         ),
@@ -163,30 +164,30 @@ export class QueryManager {
         )}. Calling executeQuery.`
       );
       const promise = this.executeQuery(
-        queryRef as QueryRef<Response, Variables>
+        queryRef as QueryRef<Data, Variables>
       );
       // We want to ignore the error and let subscriptions handle it
       promise.then(undefined, err => {});
     }
     return unsubscribe;
   }
-  executeQuery<Response, Variables>(
-    queryRef: QueryRef<Response, Variables>
-  ): QueryPromise<Response, Variables> {
+  executeQuery<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): QueryPromise<Data, Variables> {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
-      refType: QueryStr
+      refType: QUERY_STR
     });
     const trackedQuery = this._queries.get(key)!;
-    const result = this.transport.invokeQuery<Response, Variables>(
+    const result = this.transport.invokeQuery<Data, Variables>(
       queryRef.name,
       queryRef.variables
     );
     const newR = result.then(
       res => {
         const fetchTime = new Date().toString();
-        const result: QueryResult<Response, Variables> = {
+        const result: QueryResult<Data, Variables> = {
           ...res,
           source: SOURCE_SERVER,
           ref: queryRef,

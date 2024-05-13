@@ -46,7 +46,7 @@ export interface ConnectorConfig {
 
 // @public (undocumented)
 export class DataConnect {
-    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, authProvider: Provider<FirebaseAuthInternalName>);
+    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>);
     // (undocumented)
     readonly app: FirebaseApp;
     // (undocumented)
@@ -59,7 +59,7 @@ export class DataConnect {
     isEmulator: boolean;
     // (undocumented)
     setInitialized(): void;
-    }
+}
 
 // @public (undocumented)
 export interface DataConnectOptions extends ConnectorConfig {
@@ -115,7 +115,7 @@ export const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR = "FIREBASE_DATA_CONNECT_EM
 
 // @public (undocumented)
 export class FirebaseAuthProvider implements AuthTokenProvider {
-    constructor(appName: string, options: FirebaseOptions, authProvider_: Provider<FirebaseAuthInternalName>);
+    constructor(_appName: string, _options: FirebaseOptions, _authProvider: Provider<FirebaseAuthInternalName>);
     // (undocumented)
     addTokenChangeListener(listener: AuthTokenListener): void;
     // (undocumented)
@@ -131,27 +131,30 @@ export function getDataConnect(options: ConnectorConfig): DataConnect;
 export function getDataConnect(app: FirebaseApp, options: ConnectorConfig): DataConnect;
 
 // @public (undocumented)
+export const MUTATION_STR = "mutation";
+
+// @public (undocumented)
 export class MutationManager {
-    constructor(transport: DataConnectTransport);
+    constructor(_transport: DataConnectTransport);
     // (undocumented)
-    executeMutation<Response, Variables>(mutationRef: MutationRef<Response, Variables>): MutationPromise<Response, Variables>;
-    }
+    executeMutation<Data, Variables>(mutationRef: MutationRef<Data, Variables>): MutationPromise<Data, Variables>;
+}
 
 // @public (undocumented)
 export interface MutationPromise<Data, Variables> extends PromiseLike<MutationResult<Data, Variables>> {
 }
 
 // @public (undocumented)
-export interface MutationRef<Response, Variables> extends OperationRef<Response, Variables> {
+export interface MutationRef<Data, Variables> extends OperationRef<Data, Variables> {
     // (undocumented)
-    refType: typeof MutationStr;
+    refType: typeof MUTATION_STR;
 }
 
 // @public (undocumented)
-export function mutationRef<Response>(dcInstance: DataConnect, queryName: string): MutationRef<Response, undefined>;
+export function mutationRef<Data>(dcInstance: DataConnect, queryName: string): MutationRef<Data, undefined>;
 
 // @public (undocumented)
-export function mutationRef<Response, Variables>(dcInstance: DataConnect, queryName: string, variables: Variables): MutationRef<Response, Variables>;
+export function mutationRef<Data, Variables>(dcInstance: DataConnect, mutationName: string, variables: Variables): MutationRef<Data, Variables>;
 
 // @public (undocumented)
 export interface MutationResponse<T> extends CancellableOperation<T> {
@@ -162,9 +165,6 @@ export interface MutationResult<Data, Variables> extends DataConnectResult<Data,
     // (undocumented)
     ref: MutationRef<Data, Variables>;
 }
-
-// @public (undocumented)
-export const MutationStr = "mutation";
 
 // @public (undocumented)
 export type OnCompleteSubscription = () => void;
@@ -198,16 +198,7 @@ export interface OpResult<Data> {
 }
 
 // @public (undocumented)
-export interface ProjectOptions {
-    // (undocumented)
-    connector: string;
-    // (undocumented)
-    location: string;
-    // (undocumented)
-    projectId: string;
-    // (undocumented)
-    service: string;
-}
+export const QUERY_STR = "query";
 
 // @public (undocumented)
 export interface QueryPromise<Data, Variables> extends PromiseLike<QueryResult<Data, Variables>> {
@@ -216,7 +207,7 @@ export interface QueryPromise<Data, Variables> extends PromiseLike<QueryResult<D
 // @public (undocumented)
 export interface QueryRef<Data, Variables> extends OperationRef<Data, Variables> {
     // (undocumented)
-    refType: typeof QueryStr;
+    refType: typeof QUERY_STR;
 }
 
 // @public (undocumented)
@@ -238,13 +229,10 @@ export interface QueryResult<Data, Variables> extends DataConnectResult<Data, Va
 }
 
 // @public (undocumented)
-export const QueryStr = "query";
-
-// @public (undocumented)
 export type QueryUnsubscribe = () => void;
 
 // @public (undocumented)
-export type ReferenceType = typeof QueryStr | typeof MutationStr;
+export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
 
 // @public (undocumented)
 export interface RefInfo<Variables> {
@@ -296,7 +284,7 @@ export interface SubscriptionOptions<Data, Variables> {
 }
 
 // @public (undocumented)
-export function terminate(dataConnect: DataConnect): void;
+export function terminate(dataConnect: DataConnect): Promise<void>;
 
 // @public (undocumented)
 export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<unknown, Variables>;

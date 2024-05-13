@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
 import { uuidv4 } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -27,18 +26,16 @@ import {
   executeQuery,
   getDataConnect,
   mutationRef,
-  OnResultSubscription,
   QueryRef,
   queryRef,
   QueryResult,
   SerializedRef,
   subscribe,
   terminate
-} from '../src';
+, SOURCE_CACHE, SOURCE_SERVER } from '../src';
 
 import { setupQueries } from './emulatorSeeder';
-import { app, getConnectionConfig, initDatabase, PROJECT_ID } from './util';
-import { SOURCE_CACHE, SOURCE_SERVER } from '../src';
+import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
 use(chaiAsPromised);
 
@@ -60,7 +57,7 @@ const SEEDED_DATA = [
     content: 'task 2'
   }
 ];
-function seedDatabase(instance: DataConnect) {
+function seedDatabase(instance: DataConnect): Promise<void> {
   // call mutation query that adds SEEDED_DATA to database
   return new Promise((resolve, reject) => {
     async function run() {
@@ -95,7 +92,7 @@ describe('DataConnect Tests', async () => {
   });
   afterEach(async () => {
     await deleteDatabase(dc);
-    terminate(dc);
+    await terminate(dc);
   });
   it('Can get all posts', async () => {
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
@@ -109,7 +106,7 @@ describe('DataConnect Tests', async () => {
     const promise = new Promise<QueryResult<TaskListResponse, undefined>>(
       (resolve, reject) => {
         const unsubscribe = subscribe(taskListQuery, {
-          onResult: res => {
+          onNext: res => {
             unsubscribe();
             resolve(res);
           },
@@ -164,12 +161,12 @@ describe('DataConnect Tests', async () => {
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', Number(0));
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
-    expect(executeQuery(taskListQuery)).to.eventually.be.rejected;
+    expect(await executeQuery(taskListQuery)).to.eventually.be.rejectedWith('ECONNREFUSED');
   });
 });
 async function waitForFirstEvent<Data, Variables>(
   query: QueryRef<Data, Variables>
-) {
+): Promise<QueryResult<Data, Variables>> {
   return await new Promise<{
     result: QueryResult<Data, Variables>;
     unsubscribe: () => void;
@@ -182,8 +179,8 @@ async function waitForFirstEvent<Data, Variables>(
         });
       });
     };
-    let unsubscribe = subscribe(query, {
-      onResult,
+    const unsubscribe = subscribe(query, {
+      onNext: onResult,
       onErr: e => {
         reject({ e, unsubscribe });
       }

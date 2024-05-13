@@ -44,6 +44,8 @@ export function dcFetch<T, U>(
     method: 'POST',
     headers,
     signal
+  }).catch(err => {
+    throw new DataConnectError(Code.OTHER, "Failed to fetch: " + JSON.stringify(err));
   })
     .then(async response => {
       let jsonResponse = null;

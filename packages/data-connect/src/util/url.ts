@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { ProjectOptions, TransportOptions } from '../api/DataConnect';
+import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { Code, DataConnectError } from '../core/error';
 import { logError } from '../logger';
 
 export function urlBuilder(
-  projectConfig: ProjectOptions,
+  projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
 ) {
   const { connector, location, projectId: project, service } = projectConfig;

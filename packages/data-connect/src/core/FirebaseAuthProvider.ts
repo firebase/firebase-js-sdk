@@ -22,6 +22,7 @@ import {
   FirebaseAuthTokenData
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+
 import { logDebug, logError } from '../logger';
 
 export interface AuthTokenProvider {
@@ -31,22 +32,22 @@ export interface AuthTokenProvider {
 export type AuthTokenListener = (token: string | null) => void;
 
 export class FirebaseAuthProvider implements AuthTokenProvider {
-  private auth_: FirebaseAuthInternal;
+  private _auth: FirebaseAuthInternal;
   constructor(
-    private appName: string,
-    private options: FirebaseOptions,
-    private authProvider_: Provider<FirebaseAuthInternalName>
+    private _appName: string,
+    private _options: FirebaseOptions,
+    private _authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this.auth_ = authProvider_.getImmediate({ optional: true })!;
-    if (!this.auth_) {
-      authProvider_.onInit(auth => (this.auth_ = auth));
+    this._auth = _authProvider.getImmediate({ optional: true })!;
+    if (!this._auth) {
+      _authProvider.onInit(auth => (this._auth = auth));
     }
   }
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null> {
-    if (!this.auth_) {
+    if (!this._auth) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          if (this.auth_) {
+          if (this._auth) {
             this.getToken(forceRefresh).then(resolve, reject);
           } else {
             resolve(null);
@@ -54,7 +55,7 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
         }, 0);
       });
     }
-    return this.auth_.getToken(forceRefresh).catch(error => {
+    return this._auth.getToken(forceRefresh).catch(error => {
       if (error && error.code === 'auth/token-not-initialized') {
         logDebug(
           'Got auth/token-not-initialized error.  Treating as null token.'
@@ -69,11 +70,11 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
       }
     });
   }
-  addTokenChangeListener(listener: AuthTokenListener) {
-    this.auth_?.addAuthTokenListener(listener);
+  addTokenChangeListener(listener: AuthTokenListener): void {
+    this._auth?.addAuthTokenListener(listener);
   }
   removeTokenChangeListener(listener: (token: string | null) => void): void {
-    this.authProvider_
+    this._authProvider
       .get()
       .then(auth => auth.removeAuthTokenListener(listener));
   }

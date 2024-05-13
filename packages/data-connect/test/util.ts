@@ -20,6 +20,7 @@ import { initializeApp } from '@firebase/app';
 import {
   connectDataConnectEmulator,
   ConnectorConfig,
+  DataConnect,
   getDataConnect
 } from '../src';
 
@@ -43,7 +44,7 @@ export const app = initializeApp({
 });
 
 // Seed the database to have the proper fields to query, such as a list of tasks.
-export function initDatabase() {
+export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
   if (!instance.isEmulator) {
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));

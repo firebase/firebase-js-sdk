@@ -63,7 +63,7 @@ export function subscribe<Data, Variables>(
   let ref: QueryRef<Data, Variables>;
   let initialCache: OpResult<Data> | undefined;
   if ('refInfo' in queryRefOrSerializedResult) {
-    let serializedRef: SerializedRef<Data, Variables> =
+    const serializedRef: SerializedRef<Data, Variables> =
       queryRefOrSerializedResult;
     const { data, source, fetchTime } = serializedRef;
     initialCache = {

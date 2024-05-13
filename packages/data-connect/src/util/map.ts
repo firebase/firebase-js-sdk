@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export function setIfNotExists<T>(map: Map<string, T>, key: string, val: T) {
+export function setIfNotExists<T>(map: Map<string, T>, key: string, val: T): void {
   if (!map.has(key)) {
     map.set(key, val);
   }
