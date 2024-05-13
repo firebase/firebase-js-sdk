@@ -73,7 +73,7 @@ export function getGenerativeModel(
   if (!modelParams.model) {
     throw new VertexAIError(
       VertexAIErrorCode.NO_MODEL,
-      'Missing model parameter'
+      `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
     );
   }
   return new GenerativeModel(vertexAI, modelParams, requestOptions);

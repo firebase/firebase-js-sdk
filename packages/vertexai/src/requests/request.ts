@@ -23,7 +23,6 @@ import {
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
-import { FirebaseError } from '@firebase/util';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -162,7 +161,7 @@ export async function makeRequest(
   } catch (e) {
     let err = e as Error;
     if (
-      (e as FirebaseError).code !== VertexAIErrorCode.FETCH_ERROR &&
+      (e as VertexAIError).code !== VertexAIErrorCode.FETCH_ERROR &&
       e instanceof Error
     ) {
       err = new VertexAIError(

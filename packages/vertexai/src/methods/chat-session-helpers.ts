@@ -56,7 +56,7 @@ export function validateChatHistory(history: Content[]): void {
     if (!prevContent && role !== 'user') {
       throw new VertexAIError(
         VertexAIErrorCode.INVALID_CONTENT,
-        `First content should be with role 'user', got ${role}`
+        `First Content should be with role 'user', got ${role}`
       );
     }
     if (!POSSIBLE_ROLES.includes(role)) {
@@ -78,7 +78,7 @@ export function validateChatHistory(history: Content[]): void {
     if (parts.length === 0) {
       throw new VertexAIError(
         VertexAIErrorCode.INVALID_CONTENT,
-        `Each content should have at least one part`
+        `Each Content should have at least one part`
       );
     }
 

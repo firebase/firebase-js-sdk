@@ -88,14 +88,14 @@ function assignRoleToPartsAndValidateSendMessageRequest(
   if (hasUserContent && hasFunctionContent) {
     throw new VertexAIError(
       VertexAIErrorCode.INVALID_CONTENT,
-      'Within a single message, FunctionResponse cannot be mixed with other type of part in the request for sending chat message.'
+      'Within a single message, FunctionResponse cannot be mixed with other type of Part in the request for sending chat message.'
     );
   }
 
   if (!hasUserContent && !hasFunctionContent) {
     throw new VertexAIError(
       VertexAIErrorCode.INVALID_CONTENT,
-      'No content is provided for sending chat message.'
+      'No Content is provided for sending chat message.'
     );
   }
 

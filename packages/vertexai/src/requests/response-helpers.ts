@@ -43,7 +43,7 @@ export function addHelpers(
       }
       if (hadBadFinishReason(response.candidates[0])) {
         throw new VertexAIError(
-          VertexAIErrorCode.REQUEST_ERROR,
+          VertexAIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
           )}. Response body stored in error.customData.response`
@@ -70,7 +70,9 @@ export function addHelpers(
       if (hadBadFinishReason(response.candidates[0])) {
         throw new VertexAIError(
           VertexAIErrorCode.RESPONSE_ERROR,
-          `${formatBlockErrorMessage(response)}`
+          `Response error: ${formatBlockErrorMessage(
+            response
+          )}. Response body stored in error.customData.response`
         );
       }
       return getFunctionCalls(response);

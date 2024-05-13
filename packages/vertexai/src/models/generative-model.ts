@@ -69,12 +69,12 @@ export class GenerativeModel {
     if (!vertexAI.app?.options?.apiKey) {
       throw new VertexAIError(
         VertexAIErrorCode.NO_API_KEY,
-        'Missing Firebase app API key'
+        `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
       );
     } else if (!vertexAI.app?.options?.projectId) {
       throw new VertexAIError(
         VertexAIErrorCode.NO_PROJECT_ID,
-        'Missing Firebase app project ID'
+        `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
       );
     } else {
       this._apiSettings = {
