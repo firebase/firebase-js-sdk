@@ -1,5 +1,44 @@
 # firebase
 
+## 10.12.0
+
+### Minor Changes
+
+- [`506b8a6ab`](https://github.com/firebase/firebase-js-sdk/commit/506b8a6abf662d74c2085fb729cace57d861ed17) [#8119](https://github.com/firebase/firebase-js-sdk/pull/8119) - Add the preview version of the VertexAI SDK.
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`506b8a6ab`](https://github.com/firebase/firebase-js-sdk/commit/506b8a6abf662d74c2085fb729cace57d861ed17), [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd), [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/vertexai-preview@0.0.1
+  - @firebase/app@0.10.3
+  - @firebase/firestore@4.6.2
+  - @firebase/analytics@0.10.3
+  - @firebase/analytics-compat@0.2.9
+  - @firebase/app-check@0.8.4
+  - @firebase/app-check-compat@0.3.11
+  - @firebase/app-compat@0.2.33
+  - @firebase/app-types@0.9.2
+  - @firebase/auth@1.7.3
+  - @firebase/auth-compat@0.5.8
+  - @firebase/database@1.0.5
+  - @firebase/database-compat@1.0.5
+  - @firebase/firestore-compat@0.3.31
+  - @firebase/functions@0.11.5
+  - @firebase/functions-compat@0.3.11
+  - @firebase/installations@0.6.7
+  - @firebase/installations-compat@0.2.7
+  - @firebase/messaging@0.12.9
+  - @firebase/messaging-compat@0.2.9
+  - @firebase/performance@0.6.7
+  - @firebase/performance-compat@0.2.7
+  - @firebase/remote-config@0.4.7
+  - @firebase/remote-config-compat@0.2.7
+  - @firebase/storage@0.12.5
+  - @firebase/storage-compat@0.3.8
+  - @firebase/util@1.9.6
+
 ## 10.11.1
 
 ### Patch Changes
