@@ -16,9 +16,9 @@
  */
 
 import { DataConnect, DataConnectOptions } from './DataConnect';
-export const QueryStr = 'query';
-export const MutationStr = 'mutation';
-export type ReferenceType = typeof QueryStr | typeof MutationStr;
+export const QUERY_STR = 'query';
+export const MUTATION_STR = 'mutation';
+export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
 
 export const SOURCE_SERVER = 'SERVER';
 export const SOURCE_CACHE = 'CACHE';

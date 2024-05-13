@@ -16,10 +16,11 @@
  */
 
 import { DataConnectError } from '../core/error';
+
 import { DataConnect, getDataConnect } from './DataConnect';
 import {
   OperationRef,
-  QueryStr,
+  QUERY_STR,
   DataConnectResult,
   SerializedRef
 } from './Reference';
@@ -36,7 +37,7 @@ export interface DataConnectSubscription<Data, Variables> {
 }
 export interface QueryRef<Data, Variables>
   extends OperationRef<Data, Variables> {
-  refType: typeof QueryStr;
+  refType: typeof QUERY_STR;
 }
 export interface QueryResult<Data, Variables>
   extends DataConnectResult<Data, Variables> {
@@ -71,9 +72,10 @@ export function queryRef<Data, Variables>(
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
   dcInstance._queryManager.track(queryName, variables, initialCache);
+  console.log(variables);
   return {
     dataConnect: dcInstance,
-    refType: QueryStr,
+    refType: QUERY_STR,
     name: queryName,
     variables: variables as Variables
   };

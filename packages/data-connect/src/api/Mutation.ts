@@ -20,35 +20,35 @@ import { DataConnectTransport } from '../network/transport';
 import { DataConnect } from './DataConnect';
 import {
   DataConnectResult,
-  MutationStr,
+  MUTATION_STR,
   OperationRef,
   SOURCE_SERVER
 } from './Reference';
 
-export interface MutationRef<Response, Variables>
-  extends OperationRef<Response, Variables> {
-  refType: typeof MutationStr;
+export interface MutationRef<Data, Variables>
+  extends OperationRef<Data, Variables> {
+  refType: typeof MUTATION_STR;
 }
 
-export function mutationRef<Response>(
+export function mutationRef<Data>(
   dcInstance: DataConnect,
   queryName: string
-): MutationRef<Response, undefined>;
-export function mutationRef<Response, Variables>(
+): MutationRef<Data, undefined>;
+export function mutationRef<Data, Variables>(
   dcInstance: DataConnect,
-  queryName: string,
+  mutationName: string,
   variables: Variables
-): MutationRef<Response, Variables>;
-export function mutationRef<Response, Variables>(
+): MutationRef<Data, Variables>;
+export function mutationRef<Data, Variables>(
   dcInstance: DataConnect,
   queryName: string,
   variables?: Variables
-): MutationRef<Response, Variables> {
+): MutationRef<Data, Variables> {
   dcInstance.setInitialized();
-  const ref: MutationRef<Response, Variables> = {
+  const ref: MutationRef<Data, Variables> = {
     dataConnect: dcInstance,
     name: queryName,
-    refType: MutationStr,
+    refType: MUTATION_STR,
     variables: variables as Variables
   };
   return ref;
@@ -56,16 +56,16 @@ export function mutationRef<Response, Variables>(
 
 export class MutationManager {
   private _inflight: Array<PromiseLike<unknown>> = [];
-  constructor(private transport: DataConnectTransport) {}
-  executeMutation<Response, Variables>(
-    mutationRef: MutationRef<Response, Variables>
-  ): MutationPromise<Response, Variables> {
-    const result = this.transport.invokeMutation<Response, Variables>(
+  constructor(private _transport: DataConnectTransport) {}
+  executeMutation<Data, Variables>(
+    mutationRef: MutationRef<Data, Variables>
+  ): MutationPromise<Data, Variables> {
+    const result = this._transport.invokeMutation<Data, Variables>(
       mutationRef.name,
       mutationRef.variables
     );
     const withRefPromise = result.then(res => {
-      const obj: MutationResult<Response, Variables> = {
+      const obj: MutationResult<Data, Variables> = {
         ...res, // Double check that the result is result.data, not just result
         source: SOURCE_SERVER,
         ref: mutationRef,

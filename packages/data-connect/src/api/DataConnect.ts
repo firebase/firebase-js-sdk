@@ -24,24 +24,18 @@ import {
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
+import { Code, DataConnectError } from '../core/error';
 import {
   AuthTokenProvider,
   FirebaseAuthProvider
 } from '../core/FirebaseAuthProvider';
 import { QueryManager } from '../core/QueryManager';
+import { logDebug, logError } from '../logger';
 import { DataConnectTransport, TransportClass } from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
-import { Code, DataConnectError } from '../core/error';
-import { logDebug, logError } from '../logger';
 
-export interface ProjectOptions {
-  location: string;
-  connector: string;
-  service: string;
-  projectId: string;
-}
 
 export interface ConnectorConfig {
   location: string;
@@ -78,27 +72,28 @@ export interface DataConnectOptions extends ConnectorConfig {
 export class DataConnect {
   _queryManager!: QueryManager;
   _mutationManager!: MutationManager;
-  public isEmulator = false;
+  isEmulator = false;
   initialized = false;
   private _transport!: DataConnectTransport;
-  private transportClass: TransportClass | undefined;
-  private transportOptions?: TransportOptions;
-  private authTokenProvider?: AuthTokenProvider;
+  private _transportClass: TransportClass | undefined;
+  private _transportOptions?: TransportOptions;
+  private _authTokenProvider?: AuthTokenProvider;
   constructor(
     public readonly app: FirebaseApp,
+    // TODO(mtewani): Replace with _dataConnectOptions in the future
     private readonly dataConnectOptions: DataConnectOptions,
-    private readonly authProvider: Provider<FirebaseAuthInternalName>
+    private readonly _authProvider: Provider<FirebaseAuthInternalName>
   ) {
     if (typeof process !== 'undefined' && process.env) {
       const host = process.env[FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR];
       if (host) {
         logDebug('Found custom host. Using emulator');
         this.isEmulator = true;
-        this.transportOptions = parseOptions(host);
+        this._transportOptions = parseOptions(host);
       }
     }
   }
-  _delete() {
+  _delete(): Promise<void> {
     _removeServiceInstance(
       this.app,
       'data-connect',
@@ -113,49 +108,49 @@ export class DataConnect {
     return copy;
   }
 
-  setInitialized() {
+  setInitialized(): void {
     if (this.initialized) {
       return;
     }
-    if (this.transportClass === undefined) {
+    if (this._transportClass === undefined) {
       logDebug('transportClass not provided. Defaulting to RESTTransport.');
-      this.transportClass = RESTTransport;
+      this._transportClass = RESTTransport;
     }
 
-    if (this.authProvider) {
-      this.authTokenProvider = new FirebaseAuthProvider(
+    if (this._authProvider) {
+      this._authTokenProvider = new FirebaseAuthProvider(
             this.app.name,
             this.app.options,
-            this.authProvider
+            this._authProvider
           );
     }
 
     this.initialized = true;
-    this._transport = new this.transportClass(
+    this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
-      this.authTokenProvider
+      this._authTokenProvider
     );
-    if (this.transportOptions) {
+    if (this._transportOptions) {
       this._transport.useEmulator(
-        this.transportOptions.host,
-        this.transportOptions.port,
-        this.transportOptions.sslEnabled
+        this._transportOptions.host,
+        this._transportOptions.port,
+        this._transportOptions.sslEnabled
       );
     }
     this._queryManager = new QueryManager(this._transport);
     this._mutationManager = new MutationManager(this._transport);
   }
 
-  enableEmulator(transportOptions: TransportOptions) {
+  enableEmulator(transportOptions: TransportOptions): void {
     if (this.initialized) {
-      logError('enableEmulator called without initializing');
+      logError('enableEmulator called after initialization');
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,
         'DataConnect instance already initialized!'
       );
     }
-    this.transportOptions = transportOptions;
+    this._transportOptions = transportOptions;
     this.isEmulator = true;
   }
 }
@@ -165,7 +160,7 @@ export function connectDataConnectEmulator(
   host: string,
   port?: number,
   sslEnabled = false
-) {
+): void {
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
@@ -213,7 +208,7 @@ export function getDataConnect(
   });
 }
 
-export function terminate(dataConnect: DataConnect) {
-  dataConnect._delete();
+export function terminate(dataConnect: DataConnect): Promise<void> {
+  return dataConnect._delete();
   // TODO(mtewani): Stop pending tasks
 }

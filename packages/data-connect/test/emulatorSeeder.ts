@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import fs from 'fs';
 import * as path from 'path';
 //  curl localhost:3628/setupSchema -X POST -d '{
 //    "service_id": "s",
@@ -37,14 +38,12 @@ import * as path from 'path';
 //      }
 //    }
 
-import fs from 'fs';
 
-import fetch from 'node-fetch';
 
 import { ReferenceType } from '../src';
 
 //  }
-import { CONNECTOR_NAME, EMULATOR_PORT } from './util';
+import { EMULATOR_PORT } from './util';
 
 export interface SeedInfo {
   type: ReferenceType;

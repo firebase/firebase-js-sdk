@@ -28,39 +28,10 @@ export * from './api';
 export * from './api.browser';
 
 registerDataConnect();
-// function sha512(str) {
-//     return window.crypto.subtle.encrypt()
-//   }
-// async function encoder(object: unknown): Promise<string> {
-//     const encoder = new TextEncoder();
-//     const data = encoder.encode(JSON.stringify(object));
-//     const hash = await crypto.subtle.digest('SHA-256', data);
-//     return hash;
-// }
-// setEncoder(encoder);
+
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'data-connect': DataConnect;
   }
 }
-// import { getDataConnect, queryRef } from './api';
-// import { getApp } from '@firebase/app';
-// const app = getApp();
-// const dc = getDataConnect({ location: '', connector: '', serviceId: '', projectId: '' });
-// interface Response {
-//     name: string;
-// }
-// const converter: Converter<Response> = {
-//   fromDataConnect(input: string) {
-//     return { name: input };
-//   },
-//   fromType(input) {
-//     return input;
-//   }
-// };
-// const myRef = queryRef(dc, '', converter);
-// // Ref's shouldn't have access to their own cache, right?
-// const a = execute(myRef);
-// subscribe(myRef, (res) => {
-// })

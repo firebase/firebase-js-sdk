@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { DataConnectTransport } from '.';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { DataConnectError, Code } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
@@ -23,16 +22,18 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
+import { DataConnectTransport } from '.';
+
 export class RESTTransport implements DataConnectTransport {
-  private host = '';
-  private port: number | undefined;
-  private location = 'l';
-  private connectorName = '';
-  private secure = true;
-  private project = 'p';
-  private serviceName: string;
-  private accessToken: string | null = null;
-  private authInitialized_ = false;
+  private _host = '';
+  private _port: number | undefined;
+  private _location = 'l';
+  private _connectorName = '';
+  private _secure = true;
+  private _project = 'p';
+  private _serviceName: string;
+  private _accessToken: string | null = null;
+  private _authInitialized = false;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
@@ -41,62 +42,62 @@ export class RESTTransport implements DataConnectTransport {
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
-        this.port = transportOptions.port;
+        this._port = transportOptions.port;
       }
       if (typeof transportOptions.sslEnabled !== 'undefined') {
-        this.secure = transportOptions.sslEnabled;
+        this._secure = transportOptions.sslEnabled;
       }
-      this.host = transportOptions.host;
+      this._host = transportOptions.host;
     }
     const { location, projectId: project, connector, service } = options;
     if (location) {
-      this.location = location;
+      this._location = location;
     }
     if (project) {
-      this.project = project;
+      this._project = project;
     }
-    this.serviceName = service;
+    this._serviceName = service;
     if (!connector) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
         'Connector Name required!'
       );
     }
-    this.connectorName = connector;
+    this._connectorName = connector;
     this.authProvider?.addTokenChangeListener(token => {
       logDebug(`New Token Available: ${token}`);
-      this.accessToken = token;
+      this._accessToken = token;
     });
   }
   get endpointUrl(): string {
     return urlBuilder(
       {
-        connector: this.connectorName,
-        location: this.location,
-        projectId: this.project,
-        service: this.serviceName
+        connector: this._connectorName,
+        location: this._location,
+        projectId: this._project,
+        service: this._serviceName
       },
-      { host: this.host, sslEnabled: this.secure, port: this.port }
+      { host: this._host, sslEnabled: this._secure, port: this._port }
     );
   }
   useEmulator(host: string, port?: number, isSecure?: boolean): void {
-    this.host = host;
+    this._host = host;
     if (typeof port === 'number') {
-      this.port = port;
+      this._port = port;
     }
     if (typeof isSecure !== 'undefined') {
-      this.secure = isSecure;
+      this._secure = isSecure;
     }
   }
   onTokenChanged(newToken: string | null) {
-    this.accessToken = newToken;
+    this._accessToken = newToken;
   }
 
   getWithAuth() {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
-      resolve(this.accessToken)
+      resolve(this._accessToken)
     );
-    if (!this.authInitialized_) {
+    if (!this._authInitialized) {
       if (this.authProvider) {
         starterPromise = this.authProvider
           .getToken(/*forceToken=*/ false)
@@ -104,8 +105,8 @@ export class RESTTransport implements DataConnectTransport {
             if (!data) {
               return null;
             }
-            this.accessToken = data.accessToken;
-            return this.accessToken;
+            this._accessToken = data.accessToken;
+            return this._accessToken;
           });
       } else {
         starterPromise = new Promise(resolve => resolve(''));
@@ -123,12 +124,12 @@ export class RESTTransport implements DataConnectTransport {
       return dcFetch<T, U>(
         addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
         {
-          name: `projects/${this.project}/locations/${this.location}/services/${this.serviceName}/connectors/${this.connectorName}`,
+          name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: queryName,
           variables: body
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
-        this.accessToken
+        this._accessToken
       );
     });
 
@@ -142,12 +143,12 @@ export class RESTTransport implements DataConnectTransport {
       return dcFetch<T, U>(
         addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
         {
-          name: `projects/${this.project}/locations/${this.location}/services/${this.serviceName}/connectors/${this.connectorName}`,
+          name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: mutationName,
           variables: body
         } as unknown as U,
         abortController,
-        this.accessToken
+        this._accessToken
       );
     });
 
