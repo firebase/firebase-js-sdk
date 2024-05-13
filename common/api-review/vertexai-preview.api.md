@@ -610,7 +610,6 @@ export class VertexAIError extends FirebaseError {
     readonly errorDetails?: ErrorDetails[] | undefined;
     // (undocumented)
     readonly message: string;
-    readonly stack?: string;
     // (undocumented)
     readonly status?: number | undefined;
     // (undocumented)
