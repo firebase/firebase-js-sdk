@@ -46,14 +46,18 @@ export function addHelpers(
           VertexAIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
-          )}. Response body stored in error.customData.response`
+          )}. Response body stored in error.generateContentResponse`,
+          undefined,
+          response
         );
       }
       return getText(response);
     } else if (response.promptFeedback) {
       throw new VertexAIError(
         VertexAIErrorCode.RESPONSE_ERROR,
-        `Text not available. ${formatBlockErrorMessage(response)}`
+        `Text not available. ${formatBlockErrorMessage(response)}`,
+        undefined,
+        response
       );
     }
     return '';
@@ -72,14 +76,18 @@ export function addHelpers(
           VertexAIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
-          )}. Response body stored in error.customData.response`
+          )}. Response body stored in error.generateContentResponse`,
+          undefined,
+          response
         );
       }
       return getFunctionCalls(response);
     } else if (response.promptFeedback) {
       throw new VertexAIError(
         VertexAIErrorCode.RESPONSE_ERROR,
-        `Function call not available. ${formatBlockErrorMessage(response)}`
+        `Function call not available. ${formatBlockErrorMessage(response)}`,
+        undefined,
+        response
       );
     }
     return undefined;
