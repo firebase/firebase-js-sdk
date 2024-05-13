@@ -46,7 +46,7 @@ export interface ConnectorConfig {
 
 // @public (undocumented)
 export class DataConnect {
-    constructor(app: FirebaseApp, _dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>);
+    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>);
     // (undocumented)
     readonly app: FirebaseApp;
     // (undocumented)
