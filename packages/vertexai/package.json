@@ -1,0 +1,77 @@
+{
+  "name": "@firebase/vertexai-preview",
+  "version": "0.0.1",
+  "description": "A Firebase SDK for VertexAI (preview)",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "dist/index.cjs.js",
+  "browser": "dist/esm/index.esm2017.js",
+  "module": "dist/esm/index.esm2017.js",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "node": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/esm/index.esm2017.js"
+      },
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/esm/index.esm2017.js"
+      },
+      "default": "./dist/esm/index.esm2017.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c && yarn api-report",
+    "build:deps": "lerna run --scope @firebase/vertexai --include-dependencies build",
+    "dev": "rollup -c -w",
+    "testsetup": "yarn ts-node ./test-utils/convert-mocks.ts",
+    "test": "run-p --npm-path npm lint test:browser",
+    "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
+    "test:browser": "yarn testsetup && karma start --single-run",
+    "api-report": "api-extractor run --local --verbose"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "dependencies": {
+    "@firebase/app-check-interop-types": "0.3.2",
+    "@firebase/component": "0.6.7",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.9.6",
+    "tslib": "^2.1.0"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@firebase/app": "0.10.3",
+    "@rollup/plugin-json": "4.1.0",
+    "rollup": "2.79.1",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.31.2",
+    "typescript": "4.7.4"
+  },
+  "repository": {
+    "directory": "packages/vertexai",
+    "type": "git",
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/src/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
