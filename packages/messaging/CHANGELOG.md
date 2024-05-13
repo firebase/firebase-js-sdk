@@ -1,5 +1,17 @@
 # @firebase/messaging
 
+## 0.12.9
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/installations@0.6.7
+  - @firebase/messaging-interop-types@0.2.2
+  - @firebase/util@1.9.6
+
 ## 0.12.8
 
 ### Patch Changes

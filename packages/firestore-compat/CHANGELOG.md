@@ -1,5 +1,17 @@
 # @firebase/firestore-compat
 
+## 0.3.31
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd), [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/firestore@4.6.2
+  - @firebase/component@0.6.7
+  - @firebase/firestore-types@3.0.2
+  - @firebase/util@1.9.6
+
 ## 0.3.30
 
 ### Patch Changes
