@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIError class
-Error class for the Firebase VertexAI SDK.
+Error class for the Vertex AI for Firebase SDK.
 
 <b>Signature:</b>
 
@@ -23,18 +23,16 @@ export declare class VertexAIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, status, statusText, errorDetails)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Creates a new VertexAIError instance. |
+|  [(constructor)(code, message, httpErrorDetails, generateContentResponse)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Creates a new VertexAIError instance. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [code](./vertexai-preview.vertexaierror.md#vertexaierrorcode) |  | [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) |  |
-|  [errorDetails](./vertexai-preview.vertexaierror.md#vertexaierrorerrordetails) |  | [ErrorDetails](./vertexai-preview.errordetails.md#errordetails_interface)<!-- -->\[\] \| undefined |  |
+|  [generateContentResponse](./vertexai-preview.vertexaierror.md#vertexaierrorgeneratecontentresponse) |  | [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface) \| undefined |  |
+|  [httpErrorDetails](./vertexai-preview.vertexaierror.md#vertexaierrorhttperrordetails) |  | [HTTPErrorDetails](./vertexai-preview.httperrordetails.md#httperrordetails_interface) \| undefined |  |
 |  [message](./vertexai-preview.vertexaierror.md#vertexaierrormessage) |  | string |  |
-|  [stack](./vertexai-preview.vertexaierror.md#vertexaierrorstack) |  | string | Stack trace of the error. |
-|  [status](./vertexai-preview.vertexaierror.md#vertexaierrorstatus) |  | number \| undefined |  |
-|  [statusText](./vertexai-preview.vertexaierror.md#vertexaierrorstatustext) |  | string \| undefined |  |
 
 ## VertexAIError.(constructor)
 
@@ -43,7 +41,7 @@ Creates a new VertexAIError instance.
 <b>Signature:</b>
 
 ```typescript
-constructor(code: VertexAIErrorCode, message: string, status?: number | undefined, statusText?: string | undefined, errorDetails?: ErrorDetails[] | undefined);
+constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErrorDetails | undefined, generateContentResponse?: GenerateContentResponse | undefined);
 ```
 
 #### Parameters
@@ -52,9 +50,8 @@ constructor(code: VertexAIErrorCode, message: string, status?: number | undefine
 |  --- | --- | --- |
 |  code | [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) | The error code from [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode)<!-- -->. |
 |  message | string | A human-readable message describing the error. |
-|  status | number \| undefined | Optional HTTP status code of the error response. |
-|  statusText | string \| undefined | Optional HTTP status text of the error response. |
-|  errorDetails | [ErrorDetails](./vertexai-preview.errordetails.md#errordetails_interface)<!-- -->\[\] \| undefined | Optional additional details about the error. |
+|  httpErrorDetails | [HTTPErrorDetails](./vertexai-preview.httperrordetails.md#httperrordetails_interface) \| undefined |  |
+|  generateContentResponse | [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface) \| undefined | Optional response from a [GenerateContentRequest](./vertexai-preview.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->. |
 
 ## VertexAIError.code
 
@@ -64,12 +61,20 @@ constructor(code: VertexAIErrorCode, message: string, status?: number | undefine
 readonly code: VertexAIErrorCode;
 ```
 
-## VertexAIError.errorDetails
+## VertexAIError.generateContentResponse
 
 <b>Signature:</b>
 
 ```typescript
-readonly errorDetails?: ErrorDetails[] | undefined;
+readonly generateContentResponse?: GenerateContentResponse | undefined;
+```
+
+## VertexAIError.httpErrorDetails
+
+<b>Signature:</b>
+
+```typescript
+readonly httpErrorDetails?: HTTPErrorDetails | undefined;
 ```
 
 ## VertexAIError.message
@@ -78,30 +83,4 @@ readonly errorDetails?: ErrorDetails[] | undefined;
 
 ```typescript
 readonly message: string;
-```
-
-## VertexAIError.stack
-
-Stack trace of the error.
-
-<b>Signature:</b>
-
-```typescript
-readonly stack?: string;
-```
-
-## VertexAIError.status
-
-<b>Signature:</b>
-
-```typescript
-readonly status?: number | undefined;
-```
-
-## VertexAIError.statusText
-
-<b>Signature:</b>
-
-```typescript
-readonly statusText?: string | undefined;
 ```

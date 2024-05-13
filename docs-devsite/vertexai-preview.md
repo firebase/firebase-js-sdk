@@ -27,7 +27,7 @@ The Vertex AI For Firebase Web SDK.
 |  --- | --- |
 |  [ChatSession](./vertexai-preview.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [GenerativeModel](./vertexai-preview.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
-|  [VertexAIError](./vertexai-preview.vertexaierror.md#vertexaierror_class) | Error class for the Firebase VertexAI SDK. |
+|  [VertexAIError](./vertexai-preview.vertexaierror.md#vertexaierror_class) | Error class for the Vertex AI for Firebase SDK. |
 
 ## Enumerations
 
@@ -77,6 +77,7 @@ The Vertex AI For Firebase Web SDK.
 |  [GenerativeContentBlob](./vertexai-preview.generativecontentblob.md#generativecontentblob_interface) | Interface for sending an image. |
 |  [GroundingAttribution](./vertexai-preview.groundingattribution.md#groundingattribution_interface) |  |
 |  [GroundingMetadata](./vertexai-preview.groundingmetadata.md#groundingmetadata_interface) | Metadata returned to client when grounding is enabled. |
+|  [HTTPErrorDetails](./vertexai-preview.httperrordetails.md#httperrordetails_interface) | Details object that contains data originating from a bad HTTP response. |
 |  [InlineDataPart](./vertexai-preview.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModelParams](./vertexai-preview.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai-preview.md#getgenerativemodel_e3037c9)<!-- -->. |
 |  [PromptFeedback](./vertexai-preview.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
