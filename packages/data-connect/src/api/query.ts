@@ -72,7 +72,6 @@ export function queryRef<Data, Variables>(
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
   dcInstance._queryManager.track(queryName, variables, initialCache);
-  console.log(variables);
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,
