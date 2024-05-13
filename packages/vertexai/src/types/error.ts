@@ -37,6 +37,22 @@ export interface ErrorDetails {
 }
 
 /**
+ * Details object that contains data originating from a bad HTTP response.
+ *
+ * @public
+ */
+export interface HTTPErrorDetails {
+  /** HTTP status code of the error response. */
+  status: number;
+
+  /** HTTP status text of the error response. */
+  statusText: string;
+
+  /** Optional additional details about the error. */
+  errorDetails?: ErrorDetails[];
+}
+
+/**
  * Standardized error codes that {@link VertexAIError} can have.
  *
  * @public

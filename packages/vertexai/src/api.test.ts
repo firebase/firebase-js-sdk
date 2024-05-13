@@ -38,7 +38,9 @@ describe('Top level API', () => {
       getGenerativeModel(fakeVertexAI, {} as ModelParams);
     } catch (e) {
       expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_MODEL);
-      expect((e as VertexAIError).message).equals('Missing model parameter');
+      expect((e as VertexAIError).message).equals(
+        `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
+      );
     }
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
@@ -51,7 +53,7 @@ describe('Top level API', () => {
     } catch (e) {
       expect((e as VertexAIError).code).includes(VertexAIErrorCode.NO_API_KEY);
       expect((e as VertexAIError).message).equals(
-        'Missing Firebase app API key'
+        `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
       );
     }
   });
@@ -67,7 +69,7 @@ describe('Top level API', () => {
         VertexAIErrorCode.NO_PROJECT_ID
       );
       expect((e as VertexAIError).message).equals(
-        'Missing Firebase app project ID'
+        `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
       );
     }
   });

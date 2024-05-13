@@ -249,8 +249,8 @@ describe('request methods', () => {
         expect((e as VertexAIError).code).to.equal(
           VertexAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).status).to.equal(500);
-        expect((e as VertexAIError).statusText).to.equal('AbortError');
+        expect((e as VertexAIError).httpErrorDetails?.status).to.equal(500);
+        expect((e as VertexAIError).httpErrorDetails?.statusText).to.equal('AbortError');
         expect((e as VertexAIError).message).to.include('500 AbortError');
       }
 
@@ -274,8 +274,8 @@ describe('request methods', () => {
         expect((e as VertexAIError).code).to.equal(
           VertexAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).status).to.equal(500);
-        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).httpErrorDetails?.status).to.equal(500);
+        expect((e as VertexAIError).httpErrorDetails?.statusText).to.equal('Server Error');
         expect((e as VertexAIError).message).to.include('500 Server Error');
       }
       expect(fetchStub).to.be.calledOnce;
@@ -299,8 +299,8 @@ describe('request methods', () => {
         expect((e as VertexAIError).code).to.equal(
           VertexAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).status).to.equal(500);
-        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).httpErrorDetails?.status).to.equal(500);
+        expect((e as VertexAIError).httpErrorDetails?.statusText).to.equal('Server Error');
         expect((e as VertexAIError).message).to.include('500 Server Error');
         expect((e as VertexAIError).message).to.include('extra info');
       }
@@ -337,8 +337,8 @@ describe('request methods', () => {
         expect((e as VertexAIError).code).to.equal(
           VertexAIErrorCode.FETCH_ERROR
         );
-        expect((e as VertexAIError).status).to.equal(500);
-        expect((e as VertexAIError).statusText).to.equal('Server Error');
+        expect((e as VertexAIError).httpErrorDetails?.status).to.equal(500);
+        expect((e as VertexAIError).httpErrorDetails?.statusText).to.equal('Server Error');
         expect((e as VertexAIError).message).to.include('500 Server Error');
         expect((e as VertexAIError).message).to.include('extra info');
         expect((e as VertexAIError).message).to.include(

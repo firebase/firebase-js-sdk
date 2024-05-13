@@ -153,9 +153,11 @@ export async function makeRequest(
       throw new VertexAIError(
         VertexAIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
-        response.status,
-        response.statusText,
-        errorDetails
+        {
+          status: response.status,
+          statusText: response.statusText,
+          errorDetails
+        }
       );
     }
   } catch (e) {
