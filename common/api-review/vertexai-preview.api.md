@@ -458,6 +458,13 @@ export enum HarmSeverity {
 }
 
 // @public
+export interface HTTPErrorDetails {
+    errorDetails?: ErrorDetails[];
+    status: number;
+    statusText: string;
+}
+
+// @public
 export interface InlineDataPart {
     // (undocumented)
     functionCall?: never;
@@ -603,17 +610,15 @@ export interface VertexAI {
 
 // @public
 export class VertexAIError extends FirebaseError {
-    constructor(code: VertexAIErrorCode, message: string, status?: number | undefined, statusText?: string | undefined, errorDetails?: ErrorDetails[] | undefined);
+    constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErrorDetails | undefined, generateContentResponse?: GenerateContentResponse | undefined);
     // (undocumented)
     readonly code: VertexAIErrorCode;
     // (undocumented)
-    readonly errorDetails?: ErrorDetails[] | undefined;
+    readonly generateContentResponse?: GenerateContentResponse | undefined;
+    // (undocumented)
+    readonly httpErrorDetails?: HTTPErrorDetails | undefined;
     // (undocumented)
     readonly message: string;
-    // (undocumented)
-    readonly status?: number | undefined;
-    // (undocumented)
-    readonly statusText?: string | undefined;
 }
 
 // @public
