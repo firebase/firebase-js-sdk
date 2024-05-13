@@ -305,7 +305,11 @@ function wrapGtag(
         );
       } else if (command === GtagCommand.CONSENT) {
         const [consentString, gtagParams] = args;
-        gtagCore(GtagCommand.CONSENT, consentString, gtagParams as ConsentSettings);
+        gtagCore(
+          GtagCommand.CONSENT,
+          consentString,
+          gtagParams as ConsentSettings
+        );
       } else if (command === GtagCommand.GET) {
         const [measurementId, fieldName, callback] = args;
         gtagCore(
