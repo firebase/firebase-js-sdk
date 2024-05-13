@@ -37,12 +37,18 @@ import { RESTTransport } from '../network/transport/rest';
 import { MutationManager } from './Mutation';
 
 
+/**
+ * Connector Config for calling Data Connect backend.
+ */
 export interface ConnectorConfig {
   location: string;
   connector: string;
   service: string;
 }
 
+/**
+ * Options to connect to emulator
+ */
 export interface TransportOptions {
   host: string;
   sslEnabled?: boolean;
@@ -65,10 +71,16 @@ export function parseOptions(fullHost: string): TransportOptions {
   const port = Number(portAsString);
   return { host, port, sslEnabled: isSecure };
 }
+/**
+ * DataConnectOptions including project id
+ */
 export interface DataConnectOptions extends ConnectorConfig {
   projectId: string;
 }
 
+/**
+ * Class representing Firebase Data Connect
+ */
 export class DataConnect {
   _queryManager!: QueryManager;
   _mutationManager!: MutationManager;
@@ -155,6 +167,13 @@ export class DataConnect {
   }
 }
 
+/**
+ * Connect to the DataConnect Emulator
+ * @param dc Data Connect instance
+ * @param host host of emulator server
+ * @param port port of emulator server
+ * @param sslEnabled use https
+ */
 export function connectDataConnectEmulator(
   dc: DataConnect,
   host: string,
@@ -164,7 +183,16 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
+/**
+ * Initialize DataConnect instance
+ * @param options ConnectorConfig
+ */
 export function getDataConnect(options: ConnectorConfig): DataConnect;
+/**
+ * Initialize DataConnect instance
+ * @param app FirebaseApp to initialize to.
+ * @param options ConnectorConfig
+ */
 export function getDataConnect(
   app: FirebaseApp,
   options: ConnectorConfig
@@ -208,6 +236,11 @@ export function getDataConnect(
   });
 }
 
+/**
+ * Delete DataConnect instance
+ * @param dataConnect DataConnect instance
+ * @returns 
+ */
 export function terminate(dataConnect: DataConnect): Promise<void> {
   return dataConnect._delete();
   // TODO(mtewani): Stop pending tasks

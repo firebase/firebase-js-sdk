@@ -28,13 +28,10 @@ import { OpResult, SerializedRef } from './api/Reference';
 import { DataConnectError, Code } from './core/error';
 
 /**
- *
- * @public
- * @param queryRef
- * @param onResult
- * @param onErr
- * @param initialCache
- * @returns
+ * Subscribe to a `QueryRef`
+ * @param queryRefOrSerializedResult query ref or serialized result.
+ * @param observer observer object to use for subscribing.
+ * @returns `SubscriptionOptions`
  */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
@@ -42,6 +39,14 @@ export function subscribe<Data, Variables>(
     | SerializedRef<Data, Variables>,
   observer: SubscriptionOptions<Data, Variables>
 ): QueryUnsubscribe;
+/**
+ * Subscribe to a `QueryRef`
+ * @param queryRefOrSerializedResult query ref or serialized result.
+ * @param onNext Callback to call when result comes back.
+ * @param onError Callback to call when error gets thrown.
+ * @param onComplete Called when subscription completes.
+ * @returns `SubscriptionOptions`
+ */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
     | QueryRef<Data, Variables>
@@ -50,6 +55,14 @@ export function subscribe<Data, Variables>(
   onError?: OnErrorSubscription,
   onComplete?: OnCompleteSubscription
 ): QueryUnsubscribe;
+/**
+ * Subscribe to a `QueryRef`
+ * @param queryRefOrSerializedResult query ref or serialized result.
+ * @param observerOrOnNext observer object or next function.
+ * @param onError Callback to call when error gets thrown.
+ * @param onComplete Called when subscription completes.
+ * @returns `SubscriptionOptions`
+ */
 export function subscribe<Data, Variables>(
   queryRefOrSerializedResult:
     | QueryRef<Data, Variables>

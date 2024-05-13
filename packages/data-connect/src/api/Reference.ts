@@ -42,11 +42,17 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
   // future metadata
 }
 
+/**
+ * Serialized RefInfo as a result of `QueryResult.toJSON().refInfo`
+ */
 export interface RefInfo<Variables> {
   name: string;
   variables: Variables;
   connectorConfig: DataConnectOptions;
 }
+/**
+ * Serialized Ref as a result of `QueryResult.toJSON()`
+ */
 export interface SerializedRef<Data, Variables> extends OpResult<Data> {
   refInfo: RefInfo<Variables>;
 }

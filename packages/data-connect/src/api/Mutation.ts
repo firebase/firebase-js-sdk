@@ -30,30 +30,51 @@ export interface MutationRef<Data, Variables>
   refType: typeof MUTATION_STR;
 }
 
+/**
+ * Creates a `MutationRef`
+ * @param dcInstance Data Connect instance
+ * @param mutationName name of mutation
+ */
 export function mutationRef<Data>(
   dcInstance: DataConnect,
-  queryName: string
+  mutationName: string
 ): MutationRef<Data, undefined>;
+/**
+ * 
+ * @param dcInstance Data Connect instance
+ * @param mutationName name of mutation
+ * @param variables variables to send with mutation
+ */
 export function mutationRef<Data, Variables>(
   dcInstance: DataConnect,
   mutationName: string,
   variables: Variables
 ): MutationRef<Data, Variables>;
+/**
+ * 
+ * @param dcInstance Data Connect instance
+ * @param mutationName name of mutation
+ * @param variables variables to send with mutation
+ * @returns `MutationRef`
+ */
 export function mutationRef<Data, Variables>(
   dcInstance: DataConnect,
-  queryName: string,
+  mutationName: string,
   variables?: Variables
 ): MutationRef<Data, Variables> {
   dcInstance.setInitialized();
   const ref: MutationRef<Data, Variables> = {
     dataConnect: dcInstance,
-    name: queryName,
+    name: mutationName,
     refType: MUTATION_STR,
     variables: variables as Variables
   };
   return ref;
 }
 
+/**
+ * @internal
+ */
 export class MutationManager {
   private _inflight: Array<PromiseLike<unknown>> = [];
   constructor(private _transport: DataConnectTransport) {}
@@ -81,15 +102,26 @@ export class MutationManager {
   }
 }
 
+/**
+ * Mutation Result from `executeMutation`
+ */
 export interface MutationResult<Data, Variables>
   extends DataConnectResult<Data, Variables> {
   ref: MutationRef<Data, Variables>;
 }
+/**
+ * Mutation return value from `executeMutation`
+ */
 export interface MutationPromise<Data, Variables>
   extends PromiseLike<MutationResult<Data, Variables>> {
   // reserved for special actions like cancellation
 }
 
+/**
+ * Execute Mutation
+ * @param mutationRef mutation to execute
+ * @returns `MutationRef`
+ */
 export function executeMutation<Data, Variables>(
   mutationRef: MutationRef<Data, Variables>
 ): MutationPromise<Data, Variables> {

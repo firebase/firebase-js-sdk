@@ -25,45 +25,93 @@ import {
   SerializedRef
 } from './Reference';
 
+/**
+ * Signature for `OnResultSubscription` for `subscribe`
+ */
 export type OnResultSubscription<Data, Variables> = (
   res: QueryResult<Data, Variables>
 ) => void;
+/**
+ * Signature for `OnErrorSubscription` for `subscribe`
+ */
 export type OnErrorSubscription = (err?: DataConnectError) => void;
+/**
+ * Signature for unsubscribe from `subscribe`
+ */
 export type QueryUnsubscribe = () => void;
+/**
+ * Representation of user provided subscription options.
+ */
 export interface DataConnectSubscription<Data, Variables> {
   userCallback: OnResultSubscription<Data, Variables>;
   errCallback?: (e?: DataConnectError) => void;
   unsubscribe: () => void;
 }
+
+/**
+ * QueryRef object
+ */
 export interface QueryRef<Data, Variables>
   extends OperationRef<Data, Variables> {
   refType: typeof QUERY_STR;
 }
+/**
+ * Result of `executeQuery`
+ */
 export interface QueryResult<Data, Variables>
   extends DataConnectResult<Data, Variables> {
   ref: QueryRef<Data, Variables>;
   toJSON: () => SerializedRef<Data, Variables>;
 }
+/**
+ * Promise returned from `executeQuery`
+ */
 export interface QueryPromise<Data, Variables>
   extends PromiseLike<QueryResult<Data, Variables>> {
   // reserved for special actions like cancellation
 }
 
+/**
+ * Execute Query
+ * @param queryRef query to execute.
+ * @returns `QueryPromise`
+ */
 export function executeQuery<Data, Variables>(
   queryRef: QueryRef<Data, Variables>
 ): QueryPromise<Data, Variables> {
   return queryRef.dataConnect._queryManager.executeQuery(queryRef);
 }
 
+/**
+ * Execute Query
+ * @param dcInstance Data Connect instance to use.
+ * @param queryName Query to execute
+ * @returns `QueryRef`
+ */
 export function queryRef<Data>(
   dcInstance: DataConnect,
   queryName: string
 ): QueryRef<Data, undefined>;
+/**
+ * Execute Query
+ * @param dcInstance Data Connect instance to use.
+ * @param queryName Query to execute
+ * @param variables Variables to execute with
+ * @returns `QueryRef`
+ */
 export function queryRef<Data, Variables>(
   dcInstance: DataConnect,
   queryName: string,
   variables: Variables
 ): QueryRef<Data, Variables>;
+/**
+ * Execute Query
+ * @param dcInstance Data Connect instance to use.
+ * @param queryName Query to execute
+ * @param variables Variables to execute with
+ * @param initialCache initial cache to use for client hydration
+ * @returns `QueryRef`
+ */
 export function queryRef<Data, Variables>(
   dcInstance: DataConnect,
   queryName: string,
@@ -79,6 +127,11 @@ export function queryRef<Data, Variables>(
     variables: variables as Variables
   };
 }
+/**
+ * Converts serialized ref to query ref
+ * @param serializedRef ref to convert to `QueryRef`
+ * @returns `QueryRef`
+ */
 export function toQueryRef<Data, Variables>(
   serializedRef: SerializedRef<Data, Variables>
 ) {
@@ -87,7 +140,13 @@ export function toQueryRef<Data, Variables>(
   } = serializedRef;
   return queryRef(getDataConnect(connectorConfig), name, variables);
 }
+/**
+ * `OnCompleteSubscription`
+ */
 export type OnCompleteSubscription = () => void;
+/**
+ * Representation of full observer options in `subscribe`
+ */
 export interface SubscriptionOptions<Data, Variables> {
   onNext?: OnResultSubscription<Data, Variables>;
   onErr?: OnErrorSubscription;
