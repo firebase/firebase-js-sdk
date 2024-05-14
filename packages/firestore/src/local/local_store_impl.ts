@@ -42,7 +42,7 @@ import {
   FieldIndex,
   fieldIndexSemanticComparator,
   INITIAL_LARGEST_BATCH_ID,
-  newIndexOffsetFromReadTime
+  newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
 import {
   mutationExtractBaseValue,
@@ -1260,7 +1260,7 @@ export function localStoreGetNewDocumentChanges(
       localStoreImpl.remoteDocuments.getAllFromCollectionGroup(
         txn,
         collectionGroup,
-        newIndexOffsetFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
+        newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
         /* limit= */ Number.MAX_SAFE_INTEGER
       )
     )

@@ -174,44 +174,4 @@ describeSpec('Queries:', [], () => {
       );
     }
   );
-
-  specTest(
-    'Multiple queries on same collection group',
-    ['multi-client'],
-    () => {
-      const cgQuery = newQueryForCollectionGroup('cg');
-      const cgQuery1 = queryWithAddedFilter(cgQuery, filter('val', '==', 1));
-      const cgQuery2 = queryWithAddedFilter(cgQuery, filter('val', '!=', 1));
-      const docs = [
-        doc('cg/1', 1000, { val: 1 }),
-        doc('cg/2', 1000, { val: 2 }),
-        doc('not-cg/nope', 1000, { val: 1 }),
-        doc('cg/1/not-cg/nope', 1000, { val: 1 })
-      ];
-      return (
-        client(0)
-          .expectPrimaryState(true)
-          // Listen to different queries on the same collection group
-          .client(1)
-          .userListens(cgQuery1)
-          .userListens(cgQuery2)
-
-          .client(0)
-          .expectListen(cgQuery1)
-          .expectListen(cgQuery2)
-          .watchAcks(cgQuery1)
-          .watchSends({ affects: [cgQuery1] }, docs[0])
-          .watchCurrents(cgQuery1, 'resume-token-2000')
-          .watchAcks(cgQuery2)
-          .watchSends({ affects: [cgQuery2] }, docs[1])
-          .watchCurrents(cgQuery2, 'resume-token-2000')
-          .watchSnapshots(2000)
-
-          .client(1)
-          .expectEvents(cgQuery1, { added: [docs[0]] })
-          .expectEvents(cgQuery2, { added: [docs[1]], fromCache: true })
-          .expectEvents(cgQuery2, { added: [] })
-      );
-    }
-  );
 });
