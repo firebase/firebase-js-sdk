@@ -24,7 +24,7 @@ import { Document } from '../../../src/model/document';
 import { doc, filter, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec, SpecBuilder } from './spec_builder';
+import { client, spec, SpecBuilder } from './spec_builder';
 
 // Helper to seed the cache with the specified docs by listening to each one.
 function specWithCachedDocs(...docs: Document[]): SpecBuilder {
@@ -133,6 +133,84 @@ describeSpec('Queries:', [], () => {
             fromCache: true,
             hasPendingWrites: true
           })
+      );
+    }
+  );
+
+  specTest(
+    'Queries in different tabs will not interferer',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection', filter('key', '==', 'a'));
+      const query2 = query('collection', filter('key', '==', 'b'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to the first query in the primary client
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcks(query1)
+          .watchSends({ affects: [query1] }, docA)
+
+          // Listen to different query in the secondary client
+          .client(1)
+          .userListens(query2)
+
+          .client(0)
+          .expectListen(query2)
+          .watchCurrents(query1, 'resume-token-1000')
+          // Receive global snapshot before the second query is acknowledged
+          .watchSnapshots(1000)
+          .expectEvents(query1, { added: [docA] })
+          // This should not trigger empty snapshot for second query(bugged behavior)
+          .client(1)
+          .client(0)
+          .watchAcksFull(query2, 2000, docB)
+          .client(1)
+          .expectEvents(query2, { added: [docB] })
+      );
+    }
+  );
+
+  specTest(
+    'Multiple queries on same collection group',
+    ['multi-client'],
+    () => {
+      const cgQuery = newQueryForCollectionGroup('cg');
+      const cgQuery1 = queryWithAddedFilter(cgQuery, filter('val', '==', 1));
+      const cgQuery2 = queryWithAddedFilter(cgQuery, filter('val', '!=', 1));
+      const docs = [
+        doc('cg/1', 1000, { val: 1 }),
+        doc('cg/2', 1000, { val: 2 }),
+        doc('not-cg/nope', 1000, { val: 1 }),
+        doc('cg/1/not-cg/nope', 1000, { val: 1 })
+      ];
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Listen to different queries on the same collection group
+          .client(1)
+          .userListens(cgQuery1)
+          .userListens(cgQuery2)
+
+          .client(0)
+          .expectListen(cgQuery1)
+          .expectListen(cgQuery2)
+          .watchAcks(cgQuery1)
+          .watchSends({ affects: [cgQuery1] }, docs[0])
+          .watchCurrents(cgQuery1, 'resume-token-2000')
+          .watchAcks(cgQuery2)
+          .watchSends({ affects: [cgQuery2] }, docs[1])
+          .watchCurrents(cgQuery2, 'resume-token-2000')
+          .watchSnapshots(2000)
+
+          .client(1)
+          .expectEvents(cgQuery1, { added: [docs[0]] })
+          .expectEvents(cgQuery2, { added: [docs[1]], fromCache: true })
+          .expectEvents(cgQuery2, { added: [] })
       );
     }
   );
