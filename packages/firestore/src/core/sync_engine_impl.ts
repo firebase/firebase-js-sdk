@@ -1095,9 +1095,10 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
           // secondary clients to update query state.
           if (viewSnapshot || remoteEvent) {
             if (syncEngineImpl.isPrimaryClient) {
+              const isCurrent = viewSnapshot && !viewSnapshot.fromCache;
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
-                viewSnapshot?.fromCache ? 'not-current' : 'current'
+                isCurrent ? 'current' : 'not-current'
               );
             }
           }
