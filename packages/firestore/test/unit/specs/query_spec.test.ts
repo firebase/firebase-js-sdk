@@ -138,7 +138,7 @@ describeSpec('Queries:', [], () => {
   );
 
   specTest(
-    'Queries in different tabs will not interferer',
+    'Queries in different tabs will not interfere',
     ['multi-client'],
     () => {
       const query1 = query('collection', filter('key', '==', 'a'));
