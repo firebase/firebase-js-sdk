@@ -42,6 +42,7 @@ import {
   FieldIndex,
   fieldIndexSemanticComparator,
   INITIAL_LARGEST_BATCH_ID,
+  newIndexOffsetFromReadTime,
   newIndexOffsetSuccessorFromReadTime
 } from '../model/field_index';
 import {
@@ -62,7 +63,7 @@ import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { diffArrays } from '../util/array';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { SortedMap } from '../util/sorted_map';
@@ -644,6 +645,10 @@ export function localStoreApplyRemoteEventToLocalCache(
 
       // Each loop iteration only affects its "own" doc, so it's safe to get all
       // the remote documents in advance in a single call.
+      logWarn(
+        LOG_TAG,
+        `Saved ${remoteEvent.documentUpdates.size} documents at readtime ${remoteEvent.snapshotVersion}`
+      );
       promises.push(
         populateDocumentChangeBuffer(
           txn,
@@ -1110,6 +1115,13 @@ export function localStoreExecuteQuery(
           )
         )
         .next(documents => {
+          let debug = queryCollectionGroup(query) === 'measurements';
+          if (debug) {
+            logWarn(
+              LOG_TAG,
+              `Setting max readtime with documents of size ${documents.size}`
+            );
+          }
           setMaxReadTime(
             localStoreImpl,
             queryCollectionGroup(query),
@@ -1243,7 +1255,9 @@ export function localStoreGetCachedTarget(
 // PORTING NOTE: Multi-Tab only.
 export function localStoreGetNewDocumentChanges(
   localStore: LocalStore,
-  collectionGroup: string
+  collectionGroup: string,
+  targetId: number,
+  debug = false
 ): Promise<DocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
 
@@ -1254,13 +1268,20 @@ export function localStoreGetNewDocumentChanges(
   const readTime =
     localStoreImpl.collectionGroupReadTime.get(collectionGroup) ||
     SnapshotVersion.min();
+  if (debug) {
+    logWarn(
+      LOG_TAG,
+      `Finni: target ${targetId} readTime for newer documents: `,
+      readTime
+    );
+  }
 
   return localStoreImpl.persistence
     .runTransaction('Get new document changes', 'readonly', txn =>
       localStoreImpl.remoteDocuments.getAllFromCollectionGroup(
         txn,
         collectionGroup,
-        newIndexOffsetSuccessorFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
+        newIndexOffsetFromReadTime(readTime, INITIAL_LARGEST_BATCH_ID),
         /* limit= */ Number.MAX_SAFE_INTEGER
       )
     )
@@ -1285,6 +1306,13 @@ function setMaxReadTime(
       readTime = doc.readTime;
     }
   });
+  let debug = collectionGroup === 'measurements';
+  if (debug) {
+    logWarn(
+      LOG_TAG,
+      `Setting max readtime for ${collectionGroup} to ${readTime}`
+    );
+  }
   localStoreImpl.collectionGroupReadTime.set(collectionGroup, readTime);
 }
 

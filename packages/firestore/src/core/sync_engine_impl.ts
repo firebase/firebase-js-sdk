@@ -299,6 +299,8 @@ export async function syncEngineListen(
   let targetId;
   let viewSnapshot;
 
+  let debug = query.collectionGroup === 'measurements';
+
   const queryView = syncEngineImpl.queryViewsByQuery.get(query);
   if (queryView) {
     // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
@@ -316,6 +318,10 @@ export async function syncEngineListen(
       queryToTarget(query)
     );
 
+    if (debug) {
+      logWarn(LOG_TAG, `Finni: Allocated target ${targetData.targetId}`);
+    }
+
     const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetData.targetId
     );
@@ -327,6 +333,13 @@ export async function syncEngineListen(
       status === 'current',
       targetData.resumeToken
     );
+
+    if (debug) {
+      logWarn(
+        LOG_TAG,
+        `Finni: first snapshot size: ${viewSnapshot.docs.size} fromCache: ${viewSnapshot.fromCache}`
+      );
+    }
 
     if (syncEngineImpl.isPrimaryClient) {
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
@@ -1031,9 +1044,27 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
           // secondary clients to update query state.
           if (viewSnapshot || remoteEvent) {
             if (syncEngineImpl.isPrimaryClient) {
+              let debug = queryView.query.collectionGroup === 'measurements';
+              const current = viewSnapshot && !viewSnapshot.fromCache;
+              if (debug) {
+                logWarn(
+                  LOG_TAG,
+                  `Update target ${queryView.targetId} to ${
+                    current ? 'current' : 'not-current'
+                  }`
+                );
+                logWarn(
+                  LOG_TAG,
+                  `This is due to viewSnapshot ${JSON.stringify(
+                    viewSnapshot,
+                    null,
+                    2
+                  )}`
+                );
+              }
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
-                viewSnapshot?.fromCache ? 'not-current' : 'current'
+                current ? 'current' : 'not-current'
               );
             }
           }
@@ -1065,6 +1096,8 @@ async function applyDocChanges(
   changes: DocumentMap,
   remoteEvent?: RemoteEvent
 ): Promise<ViewSnapshot | undefined> {
+  let debug = queryView.query.collectionGroup === 'measurements';
+
   let viewDocChanges = queryView.view.computeDocChanges(changes);
   if (viewDocChanges.needsRefill) {
     // The query has a limit and some docs were removed, so we need
@@ -1081,6 +1114,16 @@ async function applyDocChanges(
 
   const targetChange =
     remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
+  if (debug) {
+    logWarn(
+      LOG_TAG,
+      `Target change to apply to query view: ${JSON.stringify(
+        targetChange,
+        null,
+        2
+      )}`
+    );
+  }
   const viewChange = queryView.view.applyChanges(
     viewDocChanges,
     /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
@@ -1194,7 +1237,8 @@ export async function syncEngineSynchronizeWithChangedDocuments(
 
   return localStoreGetNewDocumentChanges(
     syncEngineImpl.localStore,
-    collectionGroup
+    collectionGroup,
+    -1
   ).then(changes =>
     syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes)
   );
@@ -1273,6 +1317,10 @@ export async function syncEngineApplyPrimaryState(
     syncEngineImpl._isPrimaryClient = true;
     await remoteStoreApplyPrimaryState(syncEngineImpl.remoteStore, true);
     for (const targetData of activeQueries) {
+      let debug = targetData.target.collectionGroup === 'measurements';
+      if (debug) {
+        logWarn(LOG_TAG, `Finni: Listening to ${targetData.targetId}`);
+      }
       remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   } else if (isPrimary === false && syncEngineImpl._isPrimaryClient !== false) {
@@ -1357,6 +1405,7 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       );
 
       for (const query of queries) {
+        let debug = query.collectionGroup === 'measurements';
         const queryView = syncEngineImpl.queryViewsByQuery.get(query);
         debugAssert(
           !!queryView,
@@ -1367,6 +1416,12 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
           syncEngineImpl,
           queryView
         );
+        if (debug) {
+          logWarn(
+            LOG_TAG,
+            `Finni: sync view computed ${viewChange.snapshot?.docs?.size}`
+          );
+        }
         if (viewChange.snapshot) {
           newViewSnapshots.push(viewChange.snapshot);
         }
@@ -1387,13 +1442,20 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
         syncEngineImpl.localStore,
         target
       );
-      await initializeViewAndComputeSnapshot(
+      let debug = target.collectionGroup === 'measurements';
+      const viewSnapshots = await initializeViewAndComputeSnapshot(
         syncEngineImpl,
         synthesizeTargetToQuery(target!),
         targetId,
         /*current=*/ false,
         targetData.resumeToken
       );
+      if (debug) {
+        logWarn(
+          LOG_TAG,
+          `Finni: sync view computed ${viewSnapshots?.docs?.size} and did not raise.`
+        );
+      }
     }
 
     activeQueries.push(targetData!);
@@ -1457,10 +1519,35 @@ export async function syncEngineApplyTargetState(
     switch (state) {
       case 'current':
       case 'not-current': {
+        let debug = query[0].collectionGroup === 'measurements';
+        if (!!query[0].collectionGroup) {
+          logWarn(LOG_TAG, `Finni: cg ${query[0].collectionGroup}`);
+          logWarn(
+            LOG_TAG,
+            `Finni: ob ${query[0].explicitOrderBy[0]?.field.canonicalString()}`
+          );
+        }
+        if (debug) {
+          logWarn(
+            LOG_TAG,
+            `Finni: target ${targetId} query ${
+              query[0].collectionGroup
+            } ${JSON.stringify(query[0].explicitOrderBy[0], null, 2)}`
+          );
+          debug = true;
+        }
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore,
-          queryCollectionGroup(query[0])
+          queryCollectionGroup(query[0]),
+          targetId,
+          debug
         );
+        if (debug) {
+          logWarn(
+            LOG_TAG,
+            `Finni: target ${targetId} changed doc size ${changes.size}`
+          );
+        }
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,

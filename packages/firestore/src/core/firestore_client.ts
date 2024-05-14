@@ -760,6 +760,13 @@ function executeQueryViaSnapshotListener(
         eventManagerUnlisten(eventManager, listener)
       );
 
+      let debug = snapshot.query.collectionGroup === 'measurements';
+      if (debug) {
+        logWarn(
+          LOG_TAG,
+          `Finni: getDocs listener fromCache: ${snapshot.fromCache} with source ${options.source}`
+        );
+      }
       if (snapshot.fromCache && options.source === 'server') {
         result.reject(
           new FirestoreError(

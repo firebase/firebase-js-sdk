@@ -24,6 +24,7 @@ import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import { logWarn } from '../util/log';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -290,7 +291,7 @@ export class QueryListener {
       snap.docChanges.length > 0 || snap.syncStateChanged,
       'We got a new snapshot with no changes?'
     );
-
+    let debug = snap.query.collectionGroup === 'measurements';
     if (!this.options.includeMetadataChanges) {
       // Remove the metadata only changes.
       const docChanges: DocumentViewChange[] = [];
@@ -311,13 +312,25 @@ export class QueryListener {
         snap.hasCachedResults
       );
     }
+    if (debug) {
+      logWarn(
+        'EventManager',
+        `Finni: raisedInitialEvent: ${this.raisedInitialEvent}`
+      );
+    }
     let raisedEvent = false;
     if (!this.raisedInitialEvent) {
       if (this.shouldRaiseInitialEvent(snap, this.onlineState)) {
+        if (debug) {
+          logWarn('EventManager', `Finni: raising initial snapshot`);
+        }
         this.raiseInitialEvent(snap);
         raisedEvent = true;
       }
     } else if (this.shouldRaiseEvent(snap)) {
+      if (debug) {
+        logWarn('EventManager', `Finni: raising snapshot`);
+      }
       this.queryObserver.next(snap);
       raisedEvent = true;
     }
@@ -354,8 +367,13 @@ export class QueryListener {
       'Determining whether to raise first event but already had first event'
     );
 
+    let debug = snap.query.collectionGroup === 'measurements';
+
     // Always raise the first event when we're synced
     if (!snap.fromCache) {
+      if (debug) {
+        logWarn('EM.shouldRaiseInitialEvent', `Finni: not from cache`);
+      }
       return true;
     }
 
@@ -369,11 +387,28 @@ export class QueryListener {
         snap.fromCache,
         'Waiting for sync, but snapshot is not from cache'
       );
+      if (debug) {
+        logWarn('EM.shouldRaiseInitialEvent', `Finni: false to wait for sync`);
+      }
       return false;
     }
 
     // Raise data from cache if we have any documents, have cached results before,
     // or we are offline.
+    if (debug) {
+      logWarn(
+        'EM.shouldRaiseInitialEvent',
+        `Finni: snap not empty ${!snap.docs.isEmpty()}`
+      );
+      logWarn(
+        'EM.shouldRaiseInitialEvent',
+        `Finni: snap has cache results ${snap.hasCachedResults}`
+      );
+      logWarn(
+        'EM.shouldRaiseInitialEvent',
+        `Finni: offline ${onlineState === OnlineState.Offline}`
+      );
+    }
     return (
       !snap.docs.isEmpty() ||
       snap.hasCachedResults ||
@@ -386,12 +421,27 @@ export class QueryListener {
     // the Metadata only changes have already been stripped out if needed.
     // At this point the only changes we will see are the ones we should
     // propagate.
+
+    let debug = snap.query.collectionGroup === 'measurements';
     if (snap.docChanges.length > 0) {
+      if (debug) {
+        logWarn('EM.shouldRaiseEvent', `Finni: true for nonempty`);
+      }
       return true;
     }
 
     const hasPendingWritesChanged =
       this.snap && this.snap.hasPendingWrites !== snap.hasPendingWrites;
+    if (debug) {
+      logWarn(
+        'EM.shouldRaiseEvent',
+        `Finni: hasPendingWritesChanged ${hasPendingWritesChanged}`
+      );
+      logWarn(
+        'EM.shouldRaiseEvent',
+        `Finni: syncStateChanged ${snap.syncStateChanged}`
+      );
+    }
     if (snap.syncStateChanged || hasPendingWritesChanged) {
       return this.options.includeMetadataChanges === true;
     }

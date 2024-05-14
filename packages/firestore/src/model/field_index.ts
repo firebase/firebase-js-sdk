@@ -177,6 +177,17 @@ export class IndexState {
   }
 }
 
+export function newIndexOffsetFromReadTime(
+  readTime: SnapshotVersion,
+  largestBatchId: number
+): IndexOffset {
+  return new IndexOffset(
+    SnapshotVersion.fromTimestamp(readTime.toTimestamp()),
+    DocumentKey.empty(),
+    largestBatchId
+  );
+}
+
 /**
  * Creates an offset that matches all documents with a read time higher than
  * `readTime`.
