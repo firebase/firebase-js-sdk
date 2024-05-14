@@ -24,7 +24,7 @@ import { Document } from '../../../src/model/document';
 import { doc, filter, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec, SpecBuilder } from './spec_builder';
+import { client, spec, SpecBuilder } from './spec_builder';
 
 // Helper to seed the cache with the specified docs by listening to each one.
 function specWithCachedDocs(...docs: Document[]): SpecBuilder {
@@ -133,6 +133,44 @@ describeSpec('Queries:', [], () => {
             fromCache: true,
             hasPendingWrites: true
           })
+      );
+    }
+  );
+
+  specTest(
+    'Queries in different tabs will not interfere',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection', filter('key', '==', 'a'));
+      const query2 = query('collection', filter('key', '==', 'b'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to the first query in the primary client
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcks(query1)
+          .watchSends({ affects: [query1] }, docA)
+
+          // Listen to different query in the secondary client
+          .client(1)
+          .userListens(query2)
+
+          .client(0)
+          .expectListen(query2)
+          .watchCurrents(query1, 'resume-token-1000')
+          // Receive global snapshot before the second query is acknowledged
+          .watchSnapshots(1000)
+          .expectEvents(query1, { added: [docA] })
+          // This should not trigger empty snapshot for second query(bugged behavior)
+          .client(1)
+          .client(0)
+          .watchAcksFull(query2, 2000, docB)
+          .client(1)
+          .expectEvents(query2, { added: [docB] })
       );
     }
   );
