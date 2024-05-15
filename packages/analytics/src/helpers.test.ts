@@ -416,9 +416,14 @@ describe('Gtag wrapping functions', () => {
         'gtag'
       );
       window['dataLayer'] = [];
-      (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
+      const eventObject = {
         'language': 'en'
-      });
+      };
+      (window['gtag'] as Gtag)(
+        GtagCommand.CONFIG,
+        fakeMeasurementId,
+        eventObject
+      );
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       initPromise1.resolve(fakeMeasurementId);
@@ -426,8 +431,12 @@ describe('Gtag wrapping functions', () => {
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
-      console.log('DEDB datalayer:', window['dataLayer']);
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data['0']).to.equal('config');
+      expect(data['1']).to.equal(fakeMeasurementId);
+      expect(data['2']).to.equal(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "config" calls if there are no pending initialization promises', async () => {
