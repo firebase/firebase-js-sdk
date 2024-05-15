@@ -139,9 +139,13 @@ jobs:
           --base "release" \
           --limit 1 \
           --json "body" \
-          | jq '.[].body'\
+          | jq '.[].body' \
           | jq -r . \
-          | sed '1,/^# Releases/d')
+          | sed '1,/^# Releases/d' \
+        )
+
+        # Prepend the Firebase release notes link and header
+        RELEASE_NOTES="For more detailed release notes, see [Firebase JavaScript SDK Release Notes](https://firebase.google.com/support/release-notes/js).\n\n# What's Changed\n\n${RELEASE_NOTES}"
 
         # Create the GitHub release
         gh release create "$NEWEST_TAG" \
