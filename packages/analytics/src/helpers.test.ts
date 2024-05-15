@@ -191,9 +191,9 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('event');
-      expect(data['1']).to.equal('purchase');
-      expect(data['2']).to.equal(eventObject);
+      expect(data[0]).to.equal('event');
+      expect(data[1]).to.equal('purchase');
+      expect(data[2]).to.equal(eventObject);
     });
 
     it(
@@ -230,9 +230,9 @@ describe('Gtag wrapping functions', () => {
         const dataLayer = window['dataLayer'] as DataLayer;
         expect(dataLayer.length).to.equal(1);
         const data = dataLayer[0];
-        expect(data['0']).to.equal('event');
-        expect(data['1']).to.equal('purchase');
-        expect(data['2']).to.equal(eventObject);
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -268,9 +268,9 @@ describe('Gtag wrapping functions', () => {
         const dataLayer = window['dataLayer'] as DataLayer;
         expect(dataLayer.length).to.equal(1);
         const data = dataLayer[0];
-        expect(data['0']).to.equal('event');
-        expect(data['1']).to.equal('purchase');
-        expect(data['2']).to.equal(eventObject);
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -305,9 +305,9 @@ describe('Gtag wrapping functions', () => {
         const dataLayer = window['dataLayer'] as DataLayer;
         expect(dataLayer.length).to.equal(1);
         const data = dataLayer[0];
-        expect(data['0']).to.equal('event');
-        expect(data['1']).to.equal('purchase');
-        expect(data['2']).to.equal(eventObject);
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -335,8 +335,8 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('set');
-      expect(data['1']).to.equal(eventObject);
+      expect(data[0]).to.equal('set');
+      expect(data[1]).to.equal(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "consent" calls', async () => {
@@ -360,9 +360,9 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('consent');
-      expect(data['1']).to.equal('update');
-      expect(data['2']).to.equal(consentParameters);
+      expect(data[0]).to.equal('consent');
+      expect(data[1]).to.equal('update');
+      expect(data[2]).to.equal(consentParameters);
     });
 
     it('new window.gtag function does not wait when sending "get" calls', async () => {
@@ -383,10 +383,10 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('get');
-      expect(data['1']).to.equal(fakeMeasurementId);
-      expect(data['2']).to.equal('client_id');
-      expect(data['3']).to.not.be.undefined;
+      expect(data[0]).to.equal('get');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal('client_id');
+      expect(data[3]).to.not.be.undefined;
     });
 
     it('new window.gtag function does not wait when sending an unknown command', async () => {
@@ -402,8 +402,8 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('new-command-from-gtag-team');
-      expect(data['1']).to.equal(fakeMeasurementId);
+      expect(data[0]).to.equal('new-command-from-gtag-team');
+      expect(data[1]).to.equal(fakeMeasurementId);
     });
 
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
@@ -434,9 +434,9 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('config');
-      expect(data['1']).to.equal(fakeMeasurementId);
-      expect(data['2']).to.equal(eventObject);
+      expect(data[0]).to.equal('config');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "config" calls if there are no pending initialization promises', async () => {
@@ -455,9 +455,9 @@ describe('Gtag wrapping functions', () => {
       const dataLayer = window['dataLayer'] as DataLayer;
       expect(dataLayer.length).to.equal(1);
       const data = dataLayer[0];
-      expect(data['0']).to.equal('config');
-      expect(data['1']).to.equal(fakeMeasurementId);
-      expect(data['2']).to.equal(eventObject);
+      expect(data[0]).to.equal('config');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal(eventObject);
     });
   });
 
