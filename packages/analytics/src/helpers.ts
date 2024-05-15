@@ -304,10 +304,11 @@ function wrapGtag(
           gtagParams as GtagConfigOrEventParams
         );
       } else if (command === GtagCommand.CONSENT) {
-        const [consentString, gtagParams] = args;
+        const [consentAction, gtagParams] = args;
+        // consentAction can be one of 'default' or 'update'.
         gtagCore(
           GtagCommand.CONSENT,
-          consentString,
+          consentAction,
           gtagParams as ConsentSettings
         );
       } else if (command === GtagCommand.GET) {
