@@ -133,23 +133,26 @@ jobs:
 
         # Get the release notes from the description of the most recent merged PR into the "release" branch
         # See: https://github.com/firebase/firebase-js-sdk/pull/8236 for an example description
-        RELEASE_NOTES=$(gh pr list \
+        JSON_RELEASE_NOTES=$(gh pr list \
           --repo "$GITHUB_REPOSITORY" \
           --state "merged" \
           --base "release" \
           --limit 1 \
           --json "body" \
-          | jq '.[].body' \
-          | jq -r . \
-          | sed '1,/^# Releases/d' \
+          | jq '.[].body | split("\n# Releases\n")[-1]' # Remove the generated changesets header
         )
+         
+        # Prepend the new release header
+        # We have to be careful to insert the new release header after a " character, since we're
+        # modifying the JSON string
+        JSON_RELEASE_NOTES="\"For more detailed release notes, see [Firebase JavaScript SDK Release Notes](https://firebase.google.com/support/release-notes/js).\n\n# What's Changed\n\n${JSON_RELEASE_NOTES:1}"
 
-        # Prepend the Firebase release notes link and header
-        RELEASE_NOTES="For more detailed release notes, see [Firebase JavaScript SDK Release Notes](https://firebase.google.com/support/release-notes/js).\n\n# What's Changed\n\n${RELEASE_NOTES}"
+        # Format the JSON string into a readable markdown string
+        RELEASE_NOTES=$(echo -E $JSON_RELEASE_NOTES | jq -r .)
 
         # Create the GitHub release
         gh release create "$NEWEST_TAG" \
-          --repo="$GITHUB_REPOSITORY" \
-          --title="$NEWEST_TAG" \
+          --repo "$GITHUB_REPOSITORY" \
+          --title "$NEWEST_TAG" \
           --notes "$RELEASE_NOTES" \
           --verify-tag
