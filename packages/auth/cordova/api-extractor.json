@@ -1,0 +1,9 @@
+{
+    "extends": "../../../config/api-extractor.json",
+    "mainEntryPointFilePath": "<projectFolder>/dist/cordova/index.cordova.d.ts",
+    "dtsRollup": {
+        "enabled": true,
+        "untrimmedFilePath": "<projectFolder>/dist/cordova/index.cordova.d.ts",
+        "publicTrimmedFilePath": "<projectFolder>/dist/cordova/index.cordova-public.d.ts"
+    }
+}

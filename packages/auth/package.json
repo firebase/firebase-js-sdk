@@ -111,7 +111,7 @@
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:node:integration:local": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration --local",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
-    "api-report": "api-extractor run --local --verbose",
+    "api-report": "api-extractor run --local --verbose --config ./api-extractor.json && api-extractor run --local --verbose --config ./web-extension/api-extractor.json && api-extractor run --local --verbose --config ./cordova/api-extractor.json",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/auth-public.d.ts"
