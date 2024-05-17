@@ -24,7 +24,7 @@ env:
   # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
   # the beahvior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
-  CHROMEDRIVER_CDNBINARIESURL: https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/
+  CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
   CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
   artifactRetentionDays: 14
@@ -42,10 +42,10 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - uses: actions/checkout@v3
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -81,10 +81,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -132,10 +132,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -161,9 +161,6 @@ jobs:
     name: (Firestore) Node.js and Browser (Chrome) Tests
     needs: build
     runs-on: ubuntu-latest
-    if: false
-    # Disable test for now since it's failing 100% of the time since
-    # https://github.com/firebase/firebase-js-sdk/pull/7453 and it needs to be investigated.
     steps:
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
@@ -175,10 +172,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -219,10 +216,10 @@ jobs:
         name: build.tar.gz
     - name: Unzip build artifact
       run: tar xf build.tar.gz
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}

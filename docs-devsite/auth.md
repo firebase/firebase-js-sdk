@@ -28,7 +28,7 @@ Firebase Authentication
 |  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.md#confirmpasswordreset_749dad8) | Completes the password reset process, given a confirmation code and new password. |
 |  [connectAuthEmulator(auth, url, options)](./auth.md#connectauthemulator_657c7e5) | Changes the [Auth](./auth.auth.md#auth_interface) instance to communicate with the Firebase Auth Emulator, instead of production Firebase Auth services. |
 |  [createUserWithEmailAndPassword(auth, email, password)](./auth.md#createuserwithemailandpassword_21ad33b) | Creates a new user account associated with the specified email address and password. |
-|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
+|  [fetchSignInMethodsForEmail(auth, email)](./auth.md#fetchsigninmethodsforemail_efb3887) | Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email. |
 |  [getMultiFactorResolver(auth, error)](./auth.md#getmultifactorresolver_201ba61) | Provides a [MultiFactorResolver](./auth.multifactorresolver.md#multifactorresolver_interface) suitable for completion of a multi-factor flow. |
 |  [getRedirectResult(auth, resolver)](./auth.md#getredirectresult_c35dc1f) | Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) from the redirect-based sign-in flow. |
 |  [initializeRecaptchaConfig(auth)](./auth.md#initializerecaptchaconfig_2a61ea7) | Loads the reCAPTCHA configuration into the <code>Auth</code> instance. |
@@ -36,7 +36,7 @@ Firebase Authentication
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.md#onauthstatechanged_b0d07ab) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.md#onidtokenchanged_b0d07ab) | Adds an observer for changes to the signed-in user's ID token. |
 |  [revokeAccessToken(auth, token)](./auth.md#revokeaccesstoken_5556ad5) | Revokes the given access token. Currently only supports Apple OAuth access tokens. |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail_95b079b) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.md#sendpasswordresetemail_95b079b) | Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. |
 |  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.md#sendsigninlinktoemail_95b079b) | Sends a sign-in email link to the user with the specified email. |
 |  [setPersistence(auth, persistence)](./auth.md#setpersistence_a3592ac) | Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) instance for the currently saved <code>Auth</code> session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
 |  [signInAnonymously(auth)](./auth.md#signinanonymously_2a61ea7) | Asynchronously signs in as an anonymous user. |
@@ -88,7 +88,7 @@ Firebase Authentication
 |  [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) | Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md#emailauthcredential_class)<!-- -->. |
 |  [FacebookAuthProvider](./auth.facebookauthprovider.md#facebookauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.FACEBOOK. |
 |  [GithubAuthProvider](./auth.githubauthprovider.md#githubauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GITHUB. |
-|  [GoogleAuthProvider](./auth.googleauthprovider.md#googleauthprovider_class) | Provider for generating an an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE. |
+|  [GoogleAuthProvider](./auth.googleauthprovider.md#googleauthprovider_class) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE. |
 |  [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) | Represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class)<!-- -->. |
 |  [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) | Provider for generating generic [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [PhoneAuthCredential](./auth.phoneauthcredential.md#phoneauthcredential_class) | Represents the credentials returned by [PhoneAuthProvider](./auth.phoneauthprovider.md#phoneauthprovider_class)<!-- -->. |
@@ -136,7 +136,7 @@ Firebase Authentication
 |  [PhoneSingleFactorInfoOptions](./auth.phonesinglefactorinfooptions.md#phonesinglefactorinfooptions_interface) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth.popupredirectresolver.md#popupredirectresolver_interface) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.md#signinwithpopup_770f816) or [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth.reactnativeasyncstorage.md#reactnativeasyncstorage_interface) | Interface for a supplied <code>AsyncStorage</code>. |
-|  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the \[reCAPTCHA docs\](https://developers.google.com/recaptcha/docs/display\#render\_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
+|  [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | Interface representing reCAPTCHA parameters.<!-- -->See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param) for the list of accepted parameters. All parameters are accepted except for <code>sitekey</code>: Firebase Auth provisions a reCAPTCHA for each project and will configure the site key upon rendering.<!-- -->For an invisible reCAPTCHA, set the <code>size</code> key to <code>invisible</code>. |
 |  [TotpMultiFactorAssertion](./auth.totpmultifactorassertion.md#totpmultifactorassertion_interface) | The class for asserting ownership of a TOTP second factor. Provided by [TotpMultiFactorGenerator.assertionForEnrollment()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforenrollment) and [TotpMultiFactorGenerator.assertionForSignIn()](./auth.totpmultifactorgenerator.md#totpmultifactorgeneratorassertionforsignin)<!-- -->. |
 |  [TotpMultiFactorInfo](./auth.totpmultifactorinfo.md#totpmultifactorinfo_interface) | The subclass of the [MultiFactorInfo](./auth.multifactorinfo.md#multifactorinfo_interface) interface for TOTP second factors. The <code>factorId</code> of this second factor is [FactorId](./auth.md#factorid)<!-- -->.TOTP. |
 |  [User](./auth.user.md#user_interface) | A user account. |
@@ -381,6 +381,8 @@ On successful creation of the user account, this user will also be signed in to 
 
 User account creation can fail if the account already exists or the password is invalid.
 
+This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 Note: The email address acts as a unique identifier for the user and enables an email-based password reset. This function will create a new user account and set the initial user password.
 
 <b>Signature:</b>
@@ -403,7 +405,7 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 ### fetchSignInMethodsForEmail(auth, email) {:#fetchsigninmethodsforemail_efb3887}
 
-Gets the list of possible sign in methods for the given email address. This method returns an empty list when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
+Gets the list of possible sign in methods for the given email address. This method returns an empty list when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, irrespective of the number of authentication methods available for the given email.
 
 This is useful to differentiate methods of sign-in for the same provider, eg. [EmailAuthProvider](./auth.emailauthprovider.md#emailauthprovider_class) which has 2 methods of sign-in, [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_PASSWORD and [SignInMethod](./auth.md#signinmethod)<!-- -->.EMAIL\_LINK.
 
@@ -418,7 +420,7 @@ export declare function fetchSignInMethodsForEmail(auth: Auth, email: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  auth | [Auth](./auth.auth.md#auth_interface) | The [Auth](./auth.auth.md#auth_interface) instance. |
-|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection). |
+|  email | string | The user's email address.<!-- -->Deprecated. Migrating off of this method is recommended as a security best-practice. Learn more in the Identity Platform documentation for [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -451,7 +453,7 @@ Returns a [UserCredential](./auth.usercredential.md#usercredential_interface) fr
 
 If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an error. If no redirect operation was called, returns `null`<!-- -->.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -628,7 +630,7 @@ Promise&lt;void&gt;
 
 ### sendPasswordResetEmail(auth, email, actionCodeSettings) {:#sendpasswordresetemail_95b079b}
 
-Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
+Sends a password reset email to the given email address. This method does not throw an error when there's no user account with the given email address and [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
 
 To complete the password reset, call [confirmPasswordReset()](./auth.md#confirmpasswordreset_749dad8) with the code supplied in the email sent to the user, along with the new password specified by the user.
 
@@ -728,7 +730,7 @@ Changes the type of persistence on the [Auth](./auth.auth.md#auth_interface) ins
 
 This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the `Auth` state for applications that are shared by other users or have sensitive data.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -763,6 +765,8 @@ Asynchronously signs in as an anonymous user.
 
 If there is already an anonymous user signed in, that user will be returned; otherwise, a new anonymous user identity will be created and returned.
 
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -784,6 +788,8 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 Asynchronously signs in with the given credentials.
 
 An [AuthProvider](./auth.authprovider.md#authprovider_interface) can be used to generate the credential.
+
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -810,6 +816,8 @@ Custom tokens are used to integrate Firebase Auth with existing auth systems, an
 
 Fails with an error if the token is invalid, expired, or not accepted by the Firebase Auth service.
 
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -831,7 +839,9 @@ Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!
 
 Asynchronously signs in using an email and password.
 
-Fails with an error if the email address and password do not match. When \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
+Fails with an error if the email address and password do not match. When [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled, this method fails with "auth/invalid-credential" in case of an invalid email/password.
+
+This method is not supported on [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.md#createuserwithemailandpassword_21ad33b)<!-- -->.
 
@@ -860,6 +870,8 @@ Asynchronously signs in using an email and sign-in email link.
 If no link is passed, the link is inferred from the current URL.
 
 Fails with an error if the email address is invalid or OTP in email link expires.
+
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
 
@@ -913,7 +925,7 @@ This method sends a code via SMS to the given phone number, and returns a [Confi
 
 For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -951,7 +963,7 @@ Authenticates a Firebase client using a popup-based OAuth authentication flow.
 
 If succeeds, returns the signed in user along with the provider's credential. If sign in was unsuccessful, returns an error object containing additional information about the error.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -993,7 +1005,7 @@ Authenticates a Firebase client using a full-page redirect flow.
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [signInWithRedirect()](./auth.md#signinwithredirect_770f816)<!-- -->.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1045,6 +1057,8 @@ const operationType = result.operationType;
 
 Signs out the current user.
 
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1070,6 +1084,8 @@ A new instance copy of the user provided will be made and set as currentUser.
 This will trigger [onAuthStateChanged()](./auth.md#onauthstatechanged_b0d07ab) and [onIdTokenChanged()](./auth.md#onidtokenchanged_b0d07ab) listeners like other sign in methods.
 
 The operation fails with an error if the user to be updated belongs to a different Firebase project.
+
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1347,7 +1363,7 @@ Links the [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) to the us
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [linkWithRedirect()](./auth.md#linkwithredirect_41c0b31)<!-- -->.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1411,6 +1427,8 @@ Re-authenticates a user using a fresh credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts. This method can be used to recover from a `CREDENTIAL_TOO_OLD_LOGIN_AGAIN` error or a `TOKEN_EXPIRED` error.
 
+This method is not supported on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1434,7 +1452,7 @@ Re-authenticates a user using a fresh phone credential.
 
 Use before operations such as [updatePassword()](./auth.md#updatepassword_6df673e) that require tokens from recent sign-in attempts.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1460,7 +1478,7 @@ Reauthenticates the current user with the specified [OAuthProvider](./auth.oauth
 
 If the reauthentication is successful, the returned result will contain the user and the provider's credential.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1498,7 +1516,7 @@ Reauthenticates the current user with the specified [OAuthProvider](./auth.oauth
 
 To handle the results and errors for this operation, refer to [getRedirectResult()](./auth.md#getredirectresult_c35dc1f)<!-- -->. Follow the [best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices) when using [reauthenticateWithRedirect()](./auth.md#reauthenticatewithredirect_41c0b31)<!-- -->.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -1630,6 +1648,8 @@ Updates the user's email address.
 
 An email will be sent to the original email address (if it was set) that allows to revoke the email address change, in order to protect them from account hijacking.
 
+This method is not supported on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
+
 Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
 
 <b>Signature:</b>
@@ -1643,7 +1663,7 @@ export declare function updateEmail(user: User, newEmail: string): Promise<void>
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  user | [User](./auth.user.md#user_interface) | The user. |
-|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when \[Email Enumeration Protection\](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail_09d6f11) instead. |
+|  newEmail | string | The new email address.<!-- -->Throws "auth/operation-not-allowed" error when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled. Deprecated - Use [verifyBeforeUpdateEmail()](./auth.md#verifybeforeupdateemail_09d6f11) instead. |
 
 <b>Returns:</b>
 
@@ -1676,7 +1696,7 @@ Promise&lt;void&gt;
 
 Updates the user's phone number.
 
-This method does not work in a Node.js environment.
+This method does not work in a Node.js environment or on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 

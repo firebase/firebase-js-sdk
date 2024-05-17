@@ -26,6 +26,8 @@ import { UserInternal } from '../../model/user';
 import { _logoutIfInvalidated } from './invalidation';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 /**
  * Updates a user's profile data.
@@ -81,6 +83,9 @@ export async function updateProfile(
  * An email will be sent to the original email address (if it was set) that allows to revoke the
  * email address change, in order to protect them from account hijacking.
  *
+ * This method is not supported on any {@link User} signed in by {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
+ *
  * Important: this is a security sensitive operation that requires the user to have recently signed
  * in. If this requirement isn't met, ask the user to authenticate again and then call
  * {@link reauthenticateWithCredential}.
@@ -88,17 +93,21 @@ export async function updateProfile(
  * @param user - The user.
  * @param newEmail - The new email address.
  *
- * Throws "auth/operation-not-allowed" error when [Email Enumeration Protection](https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection) is enabled.
+ * Throws "auth/operation-not-allowed" error when
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}
+ * is enabled.
  * Deprecated - Use {@link verifyBeforeUpdateEmail} instead.
  *
  * @public
  */
 export function updateEmail(user: User, newEmail: string): Promise<void> {
-  return updateEmailOrPassword(
-    getModularInstance(user) as UserInternal,
-    newEmail,
-    null
-  );
+  const userInternal = getModularInstance(user) as UserInternal;
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
+    );
+  }
+  return updateEmailOrPassword(userInternal, newEmail, null);
 }
 
 /**

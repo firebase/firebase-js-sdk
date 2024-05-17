@@ -14,6 +14,8 @@ Converter used by `withConverter()` to transform user objects of type `AppModelT
 
 Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.
 
+In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as `symbol` and `bigint`<!-- -->), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement `FirestoreDataConverter` and register the converter with Firestore objects, such as `DocumentReference` or `Query`<!-- -->, to automatically convert `AppModel` to `DbModel` when storing into Firestore, and convert `DbModel` to `AppModel` when retrieving from Firestore.
+
 <b>Signature:</b>
 
 ```typescript
@@ -24,7 +26,7 @@ export declare interface FirestoreDataConverter<AppModelType, DbModelType extend
 
 |  Method | Description |
 |  --- | --- |
-|  [fromFirestore(snapshot, options)](./firestore_.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type <code>AppModelType</code>. You can access your data by calling: <code>snapshot.data(options)</code>.<!-- -->Generally, the data returned from <code>snapshot.data()</code> can be cast to <code>DbModelType</code>; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout. |
+|  [fromFirestore(snapshot, options)](./firestore_.firestoredataconverter.md#firestoredataconverterfromfirestore) | Called by the Firestore SDK to convert Firestore data into an object of type <code>AppModelType</code>. You can access your data by calling: <code>snapshot.data(options)</code>.<!-- -->Generally, the data returned from <code>snapshot.data()</code> can be cast to <code>DbModelType</code>; however, this is not guaranteed because Firestore does not enforce a schema on the database. For example, writes from a previous version of the application or writes from another client that did not use a type converter could have written data with different properties and/or property types. The implementation will need to choose whether to gracefully recover from non-conforming data or throw an error.<!-- -->To override this method, see . |
 |  [toFirestore(modelObject)](./firestore_.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain JavaScript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. To use <code>set()</code> with <code>merge</code> and <code>mergeFields</code>, <code>toFirestore()</code> must be defined with <code>PartialWithFieldValue&lt;AppModelType&gt;</code>.<!-- -->The <code>WithFieldValue&lt;T&gt;</code> type extends <code>T</code> to also allow FieldValues such as [deleteField()](./firestore_.md#deletefield) to be used as property values. |
 |  [toFirestore(modelObject, options)](./firestore_.firestoredataconverter.md#firestoredataconvertertofirestore) | Called by the Firestore SDK to convert a custom model object of type <code>AppModelType</code> into a plain JavaScript object (suitable for writing directly to the Firestore database) of type <code>DbModelType</code>. Used with [setDoc()](./firestore_.md#setdoc_ee215ad)<!-- -->,  and  with <code>merge:true</code> or <code>mergeFields</code>.<!-- -->The <code>PartialWithFieldValue&lt;T&gt;</code> type extends <code>Partial&lt;T&gt;</code> to allow FieldValues such as [arrayUnion()](./firestore_.md#arrayunion_7d853aa) to be used as property values. It also supports nested <code>Partial</code> by allowing nested fields to be omitted. |
 
@@ -32,7 +34,9 @@ export declare interface FirestoreDataConverter<AppModelType, DbModelType extend
 
 Called by the Firestore SDK to convert Firestore data into an object of type `AppModelType`<!-- -->. You can access your data by calling: `snapshot.data(options)`<!-- -->.
 
-Generally, the data returned from `snapshot.data()` can be cast to `DbModelType`<!-- -->; however, this is not guaranteed as writes to the database may have occurred without a type converter enforcing this specific layout.
+Generally, the data returned from `snapshot.data()` can be cast to `DbModelType`<!-- -->; however, this is not guaranteed because Firestore does not enforce a schema on the database. For example, writes from a previous version of the application or writes from another client that did not use a type converter could have written data with different properties and/or property types. The implementation will need to choose whether to gracefully recover from non-conforming data or throw an error.
+
+To override this method, see .
 
 <b>Signature:</b>
 

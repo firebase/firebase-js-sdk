@@ -42,7 +42,7 @@ The Firebase Analytics Web SDK. This SDK does not work in a Node.js environment.
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_800159e) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Measure exceptions](https://developers.google.com/analytics/devguides/collection/ga4/exceptions)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_9c11aa9) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
 |  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_1f3f282) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->List of recommended event parameters can be found in [the GA4 reference documentation](https://developers.google.com/gtagjs/reference/ga4-events)<!-- -->. |
-|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_0792e28) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)<!-- -->. |
+|  [logEvent(analyticsInstance, eventName, eventParams, options)](./analytics.md#logevent_0792e28) | Sends a Google Analytics event with given <code>eventParams</code>. This method automatically associates this logged event with this Firebase web app instance on this device.<!-- -->See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views)<!-- -->. |
 |  [setAnalyticsCollectionEnabled(analyticsInstance, enabled)](./analytics.md#setanalyticscollectionenabled_494179c) | Sets whether Google Analytics collection is enabled for this app on this device. Sets global <code>window['ga-disable-analyticsId'] = true;</code> |
 |  [setCurrentScreen(analyticsInstance, screenName, options)](./analytics.md#setcurrentscreen_a6168fa) | Use gtag <code>config</code> command to set <code>screen_name</code>. |
 |  [setUserId(analyticsInstance, id, options)](./analytics.md#setuserid_86d82f6) | Use gtag <code>config</code> command to set <code>user_id</code>. |
@@ -780,7 +780,7 @@ void
 
 Sends a Google Analytics event with given `eventParams`<!-- -->. This method automatically associates this logged event with this Firebase web app instance on this device.
 
-See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)<!-- -->.
+See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views)<!-- -->.
 
 <b>Signature:</b>
 

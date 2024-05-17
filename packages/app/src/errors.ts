@@ -22,23 +22,27 @@ export const enum AppError {
   BAD_APP_NAME = 'bad-app-name',
   DUPLICATE_APP = 'duplicate-app',
   APP_DELETED = 'app-deleted',
+  SERVER_APP_DELETED = 'server-app-deleted',
   NO_OPTIONS = 'no-options',
   INVALID_APP_ARGUMENT = 'invalid-app-argument',
   INVALID_LOG_ARGUMENT = 'invalid-log-argument',
   IDB_OPEN = 'idb-open',
   IDB_GET = 'idb-get',
   IDB_WRITE = 'idb-set',
-  IDB_DELETE = 'idb-delete'
+  IDB_DELETE = 'idb-delete',
+  FINALIZATION_REGISTRY_NOT_SUPPORTED = 'finalization-registry-not-supported',
+  INVALID_SERVER_APP_ENVIRONMENT = 'invalid-server-app-environment'
 }
 
 const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
     "No Firebase App '{$appName}' has been created - " +
     'call initializeApp() first',
-  [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}",
+  [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}'",
   [AppError.DUPLICATE_APP]:
     "Firebase App named '{$appName}' already exists with different options or config",
   [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
+  [AppError.SERVER_APP_DELETED]: 'Firebase Server App has been deleted',
   [AppError.NO_OPTIONS]:
     'Need to provide options, when not being deployed to hosting via source.',
   [AppError.INVALID_APP_ARGUMENT]:
@@ -53,7 +57,11 @@ const ERRORS: ErrorMap<AppError> = {
   [AppError.IDB_WRITE]:
     'Error thrown when writing to IndexedDB. Original error: {$originalErrorMessage}.',
   [AppError.IDB_DELETE]:
-    'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.'
+    'Error thrown when deleting from IndexedDB. Original error: {$originalErrorMessage}.',
+  [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]:
+    'FirebaseServerApp deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry.',
+  [AppError.INVALID_SERVER_APP_ENVIRONMENT]:
+    'FirebaseServerApp is not for use in browser environments.'
 };
 
 interface ErrorParams {
@@ -66,6 +74,7 @@ interface ErrorParams {
   [AppError.IDB_GET]: { originalErrorMessage?: string };
   [AppError.IDB_WRITE]: { originalErrorMessage?: string };
   [AppError.IDB_DELETE]: { originalErrorMessage?: string };
+  [AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED]: { appName?: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(

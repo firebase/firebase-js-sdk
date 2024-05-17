@@ -11,9 +11,9 @@
 *       @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
-packages/database-types @maneesht @jsdt @jmwski @firebase/jssdk-global-approvers
+packages/database @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-compat @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-types @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -34,10 +34,10 @@ packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-compat @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-types @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
-packages/auth-interop-types @lisajian @Xiaoshouzi-gh @renkelvin @sam-gc @firebase/jssdk-global-approvers
+packages/auth @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
+packages/auth-compat @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
+packages/auth-types @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
+packages/auth-interop-types @lisajian @Xiaoshouzi-gh @sam-gc @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
@@ -71,7 +71,7 @@ packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 # Documentation Changes
 packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
-docs-devsite/ @egilmorez @markarndt @kevinthecheung
+docs-devsite/ @firebase/firebase-techwriters
 
 # Changeset
 .changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

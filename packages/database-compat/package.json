@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-compat",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -50,21 +50,21 @@
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../database/dist/public.d.ts -o dist/database-compat/src/index.d.ts -a -r Database:types.FirebaseDatabase -r Query:types.Query -r DatabaseReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/database"
   },
   "dependencies": {
-    "@firebase/database": "1.0.2",
-    "@firebase/database-types": "1.0.0",
-    "@firebase/logger": "0.4.0",
-    "@firebase/util": "1.9.3",
-    "@firebase/component": "0.6.4",
+    "@firebase/database": "1.0.5",
+    "@firebase/database-types": "1.0.3",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.9.6",
+    "@firebase/component": "0.6.7",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.25",
+    "@firebase/app-compat": "0.2.33",
     "typescript": "4.7.4"
   },
   "repository": {
     "directory": "packages/database-compat",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

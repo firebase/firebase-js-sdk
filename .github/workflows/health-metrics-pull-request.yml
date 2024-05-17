@@ -35,13 +35,13 @@ env:
 jobs:
   binary-size:
     name: Binary Size
-    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
+    if: (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
@@ -52,13 +52,13 @@ jobs:
         run: yarn size-report
   modular-export-size:
     name: Binary Size For Modular Exports
-    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
+    if: (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 20.x
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'

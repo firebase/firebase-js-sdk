@@ -547,9 +547,9 @@ describe('Settings', () => {
   it('gets settings from useEmulator', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    connectFirestoreEmulator(db, 'localhost', 9000);
+    connectFirestoreEmulator(db, '127.0.0.1', 9000);
 
-    expect(db._getSettings().host).to.equal('localhost:9000');
+    expect(db._getSettings().host).to.equal('127.0.0.1:9000');
     expect(db._getSettings().ssl).to.be.false;
   });
 
@@ -557,9 +557,9 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     db._setSettings({ host: 'other.host' });
-    connectFirestoreEmulator(db, 'localhost', 9000);
+    connectFirestoreEmulator(db, '127.0.0.1', 9000);
 
-    expect(db._getSettings().host).to.equal('localhost:9000');
+    expect(db._getSettings().host).to.equal('127.0.0.1:9000');
     expect(db._getSettings().ssl).to.be.false;
   });
 
@@ -567,7 +567,7 @@ describe('Settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
     const mockUserToken = { sub: 'foobar' };
-    connectFirestoreEmulator(db, 'localhost', 9000, { mockUserToken });
+    connectFirestoreEmulator(db, '127.0.0.1', 9000, { mockUserToken });
 
     const credentials = db._authCredentials;
     expect(credentials).to.be.instanceOf(EmulatorAuthCredentialsProvider);
@@ -579,7 +579,7 @@ describe('Settings', () => {
   it('sets credentials based on mockUserToken string', async () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    connectFirestoreEmulator(db, 'localhost', 9000, {
+    connectFirestoreEmulator(db, '127.0.0.1', 9000, {
       mockUserToken: 'my-custom-mock-user-token'
     });
 

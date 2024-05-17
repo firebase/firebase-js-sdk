@@ -1,5 +1,41 @@
 # @firebase/database-compat
 
+## 1.0.5
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/database@1.0.5
+  - @firebase/database-types@1.0.3
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
+## 1.0.4
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/database-types@1.0.2
+  - @firebase/component@0.6.6
+  - @firebase/database@1.0.4
+  - @firebase/logger@0.4.1
+  - @firebase/util@1.9.5
+
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`046ac8a39`](https://github.com/firebase/firebase-js-sdk/commit/046ac8a39b483e127a4bbe11a5390a3e6018f2a7), [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/database@1.0.3
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+  - @firebase/database-types@1.0.1
+
 ## 1.0.2
 
 ### Patch Changes

@@ -29,9 +29,9 @@ export interface GtagConfigParams
 |  [cookie\_flags](./analytics.gtagconfigparams.md#gtagconfigparamscookie_flags) | string | Appends additional flags to the cookie when set. See [Cookies and user identification](https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id) |
 |  [cookie\_prefix](./analytics.gtagconfigparams.md#gtagconfigparamscookie_prefix) | string | Defaults to <code>_ga</code>. See [Cookies and user identification](https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id) |
 |  [cookie\_update](./analytics.gtagconfigparams.md#gtagconfigparamscookie_update) | boolean | If set to true, will update cookies on each page load. Defaults to true. See [Cookies and user identification](https://developers.google.com/analytics/devguides/collection/ga4/cookies-user-id) |
-|  [page\_location](./analytics.gtagconfigparams.md#gtagconfigparamspage_location) | string | The URL of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view) |
-|  [page\_title](./analytics.gtagconfigparams.md#gtagconfigparamspage_title) | string | The title of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view) |
-|  [send\_page\_view](./analytics.gtagconfigparams.md#gtagconfigparamssend_page_view) | boolean | Whether or not a page view should be sent. If set to true (default), a page view is automatically sent upon initialization of analytics. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view) |
+|  [page\_location](./analytics.gtagconfigparams.md#gtagconfigparamspage_location) | string | The URL of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views) |
+|  [page\_title](./analytics.gtagconfigparams.md#gtagconfigparamspage_title) | string | The title of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views) |
+|  [send\_page\_view](./analytics.gtagconfigparams.md#gtagconfigparamssend_page_view) | boolean | Whether or not a page view should be sent. If set to true (default), a page view is automatically sent upon initialization of analytics. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views) |
 
 ## GtagConfigParams.allow\_ad\_personalization\_signals
 
@@ -105,7 +105,7 @@ If set to true, will update cookies on each page load. Defaults to true. See [Co
 
 ## GtagConfigParams.page\_location
 
-The URL of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)
+The URL of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views)
 
 <b>Signature:</b>
 
@@ -115,7 +115,7 @@ The URL of the page. See [Page views](https://developers.google.com/analytics/de
 
 ## GtagConfigParams.page\_title
 
-The title of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)
+The title of the page. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views)
 
 <b>Signature:</b>
 
@@ -125,7 +125,7 @@ The title of the page. See [Page views](https://developers.google.com/analytics/
 
 ## GtagConfigParams.send\_page\_view
 
-Whether or not a page view should be sent. If set to true (default), a page view is automatically sent upon initialization of analytics. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/page-view)
+Whether or not a page view should be sent. If set to true (default), a page view is automatically sent upon initialization of analytics. See [Page views](https://developers.google.com/analytics/devguides/collection/ga4/views)
 
 <b>Signature:</b>
 

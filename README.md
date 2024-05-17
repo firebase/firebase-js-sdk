@@ -18,8 +18,11 @@ To get started using Firebase, see
 [![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
 ## Upgrade to Version 9
+
 Version 9 has a redesigned API that supports tree-shaking. Read the [Upgrade Guide](https://firebase.google.com/docs/web/modular-upgrade) to learn more.
+
 ## Supported Environments
+
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
 
 ## SDK Dev Workflow
@@ -29,9 +32,8 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. As of June 13th, 2023 the team has been testing with Node.js versions
-between `16.4.0` and `16.16.0`, but the required verison of Node.js may change as we update
-our dependencies.
+installed on your machine. As of April 19th, 2024 the team has been testing with Node.js version 
+`20.12.2`, but the required version of Node.js may change as we update our dependencies.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -45,7 +47,7 @@ In addition to Node.js we use `yarn` to facilitate multi package development.
 To install `yarn` follow the instructions listed on their website:
 https://yarnpkg.com/en/docs/install
 
-This repo currently supports building with yarn `1.x`. For instance, after installating yarn, run
+This repo currently supports building with yarn `1.x`. For instance, after installing yarn, run
 ```bash
 $ yarn set version 1.22.11
 ```
@@ -64,7 +66,7 @@ $ yarn -v
 $ java -version
 ```
 
-Your `node` version should be between `16.4.0` and `16.6.0`, your `yarn` version should
+Your `node` version should be `20.12.2`, your `yarn` version should
 be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
@@ -205,7 +207,7 @@ In order to manually test your SDK changes locally, you must use [yarn link](htt
 ```shell
 $ cd packages/firebase
 $ yarn link # initialize the linking to the other folder
-$ cd ../packages/<my-product> # Example: $ cd packages/database
+$ cd ../<my-product> # Example: $ cd ../firestore
 $ yarn link # link your product to make it available elsewhere
 $ cd <my-test-app-dir> # cd into your personal project directory
 $ yarn link firebase @firebase/<my-product> # tell yarn to use the locally built firebase SDK instead

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "1.5.1",
+  "version": "1.7.3",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -8,6 +8,7 @@
   "browser": "dist/esm2017/index.js",
   "module": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.js",
+  "web-extension": "dist/web-extension-esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "esm5": "dist/esm5/index.js",
   "exports": {
@@ -41,6 +42,12 @@
       "types": "./dist/cordova/index.cordova.d.ts",
       "default": "./dist/cordova/index.js"
     },
+    "./web-extension": {
+      "types:": "./dist/web-extension-esm2017/index.web-extension.d.ts",
+      "import": "./dist/web-extension-esm2017/index.js",
+      "require": "./dist/web-extension-cjs/index.js",
+      "default": "./dist/web-extension-esm2017/index.js"
+    },
     "./internal": {
       "types": "./dist/internal/index.d.ts",
       "node": {
@@ -61,6 +68,12 @@
         "require": "./dist/browser-cjs/internal.js",
         "import": "./dist/esm2017/internal.js"
       },
+      "web-extension": {
+        "types:": "./dist/web-extension-cjs/internal/index.d.ts",
+        "import": "./dist/web-extension-esm2017/internal.js",
+        "require": "./dist/web-extension-cjs/internal.js",
+        "default": "./dist/web-extension-esm2017/internal.js"
+      },
       "default": "./dist/esm2017/internal.js"
     },
     "./package.json": "./package.json"
@@ -68,7 +81,8 @@
   "files": [
     "dist",
     "cordova/package.json",
-    "internal/package.json"
+    "internal/package.json",
+    "web-extension/package.json"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -112,19 +126,19 @@
     }
   },
   "dependencies": {
-    "@firebase/component": "0.6.4",
-    "@firebase/logger": "0.4.0",
-    "@firebase/util": "1.9.3",
-    "undici": "5.26.5",
+    "@firebase/component": "0.6.7",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.9.6",
+    "undici": "5.28.4",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.25",
+    "@firebase/app": "0.10.3",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
-    "@types/express": "4.17.17",
-    "chromedriver": "114.0.2",
+    "@types/express": "4.17.21",
+    "chromedriver": "119.0.1",
     "rollup": "2.79.1",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
@@ -135,7 +149,7 @@
   "repository": {
     "directory": "packages/auth",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

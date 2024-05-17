@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { getUA, isSafari } from '@firebase/util';
+
 import {
   LimitType,
   newQueryComparator,
@@ -47,6 +49,7 @@ import { LocalDocumentsView } from './local_documents_view';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { QueryContext } from './query_context';
+import { getAndroidVersion } from './simple_db';
 
 const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
 
@@ -55,10 +58,19 @@ const DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE = 100;
  * (([index, docKey] + [docKey, docContent]) per document in the result set)
  * / ([docKey, docContent] per documents in full collection scan) coming from
  * experiment [enter PR experiment URL here].
- * TODO(b/299284287) Choose a value appropriate for the browser/OS combination,
- *  as determined by more data points from running the experiment.
  */
-const DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT = 8;
+function getDefaultRelativeIndexReadCostPerDocument(): number {
+  // These values were derived from an experiment where several members of the
+  // Firestore SDK team ran a performance test in various environments.
+  // Googlers can see b/299284287 for details.
+  if (isSafari()) {
+    return 8;
+  } else if (getAndroidVersion(getUA()) > 0) {
+    return 6;
+  } else {
+    return 4;
+  }
+}
 
 /**
  * The Firestore query engine.
@@ -113,7 +125,7 @@ export class QueryEngine {
     DEFAULT_INDEX_AUTO_CREATION_MIN_COLLECTION_SIZE;
 
   relativeIndexReadCostPerDocument =
-    DEFAULT_RELATIVE_INDEX_READ_COST_PER_DOCUMENT;
+    getDefaultRelativeIndexReadCostPerDocument();
 
   /** Sets the document view to query against. */
   initialize(

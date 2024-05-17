@@ -262,8 +262,14 @@ export function fromBytes(
     return ByteString.fromBase64String(value ? value : '');
   } else {
     hardAssert(
-      value === undefined || value instanceof Uint8Array,
-      'value must be undefined or Uint8Array'
+      value === undefined ||
+        // Check if the value is an instance of both Buffer and Uint8Array,
+        // despite the fact that Buffer extends Uint8Array. In some
+        // environments, such as jsdom, the prototype chain of Buffer
+        // does not indicate that it extends Uint8Array.
+        value instanceof Buffer ||
+        value instanceof Uint8Array,
+      'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
   }
@@ -897,7 +903,8 @@ export function toQueryTarget(
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
-  aggregates: Aggregate[]
+  aggregates: Aggregate[],
+  skipAliasing?: boolean
 ): {
   request: ProtoRunAggregationQueryRequest;
   aliasMap: Record<string, string>;
@@ -913,7 +920,9 @@ export function toRunAggregationQueryRequest(
     // Map all client-side aliases to a unique short-form
     // alias. This avoids issues with client-side aliases that
     // exceed the 1500-byte string size limit.
-    const serverAlias = `aggregate_${aggregationNum++}`;
+    const serverAlias = skipAliasing
+      ? aggregate.alias
+      : `aggregate_${aggregationNum++}`;
     aliasMap[serverAlias] = aggregate.alias;
 
     if (aggregate.aggregateType === 'count') {

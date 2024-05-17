@@ -22,6 +22,7 @@ import { Context } from 'mocha';
 import { dbKeyComparator } from '../../../src/local/indexeddb_remote_document_cache';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
+  getAndroidVersion,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
@@ -137,7 +138,7 @@ describe('SimpleDb', () => {
       ' AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1';
     expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).to.equal(10.14);
     expect(SimpleDb.getIOSVersion(iPadSafariAgent)).to.equal(9.0);
-    expect(SimpleDb.getAndroidVersion(androidAgent)).to.equal(2.2);
+    expect(getAndroidVersion(androidAgent)).to.equal(2.2);
   });
 
   it('can get', async () => {

@@ -1,37 +1,41 @@
 {
   "name": "@firebase/webchannel-wrapper",
-  "version": "0.10.5",
+  "version": "1.0.0",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.js",
-  "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm.js",
+  "main": "empty.js",
   "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "require": "./dist/index.js",
-      "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/esm/index.esm2017.js"
+    "./webchannel-blob": {
+      "types": "./dist/webchannel-blob/webchannel_blob_types.d.ts",
+      "require": "./dist/webchannel-blob/webchannel_blob_es2018.js",
+      "esm5": "./dist/webchannel-blob/webchannel_blob_es5.js",
+      "default": "./dist/webchannel-blob/esm/webchannel_blob_es2018.js"
+    },
+    "./bloom-blob": {
+      "types": "./dist/bloom-blob/bloom_blob_types.d.ts",
+      "require": "./dist/bloom-blob/bloom_blob_es2018.js",
+      "es5": "./dist/bloom-blob/bloom_blob_es5.js",
+      "default": "./dist/bloom-blob/esm/bloom_blob_es2018.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "bloom-blob/package.json",
+    "webchannel-blob/package.json"
   ],
   "scripts": {
     "dev": "watch 'yarn build' src",
-    "build": "gulp",
+    "build": "rollup -c",
     "test": "echo 'No test suite for webchannel-wrapper'",
     "test:ci": "echo 'No test suite for webchannel-wrapper'"
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "closure-net": "git+https://github.com/google/closure-net.git#0412666",
     "@rollup/plugin-commonjs": "21.1.0",
-    "google-closure-compiler": "20230228.0.0",
-    "google-closure-library": "git+https://github.com/google/closure-library.git#7818ff7",
-    "gulp": "4.0.2",
-    "gulp-sourcemaps": "3.0.0",
     "rollup": "2.79.1",
+    "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.7.4"
@@ -39,9 +43,9 @@
   "repository": {
     "directory": "packages/webchannel-wrapper",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
-  "typings": "src/index.d.ts",
+  "typings": "./dist/webchannel-blob/webchannel_blob_types.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }

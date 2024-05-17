@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check-compat",
-  "version": "0.3.8",
+  "version": "0.3.11",
   "description": "A compat App Check package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -35,16 +35,16 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/app-check": "0.8.1",
-    "@firebase/app-check-types": "0.5.0",
-    "@firebase/logger": "0.4.0",
-    "@firebase/util": "1.9.3",
-    "@firebase/component": "0.6.4",
+    "@firebase/app-check": "0.8.4",
+    "@firebase/app-check-types": "0.5.2",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.9.6",
+    "@firebase/component": "0.6.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.25",
+    "@firebase/app-compat": "0.2.33",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -55,7 +55,7 @@
   "repository": {
     "directory": "packages/app-check",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

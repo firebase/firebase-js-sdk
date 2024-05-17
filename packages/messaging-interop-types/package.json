@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging-interop-types",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "@firebase/messaging-interop-types Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
   "repository": {
     "directory": "packages/messaging-interop-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

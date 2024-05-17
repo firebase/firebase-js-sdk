@@ -5,7 +5,7 @@
   "repository": {
     "directory": "repo-scripts/documenter",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "license": "Apache-2.0",
   "scripts": {
@@ -13,7 +13,7 @@
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
   },
   "bin": {
-    "api-documenter-fire": "./dist/start.js"
+    "api-documenter-fire": "dist/start.js"
   },
   "files": [
     "dist"
@@ -24,15 +24,15 @@
     "api-extractor-model-me": "0.1.1",
     "@microsoft/tsdoc": "0.12.24",
     "@rushstack/node-core-library": "3.59.7",
-    "@rushstack/ts-command-line": "4.15.2",
+    "@rushstack/ts-command-line": "4.19.1",
     "colors": "~1.4.0",
     "resolve": "~1.22.0",
     "tslib": "^2.1.0",
     "js-yaml": "4.1.0"
   },
   "devDependencies": {
-    "@types/js-yaml": "4.0.5",
-    "@types/resolve": "1.20.2",
+    "@types/js-yaml": "4.0.9",
+    "@types/resolve": "1.20.6",
     "mocha-chai-jest-snapshot": "1.1.3"
   }
 }

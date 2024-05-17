@@ -31,6 +31,9 @@ import { indexedDBLocalPersistence } from './persistence/indexed_db';
 import { browserPopupRedirectResolver } from './popup_redirect';
 import { Auth, User } from '../model/public_types';
 import { getDefaultEmulatorHost, getExperimentalSetting } from '@firebase/util';
+import { _setExternalJSProvider } from './load_js';
+import { _createError } from '../core/util/assert';
+import { AuthErrorCode } from '../core/errors';
 
 const DEFAULT_ID_TOKEN_MAX_AGE = 5 * 60;
 const authIdTokenMaxAge =
@@ -86,13 +89,22 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     ]
   });
 
-  const authTokenSyncUrl = getExperimentalSetting('authTokenSyncURL');
-  if (authTokenSyncUrl) {
-    const mintCookie = mintCookieFactory(authTokenSyncUrl);
-    beforeAuthStateChanged(auth, mintCookie, () =>
-      mintCookie(auth.currentUser)
-    );
-    onIdTokenChanged(auth, user => mintCookie(user));
+  const authTokenSyncPath = getExperimentalSetting('authTokenSyncURL');
+  // Only do the Cookie exchange in a secure context
+  if (
+    authTokenSyncPath &&
+    typeof isSecureContext === 'boolean' &&
+    isSecureContext
+  ) {
+    // Don't allow urls (XSS possibility), only paths on the same domain
+    const authTokenSyncUrl = new URL(authTokenSyncPath, location.origin);
+    if (location.origin === authTokenSyncUrl.origin) {
+      const mintCookie = mintCookieFactory(authTokenSyncUrl.toString());
+      beforeAuthStateChanged(auth, mintCookie, () =>
+        mintCookie(auth.currentUser)
+      );
+      onIdTokenChanged(auth, user => mintCookie(user));
+    }
   }
 
   const authEmulatorHost = getDefaultEmulatorHost('auth');
@@ -102,5 +114,33 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
 
   return auth;
 }
+
+function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
+  return document.getElementsByTagName('head')?.[0] ?? document;
+}
+
+_setExternalJSProvider({
+  loadJS(url: string): Promise<Event> {
+    // TODO: consider adding timeout support & cancellation
+    return new Promise((resolve, reject) => {
+      const el = document.createElement('script');
+      el.setAttribute('src', url);
+      el.onload = resolve;
+      el.onerror = e => {
+        const error = _createError(AuthErrorCode.INTERNAL_ERROR);
+        error.customData = e as unknown as Record<string, unknown>;
+        reject(error);
+      };
+      el.type = 'text/javascript';
+      el.charset = 'UTF-8';
+      getScriptParentElement().appendChild(el);
+    });
+  },
+
+  gapiScript: 'https://apis.google.com/js/api.js',
+  recaptchaV2Script: 'https://www.google.com/recaptcha/api.js',
+  recaptchaEnterpriseScript:
+    'https://www.google.com/recaptcha/enterprise.js?render='
+});
 
 registerAuth(ClientPlatform.BROWSER);

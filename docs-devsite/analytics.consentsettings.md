@@ -22,11 +22,23 @@ export interface ConsentSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [ad\_personalization](./analytics.consentsettings.md#consentsettingsad_personalization) | [ConsentStatusString](./analytics.md#consentstatusstring) | Sets consent for personalized advertising. |
 |  [ad\_storage](./analytics.consentsettings.md#consentsettingsad_storage) | [ConsentStatusString](./analytics.md#consentstatusstring) | Enables storage, such as cookies, related to advertising |
+|  [ad\_user\_data](./analytics.consentsettings.md#consentsettingsad_user_data) | [ConsentStatusString](./analytics.md#consentstatusstring) | Sets consent for sending user data to Google for advertising purposes. |
 |  [analytics\_storage](./analytics.consentsettings.md#consentsettingsanalytics_storage) | [ConsentStatusString](./analytics.md#consentstatusstring) | Enables storage, such as cookies, related to analytics (for example, visit duration) |
 |  [functionality\_storage](./analytics.consentsettings.md#consentsettingsfunctionality_storage) | [ConsentStatusString](./analytics.md#consentstatusstring) | Enables storage that supports the functionality of the website or app such as language settings |
 |  [personalization\_storage](./analytics.consentsettings.md#consentsettingspersonalization_storage) | [ConsentStatusString](./analytics.md#consentstatusstring) | Enables storage related to personalization such as video recommendations |
 |  [security\_storage](./analytics.consentsettings.md#consentsettingssecurity_storage) | [ConsentStatusString](./analytics.md#consentstatusstring) | Enables storage related to security such as authentication functionality, fraud prevention, and other user protection. |
+
+## ConsentSettings.ad\_personalization
+
+Sets consent for personalized advertising.
+
+<b>Signature:</b>
+
+```typescript
+ad_personalization?: ConsentStatusString;
+```
 
 ## ConsentSettings.ad\_storage
 
@@ -36,6 +48,16 @@ Enables storage, such as cookies, related to advertising
 
 ```typescript
 ad_storage?: ConsentStatusString;
+```
+
+## ConsentSettings.ad\_user\_data
+
+Sets consent for sending user data to Google for advertising purposes.
+
+<b>Signature:</b>
+
+```typescript
+ad_user_data?: ConsentStatusString;
 ```
 
 ## ConsentSettings.analytics\_storage

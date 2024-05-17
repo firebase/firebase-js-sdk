@@ -34,10 +34,10 @@ jobs:
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
-    - name: Set up Node (16)
+    - name: Set up Node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Yarn install
       run: yarn
     - name: Run changeset script
@@ -47,7 +47,10 @@ jobs:
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
-      run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+      run: |
+        cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
+        ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
     - name: Print blocking failure status
       run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
