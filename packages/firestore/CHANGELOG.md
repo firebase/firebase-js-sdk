@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.6.3
+
+### Patch Changes
+
+- [`2ce95696f`](https://github.com/firebase/firebase-js-sdk/commit/2ce95696fe01f8c0fde08daa4359e39917654441) [#8247](https://github.com/firebase/firebase-js-sdk/pull/8247) - Fix multi-tab persistence raising empty snapshot issue
+
 ## 4.6.2
 
 ### Patch Changes
