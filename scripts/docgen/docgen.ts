@@ -90,6 +90,50 @@ yargs
   .demandCommand()
   .help().argv;
 
+process.on('exit', cleanup);
+process.on('SIGINT', cleanup);
+
+let authApiReportOriginal: string;
+let authApiConfigOriginal: string;
+
+function cleanup() {
+  try {
+    // Restore original auth api-extractor.json contents.
+    if (authApiReportOriginal) {
+      console.log(`Restoring original auth api-extractor.json contents.`);
+      fs.writeFileSync(
+        `${projectRoot}/packages/auth/api-extractor.json`,
+        authApiConfigOriginal
+      );
+    }
+    // Restore original auth.api.md
+    if (authApiConfigOriginal) {
+      console.log(`Restoring original auth.api.md contents.`);
+      fs.writeFileSync(
+        `${projectRoot}/common/api-review/auth.api.md`,
+        authApiReportOriginal
+      );
+    }
+    for (const excludedPackage of EXCLUDED_PACKAGES) {
+      if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
+        console.log(
+          `Restoring json files for excluded package: ${excludedPackage}.`
+        );
+        fs.renameSync(
+          `${projectRoot}/temp/${excludedPackage}.skip`,
+          `${projectRoot}/temp/${excludedPackage}.api.json`
+        );
+      }
+    }
+  } catch (e) {
+    console.error(
+      'Error cleaning up files on exit - ' +
+        'check for temp modifications to md and json files.'
+    );
+    console.error(e);
+  }
+}
+
 async function generateToc() {
   console.log(`Temporarily renaming excluded packages' json files.`);
   for (const excludedPackage of EXCLUDED_PACKAGES) {
@@ -115,15 +159,7 @@ async function generateToc() {
       { stdio: 'inherit' }
     );
   } finally {
-    console.log(`Restoring excluded packages' json files.`);
-    for (const excludedPackage of EXCLUDED_PACKAGES) {
-      if (fs.existsSync(`${projectRoot}/temp/${excludedPackage}.skip`)) {
-        fs.renameSync(
-          `${projectRoot}/temp/${excludedPackage}.skip`,
-          `${projectRoot}/temp/${excludedPackage}.api.json`
-        );
-      }
-    }
+    cleanup();
   }
 }
 
@@ -137,12 +173,12 @@ async function generateDocs(
 
   console.log(`Temporarily modifying auth api-extractor.json for docgen.`);
   // Use a special d.ts file for auth for doc gen only.
-  const authApiConfigOriginal = fs.readFileSync(
+  authApiConfigOriginal = fs.readFileSync(
     `${projectRoot}/packages/auth/api-extractor.json`,
     'utf8'
   );
   // Save original auth.md as well.
-  const authApiReportOriginal = fs.readFileSync(
+  authApiReportOriginal = fs.readFileSync(
     `${projectRoot}/common/api-review/auth.api.md`,
     'utf8'
   );
@@ -193,9 +229,12 @@ async function generateDocs(
     );
   }
 
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir);
+  if (fs.existsSync(tmpDir)) {
+    console.log(`Removing old json temp dir: ${tmpDir}.`);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+
+  fs.mkdirSync(tmpDir);
 
   // TODO: Throw error if path doesn't exist once all packages add markdown support.
   const apiJsonDirectories = (
