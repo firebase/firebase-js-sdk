@@ -6,7 +6,7 @@
     },
     "dtsRollup": {
         "enabled": true,
-        "untrimmedFilePath": "<projectFolder>/dist/cordova/index.cordova.d.ts",
-        "publicTrimmedFilePath": "<projectFolder>/dist/cordova/index.cordova-public.d.ts"
+        "untrimmedFilePath": "<projectFolder>/dist/cordova/<unscopedPackageName>.d.ts",
+        "publicTrimmedFilePath": "<projectFolder>/dist/cordova/<unscopedPackageName>-public.d.ts"
     }
 }

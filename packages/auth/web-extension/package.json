@@ -4,5 +4,5 @@
   "main": "../dist/web-extension-cjs/index.js",
   "browser": "../dist/web-extension-esm2017/index.js",
   "module": "../dist/web-extension-esm2017/index.js",
-  "typings": "../dist/web-extension-esm2017/index.web-extension.d.ts"
+  "typings": "../dist/web-extension-esm2017/auth-web-extension-public.d.ts"
 }

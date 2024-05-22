@@ -6,7 +6,7 @@
     },
     "dtsRollup": {
         "enabled": true,
-        "untrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/index.web-extension.d.ts",
-        "publicTrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/index.web-extension-public.d.ts"
+        "untrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/<unscopedPackageName>.d.ts",
+        "publicTrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/<unscopedPackageName>-public.d.ts"
     }
 }
