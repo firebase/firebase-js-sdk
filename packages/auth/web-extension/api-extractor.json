@@ -8,5 +8,9 @@
         "enabled": true,
         "untrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/<unscopedPackageName>.d.ts",
         "publicTrimmedFilePath": "<projectFolder>/dist/web-extension-esm2017/<unscopedPackageName>-public.d.ts"
+    },
+    "docModel": {
+        "enabled": true,
+        "apiJsonFilePath": "<projectFolder>/temp/subpackages/<unscopedPackageName>.api.json"
     }
 }

@@ -8,5 +8,9 @@
         "enabled": true,
         "untrimmedFilePath": "<projectFolder>/dist/cordova/<unscopedPackageName>.d.ts",
         "publicTrimmedFilePath": "<projectFolder>/dist/cordova/<unscopedPackageName>-public.d.ts"
+    },
+    "docModel": {
+        "enabled": true,
+        "apiJsonFilePath": "<projectFolder>/temp/subpackages/<unscopedPackageName>.api.json"
     }
 }
