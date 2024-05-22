@@ -441,7 +441,7 @@ export function logEvent(
  * app instance on this device.
  * @public
  * See
- * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+ * {@link https://developers.google.com/analytics/devguides/collection/ga4/views
  * | Page views}.
  */
 export function logEvent(

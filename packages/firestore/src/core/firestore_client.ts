@@ -26,10 +26,12 @@ import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument
+  localStoreReadDocument,
+  localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -84,7 +86,9 @@ import {
   syncEngineLoadBundle,
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -148,7 +152,7 @@ export class FirestoreClient {
     });
   }
 
-  async getConfiguration(): Promise<ComponentConfiguration> {
+  get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -220,7 +224,7 @@ export async function setOfflineComponentProvider(
   client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = await client.getConfiguration();
+  const configuration = client.configuration;
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
@@ -252,10 +256,9 @@ export async function setOnlineComponentProvider(
   const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
-    configuration
+    client.configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
@@ -396,6 +399,14 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
+  eventManager.onFirstRemoteStoreListen = triggerRemoteStoreListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onLastRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
   return eventManager;
 }
 
@@ -530,7 +541,6 @@ export function firestoreClientRunAggregateQuery(
   const deferred = new Deferred<ApiClientObjectMap<Value>>();
 
   client.asyncQueue.enqueueAndForget(async () => {
-    // TODO (sum/avg) should we update this to use the event manager?
     // Implement and call executeAggregateQueryViaSnapshotListener, similar
     // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
     // above
@@ -728,7 +738,7 @@ async function executeQueryFromCache(
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+      /* limboResolutionEnabled= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {
@@ -826,5 +836,25 @@ export function firestoreClientSetIndexConfiguration(
       await getLocalStore(client),
       indexes
     );
+  });
+}
+
+export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+  client: FirestoreClient,
+  isEnabled: boolean
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreSetIndexAutoCreationEnabled(
+      await getLocalStore(client),
+      isEnabled
+    );
+  });
+}
+
+export function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
   });
 }

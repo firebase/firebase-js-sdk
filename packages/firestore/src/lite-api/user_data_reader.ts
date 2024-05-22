@@ -20,7 +20,7 @@ import {
   FieldPath as PublicFieldPath,
   SetOptions
 } from '@firebase/firestore-types';
-import { Compat, getModularInstance } from '@firebase/util';
+import { Compat, deepEqual, getModularInstance } from '@firebase/util';
 
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
@@ -76,13 +76,18 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * An untyped Firestore Data Converter interface that is shared between the
  * lite, firestore-exp and classic SDK.
  */
-export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+export interface UntypedFirestoreDataConverter<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+> {
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: WithFieldValue<AppModelType>
+  ): WithFieldValue<DbModelType>;
+  toFirestore(
+    modelObject: PartialWithFieldValue<AppModelType>,
     options: SetOptions
-  ): DocumentData;
-  fromFirestore(snapshot: unknown, options?: unknown): T;
+  ): PartialWithFieldValue<DbModelType>;
+  fromFirestore(snapshot: unknown, options?: unknown): AppModelType;
 }
 
 /** The result of parsing document data (e.g. for a setData call). */
@@ -520,13 +525,15 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayUnionFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(methodName: string, readonly _elements: unknown[]) {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
 
@@ -544,8 +551,10 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayRemoveFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
@@ -563,8 +572,10 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof NumericIncrementFieldValueImpl &&
+      this._operand === other._operand
+    );
   }
 }
 

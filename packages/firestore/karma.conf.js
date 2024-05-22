@@ -46,6 +46,13 @@ module.exports = function (config) {
     };
   }
 
+  if (argv.databaseId) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      databaseId: argv.databaseId
+    };
+  }
+
   config.set(karmaConfig);
 };
 

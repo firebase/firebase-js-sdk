@@ -38,7 +38,7 @@ import { apiDescribe, withTestDoc } from '../util/helpers';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
-apiDescribe('Server Timestamps', (persistence: boolean) => {
+apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
   const setData = {
     a: 42,

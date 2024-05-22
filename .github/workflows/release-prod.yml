@@ -1,3 +1,17 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Production Release
 
 on:
@@ -18,10 +32,10 @@ jobs:
       contents: write
 
     steps:
-    - name: Set up node (16)
+    - name: Set up node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: 20.x
     - name: Checkout release branch (with history)
       uses: actions/checkout@master
       with:
@@ -72,6 +86,8 @@ jobs:
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
         NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+        NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
+        NPM_TOKEN_VERTEXAI_PREVIEW: ${{secrets.NPM_TOKEN_VERTEXAI_PREVIEW}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}
@@ -108,3 +124,35 @@ jobs:
         curl -X POST -H "Content-Type:application/json" \
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
+    - name: Create Github release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Get the newest release tag for the firebase package (e.g. firebase@10.12.0)
+        NEWEST_TAG=$(git describe --tags --match "firebase@[0-9]*.[0-9]*.[0-9]*" --abbrev=0)
+
+        # Get the release notes from the description of the most recent merged PR into the "release" branch
+        # See: https://github.com/firebase/firebase-js-sdk/pull/8236 for an example description
+        JSON_RELEASE_NOTES=$(gh pr list \
+          --repo "$GITHUB_REPOSITORY" \
+          --state "merged" \
+          --base "release" \
+          --limit 1 \
+          --json "body" \
+          | jq '.[].body | split("\n# Releases\n")[-1]' # Remove the generated changesets header
+        )
+         
+        # Prepend the new release header
+        # We have to be careful to insert the new release header after a " character, since we're
+        # modifying the JSON string
+        JSON_RELEASE_NOTES="\"For more detailed release notes, see [Firebase JavaScript SDK Release Notes](https://firebase.google.com/support/release-notes/js).\n\n# What's Changed\n\n${JSON_RELEASE_NOTES:1}"
+
+        # Format the JSON string into a readable markdown string
+        RELEASE_NOTES=$(echo -E $JSON_RELEASE_NOTES | jq -r .)
+
+        # Create the GitHub release
+        gh release create "$NEWEST_TAG" \
+          --repo "$GITHUB_REPOSITORY" \
+          --title "$NEWEST_TAG" \
+          --notes "$RELEASE_NOTES" \
+          --verify-tag

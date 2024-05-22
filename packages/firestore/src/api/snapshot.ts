@@ -42,65 +42,213 @@ import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type `T`
- * into Firestore data.
+ * Converter used by `withConverter()` to transform user objects of type
+ * `AppModelType` into Firestore data of type `DbModelType`.
  *
  * Using the converter allows you to specify generic type arguments when
  * storing and retrieving objects from Firestore.
  *
+ * In this context, an "AppModel" is a class that is used in an application to
+ * package together related information and functionality. Such a class could,
+ * for example, have properties with complex, nested data types, properties used
+ * for memoization, properties of types not supported by Firestore (such as
+ * `symbol` and `bigint`), and helper functions that perform compound
+ * operations. Such classes are not suitable and/or possible to store into a
+ * Firestore database. Instead, instances of such classes need to be converted
+ * to "plain old JavaScript objects" (POJOs) with exclusively primitive
+ * properties, potentially nested inside other POJOs or arrays of POJOs. In this
+ * context, this type is referred to as the "DbModel" and would be an object
+ * suitable for persisting into Firestore. For convenience, applications can
+ * implement `FirestoreDataConverter` and register the converter with Firestore
+ * objects, such as `DocumentReference` or `Query`, to automatically convert
+ * `AppModel` to `DbModel` when storing into Firestore, and convert `DbModel`
+ * to `AppModel` when retrieving from Firestore.
+ *
  * @example
+ *
+ * Simple Example
+ *
  * ```typescript
- * class Post {
- *   constructor(readonly title: string, readonly author: string) {}
- *
- *   toString(): string {
- *     return this.title + ', by ' + this.author;
- *   }
- * }
- *
- * const postConverter = {
- *   toFirestore(post: WithFieldValue<Post>): DocumentData {
- *     return {title: post.title, author: post.author};
- *   },
- *   fromFirestore(
- *     snapshot: QueryDocumentSnapshot,
- *     options: SnapshotOptions
- *   ): Post {
- *     const data = snapshot.data(options)!;
- *     return new Post(data.title, data.author);
- *   }
+ * const numberConverter = {
+ *     toFirestore(value: WithFieldValue<number>) {
+ *         return { value };
+ *     },
+ *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions) {
+ *         return snapshot.data(options).value as number;
+ *     }
  * };
  *
- * const postSnap = await firebase.firestore()
- *   .collection('posts')
- *   .withConverter(postConverter)
- *   .doc().get();
- * const post = postSnap.data();
- * if (post !== undefined) {
- *   post.title; // string
- *   post.toString(); // Should be defined
- *   post.someNonExistentProperty; // TS error
+ * async function simpleDemo(db: Firestore): Promise<void> {
+ *     const documentRef = doc(db, 'values/value123').withConverter(numberConverter);
+ *
+ *     // converters are used with `setDoc`, `addDoc`, and `getDoc`
+ *     await setDoc(documentRef, 42);
+ *     const snapshot1 = await getDoc(documentRef);
+ *     assertEqual(snapshot1.data(), 42);
+ *
+ *     // converters are not used when writing data with `updateDoc`
+ *     await updateDoc(documentRef, { value: 999 });
+ *     const snapshot2 = await getDoc(documentRef);
+ *     assertEqual(snapshot2.data(), 999);
+ * }
+ * ```
+ *
+ * Advanced Example
+ *
+ * ```typescript
+ * // The Post class is a model that is used by our application.
+ * // This class may have properties and methods that are specific
+ * // to our application execution, which do not need to be persisted
+ * // to Firestore.
+ * class Post {
+ *     constructor(
+ *         readonly title: string,
+ *         readonly author: string,
+ *         readonly lastUpdatedMillis: number
+ *     ) {}
+ *     toString(): string {
+ *         return `${this.title} by ${this.author}`;
+ *     }
+ * }
+ *
+ * // The PostDbModel represents how we want our posts to be stored
+ * // in Firestore. This DbModel has different properties (`ttl`,
+ * // `aut`, and `lut`) from the Post class we use in our application.
+ * interface PostDbModel {
+ *     ttl: string;
+ *     aut: { firstName: string; lastName: string };
+ *     lut: Timestamp;
+ * }
+ *
+ * // The `PostConverter` implements `FirestoreDataConverter` and specifies
+ * // how the Firestore SDK can convert `Post` objects to `PostDbModel`
+ * // objects and vice versa.
+ * class PostConverter implements FirestoreDataConverter<Post, PostDbModel> {
+ *     toFirestore(post: WithFieldValue<Post>): WithFieldValue<PostDbModel> {
+ *         return {
+ *             ttl: post.title,
+ *             aut: this._autFromAuthor(post.author),
+ *             lut: this._lutFromLastUpdatedMillis(post.lastUpdatedMillis)
+ *         };
+ *     }
+ *
+ *     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): Post {
+ *         const data = snapshot.data(options) as PostDbModel;
+ *         const author = `${data.aut.firstName} ${data.aut.lastName}`;
+ *         return new Post(data.ttl, author, data.lut.toMillis());
+ *     }
+ *
+ *     _autFromAuthor(
+ *         author: string | FieldValue
+ *     ): { firstName: string; lastName: string } | FieldValue {
+ *         if (typeof author !== 'string') {
+ *             // `author` is a FieldValue, so just return it.
+ *             return author;
+ *         }
+ *         const [firstName, lastName] = author.split(' ');
+ *         return {firstName, lastName};
+ *     }
+ *
+ *     _lutFromLastUpdatedMillis(
+ *         lastUpdatedMillis: number | FieldValue
+ *     ): Timestamp | FieldValue {
+ *         if (typeof lastUpdatedMillis !== 'number') {
+ *             // `lastUpdatedMillis` must be a FieldValue, so just return it.
+ *             return lastUpdatedMillis;
+ *         }
+ *         return Timestamp.fromMillis(lastUpdatedMillis);
+ *     }
+ * }
+ *
+ * async function advancedDemo(db: Firestore): Promise<void> {
+ *     // Create a `DocumentReference` with a `FirestoreDataConverter`.
+ *     const documentRef = doc(db, 'posts/post123').withConverter(new PostConverter());
+ *
+ *     // The `data` argument specified to `setDoc()` is type checked by the
+ *     // TypeScript compiler to be compatible with `Post`. Since the `data`
+ *     // argument is typed as `WithFieldValue<Post>` rather than just `Post`,
+ *     // this allows properties of the `data` argument to also be special
+ *     // Firestore values that perform server-side mutations, such as
+ *     // `arrayRemove()`, `deleteField()`, and `serverTimestamp()`.
+ *     await setDoc(documentRef, {
+ *         title: 'My Life',
+ *         author: 'Foo Bar',
+ *         lastUpdatedMillis: serverTimestamp()
+ *     });
+ *
+ *     // The TypeScript compiler will fail to compile if the `data` argument to
+ *     // `setDoc()` is _not_ compatible with `WithFieldValue<Post>`. This
+ *     // type checking prevents the caller from specifying objects with incorrect
+ *     // properties or property values.
+ *     // @ts-expect-error "Argument of type { ttl: string; } is not assignable
+ *     // to parameter of type WithFieldValue<Post>"
+ *     await setDoc(documentRef, { ttl: 'The Title' });
+ *
+ *     // When retrieving a document with `getDoc()` the `DocumentSnapshot`
+ *     // object's `data()` method returns a `Post`, rather than a generic object,
+ *     // which would have been returned if the `DocumentReference` did _not_ have a
+ *     // `FirestoreDataConverter` attached to it.
+ *     const snapshot1: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *     const post1: Post = snapshot1.data()!;
+ *     if (post1) {
+ *         assertEqual(post1.title, 'My Life');
+ *         assertEqual(post1.author, 'Foo Bar');
+ *     }
+ *
+ *     // The `data` argument specified to `updateDoc()` is type checked by the
+ *     // TypeScript compiler to be compatible with `PostDbModel`. Note that
+ *     // unlike `setDoc()`, whose `data` argument must be compatible with `Post`,
+ *     // the `data` argument to `updateDoc()` must be compatible with
+ *     // `PostDbModel`. Similar to `setDoc()`, since the `data` argument is typed
+ *     // as `WithFieldValue<PostDbModel>` rather than just `PostDbModel`, this
+ *     // allows properties of the `data` argument to also be those special
+ *     // Firestore values, like `arrayRemove()`, `deleteField()`, and
+ *     // `serverTimestamp()`.
+ *     await updateDoc(documentRef, {
+ *         'aut.firstName': 'NewFirstName',
+ *         lut: serverTimestamp()
+ *     });
+ *
+ *     // The TypeScript compiler will fail to compile if the `data` argument to
+ *     // `updateDoc()` is _not_ compatible with `WithFieldValue<PostDbModel>`.
+ *     // This type checking prevents the caller from specifying objects with
+ *     // incorrect properties or property values.
+ *     // @ts-expect-error "Argument of type { title: string; } is not assignable
+ *     // to parameter of type WithFieldValue<PostDbModel>"
+ *     await updateDoc(documentRef, { title: 'New Title' });
+ *     const snapshot2: DocumentSnapshot<Post> = await getDoc(documentRef);
+ *     const post2: Post = snapshot2.data()!;
+ *     if (post2) {
+ *         assertEqual(post2.title, 'My Life');
+ *         assertEqual(post2.author, 'NewFirstName Bar');
+ *     }
  * }
  * ```
  */
-export interface FirestoreDataConverter<T>
-  extends LiteFirestoreDataConverter<T> {
+export interface FirestoreDataConverter<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+> extends LiteFirestoreDataConverter<AppModelType, DbModelType> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `PartialWithFieldValue<T>`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. To use `set()`
+   * with `merge` and `mergeFields`, `toFirestore()` must be defined with
+   * `PartialWithFieldValue<AppModelType>`.
    *
    * The `WithFieldValue<T>` type extends `T` to also allow FieldValues such as
    * {@link (deleteField:1)} to be used as property values.
    */
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+  toFirestore(
+    modelObject: WithFieldValue<AppModelType>
+  ): WithFieldValue<DbModelType>;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain JavaScript object (suitable for writing directly to the
-   * Firestore database). Used with {@link (setDoc:1)}, {@link (WriteBatch.set:1)}
-   * and {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
+   * Called by the Firestore SDK to convert a custom model object of type
+   * `AppModelType` into a plain JavaScript object (suitable for writing
+   * directly to the Firestore database) of type `DbModelType`. Used with
+   * {@link (setDoc:1)}, {@link (WriteBatch.set:1)} and
+   * {@link (Transaction.set:1)} with `merge:true` or `mergeFields`.
    *
    * The `PartialWithFieldValue<T>` type extends `Partial<T>` to allow
    * FieldValues such as {@link (arrayUnion:1)} to be used as property values.
@@ -108,21 +256,32 @@ export interface FirestoreDataConverter<T>
    * omitted.
    */
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: PartialWithFieldValue<AppModelType>,
     options: SetOptions
-  ): DocumentData;
+  ): PartialWithFieldValue<DbModelType>;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type `AppModelType`. You can access your data by calling:
+   * `snapshot.data(options)`.
+   *
+   * Generally, the data returned from `snapshot.data()` can be cast to
+   * `DbModelType`; however, this is not guaranteed because Firestore does not
+   * enforce a schema on the database. For example, writes from a previous
+   * version of the application or writes from another client that did not use a
+   * type converter could have written data with different properties and/or
+   * property types. The implementation will need to choose whether to
+   * gracefully recover from non-conforming data or throw an error.
+   *
+   * To override this method, see {@link (FirestoreDataConverter.fromFirestore:1)}.
    *
    * @param snapshot - A `QueryDocumentSnapshot` containing your data and metadata.
    * @param options - The `SnapshotOptions` from the initial call to `data()`.
    */
   fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
+    snapshot: QueryDocumentSnapshot<DocumentData, DocumentData>,
     options?: SnapshotOptions
-  ): T;
+  ): AppModelType;
 }
 
 /**
@@ -200,12 +359,15 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<T = DocumentData> {
+export interface DocumentChange<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot<T>;
+  readonly doc: QueryDocumentSnapshot<AppModelType, DbModelType>;
 
   /**
    * The index of the changed document in the result set immediately prior to
@@ -233,8 +395,9 @@ export interface DocumentChange<T = DocumentData> {
  * explicitly verify a document's existence.
  */
 export class DocumentSnapshot<
-  T = DocumentData
-> extends LiteDocumentSnapshot<T> {
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends LiteDocumentSnapshot<AppModelType, DbModelType> {
   private readonly _firestoreImpl: Firestore;
 
   /**
@@ -250,7 +413,7 @@ export class DocumentSnapshot<
     key: DocumentKey,
     document: Document | null,
     metadata: SnapshotMetadata,
-    converter: UntypedFirestoreDataConverter<T> | null
+    converter: UntypedFirestoreDataConverter<AppModelType, DbModelType> | null
   ) {
     super(_firestore, userDataWriter, key, document, converter);
     this._firestoreImpl = _firestore;
@@ -260,7 +423,7 @@ export class DocumentSnapshot<
   /**
    * Returns whether or not the data exists. True if the document exists.
    */
-  exists(): this is QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<AppModelType, DbModelType> {
     return super.exists();
   }
 
@@ -278,7 +441,7 @@ export class DocumentSnapshot<
    * @returns An `Object` containing all fields in the document or `undefined` if
    * the document doesn't exist.
    */
-  data(options: SnapshotOptions = {}): T | undefined {
+  data(options: SnapshotOptions = {}): AppModelType | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -297,7 +460,7 @@ export class DocumentSnapshot<
       return this._userDataWriter.convertValue(
         this._document.data.value,
         options.serverTimestamps
-      ) as T;
+      ) as AppModelType;
     }
   }
 
@@ -347,8 +510,9 @@ export class DocumentSnapshot<
  * 'undefined'.
  */
 export class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends DocumentSnapshot<AppModelType, DbModelType> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
@@ -362,8 +526,8 @@ export class QueryDocumentSnapshot<
    * have not yet been set to their final value).
    * @returns An `Object` containing all fields in the document.
    */
-  data(options: SnapshotOptions = {}): T {
-    return super.data(options) as T;
+  data(options: SnapshotOptions = {}): AppModelType {
+    return super.data(options) as AppModelType;
   }
 }
 
@@ -374,7 +538,10 @@ export class QueryDocumentSnapshot<
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot<T = DocumentData> {
+export class QuerySnapshot<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -385,16 +552,16 @@ export class QuerySnapshot<T = DocumentData> {
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query<T>;
+  readonly query: Query<AppModelType, DbModelType>;
 
-  private _cachedChanges?: Array<DocumentChange<T>>;
+  private _cachedChanges?: Array<DocumentChange<AppModelType, DbModelType>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   /** @hideconstructor */
   constructor(
     readonly _firestore: Firestore,
     readonly _userDataWriter: AbstractUserDataWriter,
-    query: Query<T>,
+    query: Query<AppModelType, DbModelType>,
     readonly _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
@@ -405,8 +572,8 @@ export class QuerySnapshot<T = DocumentData> {
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
-  get docs(): Array<QueryDocumentSnapshot<T>> {
-    const result: Array<QueryDocumentSnapshot<T>> = [];
+  get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>> {
+    const result: Array<QueryDocumentSnapshot<AppModelType, DbModelType>> = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -429,13 +596,15 @@ export class QuerySnapshot<T = DocumentData> {
    * @param thisArg - The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot<T>) => void,
+    callback: (
+      result: QueryDocumentSnapshot<AppModelType, DbModelType>
+    ) => void,
     thisArg?: unknown
   ): void {
     this._snapshot.docs.forEach(doc => {
       callback.call(
         thisArg,
-        new QueryDocumentSnapshot<T>(
+        new QueryDocumentSnapshot<AppModelType, DbModelType>(
           this._firestore,
           this._userDataWriter,
           doc.key,
@@ -459,7 +628,9 @@ export class QuerySnapshot<T = DocumentData> {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T>> {
+  docChanges(
+    options: SnapshotListenOptions = {}
+  ): Array<DocumentChange<AppModelType, DbModelType>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -483,10 +654,13 @@ export class QuerySnapshot<T = DocumentData> {
 }
 
 /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
-export function changesFromSnapshot<T>(
-  querySnapshot: QuerySnapshot<T>,
+export function changesFromSnapshot<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  querySnapshot: QuerySnapshot<AppModelType, DbModelType>,
   includeMetadataChanges: boolean
-): Array<DocumentChange<T>> {
+): Array<DocumentChange<AppModelType, DbModelType>> {
   if (querySnapshot._snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
@@ -505,7 +679,7 @@ export function changesFromSnapshot<T>(
           ) < 0,
         'Got added events in wrong order'
       );
-      const doc = new QueryDocumentSnapshot<T>(
+      const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
         querySnapshot._firestore,
         querySnapshot._userDataWriter,
         change.doc.key,
@@ -533,7 +707,7 @@ export function changesFromSnapshot<T>(
         change => includeMetadataChanges || change.type !== ChangeType.Metadata
       )
       .map(change => {
-        const doc = new QueryDocumentSnapshot<T>(
+        const doc = new QueryDocumentSnapshot<AppModelType, DbModelType>(
           querySnapshot._firestore,
           querySnapshot._userDataWriter,
           change.doc.key,
@@ -588,9 +762,13 @@ export function resultChangeType(type: ChangeType): DocumentChangeType {
  * @param right - A snapshot to compare.
  * @returns true if the snapshots are equal.
  */
-export function snapshotEqual<T>(
-  left: DocumentSnapshot<T> | QuerySnapshot<T>,
-  right: DocumentSnapshot<T> | QuerySnapshot<T>
+export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
+  left:
+    | DocumentSnapshot<AppModelType, DbModelType>
+    | QuerySnapshot<AppModelType, DbModelType>,
+  right:
+    | DocumentSnapshot<AppModelType, DbModelType>
+    | QuerySnapshot<AppModelType, DbModelType>
 ): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (

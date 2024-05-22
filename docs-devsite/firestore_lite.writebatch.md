@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # WriteBatch class
 A write batch, used to perform multiple writes as a single atomic unit.
 
-A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
+A `WriteBatch` object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called.
 
 <b>Signature:</b>
 
@@ -55,14 +55,14 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 <b>Signature:</b>
 
 ```typescript
-delete(documentRef: DocumentReference<unknown>): WriteBatch;
+delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be deleted. |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
@@ -77,15 +77,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): WriteBatch;
+set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [WithFieldValue](./firestore_lite.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
@@ -100,15 +100,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): WriteBatch;
+set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [PartialWithFieldValue](./firestore_lite.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
 |  options | [SetOptions](./firestore_lite.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
@@ -117,7 +117,7 @@ set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, option
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -128,15 +128,15 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 <b>Signature:</b>
 
 ```typescript
-update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
+update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be updated. |
-|  data | [UpdateData](./firestore_lite.md#updatedata)<!-- -->&lt;T&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
+|  data | [UpdateData](./firestore_lite.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
@@ -144,7 +144,7 @@ update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): WriteBatch;
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
@@ -157,14 +157,14 @@ Nested fields can be update by providing dot-separated field path strings or by 
 <b>Signature:</b>
 
 ```typescript
-update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be updated. |
+|  documentRef | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
 |  field | string \| [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
@@ -175,7 +175,7 @@ update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value
 
 This `WriteBatch` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 

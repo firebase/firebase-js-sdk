@@ -164,7 +164,7 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
    * @returns True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
-  forEach(action: (snapshot: DataSnapshot) => boolean | void): boolean {
+  forEach(action: (snapshot: IteratedDataSnapshot) => boolean | void): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 'action', action, false);
     return this._delegate.forEach(expDataSnapshot =>
@@ -206,6 +206,13 @@ export class DataSnapshot implements Compat<ModularDataSnapshot> {
   get ref(): Reference {
     return this.getRef();
   }
+}
+
+/**
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string; // key of the location of this snapshot.
 }
 
 export interface SnapshotCallback {

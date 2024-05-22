@@ -17,6 +17,7 @@
 
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git';
@@ -28,6 +29,14 @@ const git = simpleGit(root);
 const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
 
+const githubOutputFile = (function (): string {
+  const value = process.env.GITHUB_OUTPUT;
+  if (!value) {
+    throw new Error('GITHUB_OUTPUT environment variable must be set');
+  }
+  return value;
+})();
+
 // Version bump text converted to rankable numbers.
 const bumpRank: Record<string, number> = {
   'patch': 0,
@@ -37,7 +46,7 @@ const bumpRank: Record<string, number> = {
 
 /**
  * Get highest bump that isn't the main firebase package, return
-// numerical rank, bump text, package name.
+ * numerical rank, bump text, package name.
  */
 function getHighestBump(changesetPackages: Record<string, string>) {
   const firebasePkgJson = require(resolve(
@@ -124,11 +133,11 @@ async function main() {
   const errors = [];
   try {
     await exec(`yarn changeset status`);
-    console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
+    await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
   } catch (e) {
     const error = e as Error;
     if (error.message.match('No changesets present')) {
-      console.log(`"BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
+      await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
     } else {
       const messageLines = error.message.replace(/🦋  error /g, '').split('\n');
       let formattedStatusError =
@@ -147,9 +156,9 @@ async function main() {
       /**
        * Sets Github Actions output for a step. Pass changeset error message to next
        * step. See:
-       * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+       * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
        */
-      console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
+      await exec(`echo "BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
     }
   }
 
@@ -185,13 +194,13 @@ async function main() {
             `- Package ${bumpPackage} has a ${bumpText} bump which requires an ` +
               `additional line to bump the main "firebase" package to ${bumpText}.`
           );
-          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
+          await exec(`echo "BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
         } else if (bumpRank[changesetPackages['firebase']] < highestBump) {
           errors.push(
             `- Package ${bumpPackage} has a ${bumpText} bump. ` +
               `Increase the bump for the main "firebase" package to ${bumpText}.`
           );
-          console.log(`"BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
+          await exec(`echo "BLOCKING_FAILURE=true" >> $GITHUB_OUTPUT`);
         }
       }
     }
@@ -203,12 +212,15 @@ async function main() {
   /**
    * Sets Github Actions output for a step. Pass changeset error message to next
    * step. See:
-   * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+   * https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-output-parameter
    */
-  if (errors.length > 0)
-    console.log(
-      `"CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}" >> $GITHUB_OUTPUT`
+  if (errors.length > 0) {
+    await writeFile(
+      githubOutputFile,
+      `CHANGESET_ERROR_MESSAGE=${errors.join('%0A')}\n`,
+      { flag: 'a' }
     );
+  }
   process.exit();
 }
 

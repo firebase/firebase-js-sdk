@@ -376,7 +376,7 @@ export class DataSnapshot {
   }
 
   /**
-   * Enumerates the top-level children in the `DataSnapshot`.
+   * Enumerates the top-level children in the `IteratedDataSnapshot`.
    *
    * Because of the way JavaScript objects work, the ordering of data in the
    * JavaScript object returned by `val()` is not guaranteed to match the
@@ -393,7 +393,7 @@ export class DataSnapshot {
    * @returns true if enumeration was canceled due to your callback returning
    * true.
    */
-  forEach(action: (child: DataSnapshot) => boolean | void): boolean {
+  forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean {
     if (this._node.isLeafNode()) {
       return false;
     }
@@ -461,6 +461,13 @@ export class DataSnapshot {
   val(): any {
     return this._node.val();
   }
+}
+
+/**
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string; // key of the location of this snapshot.
 }
 
 /**
@@ -1676,7 +1683,7 @@ export abstract class QueryConstraint {
 }
 
 class QueryEndAtConstraint extends QueryConstraint {
-  readonly type: 'endAt';
+  readonly type = 'endAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1741,7 +1748,7 @@ export function endAt(
 }
 
 class QueryEndBeforeConstraint extends QueryConstraint {
-  readonly type: 'endBefore';
+  readonly type = 'endBefore';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1802,7 +1809,7 @@ export function endBefore(
 }
 
 class QueryStartAtConstraint extends QueryConstraint {
-  readonly type: 'startAt';
+  readonly type = 'startAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1866,7 +1873,7 @@ export function startAt(
 }
 
 class QueryStartAfterConstraint extends QueryConstraint {
-  readonly type: 'startAfter';
+  readonly type = 'startAfter';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1926,7 +1933,7 @@ export function startAfter(
 }
 
 class QueryLimitToFirstConstraint extends QueryConstraint {
-  readonly type: 'limitToFirst';
+  readonly type = 'limitToFirst';
 
   constructor(private readonly _limit: number) {
     super();
@@ -1974,7 +1981,7 @@ export function limitToFirst(limit: number): QueryConstraint {
 }
 
 class QueryLimitToLastConstraint extends QueryConstraint {
-  readonly type: 'limitToLast';
+  readonly type = 'limitToLast';
 
   constructor(private readonly _limit: number) {
     super();
@@ -2023,7 +2030,7 @@ export function limitToLast(limit: number): QueryConstraint {
 }
 
 class QueryOrderByChildConstraint extends QueryConstraint {
-  readonly type: 'orderByChild';
+  readonly type = 'orderByChild';
 
   constructor(private readonly _path: string) {
     super();
@@ -2086,7 +2093,7 @@ export function orderByChild(path: string): QueryConstraint {
 }
 
 class QueryOrderByKeyConstraint extends QueryConstraint {
-  readonly type: 'orderByKey';
+  readonly type = 'orderByKey';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByKey');
@@ -2114,7 +2121,7 @@ export function orderByKey(): QueryConstraint {
 }
 
 class QueryOrderByPriorityConstraint extends QueryConstraint {
-  readonly type: 'orderByPriority';
+  readonly type = 'orderByPriority';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByPriority');
@@ -2142,7 +2149,7 @@ export function orderByPriority(): QueryConstraint {
 }
 
 class QueryOrderByValueConstraint extends QueryConstraint {
-  readonly type: 'orderByValue';
+  readonly type = 'orderByValue';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByValue');
@@ -2171,7 +2178,7 @@ export function orderByValue(): QueryConstraint {
 }
 
 class QueryEqualToValueConstraint extends QueryConstraint {
-  readonly type: 'equalTo';
+  readonly type = 'equalTo';
 
   constructor(
     private readonly _value: number | string | boolean | null,

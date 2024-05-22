@@ -15,16 +15,16 @@ A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects representing 
 <b>Signature:</b>
 
 ```typescript
-export declare class QuerySnapshot<T = DocumentData> 
+export declare class QuerySnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> 
 ```
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [docs](./firestore_lite.querysnapshot.md#querysnapshotdocs) |  | Array&lt;[QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
+|  [docs](./firestore_lite.querysnapshot.md#querysnapshotdocs) |  | Array&lt;[QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt; | An array of all the documents in the <code>QuerySnapshot</code>. |
 |  [empty](./firestore_lite.querysnapshot.md#querysnapshotempty) |  | boolean | True if there are no documents in the <code>QuerySnapshot</code>. |
-|  [query](./firestore_lite.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;T&gt; | The query on which you called [getDocs()](./firestore_.md#getdocs) in order to get this <code>QuerySnapshot</code>. |
+|  [query](./firestore_lite.querysnapshot.md#querysnapshotquery) |  | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query on which you called [getDocs()](./firestore_.md#getdocs_4e56953) in order to get this <code>QuerySnapshot</code>. |
 |  [size](./firestore_lite.querysnapshot.md#querysnapshotsize) |  | number | The number of documents in the <code>QuerySnapshot</code>. |
 
 ## Methods
@@ -40,7 +40,7 @@ An array of all the documents in the `QuerySnapshot`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-get docs(): Array<QueryDocumentSnapshot<T>>;
+get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
 ## QuerySnapshot.empty
@@ -55,12 +55,12 @@ get empty(): boolean;
 
 ## QuerySnapshot.query
 
-The query on which you called [getDocs()](./firestore_.md#getdocs) in order to get this `QuerySnapshot`<!-- -->.
+The query on which you called [getDocs()](./firestore_.md#getdocs_4e56953) in order to get this `QuerySnapshot`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-readonly query: Query<T>;
+readonly query: Query<AppModelType, DbModelType>;
 ```
 
 ## QuerySnapshot.size
@@ -80,14 +80,14 @@ Enumerates all of the documents in the `QuerySnapshot`<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
+forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  callback | (result: [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
+|  callback | (result: [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called with a <code>QueryDocumentSnapshot</code> for each document in the snapshot. |
 |  thisArg | unknown | The <code>this</code> binding for the callback. |
 
 <b>Returns:</b>

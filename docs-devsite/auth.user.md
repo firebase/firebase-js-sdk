@@ -23,7 +23,7 @@ export interface User extends UserInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [emailVerified](./auth.user.md#useremailverified) | boolean | Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification) and [applyActionCode()](./auth.md#applyactioncode)<!-- -->. |
+|  [emailVerified](./auth.user.md#useremailverified) | boolean | Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification_6a885d6) and [applyActionCode()](./auth.md#applyactioncode_d2ae15a)<!-- -->. |
 |  [isAnonymous](./auth.user.md#userisanonymous) | boolean | Whether the user is authenticated using the [ProviderId](./auth.md#providerid)<!-- -->.ANONYMOUS provider. |
 |  [metadata](./auth.user.md#usermetadata) | [UserMetadata](./auth.usermetadata.md#usermetadata_interface) | Additional metadata around user creation and sign-in times. |
 |  [providerData](./auth.user.md#userproviderdata) | [UserInfo](./auth.userinfo.md#userinfo_interface)<!-- -->\[\] | Additional per provider such as displayName and profile information. |
@@ -42,7 +42,7 @@ export interface User extends UserInfo
 
 ## User.emailVerified
 
-Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification) and [applyActionCode()](./auth.md#applyactioncode)<!-- -->.
+Whether the email has been verified with [sendEmailVerification()](./auth.md#sendemailverification_6a885d6) and [applyActionCode()](./auth.md#applyactioncode_d2ae15a)<!-- -->.
 
 <b>Signature:</b>
 
@@ -119,7 +119,9 @@ const result = await signInWithEmailAndPassword(auth, email, password);
 
 Deletes and signs out the user.
 
-Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call one of the reauthentication methods like [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential)<!-- -->.
+Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call one of the reauthentication methods like [reauthenticateWithCredential()](./auth.md#reauthenticatewithcredential_60f8043)<!-- -->.
+
+This method is not supported on any [User](./auth.user.md#user_interface) signed in by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -142,7 +144,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 getIdToken(forceRefresh?: boolean): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -164,7 +166,7 @@ Returns the current token if it has not expired or if it will not expire in the 
 getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

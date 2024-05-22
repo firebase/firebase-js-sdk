@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check",
-  "version": "0.8.0",
+  "version": "0.8.4",
   "description": "The App Check component of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -26,7 +26,7 @@
     "build:release": "yarn build && yarn api-report && yarn typings:public",
     "build:deps": "lerna run --scope @firebase/app-check --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser",
+    "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run --nocache",
     "api-report": "api-extractor run --local --verbose",
@@ -38,14 +38,14 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/util": "1.9.3",
-    "@firebase/component": "0.6.4",
-    "@firebase/logger": "0.4.0",
+    "@firebase/util": "1.9.6",
+    "@firebase/component": "0.6.7",
+    "@firebase/logger": "0.4.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.9.12",
+    "@firebase/app": "0.10.4",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -56,7 +56,7 @@
   "repository": {
     "directory": "packages/app-check",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

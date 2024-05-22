@@ -226,7 +226,7 @@ function fromHex(hexString: string): Uint8Array {
   return bytes;
 }
 
-function compare(left: Uint8Array, right: Uint8Array): number {
+export function compare(left: Uint8Array, right: Uint8Array): number {
   for (let i = 0; i < Math.min(left.length, right.length); ++i) {
     if (left[i] < right[i]) {
       return -1;

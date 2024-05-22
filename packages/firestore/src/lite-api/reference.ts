@@ -109,11 +109,85 @@ export type SetOptions =
     };
 
 /**
+ * A `Query` refers to a query which you can read or listen to. You can also
+ * construct refined `Query` objects by adding filters and ordering.
+ */
+export class Query<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
+  /** The type of this Firestore reference. */
+  readonly type: 'query' | 'collection' = 'query';
+
+  /**
+   * The `Firestore` instance for the Firestore database (useful for performing
+   * transactions, etc.).
+   */
+  readonly firestore: Firestore;
+
+  // This is the lite version of the Query class in the main SDK.
+
+  /** @hideconstructor protected */
+  constructor(
+    firestore: Firestore,
+    /**
+     * If provided, the `FirestoreDataConverter` associated with this instance.
+     */
+    readonly converter: FirestoreDataConverter<
+      AppModelType,
+      DbModelType
+    > | null,
+    readonly _query: InternalQuery
+  ) {
+    this.firestore = firestore;
+  }
+
+  /**
+   * Removes the current converter.
+   *
+   * @param converter - `null` removes the current converter.
+   * @returns A `Query<DocumentData, DocumentData>` that does not use a
+   * converter.
+   */
+  withConverter(converter: null): Query<DocumentData, DocumentData>;
+  /**
+   * Applies a custom data converter to this query, allowing you to use your own
+   * custom model objects with Firestore. When you call {@link getDocs} with
+   * the returned query, the provided converter will convert between Firestore
+   * data of type `NewDbModelType` and your custom type `NewAppModelType`.
+   *
+   * @param converter - Converts objects to and from Firestore.
+   * @returns A `Query` that uses the provided converter.
+   */
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): Query<NewAppModelType, NewDbModelType>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
+  ): Query<NewAppModelType, NewDbModelType> {
+    return new Query<NewAppModelType, NewDbModelType>(
+      this.firestore,
+      converter,
+      this._query
+    );
+  }
+}
+
+/**
  * A `DocumentReference` refers to a document location in a Firestore database
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist.
  */
-export class DocumentReference<T = DocumentData> {
+export class DocumentReference<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> {
   /** The type of this Firestore reference. */
   readonly type = 'document';
 
@@ -129,7 +203,10 @@ export class DocumentReference<T = DocumentData> {
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
-    readonly converter: FirestoreDataConverter<T> | null,
+    readonly converter: FirestoreDataConverter<
+      AppModelType,
+      DbModelType
+    > | null,
     readonly _key: DocumentKey
   ) {
     this.firestore = firestore;
@@ -157,8 +234,8 @@ export class DocumentReference<T = DocumentData> {
   /**
    * The collection this `DocumentReference` belongs to.
    */
-  get parent(): CollectionReference<T> {
-    return new CollectionReference<T>(
+  get parent(): CollectionReference<AppModelType, DbModelType> {
+    return new CollectionReference<AppModelType, DbModelType>(
       this.firestore,
       this.converter,
       this._key.path.popLast()
@@ -169,74 +246,37 @@ export class DocumentReference<T = DocumentData> {
    * Applies a custom data converter to this `DocumentReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * @firebase/firestore/lite#(setDoc:1)}, {@link @firebase/firestore/lite#getDoc}, etc. with the returned `DocumentReference`
-   * instance, the provided converter will convert between Firestore data and
-   * your custom type `U`.
+   * instance, the provided converter will convert between Firestore data of
+   * type `NewDbModelType` and your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `DocumentReference<U>` that uses the provided converter.
+   * @returns A `DocumentReference` that uses the provided converter.
    */
-  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): DocumentReference<NewAppModelType, NewDbModelType>;
   /**
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `DocumentReference<DocumentData>` that does not use a converter.
+   * @returns A `DocumentReference<DocumentData, DocumentData>` that does not
+   * use a converter.
    */
-  withConverter(converter: null): DocumentReference<DocumentData>;
-  withConverter<U>(
-    converter: FirestoreDataConverter<U> | null
-  ): DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, converter, this._key);
-  }
-}
-
-/**
- * A `Query` refers to a query which you can read or listen to. You can also
- * construct refined `Query` objects by adding filters and ordering.
- */
-export class Query<T = DocumentData> {
-  /** The type of this Firestore reference. */
-  readonly type: 'query' | 'collection' = 'query';
-
-  /**
-   * The `Firestore` instance for the Firestore database (useful for performing
-   * transactions, etc.).
-   */
-  readonly firestore: Firestore;
-
-  // This is the lite version of the Query class in the main SDK.
-
-  /** @hideconstructor protected */
-  constructor(
-    firestore: Firestore,
-    /**
-     * If provided, the `FirestoreDataConverter` associated with this instance.
-     */
-    readonly converter: FirestoreDataConverter<T> | null,
-    readonly _query: InternalQuery
-  ) {
-    this.firestore = firestore;
-  }
-
-  /**
-   * Removes the current converter.
-   *
-   * @param converter - `null` removes the current converter.
-   * @returns A `Query<DocumentData>` that does not use a converter.
-   */
-  withConverter(converter: null): Query<DocumentData>;
-  /**
-   * Applies a custom data converter to this query, allowing you to use your own
-   * custom model objects with Firestore. When you call {@link getDocs} with
-   * the returned query, the provided converter will convert between Firestore
-   * data and your custom type `U`.
-   *
-   * @param converter - Converts objects to and from Firestore.
-   * @returns A `Query<U>` that uses the provided converter.
-   */
-  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
-  withConverter<U>(converter: FirestoreDataConverter<U> | null): Query<U> {
-    return new Query<U>(this.firestore, converter, this._query);
+  withConverter(converter: null): DocumentReference<DocumentData, DocumentData>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
+  ): DocumentReference<NewAppModelType, NewDbModelType> {
+    return new DocumentReference<NewAppModelType, NewDbModelType>(
+      this.firestore,
+      converter,
+      this._key
+    );
   }
 }
 
@@ -244,14 +284,17 @@ export class Query<T = DocumentData> {
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link (query:1)}).
  */
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<
+  AppModelType = DocumentData,
+  DbModelType extends DocumentData = DocumentData
+> extends Query<AppModelType, DbModelType> {
   /** The type of this Firestore reference. */
   readonly type = 'collection';
 
   /** @hideconstructor */
   constructor(
     firestore: Firestore,
-    converter: FirestoreDataConverter<T> | null,
+    converter: FirestoreDataConverter<AppModelType, DbModelType> | null,
     readonly _path: ResourcePath
   ) {
     super(firestore, converter, newQueryForPath(_path));
@@ -274,7 +317,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * A reference to the containing `DocumentReference` if this is a
    * subcollection. If this isn't a subcollection, the reference is null.
    */
-  get parent(): DocumentReference<DocumentData> | null {
+  get parent(): DocumentReference<DocumentData, DocumentData> | null {
     const parentPath = this._path.popLast();
     if (parentPath.isEmpty()) {
       return null;
@@ -291,26 +334,39 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * Applies a custom data converter to this `CollectionReference`, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * addDoc} with the returned `CollectionReference` instance, the provided
-   * converter will convert between Firestore data and your custom type `U`.
+   * converter will convert between Firestore data of type `NewDbModelType` and
+   * your custom type `NewAppModelType`.
    *
    * @param converter - Converts objects to and from Firestore.
-   * @returns A `CollectionReference<U>` that uses the provided converter.
+   * @returns A `CollectionReference` that uses the provided converter.
    */
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType>
+  ): CollectionReference<NewAppModelType, NewDbModelType>;
   /**
    * Removes the current converter.
    *
    * @param converter - `null` removes the current converter.
-   * @returns A `CollectionReference<DocumentData>` that does not use a
-   * converter.
+   * @returns A `CollectionReference<DocumentData, DocumentData>` that does not
+   * use a converter.
    */
-  withConverter(converter: null): CollectionReference<DocumentData>;
-  withConverter<U>(
-    converter: FirestoreDataConverter<U> | null
-  ): CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, converter, this._path);
+  withConverter(
+    converter: null
+  ): CollectionReference<DocumentData, DocumentData>;
+  withConverter<
+    NewAppModelType,
+    NewDbModelType extends DocumentData = DocumentData
+  >(
+    converter: FirestoreDataConverter<NewAppModelType, NewDbModelType> | null
+  ): CollectionReference<NewAppModelType, NewDbModelType> {
+    return new CollectionReference<NewAppModelType, NewDbModelType>(
+      this.firestore,
+      converter,
+      this._path
+    );
   }
 }
 
@@ -330,7 +386,7 @@ export function collection(
   firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -343,11 +399,11 @@ export function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection(
-  reference: CollectionReference<unknown>,
+export function collection<AppModelType, DbModelType extends DocumentData>(
+  reference: CollectionReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
+): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
@@ -360,16 +416,19 @@ export function collection(
  * to a collection.
  * @returns The `CollectionReference` instance.
  */
-export function collection(
-  reference: DocumentReference,
+export function collection<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData>;
-export function collection(
-  parent: Firestore | DocumentReference<unknown> | CollectionReference<unknown>,
+): CollectionReference<DocumentData, DocumentData>;
+export function collection<AppModelType, DbModelType extends DocumentData>(
+  parent:
+    | Firestore
+    | DocumentReference<AppModelType, DbModelType>
+    | CollectionReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): CollectionReference<DocumentData> {
+): CollectionReference<DocumentData, DocumentData> {
   parent = getModularInstance(parent);
 
   validateNonEmptyArgument('collection', 'path', path);
@@ -417,7 +476,7 @@ export function collection(
 export function collectionGroup(
   firestore: Firestore,
   collectionId: string
-): Query<DocumentData> {
+): Query<DocumentData, DocumentData> {
   firestore = cast(firestore, Firestore);
 
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
@@ -452,7 +511,7 @@ export function doc(
   firestore: Firestore,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
+): DocumentReference<DocumentData, DocumentData>;
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path. If no path is specified, an
@@ -468,11 +527,11 @@ export function doc(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export function doc<T>(
-  reference: CollectionReference<T>,
+export function doc<AppModelType, DbModelType extends DocumentData>(
+  reference: CollectionReference<AppModelType, DbModelType>,
   path?: string,
   ...pathSegments: string[]
-): DocumentReference<T>;
+): DocumentReference<AppModelType, DbModelType>;
 /**
  * Gets a `DocumentReference` instance that refers to a document within
  * `reference` at the specified relative path.
@@ -485,16 +544,19 @@ export function doc<T>(
  * a document.
  * @returns The `DocumentReference` instance.
  */
-export function doc(
-  reference: DocumentReference<unknown>,
+export function doc<AppModelType, DbModelType extends DocumentData>(
+  reference: DocumentReference<AppModelType, DbModelType>,
   path: string,
   ...pathSegments: string[]
-): DocumentReference<DocumentData>;
-export function doc<T>(
-  parent: Firestore | CollectionReference<T> | DocumentReference<unknown>,
+): DocumentReference<DocumentData, DocumentData>;
+export function doc<AppModelType, DbModelType extends DocumentData>(
+  parent:
+    | Firestore
+    | CollectionReference<AppModelType, DbModelType>
+    | DocumentReference<AppModelType, DbModelType>,
   path?: string,
   ...pathSegments: string[]
-): DocumentReference {
+): DocumentReference<AppModelType, DbModelType> {
   parent = getModularInstance(parent);
 
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -527,7 +589,7 @@ export function doc<T>(
       ResourcePath.fromString(path, ...pathSegments)
     );
     validateDocumentPath(absolutePath);
-    return new DocumentReference(
+    return new DocumentReference<AppModelType, DbModelType>(
       parent.firestore,
       parent instanceof CollectionReference ? parent.converter : null,
       new DocumentKey(absolutePath)
@@ -543,9 +605,13 @@ export function doc<T>(
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function refEqual<T>(
-  left: DocumentReference<T> | CollectionReference<T>,
-  right: DocumentReference<T> | CollectionReference<T>
+export function refEqual<AppModelType, DbModelType extends DocumentData>(
+  left:
+    | DocumentReference<AppModelType, DbModelType>
+    | CollectionReference<AppModelType, DbModelType>,
+  right:
+    | DocumentReference<AppModelType, DbModelType>
+    | CollectionReference<AppModelType, DbModelType>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
@@ -573,7 +639,10 @@ export function refEqual<T>(
  * @returns true if the references point to the same location in the same
  * Firestore database.
  */
-export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
+export function queryEqual<AppModelType, DbModelType extends DocumentData>(
+  left: Query<AppModelType, DbModelType>,
+  right: Query<AppModelType, DbModelType>
+): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
 

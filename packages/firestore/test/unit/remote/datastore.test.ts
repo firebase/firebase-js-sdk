@@ -24,6 +24,7 @@ import {
   Token
 } from '../../../src/api/credentials';
 import { DatabaseId } from '../../../src/core/database_info';
+import { ResourcePath } from '../../../src/model/path';
 import { Connection, Stream } from '../../../src/remote/connection';
 import {
   Datastore,
@@ -41,9 +42,15 @@ use(chaiAsPromised);
 // `invokeRPC()` and `invokeStreamingRPC()`.
 describe('Datastore', () => {
   class MockConnection implements Connection {
+    terminateInvoked = false;
+
+    terminate(): void {
+      this.terminateInvoked = true;
+    }
+
     invokeRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: ResourcePath,
       request: Req,
       token: Token | null
     ): Promise<Resp> {
@@ -52,7 +59,7 @@ describe('Datastore', () => {
 
     invokeStreamingRPC<Req, Resp>(
       rpcName: string,
-      path: string,
+      path: ResourcePath,
       request: Req,
       token: Token | null
     ): Promise<Resp[]> {
@@ -129,6 +136,18 @@ describe('Datastore', () => {
         'name': 'FirebaseError',
         'code': Code.FAILED_PRECONDITION
       });
+  });
+
+  it('Connection.terminate() invoked if Datastore terminated', async () => {
+    const connection = new MockConnection();
+    const datastore = newDatastore(
+      new EmptyAuthCredentialsProvider(),
+      new EmptyAppCheckTokenProvider(),
+      connection,
+      serializer
+    );
+    datastore.terminate();
+    await expect(connection.terminateInvoked).to.equal(true);
   });
 
   it('DatastoreImpl.invokeRPC() rethrows a FirestoreError', async () => {

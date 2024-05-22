@@ -112,6 +112,38 @@ const browserBuilds = [
   }
 ];
 
+const browserWebExtensionBuilds = [
+  {
+    input: {
+      index: 'index.web-extension.ts',
+      internal: 'internal/index.ts'
+    },
+    output: {
+      dir: 'dist/web-extension-esm2017',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      emitModulePackageFile()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: {
+      index: 'index.web-extension.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/web-extension-cjs', format: 'cjs', sourcemap: true }],
+    plugins: [
+      ...es2017BuildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
 const nodeBuilds = [
   {
     input: {
@@ -198,6 +230,7 @@ const webWorkerBuild = {
 
 export default [
   ...browserBuilds,
+  ...browserWebExtensionBuilds,
   ...nodeBuilds,
   cordovaBuild,
   rnBuild,

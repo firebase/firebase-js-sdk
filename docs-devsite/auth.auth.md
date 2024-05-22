@@ -37,6 +37,7 @@ export interface Auth
 
 |  Method | Description |
 |  --- | --- |
+|  [authStateReady()](./auth.auth.md#authauthstateready) | returns a promise that resolves immediately when the initial auth state is settled. When the promise resolves, the current user might be a valid user or <code>null</code> if the user signed out. |
 |  [beforeAuthStateChanged(callback, onAbort)](./auth.auth.md#authbeforeauthstatechanged) | Adds a blocking callback that runs before an auth state change sets a new user. |
 |  [onAuthStateChanged(nextOrObserver, error, completed)](./auth.auth.md#authonauthstatechanged) | Adds an observer for changes to the user's sign-in state. |
 |  [onIdTokenChanged(nextOrObserver, error, completed)](./auth.auth.md#authonidtokenchanged) | Adds an observer for changes to the signed-in user's ID token. |
@@ -144,6 +145,19 @@ const result = await signInWithEmailAndPassword(auth, email, password);
 
 ```
 
+## Auth.authStateReady()
+
+returns a promise that resolves immediately when the initial auth state is settled. When the promise resolves, the current user might be a valid user or `null` if the user signed out.
+
+<b>Signature:</b>
+
+```typescript
+authStateReady(): Promise<void>;
+```
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
 ## Auth.beforeAuthStateChanged()
 
 Adds a blocking callback that runs before an auth state change sets a new user.
@@ -154,7 +168,7 @@ Adds a blocking callback that runs before an auth state change sets a new user.
 beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -177,7 +191,7 @@ To keep the old behavior, see [Auth.onIdTokenChanged()](./auth.auth.md#authonidt
 onAuthStateChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -201,7 +215,7 @@ This includes sign-in, sign-out, and token refresh events.
 onIdTokenChanged(nextOrObserver: NextOrObserver<User | null>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -229,7 +243,7 @@ This method does not work in a Node.js environment.
 setPersistence(persistence: Persistence): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -250,6 +264,8 @@ auth.setPersistence(browserSessionPersistence);
 ## Auth.signOut()
 
 Signs out the current user. This does not automatically revoke the user's ID token.
+
+This method is not supported by [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -276,7 +292,7 @@ The operation fails with an error if the user to be updated belongs to a differe
 updateCurrentUser(user: User | null): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -21,16 +21,15 @@ import { getRecaptchaConfig } from '../../api/authentication/recaptcha';
 import {
   RecaptchaClientType,
   RecaptchaVersion,
-  RecaptchaActionName
+  RecaptchaActionName,
+  RecaptchaProvider
 } from '../../api';
 
 import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
-
-const RECAPTCHA_ENTERPRISE_URL =
-  'https://www.google.com/recaptcha/enterprise.js?render=';
+import { AuthErrorCode } from '../../core/errors';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
@@ -132,8 +131,12 @@ export class RecaptchaEnterpriseVerifier {
               );
               return;
             }
+            let url = jsHelpers._recaptchaEnterpriseScriptUrl();
+            if (url.length !== 0) {
+              url += siteKey;
+            }
             jsHelpers
-              ._loadJS(RECAPTCHA_ENTERPRISE_URL + siteKey)
+              ._loadJS(url)
               .then(() => {
                 retrieveRecaptchaToken(siteKey, resolve, reject);
               })
@@ -173,4 +176,68 @@ export async function injectRecaptchaFields<T>(
     'recaptchaVersion': RecaptchaVersion.ENTERPRISE
   });
   return newRequest;
+}
+
+type ActionMethod<TRequest, TResponse> = (
+  auth: Auth,
+  request: TRequest
+) => Promise<TResponse>;
+
+export async function handleRecaptchaFlow<TRequest, TResponse>(
+  authInstance: AuthInternal,
+  request: TRequest,
+  actionName: RecaptchaActionName,
+  actionMethod: ActionMethod<TRequest, TResponse>
+): Promise<TResponse> {
+  if (
+    authInstance
+      ._getRecaptchaConfig()
+      ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
+  ) {
+    const requestWithRecaptcha = await injectRecaptchaFields(
+      authInstance,
+      request,
+      actionName,
+      actionName === RecaptchaActionName.GET_OOB_CODE
+    );
+    return actionMethod(authInstance, requestWithRecaptcha);
+  } else {
+    return actionMethod(authInstance, request).catch(async error => {
+      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
+        console.log(
+          `${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`
+        );
+        const requestWithRecaptcha = await injectRecaptchaFields(
+          authInstance,
+          request,
+          actionName,
+          actionName === RecaptchaActionName.GET_OOB_CODE
+        );
+        return actionMethod(authInstance, requestWithRecaptcha);
+      } else {
+        return Promise.reject(error);
+      }
+    });
+  }
+}
+
+export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+
+  const response = await getRecaptchaConfig(authInternal, {
+    clientType: RecaptchaClientType.WEB,
+    version: RecaptchaVersion.ENTERPRISE
+  });
+
+  const config = new RecaptchaConfig(response);
+  if (authInternal.tenantId == null) {
+    authInternal._agentRecaptchaConfig = config;
+  } else {
+    authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
+  }
+
+  if (config.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)) {
+    const verifier = new RecaptchaEnterpriseVerifier(authInternal);
+    void verifier.verify();
+  }
 }

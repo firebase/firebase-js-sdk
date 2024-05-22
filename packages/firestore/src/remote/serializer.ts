@@ -262,8 +262,14 @@ export function fromBytes(
     return ByteString.fromBase64String(value ? value : '');
   } else {
     hardAssert(
-      value === undefined || value instanceof Uint8Array,
-      'value must be undefined or Uint8Array'
+      value === undefined ||
+        // Check if the value is an instance of both Buffer and Uint8Array,
+        // despite the fact that Buffer extends Uint8Array. In some
+        // environments, such as jsdom, the prototype chain of Buffer
+        // does not indicate that it extends Uint8Array.
+        value instanceof Buffer ||
+        value instanceof Uint8Array,
+      'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
   }
@@ -285,10 +291,15 @@ export function toResourceName(
   databaseId: DatabaseId,
   path: ResourcePath
 ): string {
-  return fullyQualifiedPrefixPath(databaseId)
-    .child('documents')
-    .child(path)
-    .canonicalString();
+  return toResourcePath(databaseId, path).canonicalString();
+}
+
+export function toResourcePath(
+  databaseId: DatabaseId,
+  path?: ResourcePath
+): ResourcePath {
+  const resourcePath = fullyQualifiedPrefixPath(databaseId).child('documents');
+  return path === undefined ? resourcePath : resourcePath.child(path);
 }
 
 function fromResourceName(name: string): ResourcePath {
@@ -837,17 +848,18 @@ export function fromDocumentsTarget(
 export function toQueryTarget(
   serializer: JsonProtoSerializer,
   target: Target
-): ProtoQueryTarget {
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
   // Dissect the path into parent, collectionId, and optional key filter.
-  const result: ProtoQueryTarget = { structuredQuery: {} };
+  const queryTarget: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
+  let parent: ResourcePath;
   if (target.collectionGroup !== null) {
     debugAssert(
       path.length % 2 === 0,
       'Collection Group queries should be within a document path or root.'
     );
-    result.parent = toQueryPath(serializer, path);
-    result.structuredQuery!.from = [
+    parent = path;
+    queryTarget.structuredQuery!.from = [
       {
         collectionId: target.collectionGroup,
         allDescendants: true
@@ -858,44 +870,47 @@ export function toQueryTarget(
       path.length % 2 !== 0,
       'Document queries with filters are not supported.'
     );
-    result.parent = toQueryPath(serializer, path.popLast());
-    result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
+    parent = path.popLast();
+    queryTarget.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
+  queryTarget.parent = toQueryPath(serializer, parent);
 
   const where = toFilters(target.filters);
   if (where) {
-    result.structuredQuery!.where = where;
+    queryTarget.structuredQuery!.where = where;
   }
 
   const orderBy = toOrder(target.orderBy);
   if (orderBy) {
-    result.structuredQuery!.orderBy = orderBy;
+    queryTarget.structuredQuery!.orderBy = orderBy;
   }
 
   const limit = toInt32Proto(serializer, target.limit);
   if (limit !== null) {
-    result.structuredQuery!.limit = limit;
+    queryTarget.structuredQuery!.limit = limit;
   }
 
   if (target.startAt) {
-    result.structuredQuery!.startAt = toStartAtCursor(target.startAt);
+    queryTarget.structuredQuery!.startAt = toStartAtCursor(target.startAt);
   }
   if (target.endAt) {
-    result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
+    queryTarget.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
-  return result;
+  return { queryTarget, parent };
 }
 
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
   target: Target,
-  aggregates: Aggregate[]
+  aggregates: Aggregate[],
+  skipAliasing?: boolean
 ): {
   request: ProtoRunAggregationQueryRequest;
   aliasMap: Record<string, string>;
+  parent: ResourcePath;
 } {
-  const queryTarget = toQueryTarget(serializer, target);
+  const { queryTarget, parent } = toQueryTarget(serializer, target);
   const aliasMap: Record<string, string> = {};
 
   const aggregations: ProtoAggregation[] = [];
@@ -905,7 +920,9 @@ export function toRunAggregationQueryRequest(
     // Map all client-side aliases to a unique short-form
     // alias. This avoids issues with client-side aliases that
     // exceed the 1500-byte string size limit.
-    const serverAlias = `aggregate_${aggregationNum++}`;
+    const serverAlias = skipAliasing
+      ? aggregate.alias
+      : `aggregate_${aggregationNum++}`;
     aliasMap[serverAlias] = aggregate.alias;
 
     if (aggregate.aggregateType === 'count') {
@@ -938,7 +955,8 @@ export function toRunAggregationQueryRequest(
       },
       parent: queryTarget.parent
     },
-    aliasMap
+    aliasMap,
+    parent
   };
 }
 
@@ -1041,7 +1059,7 @@ export function toTarget(
   if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
-    result = { query: toQueryTarget(serializer, target) };
+    result = { query: toQueryTarget(serializer, target).queryTarget };
   }
 
   result.targetId = targetData.targetId;

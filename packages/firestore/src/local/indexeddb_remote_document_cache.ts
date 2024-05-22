@@ -55,6 +55,7 @@ import {
 } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDbStore } from './simple_db';
@@ -279,7 +280,8 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query,
     offset: IndexOffset,
-    mutatedDocs: OverlayMap
+    mutatedDocs: OverlayMap,
+    context?: QueryContext
   ): PersistencePromise<MutableDocumentMap> {
     const collection = query.path;
     const startKey = [
@@ -300,6 +302,7 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .loadAll(IDBKeyRange.bound(startKey, endKey, true))
       .next(dbRemoteDocs => {
+        context?.incrementDocumentReadCount(dbRemoteDocs.length);
         let results = mutableDocumentMap();
         for (const dbRemoteDoc of dbRemoteDocs) {
           const document = this.maybeDecodeDocument(

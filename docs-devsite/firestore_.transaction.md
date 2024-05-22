@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # Transaction class
 A reference to a transaction.
 
-The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction)<!-- -->.
+The `Transaction` object passed to a transaction's `updateFunction` provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->.
 
 <b>Signature:</b>
 
@@ -38,14 +38,14 @@ Deletes the document referred to by the provided [DocumentReference](./firestore
 <b>Signature:</b>
 
 ```typescript
-delete(documentRef: DocumentReference<unknown>): this;
+delete<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be deleted. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be deleted. |
 
 <b>Returns:</b>
 
@@ -60,18 +60,18 @@ Reads the document referenced by the provided [DocumentReference](./firestore_.d
 <b>Signature:</b>
 
 ```typescript
-get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+get<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be read. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be read. |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `DocumentSnapshot` with the read data.
 
@@ -82,15 +82,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
+set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
 
 <b>Returns:</b>
 
@@ -98,7 +98,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -109,15 +109,15 @@ Writes to the document referred to by the provided [DocumentReference](./firesto
 <b>Signature:</b>
 
 ```typescript
-set<T>(documentRef: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): this;
+set<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be set. |
-|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;T&gt; | An object of the fields and values for the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be set. |
+|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | An object of the fields and values for the document. |
 |  options | [SetOptions](./firestore_.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
@@ -126,7 +126,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not a valid Firestore document.
 
@@ -137,15 +137,15 @@ Updates fields in the document referred to by the provided [DocumentReference](.
 <b>Signature:</b>
 
 ```typescript
-update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
+update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to be updated. |
-|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;T&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
+|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
@@ -153,7 +153,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 
@@ -166,14 +166,14 @@ Nested fields can be updated by providing dot-separated field path strings or by
 <b>Signature:</b>
 
 ```typescript
-update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
+update<AppModelType, DbModelType extends DocumentData>(documentRef: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to be updated. |
+|  documentRef | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to be updated. |
 |  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key/value pairs. |
@@ -184,7 +184,7 @@ this
 
 This `Transaction` instance. Used for chaining method calls.
 
-## Exceptions
+#### Exceptions
 
 Error - If the provided input is not valid Firestore data.
 

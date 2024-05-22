@@ -24,7 +24,8 @@
     "packages/component/dist/src/provider.d.ts",
     "packages/component/dist/src/component_container.d.ts",
     "packages/logger/dist/src/logger.d.ts",
-    "packages/webchannel-wrapper/src/index.d.ts",
+    "packages/webchannel-wrapper/dist/bloom-blob/bloom_blob_types.d.ts",
+    "packages/webchannel-wrapper/dist/webchannel-blob/webchannel_blob_types.d.ts",
     "packages/util/dist/src/crypt.d.ts",
     "packages/util/dist/src/defaults.d.ts",
     "packages/util/dist/src/emulator.d.ts",
@@ -36,6 +37,7 @@
     "packages/firestore/src/util/error.ts",
     "packages/firestore/src/local/indexeddb_schema.ts",
     "packages/firestore/src/local/indexeddb_schema_legacy.ts",
-    "packages/firestore/src/local/shared_client_state_schema.ts"
+    "packages/firestore/src/local/shared_client_state_schema.ts",
+    "packages/firestore/src/util/testing_hooks.ts"
   ]
 }

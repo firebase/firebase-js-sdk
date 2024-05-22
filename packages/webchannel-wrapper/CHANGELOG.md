@@ -1,5 +1,41 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.0
+
+### Major Changes
+
+- [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd) [#8190](https://github.com/firebase/firebase-js-sdk/pull/8190) - Use closure-net as a dependency of webchannel-wrapper and Firestore.
+
+### Patch Changes
+
+- [`14f9da66f`](https://github.com/firebase/firebase-js-sdk/commit/14f9da66fed45ac3f932ec590ca49c8a827d9fc5) [#8212](https://github.com/firebase/firebase-js-sdk/pull/8212) - fix: Update webchannel-wrapper to fix webchannel multi-byte character decoding bug in fetch streams.
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+## 0.10.6
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+## 0.10.5
+
+### Patch Changes
+
+- [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4) [#7771](https://github.com/firebase/firebase-js-sdk/pull/7771) (fixes [#6118](https://github.com/firebase/firebase-js-sdk/issues/6118)) - Fix high memory usage of Firestore in browsers.
+
+## 0.10.3
+
+### Patch Changes
+
+- [`60e4a07d2`](https://github.com/firebase/firebase-js-sdk/commit/60e4a07d2c89b5ea473f903a942aabab03050fa5) [#7593](https://github.com/firebase/firebase-js-sdk/pull/7593) - Fix an issue where Firestore was incorrectly using XHR instead of fetch for streaming response.
+
+## 0.10.2
+
+### Patch Changes
+
+- [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea) [#7569](https://github.com/firebase/firebase-js-sdk/pull/7569) - Fix how we enable fetch streams.
+
 ## 0.10.1
 
 ### Patch Changes

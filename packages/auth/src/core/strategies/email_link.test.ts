@@ -46,6 +46,7 @@ import {
 } from './email_link';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -210,7 +211,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -239,7 +240,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       const apiMock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
@@ -282,7 +283,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
       auth._agentRecaptchaConfig!.siteKey = 'wrong-site-key';
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, {
@@ -352,7 +353,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
       const response = await sendSignInLinkToEmail(auth, email, {

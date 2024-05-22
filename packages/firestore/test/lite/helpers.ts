@@ -35,7 +35,8 @@ import { QueryDocumentSnapshot } from '../../src/lite-api/snapshot';
 import { AutoId } from '../../src/util/misc';
 import {
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  TARGET_DB_ID
 } from '../integration/util/settings';
 
 let appCount = 0;
@@ -50,7 +51,7 @@ export async function withTestDbSettings(
     'test-app-' + appCount++
   );
 
-  const firestore = initializeFirestore(app, settings);
+  const firestore = initializeFirestore(app, settings, TARGET_DB_ID);
   return fn(firestore);
 }
 

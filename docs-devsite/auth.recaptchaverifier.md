@@ -25,7 +25,7 @@ export declare class RecaptchaVerifier implements ApplicationVerifierInternal
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(containerOrId, parameters, authExtern)](./auth.recaptchaverifier.md#recaptchaverifierconstructor) |  | Constructs a new instance of the <code>RecaptchaVerifier</code> class |
+|  [(constructor)(authExtern, containerOrId, parameters)](./auth.recaptchaverifier.md#recaptchaverifierconstructor) |  | Constructs a new instance of the <code>RecaptchaVerifier</code> class |
 
 ## Properties
 
@@ -50,16 +50,16 @@ Check the reCAPTCHA docs for a comprehensive list. All parameters are accepted e
 <b>Signature:</b>
 
 ```typescript
-constructor(containerOrId: HTMLElement | string, parameters: RecaptchaParameters, authExtern: Auth);
+constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
+|  authExtern | [Auth](./auth.auth.md#auth_interface) | The corresponding Firebase [Auth](./auth.auth.md#auth_interface) instance. |
 |  containerOrId | HTMLElement \| string | The reCAPTCHA container parameter. |
 |  parameters | [RecaptchaParameters](./auth.recaptchaparameters.md#recaptchaparameters_interface) | The optional reCAPTCHA parameters. |
-|  authExtern | [Auth](./auth.auth.md#auth_interface) | The corresponding Firebase [Auth](./auth.auth.md#auth_interface) instance. |
 
 ## RecaptchaVerifier.type
 

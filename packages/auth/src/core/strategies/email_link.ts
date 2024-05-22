@@ -32,8 +32,10 @@ import { AuthErrorCode } from '../errors';
 import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
-import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 /**
  * Sends a sign-in email link to the user with the specified email.
@@ -101,37 +103,13 @@ export async function sendSignInLinkToEmail(
       );
     }
   }
-  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInternal,
-      request,
-      RecaptchaActionName.GET_OOB_CODE,
-      true
-    );
-    setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-    await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
-  } else {
-    setActionCodeSettings(request, actionCodeSettings);
-    await api
-      .sendSignInLinkToEmail(authInternal, request)
-      .catch(async error => {
-        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-          console.log(
-            'Email link sign-in is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-in flow.'
-          );
-          const requestWithRecaptcha = await injectRecaptchaFields(
-            authInternal,
-            request,
-            RecaptchaActionName.GET_OOB_CODE,
-            true
-          );
-          setActionCodeSettings(requestWithRecaptcha, actionCodeSettings);
-          await api.sendSignInLinkToEmail(authInternal, requestWithRecaptcha);
-        } else {
-          return Promise.reject(error);
-        }
-      });
-  }
+  setActionCodeSettings(request, actionCodeSettings);
+  await handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.GET_OOB_CODE,
+    api.sendSignInLinkToEmail
+  );
 }
 
 /**
@@ -154,6 +132,9 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * If no link is passed, the link is inferred from the current URL.
  *
  * Fails with an error if the email address is invalid or OTP in email link expires.
+ *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
  *
@@ -178,6 +159,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean {
  * }
  * ```
  *
+ *
  * @param auth - The {@link Auth} instance.
  * @param email - The user's email address.
  * @param emailLink - The link sent to the user's email address.
@@ -189,6 +171,11 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authModular = getModularInstance(auth);
   const credential = EmailAuthProvider.credentialWithLink(
     email,

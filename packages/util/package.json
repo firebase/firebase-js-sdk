@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "1.9.3",
+  "version": "1.9.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -33,9 +33,9 @@
     "build:deps": "lerna run --scope @firebase/util --include-dependencies build",
     "dev": "rollup -c -w",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
-    "test": "run-p lint test:all",
+    "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p test:browser test:node",
+    "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
     "api-report": "api-extractor run --local --verbose",
@@ -53,7 +53,7 @@
   "repository": {
     "directory": "packages/util",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

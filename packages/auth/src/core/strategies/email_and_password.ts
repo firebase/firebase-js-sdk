@@ -29,19 +29,46 @@ import { signUp, SignUpRequest } from '../../api/authentication/sign_up';
 import { MultiFactorInfoImpl } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _assert } from '../util/assert';
+import {
+  _assert,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
 import { getModularInstance } from '@firebase/util';
 import { OperationType } from '../../model/enums';
-import { injectRecaptchaFields } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { IdTokenResponse } from '../../model/id_token';
 import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
- * Sends a password reset email to the given email address.
+ * Updates the password policy cached in the {@link Auth} instance if a policy is already
+ * cached for the project or tenant.
+ *
+ * @remarks
+ * We only fetch the password policy if the password did not meet policy requirements and
+ * there is an existing policy cached. A developer must call validatePassword at least
+ * once for the cache to be automatically updated.
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @private
+ */
+async function recachePasswordPolicy(auth: Auth): Promise<void> {
+  const authInternal = _castAuth(auth);
+  if (authInternal._getPasswordPolicyInternal()) {
+    await authInternal._updatePasswordPolicy();
+  }
+}
+
+/**
+ * Sends a password reset email to the given email address. This method does not throw an error when
+ * there's no user account with the given email address and
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}
+ * is enabled.
  *
  * @remarks
  * To complete the password reset, call {@link confirmPasswordReset} with the code supplied in
@@ -83,61 +110,15 @@ export async function sendPasswordResetEmail(
     email,
     clientType: RecaptchaClientType.WEB
   };
-  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInternal,
-      request,
-      RecaptchaActionName.GET_OOB_CODE,
-      true
-    );
-    if (actionCodeSettings) {
-      _setActionCodeSettingsOnRequest(
-        authInternal,
-        requestWithRecaptcha,
-        actionCodeSettings
-      );
-    }
-    await authentication.sendPasswordResetEmail(
-      authInternal,
-      requestWithRecaptcha
-    );
-  } else {
-    if (actionCodeSettings) {
-      _setActionCodeSettingsOnRequest(
-        authInternal,
-        request,
-        actionCodeSettings
-      );
-    }
-    await authentication
-      .sendPasswordResetEmail(authInternal, request)
-      .catch(async error => {
-        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-          console.log(
-            'Password resets are protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the password reset flow.'
-          );
-          const requestWithRecaptcha = await injectRecaptchaFields(
-            authInternal,
-            request,
-            RecaptchaActionName.GET_OOB_CODE,
-            true
-          );
-          if (actionCodeSettings) {
-            _setActionCodeSettingsOnRequest(
-              authInternal,
-              requestWithRecaptcha,
-              actionCodeSettings
-            );
-          }
-          await authentication.sendPasswordResetEmail(
-            authInternal,
-            requestWithRecaptcha
-          );
-        } else {
-          return Promise.reject(error);
-        }
-      });
+  if (actionCodeSettings) {
+    _setActionCodeSettingsOnRequest(authInternal, request, actionCodeSettings);
   }
+  await handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.GET_OOB_CODE,
+    authentication.sendPasswordResetEmail
+  );
 }
 
 /**
@@ -154,10 +135,21 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(getModularInstance(auth), {
-    oobCode,
-    newPassword
-  });
+  await account
+    .resetPassword(getModularInstance(auth), {
+      oobCode,
+      newPassword
+    })
+    .catch(async error => {
+      if (
+        error.code ===
+        `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+      ) {
+        void recachePasswordPolicy(auth);
+      }
+
+      throw error;
+    });
   // Do not return the email.
 }
 
@@ -266,6 +258,9 @@ export async function verifyPasswordResetCode(
  *
  * User account creation can fail if the account already exists or the password is invalid.
  *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * Note: The email address acts as a unique identifier for the user and enables an email-based
  * password reset. This function will create a new user account and set the initial user password.
  *
@@ -280,6 +275,11 @@ export async function createUserWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const request: SignUpRequest = {
     returnSecureToken: true,
@@ -287,34 +287,20 @@ export async function createUserWithEmailAndPassword(
     password,
     clientType: RecaptchaClientType.WEB
   };
-  let signUpResponse: Promise<IdTokenResponse>;
-  if (authInternal._getRecaptchaConfig()?.emailPasswordEnabled) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInternal,
-      request,
-      RecaptchaActionName.SIGN_UP_PASSWORD
-    );
-    signUpResponse = signUp(authInternal, requestWithRecaptcha);
-  } else {
-    signUpResponse = signUp(authInternal, request).catch(async error => {
-      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log(
-          'Sign-up is protected by reCAPTCHA for this project. Automatically triggering the reCAPTCHA flow and restarting the sign-up flow.'
-        );
-        const requestWithRecaptcha = await injectRecaptchaFields(
-          authInternal,
-          request,
-          RecaptchaActionName.SIGN_UP_PASSWORD
-        );
-        return signUp(authInternal, requestWithRecaptcha);
-      } else {
-        return Promise.reject(error);
-      }
-    });
-  }
-
+  const signUpResponse: Promise<IdTokenResponse> = handleRecaptchaFlow(
+    authInternal,
+    request,
+    RecaptchaActionName.SIGN_UP_PASSWORD,
+    signUp
+  );
   const response = await signUpResponse.catch(error => {
-    return Promise.reject(error);
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
@@ -331,11 +317,18 @@ export async function createUserWithEmailAndPassword(
  * Asynchronously signs in using an email and password.
  *
  * @remarks
- * Fails with an error if the email address and password do not match.
+ * Fails with an error if the email address and password do not match. When
+ * {@link https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection | Email Enumeration Protection}
+ * is enabled, this method fails with "auth/invalid-credential" in case of an invalid
+ * email/password.
+ *
+ * This method is not supported on {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * Note: The user's password is NOT the password used to access the user's email account. The
  * email address serves as a unique identifier for the user, and the password is used to access
  * the user's account in your Firebase project. See also: {@link createUserWithEmailAndPassword}.
+ *
  *
  * @param auth - The {@link Auth} instance.
  * @param email - The users email address.
@@ -348,8 +341,21 @@ export function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   return signInWithCredential(
     getModularInstance(auth),
     EmailAuthProvider.credential(email, password)
-  );
+  ).catch(async error => {
+    if (
+      error.code === `auth/${AuthErrorCode.PASSWORD_DOES_NOT_MEET_REQUIREMENTS}`
+    ) {
+      void recachePasswordPolicy(auth);
+    }
+
+    throw error;
+  });
 }

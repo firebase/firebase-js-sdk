@@ -1,5 +1,46 @@
 # @firebase/analytics
 
+## 0.10.4
+
+### Patch Changes
+
+- [`f66769cca`](https://github.com/firebase/firebase-js-sdk/commit/f66769cca243019354f88ac9dc8de07caf9de56e) [#8243](https://github.com/firebase/firebase-js-sdk/pull/8243) (fixes [#8210](https://github.com/firebase/firebase-js-sdk/issues/8210)) - Analytics - fixed an issue where setConsent was clobbering the consentSettings before passing them to the gtag implementation.
+
+## 0.10.3
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/installations@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
+## 0.10.2
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/installations@0.6.6
+  - @firebase/component@0.6.6
+  - @firebase/logger@0.4.1
+  - @firebase/util@1.9.5
+
+## 0.10.1
+
+### Patch Changes
+
+- [`bf59c0aed`](https://github.com/firebase/firebase-js-sdk/commit/bf59c0aedefabae9bff4d777e1591fe496259293) - Analytics - added two new consent options to the ConsentSettings interface: ad_personalization and ad_user_data.
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/installations@0.6.5
+  - @firebase/component@0.6.5
+
 ## 0.10.0
 
 ### Minor Changes

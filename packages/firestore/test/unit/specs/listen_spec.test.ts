@@ -954,9 +954,11 @@ describeSpec('Listens:', [], () => {
   );
 
   // Reproduces b/249494921.
+  // TODO(b/310241864) this test puts the SDK into an invalid state that is now
+  //  failing a hardAssert, so it is being ignored until it can be fixed.
   specTest(
     'Secondary client advances query state with global snapshot from primary',
-    ['multi-client'],
+    ['multi-client', 'no-web', 'no-ios', 'no-android'],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: '1' });
@@ -964,7 +966,6 @@ describeSpec('Listens:', [], () => {
       const docARecreated = doc('collection/a', 2000, {
         key: '2'
       }).setHasLocalMutations();
-
       return (
         client(0)
           .becomeVisible()
@@ -990,6 +991,9 @@ describeSpec('Listens:', [], () => {
           })
           .client(0)
           .writeAcks('collection/a', 2000)
+          // b/310241864: This line causes an add target ack without an add
+          // target request. The unexpected ack puts the SDK into a bad state
+          // which now fails a hardAssert.
           .watchAcksFull(query1, 2000, docADeleted)
           .client(1) // expects no event
           .client(0)
@@ -1812,8 +1816,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Resuming a query should specify expectedCount when adding the target',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -1847,8 +1850,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Resuming a query should specify expectedCount that does not include pending mutations',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -1877,8 +1879,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'ExpectedCount in listen request should work after coming back online',
-    // TODO(b/278759251) Remove 'no-ios' once bloom filter is merged.
-    ['no-ios'],
+    [],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });

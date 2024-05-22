@@ -15,11 +15,11 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getMessaging(app)](./messaging_sw.md#getmessaging) | Retrieves a Firebase Cloud Messaging instance. |
-|  <b>function(messaging...)</b> |
-|  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
-|  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
+|  <b>function(app, ...)</b> |
+|  [getMessaging(app)](./messaging_sw.md#getmessaging_cf608e1) | Retrieves a Firebase Cloud Messaging instance. |
+|  <b>function(messaging, ...)</b> |
+|  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
+|  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage_b9887da) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_sw.md#issupported) | Checks whether all required APIs exist within SW Context |
 
@@ -27,13 +27,15 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
-|  [FcmOptions](./messaging_sw.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions) |
-|  [GetTokenOptions](./messaging_sw.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken) |
-|  [MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
+|  [FcmOptions](./messaging_sw.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
+|  [GetTokenOptions](./messaging_sw.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken_b538f38)<!-- -->. |
+|  [MessagePayload](./messaging_sw.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 |  [Messaging](./messaging_sw.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
-|  [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) | Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
+|  [NotificationPayload](./messaging_sw.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 
-## getMessaging()
+## function(app, ...)
+
+### getMessaging(app) {:#getmessaging_cf608e1}
 
 Retrieves a Firebase Cloud Messaging instance.
 
@@ -43,7 +45,7 @@ Retrieves a Firebase Cloud Messaging instance.
 export declare function getMessagingInSw(app?: FirebaseApp): Messaging;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -55,7 +57,9 @@ export declare function getMessagingInSw(app?: FirebaseApp): Messaging;
 
 The Firebase Cloud Messaging instance associated with the provided firebase app.
 
-## experimentalSetDeliveryMetricsExportedToBigQueryEnabled()
+## function(messaging, ...)
+
+### experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable) {:#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd}
 
 Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime.
 
@@ -65,7 +69,7 @@ Enables or disables Firebase Cloud Messaging message delivery metrics export to 
 export declare function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging: Messaging, enable: boolean): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -76,7 +80,7 @@ export declare function experimentalSetDeliveryMetricsExportedToBigQueryEnabled(
 
 void
 
-## onBackgroundMessage()
+### onBackgroundMessage(messaging, nextOrObserver) {:#onbackgroundmessage_b9887da}
 
 Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed.
 
@@ -86,7 +90,7 @@ Called when a message is received while the app is in the background. An app is 
 export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -99,7 +103,9 @@ export declare function onBackgroundMessage(messaging: Messaging, nextOrObserver
 
 To stop listening for messages execute this returned function
 
-## isSupported()
+## function()
+
+### isSupported() {:#issupported}
 
 Checks whether all required APIs exist within SW Context
 

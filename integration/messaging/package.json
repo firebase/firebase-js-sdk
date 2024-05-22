@@ -9,13 +9,13 @@
     "test:manual": "mocha --exit"
   },
   "devDependencies": {
-    "firebase": "9.22.2",
-    "chai": "4.3.7",
-    "chromedriver": "98.0.1",
-    "express": "4.18.2",
+    "firebase": "10.12.1",
+    "chai": "4.4.1",
+    "chromedriver": "119.0.1",
+    "express": "4.19.2",
     "geckodriver": "2.0.4",
     "mocha": "9.2.2",
-    "node-fetch": "2.6.7",
+    "undici": "5.28.4",
     "selenium-assistant": "6.1.1"
   }
 }

@@ -201,7 +201,7 @@ export class SimpleDb {
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
     // Android browser: Disable for userse running version < 4.5.
-    const androidVersion = SimpleDb.getAndroidVersion(ua);
+    const androidVersion = getAndroidVersion(ua);
     const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.5;
 
     if (
@@ -242,16 +242,6 @@ export class SimpleDb {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
     const version = iOSVersionRegex
       ? iOSVersionRegex[1].split('_').slice(0, 2).join('.')
-      : '-1';
-    return Number(version);
-  }
-
-  // visible for testing
-  /** Parse User Agent to determine Android version. Returns -1 if not found. */
-  static getAndroidVersion(ua: string): number {
-    const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
-    const version = androidVersionRegex
-      ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }
@@ -470,6 +460,15 @@ export class SimpleDb {
   }
 }
 
+/** Parse User Agent to determine Android version. Returns -1 if not found. */
+export function getAndroidVersion(ua: string): number {
+  const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
+  const version = androidVersionRegex
+    ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
+    : '-1';
+  return Number(version);
+}
+
 /**
  * A controller for iterating over a key range or index. It allows an iterate
  * callback to delete the currently-referenced object, or jump to a new key
@@ -670,9 +669,12 @@ export class SimpleDbStore<
   ): PersistencePromise<ValueType[]> {
     const iterateOptions = this.options(indexOrRange, range);
     // Use `getAll()` if the browser supports IndexedDB v3, as it is roughly
-    // 20% faster. Unfortunately, getAll() does not support custom indices.
-    if (!iterateOptions.index && typeof this.store.getAll === 'function') {
-      const request = this.store.getAll(iterateOptions.range);
+    // 20% faster.
+    const store = iterateOptions.index
+      ? this.store.index(iterateOptions.index)
+      : this.store;
+    if (typeof store.getAll === 'function') {
+      const request = store.getAll(iterateOptions.range);
       return new PersistencePromise((resolve, reject) => {
         request.onerror = (event: Event) => {
           reject((event.target as IDBRequest).error!);

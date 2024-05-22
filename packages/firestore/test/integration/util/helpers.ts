@@ -16,6 +16,7 @@
  */
 
 import { isIndexedDBAvailable } from '@firebase/util';
+import { expect } from 'chai';
 
 import {
   clearIndexedDbPersistence,
@@ -25,10 +26,13 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
+  MemoryLocalCache,
+  memoryEagerGarbageCollector,
   memoryLocalCache,
   memoryLruGarbageCollector,
   newTestApp,
   newTestFirestore,
+  PersistentLocalCache,
   persistentLocalCache,
   PrivateSettings,
   QuerySnapshot,
@@ -36,16 +40,114 @@ import {
   SnapshotListenOptions,
   terminate,
   WriteBatch,
-  writeBatch
+  writeBatch,
+  Query,
+  getDocsFromServer,
+  getDocsFromCache,
+  _AutoId
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
+  TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
 
 /* eslint-disable no-restricted-globals */
+
+export interface PersistenceMode {
+  readonly name: string;
+  readonly storage: 'memory' | 'indexeddb';
+  readonly gc: 'eager' | 'lru';
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses eager garbage collection.
+   */
+  toEagerGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new `PersistenceMode` object that is the nearest
+   * equivalent to this persistence mode but uses LRU garbage collection.
+   */
+  toLruGc(): PersistenceMode;
+
+  /**
+   * Creates and returns a new "local cache" object corresponding to this
+   * persistence type.
+   */
+  asLocalCacheFirestoreSettings(): MemoryLocalCache | PersistentLocalCache;
+}
+
+export class MemoryEagerPersistenceMode implements PersistenceMode {
+  readonly name = 'memory';
+  readonly storage = 'memory';
+  readonly gc = 'eager';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({
+      garbageCollector: memoryEagerGarbageCollector()
+    });
+  }
+}
+
+export class MemoryLruPersistenceMode implements PersistenceMode {
+  readonly name = 'memory_lru_gc';
+  readonly storage = 'memory';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): MemoryLruPersistenceMode {
+    return new MemoryLruPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): MemoryLocalCache {
+    return memoryLocalCache({ garbageCollector: memoryLruGarbageCollector() });
+  }
+}
+
+export class IndexedDbPersistenceMode implements PersistenceMode {
+  readonly name = 'indexeddb';
+  readonly storage = 'indexeddb';
+  readonly gc = 'lru';
+
+  toEagerGc(): MemoryEagerPersistenceMode {
+    return new MemoryEagerPersistenceMode();
+  }
+
+  toLruGc(): IndexedDbPersistenceMode {
+    return new IndexedDbPersistenceMode();
+  }
+
+  asLocalCacheFirestoreSettings(): PersistentLocalCache {
+    if (this.gc !== 'lru') {
+      throw new Error(
+        `PersistentLocalCache does not support the given ` +
+          `garbage collector: ${this.gc}`
+      );
+    }
+    return persistentLocalCache();
+  }
+}
+
+// An alternative to a `PersistenceMode` object that indicates that no
+// persistence mode should be specified, and instead the implicit default
+// should be used.
+export const PERSISTENCE_MODE_UNSPECIFIED = Symbol(
+  'PERSISTENCE_MODE_UNSPECIFIED'
+);
 
 function isIeOrEdge(): boolean {
   if (!window.navigator) {
@@ -77,24 +179,31 @@ export function isPersistenceAvailable(): boolean {
 function apiDescribeInternal(
   describeFn: Mocha.PendingSuiteFunction,
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ): void {
-  const persistenceModes = [false];
+  const persistenceModes: PersistenceMode[] = [
+    new MemoryEagerPersistenceMode()
+  ];
   if (isPersistenceAvailable()) {
-    persistenceModes.push(true);
+    persistenceModes.push(new IndexedDbPersistenceMode());
   }
 
-  for (const enabled of persistenceModes) {
-    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+  for (const persistenceMode of persistenceModes) {
+    describeFn(`(Persistence=${persistenceMode.name}) ${message}`, () =>
+      // Freeze the properties of the `PersistenceMode` object specified to the
+      // test suite so that it cannot (accidentally or intentionally) change
+      // its properties, and affect all subsequent test suites.
+      testSuite(Object.freeze(persistenceMode))
+    );
   }
 }
 
 type ApiSuiteFunction = (
   message: string,
-  testSuite: (persistence: boolean) => void
+  testSuite: (persistence: PersistenceMode) => void
 ) => void;
 interface ApiDescribe {
-  (message: string, testSuite: (persistence: boolean) => void): void;
+  (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
 }
@@ -137,7 +246,7 @@ export function toIds(docSet: QuerySnapshot): string[] {
 }
 
 export function withTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
@@ -145,50 +254,9 @@ export function withTestDb(
   });
 }
 
-export function withEnsuredEagerGcTestDb(
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  return withTestDbsSettings(
-    false,
-    DEFAULT_PROJECT_ID,
-    { ...DEFAULT_SETTINGS, cacheSizeBytes: 1 * 1024 * 1024 },
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
-export function withEnsuredLruGcTestDb(
-  persistence: boolean,
-  fn: (db: Firestore) => Promise<void>
-): Promise<void> {
-  const newSettings = { ...DEFAULT_SETTINGS };
-  if (persistence) {
-    newSettings.localCache = persistentLocalCache({
-      cacheSizeBytes: 1 * 1024 * 1024
-    });
-  } else {
-    newSettings.localCache = memoryLocalCache({
-      garbageCollector: memoryLruGarbageCollector({
-        cacheSizeBytes: 1 * 1024 * 1024
-      })
-    });
-  }
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    newSettings,
-    1,
-    async ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
@@ -203,7 +271,7 @@ export function withAlternateTestDb(
 }
 
 export function withTestDbs(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   numDbs: number,
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -216,7 +284,7 @@ export function withTestDbs(
   );
 }
 export async function withTestDbsSettings<T>(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   projectId: string,
   settings: PrivateSettings,
   numDbs: number,
@@ -230,10 +298,14 @@ export async function withTestDbsSettings<T>(
 
   for (let i = 0; i < numDbs; i++) {
     const newSettings = { ...settings };
-    if (persistence) {
-      newSettings.localCache = persistentLocalCache();
+    if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
+      newSettings.localCache = persistence.asLocalCacheFirestoreSettings();
     }
-    const db = newTestFirestore(newTestApp(projectId), newSettings);
+    const db = newTestFirestore(
+      newTestApp(projectId),
+      newSettings,
+      TARGET_DB_ID
+    );
     dbs.push(db);
   }
 
@@ -242,7 +314,10 @@ export async function withTestDbsSettings<T>(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (
+        persistence !== PERSISTENCE_MODE_UNSPECIFIED &&
+        persistence.storage === 'indexeddb'
+      ) {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -250,7 +325,7 @@ export async function withTestDbsSettings<T>(
 }
 
 export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
-  persistence: boolean,
+  persistence: PersistenceMode,
   dbNames: string[],
   fn: (db: Firestore[]) => Promise<void>
 ): Promise<void> {
@@ -264,10 +339,10 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   const app = newTestApp(DEFAULT_PROJECT_ID);
   const dbs: Firestore[] = [];
   for (const dbName of dbNames) {
-    const newSettings = { ...DEFAULT_SETTINGS };
-    if (persistence) {
-      newSettings.localCache = persistentLocalCache();
-    }
+    const newSettings = {
+      ...DEFAULT_SETTINGS,
+      localCache: persistence.asLocalCacheFirestoreSettings()
+    };
     const db = newTestFirestore(app, newSettings, dbName);
     dbs.push(db);
   }
@@ -277,7 +352,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
   } finally {
     for (const db of dbs) {
       await terminate(db);
-      if (persistence) {
+      if (persistence.storage === 'indexeddb') {
         await clearIndexedDbPersistence(db);
       }
     }
@@ -285,7 +360,7 @@ export async function withNamedTestDbsOrSkipUnlessUsingEmulator(
 }
 
 export function withTestDoc(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDb(persistence, db => {
@@ -294,7 +369,7 @@ export function withTestDoc(
 }
 
 export function withTestDocAndSettings(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   settings: PrivateSettings,
   fn: (doc: DocumentReference) => Promise<void>
 ): Promise<void> {
@@ -315,7 +390,7 @@ export function withTestDocAndSettings(
 // `withTestDoc(..., docRef => { setDoc(docRef, initialData) ...});` that
 // otherwise is quite common.
 export function withTestDocAndInitialData(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   initialData: DocumentData | null,
   fn: (doc: DocumentReference, db: Firestore) => Promise<void>
 ): Promise<void> {
@@ -329,8 +404,28 @@ export function withTestDocAndInitialData(
   });
 }
 
+export class RetryError extends Error {
+  readonly name = 'FirestoreIntegrationTestRetryError';
+}
+
+export async function withRetry<T>(
+  fn: (attemptNumber: number) => Promise<T>
+): Promise<T> {
+  let attemptNumber = 0;
+  while (true) {
+    attemptNumber++;
+    try {
+      return await fn(attemptNumber);
+    } catch (error) {
+      if (!(error instanceof RetryError)) {
+        throw error;
+      }
+    }
+  }
+}
+
 export function withTestCollection<T>(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
@@ -338,7 +433,7 @@ export function withTestCollection<T>(
 }
 
 export function withEmptyTestCollection(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   fn: (collection: CollectionReference, db: Firestore) => Promise<void>
 ): Promise<void> {
   return withTestCollection(persistence, {}, fn);
@@ -347,9 +442,26 @@ export function withEmptyTestCollection(
 // TODO(mikelehen): Once we wipe the database between tests, we can probably
 // return the same collection every time.
 export function withTestCollectionSettings<T>(
-  persistence: boolean,
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
   settings: PrivateSettings,
   docs: { [key: string]: DocumentData },
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  const collectionId = _AutoId.newId();
+  return batchCommitDocsToCollection(
+    persistence,
+    settings,
+    docs,
+    collectionId,
+    fn
+  );
+}
+
+export function batchCommitDocsToCollection<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  collectionId: string,
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
   return withTestDbsSettings(
@@ -358,8 +470,6 @@ export function withTestCollectionSettings<T>(
     settings,
     2,
     ([testDb, setupDb]) => {
-      // Abuse .doc() to get a random ID.
-      const collectionId = 'test-collection-' + doc(collection(testDb, 'x')).id;
       const testCollection = collection(testDb, collectionId);
       const setupCollection = collection(setupDb, collectionId);
 
@@ -392,4 +502,60 @@ export function withTestCollectionSettings<T>(
       );
     }
   );
+}
+
+/**
+ * Creates a `docs` argument suitable for specifying to `withTestCollection()`
+ * that defines subsets of documents with different document data.
+ *
+ * This can be useful for pre-populating a collection with some documents that
+ * match a query and others that do _not_ match that query.
+ *
+ * Each key of the given `partitions` object will be considered a partition
+ * "name". The returned object will specify `documentCount` documents with the
+ * `documentData` whose document IDs are prefixed with the partition "name".
+ */
+export function partitionedTestDocs(partitions: {
+  [partitionName: string]: {
+    documentData: DocumentData;
+    documentCount: number;
+  };
+}): { [key: string]: DocumentData } {
+  const testDocs: { [key: string]: DocumentData } = {};
+
+  for (const partitionName in partitions) {
+    // Make lint happy (see https://eslint.org/docs/latest/rules/guard-for-in).
+    if (!Object.prototype.hasOwnProperty.call(partitions, partitionName)) {
+      continue;
+    }
+    const partition = partitions[partitionName];
+    for (let i = 0; i < partition.documentCount; i++) {
+      const documentId = `${partitionName}_${`${i}`.padStart(4, '0')}`;
+      testDocs[documentId] = partition.documentData;
+    }
+  }
+
+  return testDocs;
+}
+
+/**
+ * Checks that running the query while online (against the backend/emulator) results in the same
+ * documents as running the query while offline. If `expectedDocs` is provided, it also checks
+ * that both online and offline query result is equal to the expected documents.
+ *
+ * @param query The query to check
+ * @param expectedDocs Ordered list of document keys that are expected to match the query
+ */
+export async function checkOnlineAndOfflineResultsMatch(
+  query: Query,
+  ...expectedDocs: string[]
+): Promise<void> {
+  const docsFromServer = await getDocsFromServer(query);
+
+  if (expectedDocs.length !== 0) {
+    expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+  }
+
+  const docsFromCache = await getDocsFromCache(query);
+  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

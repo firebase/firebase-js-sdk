@@ -40,7 +40,7 @@ import {
   withTestDoc
 } from '../util/helpers';
 
-apiDescribe('Smoke Test', (persistence: boolean) => {
+apiDescribe('Smoke Test', persistence => {
   it('can write a single document', () => {
     return withTestDoc(persistence, ref => {
       return setDoc(ref, {

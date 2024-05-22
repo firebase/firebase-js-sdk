@@ -31,27 +31,33 @@ import {
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
-import { Query, queryEqual } from './reference';
+import { DocumentData, Query, queryEqual } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { fieldPathFromArgument } from './user_data_reader';
 
 /**
- * Calculates the number of documents in the result set of the given query,
+ * Calculates the number of documents in the result set of the given query
  * without actually downloading the documents.
  *
  * Using this function to count the documents is efficient because only the
- * final count, not the documents' data, is downloaded. This function can even
- * count the documents if the result set would be prohibitively large to
- * download entirely (e.g. thousands of documents).
+ * final count, not the documents' data, is downloaded. This function can
+ * count the documents in cases where the result set is prohibitively large to
+ * download entirely (thousands of documents).
  *
- * @param query - The query whose result set size to calculate.
+ * @param query The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
  */
-export function getCount(
-  query: Query<unknown>
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
+export function getCount<AppModelType, DbModelType extends DocumentData>(
+  query: Query<AppModelType, DbModelType>
+): Promise<
+  AggregateQuerySnapshot<
+    { count: AggregateField<number> },
+    AppModelType,
+    DbModelType
+  >
+> {
   const countQuerySpec: { count: AggregateField<number> } = {
     count: count()
   };
@@ -61,14 +67,14 @@ export function getCount(
 
 /**
  * Calculates the specified aggregations over the documents in the result
- * set of the given query, without actually downloading the documents.
+ * set of the given query without actually downloading the documents.
  *
  * Using this function to perform aggregations is efficient because only the
- * final aggregation values, not the documents' data, is downloaded. This
- * function can even perform aggregations of the documents if the result set
- * would be prohibitively large to download entirely (e.g. thousands of documents).
+ * final aggregation values, not the documents' data, are downloaded. This
+ * function can perform aggregations of the documents in cases where the result
+ * set is prohibitively large to download entirely (thousands of documents).
  *
- * @param query The query whose result set to aggregate over.
+ * @param query The query whose result set is aggregated over.
  * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
@@ -84,19 +90,24 @@ export function getCount(
  * const totalHours: number = aggregateSnapshot.data().totalHours;
  * const averageScore: number | null = aggregateSnapshot.data().averageScore;
  * ```
- * @internal TODO (sum/avg) remove when public
  */
-export function getAggregate<T extends AggregateSpec>(
-  query: Query<unknown>,
-  aggregateSpec: T
-): Promise<AggregateQuerySnapshot<T>> {
+export function getAggregate<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  query: Query<AppModelType, DbModelType>,
+  aggregateSpec: AggregateSpecType
+): Promise<
+  AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
+> {
   const firestore = cast(query.firestore, Firestore);
   const datastore = getDatastore(firestore);
 
   const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
     return new AggregateImpl(
       alias,
-      aggregate._aggregateType,
+      aggregate.aggregateType,
       aggregate._internalFieldPath
     );
   });
@@ -111,17 +122,21 @@ export function getAggregate<T extends AggregateSpec>(
   );
 }
 
-function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
+function convertToAggregateQuerySnapshot<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
   firestore: Firestore,
-  query: Query<unknown>,
+  query: Query<AppModelType, DbModelType>,
   aggregateResult: ApiClientObjectMap<Value>
-): AggregateQuerySnapshot<T> {
+): AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType> {
   const userDataWriter = new LiteUserDataWriter(firestore);
-  const querySnapshot = new AggregateQuerySnapshot<T>(
-    query,
-    userDataWriter,
-    aggregateResult
-  );
+  const querySnapshot = new AggregateQuerySnapshot<
+    AggregateSpecType,
+    AppModelType,
+    DbModelType
+  >(query, userDataWriter, aggregateResult);
   return querySnapshot;
 }
 
@@ -129,7 +144,6 @@ function convertToAggregateQuerySnapshot<T extends AggregateSpec>(
  * Create an AggregateField object that can be used to compute the sum of
  * a specified field over a range of documents in the result set of a query.
  * @param field Specifies the field to sum across the result set.
- * @internal TODO (sum/avg) remove when public
  */
 export function sum(field: string | FieldPath): AggregateField<number> {
   return new AggregateField('sum', fieldPathFromArgument('sum', field));
@@ -139,7 +153,6 @@ export function sum(field: string | FieldPath): AggregateField<number> {
  * Create an AggregateField object that can be used to compute the average of
  * a specified field over a range of documents in the result set of a query.
  * @param field Specifies the field to average across the result set.
- * @internal TODO (sum/avg) remove when public
  */
 export function average(
   field: string | FieldPath
@@ -150,7 +163,6 @@ export function average(
 /**
  * Create an AggregateField object that can be used to compute the count of
  * documents in the result set of a query.
- * @internal TODO (sum/avg) remove when public
  */
 export function count(): AggregateField<number> {
   return new AggregateField('count');
@@ -161,7 +173,6 @@ export function count(): AggregateField<number> {
  *
  * @param left Compare this AggregateField to the `right`.
  * @param right Compare this AggregateField to the `left`.
- * @internal TODO (sum/avg) remove when public
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,
@@ -170,7 +181,7 @@ export function aggregateFieldEqual(
   return (
     left instanceof AggregateField &&
     right instanceof AggregateField &&
-    left._aggregateType === right._aggregateType &&
+    left.aggregateType === right.aggregateType &&
     left._internalFieldPath?.canonicalString() ===
       right._internalFieldPath?.canonicalString()
   );
@@ -188,9 +199,13 @@ export function aggregateFieldEqual(
  * @returns `true` if the objects are "equal", as defined above, or `false`
  * otherwise.
  */
-export function aggregateQuerySnapshotEqual<T extends AggregateSpec>(
-  left: AggregateQuerySnapshot<T>,
-  right: AggregateQuerySnapshot<T>
+export function aggregateQuerySnapshotEqual<
+  AggregateSpecType extends AggregateSpec,
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>,
+  right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 ): boolean {
   return (
     queryEqual(left.query, right.query) && deepEqual(left.data(), right.data())

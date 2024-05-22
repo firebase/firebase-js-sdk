@@ -40,11 +40,14 @@ import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
 import { AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
+import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import { ClientPlatform } from '../util/version';
 import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
+import { PasswordValidationStatus } from '../../model/public_types';
+import { PasswordPolicyImpl } from './password_policy_impl';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -707,11 +710,21 @@ describe('core/auth/auth_impl', () => {
       ]
     };
     const cachedRecaptchaConfigEnforce = {
-      emailPasswordEnabled: true,
+      recaptchaEnforcementState: [
+        {
+          'enforcementState': 'ENFORCE',
+          'provider': 'EMAIL_PASSWORD_PROVIDER'
+        }
+      ],
       siteKey: 'site-key'
     };
     const cachedRecaptchaConfigOFF = {
-      emailPasswordEnabled: false,
+      recaptchaEnforcementState: [
+        {
+          'enforcementState': 'OFF',
+          'provider': 'EMAIL_PASSWORD_PROVIDER'
+        }
+      ],
       siteKey: 'site-key'
     };
 
@@ -734,7 +747,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
     });
@@ -751,7 +764,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
     });
@@ -767,7 +780,7 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseEnforce
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
       auth.tenantId = 'tenant-id';
       mockEndpointWithParams(
         Endpoint.GET_RECAPTCHA_CONFIG,
@@ -778,12 +791,369 @@ describe('core/auth/auth_impl', () => {
         },
         recaptchaConfigResponseOff
       );
-      await auth.initializeRecaptchaConfig();
+      await _initializeRecaptchaConfig(auth);
 
       auth.tenantId = null;
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigEnforce);
       auth.tenantId = 'tenant-id';
       expect(auth._getRecaptchaConfig()).to.eql(cachedRecaptchaConfigOFF);
+    });
+  });
+
+  context('passwordPolicy', () => {
+    const TEST_ALLOWED_NON_ALPHANUMERIC_CHARS = ['!', '(', ')'];
+    const TEST_ALLOWED_NON_ALPHANUMERIC_STRING =
+      TEST_ALLOWED_NON_ALPHANUMERIC_CHARS.join('');
+    const TEST_MIN_PASSWORD_LENGTH = 6;
+    const TEST_ENFORCEMENT_STATE_ENFORCE = 'ENFORCE';
+    const TEST_FORCE_UPGRADE_ON_SIGN_IN = false;
+    const TEST_SCHEMA_VERSION = 1;
+    const TEST_UNSUPPORTED_SCHEMA_VERSION = 0;
+    const TEST_TENANT_ID = 'tenant-id';
+    const TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION =
+      'tenant-id-unsupported-policy-version';
+
+    const PASSWORD_POLICY_RESPONSE = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const PASSWORD_POLICY_RESPONSE_UNSUPPORTED_SCHEMA_VERSION = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        unsupportedPasswordPolicyProperty: 10
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_CHARS,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
+      schemaVersion: TEST_UNSUPPORTED_SCHEMA_VERSION
+    };
+    const CACHED_PASSWORD_POLICY = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH,
+        containsNumericCharacter: true
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
+      schemaVersion: TEST_SCHEMA_VERSION
+    };
+    const CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION = {
+      customStrengthOptions: {
+        minPasswordLength: TEST_MIN_PASSWORD_LENGTH
+      },
+      allowedNonAlphanumericCharacters: TEST_ALLOWED_NON_ALPHANUMERIC_STRING,
+      enforcementState: TEST_ENFORCEMENT_STATE_ENFORCE,
+      forceUpgradeOnSignin: TEST_FORCE_UPGRADE_ON_SIGN_IN,
+      schemaVersion: TEST_UNSUPPORTED_SCHEMA_VERSION
+    };
+
+    beforeEach(async () => {
+      mockFetch.setUp();
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {},
+        PASSWORD_POLICY_RESPONSE
+      );
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: TEST_TENANT_ID
+        },
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
+      );
+      mockEndpointWithParams(
+        Endpoint.GET_PASSWORD_POLICY,
+        {
+          tenantId: TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION
+        },
+        PASSWORD_POLICY_RESPONSE_UNSUPPORTED_SCHEMA_VERSION
+      );
+    });
+
+    afterEach(() => {
+      mockFetch.tearDown();
+    });
+
+    it('password policy should be set for project if tenant ID is null', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      await auth._updatePasswordPolicy();
+
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+    });
+
+    it('password policy should be set for tenant if tenant ID is not null', async () => {
+      auth = await testAuth();
+      auth.tenantId = TEST_TENANT_ID;
+      await auth._updatePasswordPolicy();
+
+      expect(auth._getPasswordPolicyInternal()).to.eql(
+        CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+      );
+    });
+
+    it('password policy should dynamically switch if tenant ID switches.', async () => {
+      auth = await testAuth();
+      auth.tenantId = null;
+      await auth._updatePasswordPolicy();
+
+      auth.tenantId = TEST_TENANT_ID;
+      await auth._updatePasswordPolicy();
+
+      auth.tenantId = null;
+      expect(auth._getPasswordPolicyInternal()).to.eql(CACHED_PASSWORD_POLICY);
+      auth.tenantId = TEST_TENANT_ID;
+      expect(auth._getPasswordPolicyInternal()).to.eql(
+        CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
+      );
+      auth.tenantId = 'other-tenant-id';
+      expect(auth._getPasswordPolicyInternal()).to.be.undefined;
+    });
+
+    it('password policy should still be set when the schema version is not supported', async () => {
+      auth = await testAuth();
+      auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
+      await expect(auth._updatePasswordPolicy()).to.be.fulfilled;
+
+      expect(auth._getPasswordPolicyInternal()).to.eql(
+        CACHED_PASSWORD_POLICY_UNSUPPORTED_SCHEMA_VERSION
+      );
+    });
+
+    context('#validatePassword', () => {
+      const PASSWORD_POLICY_IMPL = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE
+      );
+      const PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC = new PasswordPolicyImpl(
+        PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
+      );
+      const TEST_BASIC_PASSWORD = 'password';
+
+      it('password meeting the policy for the project should be considered valid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          passwordPolicy: PASSWORD_POLICY_IMPL
+        };
+
+        auth = await testAuth();
+        const status = await auth.validatePassword(TEST_BASIC_PASSWORD);
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password not meeting the policy for the project should be considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          passwordPolicy: PASSWORD_POLICY_IMPL
+        };
+
+        auth = await testAuth();
+        const status = await auth.validatePassword('pass');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password meeting the policy for the tenant should be considered valid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          containsNumericCharacter: true,
+          passwordPolicy: PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID;
+        const status = await auth.validatePassword('passw0rd');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('password not meeting the policy for the tenant should be considered invalid', async () => {
+        const expectedValidationStatus: PasswordValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: false,
+          containsNumericCharacter: false,
+          passwordPolicy: PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC
+        };
+
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID;
+        const status = await auth.validatePassword('pass');
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('should use the password policy associated with the tenant ID when the tenant ID switches', async () => {
+        let expectedValidationStatus: PasswordValidationStatus = {
+          isValid: true,
+          meetsMinPasswordLength: true,
+          passwordPolicy: PASSWORD_POLICY_IMPL
+        };
+
+        auth = await testAuth();
+
+        let status = await auth.validatePassword(TEST_BASIC_PASSWORD);
+        expect(status).to.eql(expectedValidationStatus);
+
+        expectedValidationStatus = {
+          isValid: false,
+          meetsMinPasswordLength: true,
+          containsNumericCharacter: false,
+          passwordPolicy: PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC
+        };
+
+        auth.tenantId = TEST_TENANT_ID;
+        status = await auth.validatePassword(TEST_BASIC_PASSWORD);
+        expect(status).to.eql(expectedValidationStatus);
+      });
+
+      it('should throw an error when a password policy with an unsupported schema version is received', async () => {
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
+        await expect(
+          auth.validatePassword(TEST_BASIC_PASSWORD)
+        ).to.be.rejectedWith(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
+        );
+      });
+
+      it('should throw an error when a password policy with an unsupported schema version is already cached', async () => {
+        auth = await testAuth();
+        auth.tenantId = TEST_TENANT_ID_UNSUPPORTED_POLICY_VERSION;
+        await auth._updatePasswordPolicy();
+        await expect(
+          auth.validatePassword(TEST_BASIC_PASSWORD)
+        ).to.be.rejectedWith(
+          AuthErrorCode.UNSUPPORTED_PASSWORD_POLICY_SCHEMA_VERSION
+        );
+      });
+    });
+  });
+
+  describe('AuthStateReady', () => {
+    let user: UserInternal;
+    let authStateChangedSpy: sinon.SinonSpy;
+
+    beforeEach(async () => {
+      user = testUser(auth, 'uid');
+
+      authStateChangedSpy = sinon.spy(auth, 'onAuthStateChanged');
+
+      await auth._updateCurrentUser(null);
+    });
+
+    it('immediately returns resolved promise if the user is previously logged in', async () => {
+      await auth._updateCurrentUser(user);
+
+      await auth
+        .authStateReady()
+        .then(() => {
+          expect(authStateChangedSpy).to.not.have.been.called;
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+    });
+
+    it('calls onAuthStateChanged if there is no currentUser available, and returns resolved promise once the user is updated', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await auth._updateCurrentUser(user);
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(user);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise during repeated logout', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await auth._updateCurrentUser(null);
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise with currentUser being null during log in failure', async () => {
+      expect(authStateChangedSpy).to.not.have.been.called;
+      const promiseVar = auth.authStateReady();
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      const auth2 = await testAuth();
+      Object.assign(auth2.config, { apiKey: 'not-the-right-auth' });
+      const user = testUser(auth2, 'uid');
+      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-user-token'
+      );
+
+      await promiseVar
+        .then(() => {
+          expect(auth.currentUser).to.eq(null);
+        })
+        .catch(error => {
+          throw new Error(error);
+        });
+
+      expect(authStateChangedSpy).to.be.calledOnce;
+    });
+
+    it('resolves the promise in a delayed user log in process', async () => {
+      setTimeout(async () => {
+        await auth._updateCurrentUser(user);
+      }, 5000);
+
+      const promiseVar = auth.authStateReady();
+      expect(auth.currentUser).to.eq(null);
+      expect(authStateChangedSpy).to.be.calledOnce;
+
+      await setTimeout(() => {
+        promiseVar
+          .then(async () => {
+            await expect(auth.currentUser).to.eq(user);
+          })
+          .catch(error => {
+            throw new Error(error);
+          });
+      }, 10000);
     });
   });
 });

@@ -78,6 +78,7 @@ import {
   updateDoc
 } from '../../src/lite-api/reference_impl';
 import {
+  FirestoreDataConverter,
   snapshotEqual,
   QuerySnapshot,
   QueryDocumentSnapshot
@@ -428,26 +429,28 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: WithFieldValue<T>
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
   ): Promise<void>;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): Promise<void>;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    data: UpdateData<T>
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
   ): Promise<void>;
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
-  delete(documentRef: DocumentReference<unknown>): Promise<void>;
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<void>;
 }
 
 genericMutationTests({
@@ -458,15 +461,17 @@ genericMutationTests({
 
 describe('WriteBatch', () => {
   class WriteBatchTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       batch.delete(ref);
       return batch.commit();
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
@@ -476,9 +481,9 @@ describe('WriteBatch', () => {
       return batch.commit();
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -521,29 +526,31 @@ describe('WriteBatch', () => {
 
 describe('Transaction', () => {
   class TransactionTester implements MutationTester {
-    delete(ref: DocumentReference<unknown>): Promise<void> {
+    delete<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>
+    ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         transaction.delete(ref);
       });
     }
 
-    set<T>(
-      ref: DocumentReference<T>,
-      data: PartialWithFieldValue<T>,
+    set<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      data: PartialWithFieldValue<AppModelType>,
       options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
           transaction.set(ref, data, options);
         } else {
-          transaction.set(ref, data as WithFieldValue<T>);
+          transaction.set(ref, data as WithFieldValue<AppModelType>);
         }
       });
     }
 
-    update<T>(
-      ref: DocumentReference<T>,
-      dataOrField: UpdateData<T> | string | FieldPath,
+    update<AppModelType, DbModelType extends DocumentData>(
+      ref: DocumentReference<AppModelType, DbModelType>,
+      dataOrField: UpdateData<DbModelType> | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -556,7 +563,7 @@ describe('Transaction', () => {
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as UpdateData<T>);
+          transaction.update(ref, dataOrField as UpdateData<DbModelType>);
         }
       });
     }
@@ -876,6 +883,16 @@ describe('FieldValue', () => {
     expect(deleteField().isEqual(deleteField())).to.be.true;
     expect(serverTimestamp().isEqual(serverTimestamp())).to.be.true;
     expect(deleteField().isEqual(serverTimestamp())).to.be.false;
+    expect(arrayUnion().isEqual(arrayUnion())).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('a'))).to.be.true;
+    expect(arrayUnion('a').isEqual(arrayUnion('b'))).to.be.false;
+    expect(arrayUnion('a', 'b').isEqual(arrayUnion('b', 'a'))).to.be.false;
+    expect(arrayRemove().isEqual(arrayRemove())).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('a'))).to.be.true;
+    expect(arrayRemove('a').isEqual(arrayRemove('b'))).to.be.false;
+    expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
+    expect(increment(1).isEqual(increment(1))).to.be.true;
+    expect(increment(1).isEqual(increment(2))).to.be.false;
   });
 
   it('support instanceof checks', () => {
@@ -1116,6 +1133,25 @@ describe('Query', () => {
       expect(() => collectionGroup(firestore, '/')).to.throw(
         "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
       );
+    });
+  });
+
+  it('supports query over collection path with special characters', () => {
+    return withTestCollection(async collRef => {
+      const docWithSpecials = doc(collRef, 'so!@#$%^&*()_+special');
+
+      const collectionWithSpecials = collection(
+        docWithSpecials,
+        'so!@#$%^&*()_+special'
+      );
+      await addDoc(collectionWithSpecials, { foo: 1 });
+      await addDoc(collectionWithSpecials, { foo: 2 });
+
+      const result = await getDocs(
+        query(collectionWithSpecials, orderBy('foo', 'asc'))
+      );
+
+      verifyResults(result, { foo: 1 }, { foo: 2 });
     });
   });
 });
@@ -1385,7 +1421,7 @@ describe('withConverter() support', () => {
       ) {}
     }
 
-    const testConverter = {
+    const testConverter: FirestoreDataConverter<TestObject, TestObject> = {
       toFirestore(testObj: WithFieldValue<TestObject>) {
         return { ...testObj };
       },
@@ -1780,8 +1816,7 @@ describe('withConverter() support', () => {
 
       it('supports string-separated fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
           await updateDoc(testDocRef, {
             // @ts-expect-error
             outerString: 3,
@@ -1895,7 +1930,10 @@ describe('withConverter() support', () => {
             | { requiredNumber: number };
         }
 
-        const testConverterUnion = {
+        const testConverterUnion: FirestoreDataConverter<
+          TestObjectUnion,
+          TestObjectUnion
+        > = {
           toFirestore(testObj: WithFieldValue<TestObjectUnion>) {
             return { ...testObj };
           },
@@ -1909,8 +1947,7 @@ describe('withConverter() support', () => {
         };
 
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObjectUnion> =
-            docRef.withConverter(testConverterUnion);
+          const testDocRef = docRef.withConverter(testConverterUnion);
 
           await updateDoc(testDocRef, {
             nested: {
@@ -1943,8 +1980,7 @@ describe('withConverter() support', () => {
 
       it('checks for nonexistent fields', () => {
         return withTestDocAndInitialData(initialData, async docRef => {
-          const testDocRef: DocumentReference<TestObject> =
-            docRef.withConverter(testConverter);
+          const testDocRef = docRef.withConverter(testConverter);
 
           // Top-level fields.
           await updateDoc(testDocRef, {
@@ -2130,6 +2166,24 @@ describe('Count queries', () => {
       expect(snapshot.query).to.equal(query_);
     });
   });
+
+  ['so!@#$%^&*()_+special/sub', 'b1/so!@#$%^&*()_+special'].forEach(
+    documentPath => {
+      it(
+        'can run count query getCount with special chars in the document path: ' +
+          documentPath,
+        () => {
+          return withTestCollection(async coll => {
+            const subColl1 = collection(coll, documentPath);
+            await addDoc(subColl1, { foo: 'bar' });
+            await addDoc(subColl1, { foo: 'baz' });
+            const snapshot1 = await getCount(subColl1);
+            expect(snapshot1.data().count).to.equal(2);
+          });
+        }
+      );
+    }
+  );
 
   it('run count query on empty collection', () => {
     return withTestCollection(async coll => {
@@ -2389,7 +2443,7 @@ describe('Count queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getCount error message is good if missing index',
+    'getCount error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
@@ -2397,9 +2451,15 @@ describe('Count queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(getCount(query_)).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(getCount(query_)).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(getCount(query_)).to.be.eventually.rejected;
+        }
       });
     }
   );
@@ -2692,7 +2752,7 @@ describe('Aggregate queries', () => {
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
   (USE_EMULATOR ? it.skip : it)(
-    'getAggregate error message is good if missing index',
+    'getAggregate error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
         const query_ = query(
@@ -2700,20 +2760,29 @@ describe('Aggregate queries', () => {
           where('key1', '==', 42),
           where('key2', '<', 42)
         );
-        await expect(
-          getAggregate(query_, {
-            myCount: count()
-          })
-        ).to.be.eventually.rejectedWith(
-          /index.*https:\/\/console\.firebase\.google\.com/
-        );
+        // TODO(b/316359394) Remove the special logic for non-default databases
+        // once cl/582465034 is rolled out to production.
+        if (coll.firestore._databaseId.isDefaultDatabase) {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejectedWith(
+            /index.*https:\/\/console\.firebase\.google\.com/
+          );
+        } else {
+          await expect(
+            getAggregate(query_, {
+              myCount: count()
+            })
+          ).to.be.eventually.rejected;
+        }
       });
     }
   );
 });
 
-// TODO (sum/avg) enable these tests when sum/avg is supported by the backend
-apiDescribe.skip('Aggregation queries - sum / average', () => {
+describe('Aggregate queries - sum / average', () => {
   it('aggregateQuerySnapshotEqual on different aggregations to be falsy', () => {
     const testDocs = [
       { author: 'authorA', title: 'titleA', rating: 1 },
@@ -2722,9 +2791,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { sum: sum('rating') });
-      const snapshot2 = await getAggregate(query1, { avg: average('rating') });
+      const snapshot1 = await getAggregate(coll, { sum: sum('rating') });
+      const snapshot2 = await getAggregate(coll, { avg: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2742,9 +2810,8 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, { foo: average('rating') });
-      const snapshot2 = await getAggregate(query1, { bar: average('rating') });
+      const snapshot1 = await getAggregate(coll, { foo: average('rating') });
+      const snapshot2 = await getAggregate(coll, { bar: average('rating') });
 
       // `snapshot1` and `snapshot2` have different types and therefore the
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
@@ -2762,12 +2829,11 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
       { author: 'authorB', title: 'titleD', rating: 3 }
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
-      const query1 = query(coll, where('author', '==', 'authorA'));
-      const snapshot1 = await getAggregate(query1, {
+      const snapshot1 = await getAggregate(coll, {
         foo: average('rating'),
         bar: sum('rating')
       });
-      const snapshot2 = await getAggregate(query1, {
+      const snapshot2 = await getAggregate(coll, {
         bar: sum('rating'),
         foo: average('rating')
       });
@@ -2840,24 +2906,31 @@ apiDescribe.skip('Aggregation queries - sum / average', () => {
     });
   });
 
-  it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
-      { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
-      { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
-      { author: 'authorD', title: 'titleD', pages: 50 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const snapshot = await getAggregate(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        averageYear: average('year'),
-        count: count()
+  // Only run tests that require indexes against the emulator, because we don't
+  // have a way to dynamically create the indexes when running the tests.
+  (USE_EMULATOR ? apiDescribe : apiDescribe.skip)(
+    'queries requiring indexes',
+    () => {
+      it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
+        const testDocs = [
+          { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+          { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+          { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+          { author: 'authorD', title: 'titleD', pages: 50 }
+        ];
+        return withTestCollectionAndInitialData(testDocs, async coll => {
+          const snapshot = await getAggregate(coll, {
+            totalPages: sum('pages'),
+            averagePages: average('pages'),
+            averageYear: average('year'),
+            count: count()
+          });
+          expect(snapshot.data().totalPages).to.equal(300);
+          expect(snapshot.data().averagePages).to.equal(100);
+          expect(snapshot.data().averageYear).to.equal(2007);
+          expect(snapshot.data().count).to.equal(3);
+        });
       });
-      expect(snapshot.data().totalPages).to.equal(300);
-      expect(snapshot.data().averagePages).to.equal(100);
-      expect(snapshot.data().averageYear).to.equal(2007);
-      expect(snapshot.data().count).to.equal(3);
-    });
-  });
+    }
+  );
 });

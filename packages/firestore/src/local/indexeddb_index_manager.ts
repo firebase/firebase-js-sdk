@@ -120,7 +120,7 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
-  private uid: string;
+  private readonly uid: string;
 
   /**
    * Maps from a target to its equivalent list of sub-targets. Each sub-target
@@ -131,7 +131,7 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(private user: User, private readonly databaseId: DatabaseId) {
+  constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -210,7 +210,7 @@ export class IndexedDbIndexManager implements IndexManager {
         states.put(
           toDbIndexState(
             indexId,
-            this.user,
+            this.uid,
             index.indexState.sequenceNumber,
             index.indexState.offset
           )
@@ -250,6 +250,39 @@ export class IndexedDbIndexManager implements IndexManager {
           )
         )
       );
+  }
+
+  deleteAllFieldIndexes(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const indexes = indexConfigurationStore(transaction);
+    const entries = indexEntriesStore(transaction);
+    const states = indexStateStore(transaction);
+
+    return indexes
+      .deleteAll()
+      .next(() => entries.deleteAll())
+      .next(() => states.deleteAll());
+  }
+
+  createTargetIndexes(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<void> {
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (subTarget: Target) => {
+        return this.getIndexType(transaction, subTarget).next(type => {
+          if (type === IndexType.NONE || type === IndexType.PARTIAL) {
+            const targetIndexMatcher = new TargetIndexMatcher(subTarget);
+            const fieldIndex = targetIndexMatcher.buildTargetIndex();
+            if (fieldIndex != null) {
+              return this.addFieldIndex(transaction, fieldIndex);
+            }
+          }
+        });
+      }
+    );
   }
 
   getDocumentsMatchingTarget(
@@ -721,7 +754,7 @@ export class IndexedDbIndexManager implements IndexManager {
             states.put(
               toDbIndexState(
                 config.indexId!,
-                this.user,
+                this.uid,
                 nextSequenceNumber,
                 offset
               )

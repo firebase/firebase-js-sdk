@@ -15,12 +15,12 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getMessaging(app)](./messaging_.md#getmessaging) | Retrieves a Firebase Cloud Messaging instance. |
-|  <b>function(messaging...)</b> |
-|  [deleteToken(messaging)](./messaging_.md#deletetoken) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
-|  [getToken(messaging, options)](./messaging_.md#gettoken) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns an Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If a notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
-|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
+|  <b>function(app, ...)</b> |
+|  [getMessaging(app)](./messaging_.md#getmessaging_cf608e1) | Retrieves a Firebase Cloud Messaging instance. |
+|  <b>function(messaging, ...)</b> |
+|  [deleteToken(messaging)](./messaging_.md#deletetoken_3fae4b1) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
+|  [getToken(messaging, options)](./messaging_.md#gettoken_b538f38) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
+|  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage_b9887da) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_.md#issupported) | Checks if all required APIs exist in the browser. |
 
@@ -28,13 +28,15 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
-|  [FcmOptions](./messaging_.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions) |
-|  [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken) |
-|  [MessagePayload](./messaging_.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
+|  [FcmOptions](./messaging_.fcmoptions.md#fcmoptions_interface) | Options for features provided by the FCM SDK for Web. See [WebpushFcmOptions](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions)<!-- -->. |
+|  [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Options for [getToken()](./messaging_.md#gettoken_b538f38)<!-- -->. |
+|  [MessagePayload](./messaging_.messagepayload.md#messagepayload_interface) | Message payload that contains the notification payload that is represented with [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) and the data payload that contains an arbitrary number of key-value pairs sent by developers through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 |  [Messaging](./messaging_.messaging.md#messaging_interface) | Public interface of the Firebase Cloud Messaging SDK. |
-|  [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. They are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification) |
+|  [NotificationPayload](./messaging_.notificationpayload.md#notificationpayload_interface) | Display notification details. Details are sent through the [Send API](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification)<!-- -->. |
 
-## getMessaging()
+## function(app, ...)
+
+### getMessaging(app) {:#getmessaging_cf608e1}
 
 Retrieves a Firebase Cloud Messaging instance.
 
@@ -44,7 +46,7 @@ Retrieves a Firebase Cloud Messaging instance.
 export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -56,7 +58,9 @@ export declare function getMessagingInWindow(app?: FirebaseApp): Messaging;
 
 The Firebase Cloud Messaging instance associated with the provided firebase app.
 
-## deleteToken()
+## function(messaging, ...)
+
+### deleteToken(messaging) {:#deletetoken_3fae4b1}
 
 Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription.
 
@@ -66,7 +70,7 @@ Deletes the registration token associated with this [Messaging](./messaging_.mes
 export declare function deleteToken(messaging: Messaging): Promise<boolean>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -78,11 +82,11 @@ Promise&lt;boolean&gt;
 
 The promise resolves when the token has been successfully deleted.
 
-## getToken()
+### getToken(messaging, options) {:#gettoken_b538f38}
 
-Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns an Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.
+Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.
 
-If a notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications.
+If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications.
 
 <b>Signature:</b>
 
@@ -90,12 +94,12 @@ If a notification permission isn't already granted, this method asks the user fo
 export declare function getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
-|  options | [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Provides an optional vapid key and an optinoal service worker registration |
+|  options | [GetTokenOptions](./messaging_.gettokenoptions.md#gettokenoptions_interface) | Provides an optional vapid key and an optional service worker registration. |
 
 <b>Returns:</b>
 
@@ -103,7 +107,7 @@ Promise&lt;string&gt;
 
 The promise resolves with an FCM registration token.
 
-## onMessage()
+### onMessage(messaging, nextOrObserver) {:#onmessage_b9887da}
 
 When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an `onMessage()` event is dispatched with the payload of the push message.
 
@@ -113,7 +117,7 @@ When a push message is received and the user is currently on a page for your ori
 export declare function onMessage(messaging: Messaging, nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -126,7 +130,9 @@ export declare function onMessage(messaging: Messaging, nextOrObserver: NextFn<M
 
 To stop listening for messages execute this returned function.
 
-## isSupported()
+## function()
+
+### isSupported() {:#issupported}
 
 Checks if all required APIs exist in the browser.
 

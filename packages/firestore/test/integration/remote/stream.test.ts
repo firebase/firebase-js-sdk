@@ -22,7 +22,10 @@ import {
   Token
 } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { MutationResult } from '../../../src/model/mutation';
+import { ResourcePath } from '../../../src/model/path';
 import {
   newPersistentWatchStream,
   newPersistentWriteStream
@@ -57,7 +60,8 @@ type StreamEventType =
   | 'mutationResult'
   | 'watchChange'
   | 'open'
-  | 'close';
+  | 'close'
+  | 'connected';
 
 const SINGLE_MUTATION = [setMutation('docs/1', { foo: 'bar' })];
 
@@ -117,6 +121,10 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('watchChange');
   }
 
+  onConnected(): Promise<void> {
+    return this.resolvePending('connected');
+  }
+
   onOpen(): Promise<void> {
     return this.resolvePending('open');
   }
@@ -146,6 +154,14 @@ describe('Watch Stream', () => {
         await watchStream.stop();
         await streamListener.awaitCallback('close');
       });
+    });
+  });
+
+  it('gets connected event before first message', () => {
+    return withTestWatchStream(async (watchStream, streamListener) => {
+      await streamListener.awaitCallback('open');
+      watchStream.watch(sampleTargetData());
+      await streamListener.awaitCallback('connected');
     });
   });
 });
@@ -190,6 +206,7 @@ describe('Write Stream', () => {
         'Handshake must be complete before writing mutations'
       );
       writeStream.writeHandshake();
+      await streamListener.awaitCallback('connected');
       await streamListener.awaitCallback('handshakeComplete');
 
       // Now writes should succeed
@@ -205,9 +222,10 @@ describe('Write Stream', () => {
     return withTestWriteStream((writeStream, streamListener, queue) => {
       return streamListener
         .awaitCallback('open')
-        .then(() => {
+        .then(async () => {
           writeStream.writeHandshake();
-          return streamListener.awaitCallback('handshakeComplete');
+          await streamListener.awaitCallback('connected');
+          await streamListener.awaitCallback('handshakeComplete');
         })
         .then(() => {
           writeStream.markIdle();
@@ -228,6 +246,7 @@ describe('Write Stream', () => {
     return withTestWriteStream(async (writeStream, streamListener, queue) => {
       await streamListener.awaitCallback('open');
       writeStream.writeHandshake();
+      await streamListener.awaitCallback('connected');
       await streamListener.awaitCallback('handshakeComplete');
 
       // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
@@ -335,4 +354,17 @@ export async function withTestWatchStream(
     await fn(watchStream, streamListener);
     streamListener.verifyNoPendingCallbacks();
   });
+}
+
+function sampleTargetData(): TargetData {
+  const target: Target = {
+    path: ResourcePath.emptyPath(),
+    collectionGroup: null,
+    orderBy: [],
+    filters: [],
+    limit: null,
+    startAt: null,
+    endAt: null
+  };
+  return new TargetData(target, 1, TargetPurpose.Listen, 1);
 }

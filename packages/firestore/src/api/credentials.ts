@@ -37,8 +37,14 @@ import { Deferred } from '../util/promise';
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
 
+/**
+ * @internal
+ */
 export type AuthTokenFactory = () => string;
 
+/**
+ * @internal
+ */
 export interface FirstPartyCredentialsSettings {
   // These are external types. Prevent minification.
   ['type']: 'firstParty';

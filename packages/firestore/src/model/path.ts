@@ -216,6 +216,15 @@ export class ResourcePath extends BasePath<ResourcePath> {
   }
 
   /**
+   * Returns a string representation of this path
+   * where each path segment has been encoded with
+   * `encodeURIComponent`.
+   */
+  toUriEncodedString(): string {
+    return this.toArray().map(encodeURIComponent).join('/');
+  }
+
+  /**
    * Creates a resource path from the given slash-delimited string. If multiple
    * arguments are provided, all components are combined. Leading and trailing
    * slashes from all components are ignored.

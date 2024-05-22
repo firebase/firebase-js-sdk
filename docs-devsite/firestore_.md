@@ -15,101 +15,115 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  <b>function(app...)</b> |
-|  [getFirestore(app)](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
-|  [initializeFirestore(app, settings, databaseId)](./firestore_.md#initializefirestore) | Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
-|  <b>function(firestore...)</b> |
-|  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
-|  [collection(firestore, path, pathSegments)](./firestore_.md#collection) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
-|  [collectionGroup(firestore, collectionId)](./firestore_.md#collectiongroup) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
-|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
-|  [disableNetwork(firestore)](./firestore_.md#disablenetwork) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
-|  [doc(firestore, path, pathSegments)](./firestore_.md#doc) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
-|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence) | Attempts to enable persistent storage, if possible.<!-- -->Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.<!-- -->If this fails, <code>enableIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Persistence cannot be used in a Node.js environment. |
-|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->If this fails, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation. |
-|  [enableNetwork(firestore)](./firestore_.md#enablenetwork) | Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork)<!-- -->. |
-|  [loadBundle(firestore, bundleData)](./firestore_.md#loadbundle) | Loads a Firestore bundle into the local cache. |
-|  [namedQuery(firestore, name)](./firestore_.md#namedquery) | Reads a Firestore [Query](./firestore_.query.md#query_class) from local cache, identified by the given name.<!-- -->The named queries are packaged into bundles on the server side (along with resulting documents), and loaded to local cache using <code>loadBundle</code>. Once in local cache, use this method to extract a [Query](./firestore_.query.md#query_class) by name. |
-|  [onSnapshotsInSync(firestore, observer)](./firestore_.md#onsnapshotsinsync) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
-|  [onSnapshotsInSync(firestore, onSync)](./firestore_.md#onsnapshotsinsync) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use <code>SnapshotMetadata</code> in the individual listeners to determine if a snapshot is from the cache or the server. |
-|  [runTransaction(firestore, updateFunction, options)](./firestore_.md#runtransaction) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
-|  [setIndexConfiguration(firestore, configuration)](./firestore_.md#setindexconfiguration) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. If IndexedDb is not enabled, any index configuration is ignored. |
-|  [setIndexConfiguration(firestore, json)](./firestore_.md#setindexconfiguration) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. Invoke either <code>enableIndexedDbPersistence()</code> or <code>enableMultiTabIndexedDbPersistence()</code> before setting an index configuration. If IndexedDb is not enabled, any index configuration is ignored.<!-- -->The method accepts the JSON format exported by the Firebase CLI (<code>firebase firestore:indexes</code>). If the JSON format is invalid, this method throws an error. |
-|  [terminate(firestore)](./firestore_.md#terminate) | Terminates the provided [Firestore](./firestore_.firestore.md#firestore_class) instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> function may be used. Any other function will throw a <code>FirestoreError</code>.<!-- -->To restart after termination, create a new instance of FirebaseFirestore with [getFirestore()](./firestore_.md#getfirestore)<!-- -->.<!-- -->Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved. If you have persistence enabled, the next time you start this instance, it will resume sending these writes to the server.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with <code>clearIndexedDbPersistence()</code> to ensure that all local state is destroyed between test runs. |
-|  [waitForPendingWrites(firestore)](./firestore_.md#waitforpendingwrites) | Waits until all currently pending writes for the active user have been acknowledged by the backend.<!-- -->The returned promise resolves immediately if there are no outstanding writes. Otherwise, the promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call <code>waitForPendingWrites()</code> again.<!-- -->Any outstanding <code>waitForPendingWrites()</code> promises are rejected during user changes. |
-|  [writeBatch(firestore)](./firestore_.md#writebatch) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single [WriteBatch](./firestore_.writebatch.md#writebatch_class) is 500.<!-- -->Unlike transactions, write batches are persisted offline and therefore are preferable when you don't need to condition your writes on read data. |
+|  <b>function(app, ...)</b> |
+|  [getFirestore(app)](./firestore_.md#getfirestore_cf608e1) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [getFirestore(app, databaseId)](./firestore_.md#getfirestore_48de6cb) | <b><i>(BETA)</i></b> Returns the existing named [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  [initializeFirestore(app, settings, databaseId)](./firestore_.md#initializefirestore_fc7d200) | Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
+|  <b>function(firestore, ...)</b> |
+|  [clearIndexedDbPersistence(firestore)](./firestore_.md#clearindexeddbpersistence_231a8e0) | Clears the persistent storage. This includes pending writes and cached documents.<!-- -->Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of <code>failed-precondition</code>.<!-- -->Note: <code>clearIndexedDbPersistence()</code> is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all. |
+|  [collection(firestore, path, pathSegments)](./firestore_.md#collection_1eb4c23) | Gets a <code>CollectionReference</code> instance that refers to the collection at the specified absolute path. |
+|  [collectionGroup(firestore, collectionId)](./firestore_.md#collectiongroup_1838fc3) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
+|  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_.md#connectfirestoreemulator_7c247cd) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
+|  [disableNetwork(firestore)](./firestore_.md#disablenetwork_231a8e0) | Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork_231a8e0)<!-- -->. While the network is disabled, any snapshot listeners, <code>getDoc()</code> or <code>getDocs()</code> calls will return results from cache, and any write operations will be queued until the network is restored. |
+|  [doc(firestore, path, pathSegments)](./firestore_.md#doc_1eb4c23) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
+|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.md#enableindexeddbpersistence_224174f) | Attempts to enable persistent storage, if possible.<!-- -->On failure, <code>enableIndexedDbPersistence()</code> will reject the promise or throw an exception. There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Note that even after a failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.<!-- -->Note: <code>enableIndexedDbPersistence()</code> must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence_231a8e0)<!-- -->.<!-- -->Persistence cannot be used in a Node.js environment. |
+|  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.md#enablemultitabindexeddbpersistence_231a8e0) | Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.<!-- -->On failure, <code>enableMultiTabIndexedDbPersistence()</code> will reject the promise or throw an exception. There are several reasons why this can fail, which can be identified by the <code>code</code> on the error.<!-- -->\* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation.<!-- -->Note that even after a failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled. |
+|  [enableNetwork(firestore)](./firestore_.md#enablenetwork_231a8e0) | Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork_231a8e0)<!-- -->. |
+|  [getPersistentCacheIndexManager(firestore)](./firestore_.md#getpersistentcacheindexmanager_231a8e0) | Returns the PersistentCache Index Manager used by the given <code>Firestore</code> object. The <code>PersistentCacheIndexManager</code> instance, or <code>null</code> if local persistent storage is not in use. |
+|  [loadBundle(firestore, bundleData)](./firestore_.md#loadbundle_bec5b75) | Loads a Firestore bundle into the local cache. |
+|  [namedQuery(firestore, name)](./firestore_.md#namedquery_6438876) | Reads a Firestore [Query](./firestore_.query.md#query_class) from local cache, identified by the given name.<!-- -->The named queries are packaged into bundles on the server side (along with resulting documents), and loaded to local cache using <code>loadBundle</code>. Once in local cache, use this method to extract a [Query](./firestore_.query.md#query_class) by name. |
+|  [onSnapshotsInSync(firestore, observer)](./firestore_.md#onsnapshotsinsync_2f0dfa4) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use SnapshotMetadata in the individual listeners to determine if a snapshot is from the cache or the server. |
+|  [onSnapshotsInSync(firestore, onSync)](./firestore_.md#onsnapshotsinsync_1901c06) | Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.<!-- -->NOTE: The snapshots-in-sync event only indicates that listeners are in sync with each other, but does not relate to whether those snapshots are in sync with the server. Use <code>SnapshotMetadata</code> in the individual listeners to determine if a snapshot is from the cache or the server. |
+|  [runTransaction(firestore, updateFunction, options)](./firestore_.md#runtransaction_6f03ec4) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
+|  [setIndexConfiguration(firestore, configuration)](./firestore_.md#setindexconfiguration_c362f04) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. If IndexedDb is not enabled, any index configuration is ignored. |
+|  [setIndexConfiguration(firestore, json)](./firestore_.md#setindexconfiguration_90d0285) | <b><i>(BETA)</i></b> Configures indexing for local query execution. Any previous index configuration is overridden. The <code>Promise</code> resolves once the index configuration has been persisted.<!-- -->The index entries themselves are created asynchronously. You can continue to use queries that require indexing even if the indices are not yet available. Query execution will automatically start using the index once the index entries have been written.<!-- -->Indexes are only supported with IndexedDb persistence. Invoke either <code>enableIndexedDbPersistence()</code> or <code>enableMultiTabIndexedDbPersistence()</code> before setting an index configuration. If IndexedDb is not enabled, any index configuration is ignored.<!-- -->The method accepts the JSON format exported by the Firebase CLI (<code>firebase firestore:indexes</code>). If the JSON format is invalid, this method throws an error. |
+|  [terminate(firestore)](./firestore_.md#terminate_231a8e0) | Terminates the provided [Firestore](./firestore_.firestore.md#firestore_class) instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> function may be used. Any other function will throw a <code>FirestoreError</code>.<!-- -->To restart after termination, create a new instance of FirebaseFirestore with [getFirestore()](./firestore_.md#getfirestore)<!-- -->.<!-- -->Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved. If you have persistence enabled, the next time you start this instance, it will resume sending these writes to the server.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with <code>clearIndexedDbPersistence()</code> to ensure that all local state is destroyed between test runs. |
+|  [waitForPendingWrites(firestore)](./firestore_.md#waitforpendingwrites_231a8e0) | Waits until all currently pending writes for the active user have been acknowledged by the backend.<!-- -->The returned promise resolves immediately if there are no outstanding writes. Otherwise, the promise waits for all previously issued writes (including those written in a previous app session), but it does not wait for writes that were added after the function is called. If you want to wait for additional writes, call <code>waitForPendingWrites()</code> again.<!-- -->Any outstanding <code>waitForPendingWrites()</code> promises are rejected during user changes. |
+|  [writeBatch(firestore)](./firestore_.md#writebatch_231a8e0) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single [WriteBatch](./firestore_.writebatch.md#writebatch_class) is 500.<!-- -->Unlike transactions, write batches are persisted offline and therefore are preferable when you don't need to condition your writes on read data. |
 |  <b>function()</b> |
-|  [deleteField()](./firestore_.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with <code>{merge: true}</code> to mark a field for deletion. |
+|  [count()](./firestore_.md#count) | Create an AggregateField object that can be used to compute the count of documents in the result set of a query. |
+|  [deleteField()](./firestore_.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [memoryEagerGarbageCollector()](./firestore_.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. This is also the default garbage collector unless it is explicitly specified otherwise. |
 |  [persistentMultipleTabManager()](./firestore_.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
-|  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data. |
-|  <b>function(elements...)</b> |
-|  [arrayRemove(elements)](./firestore_.md#arrayremove) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
-|  [arrayUnion(elements)](./firestore_.md#arrayunion) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
-|  <b>function(fieldPath...)</b> |
-|  [orderBy(fieldPath, directionStr)](./firestore_.md#orderby) | Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.<!-- -->Note: Documents that do not contain the specified field will not be present in the query result. |
-|  [where(fieldPath, opStr, value)](./firestore_.md#where) | Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
-|  <b>function(fieldValues...)</b> |
-|  [endAt(fieldValues)](./firestore_.md#endat) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
-|  [endBefore(fieldValues)](./firestore_.md#endbefore) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
-|  [startAfter(fieldValues)](./firestore_.md#startafter) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
-|  [startAt(fieldValues)](./firestore_.md#startat) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
-|  <b>function(left...)</b> |
-|  [aggregateQuerySnapshotEqual(left, right)](./firestore_.md#aggregatequerysnapshotequal) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
-|  [queryEqual(left, right)](./firestore_.md#queryequal) | Returns true if the provided queries point to the same collection and apply the same constraints. |
-|  [refEqual(left, right)](./firestore_.md#refequal) | Returns true if the provided references are equal. |
-|  [snapshotEqual(left, right)](./firestore_.md#snapshotequal) | Returns true if the provided snapshots are equal. |
-|  <b>function(limit...)</b> |
-|  [limit(limit)](./firestore_.md#limit) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents. |
-|  [limitToLast(limit)](./firestore_.md#limittolast) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
-|  <b>function(logLevel...)</b> |
-|  [setLogLevel(logLevel)](./firestore_.md#setloglevel) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
-|  <b>function(n...)</b> |
-|  [increment(n)](./firestore_.md#increment) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
-|  <b>function(query...)</b> |
-|  [getCountFromServer(query)](./firestore_.md#getcountfromserver) | Calculates the number of documents in the result set of the given query, without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server. |
-|  [getDocs(query)](./firestore_.md#getdocs) | Executes the query and returns the results as a <code>QuerySnapshot</code>.<!-- -->Note: <code>getDocs()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache) or [getDocsFromServer()](./firestore_.md#getdocsfromserver)<!-- -->. |
-|  [getDocsFromCache(query)](./firestore_.md#getdocsfromcache) | Executes the query and returns the results as a <code>QuerySnapshot</code> from cache. Returns an empty result set if no documents matching the query are currently cached. |
-|  [getDocsFromServer(query)](./firestore_.md#getdocsfromserver) | Executes the query and returns the results as a <code>QuerySnapshot</code> from the server. Returns an error if the network is not available. |
-|  [onSnapshot(query, observer)](./firestore_.md#onsnapshot) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(query, options, observer)](./firestore_.md#onsnapshot) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(query, onNext, onError, onCompletion)](./firestore_.md#onsnapshot) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(query, options, onNext, onError, onCompletion)](./firestore_.md#onsnapshot) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [query(query, compositeFilter, queryConstraints)](./firestore_.md#query) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
-|  [query(query, queryConstraints)](./firestore_.md#query) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
-|  <b>function(queryConstraints...)</b> |
-|  [and(queryConstraints)](./firestore_.md#and) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters. |
-|  [or(queryConstraints)](./firestore_.md#or) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
-|  <b>function(reference...)</b> |
-|  [addDoc(reference, data)](./firestore_.md#adddoc) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
-|  [deleteDoc(reference)](./firestore_.md#deletedoc) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
-|  [doc(reference, path, pathSegments)](./firestore_.md#doc) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
-|  [doc(reference, path, pathSegments)](./firestore_.md#doc) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
-|  [getDoc(reference)](./firestore_.md#getdoc) | Reads the document referred to by this <code>DocumentReference</code>.<!-- -->Note: <code>getDoc()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.md#getdocfromcache) or [getDocFromServer()](./firestore_.md#getdocfromserver)<!-- -->. |
-|  [getDocFromCache(reference)](./firestore_.md#getdocfromcache) | Reads the document referred to by this <code>DocumentReference</code> from cache. Returns an error if the document is not currently cached. |
-|  [getDocFromServer(reference)](./firestore_.md#getdocfromserver) | Reads the document referred to by this <code>DocumentReference</code> from the server. Returns an error if the network is not available. |
-|  [onSnapshot(reference, observer)](./firestore_.md#onsnapshot) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(reference, options, observer)](./firestore_.md#onsnapshot) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(reference, onNext, onError, onCompletion)](./firestore_.md#onsnapshot) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [onSnapshot(reference, options, onNext, onError, onCompletion)](./firestore_.md#onsnapshot) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [setDoc(reference, data)](./firestore_.md#setdoc) | Writes to the document referred to by this <code>DocumentReference</code>. If the document does not yet exist, it will be created. |
-|  [setDoc(reference, data, options)](./firestore_.md#setdoc) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
-|  [updateDoc(reference, data)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
-|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
-|  <b>function(settings...)</b> |
-|  [memoryLocalCache(settings)](./firestore_.md#memorylocalcache) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
-|  [memoryLruGarbageCollector(settings)](./firestore_.md#memorylrugarbagecollector) | Creates an instance of <code>MemoryLruGarbageCollector</code>.<!-- -->A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
-|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use.<!-- -->Persistent cache cannot be used in a Node.js environment. |
-|  [persistentSingleTabManager(settings)](./firestore_.md#persistentsingletabmanager) | Creates an instance of <code>PersistentSingleTabManager</code>. |
-|  <b>function(snapshot...)</b> |
-|  [endAt(snapshot)](./firestore_.md#endat) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
-|  [endBefore(snapshot)](./firestore_.md#endbefore) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
-|  [startAfter(snapshot)](./firestore_.md#startafter) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
-|  [startAt(snapshot)](./firestore_.md#startat) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
+|  [serverTimestamp()](./firestore_.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
+|  <b>function(databaseId, ...)</b> |
+|  [getFirestore(databaseId)](./firestore_.md#getfirestore_53dc891) | <b><i>(BETA)</i></b> Returns the existing named [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  <b>function(elements, ...)</b> |
+|  [arrayRemove(elements)](./firestore_.md#arrayremove_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
+|  [arrayUnion(elements)](./firestore_.md#arrayunion_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
+|  <b>function(field, ...)</b> |
+|  [average(field)](./firestore_.md#average_aacc3a9) | Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query. |
+|  [sum(field)](./firestore_.md#sum_aacc3a9) | Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query. |
+|  <b>function(fieldPath, ...)</b> |
+|  [orderBy(fieldPath, directionStr)](./firestore_.md#orderby_006d61f) | Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.<!-- -->Note: Documents that do not contain the specified field will not be present in the query result. |
+|  [where(fieldPath, opStr, value)](./firestore_.md#where_0fae4bf) | Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
+|  <b>function(fieldValues, ...)</b> |
+|  [endAt(fieldValues)](./firestore_.md#endat_8b2f2c8) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [endBefore(fieldValues)](./firestore_.md#endbefore_8b2f2c8) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [startAfter(fieldValues)](./firestore_.md#startafter_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  [startAt(fieldValues)](./firestore_.md#startat_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  <b>function(indexManager, ...)</b> |
+|  [deleteAllPersistentCacheIndexes(indexManager)](./firestore_.md#deleteallpersistentcacheindexes_98b2645) | Removes all persistent cache indexes.<!-- -->Please note this function will also deletes indexes generated by <code>setIndexConfiguration()</code>, which is deprecated. |
+|  [disablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#disablepersistentcacheindexautocreation_98b2645) | Stops creating persistent cache indexes automatically for local query execution. The indexes which have been created by calling <code>enablePersistentCacheIndexAutoCreation()</code> still take effect. |
+|  [enablePersistentCacheIndexAutoCreation(indexManager)](./firestore_.md#enablepersistentcacheindexautocreation_98b2645) | Enables the SDK to create persistent cache indexes automatically for local query execution when the SDK believes cache indexes can help improve performance.<!-- -->This feature is disabled by default. |
+|  <b>function(left, ...)</b> |
+|  [aggregateFieldEqual(left, right)](./firestore_.md#aggregatefieldequal_e80a2b2) | Compares two 'AggregateField<!-- -->\` instances for equality. |
+|  [aggregateQuerySnapshotEqual(left, right)](./firestore_.md#aggregatequerysnapshotequal_1529a20) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
+|  [queryEqual(left, right)](./firestore_.md#queryequal_7a1f045) | Returns true if the provided queries point to the same collection and apply the same constraints. |
+|  [refEqual(left, right)](./firestore_.md#refequal_598b780) | Returns true if the provided references are equal. |
+|  [snapshotEqual(left, right)](./firestore_.md#snapshotequal_5109204) | Returns true if the provided snapshots are equal. |
+|  <b>function(limit, ...)</b> |
+|  [limit(limit)](./firestore_.md#limit_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents. |
+|  [limitToLast(limit)](./firestore_.md#limittolast_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
+|  <b>function(logLevel, ...)</b> |
+|  [setLogLevel(logLevel)](./firestore_.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
+|  <b>function(n, ...)</b> |
+|  [increment(n)](./firestore_.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  <b>function(query, ...)</b> |
+|  [getAggregateFromServer(query, aggregateSpec)](./firestore_.md#getaggregatefromserver_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
+|  [getCountFromServer(query)](./firestore_.md#getcountfromserver_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).<!-- -->The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server. |
+|  [getDocs(query)](./firestore_.md#getdocs_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code>.<!-- -->Note: <code>getDocs()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache_4e56953) or [getDocsFromServer()](./firestore_.md#getdocsfromserver_4e56953)<!-- -->. |
+|  [getDocsFromCache(query)](./firestore_.md#getdocsfromcache_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code> from cache. Returns an empty result set if no documents matching the query are currently cached. |
+|  [getDocsFromServer(query)](./firestore_.md#getdocsfromserver_4e56953) | Executes the query and returns the results as a <code>QuerySnapshot</code> from the server. Returns an error if the network is not available. |
+|  [onSnapshot(query, observer)](./firestore_.md#onsnapshot_8d14049) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, options, observer)](./firestore_.md#onsnapshot_03dfff5) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_3ebfbe2) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(query, options, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_b8f9c47) | Attaches a listener for <code>QuerySnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks. The listener can be cancelled by calling the function that is returned when <code>onSnapshot</code> is called.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [query(query, compositeFilter, queryConstraints)](./firestore_.md#query_9f7b0f4) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
+|  [query(query, queryConstraints)](./firestore_.md#query_0f46da1) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
+|  <b>function(queryConstraints, ...)</b> |
+|  [and(queryConstraints)](./firestore_.md#and_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters. |
+|  [or(queryConstraints)](./firestore_.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
+|  <b>function(reference, ...)</b> |
+|  [addDoc(reference, data)](./firestore_.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [deleteDoc(reference)](./firestore_.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
+|  [doc(reference, path, pathSegments)](./firestore_.md#doc_568f98d) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
+|  [doc(reference, path, pathSegments)](./firestore_.md#doc_70b4396) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
+|  [getDoc(reference)](./firestore_.md#getdoc_4569087) | Reads the document referred to by this <code>DocumentReference</code>.<!-- -->Note: <code>getDoc()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.md#getdocfromcache_4569087) or [getDocFromServer()](./firestore_.md#getdocfromserver_4569087)<!-- -->. |
+|  [getDocFromCache(reference)](./firestore_.md#getdocfromcache_4569087) | Reads the document referred to by this <code>DocumentReference</code> from cache. Returns an error if the document is not currently cached. |
+|  [getDocFromServer(reference)](./firestore_.md#getdocfromserver_4569087) | Reads the document referred to by this <code>DocumentReference</code> from the server. Returns an error if the network is not available. |
+|  [onSnapshot(reference, observer)](./firestore_.md#onsnapshot_0312fd7) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, options, observer)](./firestore_.md#onsnapshot_86b6b9e) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_905f42c) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [onSnapshot(reference, options, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_0c39991) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
+|  [setDoc(reference, data)](./firestore_.md#setdoc_ee215ad) | Writes to the document referred to by this <code>DocumentReference</code>. If the document does not yet exist, it will be created. |
+|  [setDoc(reference, data, options)](./firestore_.md#setdoc_ff80739) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
+|  [updateDoc(reference, data)](./firestore_.md#updatedoc_51a65e3) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
+|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc_7c28659) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  <b>function(settings, ...)</b> |
+|  [memoryLocalCache(settings)](./firestore_.md#memorylocalcache_05f4bf2) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
+|  [memoryLruGarbageCollector(settings)](./firestore_.md#memorylrugarbagecollector_5ee014c) | Creates an instance of <code>MemoryLruGarbageCollector</code>.<!-- -->A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
+|  [persistentLocalCache(settings)](./firestore_.md#persistentlocalcache_d312f71) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use.<!-- -->Persistent cache cannot be used in a Node.js environment. |
+|  [persistentSingleTabManager(settings)](./firestore_.md#persistentsingletabmanager_c99c68d) | Creates an instance of <code>PersistentSingleTabManager</code>. |
+|  <b>function(snapshot, ...)</b> |
+|  [endAt(snapshot)](./firestore_.md#endat_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [endBefore(snapshot)](./firestore_.md#endbefore_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [startAfter(snapshot)](./firestore_.md#startafter_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
+|  [startAt(snapshot)](./firestore_.md#startat_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
 
 ## Classes
 
@@ -118,7 +132,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class) | Represents an aggregation that can be performed by Firestore. |
 |  [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class) | The results of executing an aggregation query. |
 |  [Bytes](./firestore_.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
-|  [CollectionReference](./firestore_.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query)<!-- -->). |
+|  [CollectionReference](./firestore_.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->). |
 |  [DocumentReference](./firestore_.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
 |  [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
 |  [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
@@ -127,20 +141,21 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
 |  [GeoPoint](./firestore_.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
 |  [LoadBundleTask](./firestore_.loadbundletask.md#loadbundletask_class) | Represents the task of loading a Firestore bundle. It provides progress of bundle loading, as well as task completion and error events.<!-- -->The API is compatible with <code>Promise&lt;LoadBundleTaskProgress&gt;</code>. |
+|  [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) | A <code>PersistentCacheIndexManager</code> for configuring persistent cache indexes used for local query execution.<!-- -->To use, call <code>getPersistentCacheIndexManager()</code> to get an instance. |
 |  [Query](./firestore_.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
-|  [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or) or [and()](./firestore_.md#and) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
-|  [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where)<!-- -->, [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->, [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryConstraint</code>. |
+|  [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or_e72c712) or [and()](./firestore_.md#and_e72c712) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
+|  [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where_0fae4bf)<!-- -->, [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryConstraint</code>. |
 |  [QueryDocumentSnapshot](./firestore_.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
-|  [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) | A <code>QueryEndAtConstraint</code> is used to exclude documents from the end of a result set returned by a Firestore query. <code>QueryEndAtConstraint</code>s are created by invoking [endAt()](./firestore_.md#endat) or [endBefore()](./firestore_.md#endbefore) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryEndAtConstraint</code>. |
-|  [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) | A <code>QueryFieldFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by filtering on one or more document fields. <code>QueryFieldFilterConstraint</code>s are created by invoking [where()](./firestore_.md#where) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryFieldFilterConstraint</code>. |
-|  [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) | A <code>QueryLimitConstraint</code> is used to limit the number of documents returned by a Firestore query. <code>QueryLimitConstraint</code>s are created by invoking [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryLimitConstraint</code>. |
-|  [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) | A <code>QueryOrderByConstraint</code> is used to sort the set of documents returned by a Firestore query. <code>QueryOrderByConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryOrderByConstraint</code>.<!-- -->Note: Documents that do not contain the orderBy field will not be present in the query result. |
+|  [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) | A <code>QueryEndAtConstraint</code> is used to exclude documents from the end of a result set returned by a Firestore query. <code>QueryEndAtConstraint</code>s are created by invoking [endAt()](./firestore_.md#endat_9a4477f) or [endBefore()](./firestore_.md#endbefore_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryEndAtConstraint</code>. |
+|  [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) | A <code>QueryFieldFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by filtering on one or more document fields. <code>QueryFieldFilterConstraint</code>s are created by invoking [where()](./firestore_.md#where_0fae4bf) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryFieldFilterConstraint</code>. |
+|  [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) | A <code>QueryLimitConstraint</code> is used to limit the number of documents returned by a Firestore query. <code>QueryLimitConstraint</code>s are created by invoking [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryLimitConstraint</code>. |
+|  [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) | A <code>QueryOrderByConstraint</code> is used to sort the set of documents returned by a Firestore query. <code>QueryOrderByConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryOrderByConstraint</code>.<!-- -->Note: Documents that do not contain the orderBy field will not be present in the query result. |
 |  [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class) | A <code>QuerySnapshot</code> contains zero or more <code>DocumentSnapshot</code> objects representing the results of a query. The documents can be accessed as an array via the <code>docs</code> property or enumerated using the <code>forEach</code> method. The number of documents can be determined via the <code>empty</code> and <code>size</code> properties. |
-|  [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore_.md#startat) or [startAfter()](./firestore_.md#startafter) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
+|  [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore_.md#startat_9a4477f) or [startAfter()](./firestore_.md#startafter_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
 |  [SnapshotMetadata](./firestore_.snapshotmetadata.md#snapshotmetadata_class) | Metadata about a snapshot, describing the state of the snapshot. |
 |  [Timestamp](./firestore_.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
-|  [Transaction](./firestore_.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction)<!-- -->. |
-|  [WriteBatch](./firestore_.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
+|  [Transaction](./firestore_.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
+|  [WriteBatch](./firestore_.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
 ## Interfaces
 
@@ -148,9 +163,9 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [AggregateSpec](./firestore_.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
 |  [DocumentChange](./firestore_.documentchange.md#documentchange_interface) | A <code>DocumentChange</code> represents a change to the documents matching a query. It contains the document affected and the type of change that occurred. |
-|  [DocumentData](./firestore_.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc)<!-- -->) consists of fields mapped to values. |
+|  [DocumentData](./firestore_.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
 |  [ExperimentalLongPollingOptions](./firestore_.experimentallongpollingoptions.md#experimentallongpollingoptions_interface) | Options that configure the SDK’s underlying network transport (WebChannel) when long-polling is used.<!-- -->Note: This interface is "experimental" and is subject to change.<!-- -->See <code>FirestoreSettings.experimentalAutoDetectLongPolling</code>, <code>FirestoreSettings.experimentalForceLongPolling</code>, and <code>FirestoreSettings.experimentalLongPollingOptions</code>. |
-|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>T</code> into Firestore data.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore. |
+|  [FirestoreDataConverter](./firestore_.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
 |  [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [Index](./firestore_.index.md#index_interface) | <b><i>(BETA)</i></b> The SDK definition of a Firestore index. |
 |  [IndexConfiguration](./firestore_.indexconfiguration.md#indexconfiguration_interface) | <b><i>(BETA)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
@@ -166,7 +181,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
 |  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
 |  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instance. |
-|  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
+|  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
 |  [TransactionOptions](./firestore_.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
 |  [Unsubscribe](./firestore_.unsubscribe.md#unsubscribe_interface) | A function returned by <code>onSnapshot()</code> that removes the listener when invoked. |
@@ -184,27 +199,31 @@ https://github.com/firebase/firebase-js-sdk
 |  [AddPrefixToKeys](./firestore_.md#addprefixtokeys) | Returns a new map where every key is prefixed with the outer key appended to a dot. |
 |  [AggregateFieldType](./firestore_.md#aggregatefieldtype) | The union of all <code>AggregateField</code> types that are supported by Firestore. |
 |  [AggregateSpecData](./firestore_.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
+|  [AggregateType](./firestore_.md#aggregatetype) | Union type representing the aggregate type to be performed. |
 |  [ChildUpdateFields](./firestore_.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
 |  [DocumentChangeType](./firestore_.md#documentchangetype) | The type of a <code>DocumentChange</code> may be 'added', 'removed', or 'modified'. |
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
+|  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<!-- -->Set to <code>default</code> to listen to both cache and server changes. Set to <code>cache</code> to listen to changes in cache only. |
 |  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support gabage collectors for memory local cache. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
-|  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby) clause is specified as 'desc' or 'asc' (descending or ascending). |
+|  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
 |  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
 |  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all available tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [QueryFilterConstraint](./firestore_.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
-|  [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the <code>QueryConstraint</code>. |
-|  [SetOptions](./firestore_.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
+|  [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryConstraint</code>. |
+|  [SetOptions](./firestore_.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [TaskState](./firestore_.md#taskstate) | Represents the state of bundle loading tasks.<!-- -->Both 'Error' and 'Success' are sinking state: task will abort or complete and there will be no more updates after they are reported. |
 |  [UnionToIntersection](./firestore_.md#uniontointersection) | Given a union type <code>U = T1 &#124; T2 &#124; ...</code>, returns an intersected type <code>(T1 &amp; T2 &amp; ...)</code>.<!-- -->Uses distributive conditional types and inference from conditional types. This works because multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred. https://www.typescriptlang.org/docs/handbook/advanced-types.html\#type-inference-in-conditional-types https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type |
-|  [UpdateData](./firestore_.md#updatedata) | Update data (for use with [updateDoc()](./firestore_.md#updatedoc)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values. |
-|  [WhereFilterOp](./firestore_.md#wherefilterop) | Filter conditions in a [where()](./firestore_.md#where) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'. |
+|  [UpdateData](./firestore_.md#updatedata) | Update data (for use with [updateDoc()](./firestore_.md#updatedoc_51a65e3)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values. |
+|  [WhereFilterOp](./firestore_.md#wherefilterop) | Filter conditions in a [where()](./firestore_.md#where_0fae4bf) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'. |
 |  [WithFieldValue](./firestore_.md#withfieldvalue) | Allows FieldValues to be passed in as a property value while maintaining type safety. |
 
-## getFirestore()
+## function(app, ...)
+
+### getFirestore(app) {:#getfirestore_cf608e1}
 
 Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
 
@@ -214,7 +233,7 @@ Returns the existing default [Firestore](./firestore_.firestore.md#firestore_cla
 export declare function getFirestore(app: FirebaseApp): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -224,9 +243,35 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 [Firestore](./firestore_.firestore.md#firestore_class)
 
-The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+The default [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
 
-## initializeFirestore()
+### getFirestore(app, databaseId) {:#getfirestore_48de6cb}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing named [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The named [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
+### initializeFirestore(app, settings, databaseId) {:#initializefirestore_fc7d200}
 
 Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_class) with the provided settings. Can only be called before any other function, including [getFirestore()](./firestore_.md#getfirestore)<!-- -->. If the custom settings are empty, this function is equivalent to calling [getFirestore()](./firestore_.md#getfirestore)<!-- -->.
 
@@ -236,13 +281,13 @@ Initializes a new instance of [Firestore](./firestore_.firestore.md#firestore_cl
 export declare function initializeFirestore(app: FirebaseApp, settings: FirestoreSettings, databaseId?: string): Firestore;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
 |  settings | [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | A settings object to configure the [Firestore](./firestore_.firestore.md#firestore_class) instance. |
-|  databaseId | string | The name of database. |
+|  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
 
@@ -250,11 +295,13 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Firestor
 
 A newly initialized [Firestore](./firestore_.firestore.md#firestore_class) instance.
 
-## clearIndexedDbPersistence()
+## function(firestore, ...)
+
+### clearIndexedDbPersistence(firestore) {:#clearindexeddbpersistence_231a8e0}
 
 Clears the persistent storage. This includes pending writes and cached documents.
 
-Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of `failed-precondition`<!-- -->.
+Must be called while the [Firestore](./firestore_.firestore.md#firestore_class) instance is not started (after the app is terminated or when the app is first initialized). On startup, this function must be called before other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200) or [getFirestore()](./firestore_.md#getfirestore)<!-- -->)). If the [Firestore](./firestore_.firestore.md#firestore_class) instance is still running, the promise will be rejected with the error code of `failed-precondition`<!-- -->.
 
 Note: `clearIndexedDbPersistence()` is primarily intended to help write reliable tests that use Cloud Firestore. It uses an efficient mechanism for dropping existing data but does not attempt to securely overwrite or otherwise make cached data unrecoverable. For applications that are sensitive to the disclosure of cached data in between user sessions, we strongly recommend not enabling persistence at all.
 
@@ -264,7 +311,7 @@ Note: `clearIndexedDbPersistence()` is primarily intended to help write reliable
 export declare function clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -276,17 +323,17 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved when the persistent storage is cleared. Otherwise, the promise is rejected with an error.
 
-## collection()
+### collection(firestore, path, pathSegments) {:#collection_1eb4c23}
 
 Gets a `CollectionReference` instance that refers to the collection at the specified absolute path.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -296,25 +343,25 @@ export declare function collection(firestore: Firestore, path: string, ...pathSe
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## collectionGroup()
+### collectionGroup(firestore, collectionId) {:#collectiongroup_1838fc3}
 
 Creates and returns a new `Query` instance that includes all documents in the database that are contained in a collection or subcollection with the given `collectionId`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData>;
+export declare function collectionGroup(firestore: Firestore, collectionId: string): Query<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -323,11 +370,11 @@ export declare function collectionGroup(firestore: Firestore, collectionId: stri
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The created `Query`<!-- -->.
 
-## connectFirestoreEmulator()
+### connectFirestoreEmulator(firestore, host, port, options) {:#connectfirestoreemulator_7c247cd}
 
 Modify this instance to communicate with the Cloud Firestore emulator.
 
@@ -341,7 +388,7 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 }): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -354,9 +401,9 @@ export declare function connectFirestoreEmulator(firestore: Firestore, host: str
 
 void
 
-## disableNetwork()
+### disableNetwork(firestore) {:#disablenetwork_231a8e0}
 
-Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork)<!-- -->. While the network is disabled, any snapshot listeners, `getDoc()` or `getDocs()` calls will return results from cache, and any write operations will be queued until the network is restored.
+Disables network usage for this instance. It can be re-enabled via [enableNetwork()](./firestore_.md#enablenetwork_231a8e0)<!-- -->. While the network is disabled, any snapshot listeners, `getDoc()` or `getDocs()` calls will return results from cache, and any write operations will be queued until the network is restored.
 
 <b>Signature:</b>
 
@@ -364,7 +411,7 @@ Disables network usage for this instance. It can be re-enabled via [enableNetwor
 export declare function disableNetwork(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -376,17 +423,17 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved once the network has been disabled.
 
-## doc()
+### doc(firestore, path, pathSegments) {:#doc_1eb4c23}
 
 Gets a `DocumentReference` instance that refers to the document at the specified absolute path.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export declare function doc(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -396,30 +443,30 @@ export declare function doc(firestore: Firestore, path: string, ...pathSegments:
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## enableIndexedDbPersistence()
+### enableIndexedDbPersistence(firestore, persistenceSettings) {:#enableindexeddbpersistence_224174f}
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on IndexedDb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable persistent storage, if possible.
 
-Must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence)<!-- -->.
-
-If this fails, `enableIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
-
-There are several reasons why this can fail, which can be identified by the `code` on the error.
+On failure, `enableIndexedDbPersistence()` will reject the promise or throw an exception. There are several reasons why this can fail, which can be identified by the `code` on the error.
 
 \* failed-precondition: The app is already open in another browser tab. \* unimplemented: The browser is incompatible with the offline persistence implementation.
+
+Note that even after a failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
+
+Note: `enableIndexedDbPersistence()` must be called before any other functions (other than [initializeFirestore()](./firestore_.md#initializefirestore_fc7d200)<!-- -->, [getFirestore()](./firestore_.md#getfirestore) or [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence_231a8e0)<!-- -->.
 
 Persistence cannot be used in a Node.js environment.
 
@@ -429,7 +476,7 @@ Persistence cannot be used in a Node.js environment.
 export declare function enableIndexedDbPersistence(firestore: Firestore, persistenceSettings?: PersistenceSettings): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -442,20 +489,20 @@ Promise&lt;void&gt;
 
 A `Promise` that represents successfully enabling persistent storage.
 
-## enableMultiTabIndexedDbPersistence()
+### enableMultiTabIndexedDbPersistence(firestore) {:#enablemultitabindexeddbpersistence_231a8e0}
 
 > Warning: This API is now obsolete.
 > 
-> This function will be removed in a future major release. Instead, set `FirestoreSettings.cache` to an instance of `IndexedDbLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.cache` is already specified will throw an exception.
+> This function will be removed in a future major release. Instead, set `FirestoreSettings.localCache` to an instance of `PersistentLocalCache` to turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache` is already specified will throw an exception.
 > 
 
 Attempts to enable multi-tab persistent storage, if possible. If enabled across all tabs, all operations share access to local persistence, including shared execution of queries and latency-compensated local document updates across all connected instances.
 
-If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise it returns. Note that even after this failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
-
-There are several reasons why this can fail, which can be identified by the `code` on the error.
+On failure, `enableMultiTabIndexedDbPersistence()` will reject the promise or throw an exception. There are several reasons why this can fail, which can be identified by the `code` on the error.
 
 \* failed-precondition: The app is already open in another browser tab and multi-tab is not enabled. \* unimplemented: The browser is incompatible with the offline persistence implementation.
+
+Note that even after a failure, the [Firestore](./firestore_.firestore.md#firestore_class) instance will remain usable, however offline persistence will be disabled.
 
 <b>Signature:</b>
 
@@ -463,7 +510,7 @@ There are several reasons why this can fail, which can be identified by the `cod
 export declare function enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -475,9 +522,9 @@ Promise&lt;void&gt;
 
 A `Promise` that represents successfully enabling persistent storage.
 
-## enableNetwork()
+### enableNetwork(firestore) {:#enablenetwork_231a8e0}
 
-Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork)<!-- -->.
+Re-enables use of the network for this [Firestore](./firestore_.firestore.md#firestore_class) instance after a prior call to [disableNetwork()](./firestore_.md#disablenetwork_231a8e0)<!-- -->.
 
 <b>Signature:</b>
 
@@ -485,7 +532,7 @@ Re-enables use of the network for this [Firestore](./firestore_.firestore.md#fir
 export declare function enableNetwork(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -497,7 +544,29 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved once the network has been enabled.
 
-## loadBundle()
+### getPersistentCacheIndexManager(firestore) {:#getpersistentcacheindexmanager_231a8e0}
+
+Returns the PersistentCache Index Manager used by the given `Firestore` object.
+
+ The `PersistentCacheIndexManager` instance, or `null` if local persistent storage is not in use.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getPersistentCacheIndexManager(firestore: Firestore): PersistentCacheIndexManager | null;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  firestore | [Firestore](./firestore_.firestore.md#firestore_class) |  |
+
+<b>Returns:</b>
+
+[PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) \| null
+
+### loadBundle(firestore, bundleData) {:#loadbundle_bec5b75}
 
 Loads a Firestore bundle into the local cache.
 
@@ -507,7 +576,7 @@ Loads a Firestore bundle into the local cache.
 export declare function loadBundle(firestore: Firestore, bundleData: ReadableStream<Uint8Array> | ArrayBuffer | string): LoadBundleTask;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -520,7 +589,7 @@ export declare function loadBundle(firestore: Firestore, bundleData: ReadableStr
 
 A `LoadBundleTask` object, which notifies callers with progress updates, and completion or error events. It can be used as a `Promise<LoadBundleTaskProgress>`<!-- -->.
 
-## namedQuery()
+### namedQuery(firestore, name) {:#namedquery_6438876}
 
 Reads a Firestore [Query](./firestore_.query.md#query_class) from local cache, identified by the given name.
 
@@ -532,7 +601,7 @@ The named queries are packaged into bundles on the server side (along with resul
 export declare function namedQuery(firestore: Firestore, name: string): Promise<Query | null>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -545,7 +614,7 @@ Promise&lt;[Query](./firestore_.query.md#query_class) \| null&gt;
 
 A `Promise` that is resolved with the Query or `null`<!-- -->.
 
-## onSnapshotsInSync()
+### onSnapshotsInSync(firestore, observer) {:#onsnapshotsinsync_2f0dfa4}
 
 Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.
 
@@ -561,7 +630,7 @@ export declare function onSnapshotsInSync(firestore: Firestore, observer: {
 }): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -574,7 +643,7 @@ export declare function onSnapshotsInSync(firestore: Firestore, observer: {
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshotsInSync()
+### onSnapshotsInSync(firestore, onSync) {:#onsnapshotsinsync_1901c06}
 
 Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync event indicates that all listeners affected by a given change have fired, even if a single server-generated change affects multiple listeners.
 
@@ -586,7 +655,7 @@ NOTE: The snapshots-in-sync event only indicates that listeners are in sync with
 export declare function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -599,7 +668,7 @@ export declare function onSnapshotsInSync(firestore: Firestore, onSync: () => vo
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## runTransaction()
+### runTransaction(firestore, updateFunction, options) {:#runtransaction_6f03ec4}
 
 Executes the given `updateFunction` and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the `updateFunction`<!-- -->. If it fails to commit after 5 attempts, the transaction fails.
 
@@ -611,7 +680,7 @@ The maximum number of writes allowed in a single transaction is 500.
 export declare function runTransaction<T>(firestore: Firestore, updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -625,9 +694,14 @@ Promise&lt;T&gt;
 
 If the transaction completed successfully or was explicitly aborted (the `updateFunction` returned a failed promise), the promise returned by the `updateFunction `<!-- -->is returned here. Otherwise, if the transaction failed, a rejected promise with the corresponding failure error is returned.
 
-## setIndexConfiguration()
+### setIndexConfiguration(firestore, configuration) {:#setindexconfiguration_c362f04}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+> Warning: This API is now obsolete.
+> 
+> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally.
 > 
 
 Configures indexing for local query execution. Any previous index configuration is overridden. The `Promise` resolves once the index configuration has been persisted.
@@ -642,7 +716,7 @@ Indexes are only supported with IndexedDb persistence. If IndexedDb is not enabl
 export declare function setIndexConfiguration(firestore: Firestore, configuration: IndexConfiguration): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -655,13 +729,18 @@ Promise&lt;void&gt;
 
 A `Promise` that resolves once all indices are successfully configured.
 
-## Exceptions
+#### Exceptions
 
 FirestoreError if the JSON format is invalid.
 
-## setIndexConfiguration()
+### setIndexConfiguration(firestore, json) {:#setindexconfiguration_90d0285}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+> Warning: This API is now obsolete.
+> 
+> Instead of creating cache indexes manually, consider using `enablePersistentCacheIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally.
 > 
 
 Configures indexing for local query execution. Any previous index configuration is overridden. The `Promise` resolves once the index configuration has been persisted.
@@ -678,7 +757,7 @@ The method accepts the JSON format exported by the Firebase CLI (`firebase fires
 export declare function setIndexConfiguration(firestore: Firestore, json: string): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -691,11 +770,11 @@ Promise&lt;void&gt;
 
 A `Promise` that resolves once all indices are successfully configured.
 
-## Exceptions
+#### Exceptions
 
 FirestoreError if the JSON format is invalid.
 
-## terminate()
+### terminate(firestore) {:#terminate_231a8e0}
 
 Terminates the provided [Firestore](./firestore_.firestore.md#firestore_class) instance.
 
@@ -713,7 +792,7 @@ Note: Under normal circumstances, calling `terminate()` is not required. This fu
 export declare function terminate(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -725,7 +804,7 @@ Promise&lt;void&gt;
 
 A `Promise` that is resolved when the instance has been successfully terminated.
 
-## waitForPendingWrites()
+### waitForPendingWrites(firestore) {:#waitforpendingwrites_231a8e0}
 
 Waits until all currently pending writes for the active user have been acknowledged by the backend.
 
@@ -739,7 +818,7 @@ Any outstanding `waitForPendingWrites()` promises are rejected during user chang
 export declare function waitForPendingWrites(firestore: Firestore): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -751,7 +830,7 @@ Promise&lt;void&gt;
 
 A `Promise` which resolves when all currently pending writes have been acknowledged by the backend.
 
-## writeBatch()
+### writeBatch(firestore) {:#writebatch_231a8e0}
 
 Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single [WriteBatch](./firestore_.writebatch.md#writebatch_class) is 500.
 
@@ -763,7 +842,7 @@ Unlike transactions, write batches are persisted offline and therefore are prefe
 export declare function writeBatch(firestore: Firestore): WriteBatch;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -775,9 +854,24 @@ export declare function writeBatch(firestore: Firestore): WriteBatch;
 
 A [WriteBatch](./firestore_.writebatch.md#writebatch_class) that can be used to atomically execute multiple writes.
 
-## deleteField()
+## function()
 
-Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc) or [setDoc()](./firestore_lite.md#setdoc) with `{merge: true}` to mark a field for deletion.
+### count() {:#count}
+
+Create an AggregateField object that can be used to compute the count of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function count(): AggregateField<number>;
+```
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
+
+### deleteField() {:#deletefield}
+
+Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with `{merge: true}` to mark a field for deletion.
 
 <b>Signature:</b>
 
@@ -788,7 +882,7 @@ export declare function deleteField(): FieldValue;
 
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
 
-## documentId()
+### documentId() {:#documentid}
 
 Returns a special sentinel `FieldPath` to refer to the ID of a document. It can be used in queries to sort or filter by the document ID.
 
@@ -801,7 +895,7 @@ export declare function documentId(): FieldPath;
 
 [FieldPath](./firestore_.fieldpath.md#fieldpath_class)
 
-## getFirestore()
+### getFirestore() {:#getfirestore}
 
 Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
 
@@ -814,9 +908,9 @@ export declare function getFirestore(): Firestore;
 
 [Firestore](./firestore_.firestore.md#firestore_class)
 
-The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+The default [Firestore](./firestore_.firestore.md#firestore_class) instance of the default app.
 
-## memoryEagerGarbageCollector()
+### memoryEagerGarbageCollector() {:#memoryeagergarbagecollector}
 
 Creates an instance of `MemoryEagerGarbageCollector`<!-- -->. This is also the default garbage collector unless it is explicitly specified otherwise.
 
@@ -829,7 +923,7 @@ export declare function memoryEagerGarbageCollector(): MemoryEagerGarbageCollect
 
 [MemoryEagerGarbageCollector](./firestore_.memoryeagergarbagecollector.md#memoryeagergarbagecollector_interface)
 
-## persistentMultipleTabManager()
+### persistentMultipleTabManager() {:#persistentmultipletabmanager}
 
 Creates an instance of `PersistentMultipleTabManager`<!-- -->.
 
@@ -842,9 +936,9 @@ export declare function persistentMultipleTabManager(): PersistentMultipleTabMan
 
 [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface)
 
-## serverTimestamp()
+### serverTimestamp() {:#servertimestamp}
 
-Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) to include a server-generated timestamp in the written data.
+Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data.
 
 <b>Signature:</b>
 
@@ -855,9 +949,38 @@ export declare function serverTimestamp(): FieldValue;
 
 [FieldValue](./firestore_.fieldvalue.md#fieldvalue_class)
 
-## arrayRemove()
+## function(databaseId, ...)
 
-Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array.
+### getFirestore(databaseId) {:#getfirestore_53dc891}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the existing named [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getFirestore(databaseId: string): Firestore;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  databaseId | string | The name of the database. |
+
+<b>Returns:</b>
+
+[Firestore](./firestore_.firestore.md#firestore_class)
+
+The named [Firestore](./firestore_.firestore.md#firestore_class) instance of the default app.
+
+## function(elements, ...)
+
+### arrayRemove(elements) {:#arrayremove_7d853aa}
+
+Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array.
 
 <b>Signature:</b>
 
@@ -865,7 +988,7 @@ Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc)
 export declare function arrayRemove(...elements: unknown[]): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -877,9 +1000,9 @@ export declare function arrayRemove(...elements: unknown[]): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
-## arrayUnion()
+### arrayUnion(elements) {:#arrayunion_7d853aa}
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements.
 
 <b>Signature:</b>
 
@@ -887,7 +1010,7 @@ Returns a special value that can be used with [setDoc()](./firestore_lite.md#set
 export declare function arrayUnion(...elements: unknown[]): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -899,7 +1022,51 @@ export declare function arrayUnion(...elements: unknown[]): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`<!-- -->.
 
-## orderBy()
+## function(field, ...)
+
+### average(field) {:#average_aacc3a9}
+
+Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function average(field: string | FieldPath): AggregateField<number | null>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | Specifies the field to average across the result set. |
+
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number \| null&gt;
+
+### sum(field) {:#sum_aacc3a9}
+
+Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query.
+
+<b>Signature:</b>
+
+```typescript
+export declare function sum(field: string | FieldPath): AggregateField<number>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | Specifies the field to sum across the result set. |
+
+<b>Returns:</b>
+
+[AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
+
+## function(fieldPath, ...)
+
+### orderBy(fieldPath, directionStr) {:#orderby_006d61f}
 
 Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.
 
@@ -911,7 +1078,7 @@ Note: Documents that do not contain the specified field will not be present in t
 export declare function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -924,7 +1091,7 @@ export declare function orderBy(fieldPath: string | FieldPath, directionStr?: Or
 
 The created [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class)<!-- -->.
 
-## where()
+### where(fieldPath, opStr, value) {:#where_0fae4bf}
 
 Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided.
 
@@ -934,7 +1101,7 @@ Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.m
 export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -948,7 +1115,9 @@ export declare function where(fieldPath: string | FieldPath, opStr: WhereFilterO
 
 The created [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->.
 
-## endAt()
+## function(fieldValues, ...)
+
+### endAt(fieldValues) {:#endat_8b2f2c8}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -958,7 +1127,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -970,7 +1139,7 @@ export declare function endAt(...fieldValues: unknown[]): QueryEndAtConstraint;
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## endBefore()
+### endBefore(fieldValues) {:#endbefore_8b2f2c8}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -980,7 +1149,7 @@ Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendat
 export declare function endBefore(...fieldValues: unknown[]): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -992,7 +1161,7 @@ export declare function endBefore(...fieldValues: unknown[]): QueryEndAtConstrai
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## startAfter()
+### startAfter(fieldValues) {:#startafter_8b2f2c8}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -1002,7 +1171,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAfter(...fieldValues: unknown[]): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1014,7 +1183,7 @@ export declare function startAfter(...fieldValues: unknown[]): QueryStartAtConst
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`
 
-## startAt()
+### startAt(fieldValues) {:#startat_8b2f2c8}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query.
 
@@ -1024,7 +1193,7 @@ Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querys
 export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1036,7 +1205,96 @@ export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstrai
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
 
-## aggregateQuerySnapshotEqual()
+## function(indexManager, ...)
+
+### deleteAllPersistentCacheIndexes(indexManager) {:#deleteallpersistentcacheindexes_98b2645}
+
+Removes all persistent cache indexes.
+
+Please note this function will also deletes indexes generated by `setIndexConfiguration()`<!-- -->, which is deprecated.
+
+<b>Signature:</b>
+
+```typescript
+export declare function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
+
+### disablePersistentCacheIndexAutoCreation(indexManager) {:#disablepersistentcacheindexautocreation_98b2645}
+
+Stops creating persistent cache indexes automatically for local query execution. The indexes which have been created by calling `enablePersistentCacheIndexAutoCreation()` still take effect.
+
+<b>Signature:</b>
+
+```typescript
+export declare function disablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
+
+### enablePersistentCacheIndexAutoCreation(indexManager) {:#enablepersistentcacheindexautocreation_98b2645}
+
+Enables the SDK to create persistent cache indexes automatically for local query execution when the SDK believes cache indexes can help improve performance.
+
+This feature is disabled by default.
+
+<b>Signature:</b>
+
+```typescript
+export declare function enablePersistentCacheIndexAutoCreation(indexManager: PersistentCacheIndexManager): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  indexManager | [PersistentCacheIndexManager](./firestore_.persistentcacheindexmanager.md#persistentcacheindexmanager_class) |  |
+
+<b>Returns:</b>
+
+void
+
+## function(left, ...)
+
+### aggregateFieldEqual(left, right) {:#aggregatefieldequal_e80a2b2}
+
+Compares two 'AggregateField<!-- -->\` instances for equality.
+
+<b>Signature:</b>
+
+```typescript
+export declare function aggregateFieldEqual(left: AggregateField<unknown>, right: AggregateField<unknown>): boolean;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;unknown&gt; | Compare this AggregateField to the <code>right</code>. |
+|  right | [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;unknown&gt; | Compare this AggregateField to the <code>left</code>. |
+
+<b>Returns:</b>
+
+boolean
+
+### aggregateQuerySnapshotEqual(left, right) {:#aggregatequerysnapshotequal_1529a20}
 
 Compares two `AggregateQuerySnapshot` instances for equality.
 
@@ -1045,15 +1303,15 @@ Two `AggregateQuerySnapshot` instances are considered "equal" if they have under
 <b>Signature:</b>
 
 ```typescript
-export declare function aggregateQuerySnapshotEqual<T extends AggregateSpec>(left: AggregateQuerySnapshot<T>, right: AggregateQuerySnapshot<T>): boolean;
+export declare function aggregateQuerySnapshotEqual<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(left: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>, right: AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;T&gt; | The first <code>AggregateQuerySnapshot</code> to compare. |
-|  right | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;T&gt; | The second <code>AggregateQuerySnapshot</code> to compare. |
+|  left | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt; | The first <code>AggregateQuerySnapshot</code> to compare. |
+|  right | [AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt; | The second <code>AggregateQuerySnapshot</code> to compare. |
 
 <b>Returns:</b>
 
@@ -1061,22 +1319,22 @@ boolean
 
 `true` if the objects are "equal", as defined above, or `false` otherwise.
 
-## queryEqual()
+### queryEqual(left, right) {:#queryequal_7a1f045}
 
 Returns true if the provided queries point to the same collection and apply the same constraints.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export declare function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
-|  right | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | A <code>Query</code> to compare. |
+|  left | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A <code>Query</code> to compare. |
+|  right | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A <code>Query</code> to compare. |
 
 <b>Returns:</b>
 
@@ -1084,22 +1342,22 @@ boolean
 
 true if the references point to the same location in the same Firestore database.
 
-## refEqual()
+### refEqual(left, right) {:#refequal_598b780}
 
 Returns true if the provided references are equal.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
+export declare function refEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>, right: DocumentReference<AppModelType, DbModelType> | CollectionReference<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to compare. |
-|  right | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to compare. |
+|  left | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to compare. |
+|  right | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to compare. |
 
 <b>Returns:</b>
 
@@ -1107,22 +1365,22 @@ boolean
 
 true if the references point to the same location in the same Firestore database.
 
-## snapshotEqual()
+### snapshotEqual(left, right) {:#snapshotequal_5109204}
 
 Returns true if the provided snapshots are equal.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+export declare function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt; | A snapshot to compare. |
-|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt; | A snapshot to compare. |
+|  left | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A snapshot to compare. |
+|  right | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; \| [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A snapshot to compare. |
 
 <b>Returns:</b>
 
@@ -1130,7 +1388,9 @@ boolean
 
 true if the snapshots are equal.
 
-## limit()
+## function(limit, ...)
+
+### limit(limit) {:#limit_ec46c78}
 
 Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents.
 
@@ -1140,7 +1400,7 @@ Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimit
 export declare function limit(limit: number): QueryLimitConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1152,7 +1412,7 @@ export declare function limit(limit: number): QueryLimitConstraint;
 
 The created [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class)<!-- -->.
 
-## limitToLast()
+### limitToLast(limit) {:#limittolast_ec46c78}
 
 Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.
 
@@ -1164,7 +1424,7 @@ You must specify at least one `orderBy` clause for `limitToLast` queries, otherw
 export declare function limitToLast(limit: number): QueryLimitConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1176,7 +1436,9 @@ export declare function limitToLast(limit: number): QueryLimitConstraint;
 
 The created [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class)<!-- -->.
 
-## setLogLevel()
+## function(logLevel, ...)
+
+### setLogLevel(logLevel) {:#setloglevel_d02fda2}
 
 Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
 
@@ -1186,7 +1448,7 @@ Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
 export declare function setLogLevel(logLevel: LogLevel): void;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1196,9 +1458,11 @@ export declare function setLogLevel(logLevel: LogLevel): void;
 
 void
 
-## increment()
+## function(n, ...)
 
-Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc) or [updateDoc()](./firestore_lite.md#updatedoc) that tells the server to increment the field's current value by the given value.
+### increment(n) {:#increment_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.
 
 If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`<!-- -->) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.
 
@@ -1210,7 +1474,7 @@ If the current field value is not of type `number`<!-- -->, or if the field does
 export declare function increment(n: number): FieldValue;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1222,103 +1486,146 @@ export declare function increment(n: number): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
 
-## getCountFromServer()
+## function(query, ...)
 
-Calculates the number of documents in the result set of the given query, without actually downloading the documents.
+### getAggregateFromServer(query, aggregateSpec) {:#getaggregatefromserver_2073a74}
 
-Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can even count the documents if the result set would be prohibitively large to download entirely (e.g. thousands of documents).
+Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.
 
-The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used: every request using this source necessarily involves a round trip to the server.
+Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
+
+The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getCountFromServer(query: Query<unknown>): Promise<AggregateQuerySnapshot<{
-    count: AggregateField<number>;
-}>>;
+export declare function getAggregateFromServer<AggregateSpecType extends AggregateSpec, AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, aggregateSpec: AggregateSpecType): Promise<AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;unknown&gt; | The query whose result set size to calculate. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set is aggregated over. |
+|  aggregateSpec | AggregateSpecType | An <code>AggregateSpec</code> object that specifies the aggregates to perform over the result set. The AggregateSpec specifies aliases for each aggregate, which can be used to retrieve the aggregate result. |
 
 <b>Returns:</b>
 
-Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;{ count: [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;; }&gt;&gt;
+Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;AggregateSpecType, AppModelType, DbModelType&gt;&gt;
+
+### Example
+
+
+```typescript
+const aggregateSnapshot = await getAggregateFromServer(query, {
+  countOfDocs: count(),
+  totalHours: sum('hours'),
+  averageScore: average('score')
+});
+
+const countOfDocs: number = aggregateSnapshot.data().countOfDocs;
+const totalHours: number = aggregateSnapshot.data().totalHours;
+const averageScore: number | null = aggregateSnapshot.data().averageScore;
+
+```
+
+### getCountFromServer(query) {:#getcountfromserver_4e56953}
+
+Calculates the number of documents in the result set of the given query without actually downloading the documents.
+
+Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents).
+
+The result received from the server is presented, unaltered, without considering any local state. That is, documents in the local cache are not taken into consideration, neither are local modifications not yet synchronized with the server. Previously-downloaded results, if any, are not used. Every invocation of this function necessarily involves a round trip to the server.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getCountFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<AggregateQuerySnapshot<{
+    count: AggregateField<number>;
+}, AppModelType, DbModelType>>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query whose result set size is calculated. |
+
+<b>Returns:</b>
+
+Promise&lt;[AggregateQuerySnapshot](./firestore_.aggregatequerysnapshot.md#aggregatequerysnapshot_class)<!-- -->&lt;{ count: [AggregateField](./firestore_.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;; }, AppModelType, DbModelType&gt;&gt;
 
 A Promise that will be resolved with the count; the count can be retrieved from `snapshot.data().count`<!-- -->, where `snapshot` is the `AggregateQuerySnapshot` to which the returned Promise resolves.
 
-## getDocs()
+### getDocs(query) {:#getdocs_4e56953}
 
 Executes the query and returns the results as a `QuerySnapshot`<!-- -->.
 
-Note: `getDocs()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache) or [getDocsFromServer()](./firestore_.md#getdocsfromserver)<!-- -->.
+Note: `getDocs()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocsFromCache()](./firestore_.md#getdocsfromcache_4e56953) or [getDocsFromServer()](./firestore_.md#getdocsfromserver_4e56953)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocs<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
-## getDocsFromCache()
+### getDocsFromCache(query) {:#getdocsfromcache_4e56953}
 
 Executes the query and returns the results as a `QuerySnapshot` from cache. Returns an empty result set if no documents matching the query are currently cached.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromCache<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
-## getDocsFromServer()
+### getDocsFromServer(query) {:#getdocsfromserver_4e56953}
 
 Executes the query and returns the results as a `QuerySnapshot` from the server. Returns an error if the network is not available.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocsFromServer<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export declare function getDocsFromServer<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; |  |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` that will be resolved with the results of the query.
 
-## onSnapshot()
+### onSnapshot(query, observer) {:#onsnapshot_8d14049}
 
 Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
 
@@ -1327,19 +1634,19 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, observer: {
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
-|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
+|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1347,7 +1654,7 @@ export declare function onSnapshot<T>(query: Query<T>, observer: {
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(query, options, observer) {:#onsnapshot_03dfff5}
 
 Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
 
@@ -1356,20 +1663,20 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, observer: {
-    next?: (snapshot: QuerySnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
+    next?: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  observer | { next?: (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1377,7 +1684,7 @@ export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOp
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(query, onNext, onError, onCompletion) {:#onsnapshot_3ebfbe2}
 
 Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
 
@@ -1386,15 +1693,15 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
-|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
+|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1404,7 +1711,7 @@ export declare function onSnapshot<T>(query: Query<T>, onNext: (snapshot: QueryS
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(query, options, onNext, onError, onCompletion) {:#onsnapshot_b8f9c47}
 
 Attaches a listener for `QuerySnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks. The listener can be cancelled by calling the function that is returned when `onSnapshot` is called.
 
@@ -1413,16 +1720,16 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: QuerySnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The query to listen to. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The query to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
+|  onNext | (snapshot: [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>QuerySnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1432,58 +1739,60 @@ export declare function onSnapshot<T>(query: Query<T>, options: SnapshotListenOp
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## query()
+### query(query, compositeFilter, queryConstraints) {:#query_9f7b0f4}
 
 Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function query<T>(query: Query<T>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<T>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, compositeFilter: QueryCompositeFilterConstraint, ...queryConstraints: QueryNonFilterConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
-|  compositeFilter | [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using [and()](./firestore_.md#and) or [or()](./firestore_.md#or)<!-- -->. |
-|  queryConstraints | [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->\[\] | Additional [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->s to apply (e.g. [orderBy()](./firestore_.md#orderby)<!-- -->, [limit()](./firestore_.md#limit)<!-- -->). |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
+|  compositeFilter | [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using [and()](./firestore_.md#and_e72c712) or [or()](./firestore_.md#or_e72c712)<!-- -->. |
+|  queryConstraints | [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->\[\] | Additional [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->s to apply (e.g. [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->). |
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
-## Exceptions
+#### Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
 
-## query()
+### query(query, queryConstraints) {:#query_0f46da1}
 
 Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
+export declare function query<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>, ...queryConstraints: QueryConstraint[]): Query<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
+|  query | [Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
 |  queryConstraints | [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class)<!-- -->\[\] | The list of [QueryConstraint](./firestore_.queryconstraint.md#queryconstraint_class)<!-- -->s to apply. |
 
 <b>Returns:</b>
 
-[Query](./firestore_.query.md#query_class)<!-- -->&lt;T&gt;
+[Query](./firestore_.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
-## Exceptions
+#### Exceptions
 
 if any of the provided query constraints cannot be combined with the existing or new constraints.
 
-## and()
+## function(queryConstraints, ...)
+
+### and(queryConstraints) {:#and_e72c712}
 
 Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters.
 
@@ -1493,11 +1802,11 @@ Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilter
 export declare function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  queryConstraints | [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a conjunction for. These must be created with calls to [where()](./firestore_.md#where)<!-- -->, [or()](./firestore_.md#or)<!-- -->, or [and()](./firestore_.md#and)<!-- -->. |
+|  queryConstraints | [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a conjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, [or()](./firestore_.md#or_e72c712)<!-- -->, or [and()](./firestore_.md#and_e72c712)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1505,7 +1814,7 @@ export declare function and(...queryConstraints: QueryFilterConstraint[]): Query
 
 The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
 
-## or()
+### or(queryConstraints) {:#or_e72c712}
 
 Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters.
 
@@ -1515,11 +1824,11 @@ Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilter
 export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  queryConstraints | [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a disjunction for. These must be created with calls to [where()](./firestore_.md#where)<!-- -->, [or()](./firestore_.md#or)<!-- -->, or [and()](./firestore_.md#and)<!-- -->. |
+|  queryConstraints | [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a disjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, [or()](./firestore_.md#or_e72c712)<!-- -->, or [and()](./firestore_.md#and_e72c712)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -1527,100 +1836,102 @@ export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryC
 
 The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->.
 
-## addDoc()
+## function(reference, ...)
+
+### addDoc(reference, data) {:#adddoc_6e783ff}
 
 Add a new document to specified `CollectionReference` with the given data, assigning it a document ID automatically.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function addDoc<T>(reference: CollectionReference<T>, data: WithFieldValue<T>): Promise<DocumentReference<T>>;
+export declare function addDoc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<DocumentReference<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to the collection to add this document to. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | An Object containing the data for the new document. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the collection to add this document to. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | An Object containing the data for the new document. |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentReference` pointing to the newly created document after it has been written to the backend (Note that it won't resolve while you're offline).
 
-## collection()
+### collection(reference, path, pathSegments) {:#collection_568f98d}
 
 Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;unknown&gt; | A reference to a collection. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
 |  path | string | A slash-separated path to a collection. |
 |  pathSegments | string\[\] | Additional path segments to apply relative to the first argument. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## collection()
+### collection(reference, path, pathSegments) {:#collection_70b4396}
 
 Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
+export declare function collection<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class) | A reference to a Firestore document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a Firestore document. |
 |  path | string | A slash-separated path to a collection. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `CollectionReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an even number of segments and does not point to a collection.
 
-## deleteDoc()
+### deleteDoc(reference) {:#deletedoc_4569087}
 
 Deletes the document referred to by the specified `DocumentReference`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
+export declare function deleteDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to delete. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to delete. |
 
 <b>Returns:</b>
 
@@ -1628,131 +1939,131 @@ Promise&lt;void&gt;
 
 A Promise resolved once the document has been successfully deleted from the backend (note that it won't resolve while you're offline).
 
-## doc()
+### doc(reference, path, pathSegments) {:#doc_568f98d}
 
 Gets a `DocumentReference` instance that refers to a document within `reference` at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned `DocumentReference`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: CollectionReference<AppModelType, DbModelType>, path?: string, ...pathSegments: string[]): DocumentReference<AppModelType, DbModelType>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;T&gt; | A reference to a collection. |
+|  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
 |  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt;
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## doc()
+### doc(reference, path, pathSegments) {:#doc_70b4396}
 
 Gets a `DocumentReference` instance that refers to a document within `reference` at the specified relative path.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
+export declare function doc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to a Firestore document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a Firestore document. |
 |  path | string | A slash-separated path to a document. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
 
-[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
+[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;[DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->, [DocumentData](./firestore_.documentdata.md#documentdata_interface)<!-- -->&gt;
 
 The `DocumentReference` instance.
 
-## Exceptions
+#### Exceptions
 
 If the final path has an odd number of segments and does not point to a document.
 
-## getDoc()
+### getDoc(reference) {:#getdoc_4569087}
 
 Reads the document referred to by this `DocumentReference`<!-- -->.
 
-Note: `getDoc()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.md#getdocfromcache) or [getDocFromServer()](./firestore_.md#getdocfromserver)<!-- -->.
+Note: `getDoc()` attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.md#getdocfromcache_4569087) or [getDocFromServer()](./firestore_.md#getdocfromserver_4569087)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | The reference of the document to fetch. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The reference of the document to fetch. |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A Promise resolved with a `DocumentSnapshot` containing the current document contents.
 
-## getDocFromCache()
+### getDocFromCache(reference) {:#getdocfromcache_4569087}
 
 Reads the document referred to by this `DocumentReference` from cache. Returns an error if the document is not currently cached.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocFromCache<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromCache<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
 
-## getDocFromServer()
+### getDocFromServer(reference) {:#getdocfromserver_4569087}
 
 Reads the document referred to by this `DocumentReference` from the server. Returns an error if the network is not available.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getDocFromServer<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+export declare function getDocFromServer<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; |  |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;&gt;
+Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
 A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
 
-## onSnapshot()
+### onSnapshot(reference, observer) {:#onsnapshot_0312fd7}
 
 Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
 
@@ -1761,19 +2072,19 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, observer: {
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
-|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
+|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1781,7 +2092,7 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, observer:
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(reference, options, observer) {:#onsnapshot_86b6b9e}
 
 Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
 
@@ -1790,20 +2101,20 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, observer: {
-    next?: (snapshot: DocumentSnapshot<T>) => void;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, observer: {
+    next?: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
 }): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
+|  observer | { next?: (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void; error?: (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void; complete?: () =&gt; void; } | A single object containing <code>next</code> and <code>error</code> callbacks. |
 
 <b>Returns:</b>
 
@@ -1811,7 +2122,7 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, options: 
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(reference, onNext, onError, onCompletion) {:#onsnapshot_905f42c}
 
 Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
 
@@ -1820,15 +2131,15 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
-|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
+|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1838,7 +2149,7 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, onNext: (
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## onSnapshot()
+### onSnapshot(reference, options, onNext, onError, onCompletion) {:#onsnapshot_0c39991}
 
 Attaches a listener for `DocumentSnapshot` events. You may either pass individual `onNext` and `onError` callbacks or pass a single observer object with `next` and `error` callbacks.
 
@@ -1847,16 +2158,16 @@ NOTE: Although an `onCompletion` callback can be provided, it will never be call
 <b>Signature:</b>
 
 ```typescript
-export declare function onSnapshot<T>(reference: DocumentReference<T>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<T>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
+export declare function onSnapshot<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, options: SnapshotListenOptions, onNext: (snapshot: DocumentSnapshot<AppModelType, DbModelType>) => void, onError?: (error: FirestoreError) => void, onCompletion?: () => void): Unsubscribe;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to listen to. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to listen to. |
 |  options | [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | Options controlling the listen behavior. |
-|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;T&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
+|  onNext | (snapshot: [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;) =&gt; void | A callback to be called every time a new <code>DocumentSnapshot</code> is available. |
 |  onError | (error: [FirestoreError](./firestore_.firestoreerror.md#firestoreerror_class)<!-- -->) =&gt; void | A callback to be called if the listen fails or is cancelled. No further callbacks will occur. |
 |  onCompletion | () =&gt; void | Can be provided, but will not be called since streams are never ending. |
 
@@ -1866,22 +2177,22 @@ export declare function onSnapshot<T>(reference: DocumentReference<T>, options: 
 
 An unsubscribe function that can be called to cancel the snapshot listener.
 
-## setDoc()
+### setDoc(reference, data) {:#setdoc_ee215ad}
 
 Writes to the document referred to by this `DocumentReference`<!-- -->. If the document does not yet exist, it will be created.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function setDoc<T>(reference: DocumentReference<T>, data: WithFieldValue<T>): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: WithFieldValue<AppModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to write. |
-|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;T&gt; | A map of the fields and values for the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to write. |
+|  data | [WithFieldValue](./firestore_.md#withfieldvalue)<!-- -->&lt;AppModelType&gt; | A map of the fields and values for the document. |
 
 <b>Returns:</b>
 
@@ -1889,22 +2200,22 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
-## setDoc()
+### setDoc(reference, data, options) {:#setdoc_ff80739}
 
 Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function setDoc<T>(reference: DocumentReference<T>, data: PartialWithFieldValue<T>, options: SetOptions): Promise<void>;
+export declare function setDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: PartialWithFieldValue<AppModelType>, options: SetOptions): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to write. |
-|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;T&gt; | A map of the fields and values for the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to write. |
+|  data | [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue)<!-- -->&lt;AppModelType&gt; | A map of the fields and values for the document. |
 |  options | [SetOptions](./firestore_.md#setoptions) | An object to configure the set behavior. |
 
 <b>Returns:</b>
@@ -1913,22 +2224,22 @@ Promise&lt;void&gt;
 
 A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
-## updateDoc()
+### updateDoc(reference, data) {:#updatedoc_51a65e3}
 
 Updates fields in the document referred to by the specified `DocumentReference`<!-- -->. The update will fail if applied to a document that does not exist.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function updateDoc<T>(reference: DocumentReference<T>, data: UpdateData<T>): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, data: UpdateData<DbModelType>): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;T&gt; | A reference to the document to update. |
-|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;T&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to update. |
+|  data | [UpdateData](./firestore_.md#updatedata)<!-- -->&lt;DbModelType&gt; | An object containing the fields and values with which to update the document. Fields can contain dots to reference nested fields within the document. |
 
 <b>Returns:</b>
 
@@ -1936,7 +2247,7 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
-## updateDoc()
+### updateDoc(reference, field, value, moreFieldsAndValues) {:#updatedoc_7c28659}
 
 Updates fields in the document referred to by the specified `DocumentReference` The update will fail if applied to a document that does not exist.
 
@@ -1945,14 +2256,14 @@ Nested fields can be updated by providing dot-separated field path strings or by
 <b>Signature:</b>
 
 ```typescript
-export declare function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+export declare function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;unknown&gt; | A reference to the document to update. |
+|  reference | [DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to the document to update. |
 |  field | string \| [FieldPath](./firestore_.fieldpath.md#fieldpath_class) | The first field to update. |
 |  value | unknown | The first value. |
 |  moreFieldsAndValues | unknown\[\] | Additional key value pairs. |
@@ -1963,7 +2274,9 @@ Promise&lt;void&gt;
 
 A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
 
-## memoryLocalCache()
+## function(settings, ...)
+
+### memoryLocalCache(settings) {:#memorylocalcache_05f4bf2}
 
 Creates an instance of `MemoryLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
 
@@ -1973,7 +2286,7 @@ Creates an instance of `MemoryLocalCache`<!-- -->. The instance can be set to `F
 export declare function memoryLocalCache(settings?: MemoryCacheSettings): MemoryLocalCache;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -1983,7 +2296,7 @@ export declare function memoryLocalCache(settings?: MemoryCacheSettings): Memory
 
 [MemoryLocalCache](./firestore_.memorylocalcache.md#memorylocalcache_interface)
 
-## memoryLruGarbageCollector()
+### memoryLruGarbageCollector(settings) {:#memorylrugarbagecollector_5ee014c}
 
 Creates an instance of `MemoryLruGarbageCollector`<!-- -->.
 
@@ -1997,7 +2310,7 @@ export declare function memoryLruGarbageCollector(settings?: {
 }): MemoryLruGarbageCollector;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -2007,7 +2320,7 @@ export declare function memoryLruGarbageCollector(settings?: {
 
 [MemoryLruGarbageCollector](./firestore_.memorylrugarbagecollector.md#memorylrugarbagecollector_interface)
 
-## persistentLocalCache()
+### persistentLocalCache(settings) {:#persistentlocalcache_d312f71}
 
 Creates an instance of `PersistentLocalCache`<!-- -->. The instance can be set to `FirestoreSettings.cache` to tell the SDK which cache layer to use.
 
@@ -2019,7 +2332,7 @@ Persistent cache cannot be used in a Node.js environment.
 export declare function persistentLocalCache(settings?: PersistentCacheSettings): PersistentLocalCache;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -2029,7 +2342,7 @@ export declare function persistentLocalCache(settings?: PersistentCacheSettings)
 
 [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface)
 
-## persistentSingleTabManager()
+### persistentSingleTabManager(settings) {:#persistentsingletabmanager_c99c68d}
 
 Creates an instance of `PersistentSingleTabManager`<!-- -->.
 
@@ -2039,7 +2352,7 @@ Creates an instance of `PersistentSingleTabManager`<!-- -->.
 export declare function persistentSingleTabManager(settings: PersistentSingleTabManagerSettings | undefined): PersistentSingleTabManager;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -2049,21 +2362,23 @@ export declare function persistentSingleTabManager(settings: PersistentSingleTab
 
 [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface)
 
-## endAt()
+## function(snapshot, ...)
+
+### endAt(snapshot) {:#endat_9a4477f}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end at the provided document (inclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end at. |
 
 <b>Returns:</b>
 
@@ -2071,21 +2386,21 @@ export declare function endAt(snapshot: DocumentSnapshot<unknown>): QueryEndAtCo
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## endBefore()
+### endBefore(snapshot) {:#endbefore_9a4477f}
 
 Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEndAtConstraint;
+export declare function endBefore<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryEndAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to end before. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to end before. |
 
 <b>Returns:</b>
 
@@ -2093,21 +2408,21 @@ export declare function endBefore(snapshot: DocumentSnapshot<unknown>): QueryEnd
 
 A [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) to pass to `query()`
 
-## startAfter()
+### startAfter(snapshot) {:#startafter_9a4477f}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function startAfter(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start after. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start after. |
 
 <b>Returns:</b>
 
@@ -2115,21 +2430,21 @@ export declare function startAfter(snapshot: DocumentSnapshot<unknown>): QuerySt
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`
 
-## startAt()
+### startAt(snapshot) {:#startat_9a4477f}
 
 Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the `orderBy` of this query.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function startAt(snapshot: DocumentSnapshot<unknown>): QueryStartAtConstraint;
+export declare function startAt<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;unknown&gt; | The snapshot of the document to start at. |
+|  snapshot | [DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The snapshot of the document to start at. |
 
 <b>Returns:</b>
 
@@ -2155,7 +2470,7 @@ Returns a new map where every key is prefixed with the outer key appended to a d
 
 ```typescript
 export declare type AddPrefixToKeys<Prefix extends string, T extends Record<string, unknown>> = {
-    [K in keyof T & string as `${Prefix}.${K}`]+?: T[K];
+    [K in keyof T & string as `${Prefix}.${K}`]+?: string extends K ? any : T[K];
 };
 ```
 
@@ -2166,7 +2481,7 @@ The union of all `AggregateField` types that are supported by Firestore.
 <b>Signature:</b>
 
 ```typescript
-export declare type AggregateFieldType = AggregateField<number | null>;
+export declare type AggregateFieldType = ReturnType<typeof sum> | ReturnType<typeof average> | ReturnType<typeof count>;
 ```
 
 ## AggregateSpecData
@@ -2179,6 +2494,16 @@ A type whose keys are taken from an `AggregateSpec`<!-- -->, and whose values ar
 export declare type AggregateSpecData<T extends AggregateSpec> = {
     [P in keyof T]: T[P] extends AggregateField<infer U> ? U : never;
 };
+```
+
+## AggregateType
+
+Union type representing the aggregate type to be performed.
+
+<b>Signature:</b>
+
+```typescript
+export declare type AggregateType = 'count' | 'avg' | 'sum';
 ```
 
 ## ChildUpdateFields
@@ -2227,6 +2552,18 @@ Union type from all supported SDK cache layer.
 export declare type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 ```
 
+## ListenSource
+
+Describe the source a query listens to.
+
+Set to `default` to listen to both cache and server changes. Set to `cache` to listen to changes in cache only.
+
+<b>Signature:</b>
+
+```typescript
+export declare type ListenSource = 'default' | 'cache';
+```
+
 ## MemoryGarbageCollector
 
 Union type from all support gabage collectors for memory local cache.
@@ -2251,7 +2588,7 @@ export declare type NestedUpdateFields<T extends Record<string, unknown>> = Unio
 
 ## OrderByDirection
 
-The direction of a [orderBy()](./firestore_.md#orderby) clause is specified as 'desc' or 'asc' (descending or ascending).
+The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending).
 
 <b>Signature:</b>
 
@@ -2313,7 +2650,7 @@ export declare type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCo
 
 ## QueryNonFilterConstraint
 
-`QueryNonFilterConstraint` is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. `QueryNonFilterConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby)<!-- -->, [startAt()](./firestore_.md#startat)<!-- -->, [startAfter()](./firestore_.md#startafter)<!-- -->, [endBefore()](./firestore_.md#endbefore)<!-- -->, [endAt()](./firestore_.md#endat)<!-- -->, [limit()](./firestore_.md#limit) or [limitToLast()](./firestore_.md#limittolast) and can then be passed to [query()](./firestore_.md#query) to create a new query instance that also contains the `QueryConstraint`<!-- -->.
+`QueryNonFilterConstraint` is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. `QueryNonFilterConstraint`<!-- -->s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the `QueryConstraint`<!-- -->.
 
 <b>Signature:</b>
 
@@ -2323,7 +2660,7 @@ export declare type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLim
 
 ## SetOptions
 
-An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
+An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a `SetOptions` with `merge: true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -2361,7 +2698,7 @@ export declare type UnionToIntersection<U> = (U extends unknown ? (k: U) => void
 
 ## UpdateData
 
-Update data (for use with [updateDoc()](./firestore_.md#updatedoc)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values.
+Update data (for use with [updateDoc()](./firestore_.md#updatedoc_51a65e3)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values.
 
 <b>Signature:</b>
 
@@ -2373,7 +2710,7 @@ export declare type UpdateData<T> = T extends Primitive ? T : T extends {} ? {
 
 ## WhereFilterOp
 
-Filter conditions in a [where()](./firestore_.md#where) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'.
+Filter conditions in a [where()](./firestore_.md#where_0fae4bf) clause are specified using the strings '&amp;lt;', '&amp;lt;=', '==', '!=', '&amp;gt;=', '&amp;gt;', 'array-contains', 'in', 'array-contains-any', and 'not-in'.
 
 <b>Signature:</b>
 

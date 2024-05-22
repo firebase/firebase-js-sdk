@@ -92,3 +92,12 @@ tsdoc-metadata.json
 docs-rut/
 docs/
 toc/
+
+# generated Terraform docs
+.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# generated test case text data
+mocks-lookup.ts

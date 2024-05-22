@@ -22,15 +22,13 @@
  * just use index.ts
  */
 
-import * as ReactNative from 'react-native';
-
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
-import { Auth, Persistence } from './src/model/public_types';
+import { Auth, Dependencies } from './src/model/public_types';
 
-import { initializeAuth } from './src';
+import { initializeAuth as initializeAuthOriginal } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
-import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
+import { _logWarn } from './src/core/util/log';
 
 // Core functionality shared by all clients
 export * from './index.shared';
@@ -49,30 +47,26 @@ export {
 
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+export {
+  TotpMultiFactorGenerator,
+  TotpSecret
+} from './src/mfa/assertions/totp';
 
-/**
- * An implementation of {@link Persistence} of type 'LOCAL' for use in React
- * Native environments.
- *
- * @public
- */
-export const reactNativeLocalPersistence: Persistence =
-  getReactNativePersistence({
-    getItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.getItem(...args);
-    },
-    setItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.setItem(...args);
-    },
-    removeItem(...args) {
-      // Called inline to avoid deprecation warnings on startup.
-      return ReactNative.AsyncStorage.removeItem(...args);
-    }
-  });
+export { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 
-export { getReactNativePersistence };
+const NO_PERSISTENCE_WARNING = `
+You are initializing Firebase Auth for React Native without providing
+AsyncStorage. Auth state will default to memory persistence and will not
+persist between sessions. In order to persist auth state, install the package
+"@react-native-async-storage/async-storage" and provide it to
+initializeAuth:
+
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+`;
 
 export function getAuth(app: FirebaseApp = getApp()): Auth {
   const provider = _getProvider(app, 'auth');
@@ -81,9 +75,25 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
     return provider.getImmediate();
   }
 
-  return initializeAuth(app, {
-    persistence: reactNativeLocalPersistence
-  });
+  // Only warn if getAuth() is called before initializeAuth()
+  _logWarn(NO_PERSISTENCE_WARNING);
+
+  return initializeAuthOriginal(app);
+}
+
+/**
+ * Wrapper around base `initializeAuth()` for RN users only, which
+ * shows the warning message if no persistence is provided.
+ * Double-checked potential collision with `export * from './index.shared'`
+ * as `./index.shared` also exports `initializeAuth()`, and the final
+ * bundle does correctly export only this `initializeAuth()` function
+ * and not the one from index.shared.
+ */
+export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth {
+  if (!deps?.persistence) {
+    _logWarn(NO_PERSISTENCE_WARNING);
+  }
+  return initializeAuthOriginal(app, deps);
 }
 
 registerAuth(ClientPlatform.REACT_NATIVE);

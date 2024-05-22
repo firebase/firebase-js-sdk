@@ -259,7 +259,7 @@ export function onTokenChanged(
  * the current token associated with this App Check instance changes.
  *
  * @param appCheckInstance - The App Check service instance.
- * @param onNext - When the token changes, this function is called with aa
+ * @param onNext - When the token changes, this function is called with an
  * {@link AppCheckTokenResult}.
  * @param onError - Optional. Called if there is an error thrown by the
  * listener (the `onNext` function).

@@ -27,8 +27,9 @@ import {
   EventTarget,
   StatEvent,
   Event,
+  FetchXmlHttpFactory,
   Stat
-} from '@firebase/webchannel-wrapper';
+} from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
 import { ExperimentalLongPollingOptions } from '../../api/long_polling_options';
@@ -306,6 +307,7 @@ export class WebChannelConnection extends RestConnection {
           LOG_TAG,
           `RPC '${rpcName}' stream ${streamId} transport opened.`
         );
+        streamBridge.callOnConnected();
       }
     });
 

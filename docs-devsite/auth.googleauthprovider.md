@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # GoogleAuthProvider class
-Provider for generating an an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE.
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) for [ProviderId](./auth.md#providerid)<!-- -->.GOOGLE.
 
 <b>Signature:</b>
 
@@ -80,7 +80,7 @@ Creates a credential for Google. At least one of ID token and access token is re
 static credential(idToken?: string | null, accessToken?: string | null): OAuthCredential;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -111,7 +111,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromError(error: FirebaseError): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
@@ -131,7 +131,7 @@ Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauth
 static credentialFromResult(userCredential: UserCredential): OAuthCredential | null;
 ```
 
-### Parameters
+#### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |

@@ -36,10 +36,10 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDocAndInitialData,
-  withEnsuredLruGcTestDb
+  withTestDb
 } from '../util/helpers';
 
-apiDescribe('GetOptions', (persistence: boolean) => {
+apiDescribe('GetOptions', persistence => {
   it('get document while online with default get options', () => {
     const initialData = { key: 'value' };
     return withTestDocAndInitialData(persistence, initialData, docRef => {
@@ -70,8 +70,8 @@ apiDescribe('GetOptions', (persistence: boolean) => {
 
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
-    // Use an instance with Gc turned on.
-    return withEnsuredLruGcTestDb(persistence, async db => {
+    // Use an instance with LRU GC.
+    return withTestDb(persistence.toLruGc(), async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       return getDoc(docRef)
@@ -496,9 +496,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  // We need the deleted doc to stay in cache, so only run this with persistence.
+  // We need the deleted doc to stay in cache, so only run this test when the
+  // local cache is configured with LRU GC (as opposed to eager GC).
   // eslint-disable-next-line no-restricted-properties,
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'get deleted doc while offline with source=cache',
     () => {
       return withTestDocAndInitialData(persistence, null, (docRef, db) => {

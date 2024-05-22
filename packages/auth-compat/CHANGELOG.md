@@ -1,5 +1,144 @@
 # @firebase/auth-compat
 
+## 0.5.8
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/auth@1.7.3
+  - @firebase/auth-types@0.12.2
+  - @firebase/component@0.6.7
+  - @firebase/util@1.9.6
+
+## 0.5.7
+
+### Patch Changes
+
+- [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906) [#7001](https://github.com/firebase/firebase-js-sdk/pull/7001) - Update jszip transient dependency from 3.7.1 to 3.10.1 in auth.
+
+- Updated dependencies [[`36b283f3f`](https://github.com/firebase/firebase-js-sdk/commit/36b283f3fc317d0fa7dde47e1048d2ee3690a9a0), [`55fef6d62`](https://github.com/firebase/firebase-js-sdk/commit/55fef6d627791f4704194c3913ebeb339a564906)]:
+  - @firebase/auth@1.7.2
+
+## 0.5.6
+
+### Patch Changes
+
+- [`fe09d8338`](https://github.com/firebase/firebase-js-sdk/commit/fe09d8338d7d5f7a82d8cd73cf825adbe5551975) [#8138](https://github.com/firebase/firebase-js-sdk/pull/8138) (fixes [#8132](https://github.com/firebase/firebase-js-sdk/issues/8132)) - Update undici version to 5.28.4 due to CVE-2024-30260.
+
+- [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414) [#8134](https://github.com/firebase/firebase-js-sdk/pull/8134) - Updated dependencies. See GitHub PR #8098.
+
+- Updated dependencies [[`fe09d8338`](https://github.com/firebase/firebase-js-sdk/commit/fe09d8338d7d5f7a82d8cd73cf825adbe5551975), [`ad8d5470d`](https://github.com/firebase/firebase-js-sdk/commit/ad8d5470dad9b9ec1bcd939609da4a1c439c8414)]:
+  - @firebase/auth@1.7.1
+
+## 0.5.5
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`ed84efe50`](https://github.com/firebase/firebase-js-sdk/commit/ed84efe50bfc365da8ebfacdd2b17b5cc2a9e596), [`9ca1a4e4f`](https://github.com/firebase/firebase-js-sdk/commit/9ca1a4e4f9f13d56cde93cab6d83a8bc54f83539), [`c8a2568dd`](https://github.com/firebase/firebase-js-sdk/commit/c8a2568ddd2acd9162a99bce9ff4203fe8d6e0da), [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/auth@1.7.0
+  - @firebase/auth-types@0.12.1
+  - @firebase/component@0.6.6
+  - @firebase/util@1.9.5
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [[`6d487d7de`](https://github.com/firebase/firebase-js-sdk/commit/6d487d7dee631498bed1aeccbb45d8f14ae911d1), [`245dd26e1`](https://github.com/firebase/firebase-js-sdk/commit/245dd26e19b6c16aca7e1b7e597ed5784c2984ba)]:
+  - @firebase/auth@1.6.2
+
+## 0.5.3
+
+### Patch Changes
+
+- [`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0) [#8044](https://github.com/firebase/firebase-js-sdk/pull/8044) (fixes [#8038](https://github.com/firebase/firebase-js-sdk/issues/8038)) - Bump undici version to 5.28.3 due to security issue.
+
+- Updated dependencies [[`f3cec28df`](https://github.com/firebase/firebase-js-sdk/commit/f3cec28dfbdfc7f19c8218cf9d26956235d03fb0)]:
+  - @firebase/auth@1.6.1
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`2f7ad0ac4`](https://github.com/firebase/firebase-js-sdk/commit/2f7ad0ac43f5d085604324f6dc3921d9420bfccd), [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/auth@1.6.0
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`70e4cf6a6`](https://github.com/firebase/firebase-js-sdk/commit/70e4cf6a6544c4ccfa609c3f2c320980e7122101)]:
+  - @firebase/auth@1.5.1
+
+## 0.5.0
+
+### Minor Changes
+
+- [`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6) [#7705](https://github.com/firebase/firebase-js-sdk/pull/7705) - Replaced node-fetch v2.6.7 dependency with the latest version of undici (v5.26.5) in Node.js SDK
+  builds for auth, firestore, functions and storage.
+
+### Patch Changes
+
+- Updated dependencies [[`bebecdaad`](https://github.com/firebase/firebase-js-sdk/commit/bebecdaad7fa552505055ab7705da478203078b6), [`b2163b33d`](https://github.com/firebase/firebase-js-sdk/commit/b2163b33d4076ba69849c82751fe225dc989c9de)]:
+  - @firebase/auth@1.5.0
+
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [[`5f496e401`](https://github.com/firebase/firebase-js-sdk/commit/5f496e401782db29afd1bd433818a3fc1ef1da3c), [`f10acb360`](https://github.com/firebase/firebase-js-sdk/commit/f10acb36009dc9d5d4f0d0880f1357330e3f1d1b)]:
+  - @firebase/auth@1.4.0
+
+## 0.4.8
+
+### Patch Changes
+
+- Updated dependencies [[`33a2298af`](https://github.com/firebase/firebase-js-sdk/commit/33a2298af3dc669a23548ee1703de788435aa6b5)]:
+  - @firebase/auth@1.3.2
+
+## 0.4.7
+
+### Patch Changes
+
+- Updated dependencies [[`f002ef36a`](https://github.com/firebase/firebase-js-sdk/commit/f002ef36a6b427fd526696f9cd6077a217ccc6ef), [`68927ced1`](https://github.com/firebase/firebase-js-sdk/commit/68927ced1159d9b79407c7823d7f48d30ccb591e), [`3533b32b1`](https://github.com/firebase/firebase-js-sdk/commit/3533b32b1be6a9800b1b58a6a2b08f50fae18eeb)]:
+  - @firebase/auth@1.3.1
+
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`309f7a914`](https://github.com/firebase/firebase-js-sdk/commit/309f7a914a9bef1becaa354ac01786e44712e256)]:
+  - @firebase/auth@1.3.0
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`5dac8b37a`](https://github.com/firebase/firebase-js-sdk/commit/5dac8b37a974309398317c5231ca6a41af2a48a5), [`6c7d07923`](https://github.com/firebase/firebase-js-sdk/commit/6c7d079231f393196aa68ef8d6463dc32ffce798), [`c9e2b0b8c`](https://github.com/firebase/firebase-js-sdk/commit/c9e2b0b8cd5fd0db3cac7bc3a00629ae34302189)]:
+  - @firebase/auth@1.2.0
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`e91f82a20`](https://github.com/firebase/firebase-js-sdk/commit/e91f82a20b2c8cea75a81f55bd71d878a3d908d6), [`8e15973fd`](https://github.com/firebase/firebase-js-sdk/commit/8e15973fde994cbee0d5ce95af575a7565ef9d8b)]:
+  - @firebase/auth@1.1.0
+
+## 0.4.3
+
+### Patch Changes
+
+- [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65) [#7326](https://github.com/firebase/firebase-js-sdk/pull/7326) - Reorder RecaptchaVerifier parameters so auth is the first parameter
+
+- Updated dependencies [[`1af178f2b`](https://github.com/firebase/firebase-js-sdk/commit/1af178f2b2207af6435db3ae6b7f3bf16b8b6183), [`1ff891c0d`](https://github.com/firebase/firebase-js-sdk/commit/1ff891c0da15d391b62e186c14a57c59263dde65), [`c2686ed60`](https://github.com/firebase/firebase-js-sdk/commit/c2686ed60fcc524851f85de7d634fcf2891f0651), [`f1c8d3806`](https://github.com/firebase/firebase-js-sdk/commit/f1c8d3806962a760aa0a78387e6b37140163eae6)]:
+  - @firebase/auth@1.0.0
+
 ## 0.4.2
 
 ### Patch Changes

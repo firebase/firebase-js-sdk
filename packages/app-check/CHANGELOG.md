@@ -1,5 +1,41 @@
 # @firebase/app-check
 
+## 0.8.4
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
+## 0.8.3
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/component@0.6.6
+  - @firebase/logger@0.4.1
+  - @firebase/util@1.9.5
+
+## 0.8.2
+
+### Patch Changes
+
+- Updated dependencies [[`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+
+## 0.8.1
+
+### Patch Changes
+
+- [`1d32137c5`](https://github.com/firebase/firebase-js-sdk/commit/1d32137c546a576298adb1713a9862cc92a26c83) [#7822](https://github.com/firebase/firebase-js-sdk/pull/7822) - Prevent App Check from logging "uncaught" cancelled promises. The cancelled promises are part of App Check's expected behavior, and their cancellation wasn't intended to produce errors or warnings. See issue #7805.
+
 ## 0.8.0
 
 ### Minor Changes

@@ -45,7 +45,14 @@ function getDbPromise(): Promise<IDBPDatabase<AppDB>> {
         // eslint-disable-next-line default-case
         switch (oldVersion) {
           case 0:
-            db.createObjectStore(STORE_NAME);
+            try {
+              db.createObjectStore(STORE_NAME);
+            } catch (e) {
+              // Safari/iOS browsers throw occasional exceptions on
+              // db.createObjectStore() that may be a bug. Avoid blocking
+              // the rest of the app functionality.
+              console.warn(e);
+            }
         }
       }
     }).catch(e => {
@@ -62,10 +69,11 @@ export async function readHeartbeatsFromIndexedDB(
 ): Promise<HeartbeatsInIndexedDB | undefined> {
   try {
     const db = await getDbPromise();
-    const result = await db
-      .transaction(STORE_NAME)
-      .objectStore(STORE_NAME)
-      .get(computeKey(app));
+    const tx = db.transaction(STORE_NAME);
+    const result = await tx.objectStore(STORE_NAME).get(computeKey(app));
+    // We already have the value but tx.done can throw,
+    // so we need to await it here to catch errors
+    await tx.done;
     return result;
   } catch (e) {
     if (e instanceof FirebaseError) {

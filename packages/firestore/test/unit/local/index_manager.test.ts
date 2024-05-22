@@ -30,11 +30,15 @@ import {
   queryWithLimit,
   queryWithStartAt
 } from '../../../src/core/query';
-import { IndexType } from '../../../src/local/index_manager';
+import { Timestamp } from '../../../src/lite-api/timestamp';
+import {
+  displayNameForIndexType,
+  IndexType
+} from '../../../src/local/index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentMap } from '../../../src/model/collections';
-import { Document } from '../../../src/model/document';
+import { Document, MutableDocument } from '../../../src/model/document';
 import {
   IndexKind,
   IndexOffset,
@@ -42,6 +46,18 @@ import {
 } from '../../../src/model/field_index';
 import { JsonObject } from '../../../src/model/object_value';
 import { canonicalId } from '../../../src/model/values';
+import {
+  ApiClientObjectMap as ProtoObjectMap,
+  Document as ProtoDocument,
+  Value as ProtoValue
+} from '../../../src/protos/firestore_proto_api';
+import {
+  fromDocument,
+  JsonProtoSerializer,
+  toName,
+  toTimestamp,
+  toVersion
+} from '../../../src/remote/serializer';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,
@@ -51,6 +67,7 @@ import {
   filter,
   key,
   orderBy,
+  orFilter,
   path,
   query,
   version,
@@ -59,6 +76,26 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
+
+describe('index_manager.ts top-level functions', () => {
+  describe('displayNameForIndexType()', () => {
+    it('IndexType.NONE', () =>
+      expect(displayNameForIndexType(IndexType.NONE)).to.equal('NONE'));
+
+    it('IndexType.FULL', () =>
+      expect(displayNameForIndexType(IndexType.FULL)).to.equal('FULL'));
+
+    it('IndexType.PARTIAL', () =>
+      expect(displayNameForIndexType(IndexType.PARTIAL)).to.equal('PARTIAL'));
+
+    it('invalid IndexType', () =>
+      // @ts-expect-error: specifying a string to displayNameForIndexType()
+      // causes a TypeScript compiler error, but is handled gracefully.
+      expect(displayNameForIndexType('zzyzx')).to.equal(
+        '[unknown IndexType: zzyzx]'
+      ));
+  });
+});
 
 describe('MemoryIndexManager', async () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -71,6 +108,11 @@ describe('IndexedDbIndexManager', async () => {
   }
 
   let persistencePromise: Promise<Persistence>;
+  const serializer = new JsonProtoSerializer(
+    persistenceHelpers.TEST_DATABASE_ID,
+    /* useProto3Json= */ true
+  );
+
   beforeEach(async () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
@@ -1002,6 +1044,62 @@ describe('IndexedDbIndexManager', async () => {
     await verifyResults(testingQuery, 'coll/val3');
   });
 
+  it('can index timestamp fields of different format', async () => {
+    await indexManager.addFieldIndex(
+      fieldIndex('coll', { fields: [['date', IndexKind.ASCENDING]] })
+    );
+
+    await addDocFromProto('coll/val1', {
+      'date': { timestampValue: '2016-01-02T10:20:50Z' }
+    });
+    await addDocFromProto('coll/val2', {
+      'date': { timestampValue: '2016-01-02T10:20:50.000000000Z' }
+    });
+    await addDocFromProto('coll/val3', {
+      'date': { timestampValue: '2016-01-02T10:20:50.850Z' }
+    });
+    await addDocFromProto('coll/val4', {
+      'date': { timestampValue: '2016-01-02T10:20:50.850000000Z' }
+    });
+    await addDocFromProto('coll/val5', {
+      'date': { timestampValue: { seconds: 1451730050, nanos: 999999999 } }
+    });
+    await addDocFromProto('coll/val6', {
+      'date': {
+        timestampValue: toTimestamp(serializer, new Timestamp(1451730050, 1))
+      }
+    });
+
+    let q = queryWithAddedOrderBy(query('coll'), orderBy('date'));
+    await verifyResults(
+      q,
+      'coll/val1',
+      'coll/val2',
+      'coll/val6',
+      'coll/val3',
+      'coll/val4',
+      'coll/val5'
+    );
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '==', new Timestamp(1451730050, 850000000))
+    );
+    await verifyResults(q, 'coll/val3', 'coll/val4');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '>=', new Timestamp(1451730050, 850000000))
+    );
+    await verifyResults(q, 'coll/val3', 'coll/val4', 'coll/val5');
+
+    q = queryWithAddedFilter(
+      query('coll'),
+      filter('date', '>', new Timestamp(1451730050, 0))
+    );
+    await verifyResults(q, 'coll/val6', 'coll/val3', 'coll/val4', 'coll/val5');
+  });
+
   it('support advances queries', async () => {
     // This test compares local query results with those received from the Java
     // Server SDK.
@@ -1660,14 +1758,95 @@ describe('IndexedDbIndexManager', async () => {
     await validateIsFullIndex(query15);
   });
 
+  it('createTargetIndexes() creates full indexes for each sub-target', async () => {
+    const query_ = queryWithAddedFilter(
+      query('coll'),
+      orFilter(filter('a', '==', 1), filter('b', '==', 2), filter('c', '==', 3))
+    );
+    const subQuery1 = queryWithAddedFilter(query('coll'), filter('a', '==', 1));
+    const subQuery2 = queryWithAddedFilter(query('coll'), filter('b', '==', 2));
+    const subQuery3 = queryWithAddedFilter(query('coll'), filter('c', '==', 3));
+    await validateIsNoneIndex(query_);
+    await validateIsNoneIndex(subQuery1);
+    await validateIsNoneIndex(subQuery2);
+    await validateIsNoneIndex(subQuery3);
+
+    await indexManager.createTargetIndexes(queryToTarget(query_));
+
+    await validateIsFullIndex(query_);
+    await validateIsFullIndex(subQuery1);
+    await validateIsFullIndex(subQuery2);
+    await validateIsFullIndex(subQuery3);
+  });
+
+  it('createTargetIndexes() upgrades a partial index to a full index', async () => {
+    const query_ = queryWithAddedFilter(
+      queryWithAddedFilter(query('coll'), filter('a', '==', 1)),
+      filter('b', '==', 2)
+    );
+    const subQuery1 = queryWithAddedFilter(query('coll'), filter('a', '==', 1));
+    const subQuery2 = queryWithAddedFilter(query('coll'), filter('b', '==', 2));
+    await indexManager.createTargetIndexes(queryToTarget(subQuery1));
+    await validateIsPartialIndex(query_);
+    await validateIsFullIndex(subQuery1);
+    await validateIsNoneIndex(subQuery2);
+
+    await indexManager.createTargetIndexes(queryToTarget(query_));
+
+    await validateIsFullIndex(query_);
+    await validateIsFullIndex(subQuery1);
+    await validateIsNoneIndex(subQuery2);
+  });
+
+  it('createTargetIndexes() does nothing if a full index already exists', async () => {
+    const query_ = query('coll');
+    await indexManager.createTargetIndexes(queryToTarget(query_));
+    await validateIsFullIndex(query_);
+
+    await indexManager.createTargetIndexes(queryToTarget(query_));
+
+    await validateIsFullIndex(query_);
+  });
+
+  it('deleteAllFieldIndexes() deletes all indexes', async () => {
+    // Create some indexes.
+    const query1 = queryWithAddedFilter(query('coll'), filter('a', '==', 42));
+    await indexManager.createTargetIndexes(queryToTarget(query1));
+    await validateIsFullIndex(query1);
+    const query2 = queryWithAddedFilter(query('coll'), filter('b', '==', 42));
+    await indexManager.createTargetIndexes(queryToTarget(query2));
+    await validateIsFullIndex(query2);
+
+    // Verify that deleteAllFieldIndexes() deletes the indexes.
+    await indexManager.deleteAllFieldIndexes();
+    await validateIsNoneIndex(query1);
+    await validateIsNoneIndex(query2);
+  });
+
   async function validateIsPartialIndex(query: Query): Promise<void> {
-    const indexType = await indexManager.getIndexType(queryToTarget(query));
-    expect(indexType).to.equal(IndexType.PARTIAL);
+    await validateIndexType(query, IndexType.PARTIAL);
   }
 
   async function validateIsFullIndex(query: Query): Promise<void> {
+    await validateIndexType(query, IndexType.FULL);
+  }
+
+  async function validateIsNoneIndex(query: Query): Promise<void> {
+    await validateIndexType(query, IndexType.NONE);
+  }
+
+  async function validateIndexType(
+    query: Query,
+    expectedIndexType: IndexType
+  ): Promise<void> {
     const indexType = await indexManager.getIndexType(queryToTarget(query));
-    expect(indexType).to.equal(IndexType.FULL);
+    expect(
+      indexType,
+      'index type is ' +
+        displayNameForIndexType(indexType) +
+        ' but expected ' +
+        displayNameForIndexType(expectedIndexType)
+    ).to.equal(expectedIndexType);
   }
 
   async function setUpSingleValueFilter(): Promise<void> {
@@ -1721,6 +1900,31 @@ describe('IndexedDbIndexManager', async () => {
 
   function addDoc(key: string, data: JsonObject<unknown>): Promise<void> {
     return addDocs(doc(key, 1, data));
+  }
+
+  function addDocFromProto(
+    key: string,
+    data: ProtoObjectMap<ProtoValue> | undefined
+  ): Promise<void> {
+    return addDocs(docFromProto(key, 1, data));
+  }
+
+  function docFromProto(
+    keyStr: string,
+    versionNumber: number,
+    data: ProtoObjectMap<ProtoValue> | undefined
+  ): MutableDocument {
+    const proto: ProtoDocument = {
+      name: toName(serializer, key(keyStr)),
+      fields: data,
+      updateTime: toVersion(serializer, version(versionNumber)),
+      createTime: toVersion(serializer, version(versionNumber))
+    };
+    return fromDocument(
+      serializer,
+      proto,
+      /* hasCommittedMutations= */ undefined
+    );
   }
 
   async function verifyResults(query: Query, ...keys: string[]): Promise<void> {

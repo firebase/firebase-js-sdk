@@ -227,7 +227,7 @@ export function path(path: string, offset?: number): ResourcePath {
 }
 
 export function field(path: string): FieldPath {
-  return new FieldPath(path.split('.'));
+  return FieldPath.fromServerFormat(path);
 }
 
 export function fieldIndex(
@@ -576,10 +576,11 @@ export function namedQuery(
       name,
       readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
       bundledQuery: {
-        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).queryTarget
+          .parent,
         limitType,
         structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
-          .structuredQuery
+          .queryTarget.structuredQuery
       }
     },
     matchingDocuments

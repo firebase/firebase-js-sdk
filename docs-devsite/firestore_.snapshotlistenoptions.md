@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SnapshotListenOptions interface
-An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set.
+An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set.
 
 <b>Signature:</b>
 
@@ -23,6 +23,7 @@ export declare interface SnapshotListenOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [includeMetadataChanges](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionsincludemetadatachanges) | boolean | Include a change even if only the metadata of the query or of a document changed. Default is false. |
+|  [source](./firestore_.snapshotlistenoptions.md#snapshotlistenoptionssource) | [ListenSource](./firestore_.md#listensource) | Set the source the query listens to. Default to "default", which listens to both cache and server. |
 
 ## SnapshotListenOptions.includeMetadataChanges
 
@@ -32,4 +33,14 @@ Include a change even if only the metadata of the query or of a document changed
 
 ```typescript
 readonly includeMetadataChanges?: boolean;
+```
+
+## SnapshotListenOptions.source
+
+Set the source the query listens to. Default to "default", which listens to both cache and server.
+
+<b>Signature:</b>
+
+```typescript
+readonly source?: ListenSource;
 ```
