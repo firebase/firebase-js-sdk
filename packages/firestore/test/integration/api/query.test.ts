@@ -2230,9 +2230,9 @@ apiDescribe('Queries', (persistence: boolean) => {
     // ensure that any transformations applied during
     // UTF-8 encoding are applied equally to the expected
     // and actual results.
-    const te1 = new TextEncoder();
+    const textEncoder = new TextEncoder();
     const textDecoder = new TextDecoder();
-    bigString = textDecoder.decode(te1.encode(bigString));
+    bigString = textDecoder.decode(textEncoder.encode(bigString));
 
     const doc = {
       field: bigString
