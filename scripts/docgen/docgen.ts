@@ -229,9 +229,12 @@ async function generateDocs(
     );
   }
 
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir);
+  if (fs.existsSync(tmpDir)) {
+    console.log(`Removing old json temp dir: ${tmpDir}.`);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+
+  fs.mkdirSync(tmpDir);
 
   // TODO: Throw error if path doesn't exist once all packages add markdown support.
   const apiJsonDirectories = (
