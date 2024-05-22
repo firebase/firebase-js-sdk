@@ -18,8 +18,7 @@
 import { FirebaseError } from '@firebase/util';
 import {
   VertexAIErrorCode,
-  GenerateContentResponse,
-  HTTPErrorDetails
+  CustomErrorData
 } from './types';
 import { VERTEX_TYPE } from './constants';
 
@@ -34,14 +33,12 @@ export class VertexAIError extends FirebaseError {
    *
    * @param code - The error code from {@link VertexAIErrorCode}.
    * @param message - A human-readable message describing the error.
-   * @param HTTPErrorDetails - Optional HTTP details from a bad response.
-   * @param generateContentResponse - Optional response from a {@link GenerateContentRequest}.
+   * @param customErrorData - Optional error data.
    */
   constructor(
     readonly code: VertexAIErrorCode,
     readonly message: string,
-    readonly httpErrorDetails?: HTTPErrorDetails,
-    readonly generateContentResponse?: GenerateContentResponse
+    readonly customErrorData?: CustomErrorData,
   ) {
     // Match error format used by FirebaseError from ErrorFactory
     const service = VERTEX_TYPE;

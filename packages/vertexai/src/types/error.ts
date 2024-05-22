@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { GenerateContentResponse } from './responses';
+
 /**
  * Details object that may be included in an error response.
  *
@@ -41,12 +43,15 @@ export interface ErrorDetails {
  *
  * @public
  */
-export interface HTTPErrorDetails {
+export interface CustomErrorData {
   /** HTTP status code of the error response. */
-  status: number;
+  status?: number;
 
   /** HTTP status text of the error response. */
-  statusText: string;
+  statusText?: string;
+  
+  /** Response from a {@link GenerateContentRequest} */
+  generateContentResponse?: GenerateContentResponse;
 
   /** Optional additional details about the error. */
   errorDetails?: ErrorDetails[];
