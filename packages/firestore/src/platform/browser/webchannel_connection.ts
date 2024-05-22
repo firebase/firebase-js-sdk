@@ -27,7 +27,6 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  FetchXmlHttpFactory,
   Stat
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
