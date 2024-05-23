@@ -231,7 +231,7 @@ yarn
 yarn docgen:all
 ```
 
-This will generate reference docs in `docs-devsite/` and `/toc`. Commit and push the generated
+This will generate reference docs and the toc in `docs-devsite/`. Commit and push the generated
 documentation changes to GitHub following the [PR submission guidelines](#submit). Your push
 to the remote repository should force any failing documentation checks to execute again.
 
