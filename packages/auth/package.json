@@ -39,11 +39,11 @@
       "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
-      "types": "./dist/cordova/auth-cordova.d.ts",
+      "types": "./dist/cordova/auth-cordova-public.d.ts",
       "default": "./dist/cordova/index.js"
     },
     "./web-extension": {
-      "types:": "./dist/web-extension-esm2017/auth-web-extension.d.ts",
+      "types:": "./dist/web-extension-esm2017/auth-web-extension-public.d.ts",
       "import": "./dist/web-extension-esm2017/index.js",
       "require": "./dist/web-extension-cjs/index.js",
       "default": "./dist/web-extension-esm2017/index.js"
