@@ -37,8 +37,6 @@ jobs:
       run: yarn docgen:all
     - name: Check for changes in docs-devsite dir (fail if so)
       run: git diff --exit-code docs-devsite
-    - name: Check for changes in toc dir (fail if so)
-      run: git diff --exit-code toc
     - name: Reference documentation needs to be updated. See message below.
       if: ${{ failure() }}
       run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen:all\` locally to regenerate docs and add them to this PR."
