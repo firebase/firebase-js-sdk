@@ -85,6 +85,14 @@ export interface CountTokensResponse {
 }
 
 // @public
+export interface CustomErrorData {
+    errorDetails?: ErrorDetails[];
+    generateContentResponse?: GenerateContentResponse;
+    status?: number;
+    statusText?: string;
+}
+
+// @public
 interface Date_2 {
     // (undocumented)
     day: number;
@@ -458,13 +466,6 @@ export enum HarmSeverity {
 }
 
 // @public
-export interface HTTPErrorDetails {
-    errorDetails?: ErrorDetails[];
-    status: number;
-    statusText: string;
-}
-
-// @public
 export interface InlineDataPart {
     // (undocumented)
     functionCall?: never;
@@ -610,13 +611,11 @@ export interface VertexAI {
 
 // @public
 export class VertexAIError extends FirebaseError {
-    constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErrorDetails | undefined, generateContentResponse?: GenerateContentResponse | undefined);
+    constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
     // (undocumented)
     readonly code: VertexAIErrorCode;
     // (undocumented)
-    readonly generateContentResponse?: GenerateContentResponse | undefined;
-    // (undocumented)
-    readonly httpErrorDetails?: HTTPErrorDetails | undefined;
+    readonly customErrorData?: CustomErrorData | undefined;
     // (undocumented)
     readonly message: string;
 }
