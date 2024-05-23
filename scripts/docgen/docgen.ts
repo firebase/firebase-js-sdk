@@ -161,14 +161,9 @@ async function generateToc() {
       { stdio: 'inherit' }
     );
     // The toc on the devsite must be named _toc.yaml
-    await spawn(
-      'mv',
-      [
-        'docs-devsite/toc.yaml',
-        'docs-devsite/_toc.yaml'
-      ],
-      { stdio: 'inherit' }
-    );
+    await spawn('mv', ['docs-devsite/toc.yaml', 'docs-devsite/_toc.yaml'], {
+      stdio: 'inherit'
+    });
   } finally {
     cleanup();
   }
