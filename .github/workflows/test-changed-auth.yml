@@ -14,7 +14,7 @@
 
 name: Test Auth
 
-on: [push, pull_request]
+on: pull_request
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
