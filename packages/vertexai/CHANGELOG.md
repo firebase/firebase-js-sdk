@@ -1,5 +1,11 @@
 # @firebase/vertexai
 
+## 0.0.2
+
+### Patch Changes
+
+- [`3883133c3`](https://github.com/firebase/firebase-js-sdk/commit/3883133c33ba48027081eef9d946988f33b07606) [#8256](https://github.com/firebase/firebase-js-sdk/pull/8256) - Change `types` paths to point to rolled-up public `d.ts` files. This fixes some TypeScript compiler errors users are seeing.
+
 ## 0.0.1
 
 ### Patch Changes

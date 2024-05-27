@@ -1,5 +1,16 @@
 # firebase
 
+## 10.12.2
+
+### Patch Changes
+
+- Updated dependencies [[`3883133c3`](https://github.com/firebase/firebase-js-sdk/commit/3883133c33ba48027081eef9d946988f33b07606), [`0af23e02e`](https://github.com/firebase/firebase-js-sdk/commit/0af23e02e0c90ae550dd3edf1c9244a8eba3aee1)]:
+  - @firebase/app@0.10.5
+  - @firebase/vertexai-preview@0.0.2
+  - @firebase/auth@1.7.4
+  - @firebase/app-compat@0.2.35
+  - @firebase/auth-compat@0.5.9
+
 ## 10.12.1
 
 ### Patch Changes
