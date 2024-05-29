@@ -37,7 +37,7 @@ export function dcFetch<T, U>(
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue(),
+    'X-Goog-Api-Client': getGoogApiClientValue()
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
@@ -49,9 +49,13 @@ export function dcFetch<T, U>(
     method: 'POST',
     headers,
     signal
-  }).catch(err => {
-    throw new DataConnectError(Code.OTHER, "Failed to fetch: " + JSON.stringify(err));
   })
+    .catch(err => {
+      throw new DataConnectError(
+        Code.OTHER,
+        'Failed to fetch: ' + JSON.stringify(err)
+      );
+    })
     .then(async response => {
       let jsonResponse = null;
       try {

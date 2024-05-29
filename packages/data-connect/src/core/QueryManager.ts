@@ -163,9 +163,7 @@ export class QueryManager {
           queryRef.variables
         )}. Calling executeQuery.`
       );
-      const promise = this.executeQuery(
-        queryRef as QueryRef<Data, Variables>
-      );
+      const promise = this.executeQuery(queryRef as QueryRef<Data, Variables>);
       // We want to ignore the error and let subscriptions handle it
       promise.then(undefined, err => {});
     }
