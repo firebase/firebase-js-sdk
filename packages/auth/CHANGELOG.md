@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.7.4
+
+### Patch Changes
+
+- [`0af23e02e`](https://github.com/firebase/firebase-js-sdk/commit/0af23e02e0c90ae550dd3edf1c9244a8eba3aee1) [#8251](https://github.com/firebase/firebase-js-sdk/pull/8251) (fixes [#8222](https://github.com/firebase/firebase-js-sdk/issues/8222)) - Generate dts rollups for auth web extension and cordova
+
 ## 1.7.3
 
 ### Patch Changes

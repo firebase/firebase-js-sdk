@@ -1,5 +1,30 @@
 # firebase
 
+## 10.12.2
+
+### Patch Changes
+
+- Updated dependencies [[`3883133c3`](https://github.com/firebase/firebase-js-sdk/commit/3883133c33ba48027081eef9d946988f33b07606), [`0af23e02e`](https://github.com/firebase/firebase-js-sdk/commit/0af23e02e0c90ae550dd3edf1c9244a8eba3aee1)]:
+  - @firebase/app@0.10.5
+  - @firebase/vertexai-preview@0.0.2
+  - @firebase/auth@1.7.4
+  - @firebase/app-compat@0.2.35
+  - @firebase/auth-compat@0.5.9
+
+## 10.12.1
+
+### Patch Changes
+
+- [`2ce95696f`](https://github.com/firebase/firebase-js-sdk/commit/2ce95696fe01f8c0fde08daa4359e39917654441) [#8247](https://github.com/firebase/firebase-js-sdk/pull/8247) - Fix multi-tab persistence raising empty snapshot issue
+
+- Updated dependencies [[`f66769cca`](https://github.com/firebase/firebase-js-sdk/commit/f66769cca243019354f88ac9dc8de07caf9de56e), [`2ce95696f`](https://github.com/firebase/firebase-js-sdk/commit/2ce95696fe01f8c0fde08daa4359e39917654441)]:
+  - @firebase/app@0.10.4
+  - @firebase/analytics@0.10.4
+  - @firebase/firestore@4.6.3
+  - @firebase/app-compat@0.2.34
+  - @firebase/analytics-compat@0.2.10
+  - @firebase/firestore-compat@0.3.32
+
 ## 10.12.0
 
 ### Minor Changes

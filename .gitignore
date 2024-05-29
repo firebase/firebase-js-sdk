@@ -91,7 +91,6 @@ tsdoc-metadata.json
 # generated html docs
 docs-rut/
 docs/
-toc/
 
 # generated Terraform docs
 .terraform/*

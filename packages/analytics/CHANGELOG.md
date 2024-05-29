@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.10.4
+
+### Patch Changes
+
+- [`f66769cca`](https://github.com/firebase/firebase-js-sdk/commit/f66769cca243019354f88ac9dc8de07caf9de56e) [#8243](https://github.com/firebase/firebase-js-sdk/pull/8243) (fixes [#8210](https://github.com/firebase/firebase-js-sdk/issues/8210)) - Analytics - fixed an issue where setConsent was clobbering the consentSettings before passing them to the gtag implementation.
+
 ## 0.10.3
 
 ### Patch Changes
