@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { RequestOptions, VertexAIError, VertexAIErrorCode } from '../types';
+import { RequestOptions, VertexAIErrorCode } from '../types';
+import { VertexAIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,

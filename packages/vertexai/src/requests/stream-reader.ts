@@ -21,9 +21,9 @@ import {
   GenerateContentResponse,
   GenerateContentStreamResult,
   Part,
-  VertexAIError,
   VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 import { addHelpers } from './response-helpers';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;

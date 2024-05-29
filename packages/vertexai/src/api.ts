@@ -24,14 +24,16 @@ import { VertexAI, VertexAIOptions } from './public-types';
 import {
   ModelParams,
   RequestOptions,
-  VertexAIError,
   VertexAIErrorCode
 } from './types';
+import { VertexAIError } from './errors';
 import { GenerativeModel } from './models/generative-model';
 
 export { ChatSession } from './methods/chat-session';
 
 export { GenerativeModel };
+
+export { VertexAIError } from './errors';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

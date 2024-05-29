@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModelParams, VertexAIError, VertexAIErrorCode } from './types';
+import { ModelParams, VertexAIErrorCode } from './types';
+import { VertexAIError } from './errors';
 import { getGenerativeModel } from './api';
 import { expect } from 'chai';
 import { VertexAI } from './public-types';

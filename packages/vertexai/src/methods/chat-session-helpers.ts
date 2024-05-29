@@ -20,9 +20,9 @@ import {
   POSSIBLE_ROLES,
   Part,
   Role,
-  VertexAIError,
   VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 
 // https://ai.google.dev/api/rest/v1beta/Content#part
 

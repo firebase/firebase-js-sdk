@@ -19,9 +19,9 @@ import {
   Content,
   GenerateContentRequest,
   Part,
-  VertexAIError,
   VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 
 export function formatSystemInstruction(
   input?: string | Part | Content

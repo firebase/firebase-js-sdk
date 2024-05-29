@@ -34,9 +34,9 @@ import {
   StartChatParams,
   Tool,
   ToolConfig,
-  VertexAIError,
   VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
 import {

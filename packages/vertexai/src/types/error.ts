@@ -90,5 +90,3 @@ export const enum VertexAIErrorCode {
   /** An error occured while parsing. */
   PARSE_FAILED = 'parse-failed'
 }
-
-export { VertexAIError } from '../errors';

@@ -22,7 +22,8 @@ import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { VertexAIError, VertexAIErrorCode } from '../types';
+import { VertexAIErrorCode } from '../types';
+import { VertexAIError } from '../errors';
 
 use(sinonChai);
 use(chaiAsPromised);

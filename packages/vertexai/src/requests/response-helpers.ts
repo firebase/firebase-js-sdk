@@ -21,9 +21,9 @@ import {
   FunctionCall,
   GenerateContentCandidate,
   GenerateContentResponse,
-  VertexAIError,
   VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 
 /**
  * Adds convenience helper methods to a response object, including stream
