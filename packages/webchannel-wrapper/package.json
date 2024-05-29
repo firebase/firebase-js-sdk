@@ -28,7 +28,8 @@
     "dev": "watch 'yarn build' src",
     "build": "rollup -c",
     "test": "echo 'No test suite for webchannel-wrapper'",
-    "test:ci": "echo 'No test suite for webchannel-wrapper'"
+    "test:ci": "echo 'No test suite for webchannel-wrapper'",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "license": "Apache-2.0",
   "devDependencies": {

@@ -40,6 +40,7 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/storage-public.d.ts --output dist/storage-public.d.ts",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/storage-public.d.ts"

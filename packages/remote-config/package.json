@@ -30,6 +30,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",

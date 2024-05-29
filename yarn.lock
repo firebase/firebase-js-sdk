@@ -12442,7 +12442,7 @@ minimatch@^3.0.0, minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^3.1.1, minimatch@^3.1.2:
+minimatch@^3.0.3, minimatch@^3.1.1, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
@@ -17024,6 +17024,14 @@ tsconfig-paths@^3.14.1:
     json5 "^1.0.2"
     minimist "^1.2.6"
     strip-bom "^3.0.0"
+
+tsec@0.2.8:
+  version "0.2.8"
+  resolved "https://registry.npmjs.org/tsec/-/tsec-0.2.8.tgz#a9e7492b144fcff14f1f36327fa84a2d54c4e211"
+  integrity sha512-d2vdTEtLbPzTs57ygzzPk6QrdW1lA8SBAoHZCVvAyC3R1LTjsQ2eGg/XRmtoCpXOVIflVtMsxtzk7eTHwT+DjQ==
+  dependencies:
+    glob "^7.1.1"
+    minimatch "^3.0.3"
 
 tslib@^1.13.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.14.1"

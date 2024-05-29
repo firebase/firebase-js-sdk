@@ -32,6 +32,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "type-check": "tsc --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../messaging/dist/index-public.d.ts -o dist/src/index.d.ts -a -r Messaging:MessagingCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/messaging"
   },

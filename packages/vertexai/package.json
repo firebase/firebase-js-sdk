@@ -38,7 +38,8 @@
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:browser": "yarn testsetup && karma start --single-run",
     "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
