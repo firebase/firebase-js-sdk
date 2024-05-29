@@ -26,7 +26,7 @@ export interface GenerationConfig
 |  [frequencyPenalty](./vertexai-preview.generationconfig.md#generationconfigfrequencypenalty) | number |  |
 |  [maxOutputTokens](./vertexai-preview.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./vertexai-preview.generationconfig.md#generationconfigpresencepenalty) | number |  |
-|  [responseMimeType](./vertexai-preview.generationconfig.md#generationconfigresponsemimetype) | string | Output response mimetype of the generated candidate text. Supported mimetype: <code>text/plain</code>: (default) Text output. <code>application/json</code>: JSON response in the candidates. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature. |
+|  [responseMimeType](./vertexai-preview.generationconfig.md#generationconfigresponsemimetype) | string | Output response mimetype of the generated candidate text. Supported mimetypes: - <code>text/plain</code>: (default) Text output. - <code>application/json</code>: JSON response in the candidates. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature. |
 |  [stopSequences](./vertexai-preview.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./vertexai-preview.generationconfig.md#generationconfigtemperature) | number |  |
 |  [topK](./vertexai-preview.generationconfig.md#generationconfigtopk) | number |  |
@@ -66,7 +66,7 @@ presencePenalty?: number;
 
 ## GenerationConfig.responseMimeType
 
-Output response mimetype of the generated candidate text. Supported mimetype: `text/plain`<!-- -->: (default) Text output. `application/json`<!-- -->: JSON response in the candidates. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature.
+Output response mimetype of the generated candidate text. Supported mimetypes: - `text/plain`<!-- -->: (default) Text output. - `application/json`<!-- -->: JSON response in the candidates. The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature.
 
 <b>Signature:</b>
 
