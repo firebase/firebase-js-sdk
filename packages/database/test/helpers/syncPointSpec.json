@@ -3729,7 +3729,7 @@
         "data": {
           "4": { "age": 41, "highscore": 400, "name": "old mama"},
           "5": { "age": 18, "highscore": 1200, "name": "young mama"},
-          "6": { "age": 20, "highscore": 1003, "name": "micheal blub"},
+          "6": { "age": 20, "highscore": 1003, "name": "michael blub"},
           "7": { "age": 30, "highscore": 10000, "name": "no. 7"}
         },
         "events": [
@@ -3752,7 +3752,7 @@
             "type": "child_added",
             "name": "6",
             "prevName": "5",
-            "data": { "age": 20, "highscore": 1003, "name": "micheal blub"}
+            "data": { "age": 20, "highscore": 1003, "name": "michael blub"}
           },
           {
             "path": "",
@@ -3767,7 +3767,7 @@
             "data": {
               "4": { "age": 41, "highscore": 400, "name": "old mama"},
               "5": { "age": 18, "highscore": 1200, "name": "young mama"},
-              "6": { "age": 20, "highscore": 1003, "name": "micheal blub"},
+              "6": { "age": 20, "highscore": 1003, "name": "michael blub"},
               "7": { "age": 30, "highscore": 10000, "name": "no. 7"}
             }
           }
@@ -3800,7 +3800,7 @@
             "data": {
               "4": { "age": 25, "highscore": 400, "name": "old mama"},
               "5": { "age": 18, "highscore": 1200, "name": "young mama"},
-              "6": { "age": 20, "highscore": 1003, "name": "micheal blub"},
+              "6": { "age": 20, "highscore": 1003, "name": "michael blub"},
               "7": { "age": 30, "highscore": 10000, "name": "no. 7"}
             }
           }
