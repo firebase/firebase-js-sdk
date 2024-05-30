@@ -170,7 +170,7 @@ export async function _waitForAppResume(
         }
 
         onCloseTimer = window.setTimeout(() => {
-          // Wait two seeconds after resume then reject.
+          // Wait two seconds after resume then reject.
           reject(_createError(auth, AuthErrorCode.REDIRECT_CANCELLED_BY_USER));
         }, REDIRECT_TIMEOUT_MS);
       }
