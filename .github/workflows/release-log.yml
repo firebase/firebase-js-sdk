@@ -34,6 +34,7 @@ jobs:
           node-version: 20.x
 
       - name: Get PR number and send to tracker.
+        if: env.RELEASE_TRACKER_URL != ''
         run: node scripts/ci/log-changesets.js
         env:
           RELEASE_TRACKER_URL: ${{ secrets.RELEASE_TRACKER_URL }}
