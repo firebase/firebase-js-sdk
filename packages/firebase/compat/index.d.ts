@@ -6365,7 +6365,7 @@ declare namespace firebase.database {
      *
      * The ending point is exclusive. If only a value is provided, children
      * with a value less than the specified value will be included in the query.
-     * If a key is specified, then children must have a value lesss than or equal
+     * If a key is specified, then children must have a value less than or equal
      * to the specified value and a a key name less than the specified key.
      *
      * @example
