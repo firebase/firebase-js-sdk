@@ -531,7 +531,7 @@ export interface IterateOptions {
   /** Index to iterate over (else primary keys will be iterated) */
   index?: string;
 
-  /** IndxedDB Range to iterate over (else entire store will be iterated) */
+  /** IndexedDB Range to iterate over (else entire store will be iterated) */
   range?: IDBKeyRange;
 
   /** If true, values aren't read while iterating. */
