@@ -125,7 +125,7 @@ export class FirebaseAppImpl implements Compat<_FirebaseAppExp>, _FirebaseApp {
   ): _FirebaseService {
     this._delegate.checkDestroyed();
 
-    // Initialize instance if InstatiationMode is `EXPLICIT`.
+    // Initialize instance if InstanciationMode is `EXPLICIT`.
     const provider = this._delegate.container.getProvider(name as Name);
     if (
       !provider.isInitialized() &&
