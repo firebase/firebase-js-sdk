@@ -189,7 +189,7 @@ apiDescribe('Aggregation queries', persistence => {
     });
   });
 
-  it('can alias aggrregations using getAggregationFromServer', () => {
+  it('can alias aggregations using getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
