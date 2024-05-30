@@ -1954,7 +1954,7 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(refe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
-|  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
+|  path | string | A slash-separated path to a document. Has to be omitted to use auto-generated IDs. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
