@@ -4005,12 +4005,12 @@ declare namespace firebase.auth {
      * @example
      * ```javascript
      * var cred = firebase.auth.GithubAuthProvider.credential(
-     *     // `event` from the Github auth.authResponseChange callback.
+     *     // `event` from the GitHub auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
      *
-     * @param token Github access token.
+     * @param token GitHub access token.
      * @return {!firebase.auth.OAuthCredential} The auth provider credential.
      */
     static credential(token: string): firebase.auth.OAuthCredential;
@@ -4020,7 +4020,7 @@ declare namespace firebase.auth {
    */
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
     /**
-     * @param scope Github OAuth scope.
+     * @param scope GitHub OAuth scope.
      * @return The provider instance itself.
      */
     addScope(scope: string): firebase.auth.AuthProvider;
