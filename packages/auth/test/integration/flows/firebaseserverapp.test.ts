@@ -197,7 +197,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     await deleteApp(serverApp);
   });
 
-  it('signs in with email crednetial user', async () => {
+  it('signs in with email credentials user', async () => {
     if (isBrowser()) {
       return;
     }
