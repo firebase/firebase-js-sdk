@@ -33,9 +33,24 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
+  has-sa-key:
+    name: Check for Service Account Key
+    runs-on: ubuntu-latest
+    outputs:
+      has-sa-key: ${{ steps.check-key.outputs.has-sa-key }}
+    steps:
+      - name: Check for Service Account Key
+        id: check-key
+        env:
+          HAS_SA_KEY: ${{ secrets.GCP_SA_KEY != '' && 1 || '' }}
+        if: env.HAS_SA_KEY
+        run: |
+          echo "has-sa-key=1" >> $GITHUB_OUTPUTS
+
   binary-size:
+    needs: has-sa-key
     name: Binary Size
-    if: (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
+    if: needs.has-sa-key.outputs.has-sa-key && (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -51,8 +66,9 @@ jobs:
       - name: Run health-metrics/binary-size test
         run: yarn size-report
   modular-export-size:
+    needs: has-sa-key
     name: Binary Size For Modular Exports
-    if: (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
+    if: needs.has-sa-key.outputs.has-sa-key && (github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)) && (github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
