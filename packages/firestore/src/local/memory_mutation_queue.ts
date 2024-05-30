@@ -330,7 +330,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   /**
    * A version of lookupMutationBatch that doesn't return a promise, this makes
-   * other functions that uses this code easier to read and more efficent.
+   * other functions that uses this code easier to read and more efficient.
    */
   private findMutationBatch(batchId: BatchId): MutationBatch | null {
     const index = this.indexOfBatchId(batchId);
