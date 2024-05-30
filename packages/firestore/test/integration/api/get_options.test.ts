@@ -269,7 +269,7 @@ apiDescribe('GetOptions', persistence => {
       // force local cache of these
       return (
         getDocs(colRef)
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(() => disableNetwork(db))
           .then(() => getDocsFromServer(colRef))
@@ -336,7 +336,7 @@ apiDescribe('GetOptions', persistence => {
       onSnapshot(colRef, () => {});
       return (
         getDocs(colRef)
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(() => disableNetwork(db))
           .then(() => {

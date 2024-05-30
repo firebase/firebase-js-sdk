@@ -263,7 +263,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       return (
         colRef
           .get()
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(ignored => colRef.firestore.disableNetwork())
           .then(() => colRef.get({ source: 'server' }))
@@ -341,7 +341,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       return (
         colRef
           .get()
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(ignored => colRef.firestore.disableNetwork())
           .then(() => {
