@@ -2320,7 +2320,7 @@ function initApp() {
   // reCAPTCHA from being re-rendered (default behavior on enter).
   $('#link-reauth-phone-verification-code').keypress(e => {
     if (e.which === 13) {
-      // User first option option as default.
+      // User first option as default.
       onUpdateConfirmPhoneVerification();
       e.preventDefault();
     }
