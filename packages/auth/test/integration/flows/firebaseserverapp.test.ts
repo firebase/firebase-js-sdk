@@ -115,7 +115,7 @@ describe('Integration test: Auth FirebaseServerApp tests', () => {
     await deleteApp(serverApp);
   });
 
-  it('getToken operations fullfilled or rejected', async () => {
+  it('getToken operations fulfilled or rejected', async () => {
     if (isBrowser()) {
       return;
     }
