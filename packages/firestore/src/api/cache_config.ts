@@ -283,7 +283,7 @@ export function persistentLocalCache(
 }
 
 /**
- * A tab manager supportting only one tab, no synchronization will be
+ * A tab manager supporting only one tab, no synchronization will be
  * performed across tabs.
  */
 export type PersistentSingleTabManager = {
