@@ -100,7 +100,7 @@ export function treeHasChildren<T>(tree: Tree<T>): boolean {
 }
 
 /**
- * @returns Whethe rthe tree is empty (no value or children).
+ * @returns Whether the tree is empty (no value or children).
  */
 export function treeIsEmpty<T>(tree: Tree<T>): boolean {
   return treeGetValue(tree) === undefined && !treeHasChildren(tree);
