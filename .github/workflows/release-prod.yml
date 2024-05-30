@@ -24,8 +24,80 @@ on:
         required: true
 
 jobs:
+  has-secrets:
+    name: Check for secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-secrets: ${{ steps.check-secrets.outputs.has-secrets }}
+    steps:
+      - name: Check for secrets
+        id: check-secrets
+        env:
+          HAS_SECRETS: ${{
+            secrets.NPM_TOKEN_ANALYTICS != '' &&
+            secrets.NPM_TOKEN_ANALYTICS_COMPAT != '' &&
+            secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES != '' &&
+            secrets.NPM_TOKEN_ANALYTICS_TYPES != '' &&
+            secrets.NPM_TOKEN_API_DOCUMENTER != '' &&
+            secrets.NPM_TOKEN_APP != '' &&
+            secrets.NPM_TOKEN_APP_CHECK != '' &&
+            secrets.NPM_TOKEN_APP_CHECK_COMPAT != '' &&
+            secrets.NPM_TOKEN_APP_CHECK_INTEROP_TYPES != '' &&
+            secrets.NPM_TOKEN_APP_CHECK_TYPES != '' &&
+            secrets.NPM_TOKEN_APP_COMPAT != '' &&
+            secrets.NPM_TOKEN_APP_TYPES != '' &&
+            secrets.NPM_TOKEN_AUTH != '' &&
+            secrets.NPM_TOKEN_AUTH_COMPAT != '' &&
+            secrets.NPM_TOKEN_AUTH_INTEROP_TYPES != '' &&
+            secrets.NPM_TOKEN_AUTH_TYPES != '' &&
+            secrets.NPM_TOKEN_COMPONENT != '' &&
+            secrets.NPM_TOKEN_DATABASE != '' &&
+            secrets.NPM_TOKEN_DATABASE_COMPAT != '' &&
+            secrets.NPM_TOKEN_DATABASE_TYPES != '' &&
+            secrets.NPM_TOKEN_FIREBASE != '' &&
+            secrets.NPM_TOKEN_FIRESTORE != '' &&
+            secrets.NPM_TOKEN_FIRESTORE_COMPAT != '' &&
+            secrets.NPM_TOKEN_FIRESTORE_TYPES != '' &&
+            secrets.NPM_TOKEN_FUNCTIONS != '' &&
+            secrets.NPM_TOKEN_FUNCTIONS_COMPAT != '' &&
+            secrets.NPM_TOKEN_FUNCTIONS_TYPES != '' &&
+            secrets.NPM_TOKEN_INSTALLATIONS != '' &&
+            secrets.NPM_TOKEN_INSTALLATIONS_COMPAT != '' &&
+            secrets.NPM_TOKEN_INSTALLATIONS_TYPES != '' &&
+            secrets.NPM_TOKEN_LOGGER != '' &&
+            secrets.NPM_TOKEN_MESSAGING != '' &&
+            secrets.NPM_TOKEN_MESSAGING_COMPAT != '' &&
+            secrets.NPM_TOKEN_MESSAGING_INTEROP_TYPES != '' &&
+            secrets.NPM_TOKEN_MESSAGING_TYPES != '' &&
+            secrets.NPM_TOKEN_PERFORMANCE != '' &&
+            secrets.NPM_TOKEN_PERFORMANCE_COMPAT != '' &&
+            secrets.NPM_TOKEN_PERFORMANCE_TYPES != '' &&
+            secrets.NPM_TOKEN_POLYFILL != '' &&
+            secrets.NPM_TOKEN_REMOTE_CONFIG != '' &&
+            secrets.NPM_TOKEN_REMOTE_CONFIG_COMPAT != '' &&
+            secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES != '' &&
+            secrets.NPM_TOKEN_RULES_UNIT_TESTING != '' &&
+            secrets.NPM_TOKEN_STORAGE != '' &&
+            secrets.NPM_TOKEN_STORAGE_COMPAT != '' &&
+            secrets.NPM_TOKEN_STORAGE_TYPES != '' &&
+            secrets.NPM_TOKEN_TESTING != '' &&
+            secrets.NPM_TOKEN_UTIL != '' &&
+            secrets.NPM_TOKEN_VERTEXAI != '' &&
+            secrets.NPM_TOKEN_VERTEXAI_PREVIEW != '' &&
+            secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER != '' &&
+            secrets.OSS_BOT_GITHUB_TOKEN != '' &&
+            secrets.RELEASE_TRACKER_URL != '' &&
+            1 ||
+            ''
+            }}
+        if: env.HAS_SECRETS
+        run: |
+          echo "has-secrets=1" >> $GITHUB_OUTPUTS
+
   deploy:
+    needs: has-secrets
     name: Production Release
+    if: needs.has-secrets.outputs.has-secrets
     runs-on: ubuntu-latest
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
