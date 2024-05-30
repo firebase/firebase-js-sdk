@@ -39,6 +39,60 @@ jobs:
       run: yarn
     - name: Deploy canary
       run: yarn release canary
+      if: ${{
+        env.NPM_TOKEN_ANALYTICS != '' &&
+        env.NPM_TOKEN_ANALYTICS_INTEROP_TYPES != '' &&
+        env.NPM_TOKEN_ANALYTICS_TYPES != '' &&
+        env.NPM_TOKEN_APP != '' &&
+        env.NPM_TOKEN_APP_TYPES != '' &&
+        env.NPM_TOKEN_APP_CHECK != '' &&
+        env.NPM_TOKEN_APP_CHECK_INTEROP_TYPES != '' &&
+        env.NPM_TOKEN_APP_CHECK_TYPES != '' &&
+        env.NPM_TOKEN_AUTH != '' &&
+        env.NPM_TOKEN_AUTH_INTEROP_TYPES != '' &&
+        env.NPM_TOKEN_AUTH_TYPES != '' &&
+        env.NPM_TOKEN_COMPONENT != '' &&
+        env.NPM_TOKEN_DATABASE != '' &&
+        env.NPM_TOKEN_DATABASE_TYPES != '' &&
+        env.NPM_TOKEN_FIRESTORE != '' &&
+        env.NPM_TOKEN_FIRESTORE_TYPES != '' &&
+        env.NPM_TOKEN_FUNCTIONS != '' &&
+        env.NPM_TOKEN_FUNCTIONS_TYPES != '' &&
+        env.NPM_TOKEN_INSTALLATIONS != '' &&
+        env.NPM_TOKEN_INSTALLATIONS_TYPES != '' &&
+        env.NPM_TOKEN_LOGGER != '' &&
+        env.NPM_TOKEN_MESSAGING != '' &&
+        env.NPM_TOKEN_MESSAGING_TYPES != '' &&
+        env.NPM_TOKEN_PERFORMANCE != '' &&
+        env.NPM_TOKEN_PERFORMANCE_TYPES != '' &&
+        env.NPM_TOKEN_POLYFILL != '' &&
+        env.NPM_TOKEN_REMOTE_CONFIG != '' &&
+        env.NPM_TOKEN_REMOTE_CONFIG_TYPES != '' &&
+        env.NPM_TOKEN_RULES_UNIT_TESTING != '' &&
+        env.NPM_TOKEN_STORAGE != '' &&
+        env.NPM_TOKEN_STORAGE_TYPES != '' &&
+        env.NPM_TOKEN_TESTING != '' &&
+        env.NPM_TOKEN_UTIL != '' &&
+        env.NPM_TOKEN_VERTEXAI != '' &&
+        env.NPM_TOKEN_VERTEXAI_PREVIEW != '' &&
+        env.NPM_TOKEN_WEBCHANNEL_WRAPPER != '' &&
+        env.NPM_TOKEN_FIREBASE != '' &&
+        env.NPM_TOKEN_APP_COMPAT != '' &&
+        env.NPM_TOKEN_INSTALLATIONS_COMPAT != '' &&
+        env.NPM_TOKEN_ANALYTICS_COMPAT != '' &&
+        env.NPM_TOKEN_AUTH_COMPAT != '' &&
+        env.NPM_TOKEN_MESSAGING_INTEROP_TYPES != '' &&
+        env.NPM_TOKEN_FUNCTIONS_COMPAT != '' &&
+        env.NPM_TOKEN_MESSAGING_COMPAT != '' &&
+        env.NPM_TOKEN_PERFORMANCE_COMPAT != '' &&
+        env.NPM_TOKEN_REMOTE_CONFIG_COMPAT != '' &&
+        env.NPM_TOKEN_DATABASE_COMPAT != '' &&
+        env.NPM_TOKEN_FIRESTORE_COMPAT != '' &&
+        env.NPM_TOKEN_STORAGE_COMPAT != '' &&
+        env.NPM_TOKEN_APP_CHECK_COMPAT != '' &&
+        env.NPM_TOKEN_API_DOCUMENTER != '' &&
+        true
+        }}
       env:
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
         NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
@@ -94,10 +148,12 @@ jobs:
         CI: true
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
+      env:
+        OSS_BOT_GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+      if: env.OSS_BOT_GITHUB_TOKEN != ''
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION_OR_TAG=`node -e "${VERSION_SCRIPT}"`
-        OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
         curl -X POST \
         -H "Content-Type:application/json" \
         -H "Accept:application/vnd.github.v3+json" \
