@@ -39,7 +39,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Node (20)
       uses: actions/setup-node@v4
       with:
