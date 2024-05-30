@@ -110,7 +110,7 @@ describe.skip('Promise Tests', () => {
       });
   });
 
-  it('wraps Fireabse.setPriority', () => {
+  it('wraps Firebase.setPriority', () => {
     const ref = getRandomNode() as Reference;
     return ref
       .set({ a: 'b' })
