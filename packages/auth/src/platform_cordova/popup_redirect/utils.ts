@@ -156,7 +156,7 @@ export async function _waitForAppResume(
         if (typeof closeBrowserTab === 'function') {
           closeBrowserTab();
         }
-        // Close inappbrowser emebedded webview in iOS7 and 8 case if still
+        // Close inappbrowser embedded webview in iOS7 and 8 case if still
         // open.
         if (typeof iabRef?.close === 'function') {
           iabRef.close();
