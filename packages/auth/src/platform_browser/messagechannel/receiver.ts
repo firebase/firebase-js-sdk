@@ -135,7 +135,7 @@ export class Receiver {
    * Unsubscribe an event handler from a particular event.
    *
    * @param eventType - Event name to unsubscribe from.
-   * @param eventHandler - Optinoal event handler, if none provided, unsubscribe all handlers on this event.
+   * @param eventHandler - Optional event handler, if none provided, unsubscribe all handlers on this event.
    *
    */
   _unsubscribe<T extends _ReceiverResponse, S extends _SenderRequest>(
