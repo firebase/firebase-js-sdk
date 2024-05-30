@@ -371,7 +371,7 @@ describe('api/_performApiRequest', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
-    it('should generate a need_conirmation error with the response', async () => {
+    it('should generate a need_confirmation error with the response', async () => {
       mockEndpoint(Endpoint.SIGN_UP, {
         needConfirmation: true,
         idToken: 'id-token'
