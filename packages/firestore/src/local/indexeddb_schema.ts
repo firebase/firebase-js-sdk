@@ -203,7 +203,7 @@ export interface DbRemoteDocument {
   /** The path to the document's collection (excluding). */
   prefixPath: string[];
 
-  /** The collection ID the document is direclty nested under. */
+  /** The collection ID the document is directly nested under. */
   collectionGroup: string;
 
   /** The document ID. */
