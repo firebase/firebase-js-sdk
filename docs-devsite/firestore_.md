@@ -98,8 +98,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [or(queryConstraints)](./firestore_.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
 |  <b>function(reference, ...)</b> |
 |  [addDoc(reference, data)](./firestore_.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
 |  [deleteDoc(reference)](./firestore_.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_568f98d) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_70b4396) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
@@ -1863,7 +1863,7 @@ A `Promise` resolved with a `DocumentReference` pointing to the newly created do
 
 ### collection(reference, path, pathSegments) {:#collection_568f98d}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 
@@ -1891,7 +1891,7 @@ If the final path has an even number of segments and does not point to a collect
 
 ### collection(reference, path, pathSegments) {:#collection_70b4396}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 

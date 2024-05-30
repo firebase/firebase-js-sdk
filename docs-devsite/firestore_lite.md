@@ -66,7 +66,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
-|  [getDocs(query)](./firestore_lite.md#getdocs_4e56953) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
+|  [getDocs(query)](./firestore_lite.md#getdocs_4e56953) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
 |  [query(query, compositeFilter, queryConstraints)](./firestore_lite.md#query_9f7b0f4) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  [query(query, queryConstraints)](./firestore_lite.md#query_0f46da1) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  <b>function(queryConstraints, ...)</b> |
@@ -74,8 +74,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [or(queryConstraints)](./firestore_lite.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
 |  <b>function(reference, ...)</b> |
 |  [addDoc(reference, data)](./firestore_lite.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically.<!-- -->The result of this write will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
-|  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
-|  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_lite.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
 |  [deleteDoc(reference)](./firestore_lite.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>.<!-- -->The deletion will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the delete fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  [doc(reference, path, pathSegments)](./firestore_lite.md#doc_568f98d) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_lite.md#doc_70b4396) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
@@ -1049,7 +1049,7 @@ A Promise that will be resolved with the count; the count can be retrieved from 
 
 Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.
 
-All queries are executed directly by the server, even if the the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK.
+All queries are executed directly by the server, even if the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK.
 
 <b>Signature:</b>
 
@@ -1199,7 +1199,7 @@ Error - If the provided input is not a valid Firestore document.
 
 ### collection(reference, path, pathSegments) {:#collection_568f98d}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 
@@ -1227,7 +1227,7 @@ If the final path has an even number of segments and does not point to a collect
 
 ### collection(reference, path, pathSegments) {:#collection_70b4396}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 

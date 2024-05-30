@@ -464,7 +464,7 @@ export declare function collection(
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -482,7 +482,7 @@ export declare function collection(
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
