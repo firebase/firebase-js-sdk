@@ -6968,7 +6968,7 @@
         ]
       },
       {
-        ".comment": "Server now incorperates user update",
+        ".comment": "Server now incorporates user update",
         "type": "serverUpdate",
         "tag": 1,
         "path": "key-2",
