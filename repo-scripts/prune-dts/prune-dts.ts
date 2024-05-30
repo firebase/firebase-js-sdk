@@ -123,11 +123,11 @@ function isExported(
     typeChecker.getSymbolAtLocation(name)?.declarations ?? [];
 
   // Check is this is a public symbol (e.g. part of the DOM library)
-  const isTypescriptType = declarations.find(
+  const isTypeScriptType = declarations.find(
     d => d.getSourceFile().fileName.indexOf('typescript/lib') != -1
   );
   const isImported = declarations.find(d => ts.isImportSpecifier(d));
-  if (isTypescriptType || isImported) {
+  if (isTypeScriptType || isImported) {
     return true;
   }
 

@@ -19,7 +19,7 @@
  *
  * Usage:
  *
- *   // Typescript string literals for type-safe codes
+ *   // TypeScript string literals for type-safe codes
  *   type Err =
  *     'unknown' |
  *     'object-not-found'

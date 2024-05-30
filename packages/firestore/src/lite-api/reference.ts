@@ -51,7 +51,7 @@ export interface DocumentData {
 }
 
 /**
- * Similar to Typescript's `Partial<T>`, but allows nested fields to be
+ * Similar to TypeScript's `Partial<T>`, but allows nested fields to be
  * omitted and FieldValues to be passed in as property values.
  */
 export type PartialWithFieldValue<T> =
