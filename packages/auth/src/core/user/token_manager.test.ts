@@ -58,7 +58,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
-    it('is fals if exp is far enough in future', () => {
+    it('is false if exp is far enough in future', () => {
       stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH + 10);
       expect(stsTokenManager.isExpired).to.eq(false);
     });
