@@ -50,5 +50,6 @@ jobs:
 
       - name: Create Release Pull Request
         uses: changesets/action@v1
+        if: env.GITHUB_TOKEN != ''
         env:
           GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
