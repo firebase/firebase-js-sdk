@@ -74,7 +74,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
     expect(isPerfInitialized()).to.be.true;
   });
 
-  it('returns initilization as not done before promise is resolved', async () => {
+  it('returns initialization as not done before promise is resolved', async () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
