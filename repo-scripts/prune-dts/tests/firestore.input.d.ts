@@ -794,7 +794,7 @@ export declare function disableNetwork(
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified absolute path.
  *
  * @param firestore - A reference to the root Firestore instance.
  * @param path - A slash-separated path to a document.

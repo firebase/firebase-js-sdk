@@ -34,7 +34,7 @@ $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script cli.ts --if <path t
 #### `@param moduleLocation: an absolute path to location of a firebase module`
 ```
 try {
-  const moduleLocation: string = "absoulte/path/to/firebase/module";
+  const moduleLocation: string = "absolute/path/to/firebase/module";
   const report: Report = await generateReportForModule(moduleLocation);
   console.log(report);
 
