@@ -21,8 +21,24 @@ env:
   NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
+  has-sa-key:
+    name: Check for Service Account Key
+    runs-on: ubuntu-latest
+    outputs:
+      has-sa-key: ${{ steps.check-key.outputs.has-sa-key }}
+    steps:
+      - name: Check for Service Account Key
+        id: check-key
+        env:
+          HAS_SA_KEY: ${{ secrets.JSSDK_ACTIONS_SA_KEY != '' && 1 || '' }}
+        if: env.HAS_SA_KEY
+        run: |
+          echo "has-sa-key=1" >> $GITHUB_OUTPUTS
+
   test:
+    needs: has-sa-key
     name: Test Firestore Integration If Changed
+    if: needs.has-sa-key.outputs.has-sa-key
     runs-on: ubuntu-latest
     env:
         run_terraform_steps: ${{ secrets.JSSDK_ACTIONS_SA_KEY != '' }}

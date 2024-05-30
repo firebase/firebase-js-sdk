@@ -19,8 +19,24 @@ on:
     tags: ['**']
 
 jobs:
+  has-sa-key:
+    name: Check for Service Account Key
+    runs-on: ubuntu-latest
+    outputs:
+      has-sa-key: ${{ steps.check-key.outputs.has-sa-key }}
+    steps:
+      - name: Check for Service Account Key
+        id: check-key
+        env:
+          HAS_SA_KEY: ${{ secrets.GCP_SA_KEY != '' && 1 || '' }}
+        if: env.HAS_SA_KEY
+        run: |
+          echo "has-sa-key=1" >> $GITHUB_OUTPUTS
+
   release-diffing:
+    needs: has-sa-key
     name: Release Diffing
+    if: needs.has-sa-key.outputs.has-sa-key
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/auth@v1
