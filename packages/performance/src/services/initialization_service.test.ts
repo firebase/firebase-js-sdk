@@ -27,7 +27,7 @@ import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
 
-describe('Firebase Perofmrance > initialization_service', () => {
+describe('Firebase Performance > initialization_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
   const getId = stub();
