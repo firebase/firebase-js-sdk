@@ -1318,7 +1318,7 @@
 ## 1.1.1
 
 - [changed] Increased a connection timeout that could lead to large writes
-  perputually retrying without ever succeeding (#1447).
+  perpetually retrying without ever succeeding (#1447).
 - [fixed] Fixed an issue with IndexedDb persistence that triggered an internal
   assert for Queries that use nested DocumentReferences in where() clauses
   (#1524, #1596).
