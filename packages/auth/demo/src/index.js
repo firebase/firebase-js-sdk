@@ -903,7 +903,7 @@ async function onStartEnrollWithTotpMultiFactor() {
     console.log(
       'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
     );
-    // display the numbr of seconds left to enroll.
+    // display the number of seconds left to enroll.
     $('p.totp-deadline').show();
     totpDeadlineId = setInterval(function () {
       var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
