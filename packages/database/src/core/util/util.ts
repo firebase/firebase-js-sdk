@@ -468,7 +468,7 @@ export const isWindowsStoreApp = function (): boolean {
 };
 
 /**
- * Converts a server error code to a Javascript Error
+ * Converts a server error code to a JavaScript Error
  */
 export function errorForServerCode(code: string, query: QueryContext): Error {
   let reason = 'Unknown Error';
