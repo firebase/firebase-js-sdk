@@ -27,7 +27,7 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages (#') }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0

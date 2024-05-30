@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@main
       with:
         # This makes Actions fetch all Git history so run-changed script can diff properly.
         fetch-depth: 0

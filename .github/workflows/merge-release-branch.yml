@@ -24,7 +24,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Release Branch
-        uses: actions/checkout@master
+        uses: actions/checkout@main
         with:
           ref: release
       - name: Get release version
