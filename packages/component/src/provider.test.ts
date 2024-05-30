@@ -298,7 +298,7 @@ describe('Provider', () => {
         await expect(provider.get()).to.eventually.deep.equal({ test: true });
       });
 
-      it('ignore parameter identifier and return the default service instance asyn', async () => {
+      it('ignore parameter identifier and return the default service instance async', async () => {
         provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const defaultService = provider.getImmediate();
         await expect(provider.get('spider1')).to.eventually.equal(
