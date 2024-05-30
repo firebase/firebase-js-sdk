@@ -3464,7 +3464,7 @@ declare namespace firebase.auth {
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/invalid-user-token</dt>
-     * <dd>Thrown if the user to be updated belongs to a diffent Firebase
+     * <dd>Thrown if the user to be updated belongs to a different Firebase
      *     project.</dd>
      * <dt>auth/user-token-expired</dt>
      * <dd>Thrown if the token of the user to be updated is expired.</dd>
