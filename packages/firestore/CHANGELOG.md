@@ -1311,7 +1311,7 @@
 
 ## 1.1.4
 
-- [feature] Added an `experimentalForceLongPolling` setting that that can be
+- [feature] Added an `experimentalForceLongPolling` setting that can be
   used to work around proxies that prevent the Firestore client from connecting
   to the Firestore backend.
 
