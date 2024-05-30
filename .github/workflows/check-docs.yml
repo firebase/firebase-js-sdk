@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@main
       with:
         # get all history for the diff
         fetch-depth: 0
