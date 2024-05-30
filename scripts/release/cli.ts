@@ -44,7 +44,7 @@ yargs
       },
       releaseType: {
         type: 'string',
-        desc: '"Staging" or "Production" - this is case sensitive!'
+        desc: '"Staging" or "Production" - this is case-sensitive!'
       },
       dryRun: {
         type: 'boolean',
