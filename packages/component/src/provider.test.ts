@@ -293,7 +293,7 @@ describe('Provider', () => {
     });
 
     describe('get()', () => {
-      it('get the service instance asynchronouly', async () => {
+      it('get the service instance asynchronously', async () => {
         provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         await expect(provider.get()).to.eventually.deep.equal({ test: true });
       });
@@ -453,7 +453,7 @@ describe('Provider', () => {
     });
 
     describe('get(identifier)', () => {
-      it('returns different service instances for different identifiers asynchronouly', async () => {
+      it('returns different service instances for different identifiers asynchronously', async () => {
         provider.setComponent(
           getFakeComponent('test', () => ({ test: true }), true)
         );
