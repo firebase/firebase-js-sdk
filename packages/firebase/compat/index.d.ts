@@ -1991,7 +1991,7 @@ declare namespace firebase.remoteConfig {
     /**
      * Gets the value as a boolean.
      *
-     * The following values (case insensitive) are interpreted as true:
+     * The following values (case-insensitive) are interpreted as true:
      * "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
      */
     asBoolean(): boolean;
