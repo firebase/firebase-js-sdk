@@ -528,7 +528,7 @@ describe('Provider', () => {
           };
         }
 
-        // provide factory that produces mulitpleInstances
+        // provide factory that produces multipleInstances
         provider.setComponent(getFakeComponent('test', getService, true));
 
         // create 2 service instances with different names
