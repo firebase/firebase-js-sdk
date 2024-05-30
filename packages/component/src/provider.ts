@@ -123,7 +123,7 @@ export class Provider<T extends Name> {
         }
       }
     } else {
-      // In case a component is not initialized and should/can not be auto-initialized at the moment, return null if the optional flag is set, or throw
+      // In case a component is not initialized and should/cannot be auto-initialized at the moment, return null if the optional flag is set, or throw
       if (optional) {
         return null;
       } else {
