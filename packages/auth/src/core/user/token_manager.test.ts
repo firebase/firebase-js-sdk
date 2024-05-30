@@ -77,7 +77,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
 
-    it('falls back to exp and iat when expiresIn is ommited (ie: MFA)', () => {
+    it('falls back to exp and iat when expiresIn is omitted (ie: MFA)', () => {
       const idToken = makeJWT({ 'exp': '180', 'iat': '120' });
       stsTokenManager.updateFromServerResponse({
         idToken,
