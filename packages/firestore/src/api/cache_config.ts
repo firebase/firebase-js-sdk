@@ -125,7 +125,7 @@ class PersistentLocalCacheImpl implements PersistentLocalCache {
 export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 /**
- * Union type from all support gabage collectors for memory local cache.
+ * Union type from all support garbage collectors for memory local cache.
  */
 export type MemoryGarbageCollector =
   | MemoryEagerGarbageCollector
@@ -170,7 +170,7 @@ export type MemoryLruGarbageCollector = {
   _offlineComponentProvider: MemoryOfflineComponentProvider;
 };
 
-class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
+class MemoryEagerGarbageCollectorImpl implements MemoryEagerGarbageCollector {
   kind: 'memoryEager' = 'memoryEager';
   /**
    * @internal
@@ -186,7 +186,7 @@ class MemoryEagerGabageCollectorImpl implements MemoryEagerGarbageCollector {
   }
 }
 
-class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
+class MemoryLruGarbageCollectorImpl implements MemoryLruGarbageCollector {
   kind: 'memoryLru' = 'memoryLru';
   /**
    * @internal
@@ -209,7 +209,7 @@ class MemoryLruGabageCollectorImpl implements MemoryLruGarbageCollector {
  * default garbage collector unless it is explicitly specified otherwise.
  */
 export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector {
-  return new MemoryEagerGabageCollectorImpl();
+  return new MemoryEagerGarbageCollectorImpl();
 }
 
 /**
@@ -222,7 +222,7 @@ export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector {
 export function memoryLruGarbageCollector(settings?: {
   cacheSizeBytes?: number;
 }): MemoryLruGarbageCollector {
-  return new MemoryLruGabageCollectorImpl(settings?.cacheSizeBytes);
+  return new MemoryLruGarbageCollectorImpl(settings?.cacheSizeBytes);
 }
 
 /**
