@@ -23,7 +23,7 @@ import { getRandomNode, getRootNode } from './helpers/util';
 
 /**
  * This test suite is super flaky, random test fail at random times for
- * no predicatble reason. Skipping for now but adding todo to come back
+ * no predictable reason. Skipping for now but adding todo to come back
  * later and fix this
  */
 // TODO: Fix the flaky test suite
