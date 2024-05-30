@@ -16,7 +16,7 @@ As contributors and maintainers of the Firebase JS SDK project, we pledge to res
 contributes by posting issues, updating documentation, submitting pull requests, providing feedback
 in comments, and any other activities.
 
-Communication through any of Firebase's channels (GitHub, StackOverflow, Google+, Twitter, etc.)
+Communication through any of Firebase's channels (GitHub, StackOverflow, X, etc.)
 must be constructive and never resort to personal attacks, trolling, public or private harassment,
 insults, or other unprofessional conduct.
 
