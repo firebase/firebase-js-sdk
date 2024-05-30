@@ -598,11 +598,11 @@ describe('Transaction', () => {
     });
   });
 
-  // This test is identical to the test above, except that a non-existent
+  // This test is identical to the test above, except that a nonexistent
   // document is replaced by a deleted document, to guard against regression of
   // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
   // would incorrectly fail with FAILED_PRECONDITION when operations were
-  // performed on a deleted document (rather than a non-existent document).
+  // performed on a deleted document (rather than a nonexistent document).
   it('can read deleted doc then write', () => {
     return withTestDocAndInitialData({ counter: 1 }, async doc => {
       await deleteDoc(doc);

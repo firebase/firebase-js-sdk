@@ -393,7 +393,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while online with default get options', () => {
+  it('get nonexistent doc while online with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return getDoc(docRef).then(doc => {
         expect(doc.exists()).to.be.false;
@@ -403,7 +403,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing collection while online with default get options', () => {
+  it('get nonexistent collection while online with default get options', () => {
     return withTestCollection(persistence, {}, colRef => {
       return getDocs(colRef).then(qrySnap => {
         //expect(qrySnap.count).to.equal(0);
@@ -415,7 +415,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while offline with default get options', () => {
+  it('get nonexistent doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -447,7 +447,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing collection while offline with default get options', () => {
+  it('get nonexistent collection while offline with default get options', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocs(colRef))
@@ -460,7 +460,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while online with source=cache', () => {
+  it('get nonexistent doc while online with source=cache', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       // Attempt to get doc.  This will fail since there's nothing in cache.
       return getDocFromCache(docRef).then(
@@ -470,7 +470,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing collection while online with source=cache', () => {
+  it('get nonexistent collection while online with source=cache', () => {
     return withTestCollection(persistence, {}, colRef => {
       return getDocsFromCache(colRef).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
@@ -481,7 +481,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while offline with source=cache', () => {
+  it('get nonexistent doc while offline with source=cache', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -519,7 +519,7 @@ apiDescribe('GetOptions', persistence => {
     }
   );
 
-  it('get non existing collection while offline with source=cache', () => {
+  it('get nonexistent collection while offline with source=cache', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocsFromCache(colRef))
@@ -532,7 +532,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while online with source=server', () => {
+  it('get nonexistent doc while online with source=server', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return getDocFromServer(docRef).then(doc => {
         expect(doc.exists()).to.be.false;
@@ -542,7 +542,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing collection while online with source=server', () => {
+  it('get nonexistent collection while online with source=server', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return getDocsFromServer(colRef).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
@@ -553,7 +553,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing doc while offline with source=server', () => {
+  it('get nonexistent doc while offline with source=server', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -567,7 +567,7 @@ apiDescribe('GetOptions', persistence => {
     });
   });
 
-  it('get non existing collection while offline with source=server', () => {
+  it('get nonexistent collection while offline with source=server', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocsFromServer(colRef))

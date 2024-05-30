@@ -5731,7 +5731,7 @@
   },
 
   {
-    "name": "User child overwrite for non-existent server node",
+    "name": "User child overwrite for nonexistent server node",
     "steps": [
       {
         "type": "listen",
@@ -5848,7 +5848,7 @@
         ]
       },
       {
-        ".comment": "User deletes non-existent key, which shouldn't trigger events",
+        ".comment": "User deletes nonexistent key, which shouldn't trigger events",
         "type": "set",
         "path": "key-2/non-key",
         "data": null,
