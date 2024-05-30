@@ -66,21 +66,21 @@ describe('extractExports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExport',
       'basicVarStatementExport',
-      'reExportVarStatmentExport'
+      'reExportVarStatementExport'
     ]);
   });
   it('test re-exported variable extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportFar',
       'basicVarStatementExportFar',
-      'reExportVarStatmentExportFar'
+      'reExportVarStatementExportFar'
     ]);
   });
   it('test re-exported variable extractions from same module - * re-exports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportBar',
       'basicVarStatementExportBar',
-      'reExportVarStatmentExportBar'
+      'reExportVarStatementExportBar'
     ]);
   });
 
