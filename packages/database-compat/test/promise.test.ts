@@ -22,11 +22,11 @@ import { Reference } from '../src/api/Reference';
 import { getRandomNode, getRootNode } from './helpers/util';
 
 /**
- * This test suite is super flakey, random test fail at random times for
+ * This test suite is super flaky, random test fail at random times for
  * no predicatble reason. Skipping for now but adding todo to come back
  * later and fix this
  */
-// TODO: Fix the flakey test suite
+// TODO: Fix the flaky test suite
 describe.skip('Promise Tests', () => {
   it('wraps Query.once', () => {
     return (getRandomNode() as Reference).once('value').then(snap => {
