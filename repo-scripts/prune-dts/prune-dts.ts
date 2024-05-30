@@ -108,7 +108,7 @@ export async function removeUnusedImports(
 
 /** Determines whether the provided identifier should be hidden. */
 function hasPrivatePrefix(name: ts.Identifier): boolean {
-  // Identifiers that are prefixed with an underscore are not not included in
+  // Identifiers that are prefixed with an underscore are not included in
   // the public API.
   return !!name.escapedText?.toString().startsWith('_');
 }
