@@ -407,7 +407,7 @@ describe('Provider', () => {
     describe('clearCache()', () => {
       it('removes the service instance from cache', () => {
         provider.setComponent(getFakeComponent('test', () => ({})));
-        // create serviec instance
+        // create service instance
         const instance = provider.getImmediate();
         expect((provider as any).instances.size).to.equal(1);
 
@@ -497,7 +497,7 @@ describe('Provider', () => {
         expect((provider as any).instances.size).to.equal(1);
       });
 
-      it(`instantiates the default serviec if there are pending promises for other identifiers 
+      it(`instantiates the default service if there are pending promises for other identifiers 
             but not for the default identifer and the service is eager`, () => {
         void provider.get('name1');
         provider.setComponent(
@@ -546,7 +546,7 @@ describe('Provider', () => {
     describe('clearCache()', () => {
       it('returns new service instances sync after cache is cleared', () => {
         provider.setComponent(getFakeComponent('test', () => ({}), true));
-        // create serviec instances with different identifiers
+        // create service instances with different identifiers
         const defaultInstance = provider.getImmediate();
         const instance1 = provider.getImmediate({ identifier: 'instance1' });
 
@@ -569,7 +569,7 @@ describe('Provider', () => {
 
       it('returns new services asynchronously after cache is cleared', async () => {
         provider.setComponent(getFakeComponent('test', () => ({}), true));
-        // create serviec instances with different identifiers
+        // create service instances with different identifiers
         const defaultInstance = await provider.get();
         const instance1 = await provider.get('instance1');
 
