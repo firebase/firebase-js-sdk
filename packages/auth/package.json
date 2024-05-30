@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/node/index.js",
@@ -39,11 +39,11 @@
       "default": "./dist/esm2017/index.js"
     },
     "./cordova": {
-      "types": "./dist/cordova/index.cordova.d.ts",
+      "types": "./dist/cordova/auth-cordova-public.d.ts",
       "default": "./dist/cordova/index.js"
     },
     "./web-extension": {
-      "types:": "./dist/web-extension-esm2017/index.web-extension.d.ts",
+      "types:": "./dist/web-extension-esm2017/auth-web-extension-public.d.ts",
       "import": "./dist/web-extension-esm2017/index.js",
       "require": "./dist/web-extension-cjs/index.js",
       "default": "./dist/web-extension-esm2017/index.js"
@@ -111,7 +111,7 @@
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:node:integration:local": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration --local",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
-    "api-report": "api-extractor run --local --verbose",
+    "api-report": "api-extractor run --local --verbose --config ./api-extractor.json && api-extractor run --local --verbose --config ./web-extension/api-extractor.json && api-extractor run --local --verbose --config ./cordova/api-extractor.json",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/auth-public.d.ts"
@@ -134,7 +134,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.3",
+    "@firebase/app": "0.10.5",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-strip": "2.1.0",
     "@types/express": "4.17.21",

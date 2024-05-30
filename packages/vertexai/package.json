@@ -1,6 +1,6 @@
 {
   "name": "@firebase/vertexai-preview",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Firebase SDK for VertexAI (preview)",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
@@ -11,7 +11,7 @@
   "module": "dist/esm/index.esm2017.js",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
+      "types": "./dist/vertexai-preview-public.d.ts",
       "node": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/esm/index.esm2017.js"
@@ -37,7 +37,8 @@
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
     "test:browser": "yarn testsetup && karma start --single-run",
-    "api-report": "api-extractor run --local --verbose"
+    "api-report": "api-extractor run --local --verbose",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -52,7 +53,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.3",
+    "@firebase/app": "0.10.5",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.79.1",
     "rollup-plugin-replace": "2.2.0",
