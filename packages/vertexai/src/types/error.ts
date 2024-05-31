@@ -49,7 +49,7 @@ export interface CustomErrorData {
 
   /** HTTP status text of the error response. */
   statusText?: string;
-  
+
   /** Response from a {@link GenerateContentRequest} */
   response?: GenerateContentResponse;
 

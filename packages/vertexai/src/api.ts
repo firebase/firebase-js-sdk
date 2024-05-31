@@ -21,11 +21,7 @@ import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
 import { VertexAIService } from './service';
 import { VertexAI, VertexAIOptions } from './public-types';
-import {
-  ModelParams,
-  RequestOptions,
-  VertexAIErrorCode
-} from './types';
+import { ModelParams, RequestOptions, VertexAIErrorCode } from './types';
 import { VertexAIError } from './errors';
 import { GenerativeModel } from './models/generative-model';
 
