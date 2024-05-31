@@ -26,7 +26,7 @@ jobs:
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      - uses: google-github-actions/setup-gcloud@v0
+      - uses: google-github-actions/setup-gcloud@v2
       - uses: FirebaseExtended/github-actions/health-metrics/release-diffing@master
         with:
           repo: ${{ github.repository }}
