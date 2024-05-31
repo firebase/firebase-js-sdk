@@ -87,7 +87,7 @@ export interface CountTokensResponse {
 // @public
 export interface CustomErrorData {
     errorDetails?: ErrorDetails[];
-    generateContentResponse?: GenerateContentResponse;
+    response?: GenerateContentResponse;
     status?: number;
     statusText?: string;
 }
