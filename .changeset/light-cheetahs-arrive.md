@@ -2,4 +2,4 @@
 '@firebase/vertexai-preview': patch
 ---
 
-Add a new VertexAI error type
+Add a publicly exported `VertexAIError` class.

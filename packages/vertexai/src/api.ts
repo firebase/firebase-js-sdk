@@ -33,7 +33,7 @@ export { ChatSession } from './methods/chat-session';
 
 export { GenerativeModel };
 
-export { VertexAIError } from './errors';
+export { VertexAIError };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

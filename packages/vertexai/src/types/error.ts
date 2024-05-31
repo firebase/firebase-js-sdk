@@ -51,7 +51,7 @@ export interface CustomErrorData {
   statusText?: string;
   
   /** Response from a {@link GenerateContentRequest} */
-  generateContentResponse?: GenerateContentResponse;
+  response?: GenerateContentResponse;
 
   /** Optional additional details about the error. */
   errorDetails?: ErrorDetails[];
