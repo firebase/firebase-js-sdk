@@ -19,6 +19,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [@firebase/app](./app.md#app_package) | Firebase App |
 |  [@firebase/app-check](./app-check.md#app-check_package) | The Firebase App Check Web SDK. |
 |  [@firebase/auth](./auth.md#auth_package) | Firebase Authentication |
+|  [@firebase/data-connect](./data-connect.md#data-connect_package) | Firebase Data Connect |
 |  [@firebase/database](./database.md#database_package) | Firebase Realtime Database |
 |  [@firebase/firestore](./firestore.md#firestore_package) | Cloud Firestore |
 |  [@firebase/functions](./functions.md#functions_package) | Cloud Functions for Firebase |
