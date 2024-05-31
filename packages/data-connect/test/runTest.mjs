@@ -50,6 +50,25 @@ async function seedDatabase() {
       );
   }
 }
+export async function addListPosts2() {
+  const obj = {
+    'service_id': 'l',
+    'connectors': {
+      'c': {
+        'files': [
+          {
+            'path': 'operations/post2.gql',
+            'content': 'query listPosts2 @auth(level: PUBLIC) {posts {content}}'
+          }
+        ]
+      }
+    }
+  };
+  return fetch(`http://localhost:3628/setupSchema`, {
+    method: 'POST',
+    body: JSON.stringify(obj)
+  });
+}
 function removeData() {
   // perform mutation of removing data
 }

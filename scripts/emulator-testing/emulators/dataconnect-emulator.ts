@@ -17,7 +17,7 @@
 
 import { Emulator } from './emulator';
 
-const DATABASE_EMULATOR_VERSION = '1.1.17';
+const DATABASE_EMULATOR_VERSION = '1.1.19';
 
 export class DataConnectEmulator extends Emulator {
   //   namespace: string;
@@ -28,7 +28,7 @@ export class DataConnectEmulator extends Emulator {
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator
-      `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.1.17?alt=media&token=c5e758bc-aaad-4be6-bd41-bcc08f3944a7`,
+      `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.1.19?alt=media&token=8415ec58-b7a1-486d-a579-d5e1a645025b`,
       port
     );
     this.isJar = false;

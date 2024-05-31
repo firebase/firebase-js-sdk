@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   FirebaseApp,
   _getProvider,

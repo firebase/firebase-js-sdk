@@ -18,22 +18,19 @@
 module.exports = {
   extends: '../../config/.eslintrc.js',
   parserOptions: {
-    project: 'tsconfig.eslint.json',
+    project: 'tsconfig.json',
     // to make vscode-eslint work with monorepo
     // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
     tsconfigRootDir: __dirname
   },
-  plugins: ['import'],
-  ignorePatterns: ['compat/*'],
   rules: {
-    'no-console': ['error', { allow: ['warn', 'error'] }],
-    '@typescript-eslint/no-unused-vars': [
-      'error',
-      {
-        varsIgnorePattern: '^_',
-        args: 'none'
-      }
-    ],
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-floating-promises': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    'no-restricted-properties': 'off',
+    'no-restricted-globals': 'off',
+    'no-throw-literal': 'off',
+    'id-blacklist': 'off',
     'import/order': [
       'error',
       {
@@ -48,40 +45,19 @@ module.exports = {
         'newlines-between': 'always',
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
-    ],
-    'no-restricted-globals': [
-      'error',
-      {
-        'name': 'window',
-        'message': 'Use `PlatformSupport.getPlatform().window` instead.'
-      },
-      {
-        'name': 'document',
-        'message': 'Use `PlatformSupport.getPlatform().document` instead.'
-      }
     ]
   },
   overrides: [
     {
       files: ['**/*.d.ts'],
       rules: {
-        'camelcase': 'off',
-        'import/no-duplicates': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-unused-vars': 'off'
-      }
-    },
-    {
-      files: ['**/*.test.ts', '**/test/**/*.ts'],
-      rules: {
-        '@typescript-eslint/no-explicit-any': 'error'
+        '@typescript-eslint/no-explicit-any': 'off'
       }
     },
     {
       files: ['scripts/*.ts'],
       rules: {
-        'import/no-extraneous-dependencies': 'off',
-        '@typescript-eslint/no-require-imports': 'off'
+        'import/no-extraneous-dependencies': 'off'
       }
     }
   ]
