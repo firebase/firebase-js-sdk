@@ -6,7 +6,6 @@ than it is today! Here are the guidelines we'd like you to follow:
  - [Code of Conduct](#coc)
  - [Question or Problem?](#question)
  - [Issues and Bugs](#issue)
- - [Feature Requests](#feature)
  - [Submission Guidelines](#submit)
  - [Updating Documentation](#docs)
 
