@@ -31,8 +31,10 @@ import {
   QueryResult,
   SerializedRef,
   subscribe,
-  terminate
-, SOURCE_CACHE, SOURCE_SERVER } from '../src';
+  terminate,
+  SOURCE_CACHE,
+  SOURCE_SERVER
+} from '../src';
 
 import { setupQueries } from './emulatorSeeder';
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
@@ -161,7 +163,9 @@ describe('DataConnect Tests', async () => {
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', Number(0));
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
-    expect(await executeQuery(taskListQuery)).to.eventually.be.rejectedWith('ECONNREFUSED');
+    expect(await executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
+      'ECONNREFUSED'
+    );
   });
 });
 async function waitForFirstEvent<Data, Variables>(

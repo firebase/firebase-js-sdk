@@ -79,4 +79,3 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
       .then(auth => auth.removeAuthTokenListener(listener));
   }
 }
-

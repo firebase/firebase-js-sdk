@@ -36,7 +36,6 @@ import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
 
-
 /**
  * Connector Config for calling Data Connect backend.
  */
@@ -131,10 +130,10 @@ export class DataConnect {
 
     if (this._authProvider) {
       this._authTokenProvider = new FirebaseAuthProvider(
-            this.app.name,
-            this.app.options,
-            this._authProvider
-          );
+        this.app.name,
+        this.app.options,
+        this._authProvider
+      );
     }
 
     this.initialized = true;
@@ -239,7 +238,7 @@ export function getDataConnect(
 /**
  * Delete DataConnect instance
  * @param dataConnect DataConnect instance
- * @returns 
+ * @returns
  */
 export function terminate(dataConnect: DataConnect): Promise<void> {
   return dataConnect._delete();
