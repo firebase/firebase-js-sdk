@@ -1,0 +1,225 @@
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { uuidv4 } from '@firebase/util';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+
+import {
+  connectDataConnectEmulator,
+  DataConnect,
+  executeMutation,
+  executeQuery,
+  getDataConnect,
+  mutationRef,
+  QueryRef,
+  queryRef,
+  QueryResult,
+  SerializedRef,
+  subscribe,
+  terminate,
+  SOURCE_CACHE,
+  SOURCE_SERVER
+} from '../../src';
+import { DataConnectError } from '../../src/core/error';
+import { setupQueries } from '../emulatorSeeder';
+import { addListPosts2 } from '../runTest.mjs';
+import { getConnectionConfig, initDatabase, PROJECT_ID } from '../util';
+
+use(chaiAsPromised);
+
+interface Task {
+  id: string;
+  content: string;
+}
+interface TaskListResponse {
+  posts: Task[];
+}
+
+const SEEDED_DATA = [
+  {
+    id: uuidv4(),
+    content: 'task 1'
+  },
+  {
+    id: uuidv4(),
+    content: 'task 2'
+  }
+];
+function seedDatabase(instance: DataConnect): Promise<void> {
+  // call mutation query that adds SEEDED_DATA to database
+  return new Promise((resolve, reject) => {
+    async function run() {
+      let idx = 0;
+      while (idx < SEEDED_DATA.length) {
+        const data = SEEDED_DATA[idx];
+        const ref = mutationRef(instance, 'seedDatabase', data);
+        await executeMutation(ref);
+        idx++;
+      }
+    }
+    run().then(resolve, reject);
+  });
+}
+async function deleteDatabase(instance: DataConnect) {
+  for (let i = 0; i < SEEDED_DATA.length; i++) {
+    const data = SEEDED_DATA[i];
+    const ref = mutationRef(instance, 'removePost', { id: data.id });
+    await executeMutation(ref);
+  }
+}
+
+describe('DataConnect Tests', async () => {
+  let dc: DataConnect;
+  beforeEach(async () => {
+    dc = initDatabase();
+    await setupQueries('queries.schema.gql', [
+      { type: 'query', name: 'post' },
+      { type: 'mutation', name: 'mutations' }
+    ]);
+    await seedDatabase(dc);
+  });
+  afterEach(async () => {
+    await deleteDatabase(dc);
+    await terminate(dc);
+  });
+  it('Can get all posts', async () => {
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const taskListRes = await executeQuery(taskListQuery);
+    expect(taskListRes.data).to.deep.eq({
+      posts: SEEDED_DATA
+    });
+  });
+  it(`instantly executes a query if one hasn't been subscribed to`, async () => {
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const promise = new Promise<QueryResult<TaskListResponse, undefined>>(
+      (resolve, reject) => {
+        const unsubscribe = subscribe(taskListQuery, {
+          onNext: res => {
+            unsubscribe();
+            resolve(res);
+          },
+          onErr: () => {
+            unsubscribe();
+            reject(res);
+          }
+        });
+      }
+    );
+    const res = await promise;
+    expect(res.data).to.deep.eq({
+      posts: SEEDED_DATA
+    });
+    expect(res.source).to.eq(SOURCE_SERVER);
+  });
+  it(`returns the result source as cache when data already exists`, async () => {
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    const queryResult = await executeQuery(taskListQuery);
+    const result = await waitForFirstEvent(taskListQuery);
+    expect(result.data).to.eq(queryResult.data);
+    expect(result.source).to.eq(SOURCE_CACHE);
+  });
+  it(`returns the proper JSON when calling .toJSON()`, async () => {
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    await executeQuery(taskListQuery);
+    const result = await waitForFirstEvent(taskListQuery);
+    const serializedRef: SerializedRef<TaskListResponse, undefined> = {
+      data: {
+        posts: SEEDED_DATA
+      },
+      fetchTime: Date.now().toLocaleString(),
+      refInfo: {
+        connectorConfig: {
+          ...getConnectionConfig(),
+          projectId: PROJECT_ID
+        },
+        name: taskListQuery.name,
+        variables: undefined
+      },
+      source: SOURCE_SERVER
+    };
+    expect(result.toJSON()).to.deep.eq(serializedRef);
+    expect(result.source).to.deep.eq(SOURCE_CACHE);
+  });
+  it(`throws an error when the user can't connect to the server`, async () => {
+    // You can't point an existing data connect instance to a new emulator port, so we have to create a new one
+    const fakeInstance = getDataConnect({
+      connector: 'wrong',
+      location: 'wrong',
+      service: 'wrong'
+    });
+    connectDataConnectEmulator(fakeInstance, 'localhost', Number(0));
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    expect(await executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
+      'ECONNREFUSED'
+    );
+  });
+  it.only(`triggers onError with an undefined error after an error is thrown and then is resolved`, async () => {
+    // You can't point an existing data connect instance to a new emulator port, so we have to create a new one
+    const events: Array<DataConnectError | undefined> = [];
+    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts2');
+    new Promise((resolve, reject) => {
+      subscribe(taskListQuery, (onResult) => {
+        reject(onResult);
+      }, (e) => {
+        events.push(e);
+        if(events.length === 2) {
+          resolve(null);
+        }
+      });
+    });
+    try {
+      await executeQuery(taskListQuery);
+    } catch {}
+      await addListPosts2();
+      await executeQuery(taskListQuery);
+    expect(!!events[0]).to.be.true;
+    expect(!!events[1]).to.be.false;
+  });
+});
+async function waitForFirstEvent<Data, Variables>(
+  query: QueryRef<Data, Variables>
+): Promise<QueryResult<Data, Variables>> {
+  return new Promise<{
+    result: QueryResult<Data, Variables>;
+    unsubscribe: () => void;
+  }>((resolve, reject) => {
+    const onResult = (result: QueryResult<Data, Variables>) => {
+      setTimeout(() => {
+        resolve({
+          result,
+          unsubscribe
+        });
+      });
+    };
+    const unsubscribe = subscribe(query, {
+      onNext: onResult,
+      onErr: e => {
+        reject({ e, unsubscribe });
+      }
+    });
+  }).then(
+    ({ result, unsubscribe }) => {
+      unsubscribe();
+      return result;
+    },
+    ({ e, unsubscribe }) => {
+      unsubscribe();
+      throw e;
+    }
+  );
+}
