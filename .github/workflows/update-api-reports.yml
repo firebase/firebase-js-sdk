@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@master
       with:
         # checkout HEAD commit instead of merge commit
-        ref: ${{ github.event.pull_request.head.ref }}
+        ref: refs/pull/${{ github.event.pull_request.number }}/head
         token: ${{ github.token }}
     - name: Set up node (20)
       uses: actions/setup-node@v3
