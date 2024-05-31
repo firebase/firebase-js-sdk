@@ -47,7 +47,7 @@ jobs:
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
     - name: Set up node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Merge master into release
@@ -63,7 +63,7 @@ jobs:
           })
           console.log(result)
     - name: Checkout current branch (with history)
-      uses: actions/checkout@master
+      uses: actions/checkout@main
       with:
         # Release script requires git history and tags.
         fetch-depth: 0

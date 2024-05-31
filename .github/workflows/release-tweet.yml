@@ -33,9 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       - name: Setup Node.js 20.x
-        uses: actions/setup-node@master
+        uses: actions/setup-node@main
         with:
           node-version: 20.x
       - name: Poll release notes page on devsite

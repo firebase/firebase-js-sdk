@@ -35,9 +35,9 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       - name: Set up Node (20)
-        uses: actions/setup-node@master
+        uses: actions/setup-node@main
         with:
           node-version: 20.x
       - name: install Chrome stable
