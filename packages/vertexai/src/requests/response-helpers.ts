@@ -46,9 +46,9 @@ export function addHelpers(
           VertexAIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
-          )}. Response body stored in error.generateContentResponse`,
+          )}. Response body stored in error.response`,
           {
-            generateContentResponse: response
+            response
           }
         );
       }
@@ -58,7 +58,7 @@ export function addHelpers(
         VertexAIErrorCode.RESPONSE_ERROR,
         `Text not available. ${formatBlockErrorMessage(response)}`,
         {
-          generateContentResponse: response
+          response
         }
       );
     }
@@ -78,9 +78,9 @@ export function addHelpers(
           VertexAIErrorCode.RESPONSE_ERROR,
           `Response error: ${formatBlockErrorMessage(
             response
-          )}. Response body stored in error.generateContentResponse`,
+          )}. Response body stored in error.response`,
           {
-            generateContentResponse: response
+            response
           }
         );
       }
@@ -90,7 +90,7 @@ export function addHelpers(
         VertexAIErrorCode.RESPONSE_ERROR,
         `Function call not available. ${formatBlockErrorMessage(response)}`,
         {
-          generateContentResponse: response
+          response
         }
       );
     }
