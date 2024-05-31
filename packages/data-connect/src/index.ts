@@ -29,7 +29,6 @@ export * from './api.browser';
 
 registerDataConnect();
 
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'data-connect': DataConnect;

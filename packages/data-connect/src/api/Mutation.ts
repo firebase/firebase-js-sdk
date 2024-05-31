@@ -40,7 +40,7 @@ export function mutationRef<Data>(
   mutationName: string
 ): MutationRef<Data, undefined>;
 /**
- * 
+ *
  * @param dcInstance Data Connect instance
  * @param mutationName name of mutation
  * @param variables variables to send with mutation
@@ -51,7 +51,7 @@ export function mutationRef<Data, Variables>(
   variables: Variables
 ): MutationRef<Data, Variables>;
 /**
- * 
+ *
  * @param dcInstance Data Connect instance
  * @param mutationName name of mutation
  * @param variables variables to send with mutation

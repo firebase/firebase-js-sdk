@@ -38,8 +38,6 @@ import * as path from 'path';
 //      }
 //    }
 
-
-
 import { ReferenceType } from '../src';
 
 //  }
