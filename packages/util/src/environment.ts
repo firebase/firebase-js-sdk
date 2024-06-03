@@ -201,10 +201,6 @@ export function areCookiesEnabled(): boolean {
   if (cookiesEnabled !== undefined) {
     return cookiesEnabled;
   }
-  cookiesEnabled = navigator?.cookieEnabled;
-  if (typeof navigator === 'undefined' || !navigator.cookieEnabled) {
-    cookiesEnabled = false;
-  }
-  cookiesEnabled = true;
+  cookiesEnabled = navigator?.cookieEnabled || false;
   return cookiesEnabled;
 }
