@@ -23,15 +23,14 @@ export declare class VertexAIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, httpErrorDetails, generateContentResponse)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Creates a new VertexAIError instance. |
+|  [(constructor)(code, message, customErrorData)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Creates a new VertexAIError instance. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [code](./vertexai-preview.vertexaierror.md#vertexaierrorcode) |  | [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) |  |
-|  [generateContentResponse](./vertexai-preview.vertexaierror.md#vertexaierrorgeneratecontentresponse) |  | [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface) \| undefined |  |
-|  [httpErrorDetails](./vertexai-preview.vertexaierror.md#vertexaierrorhttperrordetails) |  | [HTTPErrorDetails](./vertexai-preview.httperrordetails.md#httperrordetails_interface) \| undefined |  |
+|  [customErrorData](./vertexai-preview.vertexaierror.md#vertexaierrorcustomerrordata) |  | [CustomErrorData](./vertexai-preview.customerrordata.md#customerrordata_interface) \| undefined |  |
 |  [message](./vertexai-preview.vertexaierror.md#vertexaierrormessage) |  | string |  |
 
 ## VertexAIError.(constructor)
@@ -41,7 +40,7 @@ Creates a new VertexAIError instance.
 <b>Signature:</b>
 
 ```typescript
-constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErrorDetails | undefined, generateContentResponse?: GenerateContentResponse | undefined);
+constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
 ```
 
 #### Parameters
@@ -50,8 +49,7 @@ constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErr
 |  --- | --- | --- |
 |  code | [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) | The error code from [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode)<!-- -->. |
 |  message | string | A human-readable message describing the error. |
-|  httpErrorDetails | [HTTPErrorDetails](./vertexai-preview.httperrordetails.md#httperrordetails_interface) \| undefined |  |
-|  generateContentResponse | [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface) \| undefined | Optional response from a [GenerateContentRequest](./vertexai-preview.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->. |
+|  customErrorData | [CustomErrorData](./vertexai-preview.customerrordata.md#customerrordata_interface) \| undefined | Optional error data. |
 
 ## VertexAIError.code
 
@@ -61,20 +59,12 @@ constructor(code: VertexAIErrorCode, message: string, httpErrorDetails?: HTTPErr
 readonly code: VertexAIErrorCode;
 ```
 
-## VertexAIError.generateContentResponse
+## VertexAIError.customErrorData
 
 <b>Signature:</b>
 
 ```typescript
-readonly generateContentResponse?: GenerateContentResponse | undefined;
-```
-
-## VertexAIError.httpErrorDetails
-
-<b>Signature:</b>
-
-```typescript
-readonly httpErrorDetails?: HTTPErrorDetails | undefined;
+readonly customErrorData?: CustomErrorData | undefined;
 ```
 
 ## VertexAIError.message
