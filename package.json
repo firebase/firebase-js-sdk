@@ -40,6 +40,7 @@
     "test:saucelabs": "node scripts/run_saucelabs.js",
     "docgen": "ts-node-script scripts/docgen/docgen.ts",
     "docgen:compat": "node scripts/docgen-compat/generate-docs.js --api js",
+    "docgen:all": "yarn docgen devsite && yarn docgen toc",
     "lint": "lerna run --scope @firebase/* lint",
     "lint:fix": "lerna run --scope @firebase/* lint:fix",
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
