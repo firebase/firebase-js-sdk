@@ -16,11 +16,15 @@
  */
 
 import { Code, DataConnectError } from '../core/error';
+import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch) {
   connectFetch = fetchImpl;
+}
+function getGoogApiClientValue(): string {
+  return 'gl-js/ fire/' + SDK_VERSION;
 }
 export function dcFetch<T, U>(
   url: string,
@@ -32,7 +36,8 @@ export function dcFetch<T, U>(
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
   const headers: HeadersInit = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Goog-Api-Client': getGoogApiClientValue()
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
