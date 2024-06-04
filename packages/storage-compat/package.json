@@ -31,6 +31,7 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
   },

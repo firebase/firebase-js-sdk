@@ -29,7 +29,8 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js"
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "license": "Apache-2.0",
   "dependencies": {
