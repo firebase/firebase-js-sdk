@@ -18,7 +18,7 @@
 import { trustedResourceUrl } from 'safevalues';
 import { safeServiceWorkerContainer } from 'safevalues/dom';
 
-import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../util/constants';
+import { DEFAULT_SW_SCOPE } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
@@ -30,7 +30,7 @@ export async function registerDefaultSw(
     const container = navigator.serviceWorker;
     messaging.swRegistration = await safeServiceWorkerContainer.register(
       container,
-      trustedResourceUrl`${DEFAULT_SW_PATH}`,
+      trustedResourceUrl`/firebase-messaging-sw.js`,
       {
         scope: DEFAULT_SW_SCOPE
       }
