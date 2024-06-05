@@ -16,6 +16,8 @@
  */
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
+import { safeAttrPrefix } from 'safevalues';
+import { safeElement } from 'safevalues/dom';
 
 import {
   initializeAuth,
@@ -124,7 +126,7 @@ _setExternalJSProvider({
     // TODO: consider adding timeout support & cancellation
     return new Promise((resolve, reject) => {
       const el = document.createElement('script');
-      el.setAttribute('src', url);
+      safeElement.setPrefixedAttribute([safeAttrPrefix`src`], el, 'src', url);
       el.onload = resolve;
       el.onerror = e => {
         const error = _createError(AuthErrorCode.INTERNAL_ERROR);

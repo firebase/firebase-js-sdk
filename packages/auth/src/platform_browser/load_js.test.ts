@@ -18,6 +18,8 @@
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import { safeAttrPrefix } from 'safevalues';
+import { safeElement } from 'safevalues/dom';
 
 import {
   _generateCallbackName,
@@ -44,7 +46,12 @@ describe('platform-browser/load_js', () => {
         loadJS(url: string): Promise<Event> {
           return new Promise((resolve, reject) => {
             const el = document.createElement('script');
-            el.setAttribute('src', url);
+            safeElement.setPrefixedAttribute(
+              [safeAttrPrefix`src`],
+              el,
+              'src',
+              url
+            );
             el.onload = resolve;
             el.onerror = e => {
               const error = _createError(AuthErrorCode.INTERNAL_ERROR);
@@ -65,7 +72,9 @@ describe('platform-browser/load_js', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       _loadJS('http://localhost/url');
-      expect(el.setAttribute).to.have.been.calledWith(
+      expect(safeElement.setPrefixedAttribute).to.have.been.calledWith(
+        [safeAttrPrefix`src`],
+        el,
         'src',
         'http://localhost/url'
       );

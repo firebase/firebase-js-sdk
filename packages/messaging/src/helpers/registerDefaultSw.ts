@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { trustedResourceUrl } from 'safevalues';
+import { safeServiceWorkerContainer } from 'safevalues/dom';
+
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
@@ -24,8 +27,10 @@ export async function registerDefaultSw(
   messaging: MessagingService
 ): Promise<void> {
   try {
-    messaging.swRegistration = await navigator.serviceWorker.register(
-      DEFAULT_SW_PATH,
+    const container = navigator.serviceWorker;
+    messaging.swRegistration = await safeServiceWorkerContainer.register(
+      container,
+      trustedResourceUrl`${DEFAULT_SW_PATH}`,
       {
         scope: DEFAULT_SW_SCOPE
       }
