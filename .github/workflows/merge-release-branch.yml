@@ -39,7 +39,7 @@ jobs:
       - name: Merge to master
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             github.rest.repos.merge({
               owner: context.repo.owner,
