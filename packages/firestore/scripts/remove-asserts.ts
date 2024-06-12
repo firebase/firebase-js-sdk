@@ -79,25 +79,26 @@ class RemoveAsserts {
               const errorMessage = RemoveAsserts.trimErrorMessage(stringLiteral.getFullText());
               const errorCode = RemoveAsserts.errorCode(errorMessage);
 
+              let errorId: number = -1;
               try {
-                RemoveAsserts.saveErrorCode(errorCode, errorMessage);
+                errorId = RemoveAsserts.saveErrorCode(errorCode, errorMessage);
               }
               catch (e) {
                 console.log('Failed to save error code ' + JSON.stringify(e));
               }
               const newArguments = [...node.arguments];
-              newArguments[messageIndex] = ts.createLiteral(errorCode);
+              newArguments[messageIndex] = ts.factory.createNumericLiteral(errorId);
 
               // Replace the call with the full error message to a
               // build with an error code
-              updatedNode = ts.createCall(
+              updatedNode = ts.factory.createCallExpression(
                 declaration.name!,
                 /*typeArgs*/ undefined,
                 newArguments
               );
             } else {
               const newArguments = [...node.arguments];
-              newArguments[messageIndex] = ts.createLiteral('Unexpected error');
+              newArguments[messageIndex] = ts.factory.createNumericLiteral(-1);
               // Remove the log message but keep the assertion
               updatedNode = ts.createCall(
                 declaration.name!,
@@ -135,13 +136,27 @@ class RemoveAsserts {
     return paramHash;
   }
 
-  static saveErrorCode(errorCode: string, errorMessage: string): void {
+
+
+  static saveErrorCode(errorCode: string, errorMessage: string): number {
     const errorCodes = RemoveAsserts.getErrorCodes();
-    errorCodes[errorCode] = errorMessage;
+
+    const existingErrorCode: Error | undefined = errorCodes[errorCode];
+    if (existingErrorCode)
+      {return existingErrorCode.id;}
+
+    const id = Object.keys(errorCodes).length;
+    errorCodes[errorCode] = {
+      message: errorMessage,
+      id
+    };
+
     RemoveAsserts.saveErrorCodes(errorCodes);
+
+    return id;
   }
 
-  static getErrorCodes(): Record<string, string> {
+  static getErrorCodes(): Record<string, Error> {
     const path = join(module.path, ERROR_CODE_LOCATION);
     if (!existsSync(path)){
       return {};
@@ -149,8 +164,13 @@ class RemoveAsserts {
     return JSON.parse(readFileSync(path, 'utf-8'));
   }
 
-  static saveErrorCodes(errorCodes: Record<string, string>): void {
+  static saveErrorCodes(errorCodes: Record<string, Error>): void {
     const path = join(module.path, ERROR_CODE_LOCATION);
     writeFileSync(path, JSON.stringify(errorCodes, undefined, 4), {encoding: "utf-8", });
   }
 }
+
+interface Error {
+  id: number,
+  message: string
+};

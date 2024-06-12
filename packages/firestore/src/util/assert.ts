@@ -28,16 +28,13 @@ import { logError } from './log';
  * let futureVar = fail('not implemented yet');
  */
 export function fail(
-  failure: string = 'Unexpected state',
+  failure: string | number,
   context: unknown = undefined
 ): never {
   _fail(failure, context);
 }
 
-function _fail(
-  failure: string = 'Unexpected state',
-  context: unknown = undefined
-): never {
+function _fail(failure: string | number, context: unknown = undefined): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
   let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure}`;
@@ -65,7 +62,7 @@ function _fail(
  */
 export function hardAssert(
   assertion: boolean,
-  message?: string,
+  message: string | number,
   context?: unknown
 ): asserts assertion {
   if (!assertion) {
