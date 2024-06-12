@@ -27,11 +27,28 @@ import { logError } from './log';
  * @example
  * let futureVar = fail('not implemented yet');
  */
-export function fail(failure: string = 'Unexpected state'): never {
+export function fail(
+  failure: string = 'Unexpected state',
+  context: unknown = undefined
+): never {
+  _fail(failure, context);
+}
+
+function _fail(
+  failure: string = 'Unexpected state',
+  context: unknown = undefined
+): never {
   // Log the failure in addition to throw an exception, just in case the
   // exception is swallowed.
-  const message =
-    `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ` + failure;
+  let message = `FIRESTORE (${SDK_VERSION}) INTERNAL ASSERTION FAILED: ${failure}`;
+  if (context !== undefined) {
+    try {
+      const stringContext = JSON.stringify(context);
+      message += ' CONTEXT: ' + stringContext;
+    } catch (e) {
+      message += ' CONTEXT: ' + context;
+    }
+  }
   logError(message);
 
   // NOTE: We don't use FirestoreError here because these are internal failures
@@ -48,10 +65,11 @@ export function fail(failure: string = 'Unexpected state'): never {
  */
 export function hardAssert(
   assertion: boolean,
-  message?: string
+  message?: string,
+  context?: unknown
 ): asserts assertion {
   if (!assertion) {
-    fail(message);
+    _fail(message, context);
   }
 }
 

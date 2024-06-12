@@ -138,7 +138,7 @@ export function toDbRemoteDocument(
       version: toDbTimestamp(document.version)
     };
   } else {
-    return fail('Unexpected Document ' + document);
+    return fail('Unexpected Document', { document });
   }
   return remoteDoc;
 }

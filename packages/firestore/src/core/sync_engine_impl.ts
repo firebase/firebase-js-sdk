@@ -992,7 +992,7 @@ function updateTrackedLimbos(
         removeLimboTarget(syncEngineImpl, limboChange.key);
       }
     } else {
-      fail('Unknown limbo change: ' + JSON.stringify(limboChange));
+      fail('Unknown limbo change', { limboChange });
     }
   }
 }
@@ -1309,7 +1309,7 @@ export async function syncEngineApplyBatchState(
       batchId
     );
   } else {
-    fail(`Unknown batchState: ${batchState}`);
+    fail(`Unknown batchState`, { batchState });
   }
 
   await syncEngineEmitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
@@ -1552,7 +1552,7 @@ export async function syncEngineApplyTargetState(
         break;
       }
       default:
-        fail('Unexpected target state: ' + state);
+        fail('Unexpected target state', state);
     }
   }
 }

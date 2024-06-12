@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
+import { createHash } from 'crypto';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
+
 import * as ts from 'typescript';
 
 // Location of file that includes the asserts
 const ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
+const ERROR_CODE_LOCATION = '../dist/error_codes.json';
 
 export function removeAsserts(
   program: ts.Program
@@ -31,7 +36,8 @@ export function removeAsserts(
 
 /**
  * Transformer that removes all "debugAssert" statements from the SDK and
- * removes the custom message for fail() and hardAssert().
+ * replaces the custom message for fail() and hardAssert() with shorter
+ * error codes
  */
 class RemoveAsserts {
   constructor(private readonly typeChecker: ts.TypeChecker) {}
@@ -63,22 +69,37 @@ class RemoveAsserts {
           declaration.getSourceFile().fileName.indexOf(ASSERT_LOCATION) >= 0
         ) {
           const method = declaration.name!.text;
+
           if (method === 'debugAssert') {
             updatedNode = ts.createOmittedExpression();
-          } else if (method === 'hardAssert') {
-            // Remove the log message but keep the assertion
-            updatedNode = ts.createCall(
-              declaration.name!,
-              /*typeArgs*/ undefined,
-              [node.arguments[0]]
-            );
-          } else if (method === 'fail') {
-            // Remove the log message
-            updatedNode = ts.createCall(
-              declaration.name!,
-              /*typeArgs*/ undefined,
-              []
-            );
+          } else if ((method === 'hardAssert') || (method === 'fail')) {
+            const messageIndex = (method === 'hardAssert') ? 1 : 0;
+            if ((node.arguments.length > messageIndex) && (node.arguments[messageIndex].kind === ts.SyntaxKind.StringLiteral)) {
+              const stringLiteral: ts.StringLiteral = node.arguments[messageIndex] as ts.StringLiteral;
+              const errorMessage = RemoveAsserts.trimErrorMessage(stringLiteral.getFullText());
+              const errorCode = RemoveAsserts.errorCode(errorMessage);
+
+              RemoveAsserts.saveErrorCode(errorCode, errorMessage);
+              const newArguments = [...node.arguments];
+              newArguments[messageIndex] = ts.createLiteral(errorCode);
+
+              // Replace the call with the full error message to a
+              // build with an error code
+              updatedNode = ts.createCall(
+                declaration.name!,
+                /*typeArgs*/ undefined,
+                newArguments
+              );
+            } else {
+              const newArguments = [...node.arguments];
+              newArguments[messageIndex] = ts.createLiteral('Unexpected error');
+              // Remove the log message but keep the assertion
+              updatedNode = ts.createCall(
+                declaration.name!,
+                /*typeArgs*/ undefined,
+                newArguments
+              );
+            }
           }
         }
       }
@@ -90,5 +111,41 @@ class RemoveAsserts {
     } else {
       return node;
     }
+  }
+
+  static trimErrorMessage(errorMessage: string): string {
+    return errorMessage.substring(
+      errorMessage.indexOf("'") + 1,
+      errorMessage.lastIndexOf("'"));
+  }
+
+  static errorCode(errorMessage: string): string {
+    // Create a sha256 hash from the parameter names and types.
+    const hash = createHash('sha256');
+    hash.update(errorMessage);
+
+    // Use the first 7 characters of the hash for a more compact code.
+    const paramHash = hash.digest('hex').substring(0, 7);
+
+    return paramHash;
+  }
+
+  static saveErrorCode(errorCode: string, errorMessage: string): void {
+    const errorCodes = RemoveAsserts.getErrorCodes();
+    errorCodes[errorCode] = errorMessage;
+    RemoveAsserts.saveErrorCodes(errorCodes);
+  }
+
+  static getErrorCodes(): Record<string, string> {
+    const path = join(module.path, ERROR_CODE_LOCATION);
+    if (!existsSync(path)){
+      return {};
+    }
+    return JSON.parse(readFileSync(path, 'utf-8'));
+  }
+
+  static saveErrorCodes(errorCodes: Record<string, string>): void {
+    const path = join(module.path, ERROR_CODE_LOCATION);
+    writeFileSync(path, JSON.stringify(errorCodes, undefined, 4), {encoding: "utf-8", });
   }
 }

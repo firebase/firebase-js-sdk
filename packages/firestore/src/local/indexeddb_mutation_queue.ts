@@ -206,7 +206,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
         if (dbBatch) {
           hardAssert(
             dbBatch.userId === this.userId,
-            `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
+            `Unexpected user for mutation batch`,
+            {
+              userId: dbBatch.userId,
+              batchId
+            }
           );
           return fromDbMutationBatch(this.serializer, dbBatch);
         }
@@ -257,7 +261,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
           if (dbBatch.userId === this.userId) {
             hardAssert(
               dbBatch.batchId >= nextBatchId,
-              'Should have found mutation after ' + nextBatchId
+              'Should have found mutation after `nextBatchId`',
+              { nextBatchId }
             );
             foundBatch = fromDbMutationBatch(this.serializer, dbBatch);
           }
@@ -336,15 +341,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .next(mutation => {
             if (!mutation) {
               throw fail(
-                'Dangling document-mutation reference found: ' +
-                  indexKey +
-                  ' which points to ' +
+                'Dangling document-mutation reference found: `indexKey` which points to `batchId`',
+                {
+                  indexKey,
                   batchId
+                }
               );
             }
             hardAssert(
               mutation.userId === this.userId,
-              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
+              `Unexpected user for mutation batch`,
+              {
+                userId: mutation.userId,
+                batchId
+              }
             );
             results.push(fromDbMutationBatch(this.serializer, mutation));
           });
@@ -468,14 +478,16 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .next(mutation => {
             if (mutation === null) {
               throw fail(
-                'Dangling document-mutation reference found, ' +
-                  'which points to ' +
+                'Dangling document-mutation reference found, which points to `batchId`',
+                {
                   batchId
+                }
               );
             }
             hardAssert(
               mutation.userId === this.userId,
-              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
+              `Unexpected user for mutation batch`,
+              { userId: mutation.userId, batchId }
             );
             results.push(fromDbMutationBatch(this.serializer, mutation));
           })
@@ -549,9 +561,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
         .next(() => {
           hardAssert(
             danglingMutationReferences.length === 0,
-            'Document leak -- detected dangling mutation references when queue is empty. ' +
-              'Dangling keys: ' +
-              danglingMutationReferences.map(p => p.canonicalString())
+            'Document leak -- detected dangling mutation references when queue is empty.',
+            {
+              danglingKeys: danglingMutationReferences.map(p =>
+                p.canonicalString()
+              )
+            }
           );
         });
     });

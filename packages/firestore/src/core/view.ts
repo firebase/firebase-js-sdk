@@ -505,7 +505,7 @@ function compareChangeType(c1: ChangeType, c2: ChangeType): number {
       case ChangeType.Removed:
         return 0;
       default:
-        return fail('Unknown ChangeType: ' + change);
+        return fail('Unknown ChangeType', { change });
     }
   };
 

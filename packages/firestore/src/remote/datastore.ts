@@ -228,7 +228,7 @@ export async function invokeBatchGetDocumentsRpc(
   const result: Document[] = [];
   keys.forEach(key => {
     const doc = docs.get(key.toString());
-    hardAssert(!!doc, 'Missing entity in write response for ' + key);
+    hardAssert(!!doc, 'Missing entity in write response for `key`', { key });
     result.push(doc);
   });
   return result;

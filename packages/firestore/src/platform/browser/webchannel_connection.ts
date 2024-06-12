@@ -143,12 +143,13 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                `RPC '${rpcName}' ${streamId} ` +
-                  'failed with unanticipated webchannel error: ' +
-                  xhr.getLastErrorCode() +
-                  ': ' +
-                  xhr.getLastError() +
-                  ', giving up.'
+                'RPC failed with unanticipated webchannel error. Giving up.',
+                {
+                  rpcName,
+                  streamId,
+                  lastErrorCode: xhr.getLastErrorCode(),
+                  lastError: xhr.getLastError()
+                }
               );
           }
         } finally {
