@@ -1,0 +1,3 @@
+[submodule "packages/vertexai/test-utils/firebase-android-sdk"]
+	path = packages/vertexai/test-utils/firebase-android-sdk
+	url = https://github.com/firebase/firebase-android-sdk/
