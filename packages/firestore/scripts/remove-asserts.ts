@@ -79,7 +79,12 @@ class RemoveAsserts {
               const errorMessage = RemoveAsserts.trimErrorMessage(stringLiteral.getFullText());
               const errorCode = RemoveAsserts.errorCode(errorMessage);
 
-              RemoveAsserts.saveErrorCode(errorCode, errorMessage);
+              try {
+                RemoveAsserts.saveErrorCode(errorCode, errorMessage);
+              }
+              catch (e) {
+                console.log('Failed to save error code ' + JSON.stringify(e));
+              }
               const newArguments = [...node.arguments];
               newArguments[messageIndex] = ts.createLiteral(errorCode);
 
