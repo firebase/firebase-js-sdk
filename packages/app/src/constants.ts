@@ -60,7 +60,7 @@ export const PLATFORM_LOG_STRING = {
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
   [databaseName]: 'fire-rtdb',
-  [dataconnectName]: 'fire-connect',
+  [dataconnectName]: 'fire-data-connect',
   [databaseCompatName]: 'fire-rtdb-compat',
   [functionsName]: 'fire-fn',
   [functionsCompatName]: 'fire-fn-compat',
