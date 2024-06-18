@@ -262,4 +262,24 @@ describe('GenerativeModel', () => {
     );
     restore();
   });
+  it('calls countTokens', async () => {
+    const genModel = new GenerativeModel(fakeVertexAI, { model: 'my-model' });
+    const mockResponse = getMockResponse(
+      'count-tokens-success-total-tokens.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.countTokens('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.COUNT_TOKENS,
+      match.any,
+      false,
+      match((value: string) => {
+        return value.includes('hello');
+      })
+    );
+    restore();
+  });
 });
