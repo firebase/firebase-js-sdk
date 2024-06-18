@@ -83,6 +83,8 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
+  REGULAR_BACKFILL_DELAY_MS?: number;
+  MAX_DOCUMENTS_TO_PROCESS?: number;
 }
 
 /**
@@ -273,7 +275,12 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
     localStore: LocalStore
   ): Scheduler | null {
     const indexBackfiller = new IndexBackfiller(localStore, this.persistence);
-    return new IndexBackfillerScheduler(cfg.asyncQueue, indexBackfiller);
+    return new IndexBackfillerScheduler(
+      cfg.asyncQueue,
+      indexBackfiller,
+      cfg.REGULAR_BACKFILL_DELAY_MS,
+      cfg.MAX_DOCUMENTS_TO_PROCESS
+    );
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {
@@ -318,12 +325,16 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
 
   constructor(
     protected readonly onlineComponentProvider: OnlineComponentProvider,
-    protected readonly cacheSizeBytes: number | undefined
+    protected readonly cacheSizeBytes: number | undefined,
+    protected readonly REGULAR_BACKFILL_DELAY_MS?: number,
+    protected readonly MAX_DOCUMENTS_TO_PROCESS?: number
   ) {
     super(onlineComponentProvider, cacheSizeBytes, /* forceOwnership= */ false);
   }
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
+    cfg.REGULAR_BACKFILL_DELAY_MS = this.REGULAR_BACKFILL_DELAY_MS;
+    cfg.MAX_DOCUMENTS_TO_PROCESS = this.MAX_DOCUMENTS_TO_PROCESS;
     await super.initialize(cfg);
 
     const syncEngine = this.onlineComponentProvider.syncEngine;

@@ -496,6 +496,10 @@ export class PersistentCacheIndexManager {
 // @public
 export interface PersistentCacheSettings {
     cacheSizeBytes?: number;
+    // (undocumented)
+    MAX_DOCUMENTS_TO_PROCESS?: number;
+    // (undocumented)
+    REGULAR_BACKFILL_DELAY_MS?: number;
     tabManager?: PersistentTabManager;
 }
 

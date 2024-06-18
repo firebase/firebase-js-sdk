@@ -268,6 +268,9 @@ export type PersistentCacheSettings = {
    * Specifies how multiple tabs/windows will be managed by the SDK.
    */
   tabManager?: PersistentTabManager;
+
+  REGULAR_BACKFILL_DELAY_MS?: number;
+  MAX_DOCUMENTS_TO_PROCESS?: number;
 };
 
 /**
@@ -383,7 +386,9 @@ class MultiTabManagerImpl implements PersistentMultipleTabManager {
     this._onlineComponentProvider = new OnlineComponentProvider();
     this._offlineComponentProvider = new MultiTabOfflineComponentProvider(
       this._onlineComponentProvider,
-      settings?.cacheSizeBytes
+      settings?.cacheSizeBytes,
+      settings?.REGULAR_BACKFILL_DELAY_MS,
+      settings?.MAX_DOCUMENTS_TO_PROCESS
     );
   }
 }

@@ -38,20 +38,28 @@ const LOG_TAG = 'IndexBackfiller';
 const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
 
 /** Minimum amount of time between backfill checks, after the first one. */
-const REGULAR_BACKFILL_DELAY_MS = 60 * 1000;
 
 /** The maximum number of documents to process each time backfill() is called. */
-const MAX_DOCUMENTS_TO_PROCESS = 50;
 
 /** This class is responsible for the scheduling of Index Backfiller. */
 export class IndexBackfillerScheduler implements Scheduler {
   private task: DelayedOperation<void> | null;
+  private REGULAR_BACKFILL_DELAY_MS = 60 * 1000;
+  private MAX_DOCUMENTS_TO_PROCESS = 50;
 
   constructor(
     private readonly asyncQueue: AsyncQueue,
-    private readonly backfiller: IndexBackfiller
+    private readonly backfiller: IndexBackfiller,
+    REGULAR_BACKFILL_DELAY_MS?: number,
+    MAX_DOCUMENTS_TO_PROCESS?: number
   ) {
     this.task = null;
+    if (REGULAR_BACKFILL_DELAY_MS) {
+      this.REGULAR_BACKFILL_DELAY_MS = REGULAR_BACKFILL_DELAY_MS;
+    }
+    if (MAX_DOCUMENTS_TO_PROCESS) {
+      this.MAX_DOCUMENTS_TO_PROCESS = MAX_DOCUMENTS_TO_PROCESS;
+    }
   }
 
   start(): void {
@@ -85,7 +93,9 @@ export class IndexBackfillerScheduler implements Scheduler {
       async () => {
         this.task = null;
         try {
-          const documentsProcessed = await this.backfiller.backfill();
+          const documentsProcessed = await this.backfiller.backfill(
+            this.MAX_DOCUMENTS_TO_PROCESS
+          );
           logDebug(LOG_TAG, `Documents written: ${documentsProcessed}`);
         } catch (e) {
           if (isIndexedDbTransactionError(e as Error)) {
@@ -98,7 +108,7 @@ export class IndexBackfillerScheduler implements Scheduler {
             await ignoreIfPrimaryLeaseLoss(e as FirestoreError);
           }
         }
-        await this.schedule(REGULAR_BACKFILL_DELAY_MS);
+        await this.schedule(this.REGULAR_BACKFILL_DELAY_MS);
       }
     );
   }
@@ -118,9 +128,7 @@ export class IndexBackfiller {
     private readonly persistence: Persistence
   ) {}
 
-  async backfill(
-    maxDocumentsToProcess: number = MAX_DOCUMENTS_TO_PROCESS
-  ): Promise<number> {
+  async backfill(maxDocumentsToProcess: number = 50): Promise<number> {
     return this.persistence.runTransaction(
       'Backfill Indexes',
       'readwrite-primary',
