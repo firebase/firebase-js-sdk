@@ -173,7 +173,9 @@ describe('processStream', () => {
     }
   });
   it('unknown enum - should ignore', async () => {
-    const fakeResponse = getMockResponseStreaming('streaming-unknown-enum.txt');
+    const fakeResponse = getMockResponseStreaming(
+      'streaming-success-unknown-enum.txt'
+    );
     const result = processStream(fakeResponse as Response);
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cats');
