@@ -44,9 +44,7 @@ describe('countTokens()', () => {
     restore();
   });
   it('total tokens', async () => {
-    const mockResponse = getMockResponse(
-      'count-tokens-success-total-tokens.json'
-    );
+    const mockResponse = getMockResponse('unary-success-total-tokens.json');
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -70,7 +68,7 @@ describe('countTokens()', () => {
   });
   it('total tokens no billable characters', async () => {
     const mockResponse = getMockResponse(
-      'count-tokens-success-no-billable-characters.json'
+      'unary-success-no-billable-characters.json'
     );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
@@ -94,9 +92,7 @@ describe('countTokens()', () => {
     );
   });
   it('model not found', async () => {
-    const mockResponse = getMockResponse(
-      'count-tokens-failure-model-not-found.json'
-    );
+    const mockResponse = getMockResponse('unary-failure-model-not-found.json');
     const mockFetch = stub(globalThis, 'fetch').resolves({
       ok: false,
       status: 404,

@@ -264,9 +264,7 @@ describe('GenerativeModel', () => {
   });
   it('calls countTokens', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, { model: 'my-model' });
-    const mockResponse = getMockResponse(
-      'count-tokens-success-total-tokens.json'
-    );
+    const mockResponse = getMockResponse('unary-success-total-tokens.json');
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
