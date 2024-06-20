@@ -4,9 +4,10 @@
       "content": {
         "parts": [
           {
-            "text": "No"
+            "text": "<redacted>"
           }
-        ]
+        ],
+        "role": "model"
       },
       "finishReason": "SAFETY",
       "index": 0,
