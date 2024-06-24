@@ -367,7 +367,7 @@ describe('api/_performApiRequest', () => {
     });
   });
 
-  context('edgcase error mapping', () => {
+  context('edge case error mapping', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
