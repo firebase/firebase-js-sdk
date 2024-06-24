@@ -63,13 +63,13 @@ export interface CustomErrorData {
  * @public
  */
 export const enum VertexAIErrorCode {
-  /** A generic error occured. */
+  /** A generic error occurred. */
   ERROR = 'error',
 
   /** An error occurred in a request. */
   REQUEST_ERROR = 'request-error',
 
-  /** An error occured in a response. */
+  /** An error occurred in a response. */
   RESPONSE_ERROR = 'response-error',
 
   /** An error occurred while performing a fetch. */
@@ -78,15 +78,15 @@ export const enum VertexAIErrorCode {
   /** An error associated with a Content object.  */
   INVALID_CONTENT = 'invalid-content',
 
-  /** An error occured due to a missing api key. */
+  /** An error occurred due to a missing Firebase API key. */
   NO_API_KEY = 'no-api-key',
 
-  /** An error occurred due to a missing model. */
+  /** An error occurred due to a model name not being specified during initialization. */
   NO_MODEL = 'no-model',
 
-  /** An error occured due to a missing project id. */
+  /** An error occurred due to a missing project ID. */
   NO_PROJECT_ID = 'no-project-id',
 
-  /** An error occured while parsing. */
+  /** An error occurred while parsing. */
   PARSE_FAILED = 'parse-failed'
 }

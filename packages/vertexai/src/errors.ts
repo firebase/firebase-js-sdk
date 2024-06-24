@@ -26,7 +26,7 @@ import { VERTEX_TYPE } from './constants';
  */
 export class VertexAIError extends FirebaseError {
   /**
-   * Creates a new VertexAIError instance.
+   * Constructs a new instance of the `VertexAIError` class.
    *
    * @param code - The error code from {@link VertexAIErrorCode}.
    * @param message - A human-readable message describing the error.

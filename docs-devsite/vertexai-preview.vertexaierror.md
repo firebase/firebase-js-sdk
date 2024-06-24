@@ -23,7 +23,7 @@ export declare class VertexAIError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, customErrorData)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Creates a new VertexAIError instance. |
+|  [(constructor)(code, message, customErrorData)](./vertexai-preview.vertexaierror.md#vertexaierrorconstructor) |  | Constructs a new instance of the <code>VertexAIError</code> class. |
 
 ## Properties
 
@@ -35,7 +35,7 @@ export declare class VertexAIError extends FirebaseError
 
 ## VertexAIError.(constructor)
 
-Creates a new VertexAIError instance.
+Constructs a new instance of the `VertexAIError` class.
 
 <b>Signature:</b>
 
