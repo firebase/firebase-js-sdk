@@ -491,10 +491,10 @@ describeSpec('Listens source options:', [], () => {
           // Listen to cache in secondary clients
           .client(1)
           .userListensToCache(query1)
-          .expectEvents(query1, { added: [docA], fromCache: true })
+          .expectEvents(query1, { added: [docA] })
           .client(2)
           .userListensToCache(query1)
-          .expectEvents(query1, { added: [docA], fromCache: true })
+          .expectEvents(query1, { added: [docA] })
           // Updates in the primary client notifies listeners sourcing from cache
           // in secondary clients.
           .client(0)
@@ -748,7 +748,7 @@ describeSpec('Listens source options:', [], () => {
           //Listen to cache in secondary client
           .client(1)
           .userListensToCache(limitToLast)
-          .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+          .expectEvents(limitToLast, { added: [docB, docA] })
           // Watch sends document changes
           .client(0)
           .watchSends({ affects: [limit] }, docC)
@@ -794,7 +794,7 @@ describeSpec('Listens source options:', [], () => {
           // Listen to cache in primary client
           .client(0)
           .userListensToCache(limitToLast)
-          .expectEvents(limitToLast, { added: [docB, docA], fromCache: true })
+          .expectEvents(limitToLast, { added: [docB, docA] })
           // Watch sends document changes
           .watchSends({ affects: [limit] }, docC)
           .watchSnapshots(2000)
@@ -825,16 +825,18 @@ describeSpec('Listens source options:', [], () => {
           // Listen to cache in secondary client
           .client(1)
           .userListensToCache(query1)
-          .expectEvents(query1, { added: [docA], fromCache: true })
+          .expectEvents(query1, { added: [docA] })
+
           .client(0)
           .userUnlistens(query1)
+          .watchRemoves(query1)
+
           .userSets('collection/b', { key: 'b' })
           // The other listener should work as expected
           .client(1)
           .expectEvents(query1, {
             hasPendingWrites: true,
-            added: [docB],
-            fromCache: true
+            added: [docB]
           })
           .userUnlistensToCache(query1)
       );
