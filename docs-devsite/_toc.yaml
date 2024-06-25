@@ -468,10 +468,14 @@ toc:
         path: /docs/reference/js/vertexai-preview.counttokensrequest.md
       - title: CountTokensResponse
         path: /docs/reference/js/vertexai-preview.counttokensresponse.md
+      - title: CustomErrorData
+        path: /docs/reference/js/vertexai-preview.customerrordata.md
       - title: Date_2
         path: /docs/reference/js/vertexai-preview.date_2.md
       - title: EnhancedGenerateContentResponse
         path: /docs/reference/js/vertexai-preview.enhancedgeneratecontentresponse.md
+      - title: ErrorDetails
+        path: /docs/reference/js/vertexai-preview.errordetails.md
       - title: FileData
         path: /docs/reference/js/vertexai-preview.filedata.md
       - title: FileDataPart
@@ -541,6 +545,8 @@ toc:
         path: /docs/reference/js/vertexai-preview.usagemetadata.md
       - title: VertexAI
         path: /docs/reference/js/vertexai-preview.vertexai.md
+      - title: VertexAIError
+        path: /docs/reference/js/vertexai-preview.vertexaierror.md
       - title: VertexAIOptions
         path: /docs/reference/js/vertexai-preview.vertexaioptions.md
       - title: VideoMetadata
