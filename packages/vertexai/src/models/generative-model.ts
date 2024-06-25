@@ -33,8 +33,10 @@ import {
   SafetySetting,
   StartChatParams,
   Tool,
-  ToolConfig
+  ToolConfig,
+  VertexAIErrorCode
 } from '../types';
+import { VertexAIError } from '../errors';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
 import {
@@ -42,7 +44,6 @@ import {
   formatSystemInstruction
 } from '../requests/request-helpers';
 import { VertexAI } from '../public-types';
-import { ERROR_FACTORY, VertexError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import { VertexAIService } from '../service';
 
@@ -66,9 +67,15 @@ export class GenerativeModel {
     requestOptions?: RequestOptions
   ) {
     if (!vertexAI.app?.options?.apiKey) {
-      throw ERROR_FACTORY.create(VertexError.NO_API_KEY);
+      throw new VertexAIError(
+        VertexAIErrorCode.NO_API_KEY,
+        `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid API key.`
+      );
     } else if (!vertexAI.app?.options?.projectId) {
-      throw ERROR_FACTORY.create(VertexError.NO_PROJECT_ID);
+      throw new VertexAIError(
+        VertexAIErrorCode.NO_PROJECT_ID,
+        `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to contain a valid project ID.`
+      );
     } else {
       this._apiSettings = {
         apiKey: vertexAI.app.options.apiKey,
