@@ -196,6 +196,17 @@ describe('platform_browser/strategies/phone', () => {
       });
     });
 
+    it('throws an error if verify phone number without a v2 RecaptchaVerifier when recaptcha enterprise is disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
+
+      await expect(
+        signInWithPhoneNumber(auth, '+15105550000')
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+    });
+
     context('ConfirmationResult', () => {
       it('result contains verification id baked in', async () => {
         if (typeof window === 'undefined') {
@@ -532,6 +543,18 @@ describe('platform_browser/strategies/phone', () => {
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
+    });
+
+    it('throws error if calls verify phone number without v2 RecaptchaVerifier when recaptcha enterprise is disabled', async () => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      mockRecaptchaEnterpriseEnablement(EnforcementState.OFF);
+
+      await expect(_verifyPhoneNumber(auth, 'number')).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('calls fallback to recaptcha v2 flow when receiving MISSING_RECAPTCHA_TOKEN error in recaptcha enterprise audit mode', async () => {

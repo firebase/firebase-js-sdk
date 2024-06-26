@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+
+import { FirebaseError } from '@firebase/util';
 
 import {
   mockEndpoint,
@@ -36,6 +39,8 @@ import { PhoneAuthProvider } from './phone';
 import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../recaptcha/recaptcha_mock';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
+
+use(chaiAsPromised);
 
 describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
@@ -102,6 +107,40 @@ describe('platform_browser/providers/phone', () => {
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
+    });
+
+    it('throws an error if verify without appVerifier when recaptcha enterprise is disabled', async () => {
+      const recaptchaConfigResponseOff = {
+        recaptchaKey: 'foo/bar/to/site-key',
+        recaptchaEnforcementState: [
+          {
+            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+            enforcementState: EnforcementState.OFF
+          }
+        ]
+      };
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseOff
+      );
+
+      const provider = new PhoneAuthProvider(auth);
+      await expect(
+        provider.verifyPhoneNumber('+15105550000')
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {
