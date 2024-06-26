@@ -1095,7 +1095,13 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
           // secondary clients to update query state.
           if (viewSnapshot || remoteEvent) {
             if (syncEngineImpl.isPrimaryClient) {
-              const isCurrent = viewSnapshot && !viewSnapshot.fromCache;
+              // Query state is set to `current` if:
+              // - The is a view change and it is up-to-date, or,
+              // - There are no changes and the Target is current
+              const isCurrent = viewSnapshot
+                ? !viewSnapshot.fromCache
+                : remoteEvent?.targetChanges.get(queryView.targetId)?.current;
+
               syncEngineImpl.sharedClientState.updateQueryState(
                 queryView.targetId,
                 isCurrent ? 'current' : 'not-current'
