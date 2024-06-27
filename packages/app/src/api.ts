@@ -252,6 +252,8 @@ export function initializeServerApp(
     ...appOptions
   };
 
+  delete nameObj.name;
+
   // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
   // construction of FirebaseServerApp instances. For example, if the object is the request headers.
   if (nameObj.releaseOnDeref !== undefined) {

@@ -80,7 +80,7 @@ export interface FirebaseServerApp extends FirebaseApp {
 // @public
 export interface FirebaseServerAppSettings extends FirebaseAppSettings {
     authIdToken?: string;
-    name?: undefined;
+    name?: string;
     releaseOnDeref?: object;
 }
 

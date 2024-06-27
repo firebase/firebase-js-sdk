@@ -218,10 +218,11 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
 
   /**
    * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
-   * applications. However, it may be used internally, and is declared here so that
-   * `FirebaseServerApp` conforms to the `FirebaseApp` interface.
+   * applications. Therefore, this field will be ignored during `FirebaseServerApp` initialization,
+   * and is defined here solely to conform to TypeScript's `exactOptionalPropertyTypes`
+   * requirements.
    */
-  name?: undefined;
+  name?: string;
 }
 
 /**
