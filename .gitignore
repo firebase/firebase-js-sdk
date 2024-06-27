@@ -98,5 +98,6 @@ docs/
 *.tfstate
 *.tfstate.*
 
-# generated test case text data
+# vertexai test data
+vertexai-sdk-test-data
 mocks-lookup.ts
