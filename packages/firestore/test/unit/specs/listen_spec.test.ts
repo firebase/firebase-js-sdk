@@ -1895,4 +1895,32 @@ describeSpec('Listens:', [], () => {
         .restoreListen(query1, 'resume-token-1000', /* expectedCount= */ 1);
     }
   );
+
+  specTest(
+    'Global snapshots would not alter query state if there is no changes',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        client(0)
+          .becomeVisible()
+          // Listen to the first query in the primary client
+          .expectPrimaryState(true)
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/8314
+          // Watch could send existence filters along with a global snapshot.
+          // If existence filter matches, there will be no view changes, and query should not be
+          // marked as "not-current" as the Target is up to date.
+          .watchFilters([query1], [docA.key])
+          .watchSnapshots(2000, [], 'resume-token-2000')
+          // Listening to the query in the secondary tab. The snapshot is up to date.
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA] })
+      );
+    }
+  );
 });
