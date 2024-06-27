@@ -1905,21 +1905,29 @@ describeSpec('Listens:', [], () => {
       return (
         client(0)
           .becomeVisible()
-          // Listen to the first query in the primary client
           .expectPrimaryState(true)
+          // Populate the cache first
           .userListens(query1)
           .watchAcksFull(query1, 1000, docA)
           .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Listen to the query in the primary client
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, {
+            added: [docA],
+            fromCache: true
+          })
+          .watchAcksFull(query1, 2000, docA)
+          .expectEvents(query1, { fromCache: false })
           // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/8314
-          // Watch could send existence filters along with a global snapshot.
-          // If existence filter matches, there will be no view changes, and query should not be
-          // marked as "not-current" as the Target is up to date.
-          .watchFilters([query1], [docA.key])
-          .watchSnapshots(2000, [], 'resume-token-2000')
+          // Watch could send a global snapshot from time to time. If there are no view changes,
+          // the query should not be marked as "not-current" as the Target is up to date.
+          .watchSnapshots(3000, [], 'resume-token-3000')
           // Listen to the query in the secondary tab. The snapshot is up to date.
           .client(1)
           .userListens(query1)
-          .expectEvents(query1, { added: [docA] })
+          .expectEvents(query1, { added: [docA], fromCache: false })
       );
     }
   );
