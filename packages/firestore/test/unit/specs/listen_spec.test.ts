@@ -1916,7 +1916,7 @@ describeSpec('Listens:', [], () => {
           // marked as "not-current" as the Target is up to date.
           .watchFilters([query1], [docA.key])
           .watchSnapshots(2000, [], 'resume-token-2000')
-          // Listening to the query in the secondary tab. The snapshot is up to date.
+          // Listen to the query in the secondary tab. The snapshot is up to date.
           .client(1)
           .userListens(query1)
           .expectEvents(query1, { added: [docA] })
