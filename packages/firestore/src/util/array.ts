@@ -28,7 +28,7 @@ export function includes<T>(array: T[], value: T): boolean {
 }
 
 /**
- * Returns true iff the array contains any value mathching the predicate
+ * Returns true iff the array contains any value matching the predicate
  */
 export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
   for (let i = 0; i < array.length; i++) {
@@ -110,4 +110,56 @@ export function diffArrays<T>(
   while (b < bLen) {
     onRemove(before[b++]);
   }
+}
+
+/**
+ * Verifies equality for an array of objects using the `isEqual` interface.
+ *
+ * @private
+ * @internal
+ * @param left Array of objects supporting `isEqual`.
+ * @param right Array of objects supporting `isEqual`.
+ * @return True if arrays are equal.
+ */
+export function isArrayEqual<T extends { isEqual: (t: T) => boolean }>(
+  left: T[],
+  right: T[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let i = 0; i < left.length; ++i) {
+    if (!left[i].isEqual(right[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Verifies equality for an array of primitives.
+ *
+ * @private
+ * @internal
+ * @param left Array of primitives.
+ * @param right Array of primitives.
+ * @return True if arrays are equal.
+ */
+export function isPrimitiveArrayEqual<T extends number | string>(
+  left: T[],
+  right: T[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let i = 0; i < left.length; ++i) {
+    if (left[i] !== right[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

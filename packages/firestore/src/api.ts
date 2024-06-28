@@ -172,8 +172,11 @@ export {
   arrayUnion,
   deleteField,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  vector
 } from './api/field_value_impl';
+
+export { VectorValue } from './lite-api/vector_value';
 
 export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 
