@@ -15,9 +15,9 @@ Configuration options given to [initializeServerApp()](./app.md#initializeserver
 <b>Signature:</b>
 
 ```typescript
-export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, "name?"> 
+export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, 'name?'> 
 ```
-<b>Extends:</b> Omit&lt;[FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface)<!-- -->, "name?"&gt;
+<b>Extends:</b> Omit&lt;[FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface)<!-- -->, 'name?'&gt;
 
 ## Properties
 
