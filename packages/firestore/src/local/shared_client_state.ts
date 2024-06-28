@@ -104,7 +104,10 @@ export interface SharedClientState {
    * If the target id is already associated with local client, the method simply
    * returns its `QueryTargetState`.
    */
-  addLocalQueryTarget(targetId: TargetId): QueryTargetState;
+  addLocalQueryTarget(
+    targetId: TargetId,
+    addActiveTargetId?: boolean
+  ): QueryTargetState;
 
   /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
@@ -655,7 +658,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.removeMutationState(batchId);
   }
 
-  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
+  addLocalQueryTarget(
+    targetId: TargetId,
+    addActiveTargetId: boolean = true
+  ): QueryTargetState {
     let queryState: QueryTargetState = 'not-current';
 
     // Lookup an existing query state if the target ID was already registered
@@ -676,8 +682,10 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     }
 
-    this.localClientState.addQueryTarget(targetId);
-    this.persistClientState();
+    if (addActiveTargetId) {
+      this.localClientState.addQueryTarget(targetId);
+      this.persistClientState();
+    }
 
     return queryState;
   }
@@ -1110,8 +1118,13 @@ export class MemorySharedClientState implements SharedClientState {
     // No op.
   }
 
-  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
-    this.localState.addQueryTarget(targetId);
+  addLocalQueryTarget(
+    targetId: TargetId,
+    addActiveTargetId: boolean = true
+  ): QueryTargetState {
+    if (addActiveTargetId) {
+      this.localState.addQueryTarget(targetId);
+    }
     return this.queryState[targetId] || 'not-current';
   }
 

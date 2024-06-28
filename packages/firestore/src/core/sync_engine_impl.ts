@@ -353,9 +353,11 @@ async function allocateTargetAndMaybeListen(
   // not registering it in shared client state, and directly calculate initial snapshots and
   // subsequent updates from cache. Otherwise, register the target ID with local Firestore client
   // as active watch target.
-  const status: QueryTargetState = shouldListenToRemote
-    ? syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId)
-    : 'not-current';
+  const status: QueryTargetState =
+    syncEngineImpl.sharedClientState.addLocalQueryTarget(
+      targetId,
+      shouldListenToRemote
+    );
 
   let viewSnapshot;
   if (shouldInitializeView) {
