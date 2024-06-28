@@ -67,8 +67,6 @@ export class FirebaseServerAppImpl
       ...serverConfig
     };
 
-    delete this._serverConfig.name;
-
     this._finalizationRegistry = new FinalizationRegistry(() => {
       this.automaticCleanup();
     });

@@ -175,7 +175,7 @@ export interface FirebaseAppSettings {
  *
  * Configuration options given to {@link (initializeServerApp:1) | initializeServerApp()}
  */
-export interface FirebaseServerAppSettings extends FirebaseAppSettings {
+export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, "name?"> {
   /**
    * An optional Auth ID token used to resume a signed in user session from a client
    * runtime environment.
@@ -215,14 +215,6 @@ export interface FirebaseServerAppSettings extends FirebaseAppSettings {
    * initialization.
    */
   releaseOnDeref?: object;
-
-  /**
-   * There is no `getApp()` operation for `FirebaseServerApp`, so the name is not relevant for
-   * applications. Therefore, this field will be ignored during `FirebaseServerApp` initialization,
-   * and is defined here solely to conform to TypeScript's `exactOptionalPropertyTypes`
-   * requirements.
-   */
-  name?: string;
 }
 
 /**
