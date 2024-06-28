@@ -356,7 +356,7 @@ async function allocateTargetAndMaybeListen(
   const status: QueryTargetState =
     syncEngineImpl.sharedClientState.addLocalQueryTarget(
       targetId,
-      shouldListenToRemote
+      /* addToActiveTargetIds= */ shouldListenToRemote
     );
 
   let viewSnapshot;

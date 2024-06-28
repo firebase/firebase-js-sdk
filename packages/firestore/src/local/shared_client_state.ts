@@ -106,7 +106,7 @@ export interface SharedClientState {
    */
   addLocalQueryTarget(
     targetId: TargetId,
-    addActiveTargetId?: boolean
+    addToActiveTargetIds?: boolean
   ): QueryTargetState;
 
   /** Removes the Query Target ID association from the local client. */
@@ -660,7 +660,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   addLocalQueryTarget(
     targetId: TargetId,
-    addActiveTargetId: boolean = true
+    addToActiveTargetIds: boolean = true
   ): QueryTargetState {
     let queryState: QueryTargetState = 'not-current';
 
@@ -682,11 +682,13 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     }
 
-    if (addActiveTargetId) {
+    // If the query is listening to cache only, the target ID should not be registered the  with
+    // local Firestore client as active watch target.
+    if (addToActiveTargetIds) {
       this.localClientState.addQueryTarget(targetId);
-      this.persistClientState();
     }
 
+    this.persistClientState();
     return queryState;
   }
 
@@ -1120,9 +1122,9 @@ export class MemorySharedClientState implements SharedClientState {
 
   addLocalQueryTarget(
     targetId: TargetId,
-    addActiveTargetId: boolean = true
+    addToActiveTargetIds: boolean = true
   ): QueryTargetState {
-    if (addActiveTargetId) {
+    if (addToActiveTargetIds) {
       this.localState.addQueryTarget(targetId);
     }
     return this.queryState[targetId] || 'not-current';
