@@ -380,7 +380,7 @@ export interface DocumentChange<
    * The index of the changed document in the result set immediately after
    * this `DocumentChange` (i.e. supposing that all prior `DocumentChange`
    * objects and the current `DocumentChange` object have been applied).
-   * Is -1 for 'removed' events.
+   * Is `-1` for 'removed' events.
    */
   readonly newIndex: number;
 }
