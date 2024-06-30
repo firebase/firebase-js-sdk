@@ -60,7 +60,7 @@ export class Api {
     this.windowLocation = window.location;
     this.navigator = window.navigator;
     this.document = window.document;
-    if (this.navigator && this.navigator.cookieEnabled) {
+    if (areCookiesEnabled()) {
       // If user blocks cookies on the browser, accessing localStorage will
       // throw an exception.
       this.localStorage = window.localStorage;
@@ -82,11 +82,11 @@ export class Api {
     this.performance.mark(name);
   }
 
-  measure(measureName: string, mark1: string, mark2: string): void {
+  measure(measureName: string, mark1: string, mark2: string): PerformanceMeasure|void {
     if (!this.performance || !this.performance.measure) {
       return;
     }
-    this.performance.measure(measureName, mark1, mark2);
+   return this.performance.measure(measureName, mark1, mark2);
   }
 
   getEntriesByType(type: EntryType): PerformanceEntry[] {
