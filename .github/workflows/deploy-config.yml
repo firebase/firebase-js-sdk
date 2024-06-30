@@ -42,6 +42,7 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Deploy project config if needed
+      if: env.FIREBASE_CLI_TOKEN != ''
       run: yarn ts-node scripts/ci-test/deploy-if-needed.ts
       env:
         FIREBASE_CLI_TOKEN: ${{secrets.FIREBASE_CLI_TOKEN}}

@@ -45,6 +45,14 @@ jobs:
           FORCE_PUBLISH: ${{ github.event.inputs.force }}
       - name: Post to Twitter
         uses: firebase/firebase-admin-node/.github/actions/send-tweet@master
+        if: ${{
+          env.consumer-key != '' &&
+          env.consumer-secret != '' &&
+          env.access-token != '' &&
+          env.access-token-secret != '' &&
+          1 ||
+          ''
+          }}
         with:
           status: >
             v${{github.event.inputs.version}} of @Firebase JavaScript client for Web / Node.js is available.
