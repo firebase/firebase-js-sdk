@@ -1,6 +1,6 @@
 ---
-'firebase': minor
-'@firebase/app': minor
+'firebase': patch
+'@firebase/app': patch
 ---
 
 The `FirebaseServerAppSettings.name` field inherited from `FirebaseAppSettings` is now omitted
