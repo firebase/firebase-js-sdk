@@ -23,8 +23,8 @@ export interface ErrorDetails
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  ["@type"](./vertexai-preview.errordetails.md#errordetails"@type") | string |  |
-|  [domain](./vertexai-preview.errordetails.md#errordetailsdomain) | string | The domain where the error occured. |
-|  [metadata](./vertexai-preview.errordetails.md#errordetailsmetadata) | Record&lt;string, unknown&gt; | Additonal metadata about the error. |
+|  [domain](./vertexai-preview.errordetails.md#errordetailsdomain) | string | The domain where the error occurred. |
+|  [metadata](./vertexai-preview.errordetails.md#errordetailsmetadata) | Record&lt;string, unknown&gt; | Additional metadata about the error. |
 |  [reason](./vertexai-preview.errordetails.md#errordetailsreason) | string | The reason for the error. |
 
 ## ErrorDetails."@type"
@@ -37,7 +37,7 @@ export interface ErrorDetails
 
 ## ErrorDetails.domain
 
-The domain where the error occured.
+The domain where the error occurred.
 
 <b>Signature:</b>
 
@@ -47,7 +47,7 @@ domain?: string;
 
 ## ErrorDetails.metadata
 
-Additonal metadata about the error.
+Additional metadata about the error.
 
 <b>Signature:</b>
 
