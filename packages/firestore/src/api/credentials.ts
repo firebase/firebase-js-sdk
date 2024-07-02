@@ -206,7 +206,8 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
       if (tokenData) {
         hardAssert(
           typeof tokenData.accessToken === 'string',
-          'Invalid tokenData returned from getToken():' + tokenData
+          'Invalid tokenData returned from getToken()',
+          { tokenData }
         );
         return new OAuthToken(
           tokenData.accessToken,
@@ -350,7 +351,8 @@ export class FirebaseAuthCredentialsProvider
         if (tokenData) {
           hardAssert(
             typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
+            'Invalid tokenData returned from getToken()',
+            { tokenData }
           );
           return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
@@ -378,7 +380,8 @@ export class FirebaseAuthCredentialsProvider
     const currentUid = this.auth && this.auth.getUid();
     hardAssert(
       currentUid === null || typeof currentUid === 'string',
-      'Received invalid UID: ' + currentUid
+      'Received invalid UID',
+      { currentUid }
     );
     return new User(currentUid);
   }
@@ -564,7 +567,8 @@ export class FirebaseAppCheckTokenProvider
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          'Invalid tokenResult returned from getToken():' + tokenResult
+          'Invalid tokenResult returned from getToken()',
+          { tokenResult }
         );
         this.latestAppCheckToken = tokenResult.token;
         return new AppCheckToken(tokenResult.token);
@@ -625,7 +629,8 @@ export class LiteAppCheckTokenProvider implements CredentialsProvider<string> {
       if (tokenResult) {
         hardAssert(
           typeof tokenResult.token === 'string',
-          'Invalid tokenResult returned from getToken():' + tokenResult
+          'Invalid tokenResult returned from getToken()',
+          { tokenResult }
         );
         return new AppCheckToken(tokenResult.token);
       } else {

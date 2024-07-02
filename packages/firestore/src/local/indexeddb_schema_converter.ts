@@ -318,7 +318,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
               (dbBatch: DbMutationBatch) => {
                 hardAssert(
                   dbBatch.userId === queue.userId,
-                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
+                  `Cannot process batch from unexpected user`,
+                  { batchId: dbBatch.batchId }
                 );
                 const batch = fromDbMutationBatch(this.serializer, dbBatch);
 

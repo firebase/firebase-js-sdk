@@ -623,8 +623,11 @@ function serverTransformResults(
   const transformResults = new Map<FieldPath, ProtoValue>();
   hardAssert(
     fieldTransforms.length === serverTransformResults.length,
-    `server transform result count (${serverTransformResults.length}) ` +
-      `should match field transform count (${fieldTransforms.length})`
+    'server transform result count should match field transform count',
+    {
+      serverTransformResultCount: serverTransformResults.length,
+      fieldTransformCount: fieldTransforms.length
+    }
   );
 
   for (let i = 0; i < serverTransformResults.length; i++) {

@@ -117,12 +117,10 @@ export class DocumentChangeSet {
       // Removed->Modified
       // Metadata->Added
       // Removed->Metadata
-      fail(
-        'unsupported combination of changes: ' +
-          JSON.stringify(change) +
-          ' after ' +
-          JSON.stringify(oldChange)
-      );
+      fail('unsupported combination of changes: `change` after `oldChange`', {
+        change,
+        oldChange
+      });
     }
   }
 

@@ -86,7 +86,9 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.ObjectValue:
         return this.convertObject(value.mapValue!, serverTimestampBehavior);
       default:
-        throw fail('Invalid value type: ' + JSON.stringify(value));
+        throw fail('Invalid value type', {
+          value
+        });
     }
   }
 
@@ -157,7 +159,8 @@ export abstract class AbstractUserDataWriter {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),
-      'ReferenceValue is not valid ' + name
+      'ReferenceValue is not valid',
+      { name }
     );
     const databaseId = new DatabaseId(resourcePath.get(1), resourcePath.get(3));
     const key = new DocumentKey(resourcePath.popFirst(5));
