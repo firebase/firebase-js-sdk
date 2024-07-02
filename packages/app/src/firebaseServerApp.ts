@@ -32,7 +32,7 @@ export class FirebaseServerAppImpl
   implements FirebaseServerApp
 {
   private readonly _serverConfig: FirebaseServerAppSettings;
-  private _finalizationRegistry: FinalizationRegistry<object>;
+  private _finalizationRegistry: FinalizationRegistry<object> | null;
   private _refCount: number;
 
   constructor(
@@ -67,9 +67,12 @@ export class FirebaseServerAppImpl
       ...serverConfig
     };
 
-    this._finalizationRegistry = new FinalizationRegistry(() => {
-      this.automaticCleanup();
-    });
+    this._finalizationRegistry = null;
+    if (typeof FinalizationRegistry !== 'undefined') {
+      this._finalizationRegistry = new FinalizationRegistry(() => {
+        this.automaticCleanup();
+      });
+    }
 
     this._refCount = 0;
     this.incRefCount(this._serverConfig.releaseOnDeref);
@@ -97,7 +100,7 @@ export class FirebaseServerAppImpl
       return;
     }
     this._refCount++;
-    if (obj !== undefined) {
+    if (obj !== undefined && this._finalizationRegistry !== null) {
       this._finalizationRegistry.register(obj, this);
     }
   }

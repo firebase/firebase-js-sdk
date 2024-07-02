@@ -46,6 +46,7 @@
     "api-report:sw": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-sw --packageRoot . --typescriptDts ./dist/src/index.sw.d.ts --rollupDts ./dist/sw/private.d.ts --untrimmedRollupDts ./dist/sw/internal.d.ts --publicDts ./dist/sw/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
   },
   "license": "Apache-2.0",

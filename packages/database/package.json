@@ -41,6 +41,7 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package database --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/public.d.ts && yarn api-report:api-json",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",

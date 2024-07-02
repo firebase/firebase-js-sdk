@@ -29,6 +29,7 @@
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run --nocache",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",

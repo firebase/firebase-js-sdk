@@ -31,6 +31,7 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",

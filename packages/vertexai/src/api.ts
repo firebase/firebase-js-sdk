@@ -21,13 +21,15 @@ import { getModularInstance } from '@firebase/util';
 import { DEFAULT_LOCATION, VERTEX_TYPE } from './constants';
 import { VertexAIService } from './service';
 import { VertexAI, VertexAIOptions } from './public-types';
-import { ERROR_FACTORY, VertexError } from './errors';
-import { ModelParams, RequestOptions } from './types';
+import { ModelParams, RequestOptions, VertexAIErrorCode } from './types';
+import { VertexAIError } from './errors';
 import { GenerativeModel } from './models/generative-model';
 
 export { ChatSession } from './methods/chat-session';
 
 export { GenerativeModel };
+
+export { VertexAIError };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -67,7 +69,10 @@ export function getGenerativeModel(
   requestOptions?: RequestOptions
 ): GenerativeModel {
   if (!modelParams.model) {
-    throw ERROR_FACTORY.create(VertexError.NO_MODEL);
+    throw new VertexAIError(
+      VertexAIErrorCode.NO_MODEL,
+      `Must provide a model name. Example: getGenerativeModel({ model: 'my-model-name' })`
+    );
   }
   return new GenerativeModel(vertexAI, modelParams, requestOptions);
 }

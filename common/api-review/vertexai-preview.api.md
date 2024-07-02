@@ -7,6 +7,7 @@
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import { FirebaseError } from '@firebase/util';
 
 // @public
 export interface BaseParams {
@@ -84,6 +85,14 @@ export interface CountTokensResponse {
 }
 
 // @public
+export interface CustomErrorData {
+    errorDetails?: ErrorDetails[];
+    response?: GenerateContentResponse;
+    status?: number;
+    statusText?: string;
+}
+
+// @public
 interface Date_2 {
     // (undocumented)
     day: number;
@@ -100,6 +109,16 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     text: () => string;
+}
+
+// @public
+export interface ErrorDetails {
+    // (undocumented)
+    '@type'?: string;
+    [key: string]: unknown;
+    domain?: string;
+    metadata?: Record<string, unknown>;
+    reason?: string;
 }
 
 // @public
@@ -588,6 +607,30 @@ export interface VertexAI {
     app: FirebaseApp;
     // (undocumented)
     location: string;
+}
+
+// @public
+export class VertexAIError extends FirebaseError {
+    constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: VertexAIErrorCode;
+    // (undocumented)
+    readonly customErrorData?: CustomErrorData | undefined;
+    // (undocumented)
+    readonly message: string;
+}
+
+// @public
+export const enum VertexAIErrorCode {
+    ERROR = "error",
+    FETCH_ERROR = "fetch-error",
+    INVALID_CONTENT = "invalid-content",
+    NO_API_KEY = "no-api-key",
+    NO_MODEL = "no-model",
+    NO_PROJECT_ID = "no-project-id",
+    PARSE_FAILED = "parse-failed",
+    REQUEST_ERROR = "request-error",
+    RESPONSE_ERROR = "response-error"
 }
 
 // @public

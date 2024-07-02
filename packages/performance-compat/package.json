@@ -31,6 +31,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../performance/dist/src/index.d.ts -o dist/src/index.d.ts -a -r FirebasePerformance:FirebasePerformanceCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/performance"
   },
