@@ -24,16 +24,12 @@ import {
   insertScriptTag,
   wrapOrCreateGtag,
   findGtagScriptOnPage,
-  promiseAllSettled,
-  createGtagTrustedTypesScriptURL,
-  createTrustedTypesPolicy
+  promiseAllSettled
 } from './helpers';
-import { GtagCommand, GTAG_URL } from './constants';
+import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
 import { removeGtagScripts } from '../testing/gtag-script-util';
-import { logger } from './logger';
-import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -49,71 +45,6 @@ const fakeDynamicConfig: DynamicConfig = {
   measurementId: fakeMeasurementId
 };
 const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
-
-describe('Trusted Types policies and functions', () => {
-  if (window.trustedTypes) {
-    describe('Trusted types exists', () => {
-      let ttStub: SinonStub;
-
-      beforeEach(() => {
-        ttStub = stub(
-          window.trustedTypes as TrustedTypePolicyFactory,
-          'createPolicy'
-        ).returns({
-          createScriptURL: (s: string) => s
-        } as any);
-      });
-
-      afterEach(() => {
-        removeGtagScripts();
-        ttStub.restore();
-      });
-
-      it('Verify trustedTypes is called if the API is available', () => {
-        const trustedTypesPolicy = createTrustedTypesPolicy(
-          'firebase-js-sdk-policy',
-          {
-            createScriptURL: createGtagTrustedTypesScriptURL
-          }
-        );
-
-        expect(ttStub).to.be.called;
-        expect(trustedTypesPolicy).not.to.be.undefined;
-      });
-
-      it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
-        expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
-      });
-
-      it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
-        const NON_GTAG_URL = 'http://iamnotgtag.com';
-        const loggerWarnStub = stub(logger, 'warn');
-        const errorMessage = ERROR_FACTORY.create(
-          AnalyticsError.INVALID_GTAG_RESOURCE,
-          {
-            gtagURL: NON_GTAG_URL
-          }
-        ).message;
-
-        expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
-        expect(loggerWarnStub).to.be.calledWith(errorMessage);
-      });
-    });
-  }
-  describe('Trusted types does not exist', () => {
-    it('Verify trustedTypes functions are not called if the API is not available', () => {
-      delete window.trustedTypes;
-      const trustedTypesPolicy = createTrustedTypesPolicy(
-        'firebase-js-sdk-policy',
-        {
-          createScriptURL: createGtagTrustedTypesScriptURL
-        }
-      );
-
-      expect(trustedTypesPolicy).to.be.undefined;
-    });
-  });
-});
 
 describe('Gtag wrapping functions', () => {
   afterEach(() => {

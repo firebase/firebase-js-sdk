@@ -1,0 +1,3 @@
+{
+  "ban-element-setattribute": ["src/platform_browser/index.ts", "src/platform_browser/load_js.test.ts"]
+}

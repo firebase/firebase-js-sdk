@@ -3,7 +3,14 @@
   "compilerOptions": {
     "outDir": "dist",
     "strict": false,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "plugins": [
+      {
+        "name": "tsec",
+        "reportTsecDiagnosticsOnly": true,
+        "exemptionConfig": "./tsec-exemptions.json"
+      }
+    ]
   },
   "exclude": [
     "dist/**/*"
