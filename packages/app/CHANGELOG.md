@@ -1,5 +1,20 @@
 # @firebase/app
 
+## 0.10.6
+
+### Patch Changes
+
+- [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf) [#8335](https://github.com/firebase/firebase-js-sdk/pull/8335) - Guard the use of `FinalizationRegistry` in `FirebaseServerApp` initialization based on the availability of `FinalizationRegistry` in the runtime.
+
+- [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558) [#8315](https://github.com/firebase/firebase-js-sdk/pull/8315) (fixes [#8299](https://github.com/firebase/firebase-js-sdk/issues/8299)) - fix: server app should initialize in web workers
+
+- [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981) [#8341](https://github.com/firebase/firebase-js-sdk/pull/8341) - The `FirebaseServerAppSettings.name` field inherited from `FirebaseAppSettings` is now omitted
+  instead of overloading the value as `undefined`. This fixes a TypeScript compilation error. For more
+  information, see [GitHub Issue #8336](https://github.com/firebase/firebase-js-sdk/issues/8336).
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+
 ## 0.10.5
 
 ### Patch Changes

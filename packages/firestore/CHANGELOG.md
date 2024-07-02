@@ -1,5 +1,16 @@
 # @firebase/firestore
 
+## 4.6.4
+
+### Patch Changes
+
+- [`ecadbe380`](https://github.com/firebase/firebase-js-sdk/commit/ecadbe380ca1b7e2eeada45b82e53d47e05ec9b3) [#8339](https://github.com/firebase/firebase-js-sdk/pull/8339) (fixes [#8314](https://github.com/firebase/firebase-js-sdk/issues/8314)) - Fix persistence multi-tab snapshot listener metadata sync issue.
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`b09a267ba`](https://github.com/firebase/firebase-js-sdk/commit/b09a267ba8c59d15865173844e73a92588342f61)]:
+  - @firebase/util@1.9.7
+  - @firebase/webchannel-wrapper@1.0.1
+  - @firebase/component@0.6.8
+
 ## 4.6.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.1
+
+### Patch Changes
+
+- [`b09a267ba`](https://github.com/firebase/firebase-js-sdk/commit/b09a267ba8c59d15865173844e73a92588342f61) [#8331](https://github.com/firebase/firebase-js-sdk/pull/8331) - fix: Fix a typo in the webchannel-wrapper's package.json that affected ems5 exports.
+
 ## 1.0.0
 
 ### Major Changes
