@@ -36,7 +36,7 @@ export {
 // Core functionality shared by all clients
 export * from './src';
 
-// Additional DOM dependend functionality; we need to import and then
+// Additional DOM dependent functionality; we need to import and then
 // export separately so that the rollup alias will work (for aliasing these
 // imports in node environments to no-ops and errors... see
 // src/platform_node/index.ts).

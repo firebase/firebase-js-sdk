@@ -28,7 +28,7 @@ export function includes<T>(array: T[], value: T): boolean {
 }
 
 /**
- * Returns true iff the array contains any value mathching the predicate
+ * Returns true iff the array contains any value matching the predicate
  */
 export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
   for (let i = 0; i < array.length; i++) {

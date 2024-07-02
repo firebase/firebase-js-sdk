@@ -150,7 +150,7 @@ function genericMutationQueueTests(): void {
   });
 
   it('can lookup mutation batch', async () => {
-    // Searching on an empty queue should not find a non-existent batch
+    // Searching on an empty queue should not find a nonexistent batch
     let notFound = await mutationQueue.lookupMutationBatch(42);
     expect(notFound).to.be.null;
 
@@ -169,7 +169,7 @@ function genericMutationQueueTests(): void {
       expect(found!.batchId).to.equal(batch.batchId);
     }
 
-    // Even on a nonempty queue searching should not find a non-existent batch
+    // Even on a nonempty queue searching should not find a nonexistent batch
     notFound = await mutationQueue.lookupMutationBatch(42);
     expect(notFound).to.be.null;
   });

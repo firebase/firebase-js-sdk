@@ -38,7 +38,7 @@ const argv = yargs.options({
 }).parseSync();
 
 /**
- * Builds an ESM bundle for the Typescript file at `index` and writes it the
+ * Builds an ESM bundle for the TypeScript file at `index` and writes it the
  * file located at `output`.
  *
  * This is used in the `gendeps` build and does not minify or mangle property

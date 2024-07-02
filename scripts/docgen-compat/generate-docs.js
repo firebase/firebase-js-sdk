@@ -27,7 +27,7 @@ const repoPath = path.resolve(`${__dirname}/../..`);
 const { api: apiType, source: sourceFile } = yargs
   .option('source', {
     default: `${repoPath}/packages/firebase/compat/index.d.ts`,
-    describe: 'Typescript source file(s)',
+    describe: 'TypeScript source file(s)',
     type: 'string'
   })
   .version(false)

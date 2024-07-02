@@ -426,7 +426,7 @@ message BatchGetDocumentsResponse {
   bytes transaction = 3;
 
   // The time at which the document was read.
-  // This may be monotically increasing, in this case the previous documents in
+  // This may be monotonically increasing, in this case the previous documents in
   // the result stream are guaranteed not to have changed between their
   // read_time and this one.
   google.protobuf.Timestamp read_time = 4;

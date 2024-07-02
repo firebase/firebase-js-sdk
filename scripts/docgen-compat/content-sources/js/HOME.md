@@ -8,4 +8,4 @@ applications using Firebase services. This SDK is distributed via:
 To get started using Firebase, see
 [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
 
-For source code, see the [Firebase JavaScript SDK Github repo](https://github.com/firebase/firebase-js-sdk).
+For source code, see the [Firebase JavaScript SDK GitHub repo](https://github.com/firebase/firebase-js-sdk).

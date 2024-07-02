@@ -33,11 +33,11 @@ export {
   basicUniqueFuncFar,
   basicVarDeclarationExportFar,
   basicVarStatementExportFar,
-  reExportVarStatmentExportFar
+  reExportVarStatementExportFar
 } from './far';
 export let basicVarDeclarationExport: string;
 export const basicVarStatementExport = 'basicVarStatementExport';
-export const reExportVarStatmentExport = LogLevel1;
+export const reExportVarStatementExport = LogLevel1;
 
 export enum BasicEnumExport {
   DEBUG = 0,

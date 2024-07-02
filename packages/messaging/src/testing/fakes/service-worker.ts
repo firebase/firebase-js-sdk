@@ -32,7 +32,7 @@ declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 // exist. This is because we're not actually running these tests in a service worker context.
 
 // Here we're adding placeholders for Sinon to overwrite, which prevents the "Cannot stub
-// non-existent own property" errors.
+// nonexistent own property" errors.
 
 // Casting to any is needed because TS also thinks that we're in a SW context and considers these
 // properties readonly.

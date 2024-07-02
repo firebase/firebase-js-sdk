@@ -26,7 +26,7 @@ import {
 import '../../test/setup';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
-describe('Firebase Perofmrance > iid_service', () => {
+describe('Firebase Performance > iid_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
 

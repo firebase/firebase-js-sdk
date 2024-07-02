@@ -71,8 +71,8 @@ export class IdPPage {
     return this.fillInput(SCREEN_NAME_INPUT, screenName);
   }
 
-  fillProfilePhoto(prophilePhoto: string): Promise<void> {
-    return this.fillInput(PROFILE_PHOTO_INPUT, prophilePhoto);
+  fillProfilePhoto(profilePhoto: string): Promise<void> {
+    return this.fillInput(PROFILE_PHOTO_INPUT, profilePhoto);
   }
 
   private async fillInput(input: By, text: string): Promise<void> {

@@ -57,7 +57,7 @@ function setupOobTraces(performanceController: PerformanceController): void {
     'navigation'
   ) as PerformanceNavigationTiming[];
   const paintTimings = api.getEntriesByType('paint');
-  // If First Input Desly polyfill is added to the page, report the fid value.
+  // If First Input Delay polyfill is added to the page, report the fid value.
   // https://github.com/GoogleChromeLabs/first-input-delay
   if (api.onFirstInputDelay) {
     // If the fid call back is not called for certain time, continue without it.

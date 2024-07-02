@@ -130,7 +130,7 @@ export class IndexBackfiller {
 
   /** Writes index entries until the cap is reached. Returns the number of documents processed. */
   private writeIndexEntries(
-    transation: PersistenceTransaction,
+    transaction: PersistenceTransaction,
     maxDocumentsToProcess: number
   ): PersistencePromise<number> {
     const processedCollectionGroups = new Set<string>();
@@ -140,7 +140,7 @@ export class IndexBackfiller {
       () => continueLoop === true && documentsRemaining > 0,
       () => {
         return this.localStore.indexManager
-          .getNextCollectionGroupToUpdate(transation)
+          .getNextCollectionGroupToUpdate(transaction)
           .next((collectionGroup: string | null) => {
             if (
               collectionGroup === null ||
@@ -150,7 +150,7 @@ export class IndexBackfiller {
             } else {
               logDebug(LOG_TAG, `Processing collection: ${collectionGroup}`);
               return this.writeEntriesForCollectionGroup(
-                transation,
+                transaction,
                 collectionGroup,
                 documentsRemaining
               ).next(documentsProcessed => {

@@ -77,7 +77,7 @@ export class FirebaseServerAppImpl
     this._refCount = 0;
     this.incRefCount(this._serverConfig.releaseOnDeref);
 
-    // Do not retain a hard reference to the dref object, otherwise the FinalizationRegisry
+    // Do not retain a hard reference to the dref object, otherwise the FinalizationRegistry
     // will never trigger.
     this._serverConfig.releaseOnDeref = undefined;
     serverConfig.releaseOnDeref = undefined;

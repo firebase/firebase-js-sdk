@@ -34,9 +34,9 @@ const SESSION_ID_LENGTH = 20;
 /** Custom AuthEventManager that adds passive listeners to events */
 export class CordovaAuthEventManager extends AuthEventManager {
   private readonly passiveListeners = new Set<(e: AuthEvent) => void>();
-  private resolveInialized!: () => void;
+  private resolveInitialized!: () => void;
   private initPromise = new Promise<void>(resolve => {
-    this.resolveInialized = resolve;
+    this.resolveInitialized = resolve;
   });
 
   addPassiveListener(cb: (e: AuthEvent) => void): void {
@@ -56,7 +56,7 @@ export class CordovaAuthEventManager extends AuthEventManager {
 
   /** Override the onEvent method */
   onEvent(event: AuthEvent): boolean {
-    this.resolveInialized();
+    this.resolveInitialized();
     this.passiveListeners.forEach(cb => cb(event));
     return super.onEvent(event);
   }

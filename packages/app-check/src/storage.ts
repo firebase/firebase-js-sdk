@@ -79,7 +79,7 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
     // create a new debug token
     const newToken = uuidv4();
     // We don't need to block on writing to indexeddb
-    // In case persistence failed, a new debug token will be generated everytime the page is refreshed.
+    // In case persistence failed, a new debug token will be generated every time the page is refreshed.
     // It renders the debug token useless because you have to manually register(whitelist) the new token in the firebase console again and again.
     // If you see this error trying to use debug token, it probably means you are using a browser that doesn't support indexeddb.
     // You should switch to a different browser that supports indexeddb

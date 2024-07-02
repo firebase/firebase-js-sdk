@@ -1,5 +1,5 @@
 {
-  "name": "Firebse Auth Test App",
+  "name": "Firebase Auth Test App",
   "short_name": "FirebaseAuthTest",
   "start_url": "/",
   "display": "standalone",

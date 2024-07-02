@@ -61,8 +61,8 @@ export class ChatSession {
 
   /**
    * Gets the chat history so far. Blocked prompts are not added to history.
-   * Blocked candidates are not added to history, nor are the prompts that
-   * generated them.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
    */
   async getHistory(): Promise<Content[]> {
     await this._sendPromise;

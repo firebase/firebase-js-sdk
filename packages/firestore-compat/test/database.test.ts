@@ -709,7 +709,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('DocumentSnapshot events for non existent document', () => {
+  it('DocumentSnapshot events for nonexistent document', () => {
     return withTestCollection(persistence, {}, col => {
       const doc = col.doc();
       const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();

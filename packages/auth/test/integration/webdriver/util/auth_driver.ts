@@ -41,7 +41,7 @@ type DriverCallResult =
       stack: string;
     };
 
-/** Helper wraper around the WebDriver object */
+/** Helper wrapper around the WebDriver object */
 export class AuthDriver {
   webDriver!: WebDriver;
 

@@ -20,7 +20,7 @@ import { _allSettled } from './promise';
 
 describe('platform_browser/messagechannel/promise', () => {
   describe('_allSettled', () => {
-    it('should work with a single successfull promise', async () => {
+    it('should work with a single successful promise', async () => {
       const result = await _allSettled([Promise.resolve('foo')]);
       expect(result).to.have.deep.members([
         {

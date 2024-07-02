@@ -142,7 +142,7 @@ async function registerInstallation(
     return set(installations.appConfig, registeredInstallationEntry);
   } catch (e) {
     if (isServerError(e) && e.customData.serverCode === 409) {
-      // Server returned a "FID can not be used" error.
+      // Server returned a "FID cannot be used" error.
       // Generate a new ID next time.
       await remove(installations.appConfig);
     } else {

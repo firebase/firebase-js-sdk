@@ -29,7 +29,7 @@ import {
 
 /**
  * We have a test that depends on leveraging two properly
- * configured Firebase instances. we are skiping the test
+ * configured Firebase instances. we are skipping the test
  * but I want to leave the test here for when we can refactor
  * to remove the prod firebase dependency.
  */

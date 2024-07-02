@@ -68,7 +68,7 @@ export interface Connection<T extends ConnectionType> {
 }
 
 /**
- * Error codes for requests made by the the XhrIo wrapper.
+ * Error codes for requests made by the XhrIo wrapper.
  */
 export enum ErrorCode {
   NO_ERROR = 0,

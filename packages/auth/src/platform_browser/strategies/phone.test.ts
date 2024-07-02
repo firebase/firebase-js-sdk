@@ -394,7 +394,7 @@ describe('platform_browser/strategies/phone', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
-    it('resets the verifer after successful verification', async () => {
+    it('resets the verifier after successful verification', async () => {
       sinon.spy(verifier, '_reset');
       expect(await _verifyPhoneNumber(auth, 'number', verifier)).to.eq(
         'session-info'
@@ -402,7 +402,7 @@ describe('platform_browser/strategies/phone', () => {
       expect(verifier._reset).to.have.been.called;
     });
 
-    it('resets the verifer after a failed verification', async () => {
+    it('resets the verifier after a failed verification', async () => {
       sinon.spy(verifier, '_reset');
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
 

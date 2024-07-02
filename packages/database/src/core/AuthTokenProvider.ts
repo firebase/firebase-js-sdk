@@ -54,7 +54,7 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
         // Support delayed initialization of FirebaseAuth. This allows our
         // customers to initialize the RTDB SDK before initializing Firebase
         // Auth and ensures that all requests are authenticated if a token
-        // becomes available before the timoeout below expires.
+        // becomes available before the timeout below expires.
         setTimeout(() => {
           if (this.auth_) {
             this.getToken(forceRefresh).then(resolve, reject);

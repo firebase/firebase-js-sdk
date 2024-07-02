@@ -324,7 +324,7 @@ export function remoteStoreUnlisten(
 }
 
 /**
- * We need to increment the the expected number of pending responses we're due
+ * We need to increment the expected number of pending responses we're due
  * from watch so we wait for the ack to process any messages from this target.
  */
 function sendWatchRequest(

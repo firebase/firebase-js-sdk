@@ -242,7 +242,7 @@ export class ResourcePath extends BasePath<ResourcePath> {
           `Invalid segment (${path}). Paths must not contain // in them.`
         );
       }
-      // Strip leading and traling slashed.
+      // Strip leading and trailing slashed.
       segments.push(...path.split('/').filter(segment => segment.length > 0));
     }
 

@@ -23,7 +23,7 @@ import { assert } from './assert';
 
 // Note that not all Unicode characters appear as single characters in JavaScript strings.
 // fromCharCode returns the UTF-16 encoding of a character - so some Unicode characters
-// use 2 characters in Javascript.  All 4-byte UTF-8 characters begin with a first
+// use 2 characters in JavaScript.  All 4-byte UTF-8 characters begin with a first
 // character in the range 0xD800 - 0xDBFF (the first character of a so-called surrogate
 // pair).
 // See http://www.ecma-international.org/ecma-262/5.1/#sec-15.1.3

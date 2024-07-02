@@ -154,7 +154,7 @@ describe('getInstallationEntry', () => {
         requestName: 'Create Installation',
         serverCode: 409,
         serverStatus: 'INVALID_ARGUMENT',
-        serverMessage: 'FID can not be used.'
+        serverMessage: 'FID cannot be used.'
       });
     });
 

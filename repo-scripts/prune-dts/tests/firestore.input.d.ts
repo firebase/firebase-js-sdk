@@ -464,7 +464,7 @@ export declare function collection(
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -482,7 +482,7 @@ export declare function collection(
 
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
@@ -794,7 +794,7 @@ export declare function disableNetwork(
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified absolute path.
  *
  * @param firestore - A reference to the root Firestore instance.
  * @param path - A slash-separated path to a document.
@@ -818,7 +818,7 @@ export declare function doc(
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a document. Has to be omitted to use
- * auto-genrated IDs.
+ * auto-generated IDs.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to
@@ -1643,14 +1643,14 @@ export declare interface FirestoreDataConverter<T>
 declare interface FirestoreDataConverter_2<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
    * and {@link Transaction#set}.
    */
   toFirestore(modelObject: T): DocumentData;
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
    * and {@link Transaction#set} with `merge:true` or `mergeFields`.
    */

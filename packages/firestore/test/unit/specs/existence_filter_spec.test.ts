@@ -309,7 +309,7 @@ describeSpec('Existence Filters:', [], () => {
   );
 
   specTest(
-    'Full re-query is triggered when bloom filter can not identify documents deleted',
+    'Full re-query is triggered when bloom filter cannot identify documents deleted',
     [],
     () => {
       const query1 = query('collection');

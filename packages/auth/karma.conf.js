@@ -28,7 +28,7 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
     // undici is a fetch polyfill that test helpers call for Node tests, and browser tests should
-    // ingore its import to avoid compilation errors in those test helpers.
+    // ignore its import to avoid compilation errors in those test helpers.
     webpack: {
       ...webpackBase,
       resolve: {

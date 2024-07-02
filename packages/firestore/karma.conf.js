@@ -62,17 +62,17 @@ module.exports = function (config) {
  */
 function getTestFiles(argv) {
   const unitTests = 'test/unit/bootstrap.ts';
-  const legcayIntegrationTests = 'test/integration/bootstrap.ts';
+  const legacyIntegrationTests = 'test/integration/bootstrap.ts';
   const liteIntegrationTests = 'test/lite/bootstrap.ts';
   if (argv.unit) {
     return [unitTests];
   } else if (argv.integration) {
-    return [legcayIntegrationTests];
+    return [legacyIntegrationTests];
   } else if (argv.lite) {
     process.env.TEST_PLATFORM = 'browser_lite';
     return [liteIntegrationTests];
   } else {
-    return [unitTests, legcayIntegrationTests];
+    return [unitTests, legacyIntegrationTests];
   }
 }
 

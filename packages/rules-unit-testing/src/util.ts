@@ -72,7 +72,7 @@ export async function withFunctionTriggersDisabled<TResult>(
   if (!hub) {
     throw new Error(
       'Please specify the Emulator Hub host and port via arguments or set the environment ' +
-        `varible ${EMULATOR_HOST_ENV_VARS.hub}!`
+        `variable ${EMULATOR_HOST_ENV_VARS.hub}!`
     );
   }
 

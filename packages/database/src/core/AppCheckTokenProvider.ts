@@ -46,7 +46,7 @@ export class AppCheckTokenProvider {
         // Support delayed initialization of FirebaseAppCheck. This allows our
         // customers to initialize the RTDB SDK before initializing Firebase
         // AppCheck and ensures that all requests are authenticated if a token
-        // becomes available before the timoeout below expires.
+        // becomes available before the timeout below expires.
         setTimeout(() => {
           if (this.appCheck) {
             this.getToken(forceRefresh).then(resolve, reject);

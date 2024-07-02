@@ -232,7 +232,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       'user@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 
     const widget = new IdPPage(driver.webDriver);
@@ -255,7 +255,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       'same@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 
     const widget = new IdPPage(driver.webDriver);
@@ -292,7 +292,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     });
 
     it('a user can sign in again', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
       // This time, select an existing account
@@ -308,7 +308,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     });
 
     it('reauthenticate works for the correct user', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
       const widget = new IdPPage(driver.webDriver);
@@ -337,7 +337,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       // TODO(b/297245662): Investigate and unskip the test.
       this.skip();
 
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
       const widget = new IdPPage(driver.webDriver);

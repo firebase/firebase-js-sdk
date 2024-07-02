@@ -76,7 +76,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     try {
       await callback(context);
     } finally {
-      // We eagarly clean up this context to actively prevent misuse outside of the callback, e.g.
+      // We eagerly clean up this context to actively prevent misuse outside of the callback, e.g.
       // storing the context in a variable.
       context.cleanup();
       this.contexts.delete(context);

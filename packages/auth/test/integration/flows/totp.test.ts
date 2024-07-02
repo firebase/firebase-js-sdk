@@ -51,7 +51,7 @@ let totpTimestamp: Date;
 let emulatorUrl: string | null;
 let mfaUser: MultiFactorUser | null;
 
-describe(' Integration tests: Mfa enrollement using totp', () => {
+describe(' Integration tests: Mfa enrollment using totp', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {

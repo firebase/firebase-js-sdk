@@ -38,7 +38,7 @@ export declare class GithubAuthProvider extends BaseOAuthProvider
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credential(accessToken)](./auth.githubauthprovider.md#githubauthprovidercredential) | <code>static</code> | Creates a credential for Github. |
+|  [credential(accessToken)](./auth.githubauthprovider.md#githubauthprovidercredential) | <code>static</code> | Creates a credential for GitHub. |
 |  [credentialFromError(error)](./auth.githubauthprovider.md#githubauthprovidercredentialfromerror) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) from a [AuthError](./auth.autherror.md#autherror_interface) which was thrown during a sign-in, link, or reauthenticate operation. |
 |  [credentialFromResult(userCredential)](./auth.githubauthprovider.md#githubauthprovidercredentialfromresult) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class) from a [UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->. |
 
@@ -74,7 +74,7 @@ static readonly PROVIDER_ID: 'github.com';
 
 ## GithubAuthProvider.credential()
 
-Creates a credential for Github.
+Creates a credential for GitHub.
 
 <b>Signature:</b>
 
@@ -86,7 +86,7 @@ static credential(accessToken: string): OAuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  accessToken | string | Github access token. |
+|  accessToken | string | GitHub access token. |
 
 <b>Returns:</b>
 
@@ -148,7 +148,7 @@ const result = await getRedirectResult(auth);
 if (result) {
   // This is the signed-in user
   const user = result.user;
-  // This gives you a Github Access Token.
+  // This gives you a GitHub Access Token.
   const credential = GithubAuthProvider.credentialFromResult(result);
   const token = credential.accessToken;
 }
@@ -166,7 +166,7 @@ const result = await signInWithPopup(auth, provider);
 
 // The signed-in user info.
 const user = result.user;
-// This gives you a Github Access Token.
+// This gives you a GitHub Access Token.
 const credential = GithubAuthProvider.credentialFromResult(result);
 const token = credential.accessToken;
 

@@ -303,10 +303,9 @@ export function forceLongPolling() {
 }
 
 /**
- * Returns the instance of the Realtime Database SDK that is associated
- * with the provided {@link @firebase/app#FirebaseApp}. Initializes a new instance with
- * with default settings if no instance exists or if the existing instance uses
- * a custom database URL.
+ * Returns the instance of the Realtime Database SDK that is associated with the provided
+ * {@link @firebase/app#FirebaseApp}. Initializes a new instance with default settings if
+ * no instance exists or if the existing instance uses a custom database URL.
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned Realtime
  * Database instance is associated with.

@@ -45,7 +45,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  * if (result) {
  *   // This is the signed-in user
  *   const user = result.user;
- *   // This gives you a Github Access Token.
+ *   // This gives you a GitHub Access Token.
  *   const credential = GithubAuthProvider.credentialFromResult(result);
  *   const token = credential.accessToken;
  * }
@@ -60,7 +60,7 @@ import { ProviderId, SignInMethod } from '../../model/enums';
  *
  * // The signed-in user info.
  * const user = result.user;
- * // This gives you a Github Access Token.
+ * // This gives you a GitHub Access Token.
  * const credential = GithubAuthProvider.credentialFromResult(result);
  * const token = credential.accessToken;
  * ```
@@ -77,9 +77,9 @@ export class GithubAuthProvider extends BaseOAuthProvider {
   }
 
   /**
-   * Creates a credential for Github.
+   * Creates a credential for GitHub.
    *
-   * @param accessToken - Github access token.
+   * @param accessToken - GitHub access token.
    */
   static credential(accessToken: string): OAuthCredential {
     return OAuthCredential._fromParams({

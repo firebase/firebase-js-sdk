@@ -102,7 +102,7 @@ export async function run({
 function loadBundleDefinitions(path: string): BundleDefinition[] {
   if (!existsSync(path)) {
     throw new Error(
-      `${path} doesn't exist. Please provide a valid path to the bundle defintion file.`
+      `${path} doesn't exist. Please provide a valid path to the bundle definition file.`
     );
   }
 

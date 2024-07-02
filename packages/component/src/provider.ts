@@ -48,7 +48,7 @@ export class Provider<T extends Name> {
   ) {}
 
   /**
-   * @param identifier A provider can provide mulitple instances of a service
+   * @param identifier A provider can provide multiple instances of a service
    * if this.component.multipleInstances is true.
    */
   get(identifier?: string): Promise<NameServiceMapping[T]> {
@@ -83,7 +83,7 @@ export class Provider<T extends Name> {
 
   /**
    *
-   * @param options.identifier A provider can provide mulitple instances of a service
+   * @param options.identifier A provider can provide multiple instances of a service
    * if this.component.multipleInstances is true.
    * @param options.optional If optional is false or not provided, the method throws an error when
    * the service is not immediately available.
@@ -123,7 +123,7 @@ export class Provider<T extends Name> {
         }
       }
     } else {
-      // In case a component is not initialized and should/can not be auto-initialized at the moment, return null if the optional flag is set, or throw
+      // In case a component is not initialized and should/cannot be auto-initialized at the moment, return null if the optional flag is set, or throw
       if (optional) {
         return null;
       } else {

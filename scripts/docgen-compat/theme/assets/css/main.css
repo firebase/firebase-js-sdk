@@ -518,7 +518,7 @@ ul.tsd-descriptions.active > .tsd-description.fade-out { -webkit-animation: fade
 ul.tsd-descriptions h4, ul.tsd-descriptions .tsd-index-panel h3, .tsd-index-panel ul.tsd-descriptions h3 { font-size: 16px; margin: 1em 0 0.5em 0; }
 
 ul.tsd-parameters, ul.tsd-type-parameters { list-style: square; margin: 0; padding-left: 20px; }
-ul.tsd-parameters > li.tsd-parameter-siganture, ul.tsd-type-parameters > li.tsd-parameter-siganture { list-style: none; margin-left: -20px; }
+ul.tsd-parameters > li.tsd-parameter-signature, ul.tsd-type-parameters > li.tsd-parameter-signature { list-style: none; margin-left: -20px; }
 ul.tsd-parameters h5, ul.tsd-type-parameters h5 { font-size: 16px; margin: 1em 0 0.5em 0; }
 ul.tsd-parameters .tsd-comment, ul.tsd-type-parameters .tsd-comment { margin-top: -0.5em; }
 

@@ -211,7 +211,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       LimitType.Last
     );
     // Simulating bundle building for limit-to-last queries from the server
-    // SDKs: they save the equivelent limit-to-first queries with a limitType
+    // SDKs: they save the equivalent limit-to-first queries with a limitType
     // value 'LAST'. Client SDKs should apply a withLimitToLast when they see
     // limitType 'LAST' from bundles.
     const limitQuery = queryWithLimit(query1, 3, LimitType.First);

@@ -195,7 +195,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     // running), the dedupe will have taken affect and we'll just send "listen a", which results in:
     // "a/b/c: value, a/b: child_added c, a/b: value, a: child_added b, a: value"
     // Notice the 3rd and 4th events are swapped.
-    // To mitigate this, we re-ordeer your event registrations and do them in order of shortest path to longest.
+    // To mitigate this, we re-order your event registrations and do them in order of shortest path to longest.
 
     pathsToListenOn.sort((a, b) => {
       return a.toString().length - b.toString().length;

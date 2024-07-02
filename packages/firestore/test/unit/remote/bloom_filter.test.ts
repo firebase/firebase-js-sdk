@@ -186,13 +186,13 @@ describe('BloomFilter', () => {
         TEST_DATA.count5000Rate1TestResult
       );
     });
-    it('mightContain result for 5000 documenta with 0.01 false positive rate', () => {
+    it('mightContain result for 5000 documents with 0.01 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
         TEST_DATA.count5000Rate01TestData,
         TEST_DATA.count5000Rate01TestResult
       );
     });
-    it('mightContain result for 5000 documenta with 0.0001 false positive rate', () => {
+    it('mightContain result for 5000 documents with 0.0001 false positive rate', () => {
       testBloomFilterAgainstExpectedResult(
         TEST_DATA.count5000Rate0001TestData,
         TEST_DATA.count5000Rate0001TestResult

@@ -277,7 +277,7 @@ apiDescribe('Database transactions', persistence => {
     });
   }).timeout(10000);
 
-  it('runs transactions after getting non-existent document', async () => {
+  it('runs transactions after getting nonexistent document', async () => {
     return withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -320,7 +320,7 @@ apiDescribe('Database transactions', persistence => {
   // is replaced by withDeletedDoc(), to guard against regression of
   // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
   // would incorrectly fail with FAILED_PRECONDITION when operations were
-  // performed on a deleted document (rather than a non-existent document).
+  // performed on a deleted document (rather than a nonexistent document).
   it('runs transactions after getting a deleted document', async () => {
     return withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
@@ -381,7 +381,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  it('runs transactions on non-existent document', async () => {
+  it('runs transactions on nonexistent document', async () => {
     return withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -563,7 +563,7 @@ apiDescribe('Database transactions', persistence => {
   });
 
   it(
-    'cannot read non-existent document then update, even if ' +
+    'cannot read nonexistent document then update, even if ' +
       'document is written after the read',
     () => {
       return withTestDb(persistence, db => {

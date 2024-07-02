@@ -542,7 +542,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbMutationQueueKey,
             DbMutationQueue
           >(DbMutationQueueStore);
-          // Manually populate the mutation queue and create all indicies.
+          // Manually populate the mutation queue and create all indices.
           return PersistencePromise.forEach(
             testMutations,
             (testMutation: DbMutationBatch) => {

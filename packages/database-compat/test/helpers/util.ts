@@ -93,7 +93,7 @@ export function getRootNode(i = 0, ref?: string) {
 
 /**
  * Create multiple refs to the same top level
- * push key - each on it's own Firebase.Context.
+ * push key - each on its own Firebase.Context.
  */
 export function getRandomNode(numNodes?): Reference | Reference[] {
   if (numNodes === undefined) {

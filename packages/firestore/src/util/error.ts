@@ -122,7 +122,7 @@ export const Code = {
    * The caller does not have permission to execute the specified operation.
    * PERMISSION_DENIED must not be used for rejections caused by exhausting
    * some resource (use RESOURCE_EXHAUSTED instead for those errors).
-   * PERMISSION_DENIED must not be used if the caller can not be identified
+   * PERMISSION_DENIED must not be used if the caller cannot be identified
    * (use UNAUTHENTICATED instead for those errors).
    */
   PERMISSION_DENIED: 'permission-denied' as FirestoreErrorCode,

@@ -65,7 +65,7 @@ export interface SDKMinifierOptions {
   publicIdentifiers: Set<string>;
   /**
    * A prefix to append to all identifiers that are not referencing the Public
-   * API. Defauls to '_'.
+   * API. Defaults to '_'.
    */
   prefix?: string;
 }

@@ -123,7 +123,7 @@ describe('auth compat', () => {
       }
     });
 
-    it('pulls the persistence and sets as the main persitsence if set', () => {
+    it('pulls the persistence and sets as the main persistence if set', () => {
       if (typeof self !== 'undefined') {
         sessionStorage.setItem(
           'firebase:persistence:api-key:undefined',

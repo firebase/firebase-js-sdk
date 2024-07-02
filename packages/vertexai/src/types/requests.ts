@@ -152,7 +152,7 @@ export declare interface FunctionDeclaration {
   /**
    * Optional. Describes the parameters to this function in JSON Schema Object
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
-   * case sensitive. For a function with no parameters, this can be left unset.
+   * case-sensitive. For a function with no parameters, this can be left unset.
    */
   parameters?: FunctionDeclarationSchema;
 }

@@ -243,7 +243,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   }).timeout(10000);
 
-  it('runs transactions after getting non-existent document', async () => {
+  it('runs transactions after getting nonexistent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -306,7 +306,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('runs transactions on non-existent document', async () => {
+  it('runs transactions on nonexistent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -458,7 +458,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   });
 
   it(
-    'cannot read non-existent document then update, even if ' +
+    'cannot read nonexistent document then update, even if ' +
       'document is written after the read',
     () => {
       return integrationHelpers.withTestDb(persistence, db => {

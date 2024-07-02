@@ -58,7 +58,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
-    it('is fals if exp is far enough in future', () => {
+    it('is false if exp is far enough in future', () => {
       stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH + 10);
       expect(stsTokenManager.isExpired).to.eq(false);
     });
@@ -77,7 +77,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
 
-    it('falls back to exp and iat when expiresIn is ommited (ie: MFA)', () => {
+    it('falls back to exp and iat when expiresIn is omitted (ie: MFA)', () => {
       const idToken = makeJWT({ 'exp': '180', 'iat': '120' });
       stsTokenManager.updateFromServerResponse({
         idToken,

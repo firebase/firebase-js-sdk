@@ -44,7 +44,7 @@ yargs
       },
       releaseType: {
         type: 'string',
-        desc: '"Staging" or "Production" - this is case sensitive!'
+        desc: '"Staging" or "Production" - this is case-sensitive!'
       },
       dryRun: {
         type: 'boolean',
@@ -82,7 +82,7 @@ yargs
         type: 'string',
         alias: 'p',
         demandOption: true,
-        desc: 'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
+        desc: 'The prerelease label used in version number. e.g. 1.0.0-<prereleaseName>'
       },
       npmTag: {
         type: 'string',

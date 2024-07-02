@@ -609,7 +609,7 @@ export function push(
   // then() and catch() methods and is used as the return value of push(). The
   // second remains a regular Reference and is used as the fulfilled value of
   // the first ThennableReference.
-  const thennablePushRef: Partial<ThenableReferenceImpl> = child(
+  const thenablePushRef: Partial<ThenableReferenceImpl> = child(
     parent,
     name
   ) as ReferenceImpl;
@@ -622,9 +622,9 @@ export function push(
     promise = Promise.resolve(pushRef);
   }
 
-  thennablePushRef.then = promise.then.bind(promise);
-  thennablePushRef.catch = promise.then.bind(promise, undefined);
-  return thennablePushRef as ThenableReferenceImpl;
+  thenablePushRef.then = promise.then.bind(promise);
+  thenablePushRef.catch = promise.then.bind(promise, undefined);
+  return thenablePushRef as ThenableReferenceImpl;
 }
 
 /**

@@ -180,11 +180,11 @@ export async function runRelease({
     }
 
     /**
-     * Push tags to Github for prod releases only.
+     * Push tags to GitHub for prod releases only.
      */
     if (releaseType === ReleaseType.Production && !dryRun) {
       /**
-       * Push release tags created by changeset or publishInCI() to Github
+       * Push release tags created by changeset or publishInCI() to GitHub
        */
       await pushReleaseTagsToGithub();
     }

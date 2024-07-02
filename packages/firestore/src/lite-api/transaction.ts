@@ -20,7 +20,7 @@ import { getModularInstance } from '@firebase/util';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import {
   DEFAULT_TRANSACTION_OPTIONS,
-  TransactionOptions as TranasactionOptionsInternal,
+  TransactionOptions as TransactionOptionsInternal,
   validateTransactionOptions
 } from '../core/transaction_options';
 import { TransactionRunner } from '../core/transaction_runner';
@@ -290,7 +290,7 @@ export function runTransaction<T>(
 ): Promise<T> {
   firestore = cast(firestore, Firestore);
   const datastore = getDatastore(firestore);
-  const optionsWithDefaults: TranasactionOptionsInternal = {
+  const optionsWithDefaults: TransactionOptionsInternal = {
     ...DEFAULT_TRANSACTION_OPTIONS,
     ...options
   };

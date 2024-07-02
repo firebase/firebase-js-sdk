@@ -38,7 +38,7 @@ describe('Performance Compat', () => {
     );
   });
 
-  it('sets instrumnetation flag on the modular package', () => {
+  it('sets instrumentation flag on the modular package', () => {
     // Default value of the flag is true.
     performanceCompat.instrumentationEnabled = false;
 

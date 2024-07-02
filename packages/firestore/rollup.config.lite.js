@@ -66,8 +66,8 @@ const browserPlugins = function () {
 };
 
 const allBuilds = [
-  // Intermidiate Node ESM build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate Node ESM build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './lite/index.ts',
@@ -132,8 +132,8 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Intermidiate browser build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate browser build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './lite/index.ts',
