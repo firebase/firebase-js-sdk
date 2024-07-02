@@ -37,7 +37,7 @@
     "testsetup": "yarn update-responses && yarn ts-node ./test-utils/convert-mocks.ts",
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
-    "test:debug": "karma start --single-run",
+    "test:skip-clone": "karma start --single-run",
     "test:browser": "yarn testsetup && karma start --single-run",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts",
