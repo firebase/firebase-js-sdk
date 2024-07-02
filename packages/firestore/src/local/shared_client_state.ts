@@ -682,8 +682,8 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     }
 
-    // If the query is listening to cache only, the target ID should not be registered the  with
-    // local Firestore client as active watch target.
+    // If the query is listening to cache only, the target ID should not be registered with the
+    // local Firestore client as an active watch target.
     if (addToActiveTargetIds) {
       this.localClientState.addQueryTarget(targetId);
     }
