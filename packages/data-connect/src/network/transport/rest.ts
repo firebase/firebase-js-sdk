@@ -20,7 +20,7 @@ import { DataConnectError, Code } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
-import { dcFetch } from '../fetch';
+import { dcFetch, initializeFetch } from '../fetch';
 
 import { DataConnectTransport } from '.';
 
@@ -34,6 +34,7 @@ export class RESTTransport implements DataConnectTransport {
   private _serviceName: string;
   private _accessToken: string | null = null;
   private _authInitialized = false;
+  private _lastToken: string | null = null;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
@@ -93,14 +94,14 @@ export class RESTTransport implements DataConnectTransport {
     this._accessToken = newToken;
   }
 
-  getWithAuth() {
+  getWithAuth(forceToken = false) {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );
     if (!this._authInitialized) {
       if (this.authProvider) {
         starterPromise = this.authProvider
-          .getToken(/*forceToken=*/ false)
+          .getToken(/*forceToken=*/ forceToken)
           .then(data => {
             if (!data) {
               return null;
@@ -115,13 +116,39 @@ export class RESTTransport implements DataConnectTransport {
     return starterPromise;
   }
 
+  _setLastToken(lastToken: string | null) {
+    this._lastToken = lastToken;
+  }
+
+  //TODO(mtewani): Remove any
+  withRetry<T>(promiseFactory: () => Promise<{ data: T, errors: Error[]}>, retry = false) {
+    let isNewToken = false;
+    return this.getWithAuth(retry)
+      .then(res => {
+        isNewToken = this._lastToken !== res;
+        this._lastToken = res;
+        return res;
+      })
+      .then(promiseFactory)
+      .catch(err => {
+        // Only retry if the result is unauthorized and the last token isn't the same as the new one.
+        if (
+          'code' in err &&
+          err.code === Code.UNAUTHORIZED &&
+          !retry && isNewToken
+        ) {
+          logDebug('Retrying due to unauthorized');
+          return this.withRetry(promiseFactory, true);
+        }
+        throw err;
+      });
+  }
+
   // TODO(mtewani): Update U to include shape of body defined in line 13.
   invokeQuery = <T, U = unknown>(queryName: string, body: U) => {
     const abortController = new AbortController();
-
     // TODO(mtewani): Update to proper value
-    const withAuth = this.getWithAuth().then(() => {
-      return dcFetch<T, U>(
+    const withAuth = this.withRetry(() => dcFetch<T, U>(
         addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
@@ -130,8 +157,7 @@ export class RESTTransport implements DataConnectTransport {
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
         this._accessToken
-      );
-    });
+      ));
 
     return {
       then: withAuth.then.bind(withAuth)
@@ -139,7 +165,7 @@ export class RESTTransport implements DataConnectTransport {
   };
   invokeMutation = <T, U = unknown>(mutationName: string, body: U) => {
     const abortController = new AbortController();
-    const taskResult = this.getWithAuth().then(() => {
+    const taskResult = this.withRetry(() => {
       return dcFetch<T, U>(
         addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
         {

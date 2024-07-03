@@ -44,6 +44,7 @@ export function dcFetch<T, U>(
   }
   const bodyStr = JSON.stringify(body);
   logDebug(`Making request out to ${url} with body: ${bodyStr}`);
+  
   return connectFetch(url, {
     body: bodyStr,
     method: 'POST',
@@ -64,9 +65,12 @@ export function dcFetch<T, U>(
         throw new DataConnectError(Code.OTHER, JSON.stringify(e));
       }
       if (response.status >= 400) {
-        logError(
-          'Error while performing request: ' + JSON.stringify(jsonResponse)
-        );
+        // logError(
+        //   'Error while performing request: ' + JSON.stringify(jsonResponse)
+        // );
+        if(response.status === 401) {
+          throw new DataConnectError(Code.UNAUTHORIZED, JSON.stringify(jsonResponse));
+        }
         throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
       }
       return jsonResponse;
