@@ -1895,4 +1895,40 @@ describeSpec('Listens:', [], () => {
         .restoreListen(query1, 'resume-token-1000', /* expectedCount= */ 1);
     }
   );
+
+  specTest(
+    'Global snapshots would not alter query state if there is no changes',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        client(0)
+          .becomeVisible()
+          .expectPrimaryState(true)
+          // Populate the cache first
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Listen to the query in the primary client
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, {
+            added: [docA],
+            fromCache: true
+          })
+          .watchAcksFull(query1, 2000, docA)
+          .expectEvents(query1, { fromCache: false })
+          // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/8314
+          // Watch could send a global snapshot from time to time. If there are no view changes,
+          // the query should not be marked as "not-current" as the Target is up to date.
+          .watchSnapshots(3000, [], 'resume-token-3000')
+          // Listen to the query in the secondary tab. The snapshot is up to date.
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA], fromCache: false })
+      );
+    }
+  );
 });

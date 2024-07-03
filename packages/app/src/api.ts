@@ -48,7 +48,12 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
-import { deepEqual, getDefaultAppConfig, isBrowser } from '@firebase/util';
+import {
+  deepEqual,
+  getDefaultAppConfig,
+  isBrowser,
+  isWebWorker
+} from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
 
@@ -230,7 +235,7 @@ export function initializeServerApp(
   _options: FirebaseOptions | FirebaseApp,
   _serverAppConfig: FirebaseServerAppSettings
 ): FirebaseServerApp {
-  if (isBrowser()) {
+  if (isBrowser() && !isWebWorker()) {
     // FirebaseServerApp isn't designed to be run in browsers.
     throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
   }

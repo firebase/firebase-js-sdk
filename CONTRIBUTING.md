@@ -6,7 +6,6 @@ than it is today! Here are the guidelines we'd like you to follow:
  - [Code of Conduct](#coc)
  - [Question or Problem?](#question)
  - [Issues and Bugs](#issue)
- - [Feature Requests](#feature)
  - [Submission Guidelines](#submit)
  - [Updating Documentation](#docs)
 
@@ -16,7 +15,7 @@ As contributors and maintainers of the Firebase JS SDK project, we pledge to res
 contributes by posting issues, updating documentation, submitting pull requests, providing feedback
 in comments, and any other activities.
 
-Communication through any of Firebase's channels (GitHub, StackOverflow, Google+, Twitter, etc.)
+Communication through any of Firebase's channels (GitHub, StackOverflow, X, etc.)
 must be constructive and never resort to personal attacks, trolling, public or private harassment,
 insults, or other unprofessional conduct.
 
@@ -228,10 +227,10 @@ root directory to generate the documentation locally:
 
 ```
 yarn
-yarn docgen devsite
+yarn docgen:all
 ```
 
-This will generate reference docs in `docs-devsite/`. Commit and push the generated
+This will generate reference docs and the toc in `docs-devsite/`. Commit and push the generated
 documentation changes to GitHub following the [PR submission guidelines](#submit). Your push
 to the remote repository should force any failing documentation checks to execute again.
 
