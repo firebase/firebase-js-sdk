@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.9.7
+
+### Patch Changes
+
+- [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558) [#8315](https://github.com/firebase/firebase-js-sdk/pull/8315) (fixes [#8299](https://github.com/firebase/firebase-js-sdk/issues/8299)) - fix: browser detection (detect either window or web worker)
+
 ## 1.9.6
 
 ### Patch Changes
