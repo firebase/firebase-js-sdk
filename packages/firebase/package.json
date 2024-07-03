@@ -395,7 +395,8 @@
     "build:compat": "rollup -c compat/rollup.config.js",
     "dev": "rollup -c -w",
     "test": "echo 'No test suite for firebase wrapper'",
-    "test:ci": "echo 'No test suite for firebase wrapper'"
+    "test:ci": "echo 'No test suite for firebase wrapper'",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@firebase/app": "0.10.5",

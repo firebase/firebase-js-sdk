@@ -33,12 +33,15 @@
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/vertexai --include-dependencies build",
     "dev": "rollup -c -w",
-    "testsetup": "yarn ts-node ./test-utils/convert-mocks.ts",
+    "update-responses": "cd test-utils && rm -rf vertexai-sdk-test-data && git clone --depth 1 https://github.com/FirebaseExtended/vertexai-sdk-test-data.git",
+    "testsetup": "yarn update-responses && yarn ts-node ./test-utils/convert-mocks.ts",
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "yarn testsetup && node ../../scripts/run_tests_in_ci.js -s test",
+    "test:skip-clone": "karma start --single-run",
     "test:browser": "yarn testsetup && karma start --single-run",
     "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
