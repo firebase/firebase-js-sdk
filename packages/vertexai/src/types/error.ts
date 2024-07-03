@@ -28,10 +28,10 @@ export interface ErrorDetails {
   /** The reason for the error. */
   reason?: string;
 
-  /** The domain where the error occured. */
+  /** The domain where the error occurred. */
   domain?: string;
 
-  /** Additonal metadata about the error. */
+  /** Additional metadata about the error. */
   metadata?: Record<string, unknown>;
 
   /** Any other relevant information about the error. */
