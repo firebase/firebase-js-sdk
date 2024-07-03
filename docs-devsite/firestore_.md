@@ -179,7 +179,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance.<!-- -->Persistent cache cannot be used in a Node.js environment. |
 |  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
-|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
+|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supporting only one tab, no synchronization will be performed across tabs. |
 |  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instance. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
@@ -205,7 +205,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
 |  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<!-- -->Set to <code>default</code> to listen to both cache and server changes. Set to <code>cache</code> to listen to changes in cache only. |
-|  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support gabage collectors for memory local cache. |
+|  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support garbage collectors for memory local cache. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
 |  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
@@ -1954,7 +1954,7 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(refe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
-|  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
+|  path | string | A slash-separated path to a document. Has to be omitted to use auto-generated IDs. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
@@ -2566,7 +2566,7 @@ export declare type ListenSource = 'default' | 'cache';
 
 ## MemoryGarbageCollector
 
-Union type from all support gabage collectors for memory local cache.
+Union type from all support garbage collectors for memory local cache.
 
 <b>Signature:</b>
 

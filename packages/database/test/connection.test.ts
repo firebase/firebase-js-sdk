@@ -40,7 +40,7 @@ describe('Connection', () => {
     );
   });
 
-  // TODO(koss) - Flakey Test.  When Dev Tools is closed on my Mac, this test
+  // TODO(koss) - Flaky Test.  When Dev Tools is closed on my Mac, this test
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
   it.skip('disconnect old session on new connection', done => {

@@ -77,8 +77,8 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
           return;
         }
 
-        // Wrap the greptcha render function so that we know if the developer has
-        // called it separately
+        // Wrap the recaptcha render function so that we know if the developer has
+        // called it separately.
         const render = recaptcha.render;
         recaptcha.render = (container, params) => {
           const widgetId = render(container, params);
@@ -114,7 +114,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     //     2. there exists already a ReCaptcha on the page
     //     3. the library was already loaded by the app
     // In cases (2) and (3), we _can't_ reload as it would break the recaptchas
-    // that are already in the page
+    // that are already in the page.
     return (
       !!_window().grecaptcha?.render &&
       (hl === this.hostLanguage ||

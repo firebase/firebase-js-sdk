@@ -501,7 +501,7 @@ export const INTEGER_REGEXP_ = new RegExp('^-?(0*)\\d{1,10}$');
 export const INTEGER_32_MIN = -2147483648;
 
 /**
- * For use in kyes, the maximum possible 32-bit integer.
+ * For use in keys, the maximum possible 32-bit integer.
  */
 export const INTEGER_32_MAX = 2147483647;
 

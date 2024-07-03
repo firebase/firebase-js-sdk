@@ -397,7 +397,7 @@ describe('API tests', () => {
       expect(getApp()).to.equal(app);
     });
 
-    it('retrives named App', () => {
+    it('retrieves named App', () => {
       const appName = 'MyApp';
       const app = initializeApp({}, appName);
       expect(getApp(appName)).to.equal(app);
@@ -420,7 +420,7 @@ describe('API tests', () => {
   });
 
   describe('getApps', () => {
-    it('retrives all Apps that have been created', () => {
+    it('retrieves all Apps that have been created', () => {
       const app1 = initializeApp({});
       const app2 = initializeApp({}, 'App2');
 

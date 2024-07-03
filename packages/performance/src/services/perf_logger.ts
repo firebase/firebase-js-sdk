@@ -85,7 +85,7 @@ interface TraceMetric {
   custom_attributes?: { [key: string]: string };
 }
 
-/* eslint-enble camelcase */
+/* eslint-enable camelcase */
 
 let logger: (
   resource: NetworkRequest | Trace,

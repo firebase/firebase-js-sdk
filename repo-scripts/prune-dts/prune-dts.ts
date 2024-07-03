@@ -141,8 +141,8 @@ function isExported(
 /**
  * Replaces an existing constructor implementation if the constructor is marked
  * with the JSDod tag `@hideconstructor`. The replaced constructor can either
- * have `private` visibility` or `proctected`. To generate a protected
- * constructor, specify `@hideconstructor proctected`.
+ * have `private` visibility` or `protected`. To generate a protected
+ * constructor, specify `@hideconstructor protected`.
  *
  * Returns either the modified constructor or the existing constructor if no
  * modification was needed.

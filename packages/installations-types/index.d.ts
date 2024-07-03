@@ -39,7 +39,7 @@ export interface FirebaseInstallations {
   delete(): Promise<void>;
 
   /**
-   * Sets a new callback that will get called when Installlation ID changes.
+   * Sets a new callback that will get called when Installation ID changes.
    * Returns an unsubscribe function that will remove the callback when called.
    */
   onIdChange(callback: (installationId: string) => void): () => void;

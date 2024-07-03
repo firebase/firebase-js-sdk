@@ -285,7 +285,7 @@ export declare function doc(
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a document. Has to be omitted to use
- * auto-genrated IDs.
+ * auto-generated IDs.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to

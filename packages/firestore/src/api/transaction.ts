@@ -18,7 +18,7 @@
 import { firestoreClientTransaction } from '../core/firestore_client';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import {
-  TransactionOptions as TranasactionOptionsInternal,
+  TransactionOptions as TransactionOptionsInternal,
   DEFAULT_TRANSACTION_OPTIONS,
   validateTransactionOptions
 } from '../core/transaction_options';
@@ -106,7 +106,7 @@ export function runTransaction<T>(
   options?: TransactionOptions
 ): Promise<T> {
   firestore = cast(firestore, Firestore);
-  const optionsWithDefaults: TranasactionOptionsInternal = {
+  const optionsWithDefaults: TransactionOptionsInternal = {
     ...DEFAULT_TRANSACTION_OPTIONS,
     ...options
   };

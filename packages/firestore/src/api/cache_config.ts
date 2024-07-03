@@ -125,7 +125,7 @@ class PersistentLocalCacheImpl implements PersistentLocalCache {
 export type FirestoreLocalCache = MemoryLocalCache | PersistentLocalCache;
 
 /**
- * Union type from all support gabage collectors for memory local cache.
+ * Union type from all support garbage collectors for memory local cache.
  */
 export type MemoryGarbageCollector =
   | MemoryEagerGarbageCollector
@@ -283,7 +283,7 @@ export function persistentLocalCache(
 }
 
 /**
- * A tab manager supportting only one tab, no synchronization will be
+ * A tab manager supporting only one tab, no synchronization will be
  * performed across tabs.
  */
 export type PersistentSingleTabManager = {

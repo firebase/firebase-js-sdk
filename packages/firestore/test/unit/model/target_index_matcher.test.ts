@@ -447,7 +447,7 @@ describe('Target Bounds', () => {
     validateServesTarget(q, 'a', IndexKind.ASCENDING, 'b', IndexKind.ASCENDING);
   });
 
-  it('with mutiple filters', () => {
+  it('with multiple filters', () => {
     const queriesMultipleFilters = queryWithAddedFilter(
       queryWithAddedFilter(query('collId'), filter('a', '==', 'a')),
       filter('b', '>', 'b')

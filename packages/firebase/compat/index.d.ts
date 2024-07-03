@@ -1739,7 +1739,7 @@ declare namespace firebase.installations {
     delete(): Promise<void>;
 
     /**
-     * Sets a new callback that will get called when Installlation ID changes.
+     * Sets a new callback that will get called when Installation ID changes.
      * Returns an unsubscribe function that will remove the callback when called.
      */
     onIdChange(callback: (installationId: string) => void): () => void;
@@ -1803,7 +1803,7 @@ declare namespace firebase.performance {
      * directly be used (e.g. if the duration was captured before the Performance SDK was loaded).
      *
      * @param startTime Trace start time since epoch in millisec.
-     * @param duration The duraction of the trace in millisec.
+     * @param duration The duration of the trace in millisec.
      * @param options An object which can optionally hold maps of custom metrics and
      * custom attributes.
      */
@@ -3464,7 +3464,7 @@ declare namespace firebase.auth {
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/invalid-user-token</dt>
-     * <dd>Thrown if the user to be updated belongs to a diffent Firebase
+     * <dd>Thrown if the user to be updated belongs to a different Firebase
      *     project.</dd>
      * <dt>auth/user-token-expired</dt>
      * <dd>Thrown if the token of the user to be updated is expired.</dd>
@@ -3803,7 +3803,7 @@ declare namespace firebase.auth {
     /**
      * The tenant ID being used for sign-in/linking. If you use
      * {@link firebase.auth.Auth.signInWithRedirect} to sign in, you have to
-     * set the tenant ID on Auth instanace again as the tenant ID is not
+     * set the tenant ID on Auth instance again as the tenant ID is not
      * persisted after redirection.
      */
     tenantId?: string;
@@ -6365,7 +6365,7 @@ declare namespace firebase.database {
      *
      * The ending point is exclusive. If only a value is provided, children
      * with a value less than the specified value will be included in the query.
-     * If a key is specified, then children must have a value lesss than or equal
+     * If a key is specified, then children must have a value less than or equal
      * to the specified value and a a key name less than the specified key.
      *
      * @example
