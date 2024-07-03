@@ -120,7 +120,6 @@ export class RESTTransport implements DataConnectTransport {
     this._lastToken = lastToken;
   }
 
-  //TODO(mtewani): Remove any
   withRetry<T>(promiseFactory: () => Promise<{ data: T, errors: Error[]}>, retry = false) {
     let isNewToken = false;
     return this.getWithAuth(retry)
