@@ -126,7 +126,7 @@ _setExternalJSProvider({
       const el = document.createElement('script');
       // FIXME: Do not use setAttribute, since it can lead to XSS. Instead, use the safevalues library to
       // safely set an attribute for a sanitized trustedResourceUrl. Since the trustedResourceUrl
-      // must be initialized from a template string literal, this could involve some heavy 
+      // must be initialized from a template string literal, this could involve some heavy
       // refactoring.
       el.setAttribute('src', url);
       el.onload = resolve;
