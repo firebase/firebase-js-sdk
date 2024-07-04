@@ -8,7 +8,6 @@
       {
         "name": "tsec",
         "reportTsecDiagnosticsOnly": true,
-        "exemptionConfig": "./tsec-exemptions.json"
       }
     ]
   },

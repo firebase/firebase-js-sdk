@@ -16,8 +16,6 @@
  */
 
 import { base64Encode, isNodeSdk, stringify } from '@firebase/util';
-import { sanitizeHtml } from 'safevalues';
-import { safeDocument } from 'safevalues/dom';
 
 import { RepoInfo, repoInfoConnectionURL } from '../core/RepoInfo';
 import { StatsCollection } from '../core/stats/StatsCollection';
@@ -477,7 +475,8 @@ export class FirebaseIFrameScriptHolder {
       const iframeContents = '<html><body>' + script + '</body></html>';
       try {
         this.myIFrame.doc.open();
-        safeDocument.write(this.myIFrame.doc, sanitizeHtml(iframeContents));
+        // FIXME: Use the safevalues library to sanitize this
+        this.myIFrame.doc.write(iframeContents);
         this.myIFrame.doc.close();
       } catch (e) {
         log('frame writing exception');

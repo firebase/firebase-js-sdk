@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { trustedResourceUrl } from 'safevalues';
-import { safeServiceWorkerContainer } from 'safevalues/dom';
-
-import { DEFAULT_SW_SCOPE } from '../util/constants';
+import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
@@ -27,10 +24,9 @@ export async function registerDefaultSw(
   messaging: MessagingService
 ): Promise<void> {
   try {
-    const container = navigator.serviceWorker;
-    messaging.swRegistration = await safeServiceWorkerContainer.register(
-      container,
-      trustedResourceUrl`/firebase-messaging-sw.js`,
+    // FIXME: Use safevalues to register the service worker with a sanitized URL.
+    messaging.swRegistration = await navigator.serviceWorker.register(
+      DEFAULT_SW_PATH,
       {
         scope: DEFAULT_SW_SCOPE
       }
