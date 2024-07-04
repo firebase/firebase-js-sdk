@@ -46,7 +46,7 @@
     "@firebase/util": "1.9.7",
     "@firebase/component": "0.6.8",
     "tslib": "^2.1.0",
-    "safevalues": "0.5.2"
+    "safevalues": "0.6.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {

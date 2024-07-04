@@ -59,7 +59,7 @@
     "@firebase/util": "1.9.7",
     "@firebase/component": "0.6.8",
     "idb": "7.1.1",
-    "safevalues": "^0.5.2",
+    "safevalues": "0.6.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
