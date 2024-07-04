@@ -146,7 +146,7 @@ input + .form,
   margin-top: 5px;
 }
 
-/* Bootstrap .hidden adds the !important which invalidatees jQuery .show() */
+/* Bootstrap .hidden adds the !important which invalidates jQuery .show() */
 .hidden,
 .hide,
 .profile,
