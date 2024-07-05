@@ -67,7 +67,9 @@ describe('Gtag wrapping functions', () => {
     insertScriptTag(customDataLayerName, fakeMeasurementId);
     const scriptTag = findGtagScriptOnPage(customDataLayerName);
     expect(scriptTag).to.not.be.null;
-    expect(scriptTag!.src).to.equal(`https://www.googletagmanager.com/gtag/js?l=${customDataLayerName}&id=${fakeMeasurementId}`);
+    expect(scriptTag!.src).to.equal(
+      `https://www.googletagmanager.com/gtag/js?l=${customDataLayerName}&id=${fakeMeasurementId}`
+    );
   });
 
   // The test above essentially already touches this functionality but it is still valuable
