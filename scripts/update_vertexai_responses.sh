@@ -18,13 +18,18 @@
 # clone of the shared repository of Vertex AI test data.
 
 RESPONSES_VERSION='v1.*' # The major version of mock responses to use
-REPO="https://github.com/FirebaseExtended/vertexai-sdk-test-data.git"
-# Fetch the latest tag matching the major version from the golden files repository
-TAG=$(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' "$REPO" \
-  | grep "$RESPONSES_VERSION" \
-  | tail -n1 \
-  | awk -F'/' '{print $NF}')
+REPO_NAME="vertexai-sdk-test-data"
+REPO_LINK="https://github.com/FirebaseExtended/$REPO_NAME.git"
 
 cd "$(dirname "$0")/../packages/vertexai/test-utils" || exit
-rm -rf vertexai-sdk-test-data
-git clone --quiet --config advice.detachedHead=false --depth 1 --branch "$TAG" "$REPO"
+rm -rf "$REPO_NAME"
+git clone "$REPO_LINK" --quiet || exit
+cd "$REPO_NAME" || exit
+
+# Find and checkout latest tag matching major version
+TAG=$(git tag --sort=v:refname | grep "$RESPONSES_VERSION" | tail -n1)
+if [ -z "$TAG" ]; then
+  echo "Error: No matching tag found in $REPO_NAME"
+  exit
+fi
+git checkout "$TAG" --quiet

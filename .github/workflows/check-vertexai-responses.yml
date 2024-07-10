@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Check Vertex AI Mock Responses Version
+name: Check Vertex AI Responses
 
 on: pull_request
 
 jobs:
-  check-responses-version:
+  check-version:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -25,11 +25,10 @@ jobs:
       run: scripts/update_vertexai_responses.sh
     - name: Find cloned and latest versions
       run: |
-        echo "current_tag=$(git describe --tags)" >> $GITHUB_ENV
-        # Fetch the latest tag matching the major version from the golden files repository
-        echo "latest_tag=$(git -c 'versionsort.suffix=-' ls-remote --tags --sort='v:refname' \
-          https://github.com/FirebaseExtended/vertexai-sdk-test-data.git | tail -n1 \
-          | awk -F'/' '{print $NF}')" >> $GITHUB_ENV
+        CLONED=$(git describe --tags)
+        LATEST=$(git tag --sort=v:refname | tail -n1)
+        echo "cloned_tag=$CLONED" >> $GITHUB_ENV
+        echo "latest_tag=$LATEST" >> $GITHUB_ENV
       working-directory: packages/vertexai/test-utils/vertexai-sdk-test-data
     - name: Find comment from previous run if exists
       uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
@@ -38,7 +37,7 @@ jobs:
         issue-number: ${{github.event.number}}
         body-includes: Vertex AI Mock Responses Check
     - name: Comment on PR if newer version is available
-      if: ${{env.current_tag != env.latest_tag && !steps.fc.outputs.comment-id}}
+      if: ${{env.cloned_tag != env.latest_tag && !steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
       with:
         issue-number: ${{github.event.number}}
@@ -49,7 +48,7 @@ jobs:
           [update_vertexai_responses.sh](https://github.com/firebase/firebase-js-sdk/blob/main/scripts/update_vertexai_responses.sh)
           should be updated to clone the latest version of the responses.
     - name: Delete comment when version gets updated
-      if: ${{env.current_tag == env.latest_tag && steps.fc.outputs.comment-id}}
+      if: ${{env.cloned_tag == env.latest_tag && steps.fc.outputs.comment-id}}
       uses: detomarco/delete-comment@850734dd44d8b15fef55b45252613b903ceb06f0
       with:
         comment-id: ${{ steps.fc.outputs.comment-id }}
