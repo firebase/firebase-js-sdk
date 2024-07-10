@@ -27,9 +27,9 @@ git clone "$REPO_LINK" --quiet || exit
 cd "$REPO_NAME" || exit
 
 # Find and checkout latest tag matching major version
-TAG=$(git tag --sort=v:refname | grep "$RESPONSES_VERSION" | tail -n1)
+TAG=$(git tag -l "$RESPONSES_VERSION" --sort=v:refname | tail -n1)
 if [ -z "$TAG" ]; then
-  echo "Error: No matching tag found in $REPO_NAME"
+  echo "Error: No tag matching '$RESPONSES_VERSION' found in $REPO_NAME"
   exit
 fi
 git checkout "$TAG" --quiet
