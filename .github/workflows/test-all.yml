@@ -50,6 +50,8 @@ jobs:
         yarn
     - name: yarn build
       run: yarn build
+    - name: Remove git directory
+      run: rm -rf .git
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
