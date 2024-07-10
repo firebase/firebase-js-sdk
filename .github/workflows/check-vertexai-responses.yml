@@ -46,7 +46,7 @@ jobs:
           
           A newer major version of the mock responses for Vertex AI unit tests is available.
           [update_vertexai_responses.sh](https://github.com/firebase/firebase-js-sdk/blob/main/scripts/update_vertexai_responses.sh)
-          should be updated to clone the latest version of the responses.
+          should be updated to clone the latest version of the responses: `${{env.latest_tag}}`
     - name: Delete comment when version gets updated
       if: ${{env.cloned_tag == env.latest_tag && steps.fc.outputs.comment-id}}
       uses: detomarco/delete-comment@850734dd44d8b15fef55b45252613b903ceb06f0
