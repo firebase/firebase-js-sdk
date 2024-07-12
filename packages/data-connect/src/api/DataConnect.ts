@@ -210,7 +210,7 @@ export function getDataConnect(
     app = appOrOptions;
   }
 
-  if (!app) {
+  if (!app || Object.keys(app).length === 0) {
     app = getApp();
   }
   const provider = _getProvider(app, 'data-connect');
@@ -224,15 +224,27 @@ export function getDataConnect(
       return dcInstance;
     }
   }
-  if (!dcOptions) {
-    throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
-  }
+  validateDCOptions(dcOptions);
+  
   logDebug('Creating new DataConnect instance');
   // Initialize with options.
   return provider.initialize({
     instanceIdentifier: identifier,
     options: dcOptions
   });
+}
+
+export function validateDCOptions(dcOptions: ConnectorConfig) {
+  const fields = ['connector', 'location', 'service'];
+  if (!dcOptions) {
+    throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
+  }
+  fields.forEach(field => {
+    if (dcOptions[field] === null || dcOptions[field] === undefined) {
+      throw new DataConnectError(Code.INVALID_ARGUMENT, `${field} Required`);
+    }
+  });
+  return true;
 }
 
 /**
