@@ -24,7 +24,7 @@ export async function registerDefaultSw(
   messaging: MessagingService
 ): Promise<void> {
   try {
-    // FIXME: Use safevalues to register the service worker with a sanitized trustedResourceUrl.
+    // TODO: Use safevalues to register the service worker with a sanitized trustedResourceUrl.
     messaging.swRegistration = await navigator.serviceWorker.register(
       DEFAULT_SW_PATH,
       {

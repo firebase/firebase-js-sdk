@@ -44,7 +44,7 @@ describe('platform-browser/load_js', () => {
         loadJS(url: string): Promise<Event> {
           return new Promise((resolve, reject) => {
             const el = document.createElement('script');
-            // FIXME: Do not use setAttribute, as this can lead to XSS. Instead, use the safevalues
+            // TODO: Do not use setAttribute, as this can lead to XSS. Instead, use the safevalues
             // library, or get an exception for tests.
             el.setAttribute('src', url);
             el.onload = resolve;
@@ -67,7 +67,7 @@ describe('platform-browser/load_js', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       _loadJS('http://localhost/url');
-      // FIXME: Do not use setAttribute, as this can lead to XSS. Instead, use the safevalues
+      // TODO: Do not use setAttribute, as this can lead to XSS. Instead, use the safevalues
       // library, or get an exception for tests.
       expect(el.setAttribute).to.have.been.calledWith(
         'src',
