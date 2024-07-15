@@ -208,7 +208,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support garbage collectors for memory local cache. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
-|  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
+|  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
 |  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all available tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
@@ -2598,7 +2598,7 @@ export declare type OrderByDirection = 'desc' | 'asc';
 
 ## PartialWithFieldValue
 
-Similar to Typescript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
+Similar to TypeScript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
 
 <b>Signature:</b>
 

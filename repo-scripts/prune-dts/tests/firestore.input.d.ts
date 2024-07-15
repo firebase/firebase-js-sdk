@@ -794,7 +794,7 @@ export declare function disableNetwork(
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified abosolute path.
  *
  * @param firestore - A reference to the root Firestore instance.
  * @param path - A slash-separated path to a document.
@@ -1643,14 +1643,14 @@ export declare interface FirestoreDataConverter<T>
 declare interface FirestoreDataConverter_2<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
    * and {@link Transaction#set}.
    */
   toFirestore(modelObject: T): DocumentData;
   /**
    * Called by the Firestore SDK to convert a custom model object of type `T`
-   * into a plain Javascript object (suitable for writing directly to the
+   * into a plain JavaScript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData}, {@link WriteBatch#set}
    * and {@link Transaction#set} with `merge:true` or `mergeFields`.
    */

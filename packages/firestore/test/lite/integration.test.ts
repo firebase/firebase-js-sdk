@@ -1719,7 +1719,7 @@ describe('withConverter() support', () => {
 
         // These tests exist to establish which object types are allowed to be
         // passed in by default when `T = DocumentData`. Some objects extend
-        // the Javascript `{}`, which is why they're allowed whereas others
+        // the JavaScript `{}`, which is why they're allowed whereas others
         // throw an error.
         return withTestDoc(async doc => {
           // @ts-expect-error

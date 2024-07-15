@@ -34,7 +34,7 @@ export class Receiver {
   private readonly boundEventHandler: EventListener;
 
   private readonly handlersMap: {
-    // Typescript doesn't have existential types :(
+    // TypeScript doesn't have existential types :(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [eventType: string]: Set<ReceiverHandler<any, any>>;
   } = {};

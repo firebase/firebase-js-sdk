@@ -26,8 +26,8 @@ export function jsonEval(str: string): unknown {
 }
 
 /**
- * Returns JSON representing a javascript object.
- * @param {*} data Javascript object to be stringified.
+ * Returns JSON representing a JavaScript object.
+ * @param {*} data JavaScript object to be stringified.
  * @return {string} The JSON contents of the object.
  */
 export function stringify(data: unknown): string {

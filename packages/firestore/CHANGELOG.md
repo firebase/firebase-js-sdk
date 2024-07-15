@@ -1123,7 +1123,7 @@
 
 - [fixed] Fixed an issue that could cause Firestore to temporarily go
   offline when a Window visibility event occurred.
-- [feature] Added support for calling `FirebaseFiresore.settings` with
+- [feature] Added support for calling `FirebaseFirestore.settings` with
   `{ ignoreUndefinedProperties: true }`. When set, Firestore ignores
   undefined properties inside objects rather than rejecting the API call.
 

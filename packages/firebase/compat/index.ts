@@ -31,7 +31,7 @@ ES Modules:
 import firebase from 'firebase/app';
 import 'firebase/<PACKAGE>';
 
-Typescript:
+TypeScript:
 import firebase from 'firebase/app';
 import 'firebase/<PACKAGE>';
 `);
