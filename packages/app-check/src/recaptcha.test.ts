@@ -30,7 +30,9 @@ import {
   initializeV3,
   initializeEnterprise,
   getToken,
-  GreCAPTCHATopLevel
+  GreCAPTCHATopLevel,
+  RECAPTCHA_ENTERPRISE_URL,
+  RECAPTCHA_URL
 } from './recaptcha';
 import * as utils from './util';
 import {
@@ -81,7 +83,9 @@ describe('recaptcha', () => {
 
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
       await initializeV3(app, FAKE_SITE_KEY);
-      expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
+      const greCATPCHAScripts = findgreCAPTCHAScriptsOnPage();
+      expect(greCATPCHAScripts.length).to.equal(1);
+      expect(greCATPCHAScripts[0].src).to.equal(RECAPTCHA_URL);
     });
 
     it('creates invisible widget', async () => {
@@ -128,7 +132,9 @@ describe('recaptcha', () => {
 
       expect(findgreCAPTCHAScriptsOnPage().length).to.equal(0);
       await initializeEnterprise(app, FAKE_SITE_KEY);
-      expect(findgreCAPTCHAScriptsOnPage().length).to.equal(1);
+      const greCAPTCHAScripts = findgreCAPTCHAScriptsOnPage();
+      expect(greCAPTCHAScripts.length).to.equal(1);
+      expect(greCAPTCHAScripts[0].src).to.equal(RECAPTCHA_ENTERPRISE_URL);
     });
 
     it('creates invisible widget', async () => {
