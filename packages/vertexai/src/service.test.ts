@@ -30,6 +30,7 @@ const fakeApp = {
 describe('VertexAIService', () => {
   it('uses default location if not specified', () => {
     const vertexAI = new VertexAIService(fakeApp);
+    expect(false).to.equal(true);
     expect(vertexAI.location).to.equal(DEFAULT_LOCATION);
   });
   it('uses custom location if specified', () => {
