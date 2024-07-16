@@ -17,6 +17,7 @@
 
 import * as sinon from 'sinon';
 import { FirebaseServerApp, deleteApp, initializeApp } from '@firebase/app';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, User } from '@firebase/auth';
 
 import { getAuth, connectAuthEmulator } from '../../../'; // Use browser OR node dist entrypoint depending on test env.
