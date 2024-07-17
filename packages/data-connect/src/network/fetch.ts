@@ -30,7 +30,8 @@ export function dcFetch<T, U>(
   url: string,
   body: U,
   { signal }: AbortController,
-  accessToken: string | null
+  accessToken: string | null,
+  appCheckToken: string | null
 ) {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
@@ -41,6 +42,9 @@ export function dcFetch<T, U>(
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
+  }
+  if (appCheckToken) {
+    headers['X-Firebase-AppCheck'] = appCheckToken;
   }
   const bodyStr = JSON.stringify(body);
   logDebug(`Making request out to ${url} with body: ${bodyStr}`);
