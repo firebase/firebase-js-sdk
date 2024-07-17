@@ -41,8 +41,11 @@ export function registerDataConnect(variant?: string): void {
         if (settings) {
           newOpts = JSON.parse(settings);
         }
-        if(!app.options.projectId) {
-          throw new DataConnectError(Code.INVALID_ARGUMENT, "Project ID must be provided. Did you pass in a proper projectId to initializeApp?");
+        if (!app.options.projectId) {
+          throw new DataConnectError(
+            Code.INVALID_ARGUMENT,
+            'Project ID must be provided. Did you pass in a proper projectId to initializeApp?'
+          );
         }
         return new DataConnect(
           app,

@@ -23,7 +23,6 @@ import {
 } from '@firebase/app-check-interop-types';
 import { Provider } from '@firebase/component';
 
-
 /**
  * Abstraction around AppCheck's token fetching capabilities.
  */

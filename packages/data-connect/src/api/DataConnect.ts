@@ -36,7 +36,10 @@ import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
-import { AppCheckInternalComponentName, FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -91,7 +94,7 @@ export class DataConnect {
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
-  private _appCheckTokenProvider?: AppCheckTokenProvider
+  private _appCheckTokenProvider?: AppCheckTokenProvider;
   constructor(
     public readonly app: FirebaseApp,
     // TODO(mtewani): Replace with _dataConnectOptions in the future
@@ -140,7 +143,10 @@ export class DataConnect {
       );
     }
     if (this._appCheckProvider) {
-      this._appCheckTokenProvider = new AppCheckTokenProvider(this.app.name, this._appCheckProvider);
+      this._appCheckTokenProvider = new AppCheckTokenProvider(
+        this.app.name,
+        this._appCheckProvider
+      );
     }
 
     this.initialized = true;
@@ -233,7 +239,7 @@ export function getDataConnect(
     }
   }
   validateDCOptions(dcOptions);
-  
+
   logDebug('Creating new DataConnect instance');
   // Initialize with options.
   return provider.initialize({
