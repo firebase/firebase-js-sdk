@@ -27,11 +27,12 @@ import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
   localStoreDeleteAllFieldIndexes,
+  localStoreDisableIndexAutoCreation,
+  localStoreEnableIndexAutoCreation,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument,
-  localStoreSetIndexAutoCreationEnabled
+  localStoreReadDocument
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
@@ -50,7 +51,7 @@ import {
   remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
@@ -64,6 +65,8 @@ import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  IndexedDbOfflineComponentProvider,
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -827,27 +830,46 @@ function createBundleReader(
   return newBundleReader(toByteStreamReader(content), serializer);
 }
 
+function firestoreClientInstallFieldIndexPlugins(
+  client: FirestoreClient
+): void {
+  hardAssert(
+    client._offlineComponents instanceof IndexedDbOfflineComponentProvider
+  );
+  indexedDbOfflineComponentProviderInstallFieldIndexPlugin(
+    client._offlineComponents
+  );
+}
+
 export function firestoreClientSetIndexConfiguration(
   client: FirestoreClient,
   indexes: FieldIndex[]
 ): Promise<void> {
-  return client.asyncQueue.enqueue(async () => {
-    return localStoreConfigureFieldIndexes(
-      await getLocalStore(client),
-      indexes
-    );
-  });
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreConfigureFieldIndexes(
+        await getLocalStore(client),
+        indexes
+      );
+    })
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
 }
 
-export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-  client: FirestoreClient,
-  isEnabled: boolean
+export function firestoreClientEnablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue
+    .enqueue(async () => {
+      return localStoreEnableIndexAutoCreation(await getLocalStore(client));
+    })
+    .then(() => firestoreClientInstallFieldIndexPlugins(client));
+}
+
+export function firestoreClientDisablePersistentCacheIndexAutoCreation(
+  client: FirestoreClient
 ): Promise<void> {
   return client.asyncQueue.enqueue(async () => {
-    return localStoreSetIndexAutoCreationEnabled(
-      await getLocalStore(client),
-      isEnabled
-    );
+    return localStoreDisableIndexAutoCreation(await getLocalStore(client));
   });
 }
 

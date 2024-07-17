@@ -32,8 +32,13 @@ import { View } from '../../../src/core/view';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import {
   displayNameForIndexType,
+  IndexManager,
   IndexType
 } from '../../../src/local/index_manager';
+import {
+  IndexedDbIndexManager,
+  indexedDbIndexManagerInstallFieldIndexPlugin
+} from '../../../src/local/indexeddb_index_manager';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
@@ -41,7 +46,10 @@ import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryContext } from '../../../src/local/query_context';
-import { QueryEngine } from '../../../src/local/query_engine';
+import {
+  QueryEngine,
+  queryEngineInstallFieldIndexPlugin
+} from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import {
@@ -159,6 +167,7 @@ function genericQueryEngineTest(
   let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let indexManager!: TestIndexManager;
+  let underlyingIndexManager!: IndexManager;
   let mutationQueue!: MutationQueue;
   let localDocuments!: TestLocalDocumentsView;
 
@@ -265,9 +274,17 @@ function genericQueryEngineTest(
     targetCache = persistence.getTargetCache();
     queryEngine = new QueryEngine();
 
-    const underlyingIndexManager = persistence.getIndexManager(
-      User.UNAUTHENTICATED
-    );
+    underlyingIndexManager = persistence.getIndexManager(User.UNAUTHENTICATED);
+    if (configureCsi) {
+      if (!(underlyingIndexManager instanceof IndexedDbIndexManager)) {
+        throw new Error(
+          'persistence.getIndexManager() should have ' +
+            'returned an instance of IndexedDbIndexManager'
+        );
+      }
+      indexedDbIndexManagerInstallFieldIndexPlugin(underlyingIndexManager);
+    }
+
     remoteDocumentCache = persistence.getRemoteDocumentCache();
     remoteDocumentCache.setIndexManager(underlyingIndexManager);
     mutationQueue = persistence.getMutationQueue(
@@ -284,6 +301,9 @@ function genericQueryEngineTest(
       underlyingIndexManager
     );
     queryEngine.initialize(localDocuments, underlyingIndexManager);
+    if (configureCsi) {
+      queryEngineInstallFieldIndexPlugin(queryEngine);
+    }
 
     indexManager = new TestIndexManager(persistence, underlyingIndexManager);
   });
@@ -841,7 +861,7 @@ function genericQueryEngineTest(
     // A generic test for index auto-creation.
     // This function can be called with explicit parameters from it() methods.
     const testIndexAutoCreation = async (config: {
-      indexAutoCreationEnabled: boolean;
+      indexAutoCreationEnabled?: boolean;
       indexAutoCreationMinCollectionSize?: number;
       relativeIndexReadCostPerDocument?: number;
       matchingDocumentCount?: number;
@@ -849,6 +869,9 @@ function genericQueryEngineTest(
       expectedPostQueryExecutionIndexType: IndexType;
     }): Promise<void> => {
       debugAssert(configureCsi, 'Test requires durable persistence');
+
+      const queryEngineFieldIndexPlugin =
+        queryEngineInstallFieldIndexPlugin(queryEngine);
 
       const matchingDocuments: MutableDocument[] = [];
       for (let i = 0; i < (config.matchingDocumentCount ?? 3); i++) {
@@ -864,14 +887,16 @@ function genericQueryEngineTest(
       }
       await addDocument(...nonmatchingDocuments);
 
-      queryEngine.indexAutoCreationEnabled = config.indexAutoCreationEnabled;
-
+      if (config.indexAutoCreationEnabled !== undefined) {
+        queryEngineFieldIndexPlugin.indexAutoCreationEnabled =
+          config.indexAutoCreationEnabled;
+      }
       if (config.indexAutoCreationMinCollectionSize !== undefined) {
-        queryEngine.indexAutoCreationMinCollectionSize =
+        queryEngineFieldIndexPlugin.indexAutoCreationMinCollectionSize =
           config.indexAutoCreationMinCollectionSize;
       }
       if (config.relativeIndexReadCostPerDocument !== undefined) {
-        queryEngine.relativeIndexReadCostPerDocument =
+        queryEngineFieldIndexPlugin.relativeIndexReadCostPerDocument =
           config.relativeIndexReadCostPerDocument;
       }
 
@@ -918,6 +943,11 @@ function genericQueryEngineTest(
         indexAutoCreationEnabled: false,
         indexAutoCreationMinCollectionSize: 0,
         relativeIndexReadCostPerDocument: 0,
+        expectedPostQueryExecutionIndexType: IndexType.NONE
+      }));
+
+    it('does not create indexes when no QueryEngineFieldIndexPlugin is installed', () =>
+      testIndexAutoCreation({
         expectedPostQueryExecutionIndexType: IndexType.NONE
       }));
 

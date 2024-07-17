@@ -17,7 +17,8 @@
 
 import {
   firestoreClientDeleteAllFieldIndexes,
-  firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
+  firestoreClientDisablePersistentCacheIndexAutoCreation,
+  firestoreClientEnablePersistentCacheIndexAutoCreation,
   FirestoreClient
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
@@ -76,7 +77,12 @@ export function getPersistentCacheIndexManager(
 export function enablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, true);
+  indexManager._client.verifyNotTerminated();
+  firestoreClientEnablePersistentCacheIndexAutoCreation(indexManager._client)
+    .then(_ => logDebug('enablePersistentCacheIndexAutoCreation() succeeded.'))
+    .catch(error =>
+      logWarn('enablePersistentCacheIndexAutoCreation() failed', error)
+    );
 }
 
 /**
@@ -87,7 +93,12 @@ export function enablePersistentCacheIndexAutoCreation(
 export function disablePersistentCacheIndexAutoCreation(
   indexManager: PersistentCacheIndexManager
 ): void {
-  setPersistentCacheIndexAutoCreationEnabled(indexManager, false);
+  indexManager._client.verifyNotTerminated();
+  firestoreClientDisablePersistentCacheIndexAutoCreation(indexManager._client)
+    .then(_ => logDebug('disablePersistentCacheIndexAutoCreation() succeeded.'))
+    .catch(error =>
+      logWarn('disablePersistentCacheIndexAutoCreation() failed', error)
+    );
 }
 
 /**
@@ -100,41 +111,9 @@ export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
   indexManager._client.verifyNotTerminated();
-
-  const promise = firestoreClientDeleteAllFieldIndexes(indexManager._client);
-
-  promise
-    .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
-    .catch(error =>
-      logWarn('deleting all persistent cache indexes failed', error)
-    );
-}
-
-function setPersistentCacheIndexAutoCreationEnabled(
-  indexManager: PersistentCacheIndexManager,
-  isEnabled: boolean
-): void {
-  indexManager._client.verifyNotTerminated();
-
-  const promise = firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-    indexManager._client,
-    isEnabled
-  );
-
-  promise
-    .then(_ =>
-      logDebug(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} succeeded`
-      )
-    )
-    .catch(error =>
-      logWarn(
-        `setting persistent cache index auto creation ` +
-          `isEnabled=${isEnabled} failed`,
-        error
-      )
-    );
+  firestoreClientDeleteAllFieldIndexes(indexManager._client)
+    .then(_ => logDebug('deleteAllPersistentCacheIndexes() succeeded.'))
+    .catch(error => logWarn('deleteAllPersistentCacheIndexes() failed', error));
 }
 
 /**

@@ -69,7 +69,11 @@ import {
   decodeResourcePath,
   encodeResourcePath
 } from './encoded_resource_path';
-import { IndexManager, IndexType } from './index_manager';
+import {
+  IndexManager,
+  IndexManagerFieldIndexPlugin,
+  IndexType
+} from './index_manager';
 import {
   DbCollectionParent,
   DbIndexConfiguration,
@@ -122,17 +126,22 @@ export class IndexedDbIndexManager implements IndexManager {
 
   private readonly uid: string;
 
-  /**
-   * Maps from a target to its equivalent list of sub-targets. Each sub-target
-   * contains only one term from the target's disjunctive normal form (DNF).
-   */
-  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
-    t => canonifyTarget(t),
-    (l, r) => targetEquals(l, r)
-  );
-
   constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
+  }
+
+  private _fieldIndexPlugin: IndexedDbIndexManagerFieldIndexPlugin | null =
+    null;
+
+  get fieldIndexPlugin(): IndexedDbIndexManagerFieldIndexPlugin | null {
+    return this._fieldIndexPlugin;
+  }
+
+  installFieldIndexPlugin(
+    factory: IndexedDbIndexManagerFieldIndexPluginConstructor
+  ): void {
+    hardAssert(!this._fieldIndexPlugin);
+    this._fieldIndexPlugin = new factory(this.uid, this.databaseId);
   }
 
   /**
@@ -193,6 +202,42 @@ export class IndexedDbIndexManager implements IndexManager {
         return parentPaths;
       });
   }
+}
+
+export function indexedDbIndexManagerInstallFieldIndexPlugin(
+  instance: IndexedDbIndexManager
+): void {
+  if (instance.fieldIndexPlugin) {
+    return;
+  }
+
+  logDebug(
+    'Installing IndexedDbIndexManagerFieldIndexPlugin into ' +
+      'IndexedDbIndexManager to support persistent cache indexing.'
+  );
+  instance.installFieldIndexPlugin(IndexedDbIndexManagerFieldIndexPlugin);
+}
+
+interface IndexedDbIndexManagerFieldIndexPluginConstructor {
+  new (
+    uid: string,
+    databaseId: DatabaseId
+  ): IndexedDbIndexManagerFieldIndexPlugin;
+}
+
+export class IndexedDbIndexManagerFieldIndexPlugin
+  implements IndexManagerFieldIndexPlugin
+{
+  constructor(readonly uid: string, readonly databaseId: DatabaseId) {}
+
+  /**
+   * Maps from a target to its equivalent list of sub-targets. Each sub-target
+   * contains only one term from the target's disjunctive normal form (DNF).
+   */
+  private targetToDnfSubTargets = new ObjectMap<Target, Target[]>(
+    t => canonifyTarget(t),
+    (l, r) => targetEquals(l, r)
+  );
 
   addFieldIndex(
     transaction: PersistenceTransaction,
@@ -250,19 +295,6 @@ export class IndexedDbIndexManager implements IndexManager {
           )
         )
       );
-  }
-
-  deleteAllFieldIndexes(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void> {
-    const indexes = indexConfigurationStore(transaction);
-    const entries = indexEntriesStore(transaction);
-    const states = indexStateStore(transaction);
-
-    return indexes
-      .deleteAll()
-      .next(() => entries.deleteAll())
-      .next(() => states.deleteAll());
   }
 
   createTargetIndexes(
@@ -1133,4 +1165,22 @@ function getMinOffsetFromFieldIndexes(fieldIndexes: FieldIndex[]): IndexOffset {
     }
   }
   return new IndexOffset(minOffset.readTime, minOffset.documentKey, maxBatchId);
+}
+
+// Make deleteAllFieldIndexes() a free function instead of a member function of
+// IndexedDbIndexManagerFieldIndexPlugin so that JavaScript bundlers can
+// tree-shake away the rest of IndexedDbIndexManagerFieldIndexPlugin if this
+// function is the only one that is used.
+/** Removes all field indexes and deletes all index values. */
+export function deleteAllFieldIndexes(
+  transaction: PersistenceTransaction
+): PersistencePromise<void> {
+  const indexes = indexConfigurationStore(transaction);
+  const entries = indexEntriesStore(transaction);
+  const states = indexStateStore(transaction);
+
+  return indexes
+    .deleteAll()
+    .next(() => entries.deleteAll())
+    .next(() => states.deleteAll());
 }
