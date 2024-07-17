@@ -31,7 +31,7 @@ import {
   writeBatch,
   DocumentReference,
   increment,
-  Firestore
+  Firestore, setLogLevel
 } from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
@@ -102,10 +102,7 @@ apiDescribe('Numeric Transforms:', persistence => {
     });
   });
 
-  // TODO(b/295872012): This test is skipped due to a timeout test flakiness
-  // We should investigate if this is an acutal bug.
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('increment existing integer with integer', async () => {
+  it('increment existing integer with integer', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 1337 });
       await updateDoc(docRef, 'sum', increment(1));
@@ -161,11 +158,8 @@ apiDescribe('Numeric Transforms:', persistence => {
     });
   });
 
-  // TODO(b/295872012): This test is skipped due to test flakiness:
-  // AssertionError: expected 0.122 to be close to 0.111 +/- 0.000001
-  // We should investigate the root cause, it might be an acutal bug.
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('multiple double increments', async () => {
+  it.only('multiple double increments', async () => {
+    setLogLevel('debug');
     await withTestSetup(async () => {
       await writeInitialData({ sum: 0.0 });
 
