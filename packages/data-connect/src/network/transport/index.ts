@@ -16,6 +16,7 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 
 // Change this to only specify specific args.
@@ -52,6 +53,7 @@ export type TransportClass = new (
   options: DataConnectOptions,
   apiKey?: string,
   authProvider?: AuthTokenProvider,
+  appCheckProvider?: AppCheckTokenProvider,
   transportOptions?: TransportOptions
 ) => DataConnectTransport;
 export * from '../../core/FirebaseAuthProvider';
