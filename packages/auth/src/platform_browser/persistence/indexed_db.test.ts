@@ -86,7 +86,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     expect(await persistence._get(key)).to.be.null;
   });
 
-  describe('#isAvaliable', () => {
+  describe('#isAvailable', () => {
     it('should return true if db is available', async () => {
       expect(await persistence._isAvailable()).to.be.true;
     });

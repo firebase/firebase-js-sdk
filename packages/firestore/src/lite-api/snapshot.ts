@@ -229,7 +229,7 @@ export interface FirestoreDataConverter<
 > {
   /**
    * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain Javascript object (suitable for writing
+   * `AppModelType` into a plain JavaScript object (suitable for writing
    * directly to the Firestore database) of type `DbModelType`. Used with
    * {@link @firebase/firestore/lite#(setDoc:1)},
    * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and
@@ -244,7 +244,7 @@ export interface FirestoreDataConverter<
 
   /**
    * Called by the Firestore SDK to convert a custom model object of type
-   * `AppModelType` into a plain Javascript object (suitable for writing
+   * `AppModelType` into a plain JavaScript object (suitable for writing
    * directly to the Firestore database) of type `DbModelType`. Used with
    * {@link @firebase/firestore/lite#(setDoc:1)},
    * {@link @firebase/firestore/lite#(WriteBatch.set:1)} and

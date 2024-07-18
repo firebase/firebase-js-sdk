@@ -181,8 +181,8 @@ export function filterTasks(
 ): TestTask[] {
   let filteredTasks: TestTask[] = [];
 
-  // `ignorePacakges` and `onlyIncludePackages` should not be defined at same time,
-  // `ignorePacakges` will be ignored if that happens
+  // `ignorePackages` and `onlyIncludePackages` should not be defined at same time,
+  // `ignorePackages` will be ignored if that happens
   if (onlyIncludePackages) {
     filteredTasks = tasks.filter(t => onlyIncludePackages.includes(t.pkgName));
   } else if (ignorePackages) {

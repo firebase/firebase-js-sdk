@@ -123,7 +123,7 @@ export class Trace implements PerformanceTrace {
    * Records a trace with predetermined values. If this method is used a trace is created and logged
    * directly. No need to use start and stop methods.
    * @param startTime Trace start time since epoch in millisec
-   * @param duration The duraction of the trace in millisec
+   * @param duration The duration of the trace in millisec
    * @param options An object which can optionally hold maps of custom metrics and custom attributes
    */
   record(

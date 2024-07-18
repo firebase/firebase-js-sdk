@@ -212,7 +212,7 @@ async function gtagOnEvent(
 function wrapGtag(
   gtagCore: Gtag,
   /**
-   * Allows wrapped gtag calls to wait on whichever intialization promises are required,
+   * Allows wrapped gtag calls to wait on whichever initialization promises are required,
    * depending on the contents of the gtag params' `send_to` field, if any.
    */
   initializationPromisesMap: { [appId: string]: Promise<string> },

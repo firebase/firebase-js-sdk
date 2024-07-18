@@ -862,7 +862,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
 }
 
 /**
- * Method to be used to cast down to our private implmentation of Auth.
+ * Method to be used to cast down to our private implementation of Auth.
  * It will also handle unwrapping from the compat type if necessary
  *
  * @param auth Auth object passed in from developer

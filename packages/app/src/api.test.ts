@@ -397,21 +397,21 @@ describe('API tests', () => {
       expect(getApp()).to.equal(app);
     });
 
-    it('retrives named App', () => {
+    it('retrieves named App', () => {
       const appName = 'MyApp';
       const app = initializeApp({}, appName);
       expect(getApp(appName)).to.equal(app);
     });
 
-    it('throws retrieving a non existing App (custom name)', () => {
+    it('throws retrieving a nonexistent App (custom name)', () => {
       expect(() => getApp('RandomName')).throws(/No Firebase App 'RandomName'/);
     });
 
-    it('throws retrieving a non existing App (default name)', () => {
+    it('throws retrieving a nonexistent App (default name)', () => {
       expect(() => getApp()).throws(/No Firebase App/);
     });
 
-    it('does not throw on a non existing App (default name) if a defaults object exists', () => {
+    it('does not throw on a nonexistent App (default name) if a defaults object exists', () => {
       global.__FIREBASE_DEFAULTS__ = { config: { apiKey: 'abcd' } };
       const app = getApp();
       expect(app.options.apiKey).to.equal('abcd');
@@ -420,7 +420,7 @@ describe('API tests', () => {
   });
 
   describe('getApps', () => {
-    it('retrives all Apps that have been created', () => {
+    it('retrieves all Apps that have been created', () => {
       const app1 = initializeApp({});
       const app2 = initializeApp({}, 'App2');
 
