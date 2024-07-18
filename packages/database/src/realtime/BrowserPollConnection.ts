@@ -435,7 +435,7 @@ export class FirebaseIFrameScriptHolder {
   onMessageCB: (...args: unknown[]) => void;
 
   /**
-   * @param commandCB - The callback to be called when control commands are recevied from the server.
+   * @param commandCB - The callback to be called when control commands are received from the server.
    * @param onMessageCB - The callback to be triggered when responses arrive from the server.
    * @param onDisconnect - The callback to be triggered when this tag holder is closed
    * @param urlFn - A function that provides the URL of the endpoint to send data to.

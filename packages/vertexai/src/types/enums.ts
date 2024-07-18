@@ -141,7 +141,7 @@ export enum FunctionCallingMode {
   // Unspecified function calling mode. This value should not be used.
   MODE_UNSPECIFIED = 'MODE_UNSPECIFIED',
   // Default model behavior, model decides to predict either a function call
-  // or a natural language repspose.
+  // or a natural language response.
   AUTO = 'AUTO',
   // Model is constrained to always predicting a function call only.
   // If "allowed_function_names" is set, the predicted function call will be

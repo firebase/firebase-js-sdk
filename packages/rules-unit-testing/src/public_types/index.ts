@@ -25,7 +25,7 @@ import 'firebase/compat/firestore';
 import 'firebase/compat/storage';
 
 /**
- * More options for the mock user token to be used for testing, including developer-specfied custom
+ * More options for the mock user token to be used for testing, including developer-specified custom
  * claims or optional overrides for Firebase Auth token payloads.
  * @public
  */

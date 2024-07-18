@@ -19,7 +19,7 @@
 // See LICENSE in the project root for license information.
 
 /**
- * Typescript interface describing the config schema for toc.yml file format.
+ * TypeScript interface describing the config schema for toc.yml file format.
  */
 export interface IConfigTableOfContents {
   /**

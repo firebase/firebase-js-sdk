@@ -311,7 +311,7 @@ export class MemoryMutationQueue implements MutationQueue {
    *
    * @returns The computed index of the batch with the given batchId, based on
    * the state of the queue. Note this index can be negative if the requested
-   * batchId has already been remvoed from the queue or past the end of the
+   * batchId has already been removed from the queue or past the end of the
    * queue if the batchId is larger than the last added batch.
    */
   private indexOfBatchId(batchId: BatchId): number {
@@ -330,7 +330,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   /**
    * A version of lookupMutationBatch that doesn't return a promise, this makes
-   * other functions that uses this code easier to read and more efficent.
+   * other functions that uses this code easier to read and more efficient.
    */
   private findMutationBatch(batchId: BatchId): MutationBatch | null {
     const index = this.indexOfBatchId(batchId);

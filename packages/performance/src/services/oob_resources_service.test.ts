@@ -195,7 +195,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       getIidStub.returns(MOCK_ID);
       const api = Api.getInstance();
       const FIRST_INPUT_DELAY = 123;
-      // Underscore is to avoid compiler comlaining about variable being declared but not used.
+      // Underscore is to avoid compiler complaining about variable being declared but not used.
       type FirstInputDelayCallback = (firstInputDelay: number) => void;
       let firstInputDelayCallback: FirstInputDelayCallback = (): void => {};
       //@ts-ignore Assignment to read-only property.

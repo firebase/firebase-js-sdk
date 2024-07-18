@@ -855,7 +855,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('DocumentSnapshot events for non existent document', () => {
+  it('DocumentSnapshot events for nonexistent document', () => {
     return withTestCollection(persistence, {}, col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();

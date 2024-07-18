@@ -205,7 +205,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     transaction: PersistenceTransaction,
     collectionGroup: string,
     offset: IndexOffset,
-    limti: number
+    limit: number
   ): PersistencePromise<MutableDocumentMap> {
     // This method should only be called from the IndexBackfiller if persistence
     // is enabled.
