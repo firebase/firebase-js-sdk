@@ -34,7 +34,7 @@
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:browser test:node lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
     "test:browser": "karma start --single-run",
