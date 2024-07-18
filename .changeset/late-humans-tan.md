@@ -7,3 +7,6 @@
 '@firebase/database': patch
 'firebase': patch
 '@firebase/auth': patch
+---
+
+Fixed typos in documentation and some internal variables and parameters.
