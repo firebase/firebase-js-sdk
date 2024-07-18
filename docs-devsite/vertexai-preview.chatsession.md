@@ -36,7 +36,7 @@ export declare class ChatSession
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [getHistory()](./vertexai-preview.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Blocked candidates are neither added to history nor are the prompts that generated them. |
+|  [getHistory()](./vertexai-preview.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
 |  [sendMessage(request)](./vertexai-preview.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./vertexai-preview.generatecontentresult.md#generatecontentresult_interface) |
 |  [sendMessageStream(request)](./vertexai-preview.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./vertexai-preview.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
