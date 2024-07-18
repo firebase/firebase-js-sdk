@@ -535,7 +535,11 @@ export abstract class PersistentStream<
     });
     this.stream.onMessage((msg: ReceiveType) => {
       dispatchIfNotClosed(() => {
-        return ++this.responseCount === 1 ? this.onFirst(msg) : this.onNext(msg);
+        if (++this.responseCount === 1) {
+          return this.onFirst(msg);
+        } else {
+          return this.onNext(msg);
+        }
       });
     });
   }
