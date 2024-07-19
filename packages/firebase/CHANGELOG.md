@@ -1,5 +1,17 @@
 # firebase
 
+## 10.12.4
+
+### Patch Changes
+
+- Updated dependencies [[`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8)]:
+  - @firebase/app@0.10.7
+  - @firebase/analytics@0.10.6
+  - @firebase/app-check@0.8.6
+  - @firebase/app-compat@0.2.37
+  - @firebase/analytics-compat@0.2.12
+  - @firebase/app-check-compat@0.3.13
+
 ## 10.12.3
 
 ### Patch Changes
