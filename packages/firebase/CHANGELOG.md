@@ -1,5 +1,44 @@
 # firebase
 
+## 10.12.3
+
+### Patch Changes
+
+- [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf) [#8335](https://github.com/firebase/firebase-js-sdk/pull/8335) - Guard the use of `FinalizationRegistry` in `FirebaseServerApp` initialization based on the availability of `FinalizationRegistry` in the runtime.
+
+- [`ecadbe380`](https://github.com/firebase/firebase-js-sdk/commit/ecadbe380ca1b7e2eeada45b82e53d47e05ec9b3) [#8339](https://github.com/firebase/firebase-js-sdk/pull/8339) (fixes [#8314](https://github.com/firebase/firebase-js-sdk/issues/8314)) - Fix persistence multi-tab snapshot listener metadata sync issue.
+
+- [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981) [#8341](https://github.com/firebase/firebase-js-sdk/pull/8341) - The `FirebaseServerAppSettings.name` field inherited from `FirebaseAppSettings` is now omitted
+  instead of overloading the value as `undefined`. This fixes a TypeScript compilation error. For more
+  information, see [GitHub Issue #8336](https://github.com/firebase/firebase-js-sdk/issues/8336).
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf), [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`ecadbe380`](https://github.com/firebase/firebase-js-sdk/commit/ecadbe380ca1b7e2eeada45b82e53d47e05ec9b3), [`e7260e23d`](https://github.com/firebase/firebase-js-sdk/commit/e7260e23d186787d44c145829af245534db4d054), [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981)]:
+  - @firebase/util@1.9.7
+  - @firebase/app@0.10.6
+  - @firebase/firestore@4.6.4
+  - @firebase/vertexai-preview@0.0.3
+  - @firebase/analytics@0.10.5
+  - @firebase/analytics-compat@0.2.11
+  - @firebase/app-check@0.8.5
+  - @firebase/app-check-compat@0.3.12
+  - @firebase/app-compat@0.2.36
+  - @firebase/auth@1.7.5
+  - @firebase/auth-compat@0.5.10
+  - @firebase/database@1.0.6
+  - @firebase/database-compat@1.0.6
+  - @firebase/firestore-compat@0.3.33
+  - @firebase/functions@0.11.6
+  - @firebase/functions-compat@0.3.12
+  - @firebase/installations@0.6.8
+  - @firebase/installations-compat@0.2.8
+  - @firebase/messaging@0.12.10
+  - @firebase/messaging-compat@0.2.10
+  - @firebase/performance@0.6.8
+  - @firebase/performance-compat@0.2.8
+  - @firebase/remote-config@0.4.8
+  - @firebase/remote-config-compat@0.2.8
+  - @firebase/storage@0.12.6
+  - @firebase/storage-compat@0.3.9
+
 ## 10.12.2
 
 ### Patch Changes

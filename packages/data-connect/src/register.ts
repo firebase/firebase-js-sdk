@@ -26,6 +26,7 @@ import { name, version } from '../package.json';
 import { setSDKVersion } from '../src/core/version';
 
 import { DataConnect, ConnectorConfig } from './api/DataConnect';
+import { Code, DataConnectError } from './core/error';
 
 export function registerDataConnect(variant?: string): void {
   setSDKVersion(SDK_VERSION);
@@ -38,6 +39,9 @@ export function registerDataConnect(variant?: string): void {
         let newOpts = options as ConnectorConfig;
         if (settings) {
           newOpts = JSON.parse(settings);
+        }
+        if(!app.options.projectId) {
+          throw new DataConnectError(Code.INVALID_ARGUMENT, "Project ID must be provided. Did you pass in a proper projectId to initializeApp?");
         }
         return new DataConnect(
           app,
