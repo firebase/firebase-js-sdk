@@ -9,4 +9,10 @@ query listPosts @auth(level: PUBLIC) {
     content
   }
 }
+query listPosts2  {
+  posts {
+    id,
+    content
+  }
+}
 
