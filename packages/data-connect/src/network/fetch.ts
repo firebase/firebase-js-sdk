@@ -90,7 +90,6 @@ interface MessageObject {
 }
 function getMessage(obj: MessageObject) : string {
   if ('message' in obj) {
-    console.log('message')
     return obj.message;
   }
   return JSON.stringify(obj);
