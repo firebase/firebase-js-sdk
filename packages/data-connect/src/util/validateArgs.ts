@@ -18,7 +18,6 @@ interface ParsedArgs<Variables> {
 export function validateArgs<Variables extends Object>(connectorConfig: ConnectorConfig, dcOrVars?: DataConnect | Variables, vars?: Variables, validateVars?: boolean): ParsedArgs<Variables> {
     let dcInstance: DataConnect;
     let realVars: Variables;
-    // TODO(mtewani); Check what happens if this is undefined.
     if(dcOrVars && 'enableEmulator' in dcOrVars) {
         dcInstance = dcOrVars as DataConnect;
         realVars = vars;
