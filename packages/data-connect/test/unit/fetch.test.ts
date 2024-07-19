@@ -16,11 +16,12 @@
  */
 
 import { expect, use } from 'chai';
-import { dcFetch, initializeFetch } from '../../src/network/fetch';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+
+import { dcFetch, initializeFetch } from '../../src/network/fetch';
 use(chaiAsPromised);
-function mockFetch(json: any) {
+function mockFetch(json: object): void {
   const fakeFetchImpl = sinon.stub().returns(
     Promise.resolve({
       json: () => {
