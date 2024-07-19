@@ -295,5 +295,8 @@ export interface TransportOptions {
     sslEnabled?: boolean;
 }
 
+// @public (undocumented)
+export function validateDCOptions(dcOptions: ConnectorConfig): boolean;
+
 
 ```
