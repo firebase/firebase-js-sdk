@@ -77,7 +77,7 @@ export class QueryManager {
     queryName: string,
     variables: Variables,
     initialCache?: OpResult<Data>
-  ): TrackedQuery<unknown, unknown> {
+  ): TrackedQuery<Data, Variables> {
     const ref: TrackedQuery<Data, Variables>['ref'] = {
       name: queryName,
       variables,
@@ -92,7 +92,7 @@ export class QueryManager {
     };
     // @ts-ignore
     setIfNotExists(this._queries, key, newTrackedQuery);
-    return this._queries.get(key);
+    return this._queries.get(key) as TrackedQuery<Data, Variables>;
   }
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
