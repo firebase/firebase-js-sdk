@@ -5,6 +5,16 @@ interface ParsedArgs<Variables> {
     vars: Variables;
 }
 
+/**
+ * The generated SDK will allow the user to pass in either the variable or the data connect instance with the variable, 
+ * and this function validates the variables and returns back the DataConnect instance and variables based on the arguments passed in.
+ * @param connectorConfig 
+ * @param dcOrVars 
+ * @param vars 
+ * @param validateVars 
+ * @returns {DataConnect} and {Variables} instance
+ * @internal
+ */
 export function validateArgs<Variables extends Object>(connectorConfig: ConnectorConfig, dcOrVars?: DataConnect | Variables, vars?: Variables, validateVars?: boolean): ParsedArgs<Variables> {
     let dcInstance: DataConnect;
     let realVars: Variables;
