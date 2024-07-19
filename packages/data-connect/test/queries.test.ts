@@ -62,7 +62,7 @@ const SEEDED_DATA = [
 function seedDatabase(instance: DataConnect): Promise<void> {
   // call mutation query that adds SEEDED_DATA to database
   return new Promise((resolve, reject) => {
-    async function run() {
+    async function run(): Promise<void> {
       let idx = 0;
       while (idx < SEEDED_DATA.length) {
         const data = SEEDED_DATA[idx];
@@ -74,7 +74,7 @@ function seedDatabase(instance: DataConnect): Promise<void> {
     run().then(resolve, reject);
   });
 }
-async function deleteDatabase(instance: DataConnect) {
+async function deleteDatabase(instance: DataConnect): Promise<void> {
   for (let i = 0; i < SEEDED_DATA.length; i++) {
     const data = SEEDED_DATA[i];
     const ref = mutationRef(instance, 'removePost', { id: data.id });
@@ -163,7 +163,7 @@ describe('DataConnect Tests', async () => {
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', Number(0));
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
-    expect(await executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
+    await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
       'ECONNREFUSED'
     );
   });
@@ -171,11 +171,13 @@ describe('DataConnect Tests', async () => {
 async function waitForFirstEvent<Data, Variables>(
   query: QueryRef<Data, Variables>
 ): Promise<QueryResult<Data, Variables>> {
-  return await new Promise<{
+  return new Promise<{
     result: QueryResult<Data, Variables>;
     unsubscribe: () => void;
   }>((resolve, reject) => {
-    const onResult = (result: QueryResult<Data, Variables>) => {
+    const onResult: (result: QueryResult<Data, Variables>) => void = (
+      result: QueryResult<Data, Variables>
+    ) => {
       setTimeout(() => {
         resolve({
           result,

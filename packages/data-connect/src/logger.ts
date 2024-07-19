@@ -19,7 +19,7 @@ import { Logger, LogLevelString } from '@firebase/logger';
 import { SDK_VERSION } from './core/version';
 
 const logger = new Logger('@firebase/data-connect');
-export function setLogLevel(logLevel: LogLevelString) {
+export function setLogLevel(logLevel: LogLevelString): void {
   logger.setLogLevel(logLevel);
 }
 export function logDebug(msg: string): void {

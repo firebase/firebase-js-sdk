@@ -1,16 +1,33 @@
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-import {
-  AuthTokenListener,
-  AuthTokenProvider,
-  DataConnectOptions,
-  FirebaseAuthProvider
-} from '../../src';
-import { RESTTransport } from '../../src/network/transport/rest';
-import { initializeFetch } from '../../src/network/fetch';
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+
+import {
+  AuthTokenListener,
+  AuthTokenProvider,
+  DataConnectOptions
+} from '../../src';
+import { initializeFetch } from '../../src/network/fetch';
+import { RESTTransport } from '../../src/network/transport/rest';
 chai.use(chaiAsPromised);
 const options: DataConnectOptions = {
   connector: 'c',
@@ -28,7 +45,7 @@ class FakeAuthProvider implements AuthTokenProvider {
     }
     return Promise.resolve({ accessToken: 'testToken' });
   }
-  setToken(_token: string | null) {
+  setToken(_token: string | null): void {
     this.token = _token;
   }
 }
@@ -52,18 +69,18 @@ describe('Queries', () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
-    await expect(
-      rt.invokeQuery('test', null)
-    ).to.eventually.be.rejectedWith(JSON.stringify(json));
+    await expect(rt.invokeQuery('test', null)).to.eventually.be.rejectedWith(
+      JSON.stringify(json)
+    );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
   it('[MUTATION] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
-    await expect(
-      rt.invokeMutation('test', null)
-    ).to.eventually.be.rejectedWith(JSON.stringify(json));
+    await expect(rt.invokeMutation('test', null)).to.eventually.be.rejectedWith(
+      JSON.stringify(json)
+    );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
   it("should not retry auth whenever the fetcher returns with unauthorized and the token doesn't change", async () => {
@@ -72,7 +89,7 @@ describe('Queries', () => {
     const rt = new RESTTransport(options, undefined, authProvider);
     rt._setLastToken('initial token');
     await expect(
-      rt.invokeQuery('test', null) as Promise<any>
+      rt.invokeQuery('test', null) as Promise<unknown>
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
     expect(fakeFetchImpl.callCount).to.eq(1);
   });
