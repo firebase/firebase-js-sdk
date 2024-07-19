@@ -1,4 +1,4 @@
-import { ConnectorConfig, DataConnect, getDataConnect } from "../api";
+import { ConnectorConfig, DataConnect, getDataConnect } from "../api/DataConnect";
 import { Code, DataConnectError } from "../core/error";
 interface ParsedArgs<Variables> {
     dc: DataConnect;
