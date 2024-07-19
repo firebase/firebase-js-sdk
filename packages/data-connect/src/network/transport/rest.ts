@@ -120,7 +120,10 @@ export class RESTTransport implements DataConnectTransport {
     this._lastToken = lastToken;
   }
 
-  withRetry<T>(promiseFactory: () => Promise<{ data: T, errors: Error[]}>, retry = false) {
+  withRetry<T>(
+    promiseFactory: () => Promise<{ data: T; errors: Error[] }>,
+    retry = false
+  ) {
     let isNewToken = false;
     return this.getWithAuth(retry)
       .then(res => {
@@ -134,7 +137,8 @@ export class RESTTransport implements DataConnectTransport {
         if (
           'code' in err &&
           err.code === Code.UNAUTHORIZED &&
-          !retry && isNewToken
+          !retry &&
+          isNewToken
         ) {
           logDebug('Retrying due to unauthorized');
           return this.withRetry(promiseFactory, true);
@@ -147,7 +151,8 @@ export class RESTTransport implements DataConnectTransport {
   invokeQuery = <T, U = unknown>(queryName: string, body: U) => {
     const abortController = new AbortController();
     // TODO(mtewani): Update to proper value
-    const withAuth = this.withRetry(() => dcFetch<T, U>(
+    const withAuth = this.withRetry(() =>
+      dcFetch<T, U>(
         addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
@@ -156,7 +161,8 @@ export class RESTTransport implements DataConnectTransport {
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
         this._accessToken
-      ));
+      )
+    );
 
     return {
       then: withAuth.then.bind(withAuth)

@@ -21,4 +21,4 @@ export * from './Reference';
 export * from './Mutation';
 export * from './query';
 export { setLogLevel } from '../logger';
-export { validateArgs } from '../util/validateArgs'
+export { validateArgs } from '../util/validateArgs';
