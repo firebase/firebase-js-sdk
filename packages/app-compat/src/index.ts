@@ -16,22 +16,27 @@
  */
 
 import { FirebaseNamespace } from './public-types';
-import { isBrowser, getGlobal } from '@firebase/util';
+import { isBrowser } from '@firebase/util';
 import { firebase as firebaseNamespace } from './firebaseNamespace';
 import { logger } from './logger';
 import { registerCoreComponents } from './registerCoreComponents';
 
+declare global {
+  interface Window {
+    firebase: FirebaseNamespace;
+  }
+}
+
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (isBrowser() && (getGlobal() as any).firebase !== undefined) {
+if (isBrowser() && window.firebase !== undefined) {
   logger.warn(`
     Warning: Firebase is already defined in the global scope. Please make sure
     Firebase library is only loaded once.
   `);
 
   // eslint-disable-next-line
-  const sdkVersion = ((getGlobal() as any).firebase as FirebaseNamespace)
-    .SDK_VERSION;
+  const sdkVersion = (window.firebase as FirebaseNamespace).SDK_VERSION;
   if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
     logger.warn(`
     Warning: You are trying to load Firebase while using Firebase Performance standalone script.
