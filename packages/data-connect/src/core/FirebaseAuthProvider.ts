@@ -76,6 +76,7 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
   removeTokenChangeListener(listener: (token: string | null) => void): void {
     this._authProvider
       .get()
-      .then(auth => auth.removeAuthTokenListener(listener)).catch(err => logError(err));
+      .then(auth => auth.removeAuthTokenListener(listener))
+      .catch(err => logError(err));
   }
 }

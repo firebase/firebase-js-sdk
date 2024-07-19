@@ -31,7 +31,7 @@ export function dcFetch<T, U>(
   body: U,
   { signal }: AbortController,
   accessToken: string | null
-): Promise<{ data: T; errors: Error[]; }> {
+): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -44,7 +44,7 @@ export function dcFetch<T, U>(
   }
   const bodyStr = JSON.stringify(body);
   logDebug(`Making request out to ${url} with body: ${bodyStr}`);
-  
+
   return connectFetch(url, {
     body: bodyStr,
     method: 'POST',
@@ -68,8 +68,11 @@ export function dcFetch<T, U>(
         logError(
           'Error while performing request: ' + JSON.stringify(jsonResponse)
         );
-        if(response.status === 401) {
-          throw new DataConnectError(Code.UNAUTHORIZED, JSON.stringify(jsonResponse));
+        if (response.status === 401) {
+          throw new DataConnectError(
+            Code.UNAUTHORIZED,
+            JSON.stringify(jsonResponse)
+          );
         }
         throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
       }

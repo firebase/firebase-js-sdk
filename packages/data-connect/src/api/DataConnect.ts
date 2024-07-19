@@ -225,7 +225,7 @@ export function getDataConnect(
     }
   }
   validateDCOptions(dcOptions);
-  
+
   logDebug('Creating new DataConnect instance');
   // Initialize with options.
   return provider.initialize({
