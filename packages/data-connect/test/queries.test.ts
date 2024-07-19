@@ -59,7 +59,10 @@ const SEEDED_DATA = [
     content: 'task 2'
   }
 ];
-const REAL_DATA = SEEDED_DATA.map(obj => ({ ...obj, id: obj.id.replace(/-/g, '')}))
+const REAL_DATA = SEEDED_DATA.map(obj => ({
+  ...obj,
+  id: obj.id.replace(/-/g, '')
+}));
 function seedDatabase(instance: DataConnect): Promise<void> {
   // call mutation query that adds SEEDED_DATA to database
   return new Promise((resolve, reject) => {
@@ -170,9 +173,12 @@ describe('DataConnect Tests', async () => {
   });
   it('throws an error with just the message when the server responds with an error', async () => {
     const invalidTaskListQuery = queryRef<TaskListResponse>(dc, 'listPosts2');
-    const message = 'unauthorized: you are not authorized to perform this operation';
-    await expect(executeQuery(invalidTaskListQuery)).to.eventually.be.rejectedWith(message);
-  })
+    const message =
+      'unauthorized: you are not authorized to perform this operation';
+    await expect(
+      executeQuery(invalidTaskListQuery)
+    ).to.eventually.be.rejectedWith(message);
+  });
 });
 async function waitForFirstEvent<Data, Variables>(
   query: QueryRef<Data, Variables>

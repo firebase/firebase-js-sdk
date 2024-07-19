@@ -69,18 +69,18 @@ describe('Queries', () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
-    await expect(
-      rt.invokeQuery('test', null)
-    ).to.eventually.be.rejectedWith(json.message);
+    await expect(rt.invokeQuery('test', null)).to.eventually.be.rejectedWith(
+      json.message
+    );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
   it('[MUTATION] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
-    await expect(
-      rt.invokeMutation('test', null)
-    ).to.eventually.be.rejectedWith(json.message);
+    await expect(rt.invokeMutation('test', null)).to.eventually.be.rejectedWith(
+      json.message
+    );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
   it("should not retry auth whenever the fetcher returns with unauthorized and the token doesn't change", async () => {

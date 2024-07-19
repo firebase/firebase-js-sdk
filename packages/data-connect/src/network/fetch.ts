@@ -69,7 +69,7 @@ export function dcFetch<T, U>(
         logError(
           'Error while performing request: ' + JSON.stringify(jsonResponse)
         );
-        if(response.status === 401) {
+        if (response.status === 401) {
           throw new DataConnectError(Code.UNAUTHORIZED, message);
         }
         throw new DataConnectError(Code.OTHER, message);
@@ -86,9 +86,9 @@ export function dcFetch<T, U>(
     });
 }
 interface MessageObject {
-   message?: string;
+  message?: string;
 }
-function getMessage(obj: MessageObject) : string {
+function getMessage(obj: MessageObject): string {
   if ('message' in obj) {
     return obj.message;
   }
