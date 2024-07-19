@@ -23,7 +23,8 @@ export type DataConnectErrorCode =
   | 'not-initialized'
   | 'not-supported'
   | 'invalid-argument'
-  | 'partial-error';
+  | 'partial-error'
+  | 'unauthorized';
 
 export type Code = DataConnectErrorCode;
 
@@ -33,7 +34,8 @@ export const Code = {
   NOT_INITIALIZED: 'not-initialized' as DataConnectErrorCode,
   NOT_SUPPORTED: 'not-supported' as DataConnectErrorCode,
   INVALID_ARGUMENT: 'invalid-argument' as DataConnectErrorCode,
-  PARTIAL_ERROR: 'partial-error' as DataConnectErrorCode
+  PARTIAL_ERROR: 'partial-error' as DataConnectErrorCode,
+  UNAUTHORIZED: 'unauthorized' as DataConnectErrorCode
 };
 
 /** An error returned by a DataConnect operation. */
