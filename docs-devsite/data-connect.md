@@ -27,6 +27,8 @@ Firebase Data Connect
 |  [mutationRef(dcInstance, mutationName, variables)](./data-connect.md#mutationref_1511672) |  |
 |  [queryRef(dcInstance, queryName)](./data-connect.md#queryref_d968e5d) | Execute Query |
 |  [queryRef(dcInstance, queryName, variables)](./data-connect.md#queryref_6179f74) | Execute Query |
+|  <b>function(dcOptions, ...)</b> |
+|  [validateDCOptions(dcOptions)](./data-connect.md#validatedcoptions_ad44db0) |  |
 |  <b>function(logLevel, ...)</b> |
 |  [setLogLevel(logLevel)](./data-connect.md#setloglevel_697d53a) |  |
 |  <b>function(mutationRef, ...)</b> |
@@ -258,6 +260,26 @@ export declare function queryRef<Data, Variables>(dcInstance: DataConnect, query
 [QueryRef](./data-connect.queryref.md#queryref_interface)<!-- -->&lt;Data, Variables&gt;
 
 `QueryRef`
+
+## function(dcOptions, ...)
+
+### validateDCOptions(dcOptions) {:#validatedcoptions_ad44db0}
+
+<b>Signature:</b>
+
+```typescript
+export declare function validateDCOptions(dcOptions: ConnectorConfig): boolean;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  dcOptions | [ConnectorConfig](./data-connect.connectorconfig.md#connectorconfig_interface) |  |
+
+<b>Returns:</b>
+
+boolean
 
 ## function(logLevel, ...)
 
