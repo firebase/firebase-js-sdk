@@ -1,5 +1,11 @@
 # @firebase/rules-unit-testing
 
+## 3.0.4
+
+### Patch Changes
+
+- [`d752e8096`](https://github.com/firebase/firebase-js-sdk/commit/d752e809657cea68e6562b24d3f15e60c32ce079) [#8298](https://github.com/firebase/firebase-js-sdk/pull/8298) - Upgrade firebase-admin to 11.11.1
+
 ## 3.0.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.10.5",
+  "version": "0.10.6",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -50,7 +50,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.6",
+    "@firebase/app": "0.10.7",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "13.3.0",
