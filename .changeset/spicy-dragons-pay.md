@@ -2,4 +2,4 @@
 '@firebase/app-compat': patch
 ---
 
-Handle JSDOM case in app-compat checks.
+Properly handle the case in app-compat checks where `window` exists but `self` does not. (This occurs in Ionic Stencil's Jest preset.)
