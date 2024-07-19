@@ -77,7 +77,7 @@ export class QueryManager {
     queryName: string,
     variables: Variables,
     initialCache?: OpResult<Data>
-  ) {
+  ): TrackedQuery<Data, Variables> {
     const ref: TrackedQuery<Data, Variables>['ref'] = {
       name: queryName,
       variables,
@@ -92,7 +92,7 @@ export class QueryManager {
     };
     // @ts-ignore
     setIfNotExists(this._queries, key, newTrackedQuery);
-    return this._queries.get(key);
+    return this._queries.get(key) as TrackedQuery<Data, Variables>;
   }
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
@@ -113,7 +113,7 @@ export class QueryManager {
       userCallback: onResultCallback,
       errCallback: onErrorCallback
     };
-    const unsubscribe = () => {
+    const unsubscribe = (): void => {
       const trackedQuery = this._queries.get(key)!;
       trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
         sub => sub !== subscription
@@ -215,11 +215,11 @@ export class QueryManager {
 
     return newR;
   }
-  enableEmulator(host: string, port: number) {
+  enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
   }
 }
-function compareDates(str1: string, str2: string) {
+function compareDates(str1: string, str2: string): boolean {
   const date1 = new Date(str1);
   const date2 = new Date(str2);
   return date1.getTime() < date2.getTime();

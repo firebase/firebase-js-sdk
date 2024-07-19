@@ -22,7 +22,7 @@ import { logError } from '../logger';
 export function urlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
-) {
+): string {
   const { connector, location, projectId: project, service } = projectConfig;
   const { host, sslEnabled, port } = transportOptions;
   const protocol = sslEnabled ? 'https' : 'http';
