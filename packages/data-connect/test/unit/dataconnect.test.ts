@@ -16,8 +16,9 @@
  */
 
 import { deleteApp, initializeApp } from '@firebase/app';
-import { ConnectorConfig, getDataConnect } from '../../src';
 import { expect } from 'chai';
+
+import { ConnectorConfig, getDataConnect } from '../../src';
 
 describe('Data Connect Test', () => {
   it('should throw an error if `projectId` is not provided', () => {

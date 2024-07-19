@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { validateArgs } from '../../src/util/validateArgs';
-import { getDataConnect } from '../../src';
 import { expect } from 'chai';
+
+import { getDataConnect } from '../../src';
+import { validateArgs } from '../../src/util/validateArgs';
 describe('Utils', () => {
   it('[Vars required: true] should throw if no arguments are provided', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };

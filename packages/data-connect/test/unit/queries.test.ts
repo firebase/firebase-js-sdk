@@ -16,18 +16,18 @@
  */
 
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-import {
-  AuthTokenListener,
-  AuthTokenProvider,
-  DataConnectOptions,
-  FirebaseAuthProvider
-} from '../../src';
-import { RESTTransport } from '../../src/network/transport/rest';
-import { initializeFetch } from '../../src/network/fetch';
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+
+import {
+  AuthTokenListener,
+  AuthTokenProvider,
+  DataConnectOptions
+} from '../../src';
+import { initializeFetch } from '../../src/network/fetch';
+import { RESTTransport } from '../../src/network/transport/rest';
 chai.use(chaiAsPromised);
 const options: DataConnectOptions = {
   connector: 'c',

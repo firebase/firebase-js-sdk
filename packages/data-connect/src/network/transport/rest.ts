@@ -20,7 +20,7 @@ import { DataConnectError, Code } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
-import { dcFetch, initializeFetch } from '../fetch';
+import { dcFetch } from '../fetch';
 
 import { DataConnectTransport } from '.';
 
