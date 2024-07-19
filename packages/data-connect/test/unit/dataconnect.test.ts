@@ -1,12 +1,13 @@
 import { deleteApp, initializeApp } from "@firebase/app";
-import { ConnectorConfig, getDataConnect } from "../../src";
 import { expect } from "chai";
 
+import { ConnectorConfig, getDataConnect } from "../../src";
+
 describe('Data Connect Test', () => {
-    it('should throw an error if `projectId` is not provided', () => {
+    it('should throw an error if `projectId` is not provided', async () => {
         const app = initializeApp({});
         expect(() => getDataConnect({ connector: 'c', location: 'l', service: 's'})).to.throw('Project ID must be provided. Did you pass in a proper projectId to initializeApp?');
-        deleteApp(app);
+        await deleteApp(app);
     });
     it('should not throw an error if `projectId` is provided', () => {
         const projectId = 'p';

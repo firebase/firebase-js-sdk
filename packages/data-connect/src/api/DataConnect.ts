@@ -234,7 +234,7 @@ export function getDataConnect(
   });
 }
 
-export function validateDCOptions(dcOptions: ConnectorConfig) {
+export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
   const fields = ['connector', 'location', 'service'];
   if (!dcOptions) {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');

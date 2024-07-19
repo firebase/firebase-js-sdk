@@ -1,16 +1,16 @@
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-import {
-  AuthTokenListener,
-  AuthTokenProvider,
-  DataConnectOptions,
-  FirebaseAuthProvider
-} from '../../src';
-import { RESTTransport } from '../../src/network/transport/rest';
-import { initializeFetch } from '../../src/network/fetch';
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+
+import {
+  AuthTokenListener,
+  AuthTokenProvider,
+  DataConnectOptions
+} from '../../src';
+import { initializeFetch } from '../../src/network/fetch';
+import { RESTTransport } from '../../src/network/transport/rest';
 chai.use(chaiAsPromised);
 const options: DataConnectOptions = {
   connector: 'c',
@@ -28,7 +28,7 @@ class FakeAuthProvider implements AuthTokenProvider {
     }
     return Promise.resolve({ accessToken: 'testToken' });
   }
-  setToken(_token: string | null) {
+  setToken(_token: string | null) : void {
     this.token = _token;
   }
 }
@@ -72,7 +72,7 @@ describe('Queries', () => {
     const rt = new RESTTransport(options, undefined, authProvider);
     rt._setLastToken('initial token');
     await expect(
-      rt.invokeQuery('test', null) as Promise<any>
+      rt.invokeQuery('test', null) as Promise<unknown>
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
     expect(fakeFetchImpl.callCount).to.eq(1);
   });

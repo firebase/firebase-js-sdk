@@ -50,8 +50,7 @@ export interface SeedInfo {
 export async function setupQueries(
   schema: string,
   seedInfoArray: SeedInfo[],
-  skipSchema = false
-) {
+): Promise<Response> {
   const schemaPath = path.resolve(__dirname, schema);
   const schemaFileContents = fs.readFileSync(schemaPath).toString();
   const toWrite = {
@@ -79,7 +78,7 @@ export async function setupQueries(
         })
       }
     },
-    connection_string:
+    connection_string: // eslint-disable-line camelcase
       'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
   };
   fs.writeFileSync('./emulator.json', JSON.stringify(toWrite));

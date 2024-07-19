@@ -134,7 +134,7 @@ export function queryRef<Data, Variables>(
  */
 export function toQueryRef<Data, Variables>(
   serializedRef: SerializedRef<Data, Variables>
-) {
+): QueryRef<Data, Variables> {
   const {
     refInfo: { name, variables, connectorConfig }
   } = serializedRef;
