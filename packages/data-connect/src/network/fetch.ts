@@ -23,21 +23,26 @@ let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
-function getGoogApiClientValue(): string {
-  return 'gl-js/ fire/' + SDK_VERSION;
+function getGoogApiClientValue(_isUsingGen: boolean): string {
+  let str = 'gl-js/ fire/' + SDK_VERSION;
+  if(_isUsingGen) {
+    str += ' web/gen'
+  }
+  return str;
 }
 export function dcFetch<T, U>(
   url: string,
   body: U,
   { signal }: AbortController,
-  accessToken: string | null
+  accessToken: string | null,
+  _isUsingGen: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'X-Goog-Api-Client': getGoogApiClientValue()
+    'X-Goog-Api-Client': getGoogApiClientValue(_isUsingGen)
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;

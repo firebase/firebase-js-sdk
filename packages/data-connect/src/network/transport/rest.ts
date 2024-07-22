@@ -39,7 +39,8 @@ export class RESTTransport implements DataConnectTransport {
     options: DataConnectOptions,
     private apiKey?: string | undefined,
     private authProvider?: AuthTokenProvider | undefined,
-    transportOptions?: TransportOptions | undefined
+    transportOptions?: TransportOptions | undefined,
+    private _isUsingGen = false,
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -166,7 +167,8 @@ export class RESTTransport implements DataConnectTransport {
           variables: body
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
-        this._accessToken
+        this._accessToken,
+        this._isUsingGen
       )
     );
 
@@ -191,7 +193,8 @@ export class RESTTransport implements DataConnectTransport {
           variables: body
         } as unknown as U,
         abortController,
-        this._accessToken
+        this._accessToken,
+        this._isUsingGen
       );
     });
 
