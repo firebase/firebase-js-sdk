@@ -173,7 +173,8 @@ export class RESTTransport implements DataConnectTransport {
     );
 
     return {
-      then: withAuth.then.bind(withAuth)
+      then: withAuth.then.bind(withAuth),
+      catch: withAuth.catch.bind(withAuth)
     };
   };
   invokeMutation: <T, U>(
