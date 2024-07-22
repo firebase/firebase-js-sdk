@@ -17,7 +17,7 @@
 
 import * as sinon from 'sinon';
 import firebase from '@firebase/app-compat';
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable-next-line import/no-extraneous-dependencies */
 import '@firebase/auth-compat';
 import { Provider } from '@firebase/component';
 import '../..';
