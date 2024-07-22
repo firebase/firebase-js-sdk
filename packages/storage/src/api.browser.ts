@@ -18,6 +18,7 @@
 import { StorageReference } from './public-types';
 import { Reference, getBlobInternal } from './reference';
 import { getModularInstance } from '@firebase/util';
+import { ReadableStream } from 'stream/web';
 
 /**
  * Downloads the data at the object's location. Returns an error if the object
@@ -58,6 +59,6 @@ export function getBlob(
 export function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
-): NodeJS.ReadableStream {
+): ReadableStream {
   throw new Error('getStream() is only supported by NodeJS builds');
 }
