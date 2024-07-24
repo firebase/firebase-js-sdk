@@ -56,6 +56,8 @@ import {
 } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import { GlobalsCache } from './globals_cache';
+import { MemoryGlobalsCache } from './memory_globals_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
@@ -71,6 +73,7 @@ export class MemoryPersistence implements Persistence {
    * persisting values.
    */
   private readonly indexManager: MemoryIndexManager;
+  private readonly globalsCache: MemoryGlobalsCache;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private overlays: { [user: string]: MemoryDocumentOverlayCache } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
@@ -94,6 +97,7 @@ export class MemoryPersistence implements Persistence {
     serializer: JsonProtoSerializer
   ) {
     this._started = true;
+    this.globalsCache = new MemoryGlobalsCache();
     this.referenceDelegate = referenceDelegateFactory(this);
     this.targetCache = new MemoryTargetCache(this);
     const sizer = (doc: Document): number =>
@@ -148,6 +152,10 @@ export class MemoryPersistence implements Persistence {
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;
+  }
+
+  getGlobalsCache(): GlobalsCache {
+    return this.globalsCache;
   }
 
   getTargetCache(): MemoryTargetCache {

@@ -69,6 +69,8 @@ import {
   SimpleDb,
   SimpleDbStore
 } from './simple_db';
+import { IndexedDbGlobalsCache } from './indexeddb_globals_cache';
+import { GlobalsCache } from './globals_cache';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -188,6 +190,7 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
+  private readonly globalsCache: IndexedDbGlobalsCache;
   private readonly targetCache: IndexedDbTargetCache;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly bundleCache: IndexedDbBundleCache;
@@ -232,6 +235,7 @@ export class IndexedDbPersistence implements Persistence {
       this.schemaVersion,
       new SchemaConverter(this.serializer)
     );
+    this.globalsCache = new IndexedDbGlobalsCache();
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -706,6 +710,14 @@ export class IndexedDbPersistence implements Persistence {
 
   get started(): boolean {
     return this._started;
+  }
+
+  getGlobalsCache(): GlobalsCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize GlobalsCache before persistence is started.'
+    );
+    return this.globalsCache;
   }
 
   getMutationQueue(

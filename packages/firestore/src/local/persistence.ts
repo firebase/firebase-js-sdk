@@ -31,6 +31,7 @@ import {
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
+import { GlobalsCache } from './globals_cache';
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -166,6 +167,11 @@ export interface Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setNetworkEnabled(networkEnabled: boolean): void;
+
+  /**
+   * Returns GlobalCache representing a general purpose cache for global values.
+   */
+  getGlobalsCache(): GlobalsCache;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the
