@@ -70,7 +70,7 @@ describe('Queries', () => {
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
     await expect(rt.invokeQuery('test', null)).to.eventually.be.rejectedWith(
-      JSON.stringify(json)
+      json.message
     );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
@@ -79,7 +79,7 @@ describe('Queries', () => {
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, authProvider);
     await expect(rt.invokeMutation('test', null)).to.eventually.be.rejectedWith(
-      JSON.stringify(json)
+      json.message
     );
     expect(fakeFetchImpl.callCount).to.eq(2);
   });
@@ -90,7 +90,7 @@ describe('Queries', () => {
     rt._setLastToken('initial token');
     await expect(
       rt.invokeQuery('test', null) as Promise<unknown>
-    ).to.eventually.be.rejectedWith(JSON.stringify(json));
+    ).to.eventually.be.rejectedWith(json.message);
     expect(fakeFetchImpl.callCount).to.eq(1);
   });
 });
