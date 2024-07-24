@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+//fsdj
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
   Analytics,
@@ -62,6 +62,8 @@ declare module '@firebase/component' {
     [ANALYTICS_TYPE]: AnalyticsService;
   }
 }
+
+console.log('hi');
 
 /**
  * Returns an {@link Analytics} instance for the given app.
