@@ -1,0 +1,6 @@
+{
+  "name": "karma-safari-launcher",
+  "version": "1.0.0",
+  "description": "A Karma plugin to launch a Safari browser",
+  "main": "index.js"
+}
