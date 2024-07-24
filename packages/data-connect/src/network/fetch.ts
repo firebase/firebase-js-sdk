@@ -69,17 +69,15 @@ export function dcFetch<T, U>(
       } catch (e) {
         throw new DataConnectError(Code.OTHER, JSON.stringify(e));
       }
+      const message = getMessage(jsonResponse);
       if (response.status >= 400) {
         logError(
           'Error while performing request: ' + JSON.stringify(jsonResponse)
         );
         if (response.status === 401) {
-          throw new DataConnectError(
-            Code.UNAUTHORIZED,
-            JSON.stringify(jsonResponse)
-          );
+          throw new DataConnectError(Code.UNAUTHORIZED, message);
         }
-        throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
+        throw new DataConnectError(Code.OTHER, message);
       }
       return jsonResponse;
     })
@@ -91,4 +89,13 @@ export function dcFetch<T, U>(
       }
       return res as { data: T; errors: Error[] };
     });
+}
+interface MessageObject {
+  message?: string;
+}
+function getMessage(obj: MessageObject): string {
+  if ('message' in obj) {
+    return obj.message;
+  }
+  return JSON.stringify(obj);
 }

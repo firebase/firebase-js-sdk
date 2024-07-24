@@ -78,7 +78,7 @@ export async function setupQueries(
         })
       }
     },
-    // eslint-disable-line camelcase
+    // eslint-disable-next-line camelcase
     connection_string:
       'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
   };

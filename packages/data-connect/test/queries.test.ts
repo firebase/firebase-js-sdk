@@ -59,6 +59,10 @@ const SEEDED_DATA = [
     content: 'task 2'
   }
 ];
+const REAL_DATA = SEEDED_DATA.map(obj => ({
+  ...obj,
+  id: obj.id.replace(/-/g, '')
+}));
 function seedDatabase(instance: DataConnect): Promise<void> {
   // call mutation query that adds SEEDED_DATA to database
   return new Promise((resolve, reject) => {
@@ -100,7 +104,7 @@ describe('DataConnect Tests', async () => {
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
     const taskListRes = await executeQuery(taskListQuery);
     expect(taskListRes.data).to.deep.eq({
-      posts: SEEDED_DATA
+      posts: REAL_DATA
     });
   });
   it(`instantly executes a query if one hasn't been subscribed to`, async () => {
@@ -121,7 +125,7 @@ describe('DataConnect Tests', async () => {
     );
     const res = await promise;
     expect(res.data).to.deep.eq({
-      posts: SEEDED_DATA
+      posts: REAL_DATA
     });
     expect(res.source).to.eq(SOURCE_SERVER);
   });
@@ -138,7 +142,7 @@ describe('DataConnect Tests', async () => {
     const result = await waitForFirstEvent(taskListQuery);
     const serializedRef: SerializedRef<TaskListResponse, undefined> = {
       data: {
-        posts: SEEDED_DATA
+        posts: REAL_DATA
       },
       fetchTime: Date.now().toLocaleString(),
       refInfo: {
@@ -149,7 +153,7 @@ describe('DataConnect Tests', async () => {
         name: taskListQuery.name,
         variables: undefined
       },
-      source: SOURCE_SERVER
+      source: SOURCE_CACHE
     };
     expect(result.toJSON()).to.deep.eq(serializedRef);
     expect(result.source).to.deep.eq(SOURCE_CACHE);
@@ -166,6 +170,14 @@ describe('DataConnect Tests', async () => {
     await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
       'ECONNREFUSED'
     );
+  });
+  it('throws an error with just the message when the server responds with an error', async () => {
+    const invalidTaskListQuery = queryRef<TaskListResponse>(dc, 'listPosts2');
+    const message =
+      'unauthorized: you are not authorized to perform this operation';
+    await expect(
+      executeQuery(invalidTaskListQuery)
+    ).to.eventually.be.rejectedWith(message);
   });
 });
 async function waitForFirstEvent<Data, Variables>(
