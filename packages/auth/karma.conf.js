@@ -21,7 +21,6 @@ const { argv } = require('yargs');
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
-    browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
     // frameworks to use
@@ -60,7 +59,7 @@ function getTestFiles(argv) {
   } else if (argv.cordova) {
     return ['src/platform_cordova/**/*.test.ts'];
   } else {
-    // For the catch-all yarn:test, ignore the phone integration test
+    // For the catch-all yarn browser:test, ignore the phone integration test
     return [
       'src/**/*.test.ts',
       'test/helpers/**/*.test.ts',
@@ -69,14 +68,6 @@ function getTestFiles(argv) {
       'test/integration/flows/firebaseserverapp.test.ts'
     ];
   }
-}
-
-function getTestBrowsers(argv) {
-  let browsers = ['ChromeHeadless'];
-  if (process.env?.BROWSERS && argv.unit) {
-    browsers = process.env?.BROWSERS?.split(',');
-  }
-  return browsers;
 }
 
 function getClientConfig(argv) {
