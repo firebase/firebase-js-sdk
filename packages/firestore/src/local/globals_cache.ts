@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { PersistenceTransaction } from './persistence_transaction';
-import { PersistencePromise } from './persistence_promise';
 import { ByteString } from '../util/byte_string';
+
+import { PersistencePromise } from './persistence_promise';
+import { PersistenceTransaction } from './persistence_transaction';
 
 /**
  * General purpose cache for global values.

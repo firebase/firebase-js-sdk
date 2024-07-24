@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 import { ByteString } from '../util/byte_string';
+
 import { GlobalsCache } from './globals_cache';
+import { DbGlobals } from './indexeddb_schema';
+import { DbGlobalsStore, DbGlobalsKey } from './indexeddb_sentinels';
+import { getStore } from './indexeddb_transaction';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
-import { DbGlobalsStore, DbGlobalsKey } from './indexeddb_sentinels';
-import { DbGlobals } from './indexeddb_schema';
-import { getStore } from './indexeddb_transaction';
 
 export class IndexedDbGlobalsCache implements GlobalsCache {
   private globalsStore(

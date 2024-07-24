@@ -21,6 +21,7 @@ import { DocumentKey } from '../model/document_key';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
+import { GlobalsCache } from './globals_cache';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
@@ -31,7 +32,6 @@ import {
 import { RemoteDocumentCache } from './remote_document_cache';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
-import { GlobalsCache } from './globals_cache';
 
 /**
  * Callback type for primary state notifications. This callback can be

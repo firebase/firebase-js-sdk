@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { ByteString } from '../util/byte_string';
+
 import { GlobalsCache } from './globals_cache';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';

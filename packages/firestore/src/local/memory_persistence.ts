@@ -29,6 +29,7 @@ import { ObjectMap } from '../util/obj_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
 import { encodeResourcePath } from './encoded_resource_path';
+import { GlobalsCache } from './globals_cache';
 import { IndexManager } from './index_manager';
 import { LocalSerializer } from './local_serializer';
 import {
@@ -40,6 +41,7 @@ import {
 import { newLruGarbageCollector } from './lru_garbage_collector_impl';
 import { MemoryBundleCache } from './memory_bundle_cache';
 import { MemoryDocumentOverlayCache } from './memory_document_overlay_cache';
+import { MemoryGlobalsCache } from './memory_globals_cache';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import {
@@ -56,8 +58,6 @@ import {
 } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
-import { GlobalsCache } from './globals_cache';
-import { MemoryGlobalsCache } from './memory_globals_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 /**

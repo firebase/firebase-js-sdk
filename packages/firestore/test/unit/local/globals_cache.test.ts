@@ -17,12 +17,13 @@
 
 import { expect } from 'chai';
 
-import * as persistenceHelpers from './persistence_test_helpers';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { TestGlobalsCache } from './test_globals_cache';
-import { ByteString } from '../../../src/util/byte_string';
 import { encodeBase64 } from '../../../src/platform/base64';
+import { ByteString } from '../../../src/util/byte_string';
+
+import * as persistenceHelpers from './persistence_test_helpers';
+import { TestGlobalsCache } from './test_globals_cache';
 
 let persistence: Persistence;
 
@@ -71,13 +72,13 @@ function genericGlobalsTests(): void {
     const token = ByteString.fromBase64String(encodeBase64('theToken'));
 
     await cache.setSessionToken(token);
-    let result = await cache.getSessionToken();
+    const result = await cache.getSessionToken();
     expect(result.isEqual(token)).to.be.true;
   });
 
   it('returns empty session token that was previously saved', async () => {
     await cache.setSessionToken(ByteString.EMPTY_BYTE_STRING);
-    let result = await cache.getSessionToken();
+    const result = await cache.getSessionToken();
     expect(result.isEqual(ByteString.EMPTY_BYTE_STRING)).to.be.true;
   });
 }
