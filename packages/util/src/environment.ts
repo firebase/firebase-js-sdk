@@ -80,6 +80,9 @@ export function isNode(): boolean {
 
 /**
  * Detect Browser Environment
+ * Note: This will return true for certain test frameworks that are incompletely
+ * mimicking a browser, and should not lead to assuming all browser APIs are
+ * available.
  */
 export function isBrowser(): boolean {
   return typeof window !== 'undefined' || isWebWorker();
