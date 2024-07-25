@@ -20,7 +20,7 @@ import { VertexAIErrorCode, CustomErrorData } from './types';
 import { VERTEX_TYPE } from './constants';
 
 /**
- * Error class for the Vertex AI for Firebase SDK.
+ * Error class for the Vertex AI in Firebase SDK.
  *
  * @public
  */
