@@ -136,7 +136,10 @@ async function main() {
     await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
   } catch (e) {
     const error = e as Error;
-    if (error.message.match('No changesets present')) {
+    if (
+      error.message.match('No changesets present') ||
+      error.message.match('no changesets were found')
+    ) {
       await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
     } else {
       const messageLines = error.message.replace(/🦋  error /g, '').split('\n');
