@@ -44,7 +44,7 @@ jobs:
             github.rest.repos.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              base: 'ch-branchswitch-main',
+              base: 'main',
               head: 'release',
               commit_message: 'Release ${{ steps.get-version.outputs.RELEASE_VERSION }}'
             })

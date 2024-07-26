@@ -17,7 +17,7 @@ name: Canary Deploy
 on:
   push:
     branches:
-      - ch-branchswitch-main
+      - main
   workflow_dispatch:
 
 jobs:

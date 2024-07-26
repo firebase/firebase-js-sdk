@@ -17,7 +17,7 @@ name: Check Changeset
 on:
   pull_request:
     branches:
-      - ch-branchswitch-main
+      - main
 
 env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -41,9 +41,9 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Run changeset script
-      # pull ch-branchswitch-main so changeset can diff against it
+      # pull main so changeset can diff against it
       run: |
-        git pull -f --no-rebase origin ch-branchswitch-main:ch-branchswitch-main
+        git pull -f --no-rebase origin main:main
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output

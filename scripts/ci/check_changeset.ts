@@ -26,7 +26,7 @@ import fs from 'mz/fs';
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
-const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'ch-branchswitch-main';
+const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'main';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
 
 const githubOutputFile = (function (): string {

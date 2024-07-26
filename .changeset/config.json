@@ -7,7 +7,7 @@
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "ch-branchswitch-main",
+  "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
     "firebase-namespace-integration-test",

@@ -43,9 +43,9 @@ jobs:
       # Ensures a new @firebase/app is published with every release.
       # This keeps the SDK_VERSION variable up to date.
       - name: Add a changeset for @firebase/app
-        # pull ch-branchswitch-main so changeset can diff against it
+        # pull main so changeset can diff against it
         run: |
-          git pull -f --no-rebase origin ch-branchswitch-main:ch-branchswitch-main
+          git pull -f --no-rebase origin main:main
           yarn ts-node-script scripts/ci/add_changeset.ts
 
       - name: Create Release Pull Request

@@ -42,7 +42,7 @@ const { path: targetPath, all: runOnAll } = yargs(hideBin(process.argv))
   .usage(
     `Runs prettier formatting and updates license headers. ` +
       `If no arguments are provided it will run formatting on any ` +
-      `files changed since ch-branchswitch-main.`
+      `files changed since main.`
   )
   .parseSync();
 
@@ -56,8 +56,8 @@ const format = async () => {
           glob(join(targetPath, '/**/*'), (err, res) => resolve(res));
         });
       } else {
-        // Otherwise get all files changed since ch-branchswitch-main.
-        const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'ch-branchswitch-main';
+        // Otherwise get all files changed since main.
+        const baseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'main';
         const diff = await git.diff([
           '--name-only',
           '--diff-filter=d',

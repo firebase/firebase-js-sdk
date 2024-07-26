@@ -25,10 +25,10 @@ on:
       source-branch:
         description: 'Branch to release from'
         type: choice
-        default: 'ch-branchswitch-main'
+        default: 'main'
         required: true
         options:
-        - ch-branchswitch-main
+        - main
         - v8
       verbose:
         description: 'Enable verbose logging'
@@ -50,7 +50,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 20.x
-    - name: Merge ch-branchswitch-main into release
+    - name: Merge main into release
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
