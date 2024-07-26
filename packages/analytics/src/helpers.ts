@@ -24,11 +24,24 @@ import {
 import { DynamicConfig, DataLayer, Gtag, MinimalDynamicConfig } from './types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
-import { trustedResourceUrl } from 'safevalues';
-import { safeScriptEl } from 'safevalues/dom';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 // Possible parameter types for gtag 'event' and 'config' commands
 type GtagConfigOrEventParams = ControlParams & EventParams & CustomParams;
+
+/**
+ * Verifies and creates a TrustedScriptURL.
+ */
+export function createGtagTrustedTypesScriptURL(url: string): string {
+  if (!url.startsWith(GTAG_URL)) {
+    const err = ERROR_FACTORY.create(AnalyticsError.INVALID_GTAG_RESOURCE, {
+      gtagURL: url
+    });
+    logger.warn(err.message);
+    return '';
+  }
+  return url;
+}
 
 /**
  * Makeshift polyfill for Promise.allSettled(). Resolves when all promises
@@ -43,6 +56,29 @@ export function promiseAllSettled<T>(
 }
 
 /**
+ * Creates a TrustedTypePolicy object that implements the rules passed as policyOptions.
+ *
+ * @param policyName A string containing the name of the policy
+ * @param policyOptions Object containing implementations of instance methods for TrustedTypesPolicy, see {@link https://developer.mozilla.org/en-US/docs/Web/API/TrustedTypePolicy#instance_methods
+ * | the TrustedTypePolicy reference documentation}.
+ */
+export function createTrustedTypesPolicy(
+  policyName: string,
+  policyOptions: Partial<TrustedTypePolicyOptions>
+): Partial<TrustedTypePolicy> | undefined {
+  // Create a TrustedTypes policy that we can use for updating src
+  // properties
+  let trustedTypesPolicy: Partial<TrustedTypePolicy> | undefined;
+  if (window.trustedTypes) {
+    trustedTypesPolicy = window.trustedTypes.createPolicy(
+      policyName,
+      policyOptions
+    );
+  }
+  return trustedTypesPolicy;
+}
+
+/**
  * Inserts gtag script tag into the page to asynchronously download gtag.
  * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
@@ -50,17 +86,21 @@ export function insertScriptTag(
   dataLayerName: string,
   measurementId: string
 ): void {
-  const script = document.createElement('script');
+  const trustedTypesPolicy = createTrustedTypesPolicy(
+    'firebase-js-sdk-policy',
+    {
+      createScriptURL: createGtagTrustedTypesScriptURL
+    }
+  );
 
+  const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  //
-  // We also have to ensure the template string before the first expression constitutes a valid URL
-  // start, as this is what the initial validation focuses on. If the template literal begins
-  // directly with an expression (e.g. `${GTAG_SCRIPT_URL}`), the validation fails due to an
-  // empty initial string.
-  const url = trustedResourceUrl`https://www.googletagmanager.com/gtag/js?l=${dataLayerName}&id=${measurementId}`;
-  safeScriptEl.setSrc(script, url);
+
+  const gtagScriptURL = `${GTAG_URL}?l=${dataLayerName}&id=${measurementId}`;
+  (script.src as string | TrustedScriptURL) = trustedTypesPolicy
+    ? (trustedTypesPolicy as TrustedTypePolicy)?.createScriptURL(gtagScriptURL)
+    : gtagScriptURL;
 
   script.async = true;
   document.head.appendChild(script);
