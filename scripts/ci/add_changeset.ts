@@ -39,8 +39,8 @@ const FILE_PATH = `${projectRoot}/.changeset/bump-sdk-version.md`;
 async function addChangeSet() {
   // check if a few firebase version is being released
   try {
-    // The way actions/checkout works, there is no local `master` branch, but it
-    // has access to the remote origin/master.
+    // The way actions/checkout works, there is no local `ch-branchswitch-main` branch, but it
+    // has access to the remote origin/ch-branchswitch-main.
     const { stdout } = await exec('yarn changeset status');
     // only add a changeset for @firebase/app if
     // 1. we are publishing a new firebase version. and

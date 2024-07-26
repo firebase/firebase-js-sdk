@@ -115,7 +115,7 @@ review.
 * Make your changes in a new git branch:
 
   ```shell
-  git checkout -b my-fix-branch master
+  git checkout -b my-fix-branch ch-branchswitch-main
   ```
 
 * Create your change, **including appropriate test cases**. Changes with tests are more likely to be
@@ -144,7 +144,7 @@ entries to the `.gitignore`).
     git push origin my-fix-branch
     ```
 
-* In GitHub, create a pull request against the `firebase-js-sdk:master` branch.
+* In GitHub, create a pull request against the `firebase-js-sdk:ch-branchswitch-main` branch.
 * Add changeset. See [Adding changeset to PR](#adding-changeset-to-pr).
 * All pull requests must be reviewed by a member of the Firebase JS SDK team, who will merge it
 when/if they feel it is good to go.

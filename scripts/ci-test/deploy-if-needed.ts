@@ -52,7 +52,7 @@ async function deployIfNeeded() {
   if (!token) {
     throw new Error('No FIREBASE_CLI_TOKEN found, exiting.');
   }
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff(['--name-only', 'origin/ch-branchswitch-main...HEAD']);
   const changedFiles = diff.split('\n');
   let flags: string[] = [];
   for (const group of projectConfigGroups) {
