@@ -103,7 +103,7 @@ jobs:
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ github.token }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
 
@@ -153,7 +153,7 @@ jobs:
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ github.token }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
 
@@ -194,7 +194,7 @@ jobs:
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ github.token }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
   test-firestore-integration:
