@@ -27,7 +27,6 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  FetchXmlHttpFactory,
   Stat
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
@@ -209,7 +208,7 @@ export class WebChannelConnection extends RestConnection {
     }
 
     if (this.useFetchStreams) {
-      request.xmlHttpFactory = new FetchXmlHttpFactory({});
+      request.useFetchStreams = true;
     }
 
     this.modifyHeadersForRequest(
