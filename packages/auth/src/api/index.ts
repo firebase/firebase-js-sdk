@@ -153,7 +153,6 @@ export async function _performApiRequest<T, V>(
       {
         method,
         headers,
-        referrerPolicy: 'no-referrer',
         ...body
       }
     );
