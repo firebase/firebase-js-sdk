@@ -27,10 +27,10 @@ import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
-import pkg from './package.json';
-
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
+
+const outputFiles = util.getPackageJsonExportPaths();
 
 const nodePlugins = function () {
   return [
@@ -77,7 +77,7 @@ const allBuilds = [
   {
     input: './src/index.node.ts',
     output: {
-      file: pkg['main-esm'],
+      file: outputFiles.main.node.import,
       format: 'es',
       sourcemap: true
     },
@@ -90,9 +90,9 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: outputFiles.main.node.import,
     output: {
-      file: pkg.main,
+      file: outputFiles.main.node.require,
       format: 'cjs',
       sourcemap: true
     },
@@ -107,9 +107,9 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: outputFiles.main.node.import,
     output: {
-      file: pkg['main-esm'],
+      file: outputFiles.main.node.import,
       format: 'es',
       sourcemap: true
     },
@@ -128,7 +128,7 @@ const allBuilds = [
   {
     input: './src/index.ts',
     output: {
-      file: pkg.browser,
+      file: outputFiles.main.browser.import,
       format: 'es',
       sourcemap: true
     },
@@ -140,10 +140,10 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: pkg['browser'],
+    input: outputFiles.main.browser.import,
     output: [
       {
-        file: pkg['esm5'],
+        file: outputFiles.main.esm5,
         format: 'es',
         sourcemap: true
       }
@@ -159,7 +159,7 @@ const allBuilds = [
   },
   // Convert es2017 build to cjs
   {
-    input: pkg['browser'],
+    input: outputFiles.main.browser.import,
     output: [
       {
         file: './dist/index.cjs.js',
@@ -178,10 +178,10 @@ const allBuilds = [
   },
   // es2017 build with build target reporting
   {
-    input: pkg['browser'],
+    input: outputFiles.main.browser.import,
     output: [
       {
-        file: pkg['browser'],
+        file: outputFiles.main.browser.import,
         format: 'es',
         sourcemap: true
       }
@@ -199,7 +199,7 @@ const allBuilds = [
   {
     input: './src/index.rn.ts',
     output: {
-      file: pkg['react-native'],
+      file: outputFiles.main.rn,
       format: 'es',
       sourcemap: true
     },
