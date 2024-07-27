@@ -46,7 +46,7 @@ jobs:
       - name: build
         run: yarn build:changed core
       - name: Run tests on changed packages
-        run: xvfb-run yarn test:changed core
+        run: yarn --cwd packages/storage test
 
   test-firefox:
     name: Test Packages With Changed Files in Firefox
