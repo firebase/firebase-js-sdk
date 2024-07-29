@@ -346,7 +346,10 @@ export function removeSnapshotsInSyncListener(
   eventManagerImpl.snapshotsInSyncListeners.delete(observer);
 }
 
-function errorAllTargets(eventManager: EventManager, error: FirestoreError) {
+function errorAllTargets(
+  eventManager: EventManager,
+  error: FirestoreError
+): void {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   const queries = eventManagerImpl.queries;
 
