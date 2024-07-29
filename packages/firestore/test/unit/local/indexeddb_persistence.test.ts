@@ -139,8 +139,11 @@ async function withDb(
     schemaConverter
   );
   const database = await simpleDb.ensureDb('IndexedDbPersistenceTests');
-  await fn(simpleDb, database.version, Array.from(database.objectStoreNames));
-  await simpleDb.close();
+  return fn(
+    simpleDb,
+    database.version,
+    Array.from(database.objectStoreNames)
+  ).finally(async () => simpleDb.close());
 }
 
 async function withUnstartedCustomPersistence(
@@ -1235,7 +1238,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from version 14 to 15', async () => {
     await withDb(14, async () => {});
     await withDb(15, async (db, version, objectStores) => {
-      expect(version).to.have.equal(14);
+      expect(version).to.have.equal(15);
       expect(objectStores).to.have.members(V15_STORES);
     });
   });
@@ -1243,7 +1246,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from version 15 to 16', async () => {
     await withDb(15, async () => {});
     await withDb(16, async (db, version, objectStores) => {
-      expect(version).to.have.equal(15);
+      expect(version).to.have.equal(16);
       expect(objectStores).to.have.members(V16_STORES);
     });
   });
@@ -1251,7 +1254,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from version 16 to 17', async () => {
     await withDb(16, async () => {});
     await withDb(17, async (db, version, objectStores) => {
-      expect(version).to.have.equal(16);
+      expect(version).to.have.equal(17);
       expect(objectStores).to.have.members(V17_STORES);
     });
   });
