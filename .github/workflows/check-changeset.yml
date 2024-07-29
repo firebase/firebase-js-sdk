@@ -30,7 +30,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
