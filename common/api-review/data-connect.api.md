@@ -283,7 +283,7 @@ export function terminate(dataConnect: DataConnect): Promise<void>;
 export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 
 // @public (undocumented)
-export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions) => DataConnectTransport;
+export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 
 // @public
 export interface TransportOptions {
