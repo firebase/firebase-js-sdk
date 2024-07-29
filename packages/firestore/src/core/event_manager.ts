@@ -17,7 +17,7 @@
 
 import { debugAssert, debugCast } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
@@ -64,6 +64,7 @@ export interface EventManager {
   onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
   onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
   onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  terminate(): void;
 }
 
 export function newEventManager(): EventManager {
@@ -71,12 +72,9 @@ export function newEventManager(): EventManager {
 }
 
 export class EventManagerImpl implements EventManager {
-  queries = new ObjectMap<Query, QueryListenersInfo>(
-    q => canonifyQuery(q),
-    queryEquals
-  );
+  queries: ObjectMap<Query, QueryListenersInfo> = newQueriesObjectMap();
 
-  onlineState = OnlineState.Unknown;
+  onlineState: OnlineState = OnlineState.Unknown;
 
   snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
@@ -98,6 +96,20 @@ export class EventManagerImpl implements EventManager {
    * still listening to the cache.
    */
   onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+
+  terminate(): void {
+    errorAllTargets(
+      this,
+      new FirestoreError(Code.ABORTED, 'Firestore shutting down')
+    );
+  }
+}
+
+function newQueriesObjectMap(): ObjectMap<Query, QueryListenersInfo> {
+  return new ObjectMap<Query, QueryListenersInfo>(
+    q => canonifyQuery(q),
+    queryEquals
+  );
 }
 
 function validateEventManager(eventManagerImpl: EventManagerImpl): void {
@@ -332,6 +344,20 @@ export function removeSnapshotsInSyncListener(
 ): void {
   const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
   eventManagerImpl.snapshotsInSyncListeners.delete(observer);
+}
+
+function errorAllTargets(eventManager: EventManager, error: FirestoreError) {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  const queries = eventManagerImpl.queries;
+
+  // Prevent further access by clearing ObjectMap.
+  eventManagerImpl.queries = newQueriesObjectMap();
+
+  queries.forEach((_, queryInfo) => {
+    for (const listener of queryInfo.listeners) {
+      listener.onError(error);
+    }
+  });
 }
 
 // Call all global snapshot listeners that have been set.
