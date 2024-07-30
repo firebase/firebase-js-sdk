@@ -4,4 +4,4 @@
 * Added functionality to retry queries and mutations if the server responds with UNAUTHENTICATED.
 * Moved `validateArgs` to core SDK.
 * Updated errors to only show relevant details to the user.
-* Added ability to track whether user is calling via core sdk or generated sdk.
+* Added ability to track whether user is calling core sdk or generated sdk.
