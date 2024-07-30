@@ -46,7 +46,7 @@ constructor(_appName: string, _options: FirebaseOptions, _authProvider: Provider
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  \_appName | string |  |
-|  \_options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) |  |
+|  \_options | FirebaseOptions |  |
 |  \_authProvider | Provider&lt;FirebaseAuthInternalName&gt; |  |
 
 ## FirebaseAuthProvider.addTokenChangeListener()

@@ -408,7 +408,7 @@ Converts serialized ref to query ref
 <b>Signature:</b>
 
 ```typescript
-export declare function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<unknown, Variables>;
+export declare function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 ```
 
 #### Parameters
@@ -419,7 +419,7 @@ export declare function toQueryRef<Data, Variables>(serializedRef: SerializedRef
 
 <b>Returns:</b>
 
-[QueryRef](./data-connect.queryref.md#queryref_interface)<!-- -->&lt;unknown, Variables&gt;
+[QueryRef](./data-connect.queryref.md#queryref_interface)<!-- -->&lt;Data, Variables&gt;
 
 `QueryRef`
 
