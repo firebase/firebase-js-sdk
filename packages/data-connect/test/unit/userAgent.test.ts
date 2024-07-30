@@ -23,8 +23,6 @@ import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/fetch';
 
-
-
 use(sinonChai);
 const json = {
   message: 'unauthorized'
