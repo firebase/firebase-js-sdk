@@ -46,7 +46,7 @@ const pkg = require('./package.json');
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
 // We use two different rollup pipelines to take advantage of tree shaking,
-// as Rollup does not support tree shaking for Typescript classes transpiled
+// as Rollup does not support tree shaking for TypeScript classes transpiled
 // down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
 // produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
 // `rollup.config.es.js`.

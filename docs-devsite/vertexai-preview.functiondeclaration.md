@@ -24,7 +24,7 @@ export declare interface FunctionDeclaration
 |  --- | --- | --- |
 |  [description](./vertexai-preview.functiondeclaration.md#functiondeclarationdescription) | string | Optional. Description and purpose of the function. Model uses it to decide how and whether to call the function. |
 |  [name](./vertexai-preview.functiondeclaration.md#functiondeclarationname) | string | The name of the function to call. Must start with a letter or an underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a max length of 64. |
-|  [parameters](./vertexai-preview.functiondeclaration.md#functiondeclarationparameters) | [FunctionDeclarationSchema](./vertexai-preview.functiondeclarationschema.md#functiondeclarationschema_interface) | Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case sensitive. For a function with no parameters, this can be left unset. |
+|  [parameters](./vertexai-preview.functiondeclaration.md#functiondeclarationparameters) | [FunctionDeclarationSchema](./vertexai-preview.functiondeclarationschema.md#functiondeclarationschema_interface) | Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset. |
 
 ## FunctionDeclaration.description
 
@@ -48,7 +48,7 @@ name: string;
 
 ## FunctionDeclaration.parameters
 
-Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case sensitive. For a function with no parameters, this can be left unset.
+Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset.
 
 <b>Signature:</b>
 

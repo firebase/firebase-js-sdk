@@ -122,7 +122,7 @@ class ObserverProxy<T> implements Observer<T> {
   /**
    * Subscribe function that can be used to add an Observer to the fan-out list.
    *
-   * - We require that no event is sent to a subscriber sychronously to their
+   * - We require that no event is sent to a subscriber synchronously to their
    *   call to subscribe().
    */
   subscribe(

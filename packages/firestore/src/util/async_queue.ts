@@ -236,7 +236,7 @@ export interface AsyncQueue {
    * `enqueueEvenWhileRestricted()`.
    *
    * @param purgeExistingTasks Whether already enqueued tasked should be
-   * rejected (unless enqueued wih `enqueueEvenWhileRestricted()`). Defaults
+   * rejected (unless enqueued with `enqueueEvenWhileRestricted()`). Defaults
    * to false.
    */
   enterRestrictedMode(purgeExistingTasks?: boolean): void;

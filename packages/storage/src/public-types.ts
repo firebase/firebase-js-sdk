@@ -222,7 +222,7 @@ export interface FullMetadata extends UploadMetadata {
   updated: string;
 
   /**
-   * Tokens to allow access to the downloatd URL.
+   * Tokens to allow access to the download URL.
    */
   downloadTokens: string[] | undefined;
 

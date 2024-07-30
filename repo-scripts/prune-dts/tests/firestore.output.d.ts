@@ -154,7 +154,7 @@ export declare function collection(
 ): CollectionReference<DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -171,7 +171,7 @@ export declare function collection(
 ): CollectionReference<DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
@@ -262,7 +262,7 @@ export declare function disableNetwork(
 ): Promise<void>;
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
- * specified abosulute path.
+ * specified absolute path.
  *
  * @param firestore - A reference to the root Firestore instance.
  * @param path - A slash-separated path to a document.
@@ -285,7 +285,7 @@ export declare function doc(
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a document. Has to be omitted to use
- * auto-genrated IDs.
+ * auto-generated IDs.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to

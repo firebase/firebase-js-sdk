@@ -26,7 +26,7 @@ Cloud Storage for Firebase
 |  [getBlob(ref, maxDownloadSizeBytes)](./storage.md#getblob_1c7a935) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors<!-- -->This API is not available in Node. |
 |  [getBytes(ref, maxDownloadSizeBytes)](./storage.md#getbytes_1c7a935) | Downloads the data at the object's location. Returns an error if the object is not found.<!-- -->To use this functionality, you have to whitelist your app's origin in your Cloud Storage bucket. See also https://cloud.google.com/storage/docs/configuring-cors |
 |  [getDownloadURL(ref)](./storage.md#getdownloadurl_30df0b2) | Returns the download URL for the given [StorageReference](./storage.storagereference.md#storagereference_interface)<!-- -->. |
-|  [getMetadata(ref)](./storage.md#getmetadata_30df0b2) | A <code>Promise</code> that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected. |
+|  [getMetadata(ref)](./storage.md#getmetadata_30df0b2) | A <code>Promise</code> that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retrieved, the promise is rejected. |
 |  [getStream(ref, maxDownloadSizeBytes)](./storage.md#getstream_1c7a935) | Downloads the data at the object's location. Raises an error event if the object is not found.<!-- -->This API is only available in Node. |
 |  [list(ref, options)](./storage.md#list_36af757) | List items (files) and prefixes (folders) under this storage reference.<!-- -->List API is only available for Firebase Rules Version 2.<!-- -->GCS is a key-blob store. Firebase Storage imposes the semantic of '/' delimited folder structure. Refer to GCS's List API if you want to learn more.<!-- -->To adhere to Firebase Rules's Semantics, Firebase Storage does not support objects whose paths end with "/" or contain two consecutive "/"s. Firebase Storage List API will filter these unsupported objects. list() may fail if there are too many unsupported objects in the bucket. |
 |  [listAll(ref)](./storage.md#listall_30df0b2) | List all items (files) and prefixes (folders) under this storage reference.<!-- -->This is a helper method for calling list() repeatedly until there are no more results. The default pagination size is 1000.<!-- -->Note: The results may not be consistent if objects are changed while this operation is running.<!-- -->Warning: <code>listAll</code> may potentially consume too many resources if there are too many results. |
@@ -252,7 +252,7 @@ A `Promise` that resolves with the download URL for this object.
 
 ### getMetadata(ref) {:#getmetadata_30df0b2}
 
-A `Promise` that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retreived, the promise is rejected.
+A `Promise` that resolves with the metadata for this object. If this object doesn't exist or metadata cannot be retrieved, the promise is rejected.
 
 <b>Signature:</b>
 

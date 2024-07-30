@@ -99,7 +99,7 @@ export class AppCheckService
       this._delegate,
       /**
        * Exp onTokenChanged() will handle both overloads but we need
-       * to specify one to not confuse Typescript.
+       * to specify one to not confuse TypeScript.
        */
       onNextOrObserver as (tokenResult: AppCheckTokenResult) => void,
       onError,

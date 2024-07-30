@@ -661,7 +661,7 @@ describe('Firebase Storage > Requests', () => {
       bigBlob.slice(0, RESUMABLE_UPLOAD_CHUNK_SIZE)!.uploadData()
     );
   });
-  it('populates requestInfo with just the finalize command command when no more data needs to be uploaded', () => {
+  it('populates requestInfo with just the finalize command when no more data needs to be uploaded', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const blobSize = bigBlob.size();

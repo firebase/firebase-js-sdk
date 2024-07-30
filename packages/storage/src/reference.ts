@@ -415,7 +415,7 @@ export function list(
 
 /**
  * A `Promise` that resolves with the metadata for this object. If this
- * object doesn't exist or metadata cannot be retreived, the promise is
+ * object doesn't exist or metadata cannot be retrieved, the promise is
  * rejected.
  * @public
  * @param ref - StorageReference to get metadata from.

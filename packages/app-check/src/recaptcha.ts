@@ -19,12 +19,7 @@ import { FirebaseApp } from '@firebase/app';
 import { getStateReference } from './state';
 import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
-import { trustedResourceUrl } from 'safevalues';
-import { safeScriptEl } from 'safevalues/dom';
 
-// Note that these are used for testing. If they are changed, the URLs used in loadReCAPTCHAV3Script
-// and loadReCAPTCHAEnterpriseScript must also be changed. They aren't used to create the URLs
-// since trusted resource URLs must be created using template string literals.
 export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
 export const RECAPTCHA_ENTERPRISE_URL =
   'https://www.google.com/recaptcha/enterprise.js';
@@ -171,20 +166,14 @@ function renderInvisibleWidget(
 
 function loadReCAPTCHAV3Script(onload: () => void): void {
   const script = document.createElement('script');
-  safeScriptEl.setSrc(
-    script,
-    trustedResourceUrl`https://www.google.com/recaptcha/api.js`
-  );
+  script.src = RECAPTCHA_URL;
   script.onload = onload;
   document.head.appendChild(script);
 }
 
 function loadReCAPTCHAEnterpriseScript(onload: () => void): void {
   const script = document.createElement('script');
-  safeScriptEl.setSrc(
-    script,
-    trustedResourceUrl`https://www.google.com/recaptcha/enterprise.js`
-  );
+  script.src = RECAPTCHA_ENTERPRISE_URL;
   script.onload = onload;
   document.head.appendChild(script);
 }

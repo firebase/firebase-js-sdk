@@ -77,7 +77,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
           return;
         }
 
-        // Wrap the greptcha render function so that we know if the developer has
+        // Wrap the recaptcha render function so that we know if the developer has
         // called it separately
         const render = recaptcha.render;
         recaptcha.render = (container, params) => {

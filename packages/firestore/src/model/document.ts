@@ -41,7 +41,7 @@ const enum DocumentType {
    * Represents a document in Firestore with a key, version, data and whether
    * the data has local mutations applied to it.
    *
-   * Found documents can be sycned or have or committed mutations applied.
+   * Found documents can be synced or have or committed mutations applied.
    */
   FOUND_DOCUMENT,
   /**

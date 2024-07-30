@@ -297,7 +297,7 @@ describe('core/persistence/persistence_user_manager', () => {
         spy.restore();
       });
 
-      it('removes current user & sets it in the new persistene', async () => {
+      it('removes current user & sets it in the new persistence', async () => {
         const { persistence: nextPersistence, stub: nextStub } =
           makePersistence();
         const auth = await testAuth();
