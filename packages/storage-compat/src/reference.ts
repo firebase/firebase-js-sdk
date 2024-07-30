@@ -189,7 +189,7 @@ export class ReferenceCompat
 
   /**
    * A `Promise` that resolves with the metadata for this object. If this
-   * object doesn't exist or metadata cannot be retreived, the promise is
+   * object doesn't exist or metadata cannot be retrieved, the promise is
    * rejected.
    */
   getMetadata(): Promise<types.FullMetadata> {

@@ -223,7 +223,7 @@ browserDescribe('Popup IdP tests', driver => {
       'user@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
     const widget = new IdPPage(driver.webDriver);
@@ -246,7 +246,7 @@ browserDescribe('Popup IdP tests', driver => {
       'same@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
     const widget = new IdPPage(driver.webDriver);
@@ -283,7 +283,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('a user can sign in again', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
@@ -300,7 +300,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('reauthenticate works for the correct user', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
@@ -327,7 +327,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('reauthenticate throws for wrong user', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 

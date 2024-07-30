@@ -903,7 +903,7 @@ async function onStartEnrollWithTotpMultiFactor() {
     console.log(
       'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
     );
-    // display the numbr of seconds left to enroll.
+    // display the number of seconds left to enroll.
     $('p.totp-deadline').show();
     totpDeadlineId = setInterval(function () {
       var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
@@ -2320,7 +2320,7 @@ function initApp() {
   // reCAPTCHA from being re-rendered (default behavior on enter).
   $('#link-reauth-phone-verification-code').keypress(e => {
     if (e.which === 13) {
-      // User first option option as default.
+      // User first option as default.
       onUpdateConfirmPhoneVerification();
       e.preventDefault();
     }

@@ -51,7 +51,7 @@ export interface DocumentData {
 }
 
 /**
- * Similar to Typescript's `Partial<T>`, but allows nested fields to be
+ * Similar to TypeScript's `Partial<T>`, but allows nested fields to be
  * omitted and FieldValues to be passed in as property values.
  */
 export type PartialWithFieldValue<T> =
@@ -389,7 +389,7 @@ export function collection(
 ): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a collection.
@@ -406,7 +406,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
 ): CollectionReference<DocumentData, DocumentData>;
 /**
  * Gets a `CollectionReference` instance that refers to a subcollection of
- * `reference` at the the specified relative path.
+ * `reference` at the specified relative path.
  *
  * @param reference - A reference to a Firestore document.
  * @param path - A slash-separated path to a collection.
@@ -520,7 +520,7 @@ export function doc(
  *
  * @param reference - A reference to a collection.
  * @param path - A slash-separated path to a document. Has to be omitted to use
- * auto-genrated IDs.
+ * auto-generated IDs.
  * @param pathSegments - Additional path segments that will be applied relative
  * to the first argument.
  * @throws If the final path has an odd number of segments and does not point to

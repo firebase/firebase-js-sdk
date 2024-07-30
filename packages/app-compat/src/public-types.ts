@@ -33,7 +33,7 @@ export interface FirebaseAppConfig {
   automaticDataCollectionEnabled?: boolean;
 }
 
-interface FirebaseAppContructor {
+interface FirebaseAppConstructor {
   new (): FirebaseApp;
 }
 
@@ -85,7 +85,7 @@ export interface FirebaseNamespace {
      *
      * DO NOT call this constuctor directly (use firebase.app() instead).
      */
-    App: FirebaseAppContructor;
+    App: FirebaseAppConstructor;
   };
 
   /**

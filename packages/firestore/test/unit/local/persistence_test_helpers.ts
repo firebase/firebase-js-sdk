@@ -140,7 +140,7 @@ export function clearTestPersistence(): Promise<void> {
 }
 
 /**
- * Populates Web Storage with instance data from a pre-existing client.
+ * Populates Web Storage with instance data from a preexisting client.
  */
 export async function populateWebStorage(
   user: User,

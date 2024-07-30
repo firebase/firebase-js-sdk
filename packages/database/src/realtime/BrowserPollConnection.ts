@@ -435,7 +435,7 @@ export class FirebaseIFrameScriptHolder {
   onMessageCB: (...args: unknown[]) => void;
 
   /**
-   * @param commandCB - The callback to be called when control commands are recevied from the server.
+   * @param commandCB - The callback to be called when control commands are received from the server.
    * @param onMessageCB - The callback to be triggered when responses arrive from the server.
    * @param onDisconnect - The callback to be triggered when this tag holder is closed
    * @param urlFn - A function that provides the URL of the endpoint to send data to.
@@ -475,8 +475,6 @@ export class FirebaseIFrameScriptHolder {
       const iframeContents = '<html><body>' + script + '</body></html>';
       try {
         this.myIFrame.doc.open();
-        // TODO: Do not use document.write, since it can lead to XSS. Instead, use the safevalues
-        // library to sanitize the HTML in the iframeContents.
         this.myIFrame.doc.write(iframeContents);
         this.myIFrame.doc.close();
       } catch (e) {
@@ -719,10 +717,6 @@ export class FirebaseIFrameScriptHolder {
           const newScript = this.myIFrame.doc.createElement('script');
           newScript.type = 'text/javascript';
           newScript.async = true;
-          // TODO: We cannot assign an arbitrary URL to a script attached to the DOM, since it is
-          // at risk of XSS. We should use the safevalues library to create a safeScriptEl, and
-          // assign a sanitized trustedResourceURL to it. Since the URL must be a template string
-          // literal, this could require some heavy refactoring.
           newScript.src = url;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           newScript.onload = (newScript as any).onreadystatechange =

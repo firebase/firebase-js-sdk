@@ -108,7 +108,7 @@ export async function removeUnusedImports(
 
 /** Determines whether the provided identifier should be hidden. */
 function hasPrivatePrefix(name: ts.Identifier): boolean {
-  // Identifiers that are prefixed with an underscore are not not included in
+  // Identifiers that are prefixed with an underscore are not included in
   // the public API.
   return !!name.escapedText?.toString().startsWith('_');
 }
@@ -123,11 +123,11 @@ function isExported(
     typeChecker.getSymbolAtLocation(name)?.declarations ?? [];
 
   // Check is this is a public symbol (e.g. part of the DOM library)
-  const isTypescriptType = declarations.find(
+  const isTypeScriptType = declarations.find(
     d => d.getSourceFile().fileName.indexOf('typescript/lib') != -1
   );
   const isImported = declarations.find(d => ts.isImportSpecifier(d));
-  if (isTypescriptType || isImported) {
+  if (isTypeScriptType || isImported) {
     return true;
   }
 
@@ -141,8 +141,8 @@ function isExported(
 /**
  * Replaces an existing constructor implementation if the constructor is marked
  * with the JSDod tag `@hideconstructor`. The replaced constructor can either
- * have `private` visibility` or `proctected`. To generate a protected
- * constructor, specify `@hideconstructor proctected`.
+ * have `private` visibility` or `protected`. To generate a protected
+ * constructor, specify `@hideconstructor protected`.
  *
  * Returns either the modified constructor or the existing constructor if no
  * modification was needed.

@@ -158,7 +158,7 @@ export const predecessor = function (key: string) {
   //
   // analogous to increment/decrement for base-10 integers.
   //
-  // This works because lexigographic comparison works character-by-character,
+  // This works because lexicographic comparison works character-by-character,
   // using length as a tie-breaker if one key is a prefix of the other.
   if (next[next.length - 1] === MIN_PUSH_CHAR) {
     if (next.length === 1) {

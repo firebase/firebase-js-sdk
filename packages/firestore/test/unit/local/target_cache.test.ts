@@ -121,7 +121,7 @@ function genericTargetCacheTests(
   const QUERY_GARAGES = queryToTarget(query('garages'));
 
   /**
-   * Creates a new TargetData object from the the given parameters, synthesizing
+   * Creates a new TargetData object from the given parameters, synthesizing
    * a resume token from the snapshot version.
    */
   let previousSequenceNumber = 0;
