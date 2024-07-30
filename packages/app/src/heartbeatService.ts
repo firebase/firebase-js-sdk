@@ -59,7 +59,7 @@ export class HeartbeatServiceImpl implements HeartbeatService {
   /**
    * the initialization promise for populating heartbeatCache.
    * If getHeartbeatsHeader() is called before the promise resolves
-   * (hearbeatsCache == null), it should wait for this promise
+   * (heartbeatsCache == null), it should wait for this promise
    * Leave public for easier testing.
    */
   _heartbeatsCachePromise: Promise<HeartbeatsInIndexedDB>;

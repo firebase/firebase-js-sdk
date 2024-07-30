@@ -25,7 +25,7 @@ import * as js from '../load_js';
 const NETWORK_TIMEOUT = new Delay(30000, 60000);
 
 /**
- * Reset unlaoded GApi modules. If gapi.load fails due to a network error,
+ * Reset unloaded GApi modules. If gapi.load fails due to a network error,
  * it will stop working after a retrial. This is a hack to fix this issue.
  */
 function resetUnloadedGapiModules(): void {

@@ -29,7 +29,7 @@ export const enum InstantiationMode {
  * to get the service by calling `firebase.test()` or `app.test()` where `app` is a `FirebaseApp` instance.
  *
  * PRIVATE: A private component provides a set of private APIs that are used internally by other
- * Firebase SDKs. No serivce namespace is created in `firebase` namespace and customers have no way to get them.
+ * Firebase SDKs. No service namespace is created in `firebase` namespace and customers have no way to get them.
  */
 export const enum ComponentType {
   PUBLIC = 'PUBLIC',

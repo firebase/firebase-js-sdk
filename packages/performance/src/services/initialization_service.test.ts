@@ -27,7 +27,7 @@ import '../../test/setup';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
 
-describe('Firebase Perofmrance > initialization_service', () => {
+describe('Firebase Performance > initialization_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
   const getId = stub();
@@ -74,7 +74,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
     expect(isPerfInitialized()).to.be.true;
   });
 
-  it('returns initilization as not done before promise is resolved', async () => {
+  it('returns initialization as not done before promise is resolved', async () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises

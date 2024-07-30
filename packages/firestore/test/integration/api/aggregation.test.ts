@@ -189,7 +189,7 @@ apiDescribe('Aggregation queries', persistence => {
     });
   });
 
-  it('can alias aggrregations using getAggregationFromServer', () => {
+  it('can alias aggregations using getAggregationFromServer', () => {
     const testDocs = {
       a: { author: 'authorA', title: 'titleA' },
       b: { author: 'authorB', title: 'titleB' }
@@ -239,10 +239,10 @@ apiDescribe('Aggregation queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getAggregateFromServer(coll, {
-        'with\\backshash\\es': count()
+        'with\\backslash\\es': count()
       });
 
-      expect(snapshot.data()['with\\backshash\\es']).to.equal(2);
+      expect(snapshot.data()['with\\backslash\\es']).to.equal(2);
     });
   });
 

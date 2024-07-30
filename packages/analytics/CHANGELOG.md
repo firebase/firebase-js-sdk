@@ -1,5 +1,11 @@
 # @firebase/analytics
 
+## 0.10.6
+
+### Patch Changes
+
+- [`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8) [#8301](https://github.com/firebase/firebase-js-sdk/pull/8301) - Begin using [safevalues](https://github.com/google/safevalues) to sanitize HTML vulnerable to XSS.
+
 ## 0.10.5
 
 ### Patch Changes

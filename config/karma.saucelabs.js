@@ -105,7 +105,7 @@ function getPackageLabels() {
 
 /**
  * Gets a list of file patterns for test, defined individually
- * in karma.conf.js in each package under worksapce packages or
+ * in karma.conf.js in each package under workspace packages or
  * integration.
  */
 function getTestFiles() {

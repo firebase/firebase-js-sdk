@@ -149,7 +149,7 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
 /**
  * Executes the query and returns the results as a {@link QuerySnapshot}.
  *
- * All queries are executed directly by the server, even if the the query was
+ * All queries are executed directly by the server, even if the query was
  * previously executed. Recent modifications are only reflected in the retrieved
  * results if they have already been applied by the backend. If the client is
  * offline, the operation fails. To see previously cached result and local

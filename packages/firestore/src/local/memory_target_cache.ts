@@ -131,7 +131,7 @@ export class MemoryTargetCache implements TargetCache {
   ): PersistencePromise<void> {
     debugAssert(
       this.targets.has(targetData.target),
-      'Updating a non-existent target'
+      'Updating a nonexistent target'
     );
     this.saveTargetData(targetData);
     return PersistencePromise.resolve();
@@ -144,7 +144,7 @@ export class MemoryTargetCache implements TargetCache {
     debugAssert(this.targetCount > 0, 'Removing a target from an empty cache');
     debugAssert(
       this.targets.has(targetData.target),
-      'Removing a non-existent target from the cache'
+      'Removing a nonexistent target from the cache'
     );
     this.targets.delete(targetData.target);
     this.references.removeReferencesForId(targetData.targetId);
