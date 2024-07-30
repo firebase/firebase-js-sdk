@@ -36,7 +36,7 @@ interface ParsedArgs<Variables> {
  * @returns {DataConnect} and {Variables} instance
  * @internal
  */
-export function validateArgs<Variables extends Object>(
+export function validateArgs<Variables extends object>(
   connectorConfig: ConnectorConfig,
   dcOrVars?: DataConnect | Variables,
   vars?: Variables,
