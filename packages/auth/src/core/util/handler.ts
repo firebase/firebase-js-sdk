@@ -105,7 +105,7 @@ export async function _getRedirectUrl(
     params.tid = auth.tenantId;
   }
 
-  // TODO: maybe set eid as endipointId
+  // TODO: maybe set eid as endpointId
   // TODO: maybe set fw as Frameworks.join(",")
 
   const paramsDict = params as Record<string, string | number>;

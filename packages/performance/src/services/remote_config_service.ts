@@ -198,7 +198,7 @@ function processConfig(
     settingsServiceInstance.logEndPointUrl = DEFAULT_CONFIGS.logEndPointUrl;
   }
 
-  // Key from Remote Config has to be non-empty string, otherwsie use local value.
+  // Key from Remote Config has to be non-empty string, otherwise use local value.
   if (entries.fpr_log_transport_key) {
     settingsServiceInstance.transportKey = entries.fpr_log_transport_key;
   } else if (DEFAULT_CONFIGS.transportKey) {

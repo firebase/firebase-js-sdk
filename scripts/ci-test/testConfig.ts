@@ -16,8 +16,8 @@
  */
 
 /**
- * Should not define `ignorePacakges` and `onlyIncludePackages` at same time,
- * `ignorePacakges` will be ignored if you do so
+ * Should not define `ignorePackages` and `onlyIncludePackages` at same time,
+ * `ignorePackages` will be ignored if you do so
  */
 export interface TestConfig {
   // Ignore the packages in test even if they changed

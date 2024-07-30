@@ -140,7 +140,7 @@ export function getAggregateFromServer<
 }
 
 /**
- * Converts the core aggregration result to an `AggregateQuerySnapshot`
+ * Converts the core aggregation result to an `AggregateQuerySnapshot`
  * that can be returned to the consumer.
  * @param query
  * @param aggregateResult Core aggregation result

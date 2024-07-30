@@ -86,7 +86,7 @@ describe('Firebase Performance > transport_service', () => {
     expect(fetchStub).to.have.been.calledOnce;
   });
 
-  it('successful send a meesage to transport', () => {
+  it('successful send a message to transport', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;

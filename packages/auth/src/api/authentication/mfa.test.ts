@@ -34,7 +34,7 @@ describe('api/authentication/startSignInPhoneMfa', () => {
     mfaPendingCredential: 'my-creds',
     mfaEnrollmentId: 'my-enrollment-id',
     phoneSignInInfo: {
-      recaptchaToken: 'catpcha-token'
+      recaptchaToken: 'captcha-token'
     }
   };
 
