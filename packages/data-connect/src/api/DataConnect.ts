@@ -108,7 +108,7 @@ export class DataConnect {
   /*
     @internal
   */
-  _useGeneratedSdk(){
+  _useGeneratedSdk(): void {
     if (!this._isUsingGeneratedSdk) {
       this._isUsingGeneratedSdk = true;
     }
