@@ -165,8 +165,8 @@ describe('DataConnect Tests', async () => {
       location: 'wrong',
       service: 'wrong'
     });
-    connectDataConnectEmulator(fakeInstance, 'localhost', Number(0));
-    const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
+    connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
+    const taskListQuery = queryRef<TaskListResponse>(fakeInstance, 'listPosts');
     await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
       'ECONNREFUSED'
     );
