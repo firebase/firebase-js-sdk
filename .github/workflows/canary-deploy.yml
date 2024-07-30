@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # Canary release script requires git history and tags.
         fetch-depth: 0

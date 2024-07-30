@@ -63,7 +63,7 @@ jobs:
           })
           console.log(result)
     - name: Checkout current branch (with history)
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
