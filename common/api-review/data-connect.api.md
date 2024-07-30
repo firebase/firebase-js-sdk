@@ -8,7 +8,7 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { FirebaseOptions } from '@firebase/app';
+import { FirebaseOptions } from '@firebase/app-types';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
@@ -280,7 +280,7 @@ export interface SubscriptionOptions<Data, Variables> {
 export function terminate(dataConnect: DataConnect): Promise<void>;
 
 // @public
-export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<unknown, Variables>;
+export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 
 // @public (undocumented)
 export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions) => DataConnectTransport;

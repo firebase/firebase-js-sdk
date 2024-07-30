@@ -45,7 +45,7 @@ class FakeAuthProvider implements AuthTokenProvider {
     }
     return Promise.resolve({ accessToken: 'testToken' });
   }
-  setToken(_token: string | null) {
+  setToken(_token: string | null): void {
     this.token = _token;
   }
 }
@@ -89,8 +89,8 @@ describe('Queries', () => {
     const rt = new RESTTransport(options, undefined, authProvider);
     rt._setLastToken('initial token');
     await expect(
-      rt.invokeQuery('test', null) as Promise<any>
-    ).to.eventually.be.rejectedWith(JSON.stringify(json));
+      rt.invokeQuery('test', null) as Promise<unknown>
+    ).to.eventually.be.rejectedWith(json.message);
     expect(fakeFetchImpl.callCount).to.eq(1);
   });
 });

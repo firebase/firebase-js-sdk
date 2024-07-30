@@ -95,7 +95,7 @@ export class MutationManager {
       return obj;
     });
     this._inflight.push(result);
-    const removePromise = () =>
+    const removePromise = (): Array<PromiseLike<unknown>> =>
       (this._inflight = this._inflight.filter(promise => promise !== result));
     result.then(removePromise, removePromise);
     return withRefPromise;

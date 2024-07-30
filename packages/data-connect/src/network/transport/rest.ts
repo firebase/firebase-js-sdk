@@ -90,11 +90,11 @@ export class RESTTransport implements DataConnectTransport {
       this._secure = isSecure;
     }
   }
-  onTokenChanged(newToken: string | null) {
+  onTokenChanged(newToken: string | null): void {
     this._accessToken = newToken;
   }
 
-  getWithAuth(forceToken = false) {
+  getWithAuth(forceToken = false): Promise<string> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );
@@ -116,14 +116,14 @@ export class RESTTransport implements DataConnectTransport {
     return starterPromise;
   }
 
-  _setLastToken(lastToken: string | null) {
+  _setLastToken(lastToken: string | null): void {
     this._lastToken = lastToken;
   }
 
   withRetry<T>(
     promiseFactory: () => Promise<{ data: T; errors: Error[] }>,
     retry = false
-  ) {
+  ): Promise<{ data: T; errors: Error[] }> {
     let isNewToken = false;
     return this.getWithAuth(retry)
       .then(res => {
@@ -148,7 +148,13 @@ export class RESTTransport implements DataConnectTransport {
   }
 
   // TODO(mtewani): Update U to include shape of body defined in line 13.
-  invokeQuery = <T, U = unknown>(queryName: string, body: U) => {
+  invokeQuery: <T, U>(
+    queryName: string,
+    body?: U
+  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+    queryName: string,
+    body: U
+  ) => {
     const abortController = new AbortController();
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
@@ -168,7 +174,13 @@ export class RESTTransport implements DataConnectTransport {
       then: withAuth.then.bind(withAuth)
     };
   };
-  invokeMutation = <T, U = unknown>(mutationName: string, body: U) => {
+  invokeMutation: <T, U>(
+    queryName: string,
+    body?: U
+  ) => PromiseLike<{ data: T; errors: Error[] }> = <T, U = unknown>(
+    mutationName: string,
+    body: U
+  ) => {
     const abortController = new AbortController();
     const taskResult = this.withRetry(() => {
       return dcFetch<T, U>(

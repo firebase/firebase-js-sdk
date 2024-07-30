@@ -20,7 +20,7 @@ import { SDK_VERSION } from '../core/version';
 import { logDebug, logError } from '../logger';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
-export function initializeFetch(fetchImpl: typeof fetch) {
+export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
 function getGoogApiClientValue(): string {
@@ -31,7 +31,7 @@ export function dcFetch<T, U>(
   body: U,
   { signal }: AbortController,
   accessToken: string | null
-) {
+): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -64,17 +64,15 @@ export function dcFetch<T, U>(
       } catch (e) {
         throw new DataConnectError(Code.OTHER, JSON.stringify(e));
       }
+      const message = getMessage(jsonResponse);
       if (response.status >= 400) {
         logError(
           'Error while performing request: ' + JSON.stringify(jsonResponse)
         );
         if (response.status === 401) {
-          throw new DataConnectError(
-            Code.UNAUTHORIZED,
-            JSON.stringify(jsonResponse)
-          );
+          throw new DataConnectError(Code.UNAUTHORIZED, message);
         }
-        throw new DataConnectError(Code.OTHER, JSON.stringify(jsonResponse));
+        throw new DataConnectError(Code.OTHER, message);
       }
       return jsonResponse;
     })
@@ -86,4 +84,13 @@ export function dcFetch<T, U>(
       }
       return res as { data: T; errors: Error[] };
     });
+}
+interface MessageObject {
+  message?: string;
+}
+function getMessage(obj: MessageObject): string {
+  if ('message' in obj) {
+    return obj.message;
+  }
+  return JSON.stringify(obj);
 }

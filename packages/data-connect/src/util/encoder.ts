@@ -17,7 +17,7 @@
 
 export type HmacImpl = (obj: unknown) => string;
 export let encoderImpl: HmacImpl;
-export function setEncoder(encoder: HmacImpl) {
+export function setEncoder(encoder: HmacImpl): void {
   encoderImpl = encoder;
 }
 setEncoder(o => JSON.stringify(o));

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions } from '@firebase/app';
+import { FirebaseOptions } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
   FirebaseAuthInternalName,
@@ -76,6 +76,7 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
   removeTokenChangeListener(listener: (token: string | null) => void): void {
     this._authProvider
       .get()
-      .then(auth => auth.removeAuthTokenListener(listener));
+      .then(auth => auth.removeAuthTokenListener(listener))
+      .catch(err => logError(err));
   }
 }

@@ -49,9 +49,8 @@ export interface SeedInfo {
 }
 export async function setupQueries(
   schema: string,
-  seedInfoArray: SeedInfo[],
-  skipSchema = false
-) {
+  seedInfoArray: SeedInfo[]
+): Promise<Response> {
   const schemaPath = path.resolve(__dirname, schema);
   const schemaFileContents = fs.readFileSync(schemaPath).toString();
   const toWrite = {
@@ -79,6 +78,7 @@ export async function setupQueries(
         })
       }
     },
+    // eslint-disable-next-line camelcase
     connection_string:
       'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
   };
