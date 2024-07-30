@@ -235,8 +235,8 @@ export function getDataConnect(
 }
 
 /**
- * 
- * @param dcOptions 
+ *
+ * @param dcOptions
  * @returns {void}
  * @internal
  */
