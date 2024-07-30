@@ -1,5 +1,11 @@
 # @firebase/app-check
 
+## 0.8.7
+
+### Patch Changes
+
+- [`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d) [#8395](https://github.com/firebase/firebase-js-sdk/pull/8395) - Revert introduction of safevalues to prevent issues from arising in Browser CommonJS environments due to ES5 incompatibility. For more information, see [GitHub PR #8395](https://github.com/firebase/firebase-js-sdk/pull/8395)
+
 ## 0.8.6
 
 ### Patch Changes
