@@ -94,7 +94,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const depGraph: { [key: string]: any } = JSON.parse(
     (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
   const changedFiles = diff.split('\n');
   let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
