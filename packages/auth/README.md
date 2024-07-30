@@ -96,7 +96,7 @@ curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Conten
     }'
 ```
 
-Replace the tenant ID `passpol-tenant-d7hha` in [test/integration/flows/password_policy.test.ts](https://github.com/firebase/firebase-js-sdk/blob/master/packages/auth/test/integration/flows/password_policy.test.ts) with the ID for the newly created tenant. The tenant ID can be found at the end of the `name` property in the response and is in the format `passpol-tenant-xxxxx`.
+Replace the tenant ID `passpol-tenant-d7hha` in [test/integration/flows/password_policy.test.ts](https://github.com/firebase/firebase-js-sdk/blob/main/packages/auth/test/integration/flows/password_policy.test.ts) with the ID for the newly created tenant. The tenant ID can be found at the end of the `name` property in the response and is in the format `passpol-tenant-xxxxx`.
 
 ### Selenium Webdriver tests
 

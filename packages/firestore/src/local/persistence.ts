@@ -21,6 +21,7 @@ import { DocumentKey } from '../model/document_key';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
+import { GlobalsCache } from './globals_cache';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
@@ -166,6 +167,11 @@ export interface Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setNetworkEnabled(networkEnabled: boolean): void;
+
+  /**
+   * Returns GlobalCache representing a general purpose cache for global values.
+   */
+  getGlobalsCache(): GlobalsCache;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the
