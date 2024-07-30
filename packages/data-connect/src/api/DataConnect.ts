@@ -234,6 +234,12 @@ export function getDataConnect(
   });
 }
 
+/**
+ *
+ * @param dcOptions
+ * @returns {void}
+ * @internal
+ */
 export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
   const fields = ['connector', 'location', 'service'];
   if (!dcOptions) {
