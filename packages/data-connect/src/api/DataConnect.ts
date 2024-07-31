@@ -89,6 +89,7 @@ export class DataConnect {
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
+  _isUsingGeneratedSdk: boolean = false;
   constructor(
     public readonly app: FirebaseApp,
     // TODO(mtewani): Replace with _dataConnectOptions in the future
@@ -102,6 +103,14 @@ export class DataConnect {
         this.isEmulator = true;
         this._transportOptions = parseOptions(host);
       }
+    }
+  }
+  /*
+    @internal
+  */
+  _useGeneratedSdk(): void {
+    if (!this._isUsingGeneratedSdk) {
+      this._isUsingGeneratedSdk = true;
     }
   }
   _delete(): Promise<void> {
@@ -140,7 +149,9 @@ export class DataConnect {
     this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
-      this._authTokenProvider
+      this._authTokenProvider,
+      undefined,
+      this._isUsingGeneratedSdk
     );
     if (this._transportOptions) {
       this._transport.useEmulator(

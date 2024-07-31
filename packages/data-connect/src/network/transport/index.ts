@@ -52,6 +52,7 @@ export type TransportClass = new (
   options: DataConnectOptions,
   apiKey?: string,
   authProvider?: AuthTokenProvider,
-  transportOptions?: TransportOptions
+  transportOptions?: TransportOptions,
+  _isUsingGen?: boolean
 ) => DataConnectTransport;
 export * from '../../core/FirebaseAuthProvider';

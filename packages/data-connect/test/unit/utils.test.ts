@@ -23,7 +23,7 @@ describe('Utils', () => {
   it('[Vars required: true] should throw if no arguments are provided', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     expect(() =>
-      validateArgs(connectorConfig, undefined, false, true)
+      validateArgs(connectorConfig, undefined, undefined, true)
     ).to.throw('Variables required');
   });
   it('[vars required: false, vars provided: false] should return data connect instance and no variables', () => {
