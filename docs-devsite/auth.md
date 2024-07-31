@@ -930,7 +930,7 @@ This method does not work in a Node.js environment or with [Auth](./auth.auth.md
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export declare function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
 #### Parameters
@@ -1304,7 +1304,7 @@ This method does not work in a Node.js environment.
 <b>Signature:</b>
 
 ```typescript
-export declare function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export declare function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
 #### Parameters
@@ -1457,7 +1457,7 @@ This method does not work in a Node.js environment or on any [User](./auth.user.
 <b>Signature:</b>
 
 ```typescript
-export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export declare function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 ```
 
 #### Parameters

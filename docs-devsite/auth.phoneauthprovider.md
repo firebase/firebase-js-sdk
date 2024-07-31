@@ -203,7 +203,7 @@ Starts a phone number authentication flow by sending a verification code to the 
 <b>Signature:</b>
 
 ```typescript
-verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?: ApplicationVerifier): Promise<string>;
 ```
 
 #### Parameters

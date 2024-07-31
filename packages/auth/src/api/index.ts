@@ -89,7 +89,7 @@ export const enum RecaptchaActionName {
   SIGN_UP_PASSWORD = 'signUpPassword',
   SEND_VERIFICATION_CODE = 'sendVerificationCode',
   MFA_SMS_ENROLLMENT = 'mfaSmsEnrollment',
-  MFA_SMS_SIGNIN = 'mfaSmsSignin'
+  MFA_SMS_SIGNIN = 'mfaSmsSignIn'
 }
 
 export const enum EnforcementState {

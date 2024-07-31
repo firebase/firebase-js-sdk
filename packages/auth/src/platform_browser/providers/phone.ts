@@ -104,7 +104,7 @@ export class PhoneAuthProvider {
    */
   verifyPhoneNumber(
     phoneOptions: PhoneInfoOptions | string,
-    applicationVerifier: ApplicationVerifier
+    applicationVerifier?: ApplicationVerifier
   ): Promise<string> {
     return _verifyPhoneNumber(
       this.auth,
