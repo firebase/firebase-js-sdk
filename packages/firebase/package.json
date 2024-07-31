@@ -404,7 +404,7 @@
     "@firebase/app-types": "0.9.2",
     "@firebase/auth": "1.7.5",
     "@firebase/auth-compat": "0.5.10",
-    "@firebase/data-connect": "0.0.2",
+    "@firebase/data-connect": "0.0.3",
     "@firebase/database": "1.0.6",
     "@firebase/database-compat": "1.0.6",
     "@firebase/firestore": "4.6.4",
