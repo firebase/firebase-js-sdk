@@ -532,5 +532,5 @@ export declare type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
 <b>Signature:</b>
 
 ```typescript
-export declare type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions) => DataConnectTransport;
+export declare type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 ```
