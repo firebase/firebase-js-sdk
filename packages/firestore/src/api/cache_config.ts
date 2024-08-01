@@ -62,7 +62,9 @@ class MemoryLocalCacheImpl implements MemoryLocalCache {
       this._offlineComponentProvider =
         settings.garbageCollector._offlineComponentProvider;
     } else {
-      this._offlineComponentProvider = new MemoryOfflineComponentProvider();
+      this._offlineComponentProvider = new LruGcMemoryOfflineComponentProvider(
+        undefined
+      );
     }
   }
 
