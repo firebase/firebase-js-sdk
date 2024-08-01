@@ -52,7 +52,7 @@ jobs:
         run: |
          echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
@@ -84,7 +84,7 @@ jobs:
           sudo apt-get install wget
 
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
