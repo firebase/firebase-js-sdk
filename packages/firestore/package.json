@@ -58,14 +58,32 @@
     ".": {
       "types": "./dist/index.d.ts",
       "node": {
-        "require": "./dist/index.node.cjs.js",
-        "import": "./dist/index.node.mjs"
+        "require": {
+          "development": "./dist/index.node.debug.cjs.js",
+          "default": "./dist/index.node.cjs.js"
+        },
+        "import": {
+          "development": "./dist/index.node.debug.mjs",
+          "default": "./dist/index.node.mjs"
+        }
       },
-      "react-native": "./dist/index.rn.js",
-      "esm5": "./dist/index.esm5.js",
+      "react-native": {
+        "development": "./dist/index.rn.debug.js",
+        "default": "./dist/index.rn.js"
+      },
+      "esm5": {
+        "development": "./dist/index.esm5.debug.js",
+        "default": "./dist/index.esm5.js"
+      },
       "browser": {
-        "require": "./dist/index.cjs.js",
-        "import": "./dist/index.esm2017.js"
+        "require": {
+          "development": "./dist/index.cjs.debug.js",
+          "default": "./dist/index.cjs.js"
+        },
+        "import": {
+          "development": "./dist/index.esm2017.debug.js",
+          "default": "./dist/index.esm2017.js"
+        }
       },
       "default": "./dist/index.esm2017.js"
     },
