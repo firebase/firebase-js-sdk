@@ -1,5 +1,25 @@
 # firebase
 
+## 10.12.5
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- Updated dependencies [[`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d), [`b9244a517`](https://github.com/firebase/firebase-js-sdk/commit/b9244a5171a7e0f3abae37e56d274605dd95d64b), [`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d)]:
+  - @firebase/app@0.10.8
+  - @firebase/firestore-compat@0.3.34
+  - @firebase/database-compat@1.0.7
+  - @firebase/auth-compat@0.5.11
+  - @firebase/app-compat@0.2.38
+  - @firebase/firestore@4.6.5
+  - @firebase/database@1.0.7
+  - @firebase/auth@1.7.6
+  - @firebase/analytics@0.10.7
+  - @firebase/app-check@0.8.7
+  - @firebase/analytics-compat@0.2.13
+  - @firebase/app-check-compat@0.3.14
+
 ## 10.12.4
 
 ### Patch Changes
