@@ -17,7 +17,6 @@
 
 import { Persistence } from '../../model/public_types';
 
-import { getUA } from '@firebase/util';
 import {
   _isSafari,
   _isIOS,
@@ -32,11 +31,6 @@ import {
   StorageEventListener
 } from '../../core/persistence';
 import { BrowserPersistenceClass } from './browser';
-
-function _iframeCannotSyncWebStorage(): boolean {
-  const ua = getUA();
-  return _isSafari(ua) || _isIOS(ua);
-}
 
 // The polling period in case events are not supported
 export const _POLLING_INTERVAL_MS = 1000;
@@ -64,9 +58,6 @@ class BrowserLocalPersistence
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private pollTimer: any | null = null;
 
-  // Safari or iOS browser and embedded in an iframe.
-  private readonly safariLocalStorageNotSynced =
-    _iframeCannotSyncWebStorage() && _isIframe();
   // Whether to use polling instead of depending on window events
   private readonly fallbackToPolling = _isMobileBrowser();
   readonly _shouldAllowMigration = true;
@@ -110,26 +101,6 @@ class BrowserLocalPersistence
       // Environment detects storage changes via storage event listener.
       // Remove polling listener to prevent possible event duplication.
       this.stopPolling();
-    }
-
-    // Safari embedded iframe. Storage event will trigger with the delta
-    // changes but no changes will be applied to the iframe localStorage.
-    if (this.safariLocalStorageNotSynced) {
-      // Get current iframe page value.
-      const storedValue = this.storage.getItem(key);
-      // Value not synchronized, synchronize manually.
-      if (event.newValue !== storedValue) {
-        if (event.newValue !== null) {
-          // Value changed from current value.
-          this.storage.setItem(key, event.newValue);
-        } else {
-          // Current value deleted.
-          this.storage.removeItem(key);
-        }
-      } else if (this.localCache[key] === event.newValue && !poll) {
-        // Already detected and processed, do not trigger listeners again.
-        return;
-      }
     }
 
     const triggerListeners = (): void => {
