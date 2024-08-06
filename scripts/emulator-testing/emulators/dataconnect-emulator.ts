@@ -35,7 +35,7 @@ export class DataConnectEmulator extends Emulator {
   }
   async setUp(): Promise<void> {
     await super.setUp();
-    const res = await fetch(`http://localhost:${this.port}/emulator/configure`, {
+    await fetch(`http://localhost:${this.port}/emulator/configure`, {
     method: 'POST',
     body: JSON.stringify({
       // eslint-disable-next-line camelcase
@@ -43,6 +43,5 @@ export class DataConnectEmulator extends Emulator {
         'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
     })
   });
-  console.log(res);
   }
 }

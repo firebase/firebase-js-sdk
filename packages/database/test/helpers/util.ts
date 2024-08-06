@@ -37,7 +37,6 @@ export const TEST_PROJECT = require('../../../../config/project.json');
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
 const USE_EMULATOR = !!EMULATOR_PORT;
-console.log('using emulator: ', USE_EMULATOR);
 
 let freshRepoId = 0;
 const activeFreshApps: FirebaseApp[] = [];
