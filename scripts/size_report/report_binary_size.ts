@@ -167,7 +167,7 @@ async function generateSizeReport(): Promise<BinarySizeRequestBody> {
   }
 
   console.log(
-    `Github Action URL: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
+    `GitHub Action URL: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
   );
 
   return {

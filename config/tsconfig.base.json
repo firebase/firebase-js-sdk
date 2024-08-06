@@ -25,6 +25,12 @@
     "target": "es5",
     "typeRoots": [
       "../node_modules/@types"
+    ],
+    "plugins": [
+      {
+        "name": "tsec",
+        "reportTsecDiagnosticsOnly": true
+      }
     ]
   }
 }

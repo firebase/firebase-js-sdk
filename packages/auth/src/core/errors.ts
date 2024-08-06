@@ -189,7 +189,7 @@ function _debugErrorMap(): ErrorMap<AuthErrorCode> {
       'The phone verification request contains an invalid application verifier.' +
       ' The reCAPTCHA token response is either invalid or expired.',
     [AuthErrorCode.INVALID_APP_ID]:
-      'The mobile app identifier is not registed for the current project.',
+      'The mobile app identifier is not registered for the current project.',
     [AuthErrorCode.INVALID_AUTH]:
       "This user's credential isn't valid for this project. This can happen " +
       "if the user's token has been tampered with, or if the user isn't for " +

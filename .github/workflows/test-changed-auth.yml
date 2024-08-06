@@ -14,13 +14,13 @@
 
 name: Test Auth
 
-on: [push, pull_request]
+on: pull_request
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
   # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
-  # the beahvior to use the new URLs.
+  # the behavior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
@@ -52,7 +52,7 @@ jobs:
         run: |
          echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
@@ -84,7 +84,7 @@ jobs:
           sudo apt-get install wget
 
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0

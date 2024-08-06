@@ -14,15 +14,13 @@
 
 name: Test All Packages
 
-on:
-  push:
-    branches: ['**']
+on: pull_request
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
   DETECT_CHROMEDRIVER_VERSION: true
   # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
-  # the beahvior to use the new URLs.
+  # the behavior to use the new URLs.
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
@@ -55,7 +53,7 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar -cf build.tar .
+        tar -cf build.tar --exclude=.git .
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}

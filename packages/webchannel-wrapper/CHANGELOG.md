@@ -1,5 +1,23 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.1
+
+### Patch Changes
+
+- [`b09a267ba`](https://github.com/firebase/firebase-js-sdk/commit/b09a267ba8c59d15865173844e73a92588342f61) [#8331](https://github.com/firebase/firebase-js-sdk/pull/8331) - fix: Fix a typo in the webchannel-wrapper's package.json that affected ems5 exports.
+
+## 1.0.0
+
+### Major Changes
+
+- [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd) [#8190](https://github.com/firebase/firebase-js-sdk/pull/8190) - Use closure-net as a dependency of webchannel-wrapper and Firestore.
+
+### Patch Changes
+
+- [`14f9da66f`](https://github.com/firebase/firebase-js-sdk/commit/14f9da66fed45ac3f932ec590ca49c8a827d9fc5) [#8212](https://github.com/firebase/firebase-js-sdk/pull/8212) - fix: Update webchannel-wrapper to fix webchannel multi-byte character decoding bug in fetch streams.
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
 ## 0.10.6
 
 ### Patch Changes

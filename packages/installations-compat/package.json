@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations-compat",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/esm/index.esm2017.js",
@@ -31,6 +31,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "type-check": "tsc -p . --noEmit",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
@@ -45,7 +46,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.32",
+    "@firebase/app-compat": "0.2.38",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -58,10 +59,10 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.6.6",
-    "@firebase/installations-types": "0.5.1",
-    "@firebase/util": "1.9.5",
-    "@firebase/component": "0.6.6",
+    "@firebase/installations": "0.6.8",
+    "@firebase/installations-types": "0.5.2",
+    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.8",
     "tslib": "^2.1.0"
   }
 }

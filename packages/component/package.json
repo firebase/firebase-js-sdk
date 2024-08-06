@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.6.6",
+  "version": "0.6.8",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -29,10 +29,11 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js"
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/util": "1.9.5",
+    "@firebase/util": "1.9.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",

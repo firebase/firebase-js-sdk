@@ -34,7 +34,7 @@ export type ExportData = { dependencies: MemberList; sizeInBytes: number };
 /**
  * This functions builds a simple JS app that only depends on the provided
  * export. It then uses Rollup to gather all top-level classes and functions
- * that that the export depends on.
+ * that the export depends on.
  *
  * @param exportName The name of the export to verify
  * @param jsBundle The file name of the source bundle that contains the export

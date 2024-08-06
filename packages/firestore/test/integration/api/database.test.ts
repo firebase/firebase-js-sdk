@@ -64,6 +64,8 @@ import {
   newTestFirestore,
   SnapshotOptions,
   newTestApp,
+  FirestoreError
+  newTestApp,
   QuerySnapshot,
   vector,
   getDocsFromServer
@@ -1083,7 +1085,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('DocumentSnapshot events for non existent document', () => {
+  it('DocumentSnapshot events for nonexistent document', () => {
     return withTestCollection(persistence, {}, col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
@@ -1666,6 +1668,22 @@ apiDescribe('Database', persistence => {
       // This should proceed without error.
       unsubscribe();
       // Multiple calls should proceed as well.
+      unsubscribe();
+    });
+  });
+
+  it('query listener throws error on termination', async () => {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const deferred: Deferred<FirestoreError> = new Deferred();
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+
+      await terminate(firestore);
+
+      await expect(deferred.promise)
+        .to.eventually.haveOwnProperty('message')
+        .equal('Firestore shutting down');
+
+      // Call should proceed without error.
       unsubscribe();
     });
   });

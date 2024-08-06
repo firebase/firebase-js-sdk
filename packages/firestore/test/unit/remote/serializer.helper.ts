@@ -846,7 +846,7 @@ export function serializerTest(
       expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
-    describe('to/from UnaryOrieldFilter', () => {
+    describe('to/from UnaryOrFieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {

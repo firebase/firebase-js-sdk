@@ -1,5 +1,11 @@
 # @firebase/app-check-interop-types
 
+## 0.3.2
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
 ## 0.3.1
 
 ### Patch Changes

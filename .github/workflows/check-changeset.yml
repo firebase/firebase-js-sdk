@@ -17,7 +17,7 @@ name: Check Changeset
 on:
   pull_request:
     branches:
-      - master
+      - main
 
 env:
   GITHUB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -30,7 +30,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # This makes Actions fetch all Git history so check_changeset script can diff properly.
         fetch-depth: 0
@@ -41,9 +41,9 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Run changeset script
-      # pull master so changeset can diff against it
+      # pull main so changeset can diff against it
       run: |
-        git pull -f --no-rebase origin master:master
+        git pull -f --no-rebase origin main:main
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
@@ -54,14 +54,14 @@ jobs:
     - name: Print blocking failure status
       run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
-      uses: peter-evans/find-comment@v1
+      uses: peter-evans/find-comment@v3
       id: fc
       with:
         issue-number: ${{github.event.number}}
         body-includes: Changeset File Check
     - name: Create comment (missing packages)
       if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      uses: peter-evans/create-or-update-comment@v1
+      uses: peter-evans/create-or-update-comment@v4
       with:
         issue-number: ${{github.event.number}}
         body: |
@@ -69,7 +69,7 @@ jobs:
           ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id}}
-      uses: peter-evans/create-or-update-comment@v1
+      uses: peter-evans/create-or-update-comment@v4
       with:
         comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
         edit-mode: replace
@@ -78,7 +78,7 @@ jobs:
           ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      uses: peter-evans/create-or-update-comment@v1
+      uses: peter-evans/create-or-update-comment@v4
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace

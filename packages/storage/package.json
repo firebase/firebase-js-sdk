@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.12.4",
+  "version": "0.12.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -40,14 +40,15 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/storage-public.d.ts --output dist/storage-public.d.ts",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/storage-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.9.5",
-    "@firebase/component": "0.6.6",
+    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.8",
     "undici": "5.28.4",
     "tslib": "^2.1.0"
   },
@@ -55,8 +56,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.2",
-    "@firebase/auth": "1.7.2",
+    "@firebase/app": "0.10.8",
+    "@firebase/auth": "1.7.6",
     "rollup": "2.79.1",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",

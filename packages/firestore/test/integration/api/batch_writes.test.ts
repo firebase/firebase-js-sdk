@@ -155,12 +155,11 @@ apiDescribe('Database batch writes', persistence => {
       );
       return accumulator
         .awaitEvent()
-        .then(initialSnap => {
+        .then(async initialSnap => {
           expect(initialSnap.docs.length).to.equal(0);
 
           // Atomically write two documents.
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          writeBatch(db).set(docA, { a: 1 }).set(docB, { b: 2 }).commit();
+          await writeBatch(db).set(docA, { a: 1 }).set(docB, { b: 2 }).commit();
 
           return accumulator.awaitEvent();
         })

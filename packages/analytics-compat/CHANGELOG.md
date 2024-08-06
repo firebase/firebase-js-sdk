@@ -1,5 +1,47 @@
 # @firebase/analytics-compat
 
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [[`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d)]:
+  - @firebase/analytics@0.10.7
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8)]:
+  - @firebase/analytics@0.10.6
+
+## 0.2.11
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/analytics@0.10.5
+  - @firebase/component@0.6.8
+
+## 0.2.10
+
+### Patch Changes
+
+- Updated dependencies [[`f66769cca`](https://github.com/firebase/firebase-js-sdk/commit/f66769cca243019354f88ac9dc8de07caf9de56e)]:
+  - @firebase/analytics@0.10.4
+
+## 0.2.9
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/analytics@0.10.3
+  - @firebase/analytics-types@0.8.2
+  - @firebase/component@0.6.7
+  - @firebase/util@1.9.6
+
 ## 0.2.8
 
 ### Patch Changes

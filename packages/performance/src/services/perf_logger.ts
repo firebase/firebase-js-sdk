@@ -85,8 +85,6 @@ interface TraceMetric {
   custom_attributes?: { [key: string]: string };
 }
 
-/* eslint-enble camelcase */
-
 let logger: (
   resource: NetworkRequest | Trace,
   resourceType: ResourceType
@@ -248,3 +246,5 @@ function getApplicationInfo(firebaseApp: FirebaseApp): ApplicationInfo {
     application_process_state: 0
   };
 }
+
+/* eslint-enable camelcase */

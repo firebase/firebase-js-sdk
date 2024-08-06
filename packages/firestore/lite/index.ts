@@ -116,10 +116,10 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
-// TOOD(firestorelite): Add tests when Queries are usable
+// TODO(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from '../src/lite-api/field_path';
 
-// TOOD(firestorelite): Add tests when setDoc() is available
+// TODO(firestorelite): Add tests when setDoc() is available
 export { FieldValue } from '../src/lite-api/field_value';
 
 export {

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "1.9.5",
+  "version": "1.9.7",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -38,6 +38,7 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts"
   },

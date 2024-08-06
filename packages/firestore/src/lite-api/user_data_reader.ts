@@ -993,7 +993,7 @@ export function fieldPathFromArgument(
   path: string | PublicFieldPath | Compat<PublicFieldPath>,
   targetDoc?: DocumentKey
 ): InternalFieldPath {
-  // If required, replace the FieldPath Compat class with with the firestore-exp
+  // If required, replace the FieldPath Compat class with the firestore-exp
   // FieldPath.
   path = getModularInstance(path);
 

@@ -25,10 +25,10 @@ on:
       source-branch:
         description: 'Branch to release from'
         type: choice
-        default: 'master'
+        default: 'main'
         required: true
         options:
-        - master
+        - main
         - v8
       verbose:
         description: 'Enable verbose logging'
@@ -50,7 +50,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 20.x
-    - name: Merge master into release
+    - name: Merge main into release
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
@@ -63,7 +63,7 @@ jobs:
           })
           console.log(result)
     - name: Checkout current branch (with history)
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
@@ -101,17 +101,15 @@ jobs:
         NPM_TOKEN_INSTALLATIONS_TYPES: ${{secrets.NPM_TOKEN_INSTALLATIONS_TYPES}}
         NPM_TOKEN_LOGGER: ${{secrets.NPM_TOKEN_LOGGER}}
         NPM_TOKEN_MESSAGING: ${{secrets.NPM_TOKEN_MESSAGING}}
-        NPM_TOKEN_MESSAGING_TYPES: ${{secrets.NPM_TOKEN_MESSAGING_TYPES}}
         NPM_TOKEN_PERFORMANCE: ${{secrets.NPM_TOKEN_PERFORMANCE}}
         NPM_TOKEN_PERFORMANCE_TYPES: ${{secrets.NPM_TOKEN_PERFORMANCE_TYPES}}
-        NPM_TOKEN_POLYFILL: ${{secrets.NPM_TOKEN_POLYFILL}}
         NPM_TOKEN_REMOTE_CONFIG: ${{secrets.NPM_TOKEN_REMOTE_CONFIG}}
         NPM_TOKEN_REMOTE_CONFIG_TYPES: ${{secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES}}
         NPM_TOKEN_RULES_UNIT_TESTING: ${{secrets.NPM_TOKEN_RULES_UNIT_TESTING}}
         NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
-        NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+        NPM_TOKEN_VERTEXAI_PREVIEW: ${{secrets.NPM_TOKEN_VERTEXAI_PREVIEW}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}

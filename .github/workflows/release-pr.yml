@@ -27,7 +27,7 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages (#') }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
@@ -43,9 +43,9 @@ jobs:
       # Ensures a new @firebase/app is published with every release.
       # This keeps the SDK_VERSION variable up to date.
       - name: Add a changeset for @firebase/app
-        # pull master so changeset can diff against it
+        # pull main so changeset can diff against it
         run: |
-          git pull -f --no-rebase origin master:master
+          git pull -f --no-rebase origin main:main
           yarn ts-node-script scripts/ci/add_changeset.ts
 
       - name: Create Release Pull Request

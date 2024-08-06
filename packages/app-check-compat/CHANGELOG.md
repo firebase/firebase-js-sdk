@@ -1,5 +1,41 @@
 # @firebase/app-check-compat
 
+## 0.3.14
+
+### Patch Changes
+
+- Updated dependencies [[`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d)]:
+  - @firebase/app-check@0.8.7
+
+## 0.3.13
+
+### Patch Changes
+
+- Updated dependencies [[`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8)]:
+  - @firebase/app-check@0.8.6
+
+## 0.3.12
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/app-check@0.8.5
+  - @firebase/component@0.6.8
+
+## 0.3.11
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/app-check@0.8.4
+  - @firebase/app-check-types@0.5.2
+  - @firebase/component@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
 ## 0.3.10
 
 ### Patch Changes

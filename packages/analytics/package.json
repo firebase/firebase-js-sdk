@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.10.2",
+  "version": "0.10.7",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -31,6 +31,7 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run --nocache",
     "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
@@ -40,15 +41,15 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.6.6",
-    "@firebase/logger": "0.4.1",
-    "@firebase/util": "1.9.5",
-    "@firebase/component": "0.6.6",
+    "@firebase/installations": "0.6.8",
+    "@firebase/logger": "0.4.2",
+    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.8",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.2",
+    "@firebase/app": "0.10.8",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",

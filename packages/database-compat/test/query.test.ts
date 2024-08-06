@@ -3806,7 +3806,7 @@ describe('Query Tests', () => {
     expect(removedSecond).to.deep.equal(['a']);
   });
 
-  it('Case 2003: Correctly get events for startAtfter/endAt queries when priority changes.', () => {
+  it('Case 2003: Correctly get events for startAfter/endAt queries when priority changes.', () => {
     const ref = getRandomNode() as Reference;
     const addedFirst = [],
       removedFirst = [],

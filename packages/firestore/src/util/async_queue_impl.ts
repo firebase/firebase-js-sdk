@@ -216,7 +216,7 @@ export class AsyncQueueImpl implements AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
-    // Fast-forward delays for timerIds that have been overriden.
+    // Fast-forward delays for timerIds that have been overridden.
     if (this.timerIdsToSkip.indexOf(timerId) > -1) {
       delayMs = 0;
     }
@@ -286,6 +286,7 @@ export class AsyncQueueImpl implements AsyncQueue {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
       // Run ops in the same order they'd run if they ran naturally.
+      /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
       this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
 
       for (const op of this.delayedOperations) {
@@ -311,6 +312,7 @@ export class AsyncQueueImpl implements AsyncQueue {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
     debugAssert(index >= 0, 'Delayed operation not found.');
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.delayedOperations.splice(index, 1);
   }
 }

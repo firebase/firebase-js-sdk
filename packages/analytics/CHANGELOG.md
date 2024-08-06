@@ -1,5 +1,44 @@
 # @firebase/analytics
 
+## 0.10.7
+
+### Patch Changes
+
+- [`a9f844066`](https://github.com/firebase/firebase-js-sdk/commit/a9f844066045d8567ae143bae77d184ac227690d) [#8395](https://github.com/firebase/firebase-js-sdk/pull/8395) - Revert introduction of safevalues to prevent issues from arising in Browser CommonJS environments due to ES5 incompatibility. For more information, see [GitHub PR #8395](https://github.com/firebase/firebase-js-sdk/pull/8395)
+
+## 0.10.6
+
+### Patch Changes
+
+- [`f58d48cd4`](https://github.com/firebase/firebase-js-sdk/commit/f58d48cd42c9f09eab4d8b2a606af360528917f8) [#8301](https://github.com/firebase/firebase-js-sdk/pull/8301) - Begin using [safevalues](https://github.com/google/safevalues) to sanitize HTML vulnerable to XSS.
+
+## 0.10.5
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+  - @firebase/installations@0.6.8
+
+## 0.10.4
+
+### Patch Changes
+
+- [`f66769cca`](https://github.com/firebase/firebase-js-sdk/commit/f66769cca243019354f88ac9dc8de07caf9de56e) [#8243](https://github.com/firebase/firebase-js-sdk/pull/8243) (fixes [#8210](https://github.com/firebase/firebase-js-sdk/issues/8210)) - Analytics - fixed an issue where setConsent was clobbering the consentSettings before passing them to the gtag implementation.
+
+## 0.10.3
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/installations@0.6.7
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
 ## 0.10.2
 
 ### Patch Changes

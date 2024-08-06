@@ -17,7 +17,7 @@ Firebase Realtime Database
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getDatabase(app, url)](./database.md#getdatabase_d9cea01) | Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with with default settings if no instance exists or if the existing instance uses a custom database URL. |
+|  [getDatabase(app, url)](./database.md#getdatabase_d9cea01) | Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with default settings if no instance exists or if the existing instance uses a custom database URL. |
 |  <b>function(db, ...)</b> |
 |  [connectDatabaseEmulator(db, host, port, options)](./database.md#connectdatabaseemulator_27b9e93) | Modify the provided instance to communicate with the Realtime Database emulator.<p>Note: This method must be called before performing any other operation. |
 |  [goOffline(db)](./database.md#gooffline_732b338) | Disconnects from the server (all Database operations will be completed offline).<!-- -->The client automatically maintains a persistent connection to the Database server, which will remain active indefinitely and reconnect when disconnected. However, the <code>goOffline()</code> and <code>goOnline()</code> methods may be used to control the client connection in cases where a persistent connection is undesirable.<!-- -->While offline, the client will no longer receive data updates from the Database. However, all Database operations performed locally will continue to immediately fire events, allowing your application to continue behaving normally. Additionally, each operation performed locally will automatically be queued and retried upon reconnection to the Database server.<!-- -->To reconnect to the Database and begin receiving remote events, see <code>goOnline()</code>. |
@@ -112,7 +112,7 @@ Firebase Realtime Database
 
 ### getDatabase(app, url) {:#getdatabase_d9cea01}
 
-Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with with default settings if no instance exists or if the existing instance uses a custom database URL.
+Returns the instance of the Realtime Database SDK that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. Initializes a new instance with default settings if no instance exists or if the existing instance uses a custom database URL.
 
 <b>Signature:</b>
 
