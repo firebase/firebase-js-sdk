@@ -21,12 +21,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import {
-  DataConnect,
-  executeQuery,
-  getDataConnect,
-  queryRef
-} from '../../src';
+import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/fetch';
 use(chaiAsPromised);

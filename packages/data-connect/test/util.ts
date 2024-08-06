@@ -44,7 +44,6 @@ export function initApp(): FirebaseApp {
   return initializeApp(projectInfo);
 }
 
-
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());

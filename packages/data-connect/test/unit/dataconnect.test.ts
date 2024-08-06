@@ -38,7 +38,11 @@ describe('Data Connect Test', () => {
     ).to.not.throw(
       'Project ID must be provided. Did you pass in a proper projectId to initializeApp?'
     );
-    const dc = getDataConnect(testApp, { connector: 'c', location: 'l', service: 's' });
+    const dc = getDataConnect(testApp, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(testApp);
   });
@@ -49,7 +53,11 @@ describe('Data Connect Test', () => {
     expect(() => getDataConnect(testApp, undefined)).to.throw(
       'DC Option Required'
     );
-    const dc = getDataConnect(testApp, { connector: 'c', location: 'l', service: 's' });
+    const dc = getDataConnect(testApp, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
     expect(dc.app.options.projectId).to.eq(projectId);
     await deleteApp(testApp);
   });

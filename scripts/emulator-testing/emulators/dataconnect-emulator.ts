@@ -29,19 +29,19 @@ export class DataConnectEmulator extends Emulator {
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator
       `https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.2?alt=media&token=0ebccafa-75dd-4bb2-8950-0b3e626ee5fd`,
-      port,
+      port
     );
     this.isJar = false;
   }
   async setUp(): Promise<void> {
     await super.setUp();
     await fetch(`http://localhost:${this.port}/emulator/configure`, {
-    method: 'POST',
-    body: JSON.stringify({
-      // eslint-disable-next-line camelcase
-      connection_string:
-        'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
-    })
-  });
+      method: 'POST',
+      body: JSON.stringify({
+        // eslint-disable-next-line camelcase
+        connection_string:
+          'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
+      })
+    });
   }
 }

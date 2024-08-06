@@ -36,8 +36,12 @@ import {
   SOURCE_CACHE,
   SOURCE_SERVER
 } from '../../../src';
-import { getConnectionConfig, initApp, initDatabase, PROJECT_ID } from '../../util';
-
+import {
+  getConnectionConfig,
+  initApp,
+  initDatabase,
+  PROJECT_ID
+} from '../../util';
 
 use(chaiAsPromised);
 
@@ -157,7 +161,9 @@ describe('Query Tests', async () => {
     };
     expect(result.toJSON().refInfo).to.deep.eq(serializedRef.refInfo);
     expect(result.toJSON().data).to.deep.eq(serializedRef.data);
-    const unformatedResult = Number(result.toJSON().fetchTime.replace(/,/g, ''));
+    const unformatedResult = Number(
+      result.toJSON().fetchTime.replace(/,/g, '')
+    );
     const unformatedRef = Number(serializedRef.fetchTime.replace(/,/g, ''));
     expect(unformatedResult).to.be.greaterThanOrEqual(unformatedRef);
     expect(result.source).to.deep.eq(SOURCE_CACHE);

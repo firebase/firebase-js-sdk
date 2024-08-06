@@ -99,11 +99,11 @@ export abstract class Emulator {
       if (!this.isJar) {
         // TODO(mtewani): Make this more extensible, and less data connect specific
         promise = spawn(this.binaryPath, [
-          "--logtostderr",
-          "--v=2",
+          '--logtostderr',
+          '--v=2',
           'dev',
           `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
-          "--config_dir=../../packages/data-connect/test/integration/dataconnect"
+          '--config_dir=../../packages/data-connect/test/integration/dataconnect'
         ]);
       } else {
         promise = spawn(
