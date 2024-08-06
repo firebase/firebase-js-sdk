@@ -190,8 +190,6 @@ export function connectDataConnectEmulator(
   port?: number,
   sslEnabled = false
 ): void {
-  // eslint-disable-next-line no-console
-  console.log(port);
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
