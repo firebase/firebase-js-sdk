@@ -48,7 +48,6 @@ export function initApp(): FirebaseApp {
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
   if (!instance.isEmulator && USE_EMULATOR) {
-    // eslint-disable-next-line no-console
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
   }
   return instance;
