@@ -68,10 +68,10 @@ jobs:
           ### Changeset File Check :warning:
           ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Update comment (missing packages)
-      if: ${{steps.fc.outputs.comment-id}}
+      if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       uses: peter-evans/create-or-update-comment@v4
       with:
-        comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
         body: |
           ### Changeset File Check :warning:
