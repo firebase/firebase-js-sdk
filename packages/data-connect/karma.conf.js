@@ -25,11 +25,7 @@ module.exports = function (config) {
     files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
-    exclude: [
-      './test/integration/queries.test.ts',
-      './test/integration/emulatorSeeder.ts'
-    ]
+    frameworks: ['mocha']
   });
 
   config.set(karmaConfig);
