@@ -17,10 +17,7 @@
 
 import { Persistence } from '../../model/public_types';
 
-import {
-  _isMobileBrowser,
-  _isIE10
-} from '../../core/util/browser';
+import { _isMobileBrowser, _isIE10 } from '../../core/util/browser';
 import {
   PersistenceInternal as InternalPersistence,
   PersistenceType,
