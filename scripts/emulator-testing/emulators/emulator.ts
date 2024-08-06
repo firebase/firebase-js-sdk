@@ -97,11 +97,29 @@ export abstract class Emulator {
       }
       let promise: ChildProcessPromise<SpawnPromiseResult>;
       if (!this.isJar) {
+        // TODO(mtewani): Make this more extensible, and less data connect specific
         promise = spawn(this.binaryPath, [
+          "--logtostderr",
+          "--v=2",
           'dev',
-          '--local_connection_string',
-          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+          `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
+          "--config_dir=../../packages/data-connect/test/integration/dataconnect"
         ]);
+        const child = promise.childProcess;
+        // Log the output from the child process
+child.stdout!.on('data', (data) => {
+  console.log(`stdout: ${data}`);
+});
+
+// Log any errors from the child process
+child.stderr!.on('data', (data) => {
+  console.error(`stderr: ${data}`);
+});
+
+// Log when the child process exits
+child.on('close', (code) => {
+  console.log(`child process exited with code ${code}`);
+});
       } else {
         promise = spawn(
           'java',

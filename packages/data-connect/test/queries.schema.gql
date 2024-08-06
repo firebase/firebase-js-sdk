@@ -1,1 +1,0 @@
-type Post @table {content: String!}

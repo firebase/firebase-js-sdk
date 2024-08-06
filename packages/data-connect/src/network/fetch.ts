@@ -37,6 +37,7 @@ export function dcFetch<T, U>(
   accessToken: string | null,
   _isUsingGen: boolean
 ): Promise<{ data: T; errors: Error[] }> {
+  // eslint-disable-next-line no-console
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -57,6 +58,8 @@ export function dcFetch<T, U>(
     signal
   })
     .catch(err => {
+      // eslint-disable-next-line no-console
+      console.log(url);
       throw new DataConnectError(
         Code.OTHER,
         'Failed to fetch: ' + JSON.stringify(err)

@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "default": "sdk-test-84137"
+  },
+  "dataconnectEmulatorConfig": {
+    "postgres": {
+      "localConnectionString": "postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable"
+    }
+  }
+}
