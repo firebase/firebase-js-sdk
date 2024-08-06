@@ -18,9 +18,6 @@
 import { Persistence } from '../../model/public_types';
 
 import {
-  _isSafari,
-  _isIOS,
-  _isIframe,
   _isMobileBrowser,
   _isIE10
 } from '../../core/util/browser';
