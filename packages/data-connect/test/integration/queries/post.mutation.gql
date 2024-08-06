@@ -4,3 +4,7 @@ mutation seedDatabase($id: UUID!, $content: String!) @auth(level: PUBLIC) {
 mutation removePost($id: UUID!) @auth(level: PUBLIC) {
     post: post_delete(id: $id)
 }
+mutation seeddatabase @auth(level: PUBLIC) {
+    post1: post_insert(data: {content: "do dishes"})
+    post2: post_insert(data: {content: "schedule appointment"})
+}

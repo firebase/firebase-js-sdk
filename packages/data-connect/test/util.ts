@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { initializeApp } from '@firebase/app';
+import { FirebaseApp, initializeApp } from '@firebase/app';
 
+import projectInfo from '../../../config/project.json';
 import {
   connectDataConnectEmulator,
   ConnectorConfig,
@@ -24,13 +25,13 @@ import {
   getDataConnect
 } from '../src';
 
-export const USE_EMULATOR = true;
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
-// export const EMULATOR_PROJECT = process.env.PROJECT;
-export const CONNECTOR_NAME = 'c';
-export const LOCATION_NAME = 'l';
-export const SERVICE_NAME = 'l';
-export const PROJECT_ID = 'p';
+export const USE_EMULATOR = !!EMULATOR_PORT;
+// TODO: don't hardcode this.
+export const CONNECTOR_NAME = 'queries';
+export const LOCATION_NAME = 'us-west2';
+export const SERVICE_NAME = 'my-service';
+export const PROJECT_ID = projectInfo.projectId;
 export function getConnectionConfig(): ConnectorConfig {
   return {
     connector: CONNECTOR_NAME,
@@ -39,14 +40,14 @@ export function getConnectionConfig(): ConnectorConfig {
   };
 }
 
-export const app = initializeApp({
-  projectId: PROJECT_ID
-});
+export function initApp(): FirebaseApp {
+  return initializeApp(projectInfo);
+}
 
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
   const instance = getDataConnect(getConnectionConfig());
-  if (!instance.isEmulator) {
+  if (!instance.isEmulator && USE_EMULATOR) {
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
   }
   return instance;

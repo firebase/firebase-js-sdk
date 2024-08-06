@@ -33,9 +33,9 @@
     "prettier": "prettier --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
     "build:deps": "lerna run --scope @firebase/'{app,data-connect}' --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p --npm-path npm test:emulator",
+    "test": "run-p --npm-path npm lint test:emulator",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:emulator",
-    "test:all": "npm run test:node",
+    "test:all": "run-p --npm-path npm lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:unit": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/unit/**/*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
@@ -44,7 +44,7 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/public.d.ts"
-},
+  },
   "license": "Apache-2.0",
   "peerDependencies": {
     "@firebase/app": "0.x"
@@ -60,6 +60,7 @@
     "@firebase/app": "0.10.7",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
+    "sinon": "18.0.0",
     "typescript": "4.7.4"
   },
   "repository": {
