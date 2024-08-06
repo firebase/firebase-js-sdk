@@ -64,8 +64,7 @@ import {
   newTestFirestore,
   SnapshotOptions,
   newTestApp,
-  FirestoreError
-  newTestApp,
+  FirestoreError,
   QuerySnapshot,
   vector,
   getDocsFromServer
