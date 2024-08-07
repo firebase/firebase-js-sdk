@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAIError class
-Error class for the Vertex AI for Firebase SDK.
+Error class for the Vertex AI in Firebase SDK.
 
 <b>Signature:</b>
 

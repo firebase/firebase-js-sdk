@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VertexAI interface
-An instance of the Vertex AI for Firebase SDK.
+An instance of the Vertex AI in Firebase SDK.
 
 <b>Signature:</b>
 
