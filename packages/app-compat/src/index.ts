@@ -38,7 +38,8 @@ try {
     `);
 
     // eslint-disable-next-line
-    const sdkVersion = ((globals as any).firebase as FirebaseNamespace).SDK_VERSION;
+    const sdkVersion = ((globals as any).firebase as FirebaseNamespace)
+      .SDK_VERSION;
     if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
       logger.warn(`
         Warning: You are trying to load Firebase while using Firebase Performance standalone script.
