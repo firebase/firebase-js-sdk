@@ -82,7 +82,6 @@ export async function setupQueries(
     connection_string:
       'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'
   };
-  fs.writeFileSync('./emulator.json', JSON.stringify(toWrite));
   return fetch(`http://localhost:${EMULATOR_PORT}/setupSchema`, {
     method: 'POST',
     body: JSON.stringify(toWrite)
