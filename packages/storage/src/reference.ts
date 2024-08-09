@@ -237,7 +237,7 @@ export function getStreamInternal(
   ref.storage
     .makeRequestWithTokens(requestInfo, newStreamConnection)
     .then(readableStream => readableStream.pipeThrough(result))
-    .catch(err => result.writable.getWriter().abort(err));
+    .catch(err => result.writable.abort(err));
 
   return result.readable;
 }
