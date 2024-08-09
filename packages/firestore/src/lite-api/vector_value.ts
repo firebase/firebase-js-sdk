@@ -18,7 +18,7 @@
 import { isPrimitiveArrayEqual } from '../util/array';
 
 /**
- * Represent a vector type in Firestore documents.
+ * Represents a vector type in Firestore documents.
  * Create an instance with {@link FieldValue.vector}.
  *
  * @class VectorValue
