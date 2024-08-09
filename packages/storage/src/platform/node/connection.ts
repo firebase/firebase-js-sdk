@@ -22,6 +22,7 @@ import {
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import { fetch as undiciFetch, Headers as undiciHeaders } from 'undici';
+import { ReadableStream } from 'stream/web';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -50,7 +51,7 @@ abstract class FetchConnection<T extends ConnectionType>
   async send(
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string,
+    body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
     if (this.sent_) {
@@ -62,7 +63,7 @@ abstract class FetchConnection<T extends ConnectionType>
       const response = await this.fetch_(url, {
         method,
         headers: headers || {},
-        body: body as ArrayBufferView | string
+        body: body as NodeJS.ArrayBufferView | string
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
@@ -146,13 +147,13 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
   return new FetchBytesConnection();
 }
 
-export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream> {
-  private stream_: NodeJS.ReadableStream | null = null;
+export class FetchStreamConnection extends FetchConnection<ReadableStream> {
+  private stream_: ReadableStream | null = null;
 
   async send(
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string,
+    body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
     if (this.sent_) {
@@ -164,7 +165,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
       const response = await this.fetch_(url, {
         method,
         headers: headers || {},
-        body: body as ArrayBufferView | string
+        body: body as NodeJS.ArrayBufferView | string
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
@@ -178,7 +179,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
     }
   }
 
-  getResponse(): NodeJS.ReadableStream {
+  getResponse(): ReadableStream {
     if (!this.stream_) {
       throw internalError('cannot .getResponse() before sending');
     }
@@ -186,7 +187,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
   }
 }
 
-export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream> {
   return new FetchStreamConnection();
 }
 

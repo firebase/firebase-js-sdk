@@ -13,6 +13,7 @@ import { FirebaseError } from '@firebase/util';
 import { _FirebaseService } from '@firebase/app';
 import { NextFn } from '@firebase/util';
 import { Provider } from '@firebase/component';
+import { ReadableStream as ReadableStream_2 } from 'stream/web';
 import { Subscribe } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
@@ -132,7 +133,7 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 
 // @public
-export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
+export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): ReadableStream_2;
 
 // @internal (undocumented)
 export function _invalidArgument(message: string): StorageError;

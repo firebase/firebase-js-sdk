@@ -14,16 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ReadableStream } from 'stream/web';
 
 /** Network headers */
 export type Headers = Record<string, string>;
 
 /** Response type exposed by the networking APIs. */
-export type ConnectionType =
-  | string
-  | ArrayBuffer
-  | Blob
-  | NodeJS.ReadableStream;
+export type ConnectionType = string | ArrayBuffer | Blob | ReadableStream;
 
 /**
  * A lightweight wrapper around XMLHttpRequest with a

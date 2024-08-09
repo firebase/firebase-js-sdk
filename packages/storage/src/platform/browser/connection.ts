@@ -22,6 +22,7 @@ import {
   Headers
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
+import { ReadableStream } from 'stream/web';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -171,7 +172,7 @@ export function newBlobConnection(): Connection<Blob> {
   return new XhrBlobConnection();
 }
 
-export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream> {
   throw new Error('Streams are only supported on Node');
 }
 
