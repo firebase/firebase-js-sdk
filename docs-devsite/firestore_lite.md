@@ -89,6 +89,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [endBefore(snapshot)](./firestore_lite.md#endbefore_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAfter(snapshot)](./firestore_lite.md#startafter_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAt(snapshot)](./firestore_lite.md#startat_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
+|  <b>function(values, ...)</b> |
+|  [vector(values)](./firestore_lite.md#vector_0dbdaf2) | Creates a new <code>VectorValue</code> constructed with a copy of the given array of numbers. |
 
 ## Classes
 
@@ -117,6 +119,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [QueryStartAtConstraint](./firestore_lite.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore_.md#startat_9a4477f) or [startAfter()](./firestore_.md#startafter_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
 |  [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
 |  [Transaction](./firestore_lite.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
+|  [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | Represent a vector type in Firestore documents. Create an instance with . VectorValue |
 |  [WriteBatch](./firestore_lite.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
 ## Interfaces
@@ -1567,6 +1570,30 @@ export declare function startAt<AppModelType, DbModelType extends DocumentData>(
 [QueryStartAtConstraint](./firestore_lite.querystartatconstraint.md#querystartatconstraint_class)
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
+
+## function(values, ...)
+
+### vector(values) {:#vector_0dbdaf2}
+
+Creates a new `VectorValue` constructed with a copy of the given array of numbers.
+
+<b>Signature:</b>
+
+```typescript
+export declare function vector(values?: number[]): VectorValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  values | number\[\] | Create a <code>VectorValue</code> instance with a copy of this array of numbers. |
+
+<b>Returns:</b>
+
+[VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class)
+
+A new `VectorValue` constructed with a copy of the given array of numbers.
 
 ## AddPrefixToKeys
 

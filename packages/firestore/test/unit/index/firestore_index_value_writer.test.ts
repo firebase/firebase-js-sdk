@@ -169,5 +169,82 @@ describe('Firestore Index Value Writer', () => {
         compareIndexEncodedValues(value3, value4, IndexKind.DESCENDING)
       ).to.equal(-1);
     });
+
+    it('sorts vector as a different type from array and map, with unique rules', () => {
+      const vector1 = {
+        mapValue: {
+          fields: {
+            '__type__': { stringValue: '__vector__' },
+            'value': {
+              arrayValue: { values: [{ doubleValue: 100 }] }
+            }
+          }
+        }
+      };
+      const vector2 = {
+        mapValue: {
+          fields: {
+            '__type__': { stringValue: '__vector__' },
+            'value': {
+              arrayValue: { values: [{ doubleValue: 1 }, { doubleValue: 2 }] }
+            }
+          }
+        }
+      };
+      const vector3 = {
+        mapValue: {
+          fields: {
+            '__type__': { stringValue: '__vector__' },
+            'value': {
+              arrayValue: { values: [{ doubleValue: 1 }, { doubleValue: 3 }] }
+            }
+          }
+        }
+      };
+      const map1 = {
+        mapValue: {
+          fields: {
+            'value': {
+              arrayValue: { values: [{ doubleValue: 1 }, { doubleValue: 2 }] }
+            }
+          }
+        }
+      };
+      const array1 = {
+        arrayValue: { values: [{ doubleValue: 1 }, { doubleValue: 2 }] }
+      };
+
+      // Array sorts before vector
+      expect(
+        compareIndexEncodedValues(array1, vector1, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(array1, vector1, IndexKind.DESCENDING)
+      ).to.equal(1);
+
+      // Vector sorts before map
+      expect(
+        compareIndexEncodedValues(vector3, map1, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(vector3, map1, IndexKind.DESCENDING)
+      ).to.equal(1);
+
+      // Shorter vectors sort before longer vectors
+      expect(
+        compareIndexEncodedValues(vector1, vector2, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(vector1, vector2, IndexKind.DESCENDING)
+      ).to.equal(1);
+
+      // Vectors of the same length sort by value
+      expect(
+        compareIndexEncodedValues(vector2, vector3, IndexKind.ASCENDING)
+      ).to.equal(-1);
+      expect(
+        compareIndexEncodedValues(vector2, vector3, IndexKind.DESCENDING)
+      ).to.equal(1);
+    });
   });
 });

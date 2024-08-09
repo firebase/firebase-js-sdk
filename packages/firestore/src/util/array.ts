@@ -111,3 +111,55 @@ export function diffArrays<T>(
     onRemove(before[b++]);
   }
 }
+
+/**
+ * Verifies equality for an array of objects using the `isEqual` interface.
+ *
+ * @private
+ * @internal
+ * @param left Array of objects supporting `isEqual`.
+ * @param right Array of objects supporting `isEqual`.
+ * @return True if arrays are equal.
+ */
+export function isArrayEqual<T extends { isEqual: (t: T) => boolean }>(
+  left: T[],
+  right: T[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let i = 0; i < left.length; ++i) {
+    if (!left[i].isEqual(right[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Verifies equality for an array of primitives.
+ *
+ * @private
+ * @internal
+ * @param left Array of primitives.
+ * @param right Array of primitives.
+ * @return True if arrays are equal.
+ */
+export function isPrimitiveArrayEqual<T extends number | string>(
+  left: T[],
+  right: T[]
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  for (let i = 0; i < left.length; ++i) {
+    if (left[i] !== right[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}

@@ -19,6 +19,7 @@ import { expect } from 'chai';
 
 import { GeoPoint, Timestamp } from '../../../src';
 import { DatabaseId } from '../../../src/core/database_info';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
   canonicalId,
@@ -28,7 +29,10 @@ import {
   refValue,
   deepClone,
   valuesGetLowerBound,
-  valuesGetUpperBound
+  valuesGetUpperBound,
+  TYPE_KEY,
+  VECTOR_VALUE_SENTINEL,
+  VECTOR_MAP_VECTORS_KEY
 } from '../../../src/model/values';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -86,7 +90,9 @@ describe('Values', () => {
       [wrap({ bar: 1, foo: 2 }), wrap({ foo: 2, bar: 1 })],
       [wrap({ bar: 2, foo: 1 })],
       [wrap({ bar: 1, foo: 1 })],
-      [wrap({ foo: 1 })]
+      [wrap({ foo: 1 })],
+      [wrap(vector([]))],
+      [wrap(vector([1, 2.3, -4.0]))]
     ];
     expectEqualitySets(values, (v1, v2) => valueEquals(v1, v2));
   });
@@ -211,6 +217,11 @@ describe('Values', () => {
       [wrap(['foo', 2])],
       [wrap(['foo', '0'])],
 
+      // vectors
+      [wrap(vector([100]))],
+      [wrap(vector([1, 2, 3]))],
+      [wrap(vector([1, 3, 2]))],
+
       // objects
       [wrap({ bar: 0 })],
       [wrap({ bar: 0, foo: 1 })],
@@ -316,6 +327,10 @@ describe('Values', () => {
       {
         expectedByteSize: 6,
         elements: [wrap({ a: 'a', b: 'b' }), wrap({ c: 'c', d: 'd' })]
+      },
+      {
+        expectedByteSize: 49,
+        elements: [wrap(vector([1, 2])), wrap(vector([-100, 20000098.123445]))]
       }
     ];
 
@@ -344,7 +359,9 @@ describe('Values', () => {
       [wrap(['a', 'b']), wrap(['a', 'b', 'c'])],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'bc' })],
       [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', bc: 'b' })],
-      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })]
+      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
+      [wrap({ a: 'a', b: 'b' }), wrap({ a: 'a', b: 'b', c: 'c' })],
+      [wrap(vector([2, 3])), wrap(vector([1, 2, 3]))]
     ];
 
     for (const group of relativeGroups) {
@@ -397,6 +414,23 @@ describe('Values', () => {
       // arrays
       [valuesGetLowerBound({ arrayValue: {} }), wrap([])],
       [wrap([false])],
+
+      // vectors
+      [
+        valuesGetLowerBound({
+          mapValue: {
+            fields: {
+              [TYPE_KEY]: { stringValue: VECTOR_VALUE_SENTINEL },
+              [VECTOR_MAP_VECTORS_KEY]: {
+                arrayValue: {
+                  values: [{ doubleValue: 1 }]
+                }
+              }
+            }
+          }
+        }),
+        wrap(vector([]))
+      ],
 
       // objects
       [valuesGetLowerBound({ mapValue: {} }), wrap({})]
@@ -486,6 +520,9 @@ describe('Values', () => {
         })
       )
     ).to.equal('{a:1,b:2,c:3}');
+    expect(canonicalId(wrap(vector([1, 1.0, -2, 3.14])))).to.equal(
+      '{__type__:__vector__,value:[1,1,-2,3.14]}'
+    );
     expect(
       canonicalId(wrap({ 'a': ['b', { 'c': new GeoPoint(30, 60) }] }))
     ).to.equal('{a:[b,{c:geo(30,60)}]}');

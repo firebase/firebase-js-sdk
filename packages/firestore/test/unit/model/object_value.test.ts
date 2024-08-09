@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { extractFieldMask, ObjectValue } from '../../../src/model/object_value';
 import { TypeOrder } from '../../../src/model/type_order';
 import { typeOrder } from '../../../src/model/values';
@@ -24,7 +25,10 @@ import { field, mask, wrap, wrapObject } from '../../util/helpers';
 
 describe('ObjectValue', () => {
   it('can extract fields', () => {
-    const objValue = wrapObject({ foo: { a: 1, b: true, c: 'string' } });
+    const objValue = wrapObject({
+      foo: { a: 1, b: true, c: 'string' },
+      embedding: vector([1])
+    });
 
     expect(typeOrder(objValue.field(field('foo'))!)).to.equal(
       TypeOrder.ObjectValue
@@ -37,6 +41,9 @@ describe('ObjectValue', () => {
     );
     expect(typeOrder(objValue.field(field('foo.c'))!)).to.equal(
       TypeOrder.StringValue
+    );
+    expect(typeOrder(objValue.field(field('embedding'))!)).to.equal(
+      TypeOrder.VectorValue
     );
 
     expect(objValue.field(field('foo.a.b'))).to.be.null;
