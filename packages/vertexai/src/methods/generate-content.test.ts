@@ -188,7 +188,7 @@ describe('generateContent()', () => {
     );
   });
   it('unknown enum - should ignore', async () => {
-    const mockResponse = getMockResponse('unary-success-unknown-enum.json');
+    const mockResponse = getMockResponse('unary-success-unknown-enum-safety-ratings.json');
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -197,7 +197,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('30 minutes of brewing');
+    expect(result.response.text()).to.include('Some text');
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
