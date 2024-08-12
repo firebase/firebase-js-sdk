@@ -35,6 +35,7 @@ export const enum TypeOrder {
   RefValue = 7,
   GeoPointValue = 8,
   ArrayValue = 9,
-  ObjectValue = 10,
+  VectorValue = 10,
+  ObjectValue = 11,
   MaxValue = 9007199254740991 // Number.MAX_SAFE_INTEGER
 }
