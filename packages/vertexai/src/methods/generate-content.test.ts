@@ -188,7 +188,9 @@ describe('generateContent()', () => {
     );
   });
   it('unknown enum - should ignore', async () => {
-    const mockResponse = getMockResponse('unary-success-unknown-enum-safety-ratings.json');
+    const mockResponse = getMockResponse(
+      'unary-success-unknown-enum-safety-ratings.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
