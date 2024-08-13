@@ -22,7 +22,6 @@ import {
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
 import { fetch as undiciFetch, Headers as undiciHeaders } from 'undici';
-import { ReadableStream } from 'stream/web';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -147,8 +146,8 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
   return new FetchBytesConnection();
 }
 
-export class FetchStreamConnection extends FetchConnection<ReadableStream> {
-  private stream_: ReadableStream | null = null;
+export class FetchStreamConnection extends FetchConnection<ReadableStream<Uint8Array>> {
+  private stream_: ReadableStream<Uint8Array> | null = null;
 
   async send(
     url: string,
@@ -170,7 +169,7 @@ export class FetchStreamConnection extends FetchConnection<ReadableStream> {
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
-      this.stream_ = response.body;
+      this.stream_ = response.body as ReadableStream<Uint8Array>;
     } catch (e) {
       this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
@@ -187,7 +186,7 @@ export class FetchStreamConnection extends FetchConnection<ReadableStream> {
   }
 }
 
-export function newStreamConnection(): Connection<ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {
   return new FetchStreamConnection();
 }
 

@@ -22,7 +22,6 @@ import {
   Headers
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import { ReadableStream } from 'stream/web';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;

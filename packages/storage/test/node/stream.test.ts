@@ -20,7 +20,6 @@ import { createApp, createStorage } from '../integration/integration.test';
 import { FirebaseApp, deleteApp } from '@firebase/app';
 import { getStream, ref, uploadBytes } from '../../src/index.node';
 import * as types from '../../src/public-types';
-import { ReadableStream } from 'stream/web';
 
 // See: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader
 async function readData(readableStream: ReadableStream): Promise<Uint8Array> {

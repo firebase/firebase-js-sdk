@@ -19,7 +19,7 @@
  * @fileoverview Defines the Firebase StorageReference class.
  */
 
-import { ReadableStream, TransformStream, Transformer } from 'stream/web';
+// import { ReadableStream, TransformStream, Transformer } from 'stream/web';
 
 import { FbsBlob } from './implementation/blob';
 import { Location } from './implementation/location';

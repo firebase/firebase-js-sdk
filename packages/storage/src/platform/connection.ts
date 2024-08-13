@@ -22,7 +22,6 @@ import {
   newStreamConnection as nodeNewStreamConnection,
   injectTestConnection as nodeInjectTestConnection
 } from './node/connection';
-import { ReadableStream } from 'stream/web';
 
 export function injectTestConnection(
   factory: (() => Connection<string>) | null
@@ -46,7 +45,7 @@ export function newBlobConnection(): Connection<Blob> {
   return nodeNewBlobConnection();
 }
 
-export function newStreamConnection(): Connection<ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {
   // This file is only used in Node.js tests using ts-node.
   return nodeNewStreamConnection();
 }

@@ -18,7 +18,6 @@
 import { StorageReference } from './public-types';
 import { Reference, getStreamInternal } from './reference';
 import { getModularInstance } from '@firebase/util';
-import { ReadableStream } from 'stream/web';
 
 /**
  * Downloads the data at the object's location. Returns an error if the object
