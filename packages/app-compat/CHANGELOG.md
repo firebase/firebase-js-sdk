@@ -1,5 +1,14 @@
 # @firebase/app-compat
 
+## 0.2.39
+
+### Patch Changes
+
+- [`16015723b`](https://github.com/firebase/firebase-js-sdk/commit/16015723b1aee46eec4b79e044aeb9dd582370cc) [#8414](https://github.com/firebase/firebase-js-sdk/pull/8414) (fixes [#8409](https://github.com/firebase/firebase-js-sdk/issues/8409)) - Updated how app-compat checks the global scope.
+
+- Updated dependencies []:
+  - @firebase/app@0.10.9
+
 ## 0.2.38
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # firebase
 
+## 10.13.0
+
+### Minor Changes
+
+- [`e6b852562`](https://github.com/firebase/firebase-js-sdk/commit/e6b852562bfe57dd02ae59ee2dce9966b5498b01) [#8215](https://github.com/firebase/firebase-js-sdk/pull/8215) - Add support for reading and writing Firestore vectors.
+
+### Patch Changes
+
+- Updated dependencies [[`2ddbd4e49`](https://github.com/firebase/firebase-js-sdk/commit/2ddbd4e4900e148648a1bc4cb82932e096a7009e), [`e6b852562`](https://github.com/firebase/firebase-js-sdk/commit/e6b852562bfe57dd02ae59ee2dce9966b5498b01), [`16015723b`](https://github.com/firebase/firebase-js-sdk/commit/16015723b1aee46eec4b79e044aeb9dd582370cc)]:
+  - @firebase/app@0.10.9
+  - @firebase/auth@1.7.7
+  - @firebase/firestore@4.7.0
+  - @firebase/app-compat@0.2.39
+  - @firebase/auth-compat@0.5.12
+  - @firebase/firestore-compat@0.3.35
+
 ## 10.12.5
 
 ### Patch Changes

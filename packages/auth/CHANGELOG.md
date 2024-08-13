@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.7.7
+
+### Patch Changes
+
+- [`2ddbd4e49`](https://github.com/firebase/firebase-js-sdk/commit/2ddbd4e4900e148648a1bc4cb82932e096a7009e) [#8408](https://github.com/firebase/firebase-js-sdk/pull/8408) - Remove localStorage synchronization on storage events in Safari iframes. See [GitHub PR #8408](https://github.com/firebase/firebase-js-sdk/pull/8408).
+
 ## 1.7.6
 
 ### Patch Changes
