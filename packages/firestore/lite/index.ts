@@ -127,7 +127,8 @@ export {
   arrayRemove,
   arrayUnion,
   serverTimestamp,
-  deleteField
+  deleteField,
+  vector
 } from '../src/lite-api/field_value_impl';
 
 export {
@@ -137,6 +138,8 @@ export {
   QuerySnapshot,
   snapshotEqual
 } from '../src/lite-api/snapshot';
+
+export { VectorValue } from '../src/lite-api/vector_value';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 
