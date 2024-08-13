@@ -146,7 +146,9 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
   return new FetchBytesConnection();
 }
 
-export class FetchStreamConnection extends FetchConnection<ReadableStream<Uint8Array>> {
+export class FetchStreamConnection extends FetchConnection<
+  ReadableStream<Uint8Array>
+> {
   private stream_: ReadableStream<Uint8Array> | null = null;
 
   async send(

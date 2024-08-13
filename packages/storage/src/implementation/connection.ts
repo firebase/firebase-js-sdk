@@ -18,7 +18,11 @@
 export type Headers = Record<string, string>;
 
 /** Response type exposed by the networking APIs. */
-export type ConnectionType = string | ArrayBuffer | Blob | ReadableStream<Uint8Array>;
+export type ConnectionType =
+  | string
+  | ArrayBuffer
+  | Blob
+  | ReadableStream<Uint8Array>;
 
 /**
  * A lightweight wrapper around XMLHttpRequest with a
