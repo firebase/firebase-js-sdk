@@ -154,7 +154,7 @@ describe('HeartbeatServiceImpl', () => {
       const warnStub = stub(console, 'warn');
       await heartbeatService.triggerHeartbeat();
       expect(warnStub).to.be.called;
-      expect(warnStub.args[0][1].message).to.include("heartbeats");
+      expect(warnStub.args[0][1].message).to.include('heartbeats');
       warnStub.restore();
     });
     it(`getHeartbeatsHeader() doesn't throw even if code errors`, async () => {
@@ -163,7 +163,7 @@ describe('HeartbeatServiceImpl', () => {
       const warnStub = stub(console, 'warn');
       await heartbeatService.getHeartbeatsHeader();
       expect(warnStub).to.be.called;
-      expect(warnStub.args[0][1].message).to.include("heartbeats");
+      expect(warnStub.args[0][1].message).to.include('heartbeats');
       warnStub.restore();
     });
   });
