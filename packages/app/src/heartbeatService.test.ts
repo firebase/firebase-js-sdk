@@ -146,6 +146,26 @@ describe('HeartbeatServiceImpl', () => {
       const emptyHeaders = await heartbeatService.getHeartbeatsHeader();
       expect(emptyHeaders).to.equal('');
     });
+    it(`triggerHeartbeat() doesn't throw even if code errors`, async () => {
+      //@ts-expect-error Ensure this doesn't match
+      heartbeatService._heartbeatsCache?.lastSentHeartbeatDate = 50;
+      //@ts-expect-error Ensure you can't .push() to this
+      heartbeatService._heartbeatsCache.heartbeats = 50;
+      const warnStub = stub(console, 'warn');
+      await heartbeatService.triggerHeartbeat();
+      expect(warnStub).to.be.called;
+      expect(warnStub.args[0][1].message).to.include('heartbeats');
+      warnStub.restore();
+    });
+    it(`getHeartbeatsHeader() doesn't throw even if code errors`, async () => {
+      //@ts-expect-error Ensure you can't .push() to this
+      heartbeatService._heartbeatsCache.heartbeats = 50;
+      const warnStub = stub(console, 'warn');
+      await heartbeatService.getHeartbeatsHeader();
+      expect(warnStub).to.be.called;
+      expect(warnStub.args[0][1].message).to.include('heartbeats');
+      warnStub.restore();
+    });
   });
   describe('If IndexedDB has entries', () => {
     let heartbeatService: HeartbeatServiceImpl;
