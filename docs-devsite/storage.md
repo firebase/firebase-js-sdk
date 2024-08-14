@@ -279,7 +279,7 @@ This API is only available in Node.
 <b>Signature:</b>
 
 ```typescript
-export declare function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
+export declare function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): ReadableStream;
 ```
 
 #### Parameters
@@ -291,7 +291,7 @@ export declare function getStream(ref: StorageReference, maxDownloadSizeBytes?: 
 
 <b>Returns:</b>
 
-NodeJS.ReadableStream
+ReadableStream
 
 A stream with the object's data as bytes
 

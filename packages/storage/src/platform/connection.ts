@@ -45,7 +45,7 @@ export function newBlobConnection(): Connection<Blob> {
   return nodeNewBlobConnection();
 }
 
-export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {
   // This file is only used in Node.js tests using ts-node.
   return nodeNewStreamConnection();
 }

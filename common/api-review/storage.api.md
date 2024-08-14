@@ -132,7 +132,7 @@ export function getMetadata(ref: StorageReference): Promise<FullMetadata>;
 export function getStorage(app?: FirebaseApp, bucketUrl?: string): FirebaseStorage;
 
 // @public
-export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): NodeJS.ReadableStream;
+export function getStream(ref: StorageReference, maxDownloadSizeBytes?: number): ReadableStream;
 
 // @internal (undocumented)
 export function _invalidArgument(message: string): StorageError;
