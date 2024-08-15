@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.6.5",
+  "version": "4.7.0",
   "engines": {
     "node": ">=10.10.0"
   },
@@ -110,9 +110,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.8",
-    "@firebase/app-compat": "0.2.38",
-    "@firebase/auth": "1.7.6",
+    "@firebase/app": "0.10.9",
+    "@firebase/app-compat": "0.2.39",
+    "@firebase/auth": "1.7.7",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",

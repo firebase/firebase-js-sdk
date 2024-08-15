@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.7.0
+
+### Minor Changes
+
+- [`e6b852562`](https://github.com/firebase/firebase-js-sdk/commit/e6b852562bfe57dd02ae59ee2dce9966b5498b01) [#8215](https://github.com/firebase/firebase-js-sdk/pull/8215) - Add support for reading and writing Firestore vectors.
+
 ## 4.6.5
 
 ### Patch Changes

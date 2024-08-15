@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.10.9
+
+### Patch Changes
+
+- [`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10) [#8425](https://github.com/firebase/firebase-js-sdk/pull/8425) (fixes [#8407](https://github.com/firebase/firebase-js-sdk/issues/8407)) - Prevent heartbeats methods from throwing - warn instead.
+
 ## 0.10.8
 
 ### Patch Changes
