@@ -48,7 +48,7 @@ describe('core/strategies/action_code_settings', () => {
       _setActionCodeSettingsOnRequest(auth, request, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-´bundle'
+          bundleId: 'my-bundle'
         },
         url: 'my-url'
       })
@@ -60,12 +60,25 @@ describe('core/strategies/action_code_settings', () => {
       _setActionCodeSettingsOnRequest(auth, request, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-´bundle'
+          bundleId: 'my-bundle'
         },
         url: 'my-url',
         dynamicLinkDomain: ''
       })
     ).to.throw(FirebaseError, '(auth/invalid-dynamic-link-domain)');
+  });
+
+  it('should require a non empty hosting link URL', () => {
+    expect(() =>
+      _setActionCodeSettingsOnRequest(auth, request, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: 'my-bundle'
+        },
+        url: 'my-url',
+        linkDomain: ''
+      })
+    ).to.throw(FirebaseError, '(auth/invalid-hosting-link-domain)');
   });
 
   it('should require a non-empty bundle ID', () => {
