@@ -96,7 +96,6 @@ body:
         What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
     validations:
       required: true
-        - type: textarea
   - type: textarea
     id: reproduce-code
     attributes:
