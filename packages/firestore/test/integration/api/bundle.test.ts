@@ -202,7 +202,10 @@ apiDescribe('Bundles', persistence => {
       await setDoc(doc(db, 'coll-1/b'), { k: 'b', bar: 0 });
 
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(collection(db, 'coll-1'), accumulator.storeEvent);
+      const unsubscribe = onSnapshot(
+        collection(db, 'coll-1'),
+        accumulator.storeEvent
+      );
       await accumulator.awaitEvent();
 
       const progress = await loadBundle(
