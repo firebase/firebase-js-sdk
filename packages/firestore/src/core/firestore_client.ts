@@ -656,6 +656,9 @@ function readDocumentViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver({
     next: (snap: ViewSnapshot) => {
+      // No further messages should be processed.
+      wrappedObserver.mute();
+
       // Remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
       asyncQueue.enqueueAndForget(() =>
@@ -754,6 +757,9 @@ function executeQueryViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver<ViewSnapshot>({
     next: snapshot => {
+      // No further messages should be processed.
+      wrappedObserver.mute();
+
       // Remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
       asyncQueue.enqueueAndForget(() =>
