@@ -840,7 +840,7 @@ apiDescribe('Database', persistence => {
       const gotInitialSnapshot = new Deferred<void>();
       const docA = doc(coll, 'a');
 
-      onSnapshot(docA, snap => {
+      const unsubscribe1 = onSnapshot(docA, snap => {
         events.push('doc');
         gotInitialSnapshot.resolve();
       });
@@ -848,7 +848,7 @@ apiDescribe('Database', persistence => {
       events = [];
 
       const done = new Deferred<void>();
-      onSnapshotsInSync(db, () => {
+      const unsubscribe2 = onSnapshotsInSync(db, () => {
         events.push('snapshots-in-sync');
         if (events.length === 3) {
           // We should have an initial snapshots-in-sync event, then a snapshot
@@ -865,6 +865,8 @@ apiDescribe('Database', persistence => {
 
       await setDoc(docA, { foo: 3 });
       await done.promise;
+      unsubscribe1();
+      unsubscribe2();
     });
   });
 
@@ -1085,24 +1087,25 @@ apiDescribe('Database', persistence => {
   });
 
   it('DocumentSnapshot events for nonexistent document', () => {
-    return withTestCollection(persistence, {}, col => {
+    return withTestCollection(persistence, {}, async col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
-      onSnapshot(docA, storeEvent.storeEvent);
-      return storeEvent.awaitEvent().then(snap => {
+      const unsubscribe = onSnapshot(docA, storeEvent.storeEvent);
+      await storeEvent.awaitEvent().then(snap => {
         expect(snap.exists()).to.be.false;
         expect(snap.data()).to.equal(undefined);
-        return storeEvent.assertNoAdditionalEvents();
       });
+      await storeEvent.assertNoAdditionalEvents();
+      unsubscribe()
     });
   });
 
   it('DocumentSnapshot events for add data to document', () => {
-    return withTestCollection(persistence, {}, col => {
+    return withTestCollection(persistence, {}, async col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
-      onSnapshot(docA, { includeMetadataChanges: true }, storeEvent.storeEvent);
-      return storeEvent
+      const unsubscribe = onSnapshot(docA, { includeMetadataChanges: true }, storeEvent.storeEvent);
+      await storeEvent
         .awaitEvent()
         .then(snap => {
           expect(snap.exists()).to.be.false;
@@ -1124,6 +1127,7 @@ apiDescribe('Database', persistence => {
           // TODO(b/295872012): Figure out a way to check for all scenarios.
           // expect(snap.metadata.hasPendingWrites).to.be.false;
         });
+      unsubscribe();
     });
   });
 

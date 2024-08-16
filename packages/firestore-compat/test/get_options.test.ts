@@ -55,11 +55,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
 
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
       // Register a snapshot to force the data to stay in the cache and not be
       // garbage collected.
-      docRef.onSnapshot(() => {});
-      return docRef
+      const unsubscribe = docRef.onSnapshot(() => {});
+      await docRef
         .get()
         .then(ignored => docRef.firestore.disableNetwork())
         .then(() => docRef.get())
@@ -69,6 +69,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           expect(doc.metadata.hasPendingWrites).to.be.false;
           expect(doc.data()).to.deep.equal(initialData);
         });
+      unsubscribe();
     });
   });
 

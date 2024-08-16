@@ -36,12 +36,14 @@ export class AsyncObserver<T> implements Observer<T> {
   constructor(private observer: Partial<Observer<T>>) {}
 
   next(value: T): void {
+    if (this.muted) return;
     if (this.observer.next) {
       this.scheduleEvent(this.observer.next, value);
     }
   }
 
   error(error: FirestoreError): void {
+    if (this.muted) return;
     if (this.observer.error) {
       this.scheduleEvent(this.observer.error, error);
     } else {
@@ -54,12 +56,10 @@ export class AsyncObserver<T> implements Observer<T> {
   }
 
   private scheduleEvent<E>(eventHandler: EventHandler<E>, event: E): void {
-    if (!this.muted) {
-      setTimeout(() => {
-        if (!this.muted) {
-          eventHandler(event);
-        }
-      }, 0);
-    }
+    setTimeout(() => {
+      if (!this.muted) {
+        eventHandler(event);
+      }
+    }, 0);
   }
 }
