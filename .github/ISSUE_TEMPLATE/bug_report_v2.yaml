@@ -15,7 +15,7 @@
 name: 🐞 Bug Report
 description: File a bug report
 title: 'Title for the bug'
-labels: 'question', 'new'
+labels: 'question, new'
 body:
   - type: markdown
     id: before-you-start
