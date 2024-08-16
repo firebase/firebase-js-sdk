@@ -91,7 +91,8 @@ body:
         - What you were trying to achieve.
         - What actually happened.
         - Any error messages or unexpected behavior you observed.
-        - Relevant log snippets or console output (if available).      placeholder: |
+        - Relevant log snippets or console output (if available).
+      placeholder: |
         What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
     validations:
       required: true
