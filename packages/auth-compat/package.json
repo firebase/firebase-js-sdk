@@ -55,7 +55,7 @@
     "@firebase/auth-types": "0.12.2",
     "@firebase/component": "0.6.8",
     "@firebase/util": "1.9.7",
-    "undici": "5.28.4",
+    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
