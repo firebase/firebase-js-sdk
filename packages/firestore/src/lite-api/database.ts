@@ -138,6 +138,14 @@ export class Firestore implements FirestoreService {
     return this._terminateTask;
   }
 
+  async _restart(): Promise<void> {
+    if (this._terminateTask) {
+      this._terminateTask = undefined;
+    } else {
+      await this._terminate();
+    }
+  }
+
   /** Returns a JSON-serializable representation of this `Firestore` instance. */
   toJSON(): object {
     return {

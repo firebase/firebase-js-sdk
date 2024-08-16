@@ -28,24 +28,23 @@ import {
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
-  OnlineComponentProvider
+  OfflineComponentProviderFactory,
+  OnlineComponentProvider,
+  OnlineComponentProviderFactory
 } from '../core/component_provider';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import {
-  canFallbackFromIndexedDbError,
   FirestoreClient,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
   firestoreClientGetNamedQuery,
   firestoreClientLoadBundle,
-  firestoreClientWaitForPendingWrites,
-  setOfflineComponentProvider,
-  setOnlineComponentProvider
+  firestoreClientWaitForPendingWrites
 } from '../core/firestore_client';
 import { makeDatabaseInfo } from '../lite-api/components';
 import {
-  Firestore as LiteFirestore,
-  connectFirestoreEmulator
+  connectFirestoreEmulator,
+  Firestore as LiteFirestore
 } from '../lite-api/database';
 import { Query } from '../lite-api/reference';
 import {
@@ -56,7 +55,7 @@ import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
-import { newAsyncQueue } from '../util/async_queue_impl';
+import { AsyncQueueImpl } from '../util/async_queue_impl';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
@@ -64,7 +63,8 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
-import { PersistenceSettings, FirestoreSettings } from './settings';
+import { FirestoreSettings, PersistenceSettings } from './settings';
+
 export {
   connectFirestoreEmulator,
   EmulatorMockTokenOptions
@@ -94,10 +94,15 @@ export class Firestore extends LiteFirestore {
    */
   type: 'firestore-lite' | 'firestore' = 'firestore';
 
-  readonly _queue: AsyncQueue = newAsyncQueue();
+  _queue: AsyncQueue = new AsyncQueueImpl();
   readonly _persistenceKey: string;
 
   _firestoreClient: FirestoreClient | undefined;
+
+  _componentsProvider?: {
+    _offline: OfflineComponentProviderFactory;
+    _online: OnlineComponentProviderFactory;
+  };
 
   /** @hideconstructor */
   constructor(
@@ -115,13 +120,13 @@ export class Firestore extends LiteFirestore {
     this._persistenceKey = app?.name || '[DEFAULT]';
   }
 
-  _terminate(): Promise<void> {
-    if (!this._firestoreClient) {
-      // The client must be initialized to ensure that all subsequent API
-      // usage throws an exception.
-      configureFirestore(this);
+  protected async _terminate(): Promise<void> {
+    if (this._firestoreClient) {
+      const terminate = this._firestoreClient.terminate();
+      this._queue = new AsyncQueueImpl(terminate);
+      this._firestoreClient = undefined;
+      await terminate;
     }
-    return this._firestoreClient!.terminate();
   }
 }
 
@@ -263,10 +268,15 @@ export function getFirestore(
 export function ensureFirestoreConfigured(
   firestore: Firestore
 ): FirestoreClient {
+  if (firestore._terminated) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'The client has already been terminated.'
+    );
+  }
   if (!firestore._firestoreClient) {
     configureFirestore(firestore);
   }
-  firestore._firestoreClient!.verifyNotTerminated();
   return firestore._firestoreClient as FirestoreClient;
 }
 
@@ -284,22 +294,39 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._persistenceKey,
     settings
   );
+  if (!firestore._componentsProvider) {
+    if (
+      settings.localCache?._offlineComponentProvider &&
+      settings.localCache?._onlineComponentProvider
+    ) {
+      firestore._componentsProvider = {
+        _offline: settings.localCache._offlineComponentProvider,
+        _online: settings.localCache._onlineComponentProvider
+      };
+    }
+  }
   firestore._firestoreClient = new FirestoreClient(
     firestore._authCredentials,
     firestore._appCheckCredentials,
     firestore._queue,
-    databaseInfo
+    databaseInfo,
+    firestore._componentsProvider &&
+      buildComponentProvider(firestore._componentsProvider)
   );
-  if (
-    settings.localCache?._offlineComponentProvider &&
-    settings.localCache?._onlineComponentProvider
-  ) {
-    firestore._firestoreClient._uninitializedComponentsProvider = {
-      _offlineKind: settings.localCache.kind,
-      _offline: settings.localCache._offlineComponentProvider,
-      _online: settings.localCache._onlineComponentProvider
-    };
-  }
+}
+
+function buildComponentProvider(componentsProvider: {
+  _offline: OfflineComponentProviderFactory;
+  _online: OnlineComponentProviderFactory;
+}): {
+  _offline: OfflineComponentProvider;
+  _online: OnlineComponentProvider;
+} {
+  const online = componentsProvider?._online.build();
+  return {
+    _offline: componentsProvider?._offline.build(online),
+    _online: online
+  };
 }
 
 /**
@@ -335,34 +362,21 @@ export function enableIndexedDbPersistence(
   firestore: Firestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
-  firestore = cast(firestore, Firestore);
-  verifyNotInitialized(firestore);
-
-  const client = ensureFirestoreConfigured(firestore);
-  if (client._uninitializedComponentsProvider) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'SDK cache is already specified.'
-    );
-  }
-
   logWarn(
     'enableIndexedDbPersistence() will be deprecated in the future, ' +
       'you can use `FirestoreSettings.cache` instead.'
   );
   const settings = firestore._freezeSettings();
 
-  const onlineComponentProvider = new OnlineComponentProvider();
-  const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
-    onlineComponentProvider,
-    settings.cacheSizeBytes,
-    persistenceSettings?.forceOwnership
-  );
-  return setPersistenceProviders(
-    client,
-    onlineComponentProvider,
-    offlineComponentProvider
-  );
+  setPersistenceProviders(firestore, OnlineComponentProvider.provider, {
+    build: (onlineComponents: OnlineComponentProvider) =>
+      new IndexedDbOfflineComponentProvider(
+        onlineComponents,
+        settings.cacheSizeBytes,
+        persistenceSettings?.forceOwnership
+      )
+  });
+  return Promise.resolve();
 }
 
 /**
@@ -391,36 +405,22 @@ export function enableIndexedDbPersistence(
  * turn on indexeddb cache. Calling this function when `FirestoreSettings.localCache`
  * is already specified will throw an exception.
  */
-export function enableMultiTabIndexedDbPersistence(
+export async function enableMultiTabIndexedDbPersistence(
   firestore: Firestore
 ): Promise<void> {
-  firestore = cast(firestore, Firestore);
-  verifyNotInitialized(firestore);
-
-  const client = ensureFirestoreConfigured(firestore);
-  if (client._uninitializedComponentsProvider) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'SDK cache is already specified.'
-    );
-  }
-
   logWarn(
     'enableMultiTabIndexedDbPersistence() will be deprecated in the future, ' +
       'you can use `FirestoreSettings.cache` instead.'
   );
   const settings = firestore._freezeSettings();
 
-  const onlineComponentProvider = new OnlineComponentProvider();
-  const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-    onlineComponentProvider,
-    settings.cacheSizeBytes
-  );
-  return setPersistenceProviders(
-    client,
-    onlineComponentProvider,
-    offlineComponentProvider
-  );
+  setPersistenceProviders(firestore, OnlineComponentProvider.provider, {
+    build: (onlineComponents: OnlineComponentProvider) =>
+      new MultiTabOfflineComponentProvider(
+        onlineComponents,
+        settings.cacheSizeBytes
+      )
+  });
 }
 
 /**
@@ -430,31 +430,31 @@ export function enableMultiTabIndexedDbPersistence(
  * but the client remains usable.
  */
 function setPersistenceProviders(
-  client: FirestoreClient,
-  onlineComponentProvider: OnlineComponentProvider,
-  offlineComponentProvider: OfflineComponentProvider
-): Promise<void> {
-  const persistenceResult = new Deferred();
-  return client.asyncQueue
-    .enqueue(async () => {
-      try {
-        await setOfflineComponentProvider(client, offlineComponentProvider);
-        await setOnlineComponentProvider(client, onlineComponentProvider);
-        persistenceResult.resolve();
-      } catch (e) {
-        const error = e as FirestoreError | DOMException;
-        if (!canFallbackFromIndexedDbError(error)) {
-          throw error;
-        }
-        logWarn(
-          'Error enabling indexeddb cache. Falling back to ' +
-            'memory cache: ' +
-            error
-        );
-        persistenceResult.reject(error);
-      }
-    })
-    .then(() => persistenceResult.promise);
+  firestore: Firestore,
+  onlineComponentProvider: OnlineComponentProviderFactory,
+  offlineComponentProvider: OfflineComponentProviderFactory
+): void {
+  firestore = cast(firestore, Firestore);
+  if (firestore._firestoreClient || firestore._terminated) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'Firestore has already been started and persistence can no longer be ' +
+        'enabled. You can only enable persistence before calling any other ' +
+        'methods on a Firestore object.'
+    );
+  }
+
+  if (firestore._componentsProvider || firestore._getSettings().localCache) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'SDK cache is already specified.'
+    );
+  }
+
+  firestore._componentsProvider = {
+    _online: onlineComponentProvider,
+    _offline: offlineComponentProvider
+  };
 }
 
 /**
@@ -633,15 +633,4 @@ export function namedQuery(
 
     return new Query(firestore, null, namedQuery.query);
   });
-}
-
-function verifyNotInitialized(firestore: Firestore): void {
-  if (firestore._initialized || firestore._terminated) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'Firestore has already been started and persistence can no longer be ' +
-        'enabled. You can only enable persistence before calling any other ' +
-        'methods on a Firestore object.'
-    );
-  }
 }
