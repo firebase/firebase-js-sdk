@@ -31,6 +31,7 @@ export class IndexEntry {
    * directional value.
    */
   successor(): IndexEntry {
+    // Silly comment
     const currentLength = this.directionalValue.length;
     const newLength =
       currentLength === 0 || this.directionalValue[currentLength - 1] === 255
