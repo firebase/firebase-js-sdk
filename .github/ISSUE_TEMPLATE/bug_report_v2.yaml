@@ -103,5 +103,5 @@ body:
       description: |
         If possible, provide a minimal, self-contained code snippet or steps that consistently reproduce the issue. 
         This will significantly aid in debugging.
-      validations:
-        required: true
+    validations:
+      required: true
