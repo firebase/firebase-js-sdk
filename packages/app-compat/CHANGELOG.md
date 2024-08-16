@@ -1,5 +1,25 @@
 # @firebase/app-compat
 
+## 0.2.39
+
+### Patch Changes
+
+- [`16015723b`](https://github.com/firebase/firebase-js-sdk/commit/16015723b1aee46eec4b79e044aeb9dd582370cc) [#8414](https://github.com/firebase/firebase-js-sdk/pull/8414) (fixes [#8409](https://github.com/firebase/firebase-js-sdk/issues/8409)) - Updated how app-compat checks the global scope.
+
+- Updated dependencies [[`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10)]:
+  - @firebase/app@0.10.9
+
+## 0.2.38
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- [`b9244a517`](https://github.com/firebase/firebase-js-sdk/commit/b9244a5171a7e0f3abae37e56d274605dd95d64b) [#8378](https://github.com/firebase/firebase-js-sdk/pull/8378) (fixes [#8365](https://github.com/firebase/firebase-js-sdk/issues/8365)) - Properly handle the case in app-compat checks where `window` exists but `self` does not. (This occurs in Ionic Stencil's Jest preset.)
+
+- Updated dependencies []:
+  - @firebase/app@0.10.8
+
 ## 0.2.37
 
 ### Patch Changes

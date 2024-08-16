@@ -21,7 +21,11 @@ import {
   normalizeNumber,
   normalizeTimestamp
 } from '../model/normalize';
-import { isMaxValue } from '../model/values';
+import {
+  isVectorValue,
+  VECTOR_MAP_VECTORS_KEY,
+  isMaxValue
+} from '../model/values';
 import { ArrayValue, MapValue, Value } from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
 import { isNegativeZero } from '../util/types';
@@ -41,6 +45,7 @@ const INDEX_TYPE_BLOB = 30;
 const INDEX_TYPE_REFERENCE = 37;
 const INDEX_TYPE_GEOPOINT = 45;
 const INDEX_TYPE_ARRAY = 50;
+const INDEX_TYPE_VECTOR = 53;
 const INDEX_TYPE_MAP = 55;
 const INDEX_TYPE_REFERENCE_SEGMENT = 60;
 
@@ -121,6 +126,8 @@ export class FirestoreIndexValueWriter {
     } else if ('mapValue' in indexValue) {
       if (isMaxValue(indexValue)) {
         this.writeValueTypeLabel(encoder, Number.MAX_SAFE_INTEGER);
+      } else if (isVectorValue(indexValue)) {
+        this.writeIndexVector(indexValue.mapValue!, encoder);
       } else {
         this.writeIndexMap(indexValue.mapValue!, encoder);
         this.writeTruncationMarker(encoder);
@@ -158,6 +165,24 @@ export class FirestoreIndexValueWriter {
       this.writeIndexString(key, encoder);
       this.writeIndexValueAux(map[key], encoder);
     }
+  }
+
+  private writeIndexVector(
+    mapIndexValue: MapValue,
+    encoder: DirectionalIndexByteEncoder
+  ): void {
+    const map = mapIndexValue.fields || {};
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_VECTOR);
+
+    // Vectors sort first by length
+    const key = VECTOR_MAP_VECTORS_KEY;
+    const length = map[key].arrayValue?.values?.length || 0;
+    this.writeValueTypeLabel(encoder, INDEX_TYPE_NUMBER);
+    encoder.writeNumber(normalizeNumber(length));
+
+    // Vectors then sort by position value
+    this.writeIndexString(key, encoder);
+    this.writeIndexValueAux(map[key], encoder);
   }
 
   private writeIndexArray(
