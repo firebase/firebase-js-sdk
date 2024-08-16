@@ -21,7 +21,7 @@ body:
     id: before-you-start
     attributes:
       value: |
-        *[READ THIS]:* to evaluate if you are in the right place?
+        *[READ THIS]:* Are in the right place?
         - For issues or feature requests related to __the code in this repository__, file a GitHub issue.
         - If this is a __feature request__, make sure the issue title starts with "FR:".
         - For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) with the firebase tag.
