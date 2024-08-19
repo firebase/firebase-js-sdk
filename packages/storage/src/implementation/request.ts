@@ -20,13 +20,14 @@
  * abstract representations.
  */
 
-import { id as backoffId, start, stop } from './backoff';
+import { ExponentialBackoff } from './backoff';
 import { appDeleted, canceled, retryLimitExceeded, unknown } from './error';
 import { ErrorHandler, RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Connection, ErrorCode, Headers, ConnectionType } from './connection';
 import { isRetryStatusCode } from './utils';
+import { Deferred } from '@firebase/util';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -51,12 +52,12 @@ export interface Request<T> {
  */
 class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
   private pendingConnection_: Connection<I> | null = null;
-  private backoffId_: backoffId | null = null;
+  private backoffHandler: ExponentialBackoff<Connection<I>> | null = null;
   private resolve_!: (value?: O | PromiseLike<O>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private reject_!: (reason?: any) => void;
-  private canceled_: boolean = false;
   private appDelete_: boolean = false;
+  private canceled_: boolean = false;
   private promise_: Promise<O>;
 
   constructor(
@@ -80,74 +81,96 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     });
   }
 
+  private makeRequest_: () => Promise<Connection<I>> = () => {
+    const connection = this.connectionFactory_();
+    this.pendingConnection_ = connection;
+    const deferred = new Deferred<Connection<I>>();
+    // Should this move out?
+    const progressListener: (progressEvent: ProgressEvent) => void = (
+      progressEvent: ProgressEvent
+    ) => {
+      const { loaded } = progressEvent;
+      const total = progressEvent.lengthComputable ? progressEvent.total : -1;
+      if (this.progressCallback_ !== null) {
+        this.progressCallback_(loaded, total);
+      }
+    };
+    if (this.progressCallback_ !== null) {
+      connection.addUploadProgressListener(progressListener);
+    }
+    // connection.send() never rejects, so we don't need to have a error handler or use catch on the returned promise.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    connection
+      .send(this.url_, this.method_, this.body_, this.headers_)
+      .then(() => {
+        if (this.progressCallback_ !== null) {
+          connection.removeUploadProgressListener(progressListener);
+        }
+        this.pendingConnection_ = null;
+        const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
+        const status = connection.getStatus();
+        const shouldRetry =
+          !hitServer ||
+          (isRetryStatusCode(status, this.additionalRetryCodes_) && this.retry);
+        if (shouldRetry) {
+          const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
+          deferred.reject({ wasCanceled, retry: true });
+        } else {
+          const successCode = this.successCodes_.indexOf(status) !== -1;
+          if (!successCode) {
+            deferred.reject({ retry: false, connection });
+          } else {
+            deferred.resolve(connection);
+          }
+        }
+      });
+    return deferred.promise;
+  };
+
   /**
    * Actually starts the retry loop.
    */
   private start_(): void {
-    const doTheRequest: (
-      backoffCallback: (success: boolean, ...p2: unknown[]) => void,
-      canceled: boolean
-    ) => void = (backoffCallback, canceled) => {
-      if (canceled) {
-        backoffCallback(false, new RequestEndStatus(false, null, true));
-        return;
-      }
-      const connection = this.connectionFactory_();
-      this.pendingConnection_ = connection;
-
-      const progressListener: (
-        progressEvent: ProgressEvent
-      ) => void = progressEvent => {
-        const loaded = progressEvent.loaded;
-        const total = progressEvent.lengthComputable ? progressEvent.total : -1;
-        if (this.progressCallback_ !== null) {
-          this.progressCallback_(loaded, total);
-        }
-      };
-      if (this.progressCallback_ !== null) {
-        connection.addUploadProgressListener(progressListener);
-      }
-
-      // connection.send() never rejects, so we don't need to have a error handler or use catch on the returned promise.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    interface HandleErrorArgs {
+      wasCanceled: boolean;
+      connection: Connection<I> | null;
+    }
+    const handleError: (handleErrorArgs: HandleErrorArgs) => void = ({
+      wasCanceled,
       connection
-        .send(this.url_, this.method_, this.body_, this.headers_)
-        .then(() => {
-          if (this.progressCallback_ !== null) {
-            connection.removeUploadProgressListener(progressListener);
-          }
-          this.pendingConnection_ = null;
-          const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
-          const status = connection.getStatus();
-          if (
-            !hitServer ||
-            (isRetryStatusCode(status, this.additionalRetryCodes_) &&
-              this.retry)
-          ) {
-            const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
-            backoffCallback(
-              false,
-              new RequestEndStatus(false, null, wasCanceled)
-            );
-            return;
-          }
-          const successCode = this.successCodes_.indexOf(status) !== -1;
-          backoffCallback(true, new RequestEndStatus(successCode, connection));
-        });
+    }) => {
+      if (connection !== null) {
+        const err = unknown();
+        err.serverResponse = connection.getErrorText();
+        if (this.errorCallback_) {
+          reject(this.errorCallback_(connection, err));
+        } else {
+          reject(err);
+        }
+      } else {
+        if (wasCanceled) {
+          const err = this.appDelete_ ? appDeleted() : canceled();
+          reject(err);
+        } else {
+          const err = retryLimitExceeded();
+          reject(err);
+        }
+      }
     };
+    if (this.canceled_) {
+      handleError({ wasCanceled: true, connection: null });
+      return;
+    }
+    this.backoffHandler = new ExponentialBackoff(
+      this.makeRequest_,
+      this.timeout_
+    );
+    const resolve = this.resolve_;
+    const reject = this.reject_;
 
-    /**
-     * @param requestWentThrough - True if the request eventually went
-     *     through, false if it hit the retry limit or was canceled.
-     */
-    const backoffDone: (
-      requestWentThrough: boolean,
-      status: RequestEndStatus<I>
-    ) => void = (requestWentThrough, status) => {
-      const resolve = this.resolve_;
-      const reject = this.reject_;
-      const connection = status.connection as Connection<I>;
-      if (status.wasSuccessCode) {
+    this.backoffHandler
+      .getPromise()
+      .then(connection => {
         try {
           const result = this.callback_(connection, connection.getResponse());
           if (isJustDef(result)) {
@@ -158,31 +181,10 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
         } catch (e) {
           reject(e);
         }
-      } else {
-        if (connection !== null) {
-          const err = unknown();
-          err.serverResponse = connection.getErrorText();
-          if (this.errorCallback_) {
-            reject(this.errorCallback_(connection, err));
-          } else {
-            reject(err);
-          }
-        } else {
-          if (status.canceled) {
-            const err = this.appDelete_ ? appDeleted() : canceled();
-            reject(err);
-          } else {
-            const err = retryLimitExceeded();
-            reject(err);
-          }
-        }
-      }
-    };
-    if (this.canceled_) {
-      backoffDone(false, new RequestEndStatus(false, null, true));
-    } else {
-      this.backoffId_ = start(doTheRequest, backoffDone, this.timeout_);
-    }
+      })
+      .catch(handleError);
+
+    this.backoffHandler.start();
   }
 
   /** @inheritDoc */
@@ -194,8 +196,8 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
   cancel(appDelete?: boolean): void {
     this.canceled_ = true;
     this.appDelete_ = appDelete || false;
-    if (this.backoffId_ !== null) {
-      stop(this.backoffId_);
+    if (this.backoffHandler !== null) {
+      this.backoffHandler.stop();
     }
     if (this.pendingConnection_ !== null) {
       this.pendingConnection_.abort();

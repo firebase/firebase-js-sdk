@@ -477,7 +477,6 @@ export class UploadTask {
         this._start();
         break;
       default:
-        // TODO(andysoto): assert(false);
         break;
     }
   }

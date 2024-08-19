@@ -352,7 +352,6 @@ describe('Firebase Storage > Upload Task', () => {
     function shouldRespondCallback(): boolean {
       if (callbackCount++ === 1) {
         task.pause();
-        return false;
       }
       return true;
     }
@@ -694,11 +693,15 @@ describe('Firebase Storage > Upload Task', () => {
     // Kick off upload
     const { readyToCancel, taskPromise: promise, task } = resumeCancelSetup();
 
+    // Wait for exponential backoff
     await readyToCancel;
 
+    // Pause in the middle of a timer.
     task.pause();
+    // Expect the pause to clear out any existing timers.
     expect(clock.countTimers()).to.eq(0);
     task.resume();
+    // Run out any existing timers. <-- this is what needs to be checked.
     await clock.runAllAsync();
 
     // Run all timers
