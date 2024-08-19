@@ -145,19 +145,6 @@ describe('Firebase Storage > Requests', () => {
 
   const metadataContentType = 'application/json; charset=utf-8';
 
-  function readBlob(blob: Blob): Promise<string> {
-    const reader = new FileReader();
-    reader.readAsText(blob);
-    return new Promise((resolve, reject) => {
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => {
-        reject(reader.error as Error);
-      };
-    });
-  }
-
   async function assertBodyEquals(
     body: Blob | string | Uint8Array | null,
     expectedStr: string
@@ -167,9 +154,11 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (typeof Blob !== 'undefined' && body instanceof Blob) {
-      return readBlob(body).then(str => {
+      return body.text().then(str => {
         assert.equal(str, expectedStr);
-      });
+      }).catch(err => {
+        return Promise.reject(err);
+      })
     } else if (body instanceof Uint8Array) {
       const str = decodeUint8Array(body);
       assert.equal(str, expectedStr);
