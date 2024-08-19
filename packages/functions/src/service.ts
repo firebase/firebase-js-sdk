@@ -122,7 +122,7 @@ export class FunctionsService implements _FirebaseService {
     // Resolve the region or custom domain overload by attempting to parse it.
     try {
       const url = new URL(regionOrCustomDomain);
-      this.customDomain = url.origin;
+      this.customDomain = url.origin + url.pathname;
       this.region = DEFAULT_REGION;
     } catch (e) {
       this.customDomain = null;
