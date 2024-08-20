@@ -31,7 +31,7 @@ body:
     id: operating-system
     attributes:
       label: Operating System
-      description: Describe the operating system where you are experiencing the issue.
+      description: Describe the operating system(s) where you are experiencing the issue.
       placeholder: ex. iOS 16.4, macOS Ventura 13.4, Windows 11
     validations:
       required: true
