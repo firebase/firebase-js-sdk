@@ -31,7 +31,7 @@ body:
     id: operating-system
     attributes:
       label: Operating System
-      description: Describe your operating system
+      description: Describe the operating system where you are experiencing the issue.
       placeholder: ex. iOS 16.4, macOS Ventura 13.4, Windows 11
     validations:
       required: true
@@ -55,7 +55,7 @@ body:
     id: firebase-sdk-products
     attributes:
       label: Firebase SDK Product(s)
-      description: Select the Firebase product(s) relevant to your issue.
+      description: Select the Firebase product(s) relevant to your issue. You can select multiple options in the dropdown.
       multiple: true
       options:
         - Analytics
