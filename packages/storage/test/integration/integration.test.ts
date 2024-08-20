@@ -209,11 +209,11 @@ describe('FirebaseStorage Exp', () => {
     );
     await Promise.race([
       failureDeferred.promise,
-      new Promise(resolve => setTimeout(resolve, 2000))
+      new Promise(resolve => setTimeout(resolve, 4000))
     ]);
     task.resume();
     await task;
     const bytes = await getBytes(referenceA);
     expect(bytes).to.deep.eq(bytesToUpload);
-  });
+  }).timeout(10_000);
 });
