@@ -154,11 +154,14 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (typeof Blob !== 'undefined' && body instanceof Blob) {
-      return body.text().then(str => {
-        assert.equal(str, expectedStr);
-      }).catch(err => {
-        return Promise.reject(err);
-      })
+      return body
+        .text()
+        .then(str => {
+          assert.equal(str, expectedStr);
+        })
+        .catch(err => {
+          return Promise.reject(err);
+        });
     } else if (body instanceof Uint8Array) {
       const str = decodeUint8Array(body);
       assert.equal(str, expectedStr);
