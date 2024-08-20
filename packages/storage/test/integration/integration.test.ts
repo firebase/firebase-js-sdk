@@ -209,7 +209,7 @@ describe('FirebaseStorage Exp', () => {
     );
     await Promise.race([
       failureDeferred.promise,
-      new Promise(resolve => setTimeout(resolve, 4000))
+      new Promise(resolve => setTimeout(resolve, 2000))
     ]);
     task.resume();
     await task;
