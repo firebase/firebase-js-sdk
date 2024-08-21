@@ -518,8 +518,7 @@ export interface ActionCodeSettings {
   /**
    * The optional custom Firebase Hosting domain to use when the link is to be opened via
    * a specified mobile app. The domain must be configured in Firebase Hosting and owned
-   * by the project.
-   * This is a replacement of the Dynamic Link.
+   * by the project. This cannot be a default hosting domain (web.app or firebaseapp.com).
    * @defaultValue The default hosting domain will be used (for example, `example.firebaseapp.com`)
    */
   linkDomain?: string;
