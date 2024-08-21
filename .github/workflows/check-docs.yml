@@ -37,8 +37,10 @@ jobs:
       run: yarn docgen:all
     - name: Check for changes in docs-devsite dir (fail if so)
       run: |
-        if [[ -n "$git status docs-devsite --porcelain" ]]; then
+        STATUS=$(git status docs-devsite --porcelain)
+        if [[ -n "$STATUS" ]]; then
           echo "Unstaged changes detected:"
+          git status -s
           exit 1
         fi
     - name: Reference documentation needs to be updated. See message below.
