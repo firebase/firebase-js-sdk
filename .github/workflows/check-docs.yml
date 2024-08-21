@@ -37,7 +37,7 @@ jobs:
       run: yarn docgen:all
     - name: Check for changes in docs-devsite dir (fail if so)
       run: |
-        if [[ -n "$git status docs-devsite --porcelain" ]]; then
+        if [[ -n "$(git status docs-devsite --porcelain)" ]]; then
           echo "Unstaged changes detected:"
           git status -s
           exit 1
