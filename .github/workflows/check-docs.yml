@@ -14,7 +14,7 @@
 
 name: Doc Change Check (Run "yarn docgen:all" if this fails)
 
-on: pull_request
+on: push
 
 jobs:
   doc-check:
@@ -36,7 +36,11 @@ jobs:
     - name: Run doc generation
       run: yarn docgen:all
     - name: Check for changes in docs-devsite dir (fail if so)
-      run: git diff --exit-code docs-devsite
+      run: |
+        if [[ -n "$git status docs-devsite --porcelain" ]]; then
+          echo "Unstaged changes detected:"
+          exit 1
+        fi
     - name: Reference documentation needs to be updated. See message below.
       if: ${{ failure() }}
       run: echo "Changes in this PR affect the reference docs. Run \`yarn docgen:all\` locally to regenerate docs and add them to this PR."
