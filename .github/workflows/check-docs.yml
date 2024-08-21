@@ -14,7 +14,7 @@
 
 name: Doc Change Check (Run "yarn docgen:all" if this fails)
 
-on: push
+on: pull_request
 
 jobs:
   doc-check:
@@ -37,8 +37,7 @@ jobs:
       run: yarn docgen:all
     - name: Check for changes in docs-devsite dir (fail if so)
       run: |
-        STATUS=$(git status docs-devsite --porcelain)
-        if [[ -n "$STATUS" ]]; then
+        if [[ -n "$git status docs-devsite --porcelain" ]]; then
           echo "Unstaged changes detected:"
           git status -s
           exit 1
