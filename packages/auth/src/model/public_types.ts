@@ -504,7 +504,7 @@ export interface ActionCodeSettings {
    * - When the link is handled in the web action widgets, this is the deep link in the
    * `continueUrl` query parameter.
    * - When the link is handled in the app directly, this is the `continueUrl` query parameter in
-   * the deep link of the Dynamic Link.
+   * the deep link of the Dynamic Link or Hosting Link.
    */
   url: string;
   /**
@@ -515,6 +515,13 @@ export interface ActionCodeSettings {
    * @defaultValue The first domain is automatically selected.
    */
   dynamicLinkDomain?: string;
+  /**
+   * The optional custom Firebase Hosting domain to use when the link is to be opened via
+   * a specified mobile app. The domain must be configured in Firebase Hosting and owned
+   * by the project. This cannot be a default hosting domain (web.app or firebaseapp.com).
+   * @defaultValue The default hosting domain will be used (for example, `example.firebaseapp.com`)
+   */
+  linkDomain?: string;
 }
 
 /**

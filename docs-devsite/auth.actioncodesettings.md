@@ -26,6 +26,7 @@ export interface ActionCodeSettings
 |  [dynamicLinkDomain](./auth.actioncodesettings.md#actioncodesettingsdynamiclinkdomain) | string | When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). |
 |  [handleCodeInApp](./auth.actioncodesettings.md#actioncodesettingshandlecodeinapp) | boolean | When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. |
 |  [iOS](./auth.actioncodesettings.md#actioncodesettingsios) | { bundleId: string; } | Sets the iOS bundle ID. |
+|  [linkDomain](./auth.actioncodesettings.md#actioncodesettingslinkdomain) | string | The optional custom Firebase Hosting domain to use when the link is to be opened via a specified mobile app. The domain must be configured in Firebase Hosting and owned by the project. This cannot be a default hosting domain (web.app or firebaseapp.com). |
 |  [url](./auth.actioncodesettings.md#actioncodesettingsurl) | string | Sets the link continue/state URL. |
 
 ## ActionCodeSettings.android
@@ -82,11 +83,21 @@ iOS?: {
     };
 ```
 
+## ActionCodeSettings.linkDomain
+
+The optional custom Firebase Hosting domain to use when the link is to be opened via a specified mobile app. The domain must be configured in Firebase Hosting and owned by the project. This cannot be a default hosting domain (web.app or firebaseapp.com).
+
+<b>Signature:</b>
+
+```typescript
+linkDomain?: string;
+```
+
 ## ActionCodeSettings.url
 
 Sets the link continue/state URL.
 
-This has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the `continueUrl` query parameter. - When the link is handled in the app directly, this is the `continueUrl` query parameter in the deep link of the Dynamic Link.
+This has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the `continueUrl` query parameter. - When the link is handled in the app directly, this is the `continueUrl` query parameter in the deep link of the Dynamic Link or Hosting Link.
 
 <b>Signature:</b>
 
