@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VectorValue class
-Represents a vector type in Firestore documents. Create an instance with .
+Represents a vector type in Firestore documents. Create an instance with `VectorValue.fromArray(array)`<!-- -->.
 
  VectorValue
 
@@ -24,12 +24,12 @@ export declare class VectorValue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [isEqual(other)](./firestore_lite.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two VectorValue has the same raw number arrays, returns <code>false</code> otherwise. |
+|  [isEqual(other)](./firestore_lite.vectorvalue.md#vectorvalueisequal) |  | Returns <code>true</code> if the two <code>VectorValue</code> values have the same raw number arrays, returns <code>false</code> otherwise. |
 |  [toArray()](./firestore_lite.vectorvalue.md#vectorvaluetoarray) |  | Returns a copy of the raw number array form of the vector. |
 
 ## VectorValue.isEqual()
 
-Returns `true` if the two VectorValue has the same raw number arrays, returns `false` otherwise.
+Returns `true` if the two `VectorValue` values have the same raw number arrays, returns `false` otherwise.
 
 <b>Signature:</b>
 

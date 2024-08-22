@@ -19,7 +19,7 @@ import { isPrimitiveArrayEqual } from '../util/array';
 
 /**
  * Represents a vector type in Firestore documents.
- * Create an instance with {@link FieldValue.vector}.
+ * Create an instance with `VectorValue.fromArray(array)`.
  *
  * @class VectorValue
  */
@@ -43,7 +43,7 @@ export class VectorValue {
   }
 
   /**
-   * Returns `true` if the two VectorValue has the same raw number arrays, returns `false` otherwise.
+   * Returns `true` if the two `VectorValue` values have the same raw number arrays, returns `false` otherwise.
    */
   isEqual(other: VectorValue): boolean {
     return isPrimitiveArrayEqual(this._values, other._values);
