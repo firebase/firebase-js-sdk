@@ -75,7 +75,7 @@ const config = {
   plugins: [
     // We use our own custom Safari launcher plugin since https://github.com/karma-runner/karma-safari-launcher
     // does not work and is not maintained.
-    require('../tools/karma-safari-launcher'),
+    require('../scripts/ci-test/karmaSafariLauncher.js'),
     // Include all other plugins from our npm modules
     'karma-*'
   ],
