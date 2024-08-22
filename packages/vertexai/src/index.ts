@@ -1,5 +1,5 @@
 /**
- * The Vertex AI in Firebase SDK.
+ * The Vertex AI in Firebase Web SDK.
  *
  * @packageDocumentation
  */

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # vertexai-preview package
-The Vertex AI in Firebase SDK.
+The Vertex AI in Firebase Web SDK.
 
 ## Functions
 
