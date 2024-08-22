@@ -22,7 +22,7 @@ Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Prov
 |  [initializeAppCheck(app, options)](./app-check.md#initializeappcheck_5548dfc) | Activate App Check for the given app. Can be called only once per app. |
 |  <b>function(appCheckInstance, ...)</b> |
 |  [getLimitedUseToken(appCheckInstance)](./app-check.md#getlimitedusetoken_53ef5e3) | Requests a Firebase App Check token. This method should be used only if you need to authorize requests to a non-Firebase backend.<!-- -->Returns limited-use tokens that are intended for use with your non-Firebase backend endpoints that are protected with <a href="https://firebase.google.com/docs/app-check/custom-resource-backend#replay-protection"> Replay Protection</a>. This method does not affect the token generation behavior of the \#getAppCheckToken() method. |
-|  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken_39fc1b3) | Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight. |
+|  [getToken(appCheckInstance, forceRefresh)](./app-check.md#gettoken_39fc1b3) | Get the current App Check token. If <code>forceRefresh</code> is false, it first checks for a valid token in memory, then local persistence (IndexedDB). If not found, or if <code>forceRefresh</code> is true, it makes a request to the App Check endpoint for a fresh token. That request attaches to the most recent in-flight request if one is present. |
 |  [onTokenChanged(appCheckInstance, observer)](./app-check.md#ontokenchanged_9761e16) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
 |  [onTokenChanged(appCheckInstance, onNext, onError, onCompletion)](./app-check.md#ontokenchanged_8ef80a7) | Registers a listener to changes in the token state. There can be more than one listener registered at the same time for one or more App Check instances. The listeners call back on the UI thread whenever the current token associated with this App Check instance changes. |
 |  [setTokenAutoRefreshEnabled(appCheckInstance, isTokenAutoRefreshEnabled)](./app-check.md#settokenautorefreshenabled_057a76c) | Set whether App Check will automatically refresh tokens as needed. |
@@ -102,7 +102,7 @@ The limited use token.
 
 ### getToken(appCheckInstance, forceRefresh) {:#gettoken_39fc1b3}
 
-Get the current App Check token. Attaches to the most recent in-flight request if one is present. Returns null if no token is present and no token requests are in-flight.
+Get the current App Check token. If `forceRefresh` is false, it first checks for a valid token in memory, then local persistence (IndexedDB). If not found, or if `forceRefresh` is true, it makes a request to the App Check endpoint for a fresh token. That request attaches to the most recent in-flight request if one is present.
 
 <b>Signature:</b>
 
