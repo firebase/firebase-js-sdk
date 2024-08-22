@@ -124,7 +124,7 @@ jobs:
       - name: build
         run: yarn build:changed auth
       - name: Run tests on auth changed packages
-        run: xvfb-run yarn test:changed auth
+        run: yarn test:changed auth
         env:
           BROWSERS: 'Safari'
 
