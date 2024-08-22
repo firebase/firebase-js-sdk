@@ -102,3 +102,29 @@ jobs:
         run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
+
+  test-safari:
+    name: Test Auth on Safari If Changed
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          # This makes Actions fetch all Git history so run-changed script can diff properly.
+          fetch-depth: 0
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup and yarn install
+        run: |
+          cp config/ci.config.json config/project.json
+          yarn
+      - name: build
+        run: yarn build:changed auth
+      - name: Run tests on auth changed packages
+        run: xvfb-run yarn test:changed auth
+        env:
+          BROWSERS: 'Safari'
+
