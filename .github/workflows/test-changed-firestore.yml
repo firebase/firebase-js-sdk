@@ -230,6 +230,63 @@ jobs:
         env:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
+  
+  compat-test-safari:
+    name: Test Firestore Compatible on Firefox
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci
+        env:
+          BROWSERS: 'Safari'
+
+  test-safari:
+    name: Test Firestore on Safari
+    strategy:
+      matrix:
+        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          BROWSERS: 'Safari'
+          EXPERIMENTAL_MODE: true
+
 
   # A job that fails if any required job in the test matrix fails,
   # to be used as a required check for merging.
