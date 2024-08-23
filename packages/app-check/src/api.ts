@@ -187,7 +187,7 @@ export function setTokenAutoRefreshEnabled(
   state.isTokenAutoRefreshEnabled = isTokenAutoRefreshEnabled;
 }
 /**
- * Get the current App Check token. If `forceRefresh` is false, it first
+ * Get the current App Check token. If `forceRefresh` is false, this function first
  * checks for a valid token in memory, then local persistence (IndexedDB).
  * If not found, or if `forceRefresh` is true, it makes a request to the
  * App Check endpoint for a fresh token. That request attaches
