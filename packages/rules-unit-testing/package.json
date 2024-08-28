@@ -20,7 +20,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=18.0.0"
   },
   "files": [
     "dist"

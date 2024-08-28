@@ -6,7 +6,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "engines": {
-    "node": "^8.13.0 || >=10.10.0"
+    "node": ">=18.0.0"
   },
   "homepage": "https://github.com/firebase/firebase-js-sdk",
   "keywords": [
