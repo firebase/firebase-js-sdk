@@ -23,6 +23,7 @@ import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
 import { DataConnectTransport } from '.';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -33,14 +34,16 @@ export class RESTTransport implements DataConnectTransport {
   private _project = 'p';
   private _serviceName: string;
   private _accessToken: string | null = null;
+  private _appCheckToken: string | null = null;
   private _authInitialized = false;
   private _lastToken: string | null = null;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
     private authProvider?: AuthTokenProvider | undefined,
+    private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false
+    private _isUsingGen = false,
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {
@@ -69,6 +72,11 @@ export class RESTTransport implements DataConnectTransport {
     this.authProvider?.addTokenChangeListener(token => {
       logDebug(`New Token Available: ${token}`);
       this._accessToken = token;
+    });
+    this.appCheckProvider?.addTokenChangeListener(result => {
+      const { token } = result;
+      logDebug(`New App Check Token Available: ${token}`);
+      this._appCheckToken = token;
     });
   }
   get endpointUrl(): string {
@@ -168,6 +176,7 @@ export class RESTTransport implements DataConnectTransport {
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
         this._accessToken,
+        this._appCheckToken,
         this._isUsingGen
       )
     );
@@ -195,6 +204,7 @@ export class RESTTransport implements DataConnectTransport {
         } as unknown as U,
         abortController,
         this._accessToken,
+        this._appCheckToken,
         this._isUsingGen
       );
     });

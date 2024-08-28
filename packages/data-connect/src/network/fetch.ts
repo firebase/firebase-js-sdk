@@ -35,6 +35,7 @@ export function dcFetch<T, U>(
   body: U,
   { signal }: AbortController,
   accessToken: string | null,
+  appCheckToken: string | null,
   _isUsingGen: boolean
 ): Promise<{ data: T; errors: Error[] }> {
   if (!connectFetch) {
@@ -46,6 +47,9 @@ export function dcFetch<T, U>(
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
+  }
+  if (appCheckToken) {
+    headers['X-Firebase-AppCheck'] = appCheckToken;
   }
   const bodyStr = JSON.stringify(body);
   logDebug(`Making request out to ${url} with body: ${bodyStr}`);

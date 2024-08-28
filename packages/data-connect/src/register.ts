@@ -36,6 +36,7 @@ export function registerDataConnect(variant?: string): void {
       (container, { instanceIdentifier: settings, options }) => {
         const app = container.getProvider('app').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
+        const appCheckProvider = container.getProvider('app-check-internal');
         let newOpts = options as ConnectorConfig;
         if (settings) {
           newOpts = JSON.parse(settings);
@@ -49,7 +50,8 @@ export function registerDataConnect(variant?: string): void {
         return new DataConnect(
           app,
           { ...newOpts, projectId: app.options.projectId! },
-          authProvider
+          authProvider,
+          appCheckProvider
         );
       },
       ComponentType.PUBLIC
