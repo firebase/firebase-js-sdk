@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { deleteApp, FirebaseApp } from '@firebase/app';
 import { uuidv4 } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -34,10 +35,13 @@ import {
   terminate,
   SOURCE_CACHE,
   SOURCE_SERVER
-} from '../src';
-
-import { setupQueries } from './emulatorSeeder';
-import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
+} from '../../../src';
+import {
+  getConnectionConfig,
+  initApp,
+  initDatabase,
+  PROJECT_ID
+} from '../../util';
 
 use(chaiAsPromised);
 
@@ -86,19 +90,19 @@ async function deleteDatabase(instance: DataConnect): Promise<void> {
   }
 }
 
-describe('DataConnect Tests', async () => {
+describe('Query Tests', async () => {
   let dc: DataConnect;
+  let app: FirebaseApp;
   beforeEach(async () => {
+    // eslint-disable-next-line no-unused-vars
+    app = initApp();
     dc = initDatabase();
-    await setupQueries('queries.schema.gql', [
-      { type: 'query', name: 'post' },
-      { type: 'mutation', name: 'mutations' }
-    ]);
     await seedDatabase(dc);
   });
   afterEach(async () => {
     await deleteDatabase(dc);
     await terminate(dc);
+    await deleteApp(app);
   });
   it('Can get all posts', async () => {
     const taskListQuery = queryRef<TaskListResponse>(dc, 'listPosts');
@@ -155,7 +159,13 @@ describe('DataConnect Tests', async () => {
       },
       source: SOURCE_CACHE
     };
-    expect(result.toJSON()).to.deep.eq(serializedRef);
+    expect(result.toJSON().refInfo).to.deep.eq(serializedRef.refInfo);
+    expect(result.toJSON().data).to.deep.eq(serializedRef.data);
+    const unformatedResult = Number(
+      result.toJSON().fetchTime.replace(/,/g, '')
+    );
+    const unformatedRef = Number(serializedRef.fetchTime.replace(/,/g, ''));
+    expect(unformatedResult).to.be.greaterThanOrEqual(unformatedRef);
     expect(result.source).to.deep.eq(SOURCE_CACHE);
   });
   it(`throws an error when the user can't connect to the server`, async () => {
@@ -165,10 +175,10 @@ describe('DataConnect Tests', async () => {
       location: 'wrong',
       service: 'wrong'
     });
-    connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
+    connectDataConnectEmulator(fakeInstance, 'localhost', 5512);
     const taskListQuery = queryRef<TaskListResponse>(fakeInstance, 'listPosts');
     await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
-      'ECONNREFUSED'
+      'Failed to fetch'
     );
   });
   it('throws an error with just the message when the server responds with an error', async () => {

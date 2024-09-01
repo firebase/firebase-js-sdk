@@ -1,4 +1,0 @@
-mutation seeddatabase @auth(level: PUBLIC) {
-    post1: post_insert(data: {content: "do dishes"})
-    post2: post_insert(data: {content: "schedule appointment"})
-}

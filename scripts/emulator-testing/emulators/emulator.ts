@@ -97,10 +97,13 @@ export abstract class Emulator {
       }
       let promise: ChildProcessPromise<SpawnPromiseResult>;
       if (!this.isJar) {
+        // TODO(mtewani): Make this more extensible, and less data connect specific
         promise = spawn(this.binaryPath, [
+          '--logtostderr',
+          '--v=2',
           'dev',
-          '--local_connection_string',
-          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+          `--listen=127.0.0.1:${this.port},[::1]:${this.port}`,
+          '--config_dir=../../packages/data-connect/test/integration/dataconnect'
         ]);
       } else {
         promise = spawn(
