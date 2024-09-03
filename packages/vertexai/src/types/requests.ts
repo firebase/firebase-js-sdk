@@ -22,6 +22,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
+import { SchemaType } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -178,32 +179,14 @@ export declare interface FunctionDeclarationsTool {
 }
 
 /**
- * Contains the list of OpenAPI data types
- * as defined by https://swagger.io/docs/specification/data-models/data-types/
- * @public
- */
-export enum FunctionDeclarationSchemaType {
-  /** String type. */
-  STRING = 'STRING',
-  /** Number type. */
-  NUMBER = 'NUMBER',
-  /** Integer type. */
-  INTEGER = 'INTEGER',
-  /** Boolean type. */
-  BOOLEAN = 'BOOLEAN',
-  /** Array type. */
-  ARRAY = 'ARRAY',
-  /** Object type. */
-  OBJECT = 'OBJECT'
-}
-
-/**
  * Schema for parameters passed to {@link FunctionDeclaration.parameters}.
+ * For function declarations, the top level {@link Schema} type must be
+ * type `object`.
  * @public
  */
 export interface FunctionDeclarationSchema {
   /** The type of the parameter. */
-  type: FunctionDeclarationSchemaType;
+  type: SchemaType.OBJECT;
   /** The format of the parameter. */
   properties: { [k: string]: FunctionDeclarationSchemaProperty };
   /** Optional. Description of the parameter. */
@@ -221,9 +204,9 @@ export interface FunctionDeclarationSchema {
 export interface FunctionDeclarationSchemaProperty {
   /**
    * Optional. The type of the property. {@link
-   * FunctionDeclarationSchemaType}.
+   * SchemaType}.
    */
-  type?: FunctionDeclarationSchemaType;
+  type?: SchemaType;
   /** Optional. The format of the property. */
   format?: string;
   /** Optional. The description of the property. */
