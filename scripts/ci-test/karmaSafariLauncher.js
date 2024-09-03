@@ -19,6 +19,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const rimraf = require("rimraf");
 
 var SafariBrowser = function (baseBrowserDecorator) {
   baseBrowserDecorator(this);
@@ -33,8 +34,26 @@ var SafariBrowser = function (baseBrowserDecorator) {
   );
   const HTML_TRAMPOLINE_PATH = path.join(SAFARI_DATA_DIR, 'redirect.html');
 
+  function clearSafariData() {
+    const directoriesToClear = [
+      path.join(SAFARI_DATA_DIR, 'Library/Caches'),
+      path.join(SAFARI_DATA_DIR, 'Library/Cookies'),
+      path.join(SAFARI_DATA_DIR, 'Library/Safari'),
+      path.join(SAFARI_DATA_DIR, 'Library/WebKit'),
+    ]
+
+    directoriesToClear.forEach((dir) => {
+      if (fs.existsSync(dir)) {
+        rimraf.sync(dir);
+      }
+    })
+  }
+
   this._start = function (url) {
     var self = this;
+
+    // Clear cookies and other persisted data before starting the browser
+    clearSafariData();
 
     // HTML trampoline to redirect Safari to the URL where the tests are hosted.
     // This is necessary because Safari assumes the location we pass as an argument is a path
