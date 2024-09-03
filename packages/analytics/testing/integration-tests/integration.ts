@@ -50,7 +50,6 @@ async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
   if (callsWithEvent.length === 0) {
     return checkForEventCalls(retryCount + 1);
   } else {
-    console.log('Events: ', JSON.stringify(callsWithEvent));
     return callsWithEvent;
   }
 }
