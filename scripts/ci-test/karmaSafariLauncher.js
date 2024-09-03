@@ -19,7 +19,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const rimraf = require("rimraf");
+const rimraf = require('rimraf');
 
 var SafariBrowser = function (baseBrowserDecorator) {
   baseBrowserDecorator(this);
@@ -39,14 +39,14 @@ var SafariBrowser = function (baseBrowserDecorator) {
       path.join(SAFARI_DATA_DIR, 'Library/Caches'),
       path.join(SAFARI_DATA_DIR, 'Library/Cookies'),
       path.join(SAFARI_DATA_DIR, 'Library/Safari'),
-      path.join(SAFARI_DATA_DIR, 'Library/WebKit'),
-    ]
+      path.join(SAFARI_DATA_DIR, 'Library/WebKit')
+    ];
 
-    directoriesToClear.forEach((dir) => {
+    directoriesToClear.forEach(dir => {
       if (fs.existsSync(dir)) {
         rimraf.sync(dir);
       }
-    })
+    });
   }
 
   this._start = function (url) {

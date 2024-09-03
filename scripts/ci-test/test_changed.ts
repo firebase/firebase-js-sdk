@@ -59,7 +59,12 @@ async function runTests(config: TestConfig) {
       process.exit(0);
     }
 
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+    const lernaCmd = ['lerna', 'run'];
+    // Since the tests run in Safari are not headless, they share some global state when
+    // run concurrently, so we should run them serially.
+    if (process.env?.BROWSERS?.includes('Safari')) {
+      lernaCmd.push('--concurrency', '1');
+    }
     console.log(chalk`{blue Running tests in:}`);
     for (const task of testTasks) {
       if (task.reason === TestReason.Changed) {
