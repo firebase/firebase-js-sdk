@@ -50,7 +50,7 @@ async function checkForEventCalls(retryCount = 0): Promise<PerformanceEntry[]> {
   if (callsWithEvent.length === 0) {
     return checkForEventCalls(retryCount + 1);
   } else {
-    console.log("Events: ", JSON.stringify(callsWithEvent));
+    console.log('Events: ', JSON.stringify(callsWithEvent));
     return callsWithEvent;
   }
 }
@@ -62,10 +62,12 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
   // This is required since gtag/logEvent behaviour is dependent on the session state; if an event has already been logged
   // in a session, the event will be sent in the request payload instead of the query string.
   beforeEach(() => {
-    document.cookie.split(";").forEach((cookie) => {
-    document.cookie = cookie.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+    document.cookie.split(';').forEach(cookie => {
+      document.cookie = cookie
+        .replace(/^ +/, '')
+        .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
     });
-  })
+  });
 
   describe('Using getAnalytics()', () => {
     afterEach(() => deleteApp(app));
