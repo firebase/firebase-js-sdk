@@ -211,6 +211,15 @@ export class StringSchema extends Schema {
     }
     return obj as SchemaRequest;
   }
+
+  toJSON(): Record<string, unknown> {
+    const obj = super.toJSON();
+    if (this.enumValues) {
+      obj['enum'] = this.enumValues;
+      delete obj.enumValues;
+    }
+    return obj;
+  }
 }
 
 /**
