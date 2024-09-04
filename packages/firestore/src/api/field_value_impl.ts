@@ -20,5 +20,6 @@ export {
   arrayRemove,
   arrayUnion,
   serverTimestamp,
-  deleteField
+  deleteField,
+  vector
 } from '../lite-api/field_value_impl';

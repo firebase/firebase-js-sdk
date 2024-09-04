@@ -21,12 +21,27 @@ import { FirebaseApp, deleteApp } from '@firebase/app';
 import { getStream, ref, uploadBytes } from '../../src/index.node';
 import * as types from '../../src/public-types';
 
-async function readData(reader: NodeJS.ReadableStream): Promise<number[]> {
-  return new Promise<number[]>((resolve, reject) => {
-    const data: number[] = [];
-    reader.on('error', e => reject(e));
-    reader.on('data', chunk => data.push(...Array.from(chunk as Buffer)));
-    reader.on('end', () => resolve(data));
+// See: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader
+async function readData(readableStream: ReadableStream): Promise<Uint8Array> {
+  return new Promise<Uint8Array>((resolve, reject) => {
+    const reader: ReadableStreamDefaultReader = readableStream.getReader();
+    const result: any[] = [];
+    reader
+      .read()
+      .then(function processBytes({ done, value }): any {
+        if (done) {
+          resolve(new Uint8Array(result));
+          return;
+        }
+
+        result.push(...value);
+        return reader.read().then(processBytes);
+      })
+      .catch(err => {
+        console.error(err);
+        reject(err);
+        return;
+      });
   });
 }
 
@@ -46,19 +61,17 @@ describe('Firebase Storage > getStream', () => {
   it('can get stream', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
-    const stream = await getStream(reference);
+    const stream = getStream(reference);
     const data = await readData(stream);
-    expect(new Uint8Array(data)).to.deep.equal(
-      new Uint8Array([0, 1, 3, 128, 255])
-    );
+    expect(data).to.deep.equal(new Uint8Array([0, 1, 3, 128, 255]));
   });
 
   it('can get first n bytes of stream', async () => {
     const reference = ref(storage, 'public/exp-bytes');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
-    const stream = await getStream(reference, 2);
+    const stream = getStream(reference, 2);
     const data = await readData(stream);
-    expect(new Uint8Array(data)).to.deep.equal(new Uint8Array([0, 1]));
+    expect(data).to.deep.equal(new Uint8Array([0, 1]));
   });
 
   it('getStream() throws for missing file', async () => {

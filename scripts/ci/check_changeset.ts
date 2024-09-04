@@ -26,7 +26,7 @@ import fs from 'mz/fs';
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
-const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'master';
+const baseRef = process.env.GITHUB_PULL_REQUEST_BASE_SHA || 'main';
 const headRef = process.env.GITHUB_PULL_REQUEST_HEAD_SHA || 'HEAD';
 
 const githubOutputFile = (function (): string {
@@ -136,7 +136,10 @@ async function main() {
     await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
   } catch (e) {
     const error = e as Error;
-    if (error.message.match('No changesets present')) {
+    if (
+      error.message.match('No changesets present') ||
+      error.message.match('no changesets were found')
+    ) {
       await exec(`echo "BLOCKING_FAILURE=false" >> $GITHUB_OUTPUT`);
     } else {
       const messageLines = error.message.replace(/🦋  error /g, '').split('\n');

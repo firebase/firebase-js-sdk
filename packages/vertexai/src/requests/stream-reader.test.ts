@@ -174,7 +174,7 @@ describe('processStream', () => {
   });
   it('unknown enum - should ignore', async () => {
     const fakeResponse = getMockResponseStreaming(
-      'streaming-success-unknown-enum.txt'
+      'streaming-success-unknown-safety-enum.txt'
     );
     const result = processStream(fakeResponse as Response);
     const aggregatedResponse = await result.response;

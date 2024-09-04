@@ -485,5 +485,6 @@ export class OnlineComponentProvider {
   async terminate(): Promise<void> {
     await remoteStoreShutdown(this.remoteStore);
     this.datastore?.terminate();
+    this.eventManager?.terminate();
   }
 }
