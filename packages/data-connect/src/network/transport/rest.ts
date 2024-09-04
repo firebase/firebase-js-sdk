@@ -35,7 +35,6 @@ export class RESTTransport implements DataConnectTransport {
   private _serviceName: string;
   private _accessToken: string | null = null;
   private _appCheckToken: string | null = null;
-  private _authInitialized = false;
   private _lastToken: string | null = null;
   constructor(
     options: DataConnectOptions,
@@ -103,24 +102,25 @@ export class RESTTransport implements DataConnectTransport {
     this._accessToken = newToken;
   }
 
-  getWithAuth(forceToken = false): Promise<string> {
+  async getWithAuth(forceToken = false): Promise<string> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );
-    if (!this._authInitialized) {
-      if (this.authProvider) {
-        starterPromise = this.authProvider
-          .getToken(/*forceToken=*/ forceToken)
-          .then(data => {
-            if (!data) {
-              return null;
-            }
-            this._accessToken = data.accessToken;
-            return this._accessToken;
-          });
-      } else {
-        starterPromise = new Promise(resolve => resolve(''));
-      }
+    if (this.appCheckProvider) {
+      this._appCheckToken = (await this.appCheckProvider.getToken()).token;
+    }
+    if (this.authProvider) {
+      starterPromise = this.authProvider
+        .getToken(/*forceToken=*/ forceToken)
+        .then(data => {
+          if (!data) {
+            return null;
+          }
+          this._accessToken = data.accessToken;
+          return this._accessToken;
+        });
+    } else {
+      starterPromise = new Promise(resolve => resolve(''));
     }
     return starterPromise;
   }

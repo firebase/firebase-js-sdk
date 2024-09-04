@@ -4,6 +4,9 @@
 
 ```ts
 
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
+import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
@@ -11,6 +14,15 @@ import { FirebaseError } from '@firebase/util';
 import { FirebaseOptions } from '@firebase/app-types';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
+
+// @public
+export class AppCheckTokenProvider {
+    constructor(appName_: string, appCheckProvider?: Provider<AppCheckInternalComponentName>);
+    // (undocumented)
+    addTokenChangeListener(listener: AppCheckTokenListener): void;
+    // (undocumented)
+    getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
+}
 
 // @public (undocumented)
 export type AuthTokenListener = (token: string | null) => void;
@@ -46,7 +58,7 @@ export interface ConnectorConfig {
 
 // @public
 export class DataConnect {
-    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>);
+    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>, _appCheckProvider: Provider<AppCheckInternalComponentName>);
     // (undocumented)
     readonly app: FirebaseApp;
     // (undocumented)
@@ -283,7 +295,7 @@ export function terminate(dataConnect: DataConnect): Promise<void>;
 export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
 
 // @public (undocumented)
-export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
+export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, appCheckProvider?: AppCheckTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 
 // @public
 export interface TransportOptions {
