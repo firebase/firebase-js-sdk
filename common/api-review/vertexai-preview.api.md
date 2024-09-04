@@ -203,42 +203,8 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description?: string;
     name: string;
-    parameters?: FunctionDeclarationSchema;
-}
-
-// @public
-export interface FunctionDeclarationSchema {
-    description?: string;
-    properties: {
-        [k: string]: FunctionDeclarationSchemaProperty;
-    };
-    required?: string[];
-    type: FunctionDeclarationSchemaType;
-}
-
-// @public
-export interface FunctionDeclarationSchemaProperty {
-    description?: string;
-    enum?: string[];
-    example?: unknown;
-    format?: string;
-    items?: FunctionDeclarationSchema;
-    nullable?: boolean;
-    properties?: {
-        [k: string]: FunctionDeclarationSchema;
-    };
-    required?: string[];
-    type?: FunctionDeclarationSchemaType;
-}
-
-// @public
-export enum FunctionDeclarationSchemaType {
-    ARRAY = "ARRAY",
-    BOOLEAN = "BOOLEAN",
-    INTEGER = "INTEGER",
-    NUMBER = "NUMBER",
-    OBJECT = "OBJECT",
-    STRING = "STRING"
+    // Warning: (ae-forgotten-export) The symbol "ObjectSchema" needs to be exported by the entry point index.d.ts
+    parameters?: ObjectSchema;
 }
 
 // @public
@@ -331,6 +297,10 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
+    // Warning: (ae-forgotten-export) The symbol "TypedSchema" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    responseSchema?: TypedSchema;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)

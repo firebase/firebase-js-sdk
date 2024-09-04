@@ -1,6 +1,6 @@
 import { SchemaInterface, SchemaType, SchemaParams } from '../types/schema';
 
-export class Schema implements SchemaInterface {
+export abstract class Schema implements SchemaInterface {
   /**
    * Optional. The type of the property. {@link
    * SchemaType}.
@@ -15,9 +15,9 @@ export class Schema implements SchemaInterface {
   format?: string;
   /** Optional. The description of the property. */
   description?: string;
-  /** Optional. Whether the property is nullable. */
+  /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;
-  /** Optional. Array of required property. */
+  /** Optional. Defaults to true. */
   required: boolean;
   /** Optional. The example of the property. */
   example?: unknown;
@@ -27,15 +27,22 @@ export class Schema implements SchemaInterface {
     this.format = schemaParams?.format;
     this.description = schemaParams?.description;
     this.example = schemaParams?.example;
-    this.nullable = schemaParams?.nullable || false;
-    this.required = schemaParams?.required || true;
+    this.nullable = schemaParams.hasOwnProperty('nullable')
+      ? !!schemaParams.nullable
+      : false;
+    this.required = schemaParams.hasOwnProperty('required')
+      ? !!schemaParams.required
+      : true;
   }
 
+  /** Converts class to a plain JSON object (not a string). */
   toJSON(): Record<string, unknown> {
     const obj: Record<string, unknown> = {};
     for (const prop in this) {
       if (this.hasOwnProperty(prop) && this[prop] !== undefined) {
-        obj[prop] = this[prop];
+        if (prop !== 'required' || this.type === SchemaType.OBJECT) {
+          obj[prop] = this[prop];
+        }
       }
     }
     return obj;
@@ -57,7 +64,17 @@ export class Schema implements SchemaInterface {
     return new ObjectSchema(objectParams, objectParams.properties);
   }
 
-  static createString(stringParams: SchemaParams): StringSchema {
+  static createFunctionDeclaration(
+    objectParams: SchemaParams & {
+      properties: {
+        [k: string]: Schema;
+      };
+    }
+  ): ObjectSchema {
+    return this.createObject(objectParams);
+  }
+
+  static createString(stringParams?: SchemaParams): StringSchema {
     return new StringSchema(stringParams);
   }
 
@@ -79,6 +96,14 @@ export class Schema implements SchemaInterface {
     return new BooleanSchema(booleanParams);
   }
 }
+
+export type TypedSchema =
+  | IntegerSchema
+  | NumberSchema
+  | StringSchema
+  | BooleanSchema
+  | ObjectSchema
+  | ArraySchema;
 
 export class IntegerSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
@@ -112,10 +137,19 @@ export class StringSchema extends Schema {
       ...schemaParams
     });
   }
+
+  toJSON(): Record<string, unknown> {
+    const obj = super.toJSON();
+    if (this.enumValues) {
+      obj['enum'] = this.enumValues;
+      delete obj.enumValues;
+    }
+    return obj;
+  }
 }
 
 export class ArraySchema extends Schema {
-  constructor(schemaParams: SchemaParams, public items: Schema) {
+  constructor(schemaParams: SchemaParams, public items: TypedSchema) {
     super({
       type: SchemaType.ARRAY,
       ...schemaParams
@@ -133,7 +167,7 @@ export class ObjectSchema extends Schema {
   constructor(
     schemaParams: SchemaParams,
     public properties: {
-      [k: string]: Schema;
+      [k: string]: TypedSchema;
     }
   ) {
     super({
@@ -145,12 +179,19 @@ export class ObjectSchema extends Schema {
   toJSON(): Record<string, unknown> {
     const obj = super.toJSON();
     const properties: Record<string, unknown> = {};
-    for (const property in this.properties) {
-      if (this.properties.hasOwnProperty(property)) {
-        properties[property] = this.properties[property].toJSON();
+    const required = [];
+    for (const propertyKey in this.properties) {
+      if (this.properties.hasOwnProperty(propertyKey)) {
+        properties[propertyKey] = this.properties[propertyKey].toJSON();
+        if (this.properties[propertyKey].required) {
+          required.push(propertyKey);
+        }
       }
     }
     obj.properties = properties;
+    if (required.length > 0) {
+      obj.required = required;
+    }
     return obj;
   }
 }

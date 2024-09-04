@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -22,7 +23,6 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
-import { SchemaType } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -87,6 +87,7 @@ export interface GenerationConfig {
    * This is a preview feature.
    */
   responseMimeType?: string;
+  responseSchema?: TypedSchema
 }
 
 /**
@@ -155,7 +156,7 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: FunctionDeclarationSchema;
+  parameters?: ObjectSchema;
 }
 
 /**
@@ -176,53 +177,6 @@ export declare interface FunctionDeclarationsTool {
    * declarations can be provided.
    */
   functionDeclarations?: FunctionDeclaration[];
-}
-
-/**
- * Schema for parameters passed to {@link FunctionDeclaration.parameters}.
- * For function declarations, the top level {@link Schema} type must be
- * type `object`.
- * @public
- */
-export interface FunctionDeclarationSchema {
-  /** The type of the parameter. */
-  type: SchemaType.OBJECT;
-  /** The format of the parameter. */
-  properties: { [k: string]: FunctionDeclarationSchemaProperty };
-  /** Optional. Description of the parameter. */
-  description?: string;
-  /** Optional. Array of required parameters. */
-  required?: string[];
-}
-
-/**
- * Schema is used to define the format of input/output data.
- * Represents a select subset of an OpenAPI 3.0 schema object.
- * More fields may be added in the future as needed.
- * @public
- */
-export interface FunctionDeclarationSchemaProperty {
-  /**
-   * Optional. The type of the property. {@link
-   * SchemaType}.
-   */
-  type?: SchemaType;
-  /** Optional. The format of the property. */
-  format?: string;
-  /** Optional. The description of the property. */
-  description?: string;
-  /** Optional. Whether the property is nullable. */
-  nullable?: boolean;
-  /** Optional. The items of the property. {@link FunctionDeclarationSchema} */
-  items?: FunctionDeclarationSchema;
-  /** Optional. The enum of the property. */
-  enum?: string[];
-  /** Optional. Map of {@link FunctionDeclarationSchema}. */
-  properties?: { [k: string]: FunctionDeclarationSchema };
-  /** Optional. Array of required property. */
-  required?: string[];
-  /** Optional. The example of the property. */
-  example?: unknown;
 }
 
 /**
