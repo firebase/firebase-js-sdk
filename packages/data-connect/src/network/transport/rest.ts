@@ -42,7 +42,7 @@ export class RESTTransport implements DataConnectTransport {
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false,
+    private _isUsingGen = false
   ) {
     if (transportOptions) {
       if (typeof transportOptions.port === 'number') {

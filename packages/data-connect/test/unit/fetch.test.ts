@@ -40,7 +40,7 @@ describe('fetch', () => {
       message
     });
     await expect(
-      dcFetch('http://localhost', {}, {} as AbortController, null, false)
+      dcFetch('http://localhost', {}, {} as AbortController, null, null, false)
     ).to.eventually.be.rejectedWith(message);
   });
   it('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
@@ -51,7 +51,7 @@ describe('fetch', () => {
     };
     mockFetch(json);
     await expect(
-      dcFetch('http://localhost', {}, {} as AbortController, null, false)
+      dcFetch('http://localhost', {}, {} as AbortController, null, null, false)
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
 });
