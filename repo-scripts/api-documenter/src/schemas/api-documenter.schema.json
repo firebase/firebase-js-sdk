@@ -1,0 +1,42 @@
+{
+  "title": "API Documenter Configuration",
+  "description": "Describes how the API Documenter tool will process a project.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Part of the JSON Schema standard, this optional keyword declares the URL of the schema that the file conforms to. Editors may download the schema and use it to perform syntax highlighting.",
+      "type": "string"
+    },
+
+    "outputTarget": {
+      "description": "Specifies what type of documentation will be generated",
+      "type": "string",
+      "enum": ["docfx", "markdown"]
+    },
+
+    "newlineKind": {
+      "description": "Specifies what type of newlines API Documenter should use when writing output files.  By default, the output files will be written with Windows-style newlines.  To use POSIX-style newlines, specify \"lf\" instead. To use the OS's default newline kind, specify \"os\".",
+      "type": "string",
+      "enum": ["crlf", "lf", "os"],
+      "default": "crlf"
+    },
+
+    "newDocfxNamespaces": {
+      "description": "This enables an experimental feature that will be officially released with the next major version of API Documenter.  It requires DocFX 2.46 or newer.  It enables documentation for namespaces and adds them to the table of contents.  This will also affect file layout as namespaced items will be nested under a directory for the namespace instead of just within the package.",
+      "type": "boolean"
+    },
+
+    "plugins": {
+      "description": "Specifies plugin packages to be loaded",
+      "type": "array"
+    },
+
+    "tableOfContents": {
+      "description": "Configures how the table of contents is generated.",
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+
+  "additionalProperties": false
+}

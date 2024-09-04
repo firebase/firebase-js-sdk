@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "config:js-lib"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "all non-major dependencies",
+      "excludePackageNames": ["typescript"]
+    }
+  ],
+  "ignoreDeps": [
+    "karma-sauce-launcher",
+    "protractor",
+    "long",
+    "rollup-plugin-copy-assets",
+    "whatwg-fetch",
+    "typedoc",
+    "@microsoft/tsdoc"
+  ],
+  "ignorePaths": [
+    "auth/demo",
+    "auth/cordova/demo",
+    "auth-compat/demo"
+  ],
+  "assignees": [
+    "@hsubox76"
+  ],
+  "schedule": "before 3am on Friday"
+}

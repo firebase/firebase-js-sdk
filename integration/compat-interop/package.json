@@ -1,0 +1,29 @@
+{
+  "name": "firebase-compat-interop-test",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "karma start --single-run",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
+    "test:debug": "karma start --browsers Chrome --auto-watch"
+  },
+  "dependencies": {
+    "@firebase/app": "0.10.7",
+    "@firebase/app-compat": "0.2.37",
+    "@firebase/analytics": "0.10.6",
+    "@firebase/analytics-compat": "0.2.12",
+    "@firebase/auth": "1.7.5",
+    "@firebase/auth-compat": "0.5.10",
+    "@firebase/functions": "0.11.6",
+    "@firebase/functions-compat": "0.3.12",
+    "@firebase/messaging": "0.12.10",
+    "@firebase/messaging-compat": "0.2.10",
+    "@firebase/performance": "0.6.8",
+    "@firebase/performance-compat": "0.2.8",
+    "@firebase/remote-config": "0.4.8",
+    "@firebase/remote-config-compat": "0.2.8"
+  },
+  "devDependencies": {
+    "typescript": "4.7.4"
+  }
+}
