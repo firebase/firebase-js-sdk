@@ -461,6 +461,16 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(refere
 export function updateDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
 // @public
+export function vector(values?: number[]): VectorValue;
+
+// @public
+export class VectorValue {
+    /* Excluded from this release type: __constructor */
+    isEqual(other: VectorValue): boolean;
+    toArray(): number[];
+}
+
+// @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryFieldFilterConstraint;
 
 // @public

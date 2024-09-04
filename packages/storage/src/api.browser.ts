@@ -58,6 +58,6 @@ export function getBlob(
 export function getStream(
   ref: StorageReference,
   maxDownloadSizeBytes?: number
-): NodeJS.ReadableStream {
+): ReadableStream {
   throw new Error('getStream() is only supported by NodeJS builds');
 }

@@ -352,6 +352,8 @@ toc:
         path: /docs/reference/js/firestore_.transactionoptions.md
       - title: Unsubscribe
         path: /docs/reference/js/firestore_.unsubscribe.md
+      - title: VectorValue
+        path: /docs/reference/js/firestore_.vectorvalue.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_.writebatch.md
   - title: firestore/lite
@@ -413,6 +415,8 @@ toc:
         path: /docs/reference/js/firestore_lite.transaction.md
       - title: TransactionOptions
         path: /docs/reference/js/firestore_lite.transactionoptions.md
+      - title: VectorValue
+        path: /docs/reference/js/firestore_lite.vectorvalue.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_lite.writebatch.md
   - title: functions

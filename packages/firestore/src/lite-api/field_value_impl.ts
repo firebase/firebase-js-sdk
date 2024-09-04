@@ -23,6 +23,7 @@ import {
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './user_data_reader';
+import { VectorValue } from './vector_value';
 
 /**
  * Returns a sentinel for use with {@link @firebase/firestore/lite#(updateDoc:1)} or
@@ -96,4 +97,15 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
  */
 export function increment(n: number): FieldValue {
   return new NumericIncrementFieldValueImpl('increment', n);
+}
+
+/**
+ * Creates a new `VectorValue` constructed with a copy of the given array of numbers.
+ *
+ * @param values - Create a `VectorValue` instance with a copy of this array of numbers.
+ *
+ * @returns A new `VectorValue` constructed with a copy of the given array of numbers.
+ */
+export function vector(values?: number[]): VectorValue {
+  return new VectorValue(values);
 }

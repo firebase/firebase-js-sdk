@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace } from './public-types';
-import { isBrowser } from '@firebase/util';
+import { getGlobal } from '@firebase/util';
 import { firebase as firebaseNamespace } from './firebaseNamespace';
 import { logger } from './logger';
 import { registerCoreComponents } from './registerCoreComponents';
@@ -27,22 +27,28 @@ declare global {
   }
 }
 
-// Firebase Lite detection
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (isBrowser() && window.firebase !== undefined) {
-  logger.warn(`
-    Warning: Firebase is already defined in the global scope. Please make sure
-    Firebase library is only loaded once.
-  `);
-
-  // eslint-disable-next-line
-  const sdkVersion = (window.firebase as FirebaseNamespace).SDK_VERSION;
-  if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
+try {
+  const globals = getGlobal();
+  // Firebase Lite detection
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((globals as any).firebase !== undefined) {
     logger.warn(`
-    Warning: You are trying to load Firebase while using Firebase Performance standalone script.
-    You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.
+      Warning: Firebase is already defined in the global scope. Please make sure
+      Firebase library is only loaded once.
     `);
+
+    // eslint-disable-next-line
+    const sdkVersion = ((globals as any).firebase as FirebaseNamespace)
+      .SDK_VERSION;
+    if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
+      logger.warn(`
+        Warning: You are trying to load Firebase while using Firebase Performance standalone script.
+        You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.
+        `);
+    }
   }
+} catch {
+  // ignore errors thrown by getGlobal
 }
 
 const firebase = firebaseNamespace;

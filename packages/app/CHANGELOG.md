@@ -1,5 +1,23 @@
 # @firebase/app
 
+## 0.10.10
+
+### Patch Changes
+
+- [`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f) [#8437](https://github.com/firebase/firebase-js-sdk/pull/8437) - Removed an unnecessary console.log statement.
+
+## 0.10.9
+
+### Patch Changes
+
+- [`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10) [#8425](https://github.com/firebase/firebase-js-sdk/pull/8425) (fixes [#8407](https://github.com/firebase/firebase-js-sdk/issues/8407)) - Prevent heartbeats methods from throwing - warn instead.
+
+## 0.10.8
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.10.7
 
 ### Patch Changes
