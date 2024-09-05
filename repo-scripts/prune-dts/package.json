@@ -13,8 +13,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "eslint": "8.56.0",
-    "eslint-plugin-unused-imports": "3.2.0",
+    "eslint": "7.32.0",
+    "eslint-plugin-unused-imports": "2.0.0",
     "prettier": "2.8.7"
   },
   "repository": {

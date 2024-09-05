@@ -28,13 +28,13 @@ $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script cli.ts  -o <path to
 $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script cli.ts --if <path to dts file> --ib <path to bundle file> -o <path to output FILE>`
 
 
-### Use the Tool Programmatically 
+### Use the Tool Programatically 
 ### `async generateReportForModule(moduleLocation: string): Promise<Report>`
 #### This function generates size analysis report for the given module specified by the `moduleLocation` argument.
 #### `@param moduleLocation: an absolute path to location of a firebase module`
 ```
 try {
-  const moduleLocation: string = "absolute/path/to/firebase/module";
+  const moduleLocation: string = "absoulte/path/to/firebase/module";
   const report: Report = await generateReportForModule(moduleLocation);
   console.log(report);
 

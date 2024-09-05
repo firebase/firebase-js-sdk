@@ -66,21 +66,21 @@ describe('extractExports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExport',
       'basicVarStatementExport',
-      'reExportVarStatementExport'
+      'reExportVarStatmentExport'
     ]);
   });
   it('test re-exported variable extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportFar',
       'basicVarStatementExportFar',
-      'reExportVarStatementExportFar'
+      'reExportVarStatmentExportFar'
     ]);
   });
   it('test re-exported variable extractions from same module - * re-exports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportBar',
       'basicVarStatementExportBar',
-      'reExportVarStatementExportBar'
+      'reExportVarStatmentExportBar'
     ]);
   });
 
@@ -296,7 +296,7 @@ describe('test dedup helper function', () => {
 });
 
 describe('test replaceAll helper function', () => {
-  it('test replaceAll with multiple occurrences of an element', () => {
+  it('test replaceAll with multiple occurences of an element', () => {
     const memberList: MemberList = {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
@@ -320,7 +320,7 @@ describe('test replaceAll helper function', () => {
     ).to.equal(2);
   });
 
-  it('test replaceAll with single occurrence of an element', () => {
+  it('test replaceAll with single occurence of an element', () => {
     const memberList: MemberList = {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
@@ -344,7 +344,7 @@ describe('test replaceAll helper function', () => {
     ).to.equal(1);
   });
 
-  it('test replaceAll with zero occurrence of an element', () => {
+  it('test replaceAll with zero occurence of an element', () => {
     const memberList: MemberList = {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],

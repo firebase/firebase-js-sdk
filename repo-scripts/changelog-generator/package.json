@@ -20,7 +20,7 @@
     "@changesets/types": "3.3.0",
     "@changesets/get-github-info": "0.5.2",
     "@types/node": "20.8.10",
-    "undici": "6.19.7"
+    "undici": "5.28.4"
   },
   "license": "Apache-2.0",
   "devDependencies": {

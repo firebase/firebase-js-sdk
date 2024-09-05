@@ -18,7 +18,7 @@ import { LogLevel } from '@firebase/logger';
 
 export let basicVarDeclarationExportFar: string;
 export const basicVarStatementExportFar = 'basicVarStatementExportFar';
-export const reExportVarStatementExportFar = name;
+export const reExportVarStatmentExportFar = name;
 
 export enum BasicEnumExportFar {
   DEBUG = 0,
