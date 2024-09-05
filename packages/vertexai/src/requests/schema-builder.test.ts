@@ -23,28 +23,28 @@ use(sinonChai);
 
 describe.only('Schema builder', () => {
   it('builds integer schema', () => {
-    const schema = Schema.createInteger();
+    const schema = Schema.integer();
     expect(schema.toJSON()).to.eql({
       type: 'integer',
       nullable: false
     });
   });
   it('builds number schema', () => {
-    const schema = Schema.createNumber();
+    const schema = Schema.number();
     expect(schema.toJSON()).to.eql({
       type: 'number',
       nullable: false
     });
   });
   it('builds boolean schema', () => {
-    const schema = Schema.createBoolean();
+    const schema = Schema.boolean();
     expect(schema.toJSON()).to.eql({
       type: 'boolean',
       nullable: false
     });
   });
   it('builds string schema', () => {
-    const schema = Schema.createString({ description: 'hey' });
+    const schema = Schema.string({ description: 'hey' });
     expect(schema.toJSON()).to.eql({
       type: 'string',
       description: 'hey',
@@ -52,9 +52,9 @@ describe.only('Schema builder', () => {
     });
   });
   it('builds enumString schema', () => {
-    const schema = Schema.createEnumString({
+    const schema = Schema.enumString({
       example: 'east',
-      enumValues: ['east', 'west']
+      enum: ['east', 'west']
     });
     expect(schema.toJSON()).to.eql({
       type: 'string',
@@ -64,9 +64,9 @@ describe.only('Schema builder', () => {
     });
   });
   it('builds functionDeclaration schema', () => {
-    const schema = Schema.createFunctionDeclaration({
+    const schema = Schema.functionDeclaration({
       properties: {
-        'someInput': Schema.createString()
+        'someInput': Schema.string()
       }
     });
     expect(schema.toJSON()).to.eql({
@@ -82,27 +82,27 @@ describe.only('Schema builder', () => {
     });
   });
   it('builds layered schema', () => {
-    const schema = Schema.createArray({
-      items: Schema.createObject({
+    const schema = Schema.array({
+      items: Schema.object({
         properties: {
-          country: Schema.createString({
+          country: Schema.string({
             description: 'some country',
             required: true
           }),
-          population: Schema.createInteger(),
-          coordinates: Schema.createObject({
+          population: Schema.integer(),
+          coordinates: Schema.object({
             properties: {
-              latitude: Schema.createNumber({ format: 'float' }),
-              longitude: Schema.createNumber({ format: 'double' })
+              latitude: Schema.number({ format: 'float' }),
+              longitude: Schema.number({ format: 'double' })
             }
           }),
-          hemisphere: Schema.createObject({
+          hemisphere: Schema.object({
             properties: {
-              latitudinal: Schema.createEnumString({ enumValues: ['N', 'S'] }),
-              longitudinal: Schema.createEnumString({ enumValues: ['E', 'W'] })
+              latitudinal: Schema.enumString({ enum: ['N', 'S'] }),
+              longitudinal: Schema.enumString({ enum: ['E', 'W'] })
             }
           }),
-          isCapital: Schema.createBoolean()
+          isCapital: Schema.boolean()
         }
       })
     });
@@ -110,11 +110,11 @@ describe.only('Schema builder', () => {
     expect(schema.toJSON()).to.eql(layeredSchemaOutput);
   });
   it('can override the "required" and "nullable" properties', () => {
-    const schema = Schema.createObject({
+    const schema = Schema.object({
       properties: {
-        country: Schema.createString(),
-        elevation: Schema.createNumber({ required: false }),
-        population: Schema.createInteger({ nullable: true })
+        country: Schema.string(),
+        elevation: Schema.number({ required: false }),
+        population: Schema.integer({ nullable: true })
       }
     });
     expect(schema.toJSON()).to.eql({

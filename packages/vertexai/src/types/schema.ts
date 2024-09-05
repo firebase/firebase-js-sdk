@@ -19,19 +19,19 @@ export enum SchemaType {
   OBJECT = "object",
 }
 
-interface SchemaShared {
+interface SchemaShared<T> {
   /** Optional. The format of the property. */
   format?: string;
   /** Optional. The description of the property. */
   description?: string;
   /** Optional. The items of the property. */
-  items?: SchemaInterface;
+  items?: T;
+  /** Optional. Map of Schemas. */
+  properties?: {
+    [k: string]: T;
+  };
   /** Optional. The enum of the property. */
   enum?: string[];
-  /** Optional. Map of {@link Schema}. */
-  properties?: {
-    [k: string]: SchemaInterface;
-  };
   /** Optional. The example of the property. */
   example?: unknown;
   /** Optional. Whether the property is nullable. */
@@ -41,21 +41,22 @@ interface SchemaShared {
 /**
  * User-facing params passed to specific Schema static methods.
  */
-export interface SchemaParams extends SchemaShared {
+export interface SchemaParams extends SchemaShared<SchemaInterface> {
   /** Optional. Array of required property. */
   required?: boolean;
-
 }
 
 /**
  * Final format for Schema params passed to backend requests.
+ * @internal
  */
-export interface SchemaRequest extends SchemaShared {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface _SchemaRequest extends SchemaShared<_SchemaRequest> {
   /**
    * The type of the property. {@link
    * SchemaType}.
    */
-  type?: SchemaType;
+  type: SchemaType;
   /** Optional. Array of required property. */
   required?: string[];
 }

@@ -1,4 +1,9 @@
-import { SchemaInterface, SchemaType, SchemaParams } from '../types/schema';
+import {
+  SchemaInterface,
+  SchemaType,
+  SchemaParams,
+  _SchemaRequest
+} from '../types/schema';
 
 export abstract class Schema implements SchemaInterface {
   /**
@@ -36,8 +41,10 @@ export abstract class Schema implements SchemaInterface {
   }
 
   /** Converts class to a plain JSON object (not a string). */
-  toJSON(): Record<string, unknown> {
-    const obj: Record<string, unknown> = {};
+  toJSON(): _SchemaRequest {
+    const obj: { type: SchemaType; [key: string]: unknown } = {
+      type: this.type
+    };
     for (const prop in this) {
       if (this.hasOwnProperty(prop) && this[prop] !== undefined) {
         if (prop !== 'required' || this.type === SchemaType.OBJECT) {
@@ -45,16 +52,14 @@ export abstract class Schema implements SchemaInterface {
         }
       }
     }
-    return obj;
+    return obj as _SchemaRequest;
   }
 
-  static createArray(
-    arrayParams: SchemaParams & { items: Schema }
-  ): ArraySchema {
+  static array(arrayParams: SchemaParams & { items: Schema }): ArraySchema {
     return new ArraySchema(arrayParams, arrayParams.items);
   }
 
-  static createObject(
+  static object(
     objectParams: SchemaParams & {
       properties: {
         [k: string]: Schema;
@@ -64,35 +69,38 @@ export abstract class Schema implements SchemaInterface {
     return new ObjectSchema(objectParams, objectParams.properties);
   }
 
-  static createFunctionDeclaration(
+  static functionDeclaration(
     objectParams: SchemaParams & {
       properties: {
         [k: string]: Schema;
       };
     }
   ): ObjectSchema {
-    return this.createObject(objectParams);
+    return this.object(objectParams);
   }
 
-  static createString(stringParams?: SchemaParams): StringSchema {
+  // eslint-disable-next-line id-blacklist
+  static string(stringParams?: SchemaParams): StringSchema {
     return new StringSchema(stringParams);
   }
 
-  static createEnumString(
-    stringParams: SchemaParams & { enumValues: string[] }
+  static enumString(
+    stringParams: SchemaParams & { enum: string[] }
   ): StringSchema {
-    return new StringSchema(stringParams, stringParams.enumValues);
+    return new StringSchema(stringParams, stringParams.enum);
   }
 
-  static createInteger(integerParams?: SchemaParams): IntegerSchema {
+  static integer(integerParams?: SchemaParams): IntegerSchema {
     return new IntegerSchema(integerParams);
   }
 
-  static createNumber(numberParams?: SchemaParams): NumberSchema {
+  // eslint-disable-next-line id-blacklist
+  static number(numberParams?: SchemaParams): NumberSchema {
     return new NumberSchema(numberParams);
   }
 
-  static createBoolean(booleanParams?: SchemaParams): BooleanSchema {
+  // eslint-disable-next-line id-blacklist
+  static boolean(booleanParams?: SchemaParams): BooleanSchema {
     return new BooleanSchema(booleanParams);
   }
 }
@@ -131,20 +139,21 @@ export class BooleanSchema extends Schema {
 }
 
 export class StringSchema extends Schema {
-  constructor(schemaParams?: SchemaParams, public enumValues?: string[]) {
+  enum?: string[];
+  constructor(schemaParams?: SchemaParams, enumValues?: string[]) {
     super({
       type: SchemaType.STRING,
       ...schemaParams
     });
+    this.enum = enumValues;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): _SchemaRequest {
     const obj = super.toJSON();
-    if (this.enumValues) {
-      obj['enum'] = this.enumValues;
-      delete obj.enumValues;
+    if (this.enum) {
+      obj['enum'] = this.enum;
     }
-    return obj;
+    return obj as _SchemaRequest;
   }
 }
 
@@ -156,7 +165,7 @@ export class ArraySchema extends Schema {
     });
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): _SchemaRequest {
     const obj = super.toJSON();
     obj.items = this.items.toJSON();
     return obj;
@@ -176,13 +185,15 @@ export class ObjectSchema extends Schema {
     });
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): _SchemaRequest {
     const obj = super.toJSON();
-    const properties: Record<string, unknown> = {};
+    const properties: Record<string, _SchemaRequest> = {};
     const required = [];
     for (const propertyKey in this.properties) {
       if (this.properties.hasOwnProperty(propertyKey)) {
-        properties[propertyKey] = this.properties[propertyKey].toJSON();
+        properties[propertyKey] = this.properties[
+          propertyKey
+        ].toJSON() as _SchemaRequest;
         if (this.properties[propertyKey].required) {
           required.push(propertyKey);
         }
@@ -192,6 +203,6 @@ export class ObjectSchema extends Schema {
     if (required.length > 0) {
       obj.required = required;
     }
-    return obj;
+    return obj as _SchemaRequest;
   }
 }
