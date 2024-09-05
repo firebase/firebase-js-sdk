@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, isCloudflareRunner, querystring } from '@firebase/util';
+import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -154,7 +154,7 @@ export async function _performApiRequest<T, V>(
       ...body
     };
 
-    if (!isCloudflareRunner()) {
+    if (!isCloudflareWorker()) {
       Object.assign(fetchArgs, {
         refererPolicy: 'no-referrer'
       });

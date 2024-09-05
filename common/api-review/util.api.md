@@ -264,10 +264,10 @@ export function isBrowser(): boolean;
 // @public (undocumented)
 export function isBrowserExtension(): boolean;
 
-// Warning: (ae-missing-release-tag) "isCloudflareRunner" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "isCloudflareWorker" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function isCloudflareRunner(): boolean;
+export function isCloudflareWorker(): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
