@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, querystring } from '@firebase/util';
+import { FirebaseError, isCloudflareRunner, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -148,13 +148,21 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
+    var fetchArgs = {
+      method,
+      headers,
+      ...body
+    };
+
+    if (!isCloudflareRunner()) {
+      Object.assign(fetchArgs, {
+        refererPolicy: 'no-referrer'
+      });
+    }
+
     return FetchProvider.fetch()(
       _getFinalTarget(auth, auth.config.apiHost, path, query),
-      {
-        method,
-        headers,
-        ...body
-      }
+      fetchArgs
     );
   });
 }
