@@ -91,6 +91,11 @@ jobs:
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
+      # TODO (dlarocque): Fix flakes in installations, database, database-compat, storage-compat,
+      #                   and remote-config, and then run them here.
+      # There are several tests suites that are flaky when ran alongside the other tests in
+      # WebkitHeadless. It's unclear why they're only failing when ran with other tests, so let's
+      # skip them for now.
       run: |
         xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
         node scripts/print_test_logs.js

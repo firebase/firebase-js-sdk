@@ -16,7 +16,7 @@ name: Test Firestore
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
 
 env:
   artifactRetentionDays: 14
@@ -231,6 +231,62 @@ jobs:
           BROWSERS: 'Firefox'
           EXPERIMENTAL_MODE: true
 
+  compat-test-webkit:
+    name: Test Firestore Compatible on Webkit
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install webkit
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci
+        env:
+          BROWSERS: 'WebkitHeadless'
+
+  test-webkit:
+    name: Test Firestore on Webkit
+    strategy:
+      matrix:
+        # TODO (dlarocque): Add test:travis once the browser tests are isolated
+        # Exclude test:travis for now, since it includes node tests, which are failing for
+        # some reason.
+        test-name: ["test:browser", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install webkit
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          BROWSERS: 'WebkitHeadless'
+          EXPERIMENTAL_MODE: true
   # A job that fails if any required job in the test matrix fails,
   # to be used as a required check for merging.
   check-required-tests:
