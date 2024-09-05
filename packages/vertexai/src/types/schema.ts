@@ -71,3 +71,7 @@ export interface SchemaInterface extends SchemaParams {
    */
   type: SchemaType;
 }
+
+export interface ObjectSchemaInterface extends SchemaInterface {
+  type: SchemaType.OBJECT;
+}

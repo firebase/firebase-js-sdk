@@ -23,6 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
+import { SchemaInterface } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -156,7 +157,7 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: ObjectSchema;
+  parameters?: SchemaInterface;
 }
 
 /**
