@@ -176,6 +176,8 @@ toc:
   - title: data-connect
     path: /docs/reference/js/data-connect.md
     section:
+      - title: AppCheckTokenProvider
+        path: /docs/reference/js/data-connect.appchecktokenprovider.md
       - title: AuthTokenProvider
         path: /docs/reference/js/data-connect.authtokenprovider.md
       - title: CancellableOperation

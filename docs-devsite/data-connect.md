@@ -45,6 +45,7 @@ Firebase Data Connect
 
 |  Class | Description |
 |  --- | --- |
+|  [AppCheckTokenProvider](./data-connect.appchecktokenprovider.md#appchecktokenprovider_class) | Abstraction around AppCheck's token fetching capabilities. |
 |  [DataConnect](./data-connect.dataconnect.md#dataconnect_class) | Class representing Firebase Data Connect |
 |  [FirebaseAuthProvider](./data-connect.firebaseauthprovider.md#firebaseauthprovider_class) |  |
 
@@ -532,5 +533,5 @@ export declare type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
 <b>Signature:</b>
 
 ```typescript
-export declare type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
+export declare type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, appCheckProvider?: AppCheckTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 ```

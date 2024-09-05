@@ -34,7 +34,10 @@ export class AppCheckTokenProvider {
   ) {
     this.appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!this.appCheck) {
-      appCheckProvider?.get().then(appCheck => (this.appCheck = appCheck));
+      appCheckProvider
+        ?.get()
+        .then(appCheck => (this.appCheck = appCheck))
+        .catch();
     }
   }
 
@@ -57,10 +60,11 @@ export class AppCheckTokenProvider {
     return this.appCheck.getToken(forceRefresh);
   }
 
-  addTokenChangeListener(listener: AppCheckTokenListener) {
+  addTokenChangeListener(listener: AppCheckTokenListener): void {
     this.appCheckProvider
       ?.get()
-      .then(appCheck => appCheck.addTokenListener(listener));
+      .then(appCheck => appCheck.addTokenListener(listener))
+      .catch();
   }
 
   // Not currently used at the moment. Will update if needed.

@@ -22,7 +22,7 @@ export declare class DataConnect
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(app, dataConnectOptions, \_authProvider)](./data-connect.dataconnect.md#dataconnectconstructor) |  | Constructs a new instance of the <code>DataConnect</code> class |
+|  [(constructor)(app, dataConnectOptions, \_authProvider, \_appCheckProvider)](./data-connect.dataconnect.md#dataconnectconstructor) |  | Constructs a new instance of the <code>DataConnect</code> class |
 
 ## Properties
 
@@ -47,7 +47,7 @@ Constructs a new instance of the `DataConnect` class
 <b>Signature:</b>
 
 ```typescript
-constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>);
+constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>, _appCheckProvider: Provider<AppCheckInternalComponentName>);
 ```
 
 #### Parameters
@@ -57,6 +57,7 @@ constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvi
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
 |  dataConnectOptions | [DataConnectOptions](./data-connect.dataconnectoptions.md#dataconnectoptions_interface) |  |
 |  \_authProvider | Provider&lt;FirebaseAuthInternalName&gt; |  |
+|  \_appCheckProvider | Provider&lt;AppCheckInternalComponentName&gt; |  |
 
 ## DataConnect.app
 

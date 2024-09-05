@@ -42,7 +42,7 @@ describe('User Agent Tests', () => {
   let app: FirebaseApp;
   beforeEach(() => {
     initializeFetch(fakeFetchImpl);
-    app = initializeApp({projectId: 'p'}, 'abc'); // TODO(mtewani): Replace with util function
+    app = initializeApp({ projectId: 'p' }, 'abc'); // TODO(mtewani): Replace with util function
     dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
   });
   afterEach(async () => {
