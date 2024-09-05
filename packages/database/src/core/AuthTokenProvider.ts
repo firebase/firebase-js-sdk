@@ -24,7 +24,6 @@ import { Provider } from '@firebase/component';
 
 import { log, warn } from './util/util';
 
-// @internal
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
   addTokenChangeListener(listener: (token: string | null) => void): void;
