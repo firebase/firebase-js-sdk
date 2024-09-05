@@ -212,13 +212,12 @@ export class StringSchema extends Schema {
     return obj as SchemaRequest;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): _SchemaRequest {
     const obj = super.toJSON();
-    if (this.enumValues) {
-      obj['enum'] = this.enumValues;
-      delete obj.enumValues;
+    if (this.enum) {
+      obj['enum'] = this.enum;
     }
-    return obj;
+    return obj as _SchemaRequest;
   }
 }
 

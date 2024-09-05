@@ -9,6 +9,18 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
+// @public (undocumented)
+export class ArraySchema extends Schema {
+    // Warning: (ae-forgotten-export) The symbol "SchemaParams" needs to be exported by the entry point index.d.ts
+    constructor(schemaParams: SchemaParams, items: TypedSchema);
+    // (undocumented)
+    items: TypedSchema;
+    // Warning: (ae-forgotten-export) The symbol "_SchemaRequest" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    toJSON(): _SchemaRequest;
+}
+
 // @public
 export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
@@ -32,6 +44,11 @@ export enum BlockReason {
     OTHER = "OTHER",
     // (undocumented)
     SAFETY = "SAFETY"
+}
+
+// @public (undocumented)
+export class BooleanSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
 }
 
 // @public
@@ -442,6 +459,11 @@ export interface InlineDataPart {
     videoMetadata?: VideoMetadata;
 }
 
+// @public (undocumented)
+export class IntegerSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
 // @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
@@ -457,6 +479,24 @@ export interface ModelParams extends BaseParams {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
+}
+
+// @public (undocumented)
+export class NumberSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
+// @public (undocumented)
+export class ObjectSchema extends Schema {
+    constructor(schemaParams: SchemaParams, properties: {
+        [k: string]: TypedSchema;
+    });
+    // (undocumented)
+    properties: {
+        [k: string]: TypedSchema;
+    };
+    // (undocumented)
+    toJSON(): _SchemaRequest;
 }
 
 // @public
@@ -644,6 +684,15 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @public (undocumented)
+export class StringSchema extends Schema {
+    constructor(schemaParams?: SchemaParams, enumValues?: string[]);
+    // (undocumented)
+    enum?: string[];
+    // (undocumented)
+    toJSON(): _SchemaRequest;
+}
+
 // @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
@@ -673,6 +722,9 @@ export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
 }
+
+// @public (undocumented)
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
