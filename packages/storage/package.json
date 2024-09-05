@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -34,7 +34,8 @@
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:browser test:node lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
+    "test:all": "run-p --npm-path npm test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
     "test:browser": "karma start --single-run",
@@ -56,8 +57,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.9",
-    "@firebase/auth": "1.7.7",
+    "@firebase/app": "0.10.10",
+    "@firebase/auth": "1.7.8",
     "rollup": "2.79.1",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",
