@@ -1,5 +1,5 @@
 ---
-"@firebase/data-connect": minor
+"@firebase/data-connect": major
 ---
 
 Included Data Connect product.
