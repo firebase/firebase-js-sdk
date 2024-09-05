@@ -5,35 +5,11 @@
 ```ts
 
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
-import { AppCheckTokenListener } from '@firebase/app-check-interop-types';
-import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
-import { FirebaseOptions } from '@firebase/app-types';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
-
-// @public
-export class AppCheckTokenProvider {
-    constructor(appName_: string, appCheckProvider?: Provider<AppCheckInternalComponentName>);
-    // (undocumented)
-    addTokenChangeListener(listener: AppCheckTokenListener): void;
-    // (undocumented)
-    getToken(forceRefresh?: boolean): Promise<AppCheckTokenResult>;
-}
-
-// @public (undocumented)
-export type AuthTokenListener = (token: string | null) => void;
-
-// @public (undocumented)
-export interface AuthTokenProvider {
-    // (undocumented)
-    addTokenChangeListener(listener: AuthTokenListener): void;
-    // (undocumented)
-    getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null>;
-}
 
 // @public (undocumented)
 export interface CancellableOperation<T> extends PromiseLike<{
@@ -66,8 +42,6 @@ export class DataConnect {
     // (undocumented)
     getSettings(): ConnectorConfig;
     // (undocumented)
-    initialized: boolean;
-    // (undocumented)
     isEmulator: boolean;
     // (undocumented)
     setInitialized(): void;
@@ -96,24 +70,6 @@ export interface DataConnectSubscription<Data, Variables> {
 }
 
 // @public (undocumented)
-export interface DataConnectTransport {
-    // (undocumented)
-    invokeMutation<T, U>(queryName: string, body?: U): PromiseLike<{
-        data: T;
-        errors: Error[];
-    }>;
-    // (undocumented)
-    invokeQuery<T, U>(queryName: string, body?: U): PromiseLike<{
-        data: T;
-        errors: Error[];
-    }>;
-    // (undocumented)
-    onTokenChanged: (token: string | null) => void;
-    // (undocumented)
-    useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
-}
-
-// @public (undocumented)
 export type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
 
 // @public
@@ -121,20 +77,6 @@ export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, 
 
 // @public
 export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): QueryPromise<Data, Variables>;
-
-// @public (undocumented)
-export const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR = "FIREBASE_DATA_CONNECT_EMULATOR_HOST";
-
-// @public (undocumented)
-export class FirebaseAuthProvider implements AuthTokenProvider {
-    constructor(_appName: string, _options: FirebaseOptions, _authProvider: Provider<FirebaseAuthInternalName>);
-    // (undocumented)
-    addTokenChangeListener(listener: AuthTokenListener): void;
-    // (undocumented)
-    getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null>;
-    // (undocumented)
-    removeTokenChangeListener(listener: (token: string | null) => void): void;
-}
 
 // @public
 export function getDataConnect(options: ConnectorConfig): DataConnect;
@@ -160,10 +102,6 @@ export function mutationRef<Data>(dcInstance: DataConnect, mutationName: string)
 
 // @public (undocumented)
 export function mutationRef<Data, Variables>(dcInstance: DataConnect, mutationName: string, variables: Variables): MutationRef<Data, Variables>;
-
-// @public (undocumented)
-export interface MutationResponse<T> extends CancellableOperation<T> {
-}
 
 // @public
 export interface MutationResult<Data, Variables> extends DataConnectResult<Data, Variables> {
@@ -221,10 +159,6 @@ export function queryRef<Data>(dcInstance: DataConnect, queryName: string): Quer
 // @public
 export function queryRef<Data, Variables>(dcInstance: DataConnect, queryName: string, variables: Variables): QueryRef<Data, Variables>;
 
-// @public (undocumented)
-export interface QueryResponse<T> extends CancellableOperation<T> {
-}
-
 // @public
 export interface QueryResult<Data, Variables> extends DataConnectResult<Data, Variables> {
     // (undocumented)
@@ -247,14 +181,6 @@ export interface RefInfo<Variables> {
     name: string;
     // (undocumented)
     variables: Variables;
-}
-
-// @public (undocumented)
-export interface Sender<T> {
-    // (undocumented)
-    abort: () => void;
-    // (undocumented)
-    send: () => Promise<T>;
 }
 
 // @public
@@ -293,9 +219,6 @@ export function terminate(dataConnect: DataConnect): Promise<void>;
 
 // @public
 export function toQueryRef<Data, Variables>(serializedRef: SerializedRef<Data, Variables>): QueryRef<Data, Variables>;
-
-// @public (undocumented)
-export type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, appCheckProvider?: AppCheckTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 
 // @public
 export interface TransportOptions {

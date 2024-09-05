@@ -24,6 +24,7 @@ import {
 import { Provider } from '@firebase/component';
 
 /**
+ @internal
  * Abstraction around AppCheck's token fetching capabilities.
  */
 export class AppCheckTokenProvider {

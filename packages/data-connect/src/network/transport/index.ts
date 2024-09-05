@@ -19,7 +19,9 @@ import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 
-// Change this to only specify specific args.
+/**
+ * @internal
+ */
 export interface DataConnectTransport {
   invokeQuery<T, U>(
     queryName: string,
@@ -37,18 +39,9 @@ export interface CancellableOperation<T> extends PromiseLike<{ data: T }> {
   cancel: () => void;
 }
 
-export interface QueryResponse<T> extends CancellableOperation<T> {}
-// export type QueryResponse<T> = {
-//     //   Type '{ data: T; }' is not assignable to type 'T'.
-//      then: (a: (data: T) => void) => void;
-// }
-export interface MutationResponse<T> extends CancellableOperation<T> {}
-
-export interface Sender<T> {
-  abort: () => void;
-  send: () => Promise<T>;
-}
-
+/**
+ * @internal
+ */
 export type TransportClass = new (
   options: DataConnectOptions,
   apiKey?: string,
@@ -57,4 +50,3 @@ export type TransportClass = new (
   transportOptions?: TransportOptions,
   _isUsingGen?: boolean
 ) => DataConnectTransport;
-export * from '../../core/FirebaseAuthProvider';

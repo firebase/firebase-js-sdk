@@ -58,7 +58,7 @@ export interface TransportOptions {
   port?: number;
 }
 
-export const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
+const FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR =
   'FIREBASE_DATA_CONNECT_EMULATOR_HOST';
 
 /**
@@ -88,13 +88,14 @@ export class DataConnect {
   _queryManager!: QueryManager;
   _mutationManager!: MutationManager;
   isEmulator = false;
-  initialized = false;
+  _initialized = false;
   private _transport!: DataConnectTransport;
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
+  // @internal
   constructor(
     public readonly app: FirebaseApp,
     // TODO(mtewani): Replace with _dataConnectOptions in the future
@@ -111,9 +112,7 @@ export class DataConnect {
       }
     }
   }
-  /*
-    @internal
-  */
+  // @internal
   _useGeneratedSdk(): void {
     if (!this._isUsingGeneratedSdk) {
       this._isUsingGeneratedSdk = true;
@@ -128,14 +127,16 @@ export class DataConnect {
     return Promise.resolve();
   }
 
+  // @internal
   getSettings(): ConnectorConfig {
     const copy = JSON.parse(JSON.stringify(this.dataConnectOptions));
     delete copy.projectId;
     return copy;
   }
 
+  // @internal
   setInitialized(): void {
-    if (this.initialized) {
+    if (this._initialized) {
       return;
     }
     if (this._transportClass === undefined) {
@@ -157,7 +158,7 @@ export class DataConnect {
       );
     }
 
-    this.initialized = true;
+    this._initialized = true;
     this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
@@ -177,8 +178,9 @@ export class DataConnect {
     this._mutationManager = new MutationManager(this._transport);
   }
 
+  // @internal
   enableEmulator(transportOptions: TransportOptions): void {
-    if (this.initialized) {
+    if (this._initialized) {
       logError('enableEmulator called after initialization');
       throw new DataConnectError(
         Code.ALREADY_INITIALIZED,

@@ -25,12 +25,14 @@ import { Provider } from '@firebase/component';
 
 import { logDebug, logError } from '../logger';
 
+// @internal
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null>;
   addTokenChangeListener(listener: AuthTokenListener): void;
 }
 export type AuthTokenListener = (token: string | null) => void;
 
+// @internal
 export class FirebaseAuthProvider implements AuthTokenProvider {
   private _auth: FirebaseAuthInternal;
   constructor(

@@ -20,6 +20,5 @@ export * from './DataConnect';
 export * from './Reference';
 export * from './Mutation';
 export * from './query';
-export * from '../core/AppCheckTokenProvider';
 export { setLogLevel } from '../logger';
 export { validateArgs } from '../util/validateArgs';
