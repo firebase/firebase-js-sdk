@@ -210,7 +210,7 @@ module.exports = function (config) {
 
     port: 9876,
 
-    retryLimit: 0,
+    retryLimit: 3,
 
     // concurrency: 10,
 

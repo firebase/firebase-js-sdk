@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// @internal
 export class FetchProvider {
   private static fetchImpl: typeof fetch | null;
   private static headersImpl: typeof Headers | null;
