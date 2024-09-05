@@ -148,16 +148,14 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
-    const fetchArgs = {
+    const fetchArgs: RequestInit = {
       method,
       headers,
       ...body
     };
 
     if (!isCloudflareWorker()) {
-      Object.assign(fetchArgs, {
-        refererPolicy: 'no-referrer'
-      });
+      fetchArgs.referrerPolicy = 'no-referrer';
     }
 
     return FetchProvider.fetch()(
