@@ -73,7 +73,6 @@ export class RESTTransport implements DataConnectTransport {
       this._accessToken = token;
     });
     this.appCheckProvider?.addTokenChangeListener(result => {
-      console.log('getting token');
       const { token } = result;
       logDebug(`New App Check Token Available: ${token}`);
       this._appCheckToken = token;
@@ -108,7 +107,7 @@ export class RESTTransport implements DataConnectTransport {
       resolve(this._accessToken)
     );
     if (this.appCheckProvider) {
-      this._appCheckToken = (await this.appCheckProvider.getToken()).token;
+      this._appCheckToken = (await this.appCheckProvider.getToken())?.token;
     }
     if (this.authProvider) {
       starterPromise = this.authProvider

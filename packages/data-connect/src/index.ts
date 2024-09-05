@@ -22,7 +22,6 @@
  */
 import { DataConnect } from './api/DataConnect';
 import { registerDataConnect } from './register';
-// import CryptoJS from 'crypto-js/hmac-sha512';
 
 export * from './api';
 export * from './api.browser';

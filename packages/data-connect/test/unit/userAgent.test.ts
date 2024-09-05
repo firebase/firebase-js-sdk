@@ -22,6 +22,7 @@ import sinonChai from 'sinon-chai';
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/fetch';
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 
 use(sinonChai);
 const json = {
@@ -38,12 +39,15 @@ const fakeFetchImpl = sinon.stub().returns(
 
 describe('User Agent Tests', () => {
   let dc: DataConnect;
+  let app: FirebaseApp;
   beforeEach(() => {
     initializeFetch(fakeFetchImpl);
-    dc = getDataConnect({ connector: 'c', location: 'l', service: 's' });
+    app = initializeApp({projectId: 'p'}, 'abc'); // TODO(mtewani): Replace with util function
+    dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
   });
   afterEach(async () => {
     await dc._delete();
+    await deleteApp(app);
   });
   it('should send a request with the corresponding user agent if using the generated SDK', async () => {
     dc._useGeneratedSdk();
@@ -58,7 +62,7 @@ describe('User Agent Tests', () => {
       }
     );
   });
-  it('should send a request with the corresponding user agent if using the generated SDK', async () => {
+  it('should send a request with the corresponding user agent if not using the generated SDK', async () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
