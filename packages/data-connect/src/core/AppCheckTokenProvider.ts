@@ -34,7 +34,7 @@ export class AppCheckTokenProvider {
   ) {
     this.appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!this.appCheck) {
-      appCheckProvider
+      void appCheckProvider
         ?.get()
         .then(appCheck => (this.appCheck = appCheck))
         .catch();
@@ -61,10 +61,9 @@ export class AppCheckTokenProvider {
   }
 
   addTokenChangeListener(listener: AppCheckTokenListener): void {
-    this.appCheckProvider
+    void this.appCheckProvider
       ?.get()
       .then(appCheck => appCheck.addTokenListener(listener))
-      .catch();
   }
 
   // Not currently used at the moment. Will update if needed.
