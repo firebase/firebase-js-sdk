@@ -21,9 +21,13 @@ import {
   _removeServiceInstance,
   getApp
 } from '@firebase/app';
+import {
+  AppCheckInternalComponentName
+} from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
+import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
   AuthTokenProvider,
@@ -35,11 +39,6 @@ import { DataConnectTransport, TransportClass } from '../network';
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
-import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
-import {
-  AppCheckInternalComponentName,
-  FirebaseAppCheckInternal
-} from '@firebase/app-check-interop-types';
 
 /**
  * Connector Config for calling Data Connect backend.

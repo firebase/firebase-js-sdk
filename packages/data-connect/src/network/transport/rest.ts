@@ -16,6 +16,7 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { DataConnectError, Code } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logDebug } from '../../logger';
@@ -23,7 +24,6 @@ import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
 import { DataConnectTransport } from '.';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';

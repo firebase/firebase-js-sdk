@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -22,7 +23,6 @@ import sinonChai from 'sinon-chai';
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/fetch';
-import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 
 use(sinonChai);
 const json = {

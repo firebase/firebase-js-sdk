@@ -63,7 +63,7 @@ export class AppCheckTokenProvider {
   addTokenChangeListener(listener: AppCheckTokenListener): void {
     void this.appCheckProvider
       ?.get()
-      .then(appCheck => appCheck.addTokenListener(listener))
+      .then(appCheck => appCheck.addTokenListener(listener));
   }
 
   // Not currently used at the moment. Will update if needed.
