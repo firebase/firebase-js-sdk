@@ -148,7 +148,7 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
-    var fetchArgs = {
+    const fetchArgs = {
       method,
       headers,
       ...body

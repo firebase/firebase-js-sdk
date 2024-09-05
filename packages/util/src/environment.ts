@@ -102,7 +102,7 @@ export function isWebWorker(): boolean {
 /**
  * Detect Cloudflare Runner context.
  */
-export function isCloudflareRunner() {
+export function isCloudflareRunner(): boolean {
   return (
     typeof navigator !== 'undefined' &&
     navigator.userAgent === 'Cloudflare-Workers'
