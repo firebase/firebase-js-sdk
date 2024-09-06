@@ -176,10 +176,6 @@ toc:
   - title: data-connect
     path: /docs/reference/js/data-connect.md
     section:
-      - title: AppCheckTokenProvider
-        path: /docs/reference/js/data-connect.appchecktokenprovider.md
-      - title: AuthTokenProvider
-        path: /docs/reference/js/data-connect.authtokenprovider.md
       - title: CancellableOperation
         path: /docs/reference/js/data-connect.cancellableoperation.md
       - title: ConnectorConfig
@@ -192,16 +188,10 @@ toc:
         path: /docs/reference/js/data-connect.dataconnectresult.md
       - title: DataConnectSubscription
         path: /docs/reference/js/data-connect.dataconnectsubscription.md
-      - title: DataConnectTransport
-        path: /docs/reference/js/data-connect.dataconnecttransport.md
-      - title: FirebaseAuthProvider
-        path: /docs/reference/js/data-connect.firebaseauthprovider.md
       - title: MutationPromise
         path: /docs/reference/js/data-connect.mutationpromise.md
       - title: MutationRef
         path: /docs/reference/js/data-connect.mutationref.md
-      - title: MutationResponse
-        path: /docs/reference/js/data-connect.mutationresponse.md
       - title: MutationResult
         path: /docs/reference/js/data-connect.mutationresult.md
       - title: OperationRef
@@ -212,14 +202,10 @@ toc:
         path: /docs/reference/js/data-connect.querypromise.md
       - title: QueryRef
         path: /docs/reference/js/data-connect.queryref.md
-      - title: QueryResponse
-        path: /docs/reference/js/data-connect.queryresponse.md
       - title: QueryResult
         path: /docs/reference/js/data-connect.queryresult.md
       - title: RefInfo
         path: /docs/reference/js/data-connect.refinfo.md
-      - title: Sender
-        path: /docs/reference/js/data-connect.sender.md
       - title: SerializedRef
         path: /docs/reference/js/data-connect.serializedref.md
       - title: SubscriptionOptions

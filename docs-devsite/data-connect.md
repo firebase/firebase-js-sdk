@@ -45,33 +45,26 @@ Firebase Data Connect
 
 |  Class | Description |
 |  --- | --- |
-|  [AppCheckTokenProvider](./data-connect.appchecktokenprovider.md#appchecktokenprovider_class) | Abstraction around AppCheck's token fetching capabilities. |
 |  [DataConnect](./data-connect.dataconnect.md#dataconnect_class) | Class representing Firebase Data Connect |
-|  [FirebaseAuthProvider](./data-connect.firebaseauthprovider.md#firebaseauthprovider_class) |  |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [AuthTokenProvider](./data-connect.authtokenprovider.md#authtokenprovider_interface) |  |
 |  [CancellableOperation](./data-connect.cancellableoperation.md#cancellableoperation_interface) |  |
 |  [ConnectorConfig](./data-connect.connectorconfig.md#connectorconfig_interface) | Connector Config for calling Data Connect backend. |
 |  [DataConnectOptions](./data-connect.dataconnectoptions.md#dataconnectoptions_interface) | DataConnectOptions including project id |
 |  [DataConnectResult](./data-connect.dataconnectresult.md#dataconnectresult_interface) |  |
 |  [DataConnectSubscription](./data-connect.dataconnectsubscription.md#dataconnectsubscription_interface) | Representation of user provided subscription options. |
-|  [DataConnectTransport](./data-connect.dataconnecttransport.md#dataconnecttransport_interface) |  |
 |  [MutationPromise](./data-connect.mutationpromise.md#mutationpromise_interface) | Mutation return value from <code>executeMutation</code> |
 |  [MutationRef](./data-connect.mutationref.md#mutationref_interface) |  |
-|  [MutationResponse](./data-connect.mutationresponse.md#mutationresponse_interface) |  |
 |  [MutationResult](./data-connect.mutationresult.md#mutationresult_interface) | Mutation Result from <code>executeMutation</code> |
 |  [OperationRef](./data-connect.operationref.md#operationref_interface) |  |
 |  [OpResult](./data-connect.opresult.md#opresult_interface) |  |
 |  [QueryPromise](./data-connect.querypromise.md#querypromise_interface) | Promise returned from <code>executeQuery</code> |
 |  [QueryRef](./data-connect.queryref.md#queryref_interface) | QueryRef object |
-|  [QueryResponse](./data-connect.queryresponse.md#queryresponse_interface) |  |
 |  [QueryResult](./data-connect.queryresult.md#queryresult_interface) | Result of <code>executeQuery</code> |
 |  [RefInfo](./data-connect.refinfo.md#refinfo_interface) | Serialized RefInfo as a result of <code>QueryResult.toJSON().refInfo</code> |
-|  [Sender](./data-connect.sender.md#sender_interface) |  |
 |  [SerializedRef](./data-connect.serializedref.md#serializedref_interface) | Serialized Ref as a result of <code>QueryResult.toJSON()</code> |
 |  [SubscriptionOptions](./data-connect.subscriptionoptions.md#subscriptionoptions_interface) | Representation of full observer options in <code>subscribe</code> |
 |  [TransportOptions](./data-connect.transportoptions.md#transportoptions_interface) | Options to connect to emulator |
@@ -80,7 +73,6 @@ Firebase Data Connect
 
 |  Variable | Description |
 |  --- | --- |
-|  [FIREBASE\_DATA\_CONNECT\_EMULATOR\_HOST\_VAR](./data-connect.md#firebase_data_connect_emulator_host_var) |  |
 |  [MUTATION\_STR](./data-connect.md#mutation_str) |  |
 |  [QUERY\_STR](./data-connect.md#query_str) |  |
 |  [SOURCE\_CACHE](./data-connect.md#source_cache) |  |
@@ -90,14 +82,12 @@ Firebase Data Connect
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AuthTokenListener](./data-connect.md#authtokenlistener) |  |
 |  [DataSource](./data-connect.md#datasource) |  |
 |  [OnCompleteSubscription](./data-connect.md#oncompletesubscription) | <code>OnCompleteSubscription</code> |
 |  [OnErrorSubscription](./data-connect.md#onerrorsubscription) | Signature for <code>OnErrorSubscription</code> for <code>subscribe</code> |
 |  [OnResultSubscription](./data-connect.md#onresultsubscription) | Signature for <code>OnResultSubscription</code> for <code>subscribe</code> |
 |  [QueryUnsubscribe](./data-connect.md#queryunsubscribe) | Signature for unsubscribe from <code>subscribe</code> |
 |  [ReferenceType](./data-connect.md#referencetype) |  |
-|  [TransportClass](./data-connect.md#transportclass) |  |
 
 ## function(app, ...)
 
@@ -424,14 +414,6 @@ export declare function toQueryRef<Data, Variables>(serializedRef: SerializedRef
 
 `QueryRef`
 
-## FIREBASE\_DATA\_CONNECT\_EMULATOR\_HOST\_VAR
-
-<b>Signature:</b>
-
-```typescript
-FIREBASE_DATA_CONNECT_EMULATOR_HOST_VAR = "FIREBASE_DATA_CONNECT_EMULATOR_HOST"
-```
-
 ## MUTATION\_STR
 
 <b>Signature:</b>
@@ -462,14 +444,6 @@ SOURCE_CACHE = "CACHE"
 
 ```typescript
 SOURCE_SERVER = "SERVER"
-```
-
-## AuthTokenListener
-
-<b>Signature:</b>
-
-```typescript
-export declare type AuthTokenListener = (token: string | null) => void;
 ```
 
 ## DataSource
@@ -526,12 +500,4 @@ export declare type QueryUnsubscribe = () => void;
 
 ```typescript
 export declare type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
-```
-
-## TransportClass
-
-<b>Signature:</b>
-
-```typescript
-export declare type TransportClass = new (options: DataConnectOptions, apiKey?: string, authProvider?: AuthTokenProvider, appCheckProvider?: AppCheckTokenProvider, transportOptions?: TransportOptions, _isUsingGen?: boolean) => DataConnectTransport;
 ```

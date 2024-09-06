@@ -29,7 +29,6 @@ export declare class DataConnect
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [app](./data-connect.dataconnect.md#dataconnectapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
-|  [initialized](./data-connect.dataconnect.md#dataconnectinitialized) |  | boolean |  |
 |  [isEmulator](./data-connect.dataconnect.md#dataconnectisemulator) |  | boolean |  |
 
 ## Methods
@@ -65,14 +64,6 @@ constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvi
 
 ```typescript
 readonly app: FirebaseApp;
-```
-
-## DataConnect.initialized
-
-<b>Signature:</b>
-
-```typescript
-initialized: boolean;
 ```
 
 ## DataConnect.isEmulator
