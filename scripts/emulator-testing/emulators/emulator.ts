@@ -36,7 +36,7 @@ export abstract class Emulator {
   cacheDirectory: string;
   cacheBinaryPath: string;
 
-  isJar = true;
+  isDataConnect = false;
 
   constructor(
     private binaryName: string,
@@ -96,7 +96,7 @@ export abstract class Emulator {
         throw new Error('You must call download() before setUp()');
       }
       let promise: ChildProcessPromise<SpawnPromiseResult>;
-      if (!this.isJar) {
+      if (this.isDataConnect) {
         promise = spawn(this.binaryPath, [
           'dev',
           '--local_connection_string',
