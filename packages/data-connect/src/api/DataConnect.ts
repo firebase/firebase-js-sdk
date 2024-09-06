@@ -21,9 +21,7 @@ import {
   _removeServiceInstance,
   getApp
 } from '@firebase/app';
-import {
-  AppCheckInternalComponentName
-} from '@firebase/app-check-interop-types';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 

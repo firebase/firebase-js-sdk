@@ -26,20 +26,23 @@ export class DataConnectEmulator extends Emulator {
   constructor(port = 3628) {
     const os = platform();
     let urlString = '';
-    switch(os) {
+    switch (os) {
       case 'darwin':
-        urlString = 'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.5?alt=media&token=52c3db6e-2a2a-4094-a482-a8c85ae67a88';
-      break;
+        urlString =
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.5?alt=media&token=52c3db6e-2a2a-4094-a482-a8c85ae67a88';
+        break;
       case 'linux':
-        urlString = 'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v1.3.5?alt=media&token=bafb1f81-2a27-4851-b655-59934985b492';
-      break;
+        urlString =
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v1.3.5?alt=media&token=bafb1f81-2a27-4851-b655-59934985b492';
+        break;
       case 'win32':
-        urlString = 'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v1.3.5?alt=media&token=d3d04c57-992f-4a4b-931d-5c90efd54c5a';
-      break;
+        urlString =
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v1.3.5?alt=media&token=d3d04c57-992f-4a4b-931d-5c90efd54c5a';
+        break;
       default:
-        throw new Error(`We are unable to support your environment ${os} at this time.`);
-
-      
+        throw new Error(
+          `We are unable to support your environment ${os} at this time.`
+        );
     }
     super(
       `cli-v${DATABASE_EMULATOR_VERSION}`,

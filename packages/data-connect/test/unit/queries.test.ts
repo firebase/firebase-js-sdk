@@ -21,12 +21,13 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 
-import {
-  DataConnectOptions
-} from '../../src';
+import { DataConnectOptions } from '../../src';
 import { initializeFetch } from '../../src/network/fetch';
 import { RESTTransport } from '../../src/network/transport/rest';
-import { AuthTokenListener, AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
+import {
+  AuthTokenListener,
+  AuthTokenProvider
+} from '../../src/core/FirebaseAuthProvider';
 chai.use(chaiAsPromised);
 const options: DataConnectOptions = {
   connector: 'c',
