@@ -189,20 +189,6 @@ export type ExperimentalKey = 'authTokenSyncURL' | 'authIdTokenMaxAge';
 // @public
 export function extractQuerystring(url: string): string;
 
-// Warning: (ae-missing-release-tag) "FetchProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export class FetchProvider {
-    // (undocumented)
-    static fetch(): typeof fetch;
-    // (undocumented)
-    static headers(): typeof Headers;
-    // (undocumented)
-    static initialize(fetchImpl: typeof fetch, headersImpl?: typeof Headers, responseImpl?: typeof Response): void;
-    // (undocumented)
-    static response(): typeof Response;
-    }
-
 // @public
 export interface FirebaseDefaults {
     // (undocumented)
