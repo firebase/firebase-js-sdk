@@ -1,5 +1,5 @@
 ---
-'@firebase/auth': minor
+'@firebase/auth': patch
 '@firebase/util': minor
 'firebase': minor
 ---
