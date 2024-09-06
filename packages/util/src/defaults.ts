@@ -17,6 +17,8 @@
 
 import { base64Decode } from './crypt';
 import { getGlobal } from './global';
+// @ts-ignore
+import postinstallDefaults from "@firebase/util/postinstall";
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.
@@ -100,6 +102,7 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
 export const getDefaults = (): FirebaseDefaults | undefined => {
   try {
     return (
+      postinstallDefaults ||
       getDefaultsFromGlobal() ||
       getDefaultsFromEnvVariable() ||
       getDefaultsFromCookie()

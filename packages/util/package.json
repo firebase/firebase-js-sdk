@@ -21,10 +21,19 @@
       },
       "default": "./dist/index.esm2017.js"
     },
+    "./postinstall": {
+      "types": "./defaults.d.ts",
+      "require": "./defaults.js",
+      "import": "./defaults.mjs",
+      "default": "./defaults.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "defaults.*js",
+    "defaults.d.ts",
+    "postinstall.mjs"
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -40,7 +49,8 @@
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/util-public.d.ts",
+    "postinstall": "node ./postinstall.mjs"
   },
   "license": "Apache-2.0",
   "dependencies": {
