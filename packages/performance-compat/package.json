@@ -29,7 +29,7 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",

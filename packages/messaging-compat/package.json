@@ -30,7 +30,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:karma",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:karma": "karma start --single-run",
+    "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "type-check": "tsc --noEmit",
