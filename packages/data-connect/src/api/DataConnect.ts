@@ -160,6 +160,7 @@ export class DataConnect {
     this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
+      this.app.options.appId,
       this._authTokenProvider,
       this._appCheckTokenProvider,
       undefined,

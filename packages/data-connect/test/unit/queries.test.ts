@@ -68,7 +68,7 @@ describe('Queries', () => {
   it('[QUERY] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
-    const rt = new RESTTransport(options, undefined, authProvider);
+    const rt = new RESTTransport(options, undefined, undefined, authProvider);
     await expect(rt.invokeQuery('test', null)).to.eventually.be.rejectedWith(
       json.message
     );
@@ -77,7 +77,7 @@ describe('Queries', () => {
   it('[MUTATION] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
-    const rt = new RESTTransport(options, undefined, authProvider);
+    const rt = new RESTTransport(options, undefined, undefined, authProvider);
     await expect(rt.invokeMutation('test', null)).to.eventually.be.rejectedWith(
       json.message
     );
@@ -86,7 +86,7 @@ describe('Queries', () => {
   it("should not retry auth whenever the fetcher returns with unauthorized and the token doesn't change", async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
-    const rt = new RESTTransport(options, undefined, authProvider);
+    const rt = new RESTTransport(options, undefined, undefined, authProvider);
     rt._setLastToken('initial token');
     await expect(
       rt.invokeQuery('test', null) as Promise<unknown>

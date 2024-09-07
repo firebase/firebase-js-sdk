@@ -45,6 +45,7 @@ export interface CancellableOperation<T> extends PromiseLike<{ data: T }> {
 export type TransportClass = new (
   options: DataConnectOptions,
   apiKey?: string,
+  appId?: string,
   authProvider?: AuthTokenProvider,
   appCheckProvider?: AppCheckTokenProvider,
   transportOptions?: TransportOptions,
