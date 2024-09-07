@@ -3,4 +3,4 @@ authMode: "PUBLIC"
 generate:
     javascriptSdk:
       outputDir: "./gen/web"
-      jsPackageName: "@movie-app-ssr/movies"
+      package: "@movie-app-ssr/movies"

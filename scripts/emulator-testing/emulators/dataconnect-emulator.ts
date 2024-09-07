@@ -18,7 +18,7 @@
 import { platform } from 'os';
 import { Emulator } from './emulator';
 
-const DATABASE_EMULATOR_VERSION = '1.1.17';
+const DATABASE_EMULATOR_VERSION = '1.3.5';
 
 export class DataConnectEmulator extends Emulator {
   //   namespace: string;

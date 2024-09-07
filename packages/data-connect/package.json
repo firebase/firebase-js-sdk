@@ -35,7 +35,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:emulator",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:emulator",
-    "test:all": "npm run test:unit",
+    "test:all": "run-p --npm-path npm lint test:unit",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:unit": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/unit/**/*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
