@@ -49,7 +49,6 @@ export function dcFetch<T, U>(
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
   }
-  console.log(appId);
   if(appId) {
     headers['x-firebase-gmpid'] = appId;
   }
