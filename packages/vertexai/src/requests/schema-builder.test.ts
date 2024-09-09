@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import { Schema } from './schema-builder';
+import { VertexAIErrorCode } from '../types';
 
 use(sinonChai);
 
@@ -29,10 +30,27 @@ describe.only('Schema builder', () => {
       nullable: false
     });
   });
+  it('builds integer schema with options and overrides', () => {
+    const schema = Schema.integer({ nullable: true, format: 'int32' });
+    expect(schema.toRequest()).to.eql({
+      type: 'integer',
+      format: 'int32',
+      nullable: true
+    });
+  });
   it('builds number schema', () => {
     const schema = Schema.number();
     expect(schema.toRequest()).to.eql({
       type: 'number',
+      nullable: false
+    });
+  });
+  it('builds number schema with options and unknown options', () => {
+    const schema = Schema.number({ format: 'float', futureOption: 'test' });
+    expect(schema.toRequest()).to.eql({
+      type: 'number',
+      format: 'float',
+      futureOption: 'test',
       nullable: false
     });
   });
@@ -75,6 +93,48 @@ describe.only('Schema builder', () => {
       properties: {
         'someInput': {
           type: 'string',
+          nullable: false
+        }
+      },
+      required: ['someInput']
+    });
+  });
+  it('builds an object schema', () => {
+    const schema = Schema.object({
+      properties: {
+        'someInput': Schema.string()
+      }
+    });
+    expect(schema.toRequest()).to.eql({
+      type: 'object',
+      nullable: false,
+      properties: {
+        'someInput': {
+          type: 'string',
+          nullable: false
+        }
+      },
+      required: ['someInput']
+    });
+  });
+  it('builds an object schema with optional properties', () => {
+    const schema = Schema.object({
+      properties: {
+        'someInput': Schema.string(),
+        'someBool': Schema.boolean()
+      },
+      optionalProperties: ['someBool']
+    });
+    expect(schema.toRequest()).to.eql({
+      type: 'object',
+      nullable: false,
+      properties: {
+        'someInput': {
+          type: 'string',
+          nullable: false
+        },
+        'someBool': {
+          type: 'boolean',
           nullable: false
         }
       },
@@ -191,6 +251,17 @@ describe.only('Schema builder', () => {
       },
       'required': ['country', 'population']
     });
+  });
+  it('throws if an optionalProperties item does not exist', () => {
+    const schema = Schema.object({
+      properties: {
+        country: Schema.string(),
+        elevation: Schema.number(),
+        population: Schema.integer({ nullable: true })
+      },
+      optionalProperties: ['cat']
+    });
+    expect(() => schema.toRequest()).to.throw(VertexAIErrorCode.INVALID_SCHEMA);
   });
 });
 

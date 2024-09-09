@@ -35,6 +35,7 @@ interface SchemaShared<T> {
   example?: unknown;
   /** Optional. Whether the property is nullable. */
   nullable?: boolean;
+  [key: string]: unknown;
 }
 
 /**

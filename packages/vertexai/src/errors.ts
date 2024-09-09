@@ -33,8 +33,8 @@ export class VertexAIError extends FirebaseError {
    * @param customErrorData - Optional error data.
    */
   constructor(
-    readonly code: VertexAIErrorCode,
-    readonly message: string,
+    code: VertexAIErrorCode,
+    message: string,
     readonly customErrorData?: CustomErrorData
   ) {
     // Match error format used by FirebaseError from ErrorFactory

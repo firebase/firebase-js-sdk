@@ -1,3 +1,5 @@
+import { VertexAIError } from '../errors';
+import { VertexAIErrorCode } from '../types';
 import {
   SchemaInterface,
   SchemaType,
@@ -25,12 +27,19 @@ export abstract class Schema implements SchemaInterface {
   nullable: boolean;
   /** Optional. The example of the property. */
   example?: unknown;
+  /**
+   * Allows user to add other schema properties that have not yet
+   * been officially added to the SDK.
+   */
+  [key: string]: unknown;
 
   constructor(schemaParams: SchemaInterface) {
+    // eslint-disable-next-line guard-for-in
+    for (const paramKey in schemaParams) {
+      this[paramKey] = schemaParams[paramKey];
+    }
+    // Ensure these are explicitly set to avoid TS errors.
     this.type = schemaParams.type;
-    this.format = schemaParams?.format;
-    this.description = schemaParams?.description;
-    this.example = schemaParams?.example;
     this.nullable = schemaParams.hasOwnProperty('nullable')
       ? !!schemaParams.nullable
       : false;
@@ -127,6 +136,7 @@ export class IntegerSchema extends Schema {
     });
   }
 }
+
 export class NumberSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
     super({
@@ -135,6 +145,7 @@ export class NumberSchema extends Schema {
     });
   }
 }
+
 export class BooleanSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
     super({
@@ -194,11 +205,21 @@ export class ObjectSchema extends Schema {
 
   toRequest(): _SchemaRequest {
     const obj = super.toRequest();
-    const properties: Record<string, _SchemaRequest> = {};
+    obj.properties = this.properties;
     const required = [];
+    if (this.optionalProperties) {
+      for (const propertyKey of this.optionalProperties) {
+        if (!this.properties.hasOwnProperty(propertyKey)) {
+          throw new VertexAIError(
+            VertexAIErrorCode.INVALID_SCHEMA,
+            `Property "${propertyKey}" specified in "optionalProperties" does not exist.`
+          );
+        }
+      }
+    }
     for (const propertyKey in this.properties) {
       if (this.properties.hasOwnProperty(propertyKey)) {
-        properties[propertyKey] = this.properties[
+        obj.properties[propertyKey] = this.properties[
           propertyKey
         ].toRequest() as _SchemaRequest;
         if (!this.optionalProperties.includes(propertyKey)) {
@@ -206,7 +227,6 @@ export class ObjectSchema extends Schema {
         }
       }
     }
-    obj.properties = properties;
     if (required.length > 0) {
       obj.required = required;
     }
