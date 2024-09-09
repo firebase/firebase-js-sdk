@@ -30,6 +30,7 @@ async function fetchJson(path: string, req?: object): Promise<object> {
     headers: {
       'Content-Type': 'application/json'
     },
+    referrerPolicy: 'no-referrer',
     ...body
   };
 
