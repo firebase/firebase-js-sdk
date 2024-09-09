@@ -24,28 +24,28 @@ use(sinonChai);
 describe.only('Schema builder', () => {
   it('builds integer schema', () => {
     const schema = Schema.integer();
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'integer',
       nullable: false
     });
   });
   it('builds number schema', () => {
     const schema = Schema.number();
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'number',
       nullable: false
     });
   });
   it('builds boolean schema', () => {
     const schema = Schema.boolean();
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'boolean',
       nullable: false
     });
   });
   it('builds string schema', () => {
     const schema = Schema.string({ description: 'hey' });
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'string',
       description: 'hey',
       nullable: false
@@ -56,7 +56,7 @@ describe.only('Schema builder', () => {
       example: 'east',
       enum: ['east', 'west']
     });
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'string',
       example: 'east',
       enum: ['east', 'west'],
@@ -69,7 +69,7 @@ describe.only('Schema builder', () => {
         'someInput': Schema.string()
       }
     });
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       type: 'object',
       nullable: false,
       properties: {
@@ -81,13 +81,12 @@ describe.only('Schema builder', () => {
       required: ['someInput']
     });
   });
-  it('builds layered schema', () => {
+  it('builds layered schema - partially filled out', () => {
     const schema = Schema.array({
       items: Schema.object({
         properties: {
           country: Schema.string({
-            description: 'some country',
-            required: true
+            description: 'A country name'
           }),
           population: Schema.integer(),
           coordinates: Schema.object({
@@ -106,18 +105,74 @@ describe.only('Schema builder', () => {
         }
       })
     });
-
-    expect(schema.toJSON()).to.eql(layeredSchemaOutput);
+    expect(schema.toRequest()).to.eql(layeredSchemaOutputPartial);
   });
-  it('can override the "required" and "nullable" properties', () => {
+  it('builds layered schema - fully filled out', () => {
+    const schema = Schema.array({
+      items: Schema.object({
+        description: 'A country profile',
+        nullable: false,
+        properties: {
+          country: Schema.string({
+            nullable: false,
+            description: 'Country name',
+            format: undefined
+          }),
+          population: Schema.integer({
+            nullable: false,
+            description: 'Number of people in country',
+            format: 'int64'
+          }),
+          coordinates: Schema.object({
+            nullable: false,
+            description: 'Latitude and longitude',
+            properties: {
+              latitude: Schema.number({
+                nullable: false,
+                description: 'Latitude of capital',
+                format: 'float'
+              }),
+              longitude: Schema.number({
+                nullable: false,
+                description: 'Longitude of capital',
+                format: 'double'
+              })
+            }
+          }),
+          hemisphere: Schema.object({
+            nullable: false,
+            description: 'Hemisphere(s) country is in',
+            properties: {
+              latitudinal: Schema.enumString({ enum: ['N', 'S'] }),
+              longitudinal: Schema.enumString({ enum: ['E', 'W'] })
+            }
+          }),
+          isCapital: Schema.boolean({
+            nullable: false,
+            description: "This doesn't make a lot of sense but it's a demo"
+          }),
+          elevation: Schema.integer({
+            nullable: false,
+            description: 'Average elevation',
+            format: 'float'
+          })
+        },
+        optionalProperties: []
+      })
+    });
+
+    expect(schema.toRequest()).to.eql(layeredSchemaOutput);
+  });
+  it('can override "nullable" and set optional properties', () => {
     const schema = Schema.object({
       properties: {
         country: Schema.string(),
-        elevation: Schema.number({ required: false }),
+        elevation: Schema.number(),
         population: Schema.integer({ nullable: true })
-      }
+      },
+      optionalProperties: ['elevation']
     });
-    expect(schema.toJSON()).to.eql({
+    expect(schema.toRequest()).to.eql({
       'type': 'object',
       'nullable': false,
       'properties': {
@@ -139,7 +194,7 @@ describe.only('Schema builder', () => {
   });
 });
 
-const layeredSchemaOutput = {
+const layeredSchemaOutputPartial = {
   'type': 'array',
   'nullable': false,
   'items': {
@@ -148,7 +203,7 @@ const layeredSchemaOutput = {
     'properties': {
       'country': {
         'type': 'string',
-        'description': 'some country',
+        'description': 'A country name',
         'nullable': false
       },
       'population': {
@@ -201,5 +256,85 @@ const layeredSchemaOutput = {
       'hemisphere',
       'isCapital'
     ]
+  }
+};
+
+const layeredSchemaOutput = {
+  'type': 'array',
+  'nullable': false,
+  'items': {
+    'type': 'object',
+    'description': 'A country profile',
+    'nullable': false,
+    'required': [
+      'country',
+      'population',
+      'coordinates',
+      'hemisphere',
+      'isCapital',
+      'elevation'
+    ],
+    'properties': {
+      'country': {
+        'type': 'string',
+        'description': 'Country name',
+        'nullable': false
+      },
+      'population': {
+        'type': 'integer',
+        'format': 'int64',
+        'description': 'Number of people in country',
+        'nullable': false
+      },
+      'coordinates': {
+        'type': 'object',
+        'description': 'Latitude and longitude',
+        'nullable': false,
+        'required': ['latitude', 'longitude'],
+        'properties': {
+          'latitude': {
+            'type': 'number',
+            'format': 'float',
+            'description': 'Latitude of capital',
+            'nullable': false
+          },
+          'longitude': {
+            'type': 'number',
+            'format': 'double',
+            'description': 'Longitude of capital',
+            'nullable': false
+          }
+        }
+      },
+      'hemisphere': {
+        'type': 'object',
+        'description': 'Hemisphere(s) country is in',
+        'nullable': false,
+        'required': ['latitudinal', 'longitudinal'],
+        'properties': {
+          'latitudinal': {
+            'type': 'string',
+            'nullable': false,
+            'enum': ['N', 'S']
+          },
+          'longitudinal': {
+            'type': 'string',
+            'nullable': false,
+            'enum': ['E', 'W']
+          }
+        }
+      },
+      'isCapital': {
+        'type': 'boolean',
+        'description': "This doesn't make a lot of sense but it's a demo",
+        'nullable': false
+      },
+      'elevation': {
+        'type': 'integer',
+        'format': 'float',
+        'description': 'Average elevation',
+        'nullable': false
+      }
+    }
   }
 };

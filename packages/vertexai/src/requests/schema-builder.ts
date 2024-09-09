@@ -2,7 +2,8 @@ import {
   SchemaInterface,
   SchemaType,
   SchemaParams,
-  _SchemaRequest
+  _SchemaRequest,
+  ObjectSchemaInterface
 } from '../types/schema';
 
 export abstract class Schema implements SchemaInterface {
@@ -22,8 +23,6 @@ export abstract class Schema implements SchemaInterface {
   description?: string;
   /** Optional. Whether the property is nullable. Defaults to false. */
   nullable: boolean;
-  /** Optional. Defaults to true. */
-  required: boolean;
   /** Optional. The example of the property. */
   example?: unknown;
 
@@ -35,13 +34,10 @@ export abstract class Schema implements SchemaInterface {
     this.nullable = schemaParams.hasOwnProperty('nullable')
       ? !!schemaParams.nullable
       : false;
-    this.required = schemaParams.hasOwnProperty('required')
-      ? !!schemaParams.required
-      : true;
   }
 
   /** Converts class to a plain JSON object (not a string). */
-  toJSON(): _SchemaRequest {
+  toRequest(): _SchemaRequest {
     const obj: { type: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
@@ -55,6 +51,10 @@ export abstract class Schema implements SchemaInterface {
     return obj as _SchemaRequest;
   }
 
+  toJSON(): string {
+    return JSON.stringify(this.toRequest());
+  }
+
   static array(arrayParams: SchemaParams & { items: Schema }): ArraySchema {
     return new ArraySchema(arrayParams, arrayParams.items);
   }
@@ -64,9 +64,14 @@ export abstract class Schema implements SchemaInterface {
       properties: {
         [k: string]: Schema;
       };
+      optionalProperties?: string[];
     }
   ): ObjectSchema {
-    return new ObjectSchema(objectParams, objectParams.properties);
+    return new ObjectSchema(
+      objectParams,
+      objectParams.properties,
+      objectParams.optionalProperties
+    );
   }
 
   static functionDeclaration(
@@ -74,6 +79,7 @@ export abstract class Schema implements SchemaInterface {
       properties: {
         [k: string]: Schema;
       };
+      optionalProperties?: string[];
     }
   ): ObjectSchema {
     return this.object(objectParams);
@@ -148,8 +154,8 @@ export class StringSchema extends Schema {
     this.enum = enumValues;
   }
 
-  toJSON(): _SchemaRequest {
-    const obj = super.toJSON();
+  toRequest(): _SchemaRequest {
+    const obj = super.toRequest();
     if (this.enum) {
       obj['enum'] = this.enum;
     }
@@ -165,9 +171,9 @@ export class ArraySchema extends Schema {
     });
   }
 
-  toJSON(): _SchemaRequest {
-    const obj = super.toJSON();
-    obj.items = this.items.toJSON();
+  toRequest(): _SchemaRequest {
+    const obj = super.toRequest();
+    obj.items = this.items.toRequest();
     return obj;
   }
 }
@@ -177,7 +183,8 @@ export class ObjectSchema extends Schema {
     schemaParams: SchemaParams,
     public properties: {
       [k: string]: TypedSchema;
-    }
+    },
+    public optionalProperties: string[] = []
   ) {
     super({
       type: SchemaType.OBJECT,
@@ -185,16 +192,16 @@ export class ObjectSchema extends Schema {
     });
   }
 
-  toJSON(): _SchemaRequest {
-    const obj = super.toJSON();
+  toRequest(): _SchemaRequest {
+    const obj = super.toRequest();
     const properties: Record<string, _SchemaRequest> = {};
     const required = [];
     for (const propertyKey in this.properties) {
       if (this.properties.hasOwnProperty(propertyKey)) {
         properties[propertyKey] = this.properties[
           propertyKey
-        ].toJSON() as _SchemaRequest;
-        if (this.properties[propertyKey].required) {
+        ].toRequest() as _SchemaRequest;
+        if (!this.optionalProperties.includes(propertyKey)) {
           required.push(propertyKey);
         }
       }
@@ -203,6 +210,7 @@ export class ObjectSchema extends Schema {
     if (required.length > 0) {
       obj.required = required;
     }
+    delete (obj as ObjectSchemaInterface).optionalProperties;
     return obj as _SchemaRequest;
   }
 }

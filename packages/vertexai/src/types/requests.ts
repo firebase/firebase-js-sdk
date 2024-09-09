@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ObjectSchema, TypedSchema } from '../requests/schema-builder';
+import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -23,7 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
-import { SchemaInterface } from './schema';
+import { ObjectSchemaInterface } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -83,11 +83,13 @@ export interface GenerationConfig {
    * Output response mimetype of the generated candidate text.
    * Supported mimetypes are `text/plain` (default, text output) and `application/json`
    * (JSON response in the candidates).
-   * The model needs to be prompted to output the appropriate response type,
-   * otherwise the behavior is undefined.
-   * This is a preview feature.
    */
   responseMimeType?: string;
+  /**
+   * Output response schema of the generated candidate text.
+   * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * this is limited to `application/json`.
+   */
   responseSchema?: TypedSchema
 }
 
@@ -157,7 +159,7 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: SchemaInterface;
+  parameters?: ObjectSchemaInterface;
 }
 
 /**
