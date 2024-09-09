@@ -18,7 +18,7 @@ export class ArraySchema extends Schema {
     // Warning: (ae-forgotten-export) The symbol "_SchemaRequest" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -220,7 +220,8 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description?: string;
     name: string;
-    parameters?: ObjectSchema;
+    // Warning: (ae-forgotten-export) The symbol "ObjectSchemaInterface" needs to be exported by the entry point index.d.ts
+    parameters?: ObjectSchemaInterface;
 }
 
 // @public
@@ -313,7 +314,6 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
-    // (undocumented)
     responseSchema?: TypedSchema;
     // (undocumented)
     stopSequences?: string[];
@@ -488,13 +488,15 @@ export class NumberSchema extends Schema {
 export class ObjectSchema extends Schema {
     constructor(schemaParams: SchemaParams, properties: {
         [k: string]: TypedSchema;
-    });
+    }, optionalProperties?: string[]);
+    // (undocumented)
+    optionalProperties: string[];
     // (undocumented)
     properties: {
         [k: string]: TypedSchema;
     };
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -561,6 +563,7 @@ export interface SafetySetting {
 // @public (undocumented)
 export abstract class Schema implements SchemaInterface {
     constructor(schemaParams: SchemaInterface);
+    [key: string]: unknown;
     // (undocumented)
     static array(arrayParams: SchemaParams & {
         items: Schema;
@@ -579,6 +582,7 @@ export abstract class Schema implements SchemaInterface {
         properties: {
             [k: string]: Schema;
         };
+        optionalProperties?: string[];
     }): ObjectSchema;
     // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
@@ -590,11 +594,13 @@ export abstract class Schema implements SchemaInterface {
         properties: {
             [k: string]: Schema;
         };
+        optionalProperties?: string[];
     }): ObjectSchema;
-    required: boolean;
     // (undocumented)
     static string(stringParams?: SchemaParams): StringSchema;
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): string;
+    toRequest(): _SchemaRequest;
     // Warning: (ae-forgotten-export) The symbol "SchemaType" needs to be exported by the entry point index.d.ts
     type: SchemaType;
 }
@@ -627,7 +633,7 @@ export class StringSchema extends Schema {
     // (undocumented)
     enum?: string[];
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -675,11 +681,7 @@ export interface VertexAI {
 export class VertexAIError extends FirebaseError {
     constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
     // (undocumented)
-    readonly code: VertexAIErrorCode;
-    // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
-    // (undocumented)
-    readonly message: string;
 }
 
 // @public
@@ -687,6 +689,7 @@ export const enum VertexAIErrorCode {
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
     INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
     NO_API_KEY = "no-api-key",
     NO_MODEL = "no-model",
     NO_PROJECT_ID = "no-project-id",
