@@ -61,8 +61,7 @@ const argv = yargs.options({
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
-  let stdout = '';
-  let stderr = '';
+  let testProcessOutput = '';
   try {
     if (process.env?.BROWSERS) {
       for (const package in crossBrowserPackages) {
@@ -74,19 +73,18 @@ const argv = yargs.options({
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
-      stdout += data.toString();
+      testProcessOutput += data.toString();
     });
     testProcess.childProcess.stderr.on('data', data => {
-      stderr += data.toString();
+      testProcessOutput += data.toString();
     });
 
     await testProcess;
     console.log('Success: ' + name);
-    writeLogs('Success', name, stdout + '\n' + stderr);
+    writeLogs('Success', name, testProcessOutput);
   } catch (e) {
     console.error('Failure: ' + name);
-    console.log(stdout);
-    console.error(stderr);
+    console.error(testProcessOutput);
 
     if (process.env.CHROME_VERSION_NOTES) {
       console.error();
@@ -94,7 +92,7 @@ const argv = yargs.options({
       console.error();
     }
 
-    writeLogs('Failure', name, stdout + '\n' + stderr);
+    writeLogs('Failure', name, testProcessOutput);
 
     process.exit(1);
   }
