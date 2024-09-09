@@ -39,7 +39,6 @@ function determineBrowsers() {
     } else {
       return validBrowsers;
     }
-
   } else {
     console.log(
       "The 'BROWSER' environment variable is undefined. Defaulting to 'ChromeHeadless'."
