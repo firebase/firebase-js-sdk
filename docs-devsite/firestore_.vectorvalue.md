@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # VectorValue class
-Represents a vector type in Firestore documents. Create an instance with `VectorValue.fromArray(array)`<!-- -->.
+Represents a vector type in Firestore documents. Create an instance with `{@link vector}`<!-- -->.
 
  VectorValue
 
