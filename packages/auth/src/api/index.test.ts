@@ -314,8 +314,7 @@ describe('api/_performApiRequest', () => {
 
     it('should have referrerPolicy set', async () => {
       /* eslint-disable  no-var */
-      var referrerPolicySet: boolean = false;
-      /* eslint-enable no-var */
+      let referrerPolicySet: boolean = false;
       mockFetch.setUpWithOverride(
         (input: RequestInfo | URL, request?: RequestInit) => {
           if (request !== undefined && request.referrerPolicy !== undefined) {
@@ -342,8 +341,7 @@ describe('api/_performApiRequest', () => {
     it('should not have referrerPolicy set on Cloudflare workers', async () => {
       sinon.stub(utils, 'isCloudflareWorker').returns(true);
       /* eslint-disable  no-var */
-      var referrerPolicySet: boolean = false;
-      /* eslint-enable  no-var */
+      let referrerPolicySet: boolean = false;
       mockFetch.setUpWithOverride(
         (input: RequestInfo | URL, request?: RequestInit) => {
           if (request !== undefined && request.referrerPolicy !== undefined) {
