@@ -28,7 +28,7 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
