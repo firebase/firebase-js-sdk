@@ -319,21 +319,16 @@ describe('api/_performApiRequest', () => {
           if (request !== undefined && request.referrerPolicy !== undefined) {
             referrerPolicySet = true;
           }
-          return new Promise<never>((_, reject) =>
-            reject(new Error('network error'))
-          );
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
         }
       );
-      const promise = _performApiRequest(
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
         auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
+      await expect(promise).to.be.fulfilled;
       expect(referrerPolicySet).to.be.true;
     });
 
@@ -345,21 +340,16 @@ describe('api/_performApiRequest', () => {
           if (request !== undefined && request.referrerPolicy !== undefined) {
             referrerPolicySet = true;
           }
-          return new Promise<never>((_, reject) =>
-            reject(new Error('network error'))
-          );
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
         }
       );
-      const promise = _performApiRequest(
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
         auth,
         HttpMethod.POST,
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
+      await expect(promise).to.be.fulfilled;
       expect(referrerPolicySet).to.be.false;
       sinon.restore();
     });
