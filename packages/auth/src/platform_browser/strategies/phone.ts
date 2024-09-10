@@ -267,12 +267,8 @@ export async function _verifyPhoneNumber(
           authInstance: AuthInternal,
           request: StartPhoneMfaEnrollmentRequest
         ) => {
-          // If reCAPTCHA Enterprise token is empty or "NO_RECAPTCHA", fetch reCAPTCHA v2 token and inject into request.
-          if (
-            !request.phoneEnrollmentInfo.captchaResponse ||
-            request.phoneEnrollmentInfo.captchaResponse.length === 0 ||
-            request.phoneEnrollmentInfo.captchaResponse === FAKE_TOKEN
-          ) {
+          // If reCAPTCHA Enterprise token is FAKE_TOKEN, fetch reCAPTCHA v2 token and inject into request.
+          if (request.phoneEnrollmentInfo.captchaResponse === FAKE_TOKEN) {
             _assert(
               verifier?.type === RECAPTCHA_VERIFIER_TYPE,
               authInstance,
@@ -329,12 +325,8 @@ export async function _verifyPhoneNumber(
           authInstance: AuthInternal,
           request: StartPhoneMfaSignInRequest
         ) => {
-          // If reCAPTCHA Enterprise token is empty or "NO_RECAPTCHA", fetch reCAPTCHA v2 token and inject into request.
-          if (
-            !request.phoneSignInInfo.captchaResponse ||
-            request.phoneSignInInfo.captchaResponse.length === 0 ||
-            request.phoneSignInInfo.captchaResponse === FAKE_TOKEN
-          ) {
+          // If reCAPTCHA Enterprise token is FAKE_TOKEN, fetch reCAPTCHA v2 token and inject into request.
+          if (request.phoneSignInInfo.captchaResponse === FAKE_TOKEN) {
             _assert(
               verifier?.type === RECAPTCHA_VERIFIER_TYPE,
               authInstance,
@@ -380,12 +372,8 @@ export async function _verifyPhoneNumber(
         authInstance: AuthInternal,
         request: SendPhoneVerificationCodeRequest
       ) => {
-        // If reCAPTCHA Enterprise token is empty or "NO_RECAPTCHA", fetch reCAPTCHA v2 token and inject into request.
-        if (
-          !request.captchaResponse ||
-          request.captchaResponse.length === 0 ||
-          request.captchaResponse === FAKE_TOKEN
-        ) {
+        // If reCAPTCHA Enterprise token is FAKE_TOKEN, fetch reCAPTCHA v2 token and inject into request.
+        if (request.captchaResponse === FAKE_TOKEN) {
           _assert(
             verifier?.type === RECAPTCHA_VERIFIER_TYPE,
             authInstance,
