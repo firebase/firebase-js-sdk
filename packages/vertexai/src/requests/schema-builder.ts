@@ -8,6 +8,13 @@ import {
   ObjectSchemaInterface
 } from '../types/schema';
 
+/**
+ * Parent class encompassing all Schema types, with static methods that
+ * allow building specific Schema types. This class can be converted with
+ * JSON.stringify() into a JSON string accepted by Vertex REST endpoints.
+ * (This string conversion is automatically done when calling SDK methods.)
+ * @public
+ */
 export abstract class Schema implements SchemaInterface {
   /**
    * Optional. The type of the property. {@link
@@ -120,6 +127,10 @@ export abstract class Schema implements SchemaInterface {
   }
 }
 
+/**
+ * A type that includes all specific Schema types.
+ * @public
+ */
 export type TypedSchema =
   | IntegerSchema
   | NumberSchema
@@ -128,6 +139,10 @@ export type TypedSchema =
   | ObjectSchema
   | ArraySchema;
 
+/**
+ * Schema class for "integer" types.
+ * @public
+ */
 export class IntegerSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
     super({
@@ -137,6 +152,10 @@ export class IntegerSchema extends Schema {
   }
 }
 
+/**
+ * Schema class for "number" types.
+ * @public
+ */
 export class NumberSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
     super({
@@ -146,6 +165,10 @@ export class NumberSchema extends Schema {
   }
 }
 
+/**
+ * Schema class for "boolean" types.
+ * @public
+ */
 export class BooleanSchema extends Schema {
   constructor(schemaParams?: SchemaParams) {
     super({
@@ -155,6 +178,11 @@ export class BooleanSchema extends Schema {
   }
 }
 
+/**
+ * Schema class for "string" types. Can be used with or without
+ * enum values.
+ * @public
+ */
 export class StringSchema extends Schema {
   enum?: string[];
   constructor(schemaParams?: SchemaParams, enumValues?: string[]) {
@@ -174,6 +202,12 @@ export class StringSchema extends Schema {
   }
 }
 
+/**
+ * Schema class for "array" types.
+ * The `items` param should refer to the type of item that can be a member
+ * of the array.
+ * @public
+ */
 export class ArraySchema extends Schema {
   constructor(schemaParams: SchemaParams, public items: TypedSchema) {
     super({
@@ -189,6 +223,11 @@ export class ArraySchema extends Schema {
   }
 }
 
+/**
+ * Schema class for "object" types.
+ * The `properties` param must be a map of Schema.
+ * @public
+ */
 export class ObjectSchema extends Schema {
   constructor(
     schemaParams: SchemaParams,

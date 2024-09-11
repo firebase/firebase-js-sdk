@@ -40,6 +40,7 @@ interface SchemaShared<T> {
 
 /**
  * User-facing params passed to specific Schema static methods.
+ * @public
  */
 export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 
@@ -60,6 +61,7 @@ export interface _SchemaRequest extends SchemaShared<_SchemaRequest> {
 
 /**
  * Interface for Schema class.
+ * @public
  */
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
   /**
@@ -69,6 +71,10 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
   type: SchemaType;
 }
 
+/**
+ * Interface for ObjectSchema class.
+ * @public
+ */
 export interface ObjectSchemaInterface extends SchemaInterface {
   type: SchemaType.OBJECT;
   optionalProperties?: string[];
