@@ -14,10 +14,8 @@ export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -496,10 +494,8 @@ export class ObjectSchema extends Schema {
     properties: {
         [k: string]: TypedSchema;
     };
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -700,10 +696,8 @@ export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
