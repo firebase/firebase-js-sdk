@@ -9,16 +9,15 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
-// @public (undocumented)
+// @public
 export class ArraySchema extends Schema {
-    // Warning: (ae-forgotten-export) The symbol "SchemaParams" needs to be exported by the entry point index.d.ts
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // Warning: (ae-forgotten-export) The symbol "_SchemaRequest" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
     //
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -46,7 +45,7 @@ export enum BlockReason {
     SAFETY = "SAFETY"
 }
 
-// @public (undocumented)
+// @public
 export class BooleanSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
@@ -459,7 +458,7 @@ export interface InlineDataPart {
     videoMetadata?: VideoMetadata;
 }
 
-// @public (undocumented)
+// @public
 export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
@@ -481,22 +480,34 @@ export interface ModelParams extends BaseParams {
     tools?: Tool[];
 }
 
-// @public (undocumented)
+// @public
 export class NumberSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public (undocumented)
+// @public
 export class ObjectSchema extends Schema {
     constructor(schemaParams: SchemaParams, properties: {
         [k: string]: TypedSchema;
-    });
+    }, optionalProperties?: string[]);
+    // (undocumented)
+    optionalProperties: string[];
     // (undocumented)
     properties: {
         [k: string]: TypedSchema;
     };
+    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
+    //
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
+}
+
+// @public
+export interface ObjectSchemaInterface extends SchemaInterface {
+    // (undocumented)
+    optionalProperties?: string[];
+    // (undocumented)
+    type: SchemaType.OBJECT;
 }
 
 // @public
@@ -684,13 +695,15 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
-// @public (undocumented)
+// @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
+    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
+    //
     // (undocumented)
-    toJSON(): _SchemaRequest;
+    toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -723,7 +736,7 @@ export interface ToolConfig {
     functionCallingConfig?: FunctionCallingConfig;
 }
 
-// @public (undocumented)
+// @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 
 // @public
@@ -749,8 +762,6 @@ export interface VertexAI {
 // @public
 export class VertexAIError extends FirebaseError {
     constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
-    // (undocumented)
-    readonly code: VertexAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
 }
