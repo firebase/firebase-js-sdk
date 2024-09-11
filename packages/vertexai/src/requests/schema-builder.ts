@@ -52,8 +52,11 @@ export abstract class Schema implements SchemaInterface {
       : false;
   }
 
-  /** Converts class to a plain JSON object (not a string). */
-  toRequest(): _SchemaRequest {
+  /**
+   * Converts class to a plain JSON object (not a string).
+   * @internal
+   */
+  _toRequest(): _SchemaRequest {
     const obj: { type: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
@@ -68,7 +71,7 @@ export abstract class Schema implements SchemaInterface {
   }
 
   toJSON(): string {
-    return JSON.stringify(this.toRequest());
+    return JSON.stringify(this._toRequest());
   }
 
   static array(arrayParams: SchemaParams & { items: Schema }): ArraySchema {
@@ -193,8 +196,11 @@ export class StringSchema extends Schema {
     this.enum = enumValues;
   }
 
-  toRequest(): _SchemaRequest {
-    const obj = super.toRequest();
+  /**
+   * @internal
+   */
+  _toRequest(): _SchemaRequest {
+    const obj = super._toRequest();
     if (this.enum) {
       obj['enum'] = this.enum;
     }
@@ -216,9 +222,12 @@ export class ArraySchema extends Schema {
     });
   }
 
-  toRequest(): _SchemaRequest {
-    const obj = super.toRequest();
-    obj.items = this.items.toRequest();
+  /**
+   * @internal
+   */
+  _toRequest(): _SchemaRequest {
+    const obj = super._toRequest();
+    obj.items = this.items._toRequest();
     return obj;
   }
 }
@@ -242,8 +251,11 @@ export class ObjectSchema extends Schema {
     });
   }
 
-  toRequest(): _SchemaRequest {
-    const obj = super.toRequest();
+  /**
+   * @internal
+   */
+  _toRequest(): _SchemaRequest {
+    const obj = super._toRequest();
     obj.properties = this.properties;
     const required = [];
     if (this.optionalProperties) {
@@ -260,7 +272,7 @@ export class ObjectSchema extends Schema {
       if (this.properties.hasOwnProperty(propertyKey)) {
         obj.properties[propertyKey] = this.properties[
           propertyKey
-        ].toRequest() as _SchemaRequest;
+        ]._toRequest() as _SchemaRequest;
         if (!this.optionalProperties.includes(propertyKey)) {
           required.push(propertyKey);
         }

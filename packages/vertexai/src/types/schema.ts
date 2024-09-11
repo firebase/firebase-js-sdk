@@ -18,7 +18,7 @@ export enum SchemaType {
   OBJECT = 'object'
 }
 
-interface SchemaShared<T> {
+export interface SchemaShared<T> {
   /** Optional. The format of the property. */
   format?: string;
   /** Optional. The description of the property. */

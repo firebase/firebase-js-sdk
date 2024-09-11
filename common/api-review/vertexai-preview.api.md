@@ -14,10 +14,8 @@ export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -493,10 +491,8 @@ export class ObjectSchema extends Schema {
     properties: {
         [k: string]: TypedSchema;
     };
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
@@ -606,8 +602,8 @@ export abstract class Schema implements SchemaInterface {
     static string(stringParams?: SchemaParams): StringSchema;
     // (undocumented)
     toJSON(): string;
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    toRequest(): _SchemaRequest;
+    // Warning: (ae-incompatible-release-tags) The symbol "_toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
+    _toRequest(): _SchemaRequest;
     type: SchemaType;
 }
 
@@ -665,10 +661,8 @@ export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
-    // Warning: (ae-incompatible-release-tags) The symbol "toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    //
-    // (undocumented)
-    toRequest(): _SchemaRequest;
+    // @internal (undocumented)
+    _toRequest(): _SchemaRequest;
 }
 
 // @public
