@@ -15,7 +15,7 @@ export class ArraySchema extends Schema {
     // (undocumented)
     items: TypedSchema;
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public
@@ -492,7 +492,7 @@ export class ObjectSchema extends Schema {
         [k: string]: TypedSchema;
     };
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public
@@ -580,13 +580,6 @@ export abstract class Schema implements SchemaInterface {
     example?: unknown;
     format?: string;
     // (undocumented)
-    static functionDeclaration(objectParams: SchemaParams & {
-        properties: {
-            [k: string]: Schema;
-        };
-        optionalProperties?: string[];
-    }): ObjectSchema;
-    // (undocumented)
     static integer(integerParams?: SchemaParams): IntegerSchema;
     nullable: boolean;
     // (undocumented)
@@ -600,15 +593,11 @@ export abstract class Schema implements SchemaInterface {
     }): ObjectSchema;
     // (undocumented)
     static string(stringParams?: SchemaParams): StringSchema;
-    // (undocumented)
-    toJSON(): string;
-    // Warning: (ae-incompatible-release-tags) The symbol "_toRequest" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    _toRequest(): _SchemaRequest;
+    // Warning: (ae-incompatible-release-tags) The symbol "toJSON" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
+    toJSON(): _SchemaRequest;
     type: SchemaType;
 }
 
-// Warning: (ae-forgotten-export) The symbol "SchemaShared" needs to be exported by the entry point index.d.ts
-//
 // @public
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
     type: SchemaType;
@@ -622,6 +611,21 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {
 export interface _SchemaRequest extends SchemaShared<_SchemaRequest> {
     required?: string[];
     type: SchemaType;
+}
+
+// @public (undocumented)
+export interface SchemaShared<T> {
+    // (undocumented)
+    [key: string]: unknown;
+    description?: string;
+    enum?: string[];
+    example?: unknown;
+    format?: string;
+    items?: T;
+    nullable?: boolean;
+    properties?: {
+        [k: string]: T;
+    };
 }
 
 // @public
@@ -662,7 +666,7 @@ export class StringSchema extends Schema {
     // (undocumented)
     enum?: string[];
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public

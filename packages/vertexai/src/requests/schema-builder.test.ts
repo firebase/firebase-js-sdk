@@ -25,14 +25,14 @@ use(sinonChai);
 describe.only('Schema builder', () => {
   it('builds integer schema', () => {
     const schema = Schema.integer();
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'integer',
       nullable: false
     });
   });
   it('builds integer schema with options and overrides', () => {
     const schema = Schema.integer({ nullable: true, format: 'int32' });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'integer',
       format: 'int32',
       nullable: true
@@ -40,14 +40,14 @@ describe.only('Schema builder', () => {
   });
   it('builds number schema', () => {
     const schema = Schema.number();
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'number',
       nullable: false
     });
   });
   it('builds number schema with options and unknown options', () => {
     const schema = Schema.number({ format: 'float', futureOption: 'test' });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'number',
       format: 'float',
       futureOption: 'test',
@@ -56,14 +56,14 @@ describe.only('Schema builder', () => {
   });
   it('builds boolean schema', () => {
     const schema = Schema.boolean();
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'boolean',
       nullable: false
     });
   });
   it('builds string schema', () => {
     const schema = Schema.string({ description: 'hey' });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'string',
       description: 'hey',
       nullable: false
@@ -74,29 +74,11 @@ describe.only('Schema builder', () => {
       example: 'east',
       enum: ['east', 'west']
     });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'string',
       example: 'east',
       enum: ['east', 'west'],
       nullable: false
-    });
-  });
-  it('builds functionDeclaration schema', () => {
-    const schema = Schema.functionDeclaration({
-      properties: {
-        'someInput': Schema.string()
-      }
-    });
-    expect(schema.toRequest()).to.eql({
-      type: 'object',
-      nullable: false,
-      properties: {
-        'someInput': {
-          type: 'string',
-          nullable: false
-        }
-      },
-      required: ['someInput']
     });
   });
   it('builds an object schema', () => {
@@ -105,7 +87,7 @@ describe.only('Schema builder', () => {
         'someInput': Schema.string()
       }
     });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'object',
       nullable: false,
       properties: {
@@ -125,7 +107,7 @@ describe.only('Schema builder', () => {
       },
       optionalProperties: ['someBool']
     });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       type: 'object',
       nullable: false,
       properties: {
@@ -165,7 +147,7 @@ describe.only('Schema builder', () => {
         }
       })
     });
-    expect(schema.toRequest()).to.eql(layeredSchemaOutputPartial);
+    expect(schema.toJSON()).to.eql(layeredSchemaOutputPartial);
   });
   it('builds layered schema - fully filled out', () => {
     const schema = Schema.array({
@@ -221,7 +203,7 @@ describe.only('Schema builder', () => {
       })
     });
 
-    expect(schema.toRequest()).to.eql(layeredSchemaOutput);
+    expect(schema.toJSON()).to.eql(layeredSchemaOutput);
   });
   it('can override "nullable" and set optional properties', () => {
     const schema = Schema.object({
@@ -232,7 +214,7 @@ describe.only('Schema builder', () => {
       },
       optionalProperties: ['elevation']
     });
-    expect(schema.toRequest()).to.eql({
+    expect(schema.toJSON()).to.eql({
       'type': 'object',
       'nullable': false,
       'properties': {
@@ -261,7 +243,7 @@ describe.only('Schema builder', () => {
       },
       optionalProperties: ['cat']
     });
-    expect(() => schema.toRequest()).to.throw(VertexAIErrorCode.INVALID_SCHEMA);
+    expect(() => schema.toJSON()).to.throw(VertexAIErrorCode.INVALID_SCHEMA);
   });
 });
 

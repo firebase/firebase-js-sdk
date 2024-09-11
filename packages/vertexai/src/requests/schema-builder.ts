@@ -53,10 +53,10 @@ export abstract class Schema implements SchemaInterface {
   }
 
   /**
-   * Converts class to a plain JSON object (not a string).
-   * @internal
+   * Defines how this Schema should be serialized as JSON.
+   * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
    */
-  _toRequest(): _SchemaRequest {
+  toJSON(): _SchemaRequest {
     const obj: { type: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
@@ -68,10 +68,6 @@ export abstract class Schema implements SchemaInterface {
       }
     }
     return obj as _SchemaRequest;
-  }
-
-  toJSON(): string {
-    return JSON.stringify(this._toRequest());
   }
 
   static array(arrayParams: SchemaParams & { items: Schema }): ArraySchema {
@@ -91,17 +87,6 @@ export abstract class Schema implements SchemaInterface {
       objectParams.properties,
       objectParams.optionalProperties
     );
-  }
-
-  static functionDeclaration(
-    objectParams: SchemaParams & {
-      properties: {
-        [k: string]: Schema;
-      };
-      optionalProperties?: string[];
-    }
-  ): ObjectSchema {
-    return this.object(objectParams);
   }
 
   // eslint-disable-next-line id-blacklist
@@ -199,8 +184,8 @@ export class StringSchema extends Schema {
   /**
    * @internal
    */
-  _toRequest(): _SchemaRequest {
-    const obj = super._toRequest();
+  toJSON(): _SchemaRequest {
+    const obj = super.toJSON();
     if (this.enum) {
       obj['enum'] = this.enum;
     }
@@ -225,9 +210,9 @@ export class ArraySchema extends Schema {
   /**
    * @internal
    */
-  _toRequest(): _SchemaRequest {
-    const obj = super._toRequest();
-    obj.items = this.items._toRequest();
+  toJSON(): _SchemaRequest {
+    const obj = super.toJSON();
+    obj.items = this.items.toJSON();
     return obj;
   }
 }
@@ -254,9 +239,9 @@ export class ObjectSchema extends Schema {
   /**
    * @internal
    */
-  _toRequest(): _SchemaRequest {
-    const obj = super._toRequest();
-    obj.properties = this.properties;
+  toJSON(): _SchemaRequest {
+    const obj = super.toJSON();
+    obj.properties = { ...this.properties };
     const required = [];
     if (this.optionalProperties) {
       for (const propertyKey of this.optionalProperties) {
@@ -272,7 +257,7 @@ export class ObjectSchema extends Schema {
       if (this.properties.hasOwnProperty(propertyKey)) {
         obj.properties[propertyKey] = this.properties[
           propertyKey
-        ]._toRequest() as _SchemaRequest;
+        ].toJSON() as _SchemaRequest;
         if (!this.optionalProperties.includes(propertyKey)) {
           required.push(propertyKey);
         }
