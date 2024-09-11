@@ -90,7 +90,7 @@ export interface GenerationConfig {
    * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
    * this is limited to `application/json`.
    */
-  responseSchema?: TypedSchema
+  responseSchema?: TypedSchema;
 }
 
 /**
