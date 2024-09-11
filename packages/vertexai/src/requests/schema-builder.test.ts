@@ -22,7 +22,7 @@ import { VertexAIErrorCode } from '../types';
 
 use(sinonChai);
 
-describe.only('Schema builder', () => {
+describe('Schema builder', () => {
   it('builds integer schema', () => {
     const schema = Schema.integer();
     expect(schema.toJSON()).to.eql({

@@ -46,10 +46,9 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 
 /**
  * Final format for Schema params passed to backend requests.
- * @internal
+ * @public
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _SchemaRequest extends SchemaShared<_SchemaRequest> {
+export interface SchemaRequest extends SchemaShared<SchemaRequest> {
   /**
    * The type of the property. {@link
    * SchemaType}.

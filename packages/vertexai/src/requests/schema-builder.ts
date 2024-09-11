@@ -4,7 +4,7 @@ import {
   SchemaInterface,
   SchemaType,
   SchemaParams,
-  _SchemaRequest,
+  SchemaRequest,
   ObjectSchemaInterface
 } from '../types/schema';
 
@@ -56,7 +56,7 @@ export abstract class Schema implements SchemaInterface {
    * Defines how this Schema should be serialized as JSON.
    * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
    */
-  toJSON(): _SchemaRequest {
+  toJSON(): SchemaRequest {
     const obj: { type: SchemaType; [key: string]: unknown } = {
       type: this.type
     };
@@ -67,7 +67,7 @@ export abstract class Schema implements SchemaInterface {
         }
       }
     }
-    return obj as _SchemaRequest;
+    return obj as SchemaRequest;
   }
 
   static array(arrayParams: SchemaParams & { items: Schema }): ArraySchema {
@@ -181,15 +181,12 @@ export class StringSchema extends Schema {
     this.enum = enumValues;
   }
 
-  /**
-   * @internal
-   */
-  toJSON(): _SchemaRequest {
+  toJSON(): SchemaRequest {
     const obj = super.toJSON();
     if (this.enum) {
       obj['enum'] = this.enum;
     }
-    return obj as _SchemaRequest;
+    return obj as SchemaRequest;
   }
 }
 
@@ -207,10 +204,7 @@ export class ArraySchema extends Schema {
     });
   }
 
-  /**
-   * @internal
-   */
-  toJSON(): _SchemaRequest {
+  toJSON(): SchemaRequest {
     const obj = super.toJSON();
     obj.items = this.items.toJSON();
     return obj;
@@ -236,10 +230,7 @@ export class ObjectSchema extends Schema {
     });
   }
 
-  /**
-   * @internal
-   */
-  toJSON(): _SchemaRequest {
+  toJSON(): SchemaRequest {
     const obj = super.toJSON();
     obj.properties = { ...this.properties };
     const required = [];
@@ -257,7 +248,7 @@ export class ObjectSchema extends Schema {
       if (this.properties.hasOwnProperty(propertyKey)) {
         obj.properties[propertyKey] = this.properties[
           propertyKey
-        ].toJSON() as _SchemaRequest;
+        ].toJSON() as SchemaRequest;
         if (!this.optionalProperties.includes(propertyKey)) {
           required.push(propertyKey);
         }
@@ -267,6 +258,6 @@ export class ObjectSchema extends Schema {
       obj.required = required;
     }
     delete (obj as ObjectSchemaInterface).optionalProperties;
-    return obj as _SchemaRequest;
+    return obj as SchemaRequest;
   }
 }
