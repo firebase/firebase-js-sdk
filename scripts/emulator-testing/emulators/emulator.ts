@@ -23,6 +23,7 @@ import * as os from 'os';
 import * as path from 'path';
 // @ts-ignore
 import * as tmp from 'tmp';
+import { Readable } from "stream";
 
 export abstract class Emulator {
   binaryPath: string | null = null;
@@ -40,6 +41,9 @@ export abstract class Emulator {
     this.cacheBinaryPath = path.join(this.cacheDirectory, binaryName);
   }
 
+  setBinaryPath(path: string) {
+    this.binaryPath = path;
+  }
   download(): Promise<void> {
     if (fs.existsSync(this.cacheBinaryPath)) {
       console.log(`Emulator found in cache: ${this.cacheBinaryPath}`);
@@ -50,35 +54,38 @@ export abstract class Emulator {
     return new Promise<void>((resolve, reject) => {
       tmp.dir((err: Error | null, dir: string) => {
         if (err) reject(err);
-
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
-        const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
-
+        const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        fetch(this.binaryUrl).then(resp => {
-          resp.body
-            .pipe(writeStream)
-            .on('finish', () => {
-              console.log(`Saved emulator binary file to [${filepath}].`);
-              // Change emulator binary file permission to 'rwxr-xr-x'.
-              // The execute permission is required for it to be able to start
-              // with 'java -jar'.
-              fs.chmod(filepath, 0o755, err => {
-                if (err) reject(err);
-                console.log(
-                  `Changed emulator file permissions to 'rwxr-xr-x'.`
-                );
-                this.binaryPath = filepath;
-
-                if (this.copyToCache()) {
-                  console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-                }
-                resolve();
-              });
-            })
-            .on('error', reject);
-        });
+        try {
+          fetch(this.binaryUrl).then(resp => {
+            const reader = resp.body?.getReader();
+            reader?.read().then(function readStuff(this: Emulator, { done, value }): any {
+              if (done) {
+                console.log(`Saved emulator binary file to [${filepath}].`);
+                // Change emulator binary file permission to 'rwxr-xr-x'.
+                // The execute permission is required for it to be able to start
+                // with 'java -jar'.
+                fs.chmod(filepath, 0o755, err => {
+                  if (err) reject(err);
+                  console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+                  (this as Emulator).setBinaryPath(filepath);//this.binaryPath = filepath;
+                  if (this.copyToCache()) {
+                    console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+                  }
+                  resolve();
+                });
+              } else {
+                writer.write(value);
+                return reader.read().then(readStuff);
+              }
+            });
+          });
+        } catch (e) {
+          console.log(`Download of emulator failed: ${e}`);
+          reject();
+        }
       });
     });
   }
