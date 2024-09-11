@@ -15,7 +15,7 @@ export class ArraySchema extends Schema {
     // (undocumented)
     items: TypedSchema;
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public
@@ -495,7 +495,7 @@ export class ObjectSchema extends Schema {
         [k: string]: TypedSchema;
     };
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public
@@ -644,6 +644,21 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     type: SchemaType;
 }
 
+// @public (undocumented)
+export interface SchemaShared<T> {
+    // (undocumented)
+    [key: string]: unknown;
+    description?: string;
+    enum?: string[];
+    example?: unknown;
+    format?: string;
+    items?: T;
+    nullable?: boolean;
+    properties?: {
+        [k: string]: T;
+    };
+}
+
 // @public
 export interface SchemaShared<T> {
     // (undocumented)
@@ -697,7 +712,7 @@ export class StringSchema extends Schema {
     // (undocumented)
     enum?: string[];
     // @internal (undocumented)
-    _toRequest(): _SchemaRequest;
+    toJSON(): _SchemaRequest;
 }
 
 // @public
