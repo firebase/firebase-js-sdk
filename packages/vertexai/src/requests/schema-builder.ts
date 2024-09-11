@@ -217,7 +217,7 @@ export class StringSchema extends Schema {
     if (this.enum) {
       obj['enum'] = this.enum;
     }
-    return obj as _SchemaRequest;
+    return obj as SchemaRequest;
   }
 }
 
