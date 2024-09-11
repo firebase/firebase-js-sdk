@@ -58,34 +58,33 @@ export abstract class Emulator {
         const filepath: string = path.resolve(dir, this.binaryName);
         const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        try {
-          fetch(this.binaryUrl).then(resp => {
-            const reader = resp.body?.getReader();
-            reader?.read().then(function readStuff(this: Emulator, { done, value }): any {
-              if (done) {
-                console.log(`Saved emulator binary file to [${filepath}].`);
-                // Change emulator binary file permission to 'rwxr-xr-x'.
-                // The execute permission is required for it to be able to start
-                // with 'java -jar'.
-                fs.chmod(filepath, 0o755, err => {
-                  if (err) reject(err);
-                  console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
-                  (this as Emulator).setBinaryPath(filepath);//this.binaryPath = filepath;
-                  if (this.copyToCache()) {
-                    console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-                  }
-                  resolve();
-                });
-              } else {
-                writer.write(value);
-                return reader.read().then(readStuff);
-              }
+        const downloadPromise = new Promise((downloadComplete, downloadFailed) => {
+          try {
+            fetch(this.binaryUrl).then(resp => {
+              const reader = resp.body?.getReader();
+              reader?.read().then(function readStuff({ done, value }): any {
+                if (done) {
+                  downloadComplete;
+                } else {
+                  writer.write(value);
+                  return reader.read().then(readStuff);
+                }
+              });
             });
-          });
-        } catch (e) {
-          console.log(`Download of emulator failed: ${e}`);
-          reject();
-        }
+          } catch (e) {
+            console.log(`Download of emulator failed: ${e}`);
+            downloadFailed();
+          }
+        });
+        downloadPromise.then(() => {
+          this.binaryPath = filepath;
+          if (this.copyToCache()) {
+            console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+          }
+          resolve;
+        }, () => {
+          reject;
+        });
       });
     });
   }
