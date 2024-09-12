@@ -28,17 +28,12 @@ import { AuthImpl } from '../core/auth/auth_impl';
 
 import { FetchProvider } from '../core/util/fetch_provider';
 import { getDefaultEmulatorHost } from '@firebase/util';
-import {
-  fetch as undiciFetch,
-  Headers as undiciHeaders,
-  Response as undiciResponse
-} from 'undici';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
-  undiciFetch as unknown as typeof fetch,
-  undiciHeaders as unknown as typeof Headers,
-  undiciResponse as unknown as typeof Response
+  fetch as unknown as typeof fetch,
+  Headers as unknown as typeof Headers,
+  Response as unknown as typeof Response
 );
 
 // First, we set up the various platform-specific features for Node (register

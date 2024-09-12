@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { fetch as undiciFetch, RequestInit as undiciRequestInit } from 'undici';
 import { getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {
@@ -88,9 +87,9 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
   if (typeof document !== 'undefined') {
     return fetch(url, request);
   } else {
-    return undiciFetch(
+    return fetch(
       url,
-      request as undiciRequestInit
+      request as RequestInit
     ) as unknown as ReturnType<typeof fetch>;
   }
 }
