@@ -87,9 +87,8 @@ function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
   if (typeof document !== 'undefined') {
     return fetch(url, request);
   } else {
-    return fetch(
-      url,
-      request as RequestInit
-    ) as unknown as ReturnType<typeof fetch>;
+    return fetch(url, request as RequestInit) as unknown as ReturnType<
+      typeof fetch
+    >;
   }
 }
