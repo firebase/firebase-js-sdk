@@ -40,9 +40,6 @@ export abstract class Emulator {
     this.cacheBinaryPath = path.join(this.cacheDirectory, binaryName);
   }
 
-  setBinaryPath(path: string) {
-    this.binaryPath = path;
-  }
   download(): Promise<void> {
     if (fs.existsSync(this.cacheBinaryPath)) {
       console.log(`Emulator found in cache: ${this.cacheBinaryPath}`);
@@ -58,7 +55,9 @@ export abstract class Emulator {
         const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
         // Map the DOM's fetch Reader to node's streaming file system
-        // operations.
+        // operations. We will need to access class members `binaryPath` and `copyToCache` after the
+        // download completes. It's a compilation error to pass `this` into the named function
+        // `readChunk`, so the download operation is wrapped in a promise that we wait upon.
         const downloadPromise = new Promise<void>(
           (downloadComplete, downloadFailed) => {
             fetch(this.binaryUrl)
