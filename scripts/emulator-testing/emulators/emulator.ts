@@ -23,7 +23,6 @@ import * as os from 'os';
 import * as path from 'path';
 // @ts-ignore
 import * as tmp from 'tmp';
-import { Readable } from "stream";
 
 export abstract class Emulator {
   binaryPath: string | null = null;
@@ -58,33 +57,47 @@ export abstract class Emulator {
         const filepath: string = path.resolve(dir, this.binaryName);
         const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        const downloadPromise = new Promise((downloadComplete, downloadFailed) => {
-          try {
-            fetch(this.binaryUrl).then(resp => {
-              const reader = resp.body?.getReader();
-              reader?.read().then(function readStuff({ done, value }): any {
-                if (done) {
-                  downloadComplete;
-                } else {
-                  writer.write(value);
-                  return reader.read().then(readStuff);
+        // Map the DOM's fetch Reader to node's streaming file system
+        // operations.
+        const downloadPromise = new Promise<void>(
+          (downloadComplete, downloadFailed) => {
+            fetch(this.binaryUrl)
+              .then(resp => {
+                if (resp.status !== 200) {
+                  console.log('Download of emulator failed: ', resp.statusText);
+                  downloadFailed();
                 }
+                const reader = resp.body?.getReader();
+                reader?.read().then(function readChunk({ done, value }): any {
+                  if (done) {
+                    downloadComplete();
+                  } else {
+                    writer.write(value);
+                    return reader.read().then(readChunk);
+                  }
+                });
+              })
+              .catch(e => {
+                console.log(`Download of emulator failed: ${e}`);
+                downloadFailed();
               });
-            });
-          } catch (e) {
-            console.log(`Download of emulator failed: ${e}`);
-            downloadFailed();
           }
-        });
-        downloadPromise.then(() => {
-          this.binaryPath = filepath;
-          if (this.copyToCache()) {
-            console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+        );
+        // Copy to cache when the download completes, and resolve
+        // the promise returned by this method.
+        downloadPromise.then(
+          () => {
+            console.log('Download complete');
+            this.binaryPath = filepath;
+            if (this.copyToCache()) {
+              console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+            }
+            resolve();
+          },
+          () => {
+            reject();
           }
-          resolve;
-        }, () => {
-          reject;
-        });
+        );
       });
     });
   }
