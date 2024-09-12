@@ -83,16 +83,22 @@ export abstract class Emulator {
               });
           }
         );
-        // Copy to cache when the download completes, and resolve
-        // the promise returned by this method.
+
         downloadPromise.then(
           () => {
             console.log('Download complete');
-            this.binaryPath = filepath;
-            if (this.copyToCache()) {
-              console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-            }
-            resolve();
+            // Change emulator binary file permission to 'rwxr-xr-x'.
+            // The execute permission is required for it to be able to start
+            // with 'java -jar'.
+            fs.chmod(filepath, 0o755, err => {
+              if (err) reject(err);
+              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+              this.binaryPath = filepath;
+              if (this.copyToCache()) {
+                console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+              }
+              resolve();
+            });
           },
           () => {
             reject();
