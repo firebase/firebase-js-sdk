@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RequestOptions, VertexAIErrorCode } from '../types';
+import { ErrorDetails, RequestOptions, VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
@@ -151,6 +151,34 @@ export async function makeRequest(
       } catch (e) {
         // ignored
       }
+      if (
+        response.status === 403 &&
+        errorDetails.some(
+          (detail: ErrorDetails) => detail.reason === 'SERVICE_DISABLED'
+        ) &&
+        errorDetails.some((detail: ErrorDetails) =>
+          (
+            detail.links as Array<Record<string, string>>
+          )?.[0]?.description.includes(
+            'Google developers console API activation'
+          )
+        )
+      ) {
+        throw new VertexAIError(
+          VertexAIErrorCode.API_NOT_ENABLED,
+          `The Vertex AI for Firebase SDK requires the Firebase Vertex AI API ` +
+            `firebasevertexai.googleapis.com to be enabled for your ` +
+            `project. Get started in the Firebase Console` +
+            ` (https://console.firebase.google.com/project/${url.apiSettings.project}/genai/vertex)` +
+            ` or verify that the API is enabled in the Google Cloud` +
+            ` Console (https://console.developers.google.com/apis/api/firebasevertexai.googleapis.com/overview?project=${url.apiSettings.project}).`,
+          {
+            status: response.status,
+            statusText: response.statusText,
+            errorDetails
+          }
+        );
+      }
       throw new VertexAIError(
         VertexAIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
@@ -165,6 +193,7 @@ export async function makeRequest(
     let err = e as Error;
     if (
       (e as VertexAIError).code !== VertexAIErrorCode.FETCH_ERROR &&
+      (e as VertexAIError).code !== VertexAIErrorCode.API_NOT_ENABLED &&
       e instanceof Error
     ) {
       err = new VertexAIError(
