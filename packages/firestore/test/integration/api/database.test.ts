@@ -1096,7 +1096,7 @@ apiDescribe('Database', persistence => {
         expect(snap.data()).to.equal(undefined);
       });
       await storeEvent.assertNoAdditionalEvents();
-      unsubscribe()
+      unsubscribe();
     });
   });
 
