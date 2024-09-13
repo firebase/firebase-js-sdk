@@ -1104,7 +1104,11 @@ apiDescribe('Database', persistence => {
     return withTestCollection(persistence, {}, async col => {
       const docA = doc(col);
       const storeEvent = new EventsAccumulator<DocumentSnapshot>();
-      const unsubscribe = onSnapshot(docA, { includeMetadataChanges: true }, storeEvent.storeEvent);
+      const unsubscribe = onSnapshot(
+        docA,
+        { includeMetadataChanges: true },
+        storeEvent.storeEvent
+      );
       await storeEvent
         .awaitEvent()
         .then(snap => {
