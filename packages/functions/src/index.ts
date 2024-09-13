@@ -25,4 +25,4 @@ import { registerFunctions } from './config';
 export * from './api';
 export * from './public-types';
 
-registerFunctions();
+registerFunctions(fetch.bind(self));

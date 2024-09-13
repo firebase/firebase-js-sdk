@@ -62,7 +62,8 @@ export function createTestService(
     authProvider,
     messagingProvider,
     appCheckProvider,
-    region
+    region,
+    fetch
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
