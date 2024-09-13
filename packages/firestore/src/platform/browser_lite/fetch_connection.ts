@@ -16,7 +16,6 @@
  */
 
 import { Token } from '../../api/credentials';
-import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
@@ -28,15 +27,6 @@ import { StringMap } from '../../util/types';
  * (e.g. `fetch` or a polyfill).
  */
 export class FetchConnection extends RestConnection {
-  /**
-   * @param databaseInfo - The connection info.
-   */
-  constructor(
-    databaseInfo: DatabaseInfo
-  ) {
-    super(databaseInfo);
-  }
-
   openStream<Req, Resp>(
     rpcName: string,
     token: Token | null
