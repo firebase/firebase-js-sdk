@@ -72,7 +72,6 @@
     "@firebase/auth-interop-types": "0.2.3",
     "@firebase/app-check-interop-types": "0.3.2",
     "@firebase/util": "1.9.7",
-    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "nyc": {
