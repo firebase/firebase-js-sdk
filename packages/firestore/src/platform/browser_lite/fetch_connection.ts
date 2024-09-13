@@ -30,11 +30,9 @@ import { StringMap } from '../../util/types';
 export class FetchConnection extends RestConnection {
   /**
    * @param databaseInfo - The connection info.
-   * @param fetchImpl - `fetch` or a Polyfill that implements the fetch API.
    */
   constructor(
-    databaseInfo: DatabaseInfo,
-    private readonly fetchImpl: typeof fetch
+    databaseInfo: DatabaseInfo
   ) {
     super(databaseInfo);
   }
@@ -56,7 +54,7 @@ export class FetchConnection extends RestConnection {
     let response: Response;
 
     try {
-      response = await this.fetchImpl(url, {
+      response = await fetch(url, {
         method: 'POST',
         headers,
         body: requestJson
