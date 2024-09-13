@@ -1,5 +1,13 @@
 # @firebase/functions
 
+## 0.11.7
+
+### Patch Changes
+
+- [`2ee2a90ae`](https://github.com/firebase/firebase-js-sdk/commit/2ee2a90aebcf75a0df467c47a5f731b07ce69070) [#8441](https://github.com/firebase/firebase-js-sdk/pull/8441) (fixes [#8440](https://github.com/firebase/firebase-js-sdk/issues/8440)) - Allow a custom path in Firebase functions custom domain
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
 ## 0.11.6
 
 ### Patch Changes

@@ -30,7 +30,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:karma",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:karma": "karma start --single-run",
+    "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "type-check": "tsc --noEmit",
@@ -46,7 +46,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.39",
+    "@firebase/app-compat": "0.2.40",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
     "ts-essentials": "9.3.0",

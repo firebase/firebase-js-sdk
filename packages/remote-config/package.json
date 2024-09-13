@@ -28,7 +28,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
@@ -50,7 +50,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.9",
+    "@firebase/app": "0.10.10",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.7.4"

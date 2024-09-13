@@ -1,5 +1,23 @@
 # firebase
 
+## 10.13.1
+
+### Patch Changes
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
+- Updated dependencies [[`2ee2a90ae`](https://github.com/firebase/firebase-js-sdk/commit/2ee2a90aebcf75a0df467c47a5f731b07ce69070), [`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f), [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345)]:
+  - @firebase/functions@0.11.7
+  - @firebase/app@0.10.10
+  - @firebase/auth-compat@0.5.13
+  - @firebase/firestore@4.7.1
+  - @firebase/storage@0.13.1
+  - @firebase/auth@1.7.8
+  - @firebase/functions-compat@0.3.13
+  - @firebase/app-compat@0.2.40
+  - @firebase/storage-compat@0.3.11
+  - @firebase/firestore-compat@0.3.36
+
 ## 10.13.0
 
 ### Minor Changes

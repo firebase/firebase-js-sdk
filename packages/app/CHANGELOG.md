@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.10.10
+
+### Patch Changes
+
+- [`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f) [#8437](https://github.com/firebase/firebase-js-sdk/pull/8437) - Removed an unnecessary console.log statement.
+
 ## 0.10.9
 
 ### Patch Changes

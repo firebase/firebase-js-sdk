@@ -210,7 +210,7 @@ describe('processStream', () => {
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
       aggregatedResponse.candidates?.[0].citationMetadata?.citations.length
-    ).to.equal(2);
+    ).to.equal(3);
     let foundCitationMetadata = false;
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;

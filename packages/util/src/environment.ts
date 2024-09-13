@@ -79,7 +79,7 @@ export function isNode(): boolean {
 }
 
 /**
- * Detect Browser Environment
+ * Detect Browser Environment.
  * Note: This will return true for certain test frameworks that are incompletely
  * mimicking a browser, and should not lead to assuming all browser APIs are
  * available.
@@ -89,13 +89,23 @@ export function isBrowser(): boolean {
 }
 
 /**
- * Detect Web Worker context
+ * Detect Web Worker context.
  */
 export function isWebWorker(): boolean {
   return (
     typeof WorkerGlobalScope !== 'undefined' &&
     typeof self !== 'undefined' &&
     self instanceof WorkerGlobalScope
+  );
+}
+
+/**
+ * Detect Cloudflare Worker context.
+ */
+export function isCloudflareWorker(): boolean {
+  return (
+    typeof navigator !== 'undefined' &&
+    navigator.userAgent === 'Cloudflare-Workers'
   );
 }
 
