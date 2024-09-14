@@ -83,7 +83,7 @@ const recaptchaConfigResponseAudit = {
   ]
 };
 const recaptchaConfigResponseOff = {
-  recaptchaKey: 'foo/bar/to/site-key',
+  // no recaptcha key if no rCE provider is enabled
   recaptchaEnforcementState: [
     {
       provider: RecaptchaAuthProvider.PHONE_PROVIDER,
