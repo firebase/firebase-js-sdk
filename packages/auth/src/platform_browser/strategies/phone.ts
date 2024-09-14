@@ -68,9 +68,9 @@ import { _castAuth } from '../../core/auth/auth_impl';
 import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 import {
-  RecaptchaEnterpriseVerifier,
   FAKE_TOKEN,
-  handleRecaptchaFlow
+  handleRecaptchaFlow,
+  _initializeRecaptchaConfig
 } from '../recaptcha/recaptcha_enterprise_verifier';
 import { _isFirebaseServerApp } from '@firebase/app';
 
@@ -227,8 +227,17 @@ export async function _verifyPhoneNumber(
   verifier?: ApplicationVerifierInternal
 ): Promise<string> {
   if (!auth._getRecaptchaConfig()) {
-    const enterpriseVerifier = new RecaptchaEnterpriseVerifier(auth);
-    await enterpriseVerifier.verify();
+    try {
+      await _initializeRecaptchaConfig(auth);
+    } catch (error) {
+      // If an error occurs while fetching the config, there is no way to know the enablement state
+      // of Phone provider, so we proceed with recaptcha V2 verification.
+      // The error is likely "recaptchaKey undefined", as reCAPTCHA Enterprise is not
+      // enabled for any provider.
+      console.log(
+        'Failed to initialize reCAPTCHA Enterprise config. Triggering the reCAPTCHA v2 verification'
+      );
+    }
   }
 
   try {
