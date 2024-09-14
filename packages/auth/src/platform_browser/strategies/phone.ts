@@ -235,7 +235,7 @@ export async function _verifyPhoneNumber(
       // The error is likely "recaptchaKey undefined", as reCAPTCHA Enterprise is not
       // enabled for any provider.
       console.log(
-        'Failed to initialize reCAPTCHA Enterprise config. Triggering the reCAPTCHA v2 verification'
+        'Failed to initialize reCAPTCHA Enterprise config. Triggering the reCAPTCHA v2 verification.'
       );
     }
   }
