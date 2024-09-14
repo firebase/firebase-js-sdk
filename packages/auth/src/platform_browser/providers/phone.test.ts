@@ -64,7 +64,7 @@ describe('platform_browser/providers/phone', () => {
   context('#verifyPhoneNumber', () => {
     it('calls verify on the appVerifier and then calls the server when recaptcha enterprise is disabled', async () => {
       const recaptchaConfigResponseOff = {
-        recaptchaKey: 'foo/bar/to/site-key',
+        // no recaptcha key if no rCE provider is enabled
         recaptchaEnforcementState: [
           {
             provider: RecaptchaAuthProvider.PHONE_PROVIDER,
@@ -111,7 +111,7 @@ describe('platform_browser/providers/phone', () => {
 
     it('throws an error if verify without appVerifier when recaptcha enterprise is disabled', async () => {
       const recaptchaConfigResponseOff = {
-        recaptchaKey: 'foo/bar/to/site-key',
+        // no recaptcha key if no rCE provider is enabled
         recaptchaEnforcementState: [
           {
             provider: RecaptchaAuthProvider.PHONE_PROVIDER,
