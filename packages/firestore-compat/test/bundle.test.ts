@@ -188,9 +188,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       await db.doc('coll-1/b').set({ k: 'b', bar: 0 });
 
       const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
-      const unsubscribe = db
-        .collection('coll-1')
-        .onSnapshot(accumulator.storeEvent);
+      db.collection('coll-1').onSnapshot(accumulator.storeEvent);
       await accumulator.awaitEvent();
 
       const progress = await db.loadBundle(
@@ -209,8 +207,6 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       snap = await (await db.namedQuery('limit-to-last'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
-
-      unsubscribe();
     });
   });
 
