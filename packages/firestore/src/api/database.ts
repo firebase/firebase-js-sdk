@@ -455,6 +455,8 @@ function setPersistenceProviders(
     _online: onlineComponentProvider,
     _offline: offlineComponentProvider
   };
+
+  configureFirestore(firestore);
 }
 
 /**
