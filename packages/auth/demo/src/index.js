@@ -718,6 +718,7 @@ function clearApplicationVerifier() {
  * Sends a phone number verification code for sign-in.
  */
 function onSignInVerifyPhoneNumber() {
+  console.log('onSignInVerifyPhoneNumber with ApplicationVerifier');
   const phoneNumber = $('#signin-phone-number').val();
   const provider = new PhoneAuthProvider(auth);
   // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
@@ -726,6 +727,31 @@ function onSignInVerifyPhoneNumber() {
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
   provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
+    verificationId => {
+      clearApplicationVerifier();
+      $('#signin-phone-verification-id').val(verificationId);
+      alertSuccess('Phone verification sent!');
+    },
+    error => {
+      clearApplicationVerifier();
+      onAuthError(error);
+    }
+  );
+}
+
+/**
+ * Sends a phone number verification code for sign-in.
+ */
+function onSignInVerifyPhoneNumberNoAppVerifier() {
+  console.log('onSignInVerifyPhoneNumber without ApplicationVerifier');
+  const phoneNumber = $('#signin-phone-number').val();
+  const provider = new PhoneAuthProvider(auth);
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // link/re-auth operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('signin-verify-phone-number');
+  provider.verifyPhoneNumber(phoneNumber).then(
     verificationId => {
       clearApplicationVerifier();
       $('#signin-phone-verification-id').val(verificationId);
@@ -831,6 +857,7 @@ function onReauthConfirmPhoneVerification() {
  * Sends a phone number verification code for enrolling second factor.
  */
 function onStartEnrollWithPhoneMultiFactor() {
+  console.log('onStartEnrollWithPhoneMultiFactor with ApplicationVerifier');
   const phoneNumber = $('#enroll-mfa-phone-number').val();
   if (!phoneNumber || !activeUser()) {
     return;
@@ -849,6 +876,40 @@ function onStartEnrollWithPhoneMultiFactor() {
         'session': multiFactorSession
       };
       return provider.verifyPhoneNumber(phoneInfoOptions, applicationVerifier);
+    })
+    .then(
+      verificationId => {
+        clearApplicationVerifier();
+        $('#enroll-mfa-phone-verification-id').val(verificationId);
+        alertSuccess('Phone verification sent!');
+      },
+      error => {
+        clearApplicationVerifier();
+        onAuthError(error);
+      }
+    );
+}
+
+function onStartEnrollWithPhoneMultiFactorNoAppVerifier() {
+  console.log('onStartEnrollWithPhoneMultiFactor without ApplicationVerifier');
+  const phoneNumber = $('#enroll-mfa-phone-number').val();
+  if (!phoneNumber || !activeUser()) {
+    return;
+  }
+  const provider = new PhoneAuthProvider(auth);
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // sign-in operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('enroll-mfa-verify-phone-number');
+  multiFactor(activeUser())
+    .getSession()
+    .then(multiFactorSession => {
+      const phoneInfoOptions = {
+        phoneNumber,
+        'session': multiFactorSession
+      };
+      return provider.verifyPhoneNumber(phoneInfoOptions);
     })
     .then(
       verificationId => {
@@ -1436,6 +1497,7 @@ function onSelectMultiFactorHint(index) {
  * @param {!jQuery.Event} event The jQuery event object.
  */
 function onStartSignInWithPhoneMultiFactor(event) {
+  console.log('onStartSignInWithPhoneMultiFactor with ApplicationVerifier');
   event.preventDefault();
   // Make sure a second factor is selected.
   if (!selectedMultiFactorHint || !multiFactorErrorResolver) {
@@ -1448,6 +1510,32 @@ function onStartSignInWithPhoneMultiFactor(event) {
     session: multiFactorErrorResolver.session
   };
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
+    verificationId => {
+      clearApplicationVerifier();
+      $('#multi-factor-sign-in-verification-id').val(verificationId);
+      alertSuccess('Phone verification sent!');
+    },
+    error => {
+      clearApplicationVerifier();
+      onAuthError(error);
+    }
+  );
+}
+
+function onStartSignInWithPhoneMultiFactorNoAppVerifier(event) {
+  console.log('onStartSignInWithPhoneMultiFactor without ApplicationVerifier');
+  event.preventDefault();
+  // Make sure a second factor is selected.
+  if (!selectedMultiFactorHint || !multiFactorErrorResolver) {
+    return;
+  }
+  // Initialize a reCAPTCHA application verifier.
+  const provider = new PhoneAuthProvider(auth);
+  const signInRequest = {
+    multiFactorHint: selectedMultiFactorHint,
+    session: multiFactorErrorResolver.session
+  };
+  provider.verifyPhoneNumber(signInRequest).then(
     verificationId => {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
@@ -2275,6 +2363,7 @@ function initApp() {
     onSignInWithGenericIdPCredential
   );
   $('#signin-verify-phone-number').click(onSignInVerifyPhoneNumber);
+  $('#signin-verify-phone-number-no-appverifier').click(onSignInVerifyPhoneNumberNoAppVerifier);
   $('#signin-confirm-phone-verification').click(
     onSignInConfirmPhoneVerification
   );
@@ -2364,6 +2453,7 @@ function initApp() {
   // Multi-factor operations.
   // Starts multi-factor sign-in with selected phone number.
   $('#send-2fa-phone-code').click(onStartSignInWithPhoneMultiFactor);
+  $('#send-2fa-phone-code-no-appverifier').click(onStartSignInWithPhoneMultiFactorNoAppVerifier);
   // Completes multi-factor sign-in with supplied SMS code.
   $('#sign-in-with-phone-multi-factor').click(
     onFinalizeSignInWithPhoneMultiFactor
@@ -2376,6 +2466,7 @@ function initApp() {
 
   // Starts multi-factor enrollment with phone number.
   $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);
+  $('#enroll-mfa-verify-phone-number-no-appverifier').click(onStartEnrollWithPhoneMultiFactorNoAppVerifier);
   // Completes multi-factor enrollment with supplied SMS code.
   $('#enroll-mfa-confirm-phone-verification').click(
     onFinalizeEnrollWithPhoneMultiFactor
