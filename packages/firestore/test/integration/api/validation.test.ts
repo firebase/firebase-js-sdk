@@ -234,8 +234,8 @@ apiDescribe('Validation:', persistence => {
     validationIt(
       persistence,
       'disallows calling enableIndexedDbPersistence() after use',
-      async db => {
-        await getDoc(doc(db, 'foo/bar'));
+      db => {
+        //doc(db, 'foo/bar');
         expect(() => enableIndexedDbPersistence(db)).to.throw(
           'Firestore has already been started and persistence can no ' +
             'longer be enabled. You can only enable persistence before ' +

@@ -202,10 +202,7 @@ apiDescribe('Bundles', persistence => {
       await setDoc(doc(db, 'coll-1/b'), { k: 'b', bar: 0 });
 
       const accumulator = new EventsAccumulator<QuerySnapshot>();
-      const unsubscribe = onSnapshot(
-        collection(db, 'coll-1'),
-        accumulator.storeEvent
-      );
+      onSnapshot(collection(db, 'coll-1'), accumulator.storeEvent);
       await accumulator.awaitEvent();
 
       const progress = await loadBundle(
@@ -219,7 +216,6 @@ apiDescribe('Bundles', persistence => {
       // generated as a result. The case where a bundle has newer doc than
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
-      unsubscribe();
 
       let snap = await getDocs((await namedQuery(db, 'limit'))!);
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
