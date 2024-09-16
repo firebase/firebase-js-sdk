@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-compat",
-  "version": "0.3.8",
+  "version": "0.3.11",
   "description": "The Firebase Firestore compatibility package",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "./dist/index.cjs.js",
@@ -26,11 +26,12 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:browser test:node lint",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
-    "test:browser:unit": "karma start --single-run --unit",
-    "test:browser:integration": "karma start --single-run --integration",
-    "test:browser": "karma start --single-run",
+    "test:browser:unit": "karma start --unit",
+    "test:browser:integration": "karma start --integration",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../storage/dist/storage-public.d.ts -o dist/src/index.d.ts -a -r FirebaseStorage:types.FirebaseStorage -r StorageReference:types.Reference -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/storage"
   },
@@ -38,15 +39,15 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/storage": "0.12.5",
+    "@firebase/storage": "0.13.1",
     "@firebase/storage-types": "0.8.2",
-    "@firebase/util": "1.9.6",
-    "@firebase/component": "0.6.7",
+    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.8",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.34",
-    "@firebase/auth-compat": "0.5.8",
+    "@firebase/app-compat": "0.2.40",
+    "@firebase/auth-compat": "0.5.13",
     "rollup": "2.79.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",

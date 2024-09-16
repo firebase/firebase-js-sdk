@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.12.5",
+  "version": "0.13.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -34,29 +34,31 @@
     "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:browser test:node lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser test:node",
-    "test:browser:unit": "karma start --single-run --unit",
-    "test:browser:integration": "karma start --single-run --integration",
-    "test:browser": "karma start --single-run",
+    "test:all": "run-p --npm-path npm test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:browser:unit": "karma start --unit",
+    "test:browser:integration": "karma start --integration",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "api-report": "api-extractor run --local --verbose && ts-node-script ../../repo-scripts/prune-dts/prune-dts.ts --input dist/storage-public.d.ts --output dist/storage-public.d.ts",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/storage-public.d.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.9.6",
-    "@firebase/component": "0.6.7",
-    "undici": "5.28.4",
+    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.8",
+    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.4",
-    "@firebase/auth": "1.7.3",
+    "@firebase/app": "0.10.10",
+    "@firebase/auth": "1.7.8",
     "rollup": "2.79.1",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",

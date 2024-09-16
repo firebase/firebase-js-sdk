@@ -79,9 +79,8 @@ export interface GenerationConfig {
   frequencyPenalty?: number;
   /**
    * Output response mimetype of the generated candidate text.
-   * Supported mimetype:
-   *   `text/plain`: (default) Text output.
-   *   `application/json`: JSON response in the candidates.
+   * Supported mimetypes are `text/plain` (default, text output) and `application/json`
+   * (JSON response in the candidates).
    * The model needs to be prompted to output the appropriate response type,
    * otherwise the behavior is undefined.
    * This is a preview feature.
@@ -153,7 +152,7 @@ export declare interface FunctionDeclaration {
   /**
    * Optional. Describes the parameters to this function in JSON Schema Object
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
-   * case sensitive. For a function with no parameters, this can be left unset.
+   * case-sensitive. For a function with no parameters, this can be left unset.
    */
   parameters?: FunctionDeclarationSchema;
 }

@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # vertexai-preview package
-The Vertex AI For Firebase Web SDK.
+The Vertex AI in Firebase Web SDK.
 
 ## Functions
 
@@ -27,6 +27,7 @@ The Vertex AI For Firebase Web SDK.
 |  --- | --- |
 |  [ChatSession](./vertexai-preview.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [GenerativeModel](./vertexai-preview.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
+|  [VertexAIError](./vertexai-preview.vertexaierror.md#vertexaierror_class) | Error class for the Vertex AI in Firebase SDK. |
 
 ## Enumerations
 
@@ -41,6 +42,7 @@ The Vertex AI For Firebase Web SDK.
 |  [HarmCategory](./vertexai-preview.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
 |  [HarmProbability](./vertexai-preview.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
 |  [HarmSeverity](./vertexai-preview.md#harmseverity) | Harm severity levels. |
+|  [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) | Standardized error codes that [VertexAIError](./vertexai-preview.vertexaierror.md#vertexaierror_class) can have. |
 
 ## Interfaces
 
@@ -52,8 +54,10 @@ The Vertex AI For Firebase Web SDK.
 |  [Content](./vertexai-preview.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./vertexai-preview.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./vertexai-preview.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./vertexai-preview.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./vertexai-preview.generativemodel.md#generativemodelcounttokens)<!-- -->. |
+|  [CustomErrorData](./vertexai-preview.customerrordata.md#customerrordata_interface) | Details object that contains data originating from a bad HTTP response. |
 |  [Date\_2](./vertexai-preview.date_2.md#date_2_interface) | Protobuf google.type.Date |
 |  [EnhancedGenerateContentResponse](./vertexai-preview.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponse_interface) | Response object wrapped with helper methods. |
+|  [ErrorDetails](./vertexai-preview.errordetails.md#errordetails_interface) | Details object that may be included in an error response. |
 |  [FileData](./vertexai-preview.filedata.md#filedata_interface) | Data pointing to a file uploaded on Google Cloud Storage. |
 |  [FileDataPart](./vertexai-preview.filedatapart.md#filedatapart_interface) | Content part interface if the part represents [FileData](./vertexai-preview.filedata.md#filedata_interface) |
 |  [FunctionCall](./vertexai-preview.functioncall.md#functioncall_interface) | A predicted [FunctionCall](./vertexai-preview.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./vertexai-preview.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values. |
@@ -86,8 +90,8 @@ The Vertex AI For Firebase Web SDK.
 |  [TextPart](./vertexai-preview.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ToolConfig](./vertexai-preview.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [UsageMetadata](./vertexai-preview.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./vertexai-preview.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [VertexAI](./vertexai-preview.vertexai.md#vertexai_interface) | An instance of the Vertex AI for Firebase SDK. |
-|  [VertexAIOptions](./vertexai-preview.vertexaioptions.md#vertexaioptions_interface) | Options when initializing the Vertex AI for Firebase SDK. |
+|  [VertexAI](./vertexai-preview.vertexai.md#vertexai_interface) | An instance of the Vertex AI in Firebase SDK. |
+|  [VertexAIOptions](./vertexai-preview.vertexaioptions.md#vertexaioptions_interface) | Options when initializing the Vertex AI in Firebase SDK. |
 |  [VideoMetadata](./vertexai-preview.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [WebAttribution](./vertexai-preview.webattribution.md#webattribution_interface) |  |
 
@@ -366,4 +370,28 @@ export declare enum HarmSeverity
 |  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> |  |
 |  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> |  |
 |  HARM\_SEVERITY\_UNSPECIFIED | <code>&quot;HARM_SEVERITY_UNSPECIFIED&quot;</code> |  |
+
+## VertexAIErrorCode
+
+Standardized error codes that [VertexAIError](./vertexai-preview.vertexaierror.md#vertexaierror_class) can have.
+
+<b>Signature:</b>
+
+```typescript
+export declare const enum VertexAIErrorCode 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  ERROR | <code>&quot;error&quot;</code> | A generic error occurred. |
+|  FETCH\_ERROR | <code>&quot;fetch-error&quot;</code> | An error occurred while performing a fetch. |
+|  INVALID\_CONTENT | <code>&quot;invalid-content&quot;</code> | An error associated with a Content object. |
+|  NO\_API\_KEY | <code>&quot;no-api-key&quot;</code> | An error occurred due to a missing Firebase API key. |
+|  NO\_MODEL | <code>&quot;no-model&quot;</code> | An error occurred due to a model name not being specified during initialization. |
+|  NO\_PROJECT\_ID | <code>&quot;no-project-id&quot;</code> | An error occurred due to a missing project ID. |
+|  PARSE\_FAILED | <code>&quot;parse-failed&quot;</code> | An error occurred while parsing. |
+|  REQUEST\_ERROR | <code>&quot;request-error&quot;</code> | An error occurred in a request. |
+|  RESPONSE\_ERROR | <code>&quot;response-error&quot;</code> | An error occurred in a response. |
 

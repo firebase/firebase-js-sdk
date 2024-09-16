@@ -1,6 +1,6 @@
 {
   "name": "@firebase/webchannel-wrapper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "empty.js",
@@ -14,7 +14,7 @@
     "./bloom-blob": {
       "types": "./dist/bloom-blob/bloom_blob_types.d.ts",
       "require": "./dist/bloom-blob/bloom_blob_es2018.js",
-      "es5": "./dist/bloom-blob/bloom_blob_es5.js",
+      "esm5": "./dist/bloom-blob/bloom_blob_es5.js",
       "default": "./dist/bloom-blob/esm/bloom_blob_es2018.js"
     },
     "./package.json": "./package.json"
@@ -28,7 +28,8 @@
     "dev": "watch 'yarn build' src",
     "build": "rollup -c",
     "test": "echo 'No test suite for webchannel-wrapper'",
-    "test:ci": "echo 'No test suite for webchannel-wrapper'"
+    "test:ci": "echo 'No test suite for webchannel-wrapper'",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "license": "Apache-2.0",
   "devDependencies": {

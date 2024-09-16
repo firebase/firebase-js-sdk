@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Auth,
   multiFactor,
@@ -51,7 +52,7 @@ let totpTimestamp: Date;
 let emulatorUrl: string | null;
 let mfaUser: MultiFactorUser | null;
 
-describe(' Integration tests: Mfa enrollement using totp', () => {
+describe(' Integration tests: Mfa enrollment using totp', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {

@@ -25,7 +25,10 @@ const fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { join } = require('path');
 
-const mockResponseDir = join(__dirname, 'mock-responses');
+const mockResponseDir = join(
+  __dirname,
+  'vertexai-sdk-test-data/mock-responses'
+);
 
 async function main(): Promise<void> {
   const list = fs.readdirSync(mockResponseDir);

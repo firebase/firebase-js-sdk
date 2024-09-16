@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ body:
     id: before-you-start
     attributes:
       value: |
-        *[READ THIS]:* to evaluate if you are in the right place?
-        - For issues or feature requests related to __the code in this repository__, file a Github issue.
+        *[READ THIS]:* Are you in the right place?
+        - For issues or feature requests related to __the code in this repository__, file a GitHub issue.
         - If this is a __feature request__, make sure the issue title starts with "FR:".
         - For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) with the firebase tag.
         - For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) google group.
@@ -31,31 +31,31 @@ body:
     id: operating-system
     attributes:
       label: Operating System
-      description: Describe your operating system
-      placeholder: ex. iOS 16.4
+      description: Describe the operating system(s) where you are experiencing the issue.
+      placeholder: ex. iOS 16.4, macOS Ventura 13.4, Windows 11
     validations:
       required: true
   - type: input
-    id: browser-version
+    id: environment
     attributes:
-      label: Browser Version
-      description: Describe your browser version
-      placeholder: ex. Safari/604.1
+      label: Environment (if applicable)
+      description: Describe the environment where you are experiencing the issue. This could include the browser and its version, Node.js version, or any other relevant environment details.
+      placeholder: ex. Chrome 115, Node.js v18.16.0, React Native 
     validations:
       required: true
   - type: input
     id: firebase-sdk-version
     attributes:
       label: Firebase SDK Version
-      description: Describe your Firebase SDK Version
+      description: The Firebase JS SDK version you're using.
       placeholder: ex. 9.16.0
     validations:
       required: true
   - type: dropdown
     id: firebase-sdk-products
     attributes:
-      label: 'Firebase SDK Product:'
-      description: Which Firebase Products are used in your app?
+      label: Firebase SDK Product(s)
+      description: Select the Firebase product(s) relevant to your issue. You can select multiple options in the dropdown.
       multiple: true
       options:
         - Analytics
@@ -77,7 +77,7 @@ body:
   - type: textarea
     id: project-tooling
     attributes:
-      label: Describe your project's tooling
+      label: Project Tooling
       description: Describe the tooling your app is built with
       placeholder: React app with Webpack and Jest
     validations:
@@ -85,8 +85,13 @@ body:
   - type: textarea
     id: describe-your-problem
     attributes:
-      label: Describe the problem
-      description: Describe what you were trying to do and what occurred
+      label: Detailed Problem Description
+      description: |
+        Please provide a clear and concise description of the problem. Include:
+        - What you were trying to achieve.
+        - What actually happened.
+        - Any error messages or unexpected behavior you observed.
+        - Relevant log snippets or console output (if available).
       placeholder: |
         What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
     validations:
@@ -95,6 +100,8 @@ body:
     id: reproduce-code
     attributes:
       label: Steps and code to reproduce issue
-      description: Please provide a description of how to replicate your issue. Copy and paste any relevant code here to reproduce the problem or links to code to reproduce it.
+      description: |
+        If possible, provide a minimal, self-contained code snippet or steps that consistently reproduce the issue. 
+        This will significantly aid in debugging.
     validations:
       required: true

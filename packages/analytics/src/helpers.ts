@@ -225,6 +225,7 @@ async function gtagOnEvent(
     // if not all entries in the 'send_to' field could be mapped to
     // a FID. In these cases, wait on all pending initialization promises.
     if (initializationPromisesToWaitFor.length === 0) {
+      /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
       initializationPromisesToWaitFor = Object.values(
         initializationPromisesMap
       );
@@ -252,7 +253,7 @@ async function gtagOnEvent(
 function wrapGtag(
   gtagCore: Gtag,
   /**
-   * Allows wrapped gtag calls to wait on whichever intialization promises are required,
+   * Allows wrapped gtag calls to wait on whichever initialization promises are required,
    * depending on the contents of the gtag params' `send_to` field, if any.
    */
   initializationPromisesMap: { [appId: string]: Promise<string> },

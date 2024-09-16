@@ -15,49 +15,50 @@
  * limitations under the License.
  */
 
-import { ErrorFactory, ErrorMap } from '@firebase/util';
-import { GenerateContentResponse } from './types';
+import { FirebaseError } from '@firebase/util';
+import { VertexAIErrorCode, CustomErrorData } from './types';
+import { VERTEX_TYPE } from './constants';
 
-export const enum VertexError {
-  FETCH_ERROR = 'fetch-error',
-  INVALID_CONTENT = 'invalid-content',
-  NO_API_KEY = 'no-api-key',
-  NO_MODEL = 'no-model',
-  NO_PROJECT_ID = 'no-project-id',
-  PARSE_FAILED = 'parse-failed',
-  RESPONSE_ERROR = 'response-error'
+/**
+ * Error class for the Vertex AI in Firebase SDK.
+ *
+ * @public
+ */
+export class VertexAIError extends FirebaseError {
+  /**
+   * Constructs a new instance of the `VertexAIError` class.
+   *
+   * @param code - The error code from {@link VertexAIErrorCode}.
+   * @param message - A human-readable message describing the error.
+   * @param customErrorData - Optional error data.
+   */
+  constructor(
+    readonly code: VertexAIErrorCode,
+    readonly message: string,
+    readonly customErrorData?: CustomErrorData
+  ) {
+    // Match error format used by FirebaseError from ErrorFactory
+    const service = VERTEX_TYPE;
+    const serviceName = 'VertexAI';
+    const fullCode = `${service}/${code}`;
+    const fullMessage = `${serviceName}: ${message} (${fullCode}).`;
+    super(fullCode, fullMessage);
+
+    // FirebaseError initializes a stack trace, but it assumes the error is created from the error
+    // factory. Since we break this assumption, we set the stack trace to be originating from this
+    // constructor.
+    // This is only supported in V8.
+    if (Error.captureStackTrace) {
+      // Allows us to initialize the stack trace without including the constructor itself at the
+      // top level of the stack trace.
+      Error.captureStackTrace(this, VertexAIError);
+    }
+
+    // Allows instanceof VertexAIError in ES5/ES6
+    // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, VertexAIError.prototype);
+
+    // Since Error is an interface, we don't inherit toString and so we define it ourselves.
+    this.toString = () => fullMessage;
+  }
 }
-
-const ERRORS: ErrorMap<VertexError> = {
-  [VertexError.FETCH_ERROR]: `Error fetching from {$url}: {$message}`,
-  [VertexError.INVALID_CONTENT]: `Content formatting error: {$message}`,
-  [VertexError.NO_API_KEY]:
-    `The "apiKey" field is empty in the local Firebase config. Firebase VertexAI requires this field to` +
-    `contain a valid API key.`,
-  [VertexError.NO_PROJECT_ID]:
-    `The "projectId" field is empty in the local Firebase config. Firebase VertexAI requires this field to` +
-    `contain a valid project ID.`,
-  [VertexError.NO_MODEL]:
-    `Must provide a model name. ` +
-    `Example: getGenerativeModel({ model: 'my-model-name' })`,
-  [VertexError.PARSE_FAILED]: `Parsing failed: {$message}`,
-  [VertexError.RESPONSE_ERROR]:
-    `Response error: {$message}. Response body stored in ` +
-    `error.customData.response`
-};
-
-interface ErrorParams {
-  [VertexError.FETCH_ERROR]: { url: string; message: string };
-  [VertexError.INVALID_CONTENT]: { message: string };
-  [VertexError.PARSE_FAILED]: { message: string };
-  [VertexError.RESPONSE_ERROR]: {
-    message: string;
-    response: GenerateContentResponse;
-  };
-}
-
-export const ERROR_FACTORY = new ErrorFactory<VertexError, ErrorParams>(
-  'vertexAI',
-  'VertexAI',
-  ERRORS
-);

@@ -42,7 +42,8 @@ import {
   arrayUnion,
   deleteField,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  vector
 } from '../../src/lite-api/field_value_impl';
 import {
   endAt,
@@ -598,11 +599,11 @@ describe('Transaction', () => {
     });
   });
 
-  // This test is identical to the test above, except that a non-existent
+  // This test is identical to the test above, except that a nonexistent
   // document is replaced by a deleted document, to guard against regression of
   // https://github.com/firebase/firebase-js-sdk/issues/5871, where transactions
   // would incorrectly fail with FAILED_PRECONDITION when operations were
-  // performed on a deleted document (rather than a non-existent document).
+  // performed on a deleted document (rather than a nonexistent document).
   it('can read deleted doc then write', () => {
     return withTestDocAndInitialData({ counter: 1 }, async doc => {
       await deleteDoc(doc);
@@ -1719,7 +1720,7 @@ describe('withConverter() support', () => {
 
         // These tests exist to establish which object types are allowed to be
         // passed in by default when `T = DocumentData`. Some objects extend
-        // the Javascript `{}`, which is why they're allowed whereas others
+        // the JavaScript `{}`, which is why they're allowed whereas others
         // throw an error.
         return withTestDoc(async doc => {
           // @ts-expect-error
@@ -2933,4 +2934,29 @@ describe('Aggregate queries - sum / average', () => {
       });
     }
   );
+});
+
+describe('Vectors', () => {
+  it('can be read and written using the lite SDK', async () => {
+    return withTestCollection(async coll => {
+      const ref = await addDoc(coll, {
+        vector0: vector([0.0]),
+        vector1: vector([1, 2, 3.99])
+      });
+      await setDoc(ref, {
+        vector0: vector([0.0]),
+        vector1: vector([1, 2, 3.99]),
+        vector2: vector([0, 0, 0])
+      });
+      await updateDoc(ref, {
+        vector3: vector([-1, -200, -999])
+      });
+
+      const snap1 = await getDoc(ref);
+      expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
+      expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
+      expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
+      expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be.true;
+    });
+  });
 });

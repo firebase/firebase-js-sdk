@@ -98,8 +98,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [or(queryConstraints)](./firestore_.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
 |  <b>function(reference, ...)</b> |
 |  [addDoc(reference, data)](./firestore_.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
-|  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
+|  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
 |  [deleteDoc(reference)](./firestore_.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_568f98d) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_70b4396) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
@@ -124,6 +124,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [endBefore(snapshot)](./firestore_.md#endbefore_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAfter(snapshot)](./firestore_.md#startafter_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAt(snapshot)](./firestore_.md#startat_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
+|  <b>function(values, ...)</b> |
+|  [vector(values)](./firestore_.md#vector_0dbdaf2) | Creates a new <code>VectorValue</code> constructed with a copy of the given array of numbers. |
 
 ## Classes
 
@@ -155,6 +157,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [SnapshotMetadata](./firestore_.snapshotmetadata.md#snapshotmetadata_class) | Metadata about a snapshot, describing the state of the snapshot. |
 |  [Timestamp](./firestore_.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
 |  [Transaction](./firestore_.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
+|  [VectorValue](./firestore_.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with . VectorValue |
 |  [WriteBatch](./firestore_.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
 
 ## Interfaces
@@ -179,7 +182,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [PersistentCacheSettings](./firestore_.persistentcachesettings.md#persistentcachesettings_interface) | An settings object to configure an <code>PersistentLocalCache</code> instance.<!-- -->Persistent cache cannot be used in a Node.js environment. |
 |  [PersistentLocalCache](./firestore_.persistentlocalcache.md#persistentlocalcache_interface) | Provides a persistent cache backed by IndexedDb to the SDK.<!-- -->To use, create an instance using the factory function , then set the instance to <code>FirestoreSettings.cache</code> and call <code>initializeFirestore</code> using the settings object. |
 |  [PersistentMultipleTabManager](./firestore_.persistentmultipletabmanager.md#persistentmultipletabmanager_interface) | A tab manager supporting multiple tabs. SDK will synchronize queries and mutations done across all tabs using the SDK. |
-|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supportting only one tab, no synchronization will be performed across tabs. |
+|  [PersistentSingleTabManager](./firestore_.persistentsingletabmanager.md#persistentsingletabmanager_interface) | A tab manager supporting only one tab, no synchronization will be performed across tabs. |
 |  [PersistentSingleTabManagerSettings](./firestore_.persistentsingletabmanagersettings.md#persistentsingletabmanagersettings_interface) | Type to configure an <code>PersistentSingleTabManager</code> instance. |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md#snapshotlistenoptions_interface) | An options object that can be passed to [onSnapshot()](./firestore_.md#onsnapshot_0312fd7) and [QuerySnapshot.docChanges()](./firestore_.querysnapshot.md#querysnapshotdocchanges) to control which types of changes to include in the result set. |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
@@ -205,10 +208,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [FirestoreErrorCode](./firestore_.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [FirestoreLocalCache](./firestore_.md#firestorelocalcache) | Union type from all supported SDK cache layer. |
 |  [ListenSource](./firestore_.md#listensource) | Describe the source a query listens to.<!-- -->Set to <code>default</code> to listen to both cache and server changes. Set to <code>cache</code> to listen to changes in cache only. |
-|  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support gabage collectors for memory local cache. |
+|  [MemoryGarbageCollector](./firestore_.md#memorygarbagecollector) | Union type from all support garbage collectors for memory local cache. |
 |  [NestedUpdateFields](./firestore_.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
-|  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to Typescript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
+|  [PartialWithFieldValue](./firestore_.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
 |  [PersistentTabManager](./firestore_.md#persistenttabmanager) | A union of all available tab managers. |
 |  [Primitive](./firestore_.md#primitive) | Primitive types. |
 |  [QueryConstraintType](./firestore_.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
@@ -1863,7 +1866,7 @@ A `Promise` resolved with a `DocumentReference` pointing to the newly created do
 
 ### collection(reference, path, pathSegments) {:#collection_568f98d}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 
@@ -1891,7 +1894,7 @@ If the final path has an even number of segments and does not point to a collect
 
 ### collection(reference, path, pathSegments) {:#collection_70b4396}
 
-Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the the specified relative path.
+Gets a `CollectionReference` instance that refers to a subcollection of `reference` at the specified relative path.
 
 <b>Signature:</b>
 
@@ -1954,7 +1957,7 @@ export declare function doc<AppModelType, DbModelType extends DocumentData>(refe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  reference | [CollectionReference](./firestore_.collectionreference.md#collectionreference_class)<!-- -->&lt;AppModelType, DbModelType&gt; | A reference to a collection. |
-|  path | string | A slash-separated path to a document. Has to be omitted to use auto-genrated IDs. |
+|  path | string | A slash-separated path to a document. Has to be omitted to use auto-generated IDs. |
 |  pathSegments | string\[\] | Additional path segments that will be applied relative to the first argument. |
 
 <b>Returns:</b>
@@ -2452,6 +2455,30 @@ export declare function startAt<AppModelType, DbModelType extends DocumentData>(
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
 
+## function(values, ...)
+
+### vector(values) {:#vector_0dbdaf2}
+
+Creates a new `VectorValue` constructed with a copy of the given array of numbers.
+
+<b>Signature:</b>
+
+```typescript
+export declare function vector(values?: number[]): VectorValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  values | number\[\] | Create a <code>VectorValue</code> instance with a copy of this array of numbers. |
+
+<b>Returns:</b>
+
+[VectorValue](./firestore_.vectorvalue.md#vectorvalue_class)
+
+A new `VectorValue` constructed with a copy of the given array of numbers.
+
 ## CACHE\_SIZE\_UNLIMITED
 
 Constant used to indicate the LRU garbage collection should be disabled. Set this value as the `cacheSizeBytes` on the settings passed to the [Firestore](./firestore_.firestore.md#firestore_class) instance.
@@ -2566,7 +2593,7 @@ export declare type ListenSource = 'default' | 'cache';
 
 ## MemoryGarbageCollector
 
-Union type from all support gabage collectors for memory local cache.
+Union type from all support garbage collectors for memory local cache.
 
 <b>Signature:</b>
 
@@ -2598,7 +2625,7 @@ export declare type OrderByDirection = 'desc' | 'asc';
 
 ## PartialWithFieldValue
 
-Similar to Typescript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
+Similar to TypeScript's `Partial<T>`<!-- -->, but allows nested fields to be omitted and FieldValues to be passed in as property values.
 
 <b>Signature:</b>
 

@@ -446,7 +446,7 @@ apiDescribe('Queries', persistence => {
 
   // TODO(b/295872012): This test is skipped due to the flakiness around the
   // checks of hasPendingWrites.
-  // We should investigate if this is an acutal bug.
+  // We should investigate if this is an actual bug.
   // eslint-disable-next-line no-restricted-properties
   it.skip('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };

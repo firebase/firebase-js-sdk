@@ -71,7 +71,7 @@ describe('core/user/reauthenticate', () => {
     );
   });
 
-  it('should error if the token can not be parsed', async () => {
+  it('should error if the token cannot be parsed', async () => {
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,

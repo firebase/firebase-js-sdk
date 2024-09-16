@@ -1,5 +1,37 @@
 # @firebase/auth
 
+## 1.7.8
+
+### Patch Changes
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
+## 1.7.7
+
+### Patch Changes
+
+- [`2ddbd4e49`](https://github.com/firebase/firebase-js-sdk/commit/2ddbd4e4900e148648a1bc4cb82932e096a7009e) [#8408](https://github.com/firebase/firebase-js-sdk/pull/8408) - Remove localStorage synchronization on storage events in Safari iframes. See [GitHub PR #8408](https://github.com/firebase/firebase-js-sdk/pull/8408).
+
+## 1.7.6
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+## 1.7.5
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+
+## 1.7.4
+
+### Patch Changes
+
+- [`0af23e02e`](https://github.com/firebase/firebase-js-sdk/commit/0af23e02e0c90ae550dd3edf1c9244a8eba3aee1) [#8251](https://github.com/firebase/firebase-js-sdk/pull/8251) (fixes [#8222](https://github.com/firebase/firebase-js-sdk/issues/8222)) - Generate dts rollups for auth web extension and cordova
+
 ## 1.7.3
 
 ### Patch Changes

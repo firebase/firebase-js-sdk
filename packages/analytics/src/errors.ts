@@ -41,7 +41,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'initializeAnalytics() cannot be called again with different options than those ' +
     'it was initially called with. It can be called again with the same options to ' +
     'return the existing instance, or getAnalytics() can be used ' +
-    'to get a reference to the already-intialized instance.',
+    'to get a reference to the already-initialized instance.',
   [AnalyticsError.ALREADY_INITIALIZED_SETTINGS]:
     'Firebase Analytics has already been initialized.' +
     'settings() must be called before initializing any Analytics instance' +

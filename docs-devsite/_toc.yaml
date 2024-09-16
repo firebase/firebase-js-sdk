@@ -301,6 +301,8 @@ toc:
         path: /docs/reference/js/firestore_.transactionoptions.md
       - title: Unsubscribe
         path: /docs/reference/js/firestore_.unsubscribe.md
+      - title: VectorValue
+        path: /docs/reference/js/firestore_.vectorvalue.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_.writebatch.md
   - title: firestore/lite
@@ -362,6 +364,8 @@ toc:
         path: /docs/reference/js/firestore_lite.transaction.md
       - title: TransactionOptions
         path: /docs/reference/js/firestore_lite.transactionoptions.md
+      - title: VectorValue
+        path: /docs/reference/js/firestore_lite.vectorvalue.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_lite.writebatch.md
   - title: functions
@@ -468,6 +472,8 @@ toc:
         path: /docs/reference/js/vertexai-preview.counttokensrequest.md
       - title: CountTokensResponse
         path: /docs/reference/js/vertexai-preview.counttokensresponse.md
+      - title: CustomErrorData
+        path: /docs/reference/js/vertexai-preview.customerrordata.md
       - title: Date_2
         path: /docs/reference/js/vertexai-preview.date_2.md
       - title: EnhancedGenerateContentResponse
@@ -517,8 +523,6 @@ toc:
         path: /docs/reference/js/vertexai-preview.groundingattribution.md
       - title: GroundingMetadata
         path: /docs/reference/js/vertexai-preview.groundingmetadata.md
-      - title: HTTPErrorDetails
-        path: /docs/reference/js/vertexai-preview.httperrordetails.md
       - title: InlineDataPart
         path: /docs/reference/js/vertexai-preview.inlinedatapart.md
       - title: ModelParams

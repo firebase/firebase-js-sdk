@@ -826,7 +826,7 @@ describe('Transaction Tests', () => {
 
   // This test is meant to ensure that with applyLocally=false, while the transaction is outstanding, we continue
   // to get events from other clients.
-  // TODO(mikelehen): Unfortunately this test is currently flaky.  It's inherently a racey test since it's
+  // TODO(mikelehen): Unfortunately this test is currently flaky.  It's inherently a racy test since it's
   // trying to do 4 sets before the transaction retries 25 times (and fails), using two different connections.
   // Disabling for now until we rework the approach.
   it.skip('Transaction without local events (2)', done => {

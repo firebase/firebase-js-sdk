@@ -171,7 +171,7 @@ export function newBlobConnection(): Connection<Blob> {
   return new XhrBlobConnection();
 }
 
-export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream> {
   throw new Error('Streams are only supported on Node');
 }
 

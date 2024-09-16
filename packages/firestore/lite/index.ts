@@ -116,10 +116,10 @@ export {
   UnionToIntersection
 } from '../src/lite-api/types';
 
-// TOOD(firestorelite): Add tests when Queries are usable
+// TODO(firestorelite): Add tests when Queries are usable
 export { FieldPath, documentId } from '../src/lite-api/field_path';
 
-// TOOD(firestorelite): Add tests when setDoc() is available
+// TODO(firestorelite): Add tests when setDoc() is available
 export { FieldValue } from '../src/lite-api/field_value';
 
 export {
@@ -127,7 +127,8 @@ export {
   arrayRemove,
   arrayUnion,
   serverTimestamp,
-  deleteField
+  deleteField,
+  vector
 } from '../src/lite-api/field_value_impl';
 
 export {
@@ -137,6 +138,8 @@ export {
   QuerySnapshot,
   snapshotEqual
 } from '../src/lite-api/snapshot';
+
+export { VectorValue } from '../src/lite-api/vector_value';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 

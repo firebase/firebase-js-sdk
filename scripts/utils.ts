@@ -28,7 +28,7 @@ export const projectRoot = dirname(resolve(__dirname, '../package.json'));
 export async function getChangedFiles(): Promise<string[]> {
   console.log(projectRoot);
   const git = simpleGit(projectRoot);
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
   const changedFiles = diff.split('\n');
 
   return changedFiles;

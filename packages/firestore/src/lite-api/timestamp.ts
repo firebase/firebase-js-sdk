@@ -187,10 +187,10 @@ export class Timestamp {
     // This method returns a string of the form <seconds>.<nanoseconds> where
     // <seconds> is translated to have a non-negative value and both <seconds>
     // and <nanoseconds> are left-padded with zeroes to be a consistent length.
-    // Strings with this format then have a lexiographical ordering that matches
+    // Strings with this format then have a lexicographical ordering that matches
     // the expected ordering. The <seconds> translation is done to avoid having
     // a leading negative sign (i.e. a leading '-' character) in its string
-    // representation, which would affect its lexiographical ordering.
+    // representation, which would affect its lexicographical ordering.
     const adjustedSeconds = this.seconds - MIN_SECONDS;
     // Note: Up to 12 decimal digits are required to represent all valid
     // 'seconds' values.

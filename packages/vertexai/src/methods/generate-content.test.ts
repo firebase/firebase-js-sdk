@@ -70,7 +70,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('Helena');
+    expect(result.response.text()).to.include('Mountain View, California');
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
@@ -112,10 +112,12 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('Quantum mechanics is');
+    expect(result.response.text()).to.include(
+      'Some information cited from an external source'
+    );
     expect(
       result.response.candidates?.[0].citationMetadata?.citations.length
-    ).to.equal(1);
+    ).to.equal(3);
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,
@@ -186,7 +188,9 @@ describe('generateContent()', () => {
     );
   });
   it('unknown enum - should ignore', async () => {
-    const mockResponse = getMockResponse('unary-unknown-enum.json');
+    const mockResponse = getMockResponse(
+      'unary-success-unknown-enum-safety-ratings.json'
+    );
     const makeRequestStub = stub(request, 'makeRequest').resolves(
       mockResponse as Response
     );
@@ -195,7 +199,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('30 minutes of brewing');
+    expect(result.response.text()).to.include('Some text');
     expect(makeRequestStub).to.be.calledWith(
       'model',
       Task.GENERATE_CONTENT,

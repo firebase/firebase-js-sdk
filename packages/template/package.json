@@ -36,8 +36,9 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js"
+    "test:browser": "karma start",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -49,7 +50,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.4",
+    "@firebase/app": "0.10.10",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.7.4"

@@ -48,7 +48,7 @@ import { CacheNode } from './view/CacheNode';
 
 /**
  * Defines a single user-initiated write operation. May be the result of a set(), transaction(), or update() call. In
- * the case of a set() or transaction, snap wil be non-null.  In the case of an update(), children will be non-null.
+ * the case of a set() or transaction, snap will be non-null.  In the case of an update(), children will be non-null.
  */
 export interface WriteRecord {
   writeId: number;

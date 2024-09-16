@@ -270,7 +270,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       stub
         .withArgs('wrong-site-key', { action: 'signInWithEmailLink' })
         .rejects();
-      // Second verifcation should succeed with site key refreshed
+      // Second verification should succeed with site key refreshed
       stub
         .withArgs('site-key', { action: 'signInWithEmailLink' })
         .returns(Promise.resolve('recaptcha-response'));

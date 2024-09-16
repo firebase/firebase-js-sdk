@@ -22,7 +22,7 @@ export interface Value
 
 |  Method | Description |
 |  --- | --- |
-|  [asBoolean()](./remote-config.value.md#valueasboolean) | Gets the value as a boolean.<!-- -->The following values (case insensitive) are interpreted as true: "1", "true", "t", "yes", "y", "on". Other values are interpreted as false. |
+|  [asBoolean()](./remote-config.value.md#valueasboolean) | Gets the value as a boolean.<!-- -->The following values (case-insensitive) are interpreted as true: "1", "true", "t", "yes", "y", "on". Other values are interpreted as false. |
 |  [asNumber()](./remote-config.value.md#valueasnumber) | Gets the value as a number. Comparable to calling <code>Number(value) \|\| 0</code>. |
 |  [asString()](./remote-config.value.md#valueasstring) | Gets the value as a string. |
 |  [getSource()](./remote-config.value.md#valuegetsource) | Gets the [ValueSource](./remote-config.md#valuesource) for the given key. |
@@ -31,7 +31,7 @@ export interface Value
 
 Gets the value as a boolean.
 
-The following values (case insensitive) are interpreted as true: "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
+The following values (case-insensitive) are interpreted as true: "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
 
 <b>Signature:</b>
 

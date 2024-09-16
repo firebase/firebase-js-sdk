@@ -1,5 +1,55 @@
 # @firebase/app-compat
 
+## 0.2.40
+
+### Patch Changes
+
+- Updated dependencies [[`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f)]:
+  - @firebase/app@0.10.10
+
+## 0.2.39
+
+### Patch Changes
+
+- [`16015723b`](https://github.com/firebase/firebase-js-sdk/commit/16015723b1aee46eec4b79e044aeb9dd582370cc) [#8414](https://github.com/firebase/firebase-js-sdk/pull/8414) (fixes [#8409](https://github.com/firebase/firebase-js-sdk/issues/8409)) - Updated how app-compat checks the global scope.
+
+- Updated dependencies [[`6d6ce8100`](https://github.com/firebase/firebase-js-sdk/commit/6d6ce8100fd1443a40cd1ebd68ad980cab55fb10)]:
+  - @firebase/app@0.10.9
+
+## 0.2.38
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- [`b9244a517`](https://github.com/firebase/firebase-js-sdk/commit/b9244a5171a7e0f3abae37e56d274605dd95d64b) [#8378](https://github.com/firebase/firebase-js-sdk/pull/8378) (fixes [#8365](https://github.com/firebase/firebase-js-sdk/issues/8365)) - Properly handle the case in app-compat checks where `window` exists but `self` does not. (This occurs in Ionic Stencil's Jest preset.)
+
+- Updated dependencies []:
+  - @firebase/app@0.10.8
+
+## 0.2.37
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.7
+
+## 0.2.36
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`ed1c99379`](https://github.com/firebase/firebase-js-sdk/commit/ed1c993796cf7d7544b9f9ac8ffde71a13324aaf), [`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558), [`f01806221`](https://github.com/firebase/firebase-js-sdk/commit/f01806221bcf1edb4356c5901ee65ba322851981)]:
+  - @firebase/util@1.9.7
+  - @firebase/app@0.10.6
+  - @firebase/component@0.6.8
+
+## 0.2.35
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.10.5
+
 ## 0.2.34
 
 ### Patch Changes

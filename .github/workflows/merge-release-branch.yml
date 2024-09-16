@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Merge Release Into Master
+name: Merge Release Into Main
 
 on: workflow_dispatch
 
 jobs:
-  merge_to_master:
+  merge_to_main:
     runs-on: ubuntu-latest
     # Allow GITHUB_TOKEN to have write permissions
     permissions:
       contents: write
     steps:
       - name: Checkout Release Branch
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           ref: release
       - name: Get release version
@@ -36,7 +36,7 @@ jobs:
       - name: Echo version in shell
         run: |
           echo "Merging release ${{ steps.get-version.outputs.RELEASE_VERSION }}"
-      - name: Merge to master
+      - name: Merge to main
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
             github.rest.repos.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              base: 'master',
+              base: 'main',
               head: 'release',
               commit_message: 'Release ${{ steps.get-version.outputs.RELEASE_VERSION }}'
             })
