@@ -2,4 +2,4 @@
 "@firebase/firestore": patch
 ---
 
-Re-enable useFetchStreams which was fixed in the last WebChannel release.
+Re-enable useFetchStreams with the latest WebChannel implementation. This reduces the memory usage of WebChannel.
