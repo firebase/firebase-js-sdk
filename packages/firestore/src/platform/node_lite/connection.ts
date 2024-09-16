@@ -23,6 +23,5 @@ export { newConnectivityMonitor } from '../browser/connection';
 
 /** Initializes the HTTP connection for the REST API. */
 export function newConnection(databaseInfo: DatabaseInfo): Connection {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new FetchConnection(databaseInfo);
 }

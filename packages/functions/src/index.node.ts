@@ -18,5 +18,4 @@ import { registerFunctions } from './config';
 
 export * from './api';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 registerFunctions('node');
