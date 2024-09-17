@@ -86,7 +86,7 @@ export function setPersistence(
  * For phone auth, if initializeRecaptchaConfig() is not invoked, the auth flow will always use
  * reCAPTCHA v2 verification. If the provider is configured to require reCAPTCHA Enterprise
  * verification, the phone verification will fail.
- * 
+ *
  * Thus, calling this method early is required for reCAPTCHA Enterprise verification in phone auth
  * flows.
  *
