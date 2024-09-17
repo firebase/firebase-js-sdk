@@ -32,43 +32,29 @@ import pkg from './package.json';
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertTransformer]
-    }),
-    json({ preferConst: true }),
-    replace({
-      '__GRPC_VERSION__': grpcVersion
-    })
-  ];
-};
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertTransformer]
+  }),
+  json({ preferConst: true }),
+  replace({
+    '__GRPC_VERSION__': grpcVersion
+  })
+];
 
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
-    }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
-  ];
-};
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertAndPrefixInternalTransformer]
+  }),
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
+];
 
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
@@ -97,7 +83,17 @@ const allBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ false),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
+        },
+        include: ['dist/**/*.js'],
+        cacheDir: tmp.dirSync()
+      }),
+      sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveNodeExterns,
