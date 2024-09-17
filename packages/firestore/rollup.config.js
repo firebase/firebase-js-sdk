@@ -138,25 +138,6 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to ES5
-  {
-    input: pkg['browser'],
-    output: [
-      {
-        file: pkg['esm5'],
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
-    ],
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
   // Convert es2017 build to cjs
   {
     input: pkg['browser'],

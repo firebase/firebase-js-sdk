@@ -62,7 +62,6 @@
         "import": "./dist/index.node.mjs"
       },
       "react-native": "./dist/index.rn.js",
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
@@ -76,7 +75,6 @@
         "import": "./dist/lite/index.node.mjs"
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
-      "esm5": "./dist/lite/index.browser.esm5.js",
       "browser": {
         "require": "./dist/lite/index.cjs.js",
         "import": "./dist/lite/index.browser.esm2017.js"
@@ -90,7 +88,6 @@
   "react-native": "dist/index.rn.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "license": "Apache-2.0",
   "files": [
     "dist",

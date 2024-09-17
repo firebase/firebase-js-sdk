@@ -89,32 +89,7 @@ const allBuilds = [
     },
     onwarn: util.onwarn
   },
-  // Node CJS build
-  {
-    input: path.resolve('./lite', pkg['main-esm']),
-    output: {
-      file: path.resolve('./lite', pkg.main),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        compilerOptions: {
-          allowJs: true,
-          target: 'es5'
-        },
-        include: ['dist/lite/*.js']
-      }),
-      json(),
-      sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ],
-    external: util.resolveNodeExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
+  // TODO: Node CJS build
   // Node ESM build
   {
     input: path.resolve('./lite', pkg['main-esm']),
@@ -149,25 +124,6 @@ const allBuilds = [
       replace({
         '__RUNTIME_ENV__': ''
       })
-    ],
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  // Convert es2017 build to ES5
-  {
-    input: path.resolve('./lite', pkg.browser),
-    output: [
-      {
-        file: path.resolve('./lite', pkg.esm5),
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

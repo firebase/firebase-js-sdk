@@ -27,36 +27,14 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
   }),
   json({ preferConst: true })
 ];
 
 const esmBuilds = [
-  {
-    input: 'src/index.ts',
-    output: { file: pkg.esm5, format: 'es', sourcemap: true },
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5)),
-      emitModulePackageFile()
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
   {
     input: 'src/index.ts',
     output: {
@@ -65,7 +43,7 @@ const esmBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
       emitModulePackageFile()
     ],
@@ -74,8 +52,12 @@ const esmBuilds = [
   // sw builds
   {
     input: 'src/index.sw.ts',
-    output: { file: pkg.sw, format: 'es', sourcemap: true },
-    plugins: es2017BuildPlugins,
+    output: {
+      file: pkg.sw,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -83,11 +65,12 @@ const esmBuilds = [
 const cjsBuilds = [
   {
     input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ],
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...build, replace(generateBuildTargetReplaceConfig('cjs', 2017))],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   // sw build
@@ -95,12 +78,13 @@ const cjsBuilds = [
   // builds (contingent on updating the `idb` dependency). When we add
   // ESM Node builds, test with Nuxt and other SSR frameworks to see if
   // this can then be removed.
+  // TODO (dlarocque): ask Christina about this
   {
     input: 'src/index.sw.ts',
     output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },
     plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }

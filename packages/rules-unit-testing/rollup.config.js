@@ -26,16 +26,7 @@ const plugins = [
   })
 ];
 
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  })
-];
+const buildPlugins = [typescriptPlugin({ typescript })];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -44,7 +35,11 @@ const deps = Object.keys(
 export default [
   {
     input: 'index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
     plugins: [...plugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -53,7 +48,7 @@ export default [
     output: [
       { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
     ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

@@ -18,28 +18,15 @@ import resolve from '@rollup/plugin-node-resolve';
 import strip from '@rollup/plugin-strip';
 
 /**
- * Common plugins for all builds
+ * Browser Build
  */
-const commonPlugins = [
-  strip({
-    functions: ['debugAssert.*']
-  })
-];
+const esmBuild = {
+  input: 'src/index.js',
+  output: [{ file: 'www/dist/bundle.js', format: 'esm', sourcemap: true }],
+  plugins: [
+    strip({ functions: ['debugAssert.*'] }),
+    resolve({ mainFields: ['module', 'main'] })
+  ]
+};
 
-const es5Builds = [
-  /**
-   * Browser Builds
-   */
-  {
-    input: 'src/index.js',
-    output: [{ file: 'www/dist/bundle.js', format: 'esm', sourcemap: true }],
-    plugins: [
-      ...commonPlugins,
-      resolve({
-        mainFields: ['module', 'main']
-      })
-    ]
-  }
-];
-
-export default [...es5Builds];
+export default esmBuild;

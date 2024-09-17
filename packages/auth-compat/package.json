@@ -6,7 +6,6 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/auth-compat/index.d.ts",
@@ -15,7 +14,6 @@
         "import": "./dist/esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
       },
-      "esm5": "./dist/index.esm.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"

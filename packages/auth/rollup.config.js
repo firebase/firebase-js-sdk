@@ -44,44 +44,13 @@ const nodeAliasPlugin = alias({
   ]
 });
 
-const es5BuildPlugins = [
+const buildPlugins = [
   json(),
-  strip({
-    functions: ['debugAssert.*']
-  }),
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const es2017BuildPlugins = [
-  json(),
-  strip({
-    functions: ['debugAssert.*']
-  }),
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  })
+  strip({ functions: ['debugAssert.*'] }),
+  typescriptPlugin({ typescript })
 ];
 
 const browserBuilds = [
-  {
-    input: {
-      index: 'index.ts',
-      internal: 'internal/index.ts'
-    },
-    output: [{ dir: 'dist/esm5', format: 'es', sourcemap: true }],
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
   {
     input: {
       index: 'index.ts',
@@ -93,7 +62,7 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -105,7 +74,7 @@ const browserBuilds = [
     },
     output: [{ dir: 'dist/browser-cjs', format: 'cjs', sourcemap: true }],
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -124,7 +93,7 @@ const browserWebExtensionBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
       emitModulePackageFile()
     ],
@@ -137,7 +106,7 @@ const browserWebExtensionBuilds = [
     },
     output: [{ dir: 'dist/web-extension-cjs', format: 'cjs', sourcemap: true }],
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -153,8 +122,8 @@ const nodeBuilds = [
     output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
     plugins: [
       nodeAliasPlugin,
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -166,7 +135,7 @@ const nodeBuilds = [
     output: [{ dir: 'dist/node-esm', format: 'es', sourcemap: true }],
     plugins: [
       nodeAliasPlugin,
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
       emitModulePackageFile()
     ],
@@ -179,10 +148,14 @@ const cordovaBuild = {
     index: 'index.cordova.ts',
     internal: 'internal/index.ts'
   },
-  output: [{ dir: 'dist/cordova', format: 'es', sourcemap: true }],
+  output: {
+    dir: 'dist/cordova',
+    format: 'es',
+    sourcemap: true
+  },
   plugins: [
-    ...es5BuildPlugins,
-    replace(generateBuildTargetReplaceConfig('esm', 5))
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('esm', 2017))
   ],
   external: id =>
     [...deps, 'cordova'].some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -195,8 +168,8 @@ const rnBuild = {
   },
   output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
   plugins: [
-    ...es5BuildPlugins,
-    replace(generateBuildTargetReplaceConfig('cjs', 5))
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('cjs', 2017))
   ],
   external: id =>
     [...deps, 'react-native'].some(
@@ -206,7 +179,11 @@ const rnBuild = {
 
 const webWorkerBuild = {
   input: 'index.webworker.ts',
-  output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
+  output: {
+    file: pkg.webworker,
+    format: 'es', 
+    sourcemap: true 
+  },
   plugins: [
     json(),
     strip({
@@ -218,12 +195,12 @@ const webWorkerBuild = {
         lib: [
           // Remove dom after we figure out why navigator stuff doesn't exist
           'dom',
-          'es2015',
+          'es2017',
           'webworker'
         ]
       }
     }),
-    replace(generateBuildTargetReplaceConfig('esm', 5))
+    replace(generateBuildTargetReplaceConfig('esm', 2017))
   ],
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 };

@@ -29,65 +29,44 @@ const deps = Object.keys(
 /**
  * ES5 Builds
  */
-const es5BuildPlugins = [
+
+const buildPlugins = [
   typescriptPlugin({
     typescript
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
   }),
   json({ preferConst: true })
 ];
 
-const esmBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5)),
-      emitModulePackageFile()
-    ]
+const esmBuild = {
+  /**
+   * Browser Build
+   */
+  input: 'src/index.ts',
+  output: {
+    file: pkg.browser,
+    format: 'es',
+    sourcemap: true
   },
-  {
-    /**
-     * Browser Build
-     */
-    input: 'src/index.ts',
-    output: {
-      file: pkg.browser,
-      format: 'es',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      emitModulePackageFile()
-    ]
-  }
-];
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('esm', 2017)),
+    emitModulePackageFile()
+  ]
+};
 
-const cjsBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ]
-  }
-];
+const cjsBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
+  },
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('cjs', 2017))
+  ]
+};
 
-export default [...esmBuilds, ...cjsBuilds];
+export default [esmBuild, cjsBuild];
