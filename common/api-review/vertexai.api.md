@@ -14,8 +14,8 @@ export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -494,8 +494,8 @@ export class ObjectSchema extends Schema {
     properties: {
         [k: string]: TypedSchema;
     };
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -644,7 +644,7 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     type: SchemaType;
 }
 
-// @public (undocumented)
+// @public
 export interface SchemaShared<T> {
     // (undocumented)
     [key: string]: unknown;
@@ -711,8 +711,8 @@ export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -771,6 +771,8 @@ export interface VertexAI {
 // @public
 export class VertexAIError extends FirebaseError {
     constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: VertexAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
 }
