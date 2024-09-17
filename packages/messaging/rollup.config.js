@@ -78,7 +78,7 @@ const cjsBuilds = [
   // builds (contingent on updating the `idb` dependency). When we add
   // ESM Node builds, test with Nuxt and other SSR frameworks to see if
   // this can then be removed.
-  // TODO (dlarocque): ask Christina about this
+  // TODO(dlarocque): ask Christina about this
   {
     input: 'src/index.sw.ts',
     output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },

@@ -26,9 +26,6 @@ import pkg from './package.json';
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
-/**
- * ES5 Builds
- */
 
 const buildPlugins = [
   typescriptPlugin({
