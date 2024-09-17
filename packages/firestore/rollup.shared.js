@@ -44,7 +44,6 @@ const pkg = require('./package.json');
 // The in-memory builds are roughly 130 KB smaller, but throw an exception
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
-// TODO(dlarocque): Update this pipeline, since we no longer need to target ES5.
 // We use two different rollup pipelines to take advantage of tree shaking,
 // as Rollup does not support tree shaking for TypeScript classes transpiled
 // down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
