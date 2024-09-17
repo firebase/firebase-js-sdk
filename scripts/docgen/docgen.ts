@@ -189,8 +189,8 @@ async function generateDocs(
     'utf8'
   );
   const authApiConfigModified = authApiConfigOriginal.replace(
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.d.ts"`,
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.doc.d.ts"`
   );
 
   try {
