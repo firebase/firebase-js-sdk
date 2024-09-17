@@ -23,7 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
-import { ObjectSchemaInterface } from './schema';
+import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -86,11 +86,14 @@ export interface GenerationConfig {
    */
   responseMimeType?: string;
   /**
-   * Output response schema of the generated candidate text.
+   * Output response schema of the generated candidate text. This
+   * value can be a class generated with a {@link Schema} static method
+   * like `Schema.string()` or `Schema.object()` or it can be a plain
+   * JS object matching the {@link SchemaRequest} interface.
    * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
    * this is limited to `application/json`.
    */
-  responseSchema?: TypedSchema;
+  responseSchema?: TypedSchema | SchemaRequest;
 }
 
 /**
