@@ -284,43 +284,9 @@ const completeBuilds = [
     },
     plugins: [
       sourcemaps(),
-      resolveModule({
-        exportConditions: ['liteesm5', 'esm5']
-      }),
-      typescriptPluginCDN,
-      json(),
-      commonjs(),
-      uglify(uglifyOptions)
-    ]
-  },
-  /**
-   * Performance script Build in ES2017
-   */
-  {
-    input: `${__dirname}/index.perf.ts`,
-    output: {
-      file: 'firebase-performance-standalone-compat.es2017.js',
-      format: 'umd',
-      sourcemap: true,
-      name: GLOBAL_NAME
-    },
-    plugins: [
-      sourcemaps(),
-      resolveModule({
-        exportConditions: ['lite']
-      }),
-      rollupTypescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017',
-            declaration: false
-          }
-        }
-      }),
-      json({
-        preferConst: true
-      }),
+      resolveModule({ exportConditions: ['lite'] }),
+      rollupTypescriptPlugin({ typescript }),
+      json({ preferConst: true }),
       commonjs(),
       terser()
     ]
