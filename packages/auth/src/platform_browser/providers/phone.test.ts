@@ -34,9 +34,13 @@ import {
   RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
+import { ServerError } from '../../api/errors';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthProvider } from './phone';
-import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
+import {
+  FAKE_TOKEN,
+  _initializeRecaptchaConfig
+} from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../recaptcha/recaptcha_mock';
 import { ApplicationVerifierInternal } from '../../model/application_verifier';
 
@@ -45,6 +49,36 @@ use(chaiAsPromised);
 describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
   let v2Verifier: ApplicationVerifierInternal;
+
+  const recaptchaConfigResponseEnforce = {
+    recaptchaKey: 'foo/bar/to/site-key',
+    recaptchaEnforcementState: [
+      {
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.ENFORCE
+      }
+    ]
+  };
+
+  const recaptchaConfigResponseAudit = {
+    recaptchaKey: 'foo/bar/to/site-key',
+    recaptchaEnforcementState: [
+      {
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.AUDIT
+      }
+    ]
+  };
+
+  const recaptchaConfigResponseOff = {
+    // no recaptcha key if no rCE provider is enabled
+    recaptchaEnforcementState: [
+      {
+        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+        enforcementState: EnforcementState.OFF
+      }
+    ]
+  };
 
   beforeEach(async () => {
     fetch.setUp();
@@ -63,15 +97,6 @@ describe('platform_browser/providers/phone', () => {
 
   context('#verifyPhoneNumber', () => {
     it('calls verify on the appVerifier and then calls the server when recaptcha enterprise is disabled', async () => {
-      const recaptchaConfigResponseOff = {
-        // no recaptcha key if no rCE provider is enabled
-        recaptchaEnforcementState: [
-          {
-            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
-            enforcementState: EnforcementState.OFF
-          }
-        ]
-      };
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
         return;
@@ -110,15 +135,6 @@ describe('platform_browser/providers/phone', () => {
     });
 
     it('throws an error if verify without appVerifier when recaptcha enterprise is disabled', async () => {
-      const recaptchaConfigResponseOff = {
-        // no recaptcha key if no rCE provider is enabled
-        recaptchaEnforcementState: [
-          {
-            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
-            enforcementState: EnforcementState.OFF
-          }
-        ]
-      };
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
         return;
@@ -143,16 +159,7 @@ describe('platform_browser/providers/phone', () => {
       ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
-    it('calls the server without appVerifier when recaptcha enterprise is enabled', async () => {
-      const recaptchaConfigResponseEnforce = {
-        recaptchaKey: 'foo/bar/to/site-key',
-        recaptchaEnforcementState: [
-          {
-            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
-            enforcementState: EnforcementState.ENFORCE
-          }
-        ]
-      };
+    it('calls the server without appVerifier when recaptcha enterprise is enforced', async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
         return;
@@ -170,6 +177,7 @@ describe('platform_browser/providers/phone', () => {
         },
         recaptchaConfigResponseEnforce
       );
+      await _initializeRecaptchaConfig(auth);
 
       const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
         sessionInfo: 'verification-id'
@@ -186,16 +194,7 @@ describe('platform_browser/providers/phone', () => {
       });
     });
 
-    it('calls the server when recaptcha enterprise is enabled', async () => {
-      const recaptchaConfigResponseEnforce = {
-        recaptchaKey: 'foo/bar/to/site-key',
-        recaptchaEnforcementState: [
-          {
-            provider: RecaptchaAuthProvider.PHONE_PROVIDER,
-            enforcementState: EnforcementState.ENFORCE
-          }
-        ]
-      };
+    it('calls the server when recaptcha enterprise is enforced', async () => {
       const recaptcha = new MockGreCAPTCHATopLevel();
       if (typeof window === 'undefined') {
         return;
@@ -213,6 +212,7 @@ describe('platform_browser/providers/phone', () => {
         },
         recaptchaConfigResponseEnforce
       );
+      await _initializeRecaptchaConfig(auth);
 
       const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
         sessionInfo: 'verification-id'
@@ -230,6 +230,183 @@ describe('platform_browser/providers/phone', () => {
         clientType: RecaptchaClientType.WEB,
         recaptchaVersion: RecaptchaVersion.ENTERPRISE
       });
+    });
+
+    /* Test cases when initializeRecaptchaConfig is not called before phone verification */
+    it('throws invalid-recaptcha-token when recaptcha enterprise is enforced, but initializeRecaptchaConfig was not called', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      // Not call initializeRecaptchaConfig
+
+      const failureMock = mockEndpoint(
+        Endpoint.SEND_VERIFICATION_CODE,
+        {
+          error: {
+            code: 400,
+            message: ServerError.INVALID_RECAPTCHA_TOKEN
+          }
+        },
+        400
+      );
+
+      const provider = new PhoneAuthProvider(auth);
+      await expect(
+        provider.verifyPhoneNumber('+15105550000', v2Verifier)
+      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-recaptcha-token');
+      expect(failureMock.calls[0].request).to.eql({
+        phoneNumber: '+15105550000',
+        captchaResponse: FAKE_TOKEN,
+        clientType: RecaptchaClientType.WEB,
+        recaptchaToken: 'verification-code',
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('throws argument-error when recaptcha enterprise is enforced, but initializeRecaptchaConfig was not called', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseEnforce
+      );
+      // Not call initializeRecaptchaConfig
+
+      const provider = new PhoneAuthProvider(auth);
+      await expect(
+        provider.verifyPhoneNumber('+15105550000')
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+    });
+
+    it('does recaptcha v2 verification when recaptcha enterprise is disabled, but initializeRecaptchaConfig was not called', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseOff
+      );
+      // Not call initializeRecaptchaConfig
+
+      const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
+        sessionInfo: 'verification-id'
+      });
+
+      const provider = new PhoneAuthProvider(auth);
+      const result = await provider.verifyPhoneNumber(
+        '+15105550000',
+        v2Verifier
+      );
+
+      expect(result).to.eq('verification-id');
+      expect(route.calls[0].request).to.eql({
+        phoneNumber: '+15105550000',
+        recaptchaToken: 'verification-code',
+        captchaResponse: FAKE_TOKEN,
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('does recaptcha v2 verification when recaptcha enterprise is audit, but initializeRecaptchaConfig was not called', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseAudit
+      );
+      // Not call initializeRecaptchaConfig
+
+      const route = mockEndpoint(Endpoint.SEND_VERIFICATION_CODE, {
+        sessionInfo: 'verification-id'
+      });
+
+      const provider = new PhoneAuthProvider(auth);
+      const result = await provider.verifyPhoneNumber(
+        '+15105550000',
+        v2Verifier
+      );
+
+      expect(result).to.eq('verification-id');
+      expect(route.calls[0].request).to.eql({
+        phoneNumber: '+15105550000',
+        recaptchaToken: 'verification-code',
+        captchaResponse: FAKE_TOKEN,
+        clientType: RecaptchaClientType.WEB,
+        recaptchaVersion: RecaptchaVersion.ENTERPRISE
+      });
+    });
+
+    it('throws argument-error when recaptcha enterprise is audit, but initializeRecaptchaConfig was not called', async () => {
+      const recaptcha = new MockGreCAPTCHATopLevel();
+      if (typeof window === 'undefined') {
+        return;
+      }
+      window.grecaptcha = recaptcha;
+      sinon
+        .stub(recaptcha.enterprise, 'execute')
+        .returns(Promise.resolve('enterprise-token'));
+
+      mockEndpointWithParams(
+        Endpoint.GET_RECAPTCHA_CONFIG,
+        {
+          clientType: RecaptchaClientType.WEB,
+          version: RecaptchaVersion.ENTERPRISE
+        },
+        recaptchaConfigResponseAudit
+      );
+      // Not call initializeRecaptchaConfig
+
+      const provider = new PhoneAuthProvider(auth);
+      await expect(
+        provider.verifyPhoneNumber('+15105550000')
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
   });
 

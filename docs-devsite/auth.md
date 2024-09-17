@@ -506,9 +506,13 @@ Loads the reCAPTCHA configuration into the `Auth` instance.
 
 This will load the reCAPTCHA config, which indicates whether the reCAPTCHA verification flow should be triggered for each auth provider, into the current Auth session.
 
-If initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
+For email auth, if initializeRecaptchaConfig() is not invoked, the auth flow will always start without reCAPTCHA verification. If the provider is configured to require reCAPTCHA verification, the SDK will transparently load the reCAPTCHA config and restart the auth flows.
 
 Thus, by calling this optional method, you will reduce the latency of future auth flows. Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+
+For phone auth, if initializeRecaptchaConfig() is not invoked, the auth flow will always use reCAPTCHA v2 verification. If the provider is configured to require reCAPTCHA Enterprise verification, the phone verification will fail.
+
+Thus, calling this method early is required for reCAPTCHA Enterprise verification in phone auth flows.
 
 This method does not work in a Node.js environment.
 
@@ -923,7 +927,9 @@ Asynchronously signs in using a phone number.
 
 This method sends a code via SMS to the given phone number, and returns a [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->. After the user provides the code sent to their phone, call [ConfirmationResult.confirm()](./auth.confirmationresult.md#confirmationresultconfirm) with the code to sign the user in.
 
-For abuse prevention, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
+For abuse prevention with reCAPTCHA v2, this method also requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-v2-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
+
+For abuse prevention with reCAPTCHA Enterprise, [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) is not required, depending on the enforcement state. However, [initializeRecaptchaConfig()](./auth.md#initializerecaptchaconfig_2a61ea7) must be called once before initiating reCAPTCHA Enterprise verification.
 
 This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 

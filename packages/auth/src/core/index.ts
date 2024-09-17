@@ -75,13 +75,20 @@ export function setPersistence(
  * verification flow should be triggered for each auth provider, into the
  * current Auth session.
  *
- * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * For email auth, if initializeRecaptchaConfig() is not invoked, the auth flow will always start
  * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
  * verification, the SDK will transparently load the reCAPTCHA config and restart the
  * auth flows.
  *
  * Thus, by calling this optional method, you will reduce the latency of future auth flows.
  * Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+ *
+ * For phone auth, if initializeRecaptchaConfig() is not invoked, the auth flow will always use
+ * reCAPTCHA v2 verification. If the provider is configured to require reCAPTCHA Enterprise
+ * verification, the phone verification will fail.
+ * 
+ * Thus, calling this method early is required for reCAPTCHA Enterprise verification in phone auth
+ * flows.
  *
  * This method does not work in a Node.js environment.
  *

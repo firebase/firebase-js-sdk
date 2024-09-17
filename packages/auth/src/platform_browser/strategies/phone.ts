@@ -69,8 +69,7 @@ import { getModularInstance } from '@firebase/util';
 import { ProviderId } from '../../model/enums';
 import {
   FAKE_TOKEN,
-  handleRecaptchaFlow,
-  _initializeRecaptchaConfig
+  handleRecaptchaFlow
 } from '../recaptcha/recaptcha_enterprise_verifier';
 import { _isFirebaseServerApp } from '@firebase/app';
 
@@ -102,11 +101,16 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
- * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
- * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
+ * For abuse prevention with reCAPTCHA v2, this method also requires a {@link ApplicationVerifier}.
+ * This SDK includes a reCAPTCHA-v2-based implementation, {@link RecaptchaVerifier}.
  * This function can work on other platforms that do not support the
  * {@link RecaptchaVerifier} (like React Native), but you need to use a
  * third-party {@link ApplicationVerifier} implementation.
+ *
+ * For abuse prevention with reCAPTCHA Enterprise, {@link ApplicationVerifier} is not required,
+ * depending on the enforcement state.
+ * However, {@link initializeRecaptchaConfig} must be called once before initiating reCAPTCHA
+ * Enterprise verification.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
@@ -226,20 +230,6 @@ export async function _verifyPhoneNumber(
   options: PhoneInfoOptions | string,
   verifier?: ApplicationVerifierInternal
 ): Promise<string> {
-  if (!auth._getRecaptchaConfig()) {
-    try {
-      await _initializeRecaptchaConfig(auth);
-    } catch (error) {
-      // If an error occurs while fetching the config, there is no way to know the enablement state
-      // of Phone provider, so we proceed with recaptcha V2 verification.
-      // The error is likely "recaptchaKey undefined", as reCAPTCHA Enterprise is not
-      // enabled for any provider.
-      console.log(
-        'Failed to initialize reCAPTCHA Enterprise config. Triggering the reCAPTCHA v2 verification.'
-      );
-    }
-  }
-
   try {
     let phoneInfoOptions: PhoneInfoOptions;
 

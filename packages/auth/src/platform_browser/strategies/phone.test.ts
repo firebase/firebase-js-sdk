@@ -46,7 +46,10 @@ import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserInternal } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
+import {
+  FAKE_TOKEN,
+  _initializeRecaptchaConfig
+} from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 
 import {
@@ -171,6 +174,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      await _initializeRecaptchaConfig(auth);
+
       await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
@@ -186,6 +191,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      await _initializeRecaptchaConfig(auth);
+
       await signInWithPhoneNumber(auth, '+15105550000');
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
@@ -303,6 +310,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      await _initializeRecaptchaConfig(auth);
+
       await linkWithPhoneNumber(user, '+15105550000', v2Verifier);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
@@ -390,6 +399,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      await _initializeRecaptchaConfig(auth);
+
       await reauthenticateWithPhoneNumber(user, '+15105550000', v2Verifier);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
@@ -520,7 +531,10 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
+      await _initializeRecaptchaConfig(auth);
+
       const sessionInfo = await _verifyPhoneNumber(auth, 'number', v2Verifier);
+
       expect(sessionInfo).to.eq('session-info');
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         phoneNumber: 'number',
@@ -535,7 +549,10 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      await _initializeRecaptchaConfig(auth);
+
       const sessionInfo = await _verifyPhoneNumber(auth, 'number');
+
       expect(sessionInfo).to.eq('session-info');
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         phoneNumber: 'number',
@@ -562,6 +579,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
+      await _initializeRecaptchaConfig(auth);
       const failureMock = mockEndpoint(
         Endpoint.SEND_VERIFICATION_CODE,
         {
@@ -572,6 +590,7 @@ describe('platform_browser/strategies/phone', () => {
         },
         400
       );
+
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
       ).to.be.rejectedWith(
@@ -600,6 +619,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
+      await _initializeRecaptchaConfig(auth);
       const failureMock = mockEndpoint(
         Endpoint.SEND_VERIFICATION_CODE,
         {
@@ -610,6 +630,7 @@ describe('platform_browser/strategies/phone', () => {
         },
         400
       );
+
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
       ).to.be.rejectedWith(
@@ -638,6 +659,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.AUDIT);
+      await _initializeRecaptchaConfig(auth);
       const failureMock = mockEndpoint(
         Endpoint.SEND_VERIFICATION_CODE,
         {
@@ -648,6 +670,7 @@ describe('platform_browser/strategies/phone', () => {
         },
         400
       );
+
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)
       ).to.be.rejectedWith(
@@ -710,17 +733,20 @@ describe('platform_browser/strategies/phone', () => {
           return;
         }
         mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+        await _initializeRecaptchaConfig(auth);
         const endpoint = mockEndpoint(Endpoint.START_MFA_ENROLLMENT, {
           phoneSessionInfo: {
             sessionInfo: 'session-info'
           }
         });
         const session = (await mfaUser.getSession()) as MultiFactorSessionImpl;
+
         const sessionInfo = await _verifyPhoneNumber(
           auth,
           { phoneNumber: 'number', session },
           v2Verifier
         );
+
         expect(sessionInfo).to.eq('session-info');
         expect(endpoint.calls[0].request).to.eql({
           idToken: session.credential,
@@ -776,6 +802,7 @@ describe('platform_browser/strategies/phone', () => {
           return;
         }
         mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+        await _initializeRecaptchaConfig(auth);
         const endpoint = mockEndpoint(Endpoint.START_MFA_SIGN_IN, {
           phoneResponseInfo: {
             sessionInfo: 'session-info'
@@ -789,6 +816,7 @@ describe('platform_browser/strategies/phone', () => {
           enrolledAt: Date.now(),
           phoneInfo: 'phone-number-from-enrollment'
         });
+
         const sessionInfo = await _verifyPhoneNumber(
           auth,
           {
@@ -797,6 +825,7 @@ describe('platform_browser/strategies/phone', () => {
           },
           v2Verifier
         );
+
         expect(sessionInfo).to.eq('session-info');
         expect(endpoint.calls[0].request).to.eql({
           mfaPendingCredential: 'mfa-pending-credential',
