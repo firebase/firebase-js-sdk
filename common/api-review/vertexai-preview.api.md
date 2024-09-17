@@ -14,8 +14,8 @@ export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -310,7 +310,7 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
-    responseSchema?: TypedSchema;
+    responseSchema?: TypedSchema | SchemaRequest;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -491,8 +491,8 @@ export class ObjectSchema extends Schema {
     properties: {
         [k: string]: TypedSchema;
     };
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -593,8 +593,7 @@ export abstract class Schema implements SchemaInterface {
     }): ObjectSchema;
     // (undocumented)
     static string(stringParams?: SchemaParams): StringSchema;
-    // Warning: (ae-incompatible-release-tags) The symbol "toJSON" is marked as @public, but its signature references "_SchemaRequest" which is marked as @internal
-    toJSON(): _SchemaRequest;
+    toJSON(): SchemaRequest;
     type: SchemaType;
 }
 
@@ -607,13 +606,13 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 export interface SchemaParams extends SchemaShared<SchemaInterface> {
 }
 
-// @internal
-export interface _SchemaRequest extends SchemaShared<_SchemaRequest> {
+// @public
+export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     required?: string[];
     type: SchemaType;
 }
 
-// @public (undocumented)
+// @public
 export interface SchemaShared<T> {
     // (undocumented)
     [key: string]: unknown;
@@ -665,8 +664,8 @@ export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
-    // @internal (undocumented)
-    toJSON(): _SchemaRequest;
+    // (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -713,6 +712,8 @@ export interface VertexAI {
 // @public
 export class VertexAIError extends FirebaseError {
     constructor(code: VertexAIErrorCode, message: string, customErrorData?: CustomErrorData | undefined);
+    // (undocumented)
+    readonly code: VertexAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
 }

@@ -35,6 +35,11 @@ export enum SchemaType {
   OBJECT = 'object'
 }
 
+/**
+ * Basic `Schema` properties shared across several Schema-related
+ * types.
+ * @public
+ */
 export interface SchemaShared<T> {
   /** Optional. The format of the property. */
   format?: string;
