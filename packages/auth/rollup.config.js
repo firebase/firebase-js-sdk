@@ -181,8 +181,8 @@ const webWorkerBuild = {
   input: 'index.webworker.ts',
   output: {
     file: pkg.webworker,
-    format: 'es', 
-    sourcemap: true 
+    format: 'es',
+    sourcemap: true
   },
   plugins: [
     json(),

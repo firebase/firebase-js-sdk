@@ -70,7 +70,10 @@ const cjsBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...build, replace(generateBuildTargetReplaceConfig('cjs', 2017))],
+    plugins: [
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   // sw build

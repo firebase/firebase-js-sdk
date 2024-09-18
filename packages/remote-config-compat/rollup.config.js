@@ -39,30 +39,26 @@ const buildPlugins = [
   })
 ];
 
-const esmBuild = [
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.browser,
-      format: 'es',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [...buildPlugins, emitModulePackageFile()]
-  }
-];
+const esmBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.browser,
+    format: 'es',
+    sourcemap: true
+  },
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [...buildPlugins, emitModulePackageFile()]
+}
 
-const cjsBuild = [
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: buildPlugins
-  }
-];
+const cjsBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
+  },
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: buildPlugins
+}
 
 export default [esmBuild, cjsBuild];

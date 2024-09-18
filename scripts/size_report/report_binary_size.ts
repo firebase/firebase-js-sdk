@@ -120,7 +120,7 @@ async function collectBinarySize(pkg: string): Promise<Report[]> {
     'browser',
     'react-native',
     'cordova',
-    'lite',
+    'lite'
   ];
   const json = require(pkg);
   for (const field of fields) {

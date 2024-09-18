@@ -45,20 +45,18 @@ const esmBuild = {
   ]
 };
 
-const cjsBuilds = [
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ]
-  }
-];
+const cjsBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
+  },
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('cjs', 5))
+  ]
+}
 
 export default [esmBuild, cjsBuild];

@@ -32,18 +32,16 @@ const buildPlugins = [
   json({ preferConst: true })
 ];
 
-const esmBuild = [
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.browser,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [...buildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+const esmBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.browser,
+    format: 'es',
+    sourcemap: true
+  },
+  plugins: [...buildPlugins, emitModulePackageFile()],
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+}
 
 const cjsBuild = {
   input: 'src/index.ts',
