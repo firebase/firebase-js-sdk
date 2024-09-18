@@ -1,5 +1,4 @@
 import { uuidv4 } from '@firebase/util';
-import fetch from 'node-fetch';
 // initializeApp({ projectId: 'p' });
 // const dc = getDataConnect({ connector: 'c', location: 'l', service: 'l' });
 
