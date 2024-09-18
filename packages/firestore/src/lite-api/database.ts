@@ -73,8 +73,10 @@ export class Firestore implements FirestoreService {
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
-  // all components have shut down.
-  private _terminateTask?: Promise<void>;
+  // all components have shut down. Otherwise, Firestore is not terminated,
+  // which can mean either the FirestoreClient is in the process of starting,
+  // or restarting.
+  private _terminateTask: Promise<void> | 'notTerminated' = 'notTerminated';
 
   /** @hideconstructor */
   constructor(
@@ -104,7 +106,7 @@ export class Firestore implements FirestoreService {
   }
 
   get _terminated(): boolean {
-    return this._terminateTask !== undefined;
+    return this._terminateTask !== 'notTerminated';
   }
 
   _setSettings(settings: PrivateSettings): void {
@@ -132,17 +134,17 @@ export class Firestore implements FirestoreService {
   }
 
   _delete(): Promise<void> {
-    if (!this._terminateTask) {
+    if (this._terminateTask === 'notTerminated') {
       this._terminateTask = this._terminate();
     }
     return this._terminateTask;
   }
 
   async _restart(): Promise<void> {
-    if (this._terminateTask) {
-      this._terminateTask = undefined;
-    } else {
+    if (this._terminateTask === 'notTerminated') {
       await this._terminate();
+    } else {
+      this._terminateTask = 'notTerminated';
     }
   }
 
