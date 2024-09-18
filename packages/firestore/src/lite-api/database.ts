@@ -134,6 +134,9 @@ export class Firestore implements FirestoreService {
   }
 
   _delete(): Promise<void> {
+    // The `_terminateTask` must be assigned future that completes when
+    // terminate is complete. The existence of this future puts SDK in state
+    // that will not accept further API interaction.
     if (this._terminateTask === 'notTerminated') {
       this._terminateTask = this._terminate();
     }
@@ -141,6 +144,8 @@ export class Firestore implements FirestoreService {
   }
 
   async _restart(): Promise<void> {
+    // The `_terminateTask` must equal 'notTerminated' after restart to
+    // signal that client is in a state that accepts API calls.
     if (this._terminateTask === 'notTerminated') {
       await this._terminate();
     } else {
