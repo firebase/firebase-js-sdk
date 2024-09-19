@@ -39,6 +39,7 @@ export class RESTTransport implements DataConnectTransport {
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
+    private appId?: string,
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
@@ -175,6 +176,7 @@ export class RESTTransport implements DataConnectTransport {
           variables: body
         } as unknown as U, // TODO(mtewani): This is a patch, fix this.
         abortController,
+        this.appId,
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen
@@ -203,6 +205,7 @@ export class RESTTransport implements DataConnectTransport {
           variables: body
         } as unknown as U,
         abortController,
+        this.appId,
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen

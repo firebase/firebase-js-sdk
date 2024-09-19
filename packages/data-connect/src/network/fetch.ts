@@ -34,6 +34,7 @@ export function dcFetch<T, U>(
   url: string,
   body: U,
   { signal }: AbortController,
+  appId: string | null,
   accessToken: string | null,
   appCheckToken: string | null,
   _isUsingGen: boolean
@@ -47,6 +48,9 @@ export function dcFetch<T, U>(
   };
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
+  }
+  if (appId) {
+    headers['x-firebase-gmpid'] = appId;
   }
   if (appCheckToken) {
     headers['X-Firebase-AppCheck'] = appCheckToken;
