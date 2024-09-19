@@ -30,11 +30,7 @@ import { FetchProvider } from '../core/util/fetch_provider';
 import { getDefaultEmulatorHost } from '@firebase/util';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
-FetchProvider.initialize(
-  fetch,
-  Headers,
-  Response
-);
+FetchProvider.initialize(fetch, Headers, Response);
 
 // First, we set up the various platform-specific features for Node (register
 // the version and declare the Node getAuth function)

@@ -62,19 +62,20 @@ export abstract class Emulator {
           (downloadComplete, downloadFailed) => {
             fetch(this.binaryUrl)
               .then(resp => {
-                if (resp.status !== 200) {
+                if (resp.status !== 200 || resp.body === null) {
                   console.log('Download of emulator failed: ', resp.statusText);
                   downloadFailed();
+                } else {
+                  const reader = resp.body.getReader();
+                  reader.read().then(function readChunk({ done, value }): any {
+                    if (done) {
+                      downloadComplete();
+                    } else {
+                      writer.write(value);
+                      return reader.read().then(readChunk);
+                    }
+                  });
                 }
-                const reader = resp.body?.getReader();
-                reader?.read().then(function readChunk({ done, value }): any {
-                  if (done) {
-                    downloadComplete();
-                  } else {
-                    writer.write(value);
-                    return reader.read().then(readChunk);
-                  }
-                });
               })
               .catch(e => {
                 console.log(`Download of emulator failed: ${e}`);
