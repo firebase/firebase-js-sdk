@@ -80,8 +80,8 @@ export interface GenerationConfig {
   presencePenalty?: number;
   frequencyPenalty?: number;
   /**
-   * Output response mimetype of the generated candidate text.
-   * Supported mimetypes are `text/plain` (default, text output) and `application/json`
+   * Output response MIME type of the generated candidate text.
+   * Supported MIME types are `text/plain` (default, text output) and `application/json`
    * (JSON response in the candidates).
    */
   responseMimeType?: string;
@@ -90,7 +90,7 @@ export interface GenerationConfig {
    * value can be a class generated with a {@link Schema} static method
    * like `Schema.string()` or `Schema.object()` or it can be a plain
    * JS object matching the {@link SchemaRequest} interface.
-   * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
    * this is limited to `application/json`.
    */
   responseSchema?: TypedSchema | SchemaRequest;

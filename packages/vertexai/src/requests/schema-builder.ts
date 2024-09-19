@@ -28,7 +28,7 @@ import {
 /**
  * Parent class encompassing all Schema types, with static methods that
  * allow building specific Schema types. This class can be converted with
- * JSON.stringify() into a JSON string accepted by Vertex REST endpoints.
+ * `JSON.stringify()` into a JSON string accepted by Vertex AI REST endpoints.
  * (This string conversion is automatically done when calling SDK methods.)
  * @public
  */
@@ -39,10 +39,12 @@ export abstract class Schema implements SchemaInterface {
    */
   type: SchemaType;
   /** Optional. The format of the property.
-   * Supported formats:
-   *  for NUMBER type: "float", "double"
-   *  for INTEGER type: "int32", "int64"
-   *  for STRING type: "email", "byte", etc
+   * Supported formats:<br/>
+   * <ul>
+   *  <li>for NUMBER type: "float", "double"</li>
+   *  <li>for INTEGER type: "int32", "int64"</li>
+   *  <li>for STRING type: "email", "byte", etc</li>
+   * </ul>
    */
   format?: string;
   /** Optional. The description of the property. */
@@ -72,6 +74,7 @@ export abstract class Schema implements SchemaInterface {
   /**
    * Defines how this Schema should be serialized as JSON.
    * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#tojson_behavior
+   * @internal
    */
   toJSON(): SchemaRequest {
     const obj: { type: SchemaType; [key: string]: unknown } = {
@@ -198,6 +201,9 @@ export class StringSchema extends Schema {
     this.enum = enumValues;
   }
 
+  /**
+   * @internal
+   */
   toJSON(): SchemaRequest {
     const obj = super.toJSON();
     if (this.enum) {
@@ -221,6 +227,9 @@ export class ArraySchema extends Schema {
     });
   }
 
+  /**
+   * @internal
+   */
   toJSON(): SchemaRequest {
     const obj = super.toJSON();
     obj.items = this.items.toJSON();
@@ -247,6 +256,9 @@ export class ObjectSchema extends Schema {
     });
   }
 
+  /**
+   * @internal
+   */
   toJSON(): SchemaRequest {
     const obj = super.toJSON();
     obj.properties = { ...this.properties };

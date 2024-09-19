@@ -14,7 +14,7 @@ export class ArraySchema extends Schema {
     constructor(schemaParams: SchemaParams, items: TypedSchema);
     // (undocumented)
     items: TypedSchema;
-    // (undocumented)
+    // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
 
@@ -491,7 +491,7 @@ export class ObjectSchema extends Schema {
     properties: {
         [k: string]: TypedSchema;
     };
-    // (undocumented)
+    // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
 
@@ -593,6 +593,7 @@ export abstract class Schema implements SchemaInterface {
     }): ObjectSchema;
     // (undocumented)
     static string(stringParams?: SchemaParams): StringSchema;
+    // @internal
     toJSON(): SchemaRequest;
     type: SchemaType;
 }
@@ -664,7 +665,7 @@ export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
-    // (undocumented)
+    // @internal (undocumented)
     toJSON(): SchemaRequest;
 }
 

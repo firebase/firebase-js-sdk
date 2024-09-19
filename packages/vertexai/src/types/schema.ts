@@ -17,7 +17,8 @@
 
 /**
  * Contains the list of OpenAPI data types
- * as defined by https://swagger.io/docs/specification/data-models/data-types/
+ * as defined by the
+ * {@link https://swagger.io/docs/specification/data-models/data-types/ | OpenAPI specification}
  * @public
  */
 export enum SchemaType {
@@ -36,7 +37,7 @@ export enum SchemaType {
 }
 
 /**
- * Basic `Schema` properties shared across several Schema-related
+ * Basic {@link Schema} properties shared across several Schema-related
  * types.
  * @public
  */
@@ -61,13 +62,14 @@ export interface SchemaShared<T> {
 }
 
 /**
- * User-facing params passed to specific Schema static methods.
+ * Params passed to {@link Schema} static methods to create specific
+ * {@link Schema} classes.
  * @public
  */
 export interface SchemaParams extends SchemaShared<SchemaInterface> {}
 
 /**
- * Final format for Schema params passed to backend requests.
+ * Final format for {@link Schema} params passed to backend requests.
  * @public
  */
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
@@ -81,7 +83,7 @@ export interface SchemaRequest extends SchemaShared<SchemaRequest> {
 }
 
 /**
- * Interface for Schema class.
+ * Interface for {@link Schema} class.
  * @public
  */
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
@@ -93,7 +95,7 @@ export interface SchemaInterface extends SchemaShared<SchemaInterface> {
 }
 
 /**
- * Interface for ObjectSchema class.
+ * Interface for {@link ObjectSchema} class.
  * @public
  */
 export interface ObjectSchemaInterface extends SchemaInterface {
