@@ -31,9 +31,9 @@ import { getDefaultEmulatorHost } from '@firebase/util';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
-  fetch as unknown as typeof fetch,
-  Headers as unknown as typeof Headers,
-  Response as unknown as typeof Response
+  fetch,
+  Headers,
+  Response
 );
 
 // First, we set up the various platform-specific features for Node (register
