@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 4.7.2
+
+### Patch Changes
+
+- [`629919ea7`](https://github.com/firebase/firebase-js-sdk/commit/629919ea760e35b7d880a099edf7f42b5bcbae4b) [#8343](https://github.com/firebase/firebase-js-sdk/pull/8343) - Fix an issue with metadata `fromCache` defaulting to `true` when listening to cache in multi-tabs.
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+
 ## 4.7.1
 
 ### Patch Changes

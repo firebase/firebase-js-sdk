@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.12.10",
+  "version": "0.12.11",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -39,7 +39,7 @@
     "test": "run-p --npm-path npm test:karma type-check lint ",
     "test:integration": "run-p --npm-path npm test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:karma": "karma start --single-run",
+    "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "api-report": "yarn api-report:main && yarn api-report:sw && yarn api-report:api-json",
     "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
@@ -54,15 +54,15 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.6.8",
+    "@firebase/installations": "0.6.9",
     "@firebase/messaging-interop-types": "0.2.2",
-    "@firebase/util": "1.9.7",
-    "@firebase/component": "0.6.8",
+    "@firebase/util": "1.10.0",
+    "@firebase/component": "0.6.9",
     "idb": "7.1.1",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.10",
+    "@firebase/app": "0.10.11",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-json": "4.1.0",

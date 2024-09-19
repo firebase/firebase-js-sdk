@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -36,9 +36,9 @@
     "test": "run-p --npm-path npm test:browser test:node lint",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser:unit": "karma start --single-run --unit",
-    "test:browser:integration": "karma start --single-run --integration",
-    "test:browser": "karma start --single-run",
+    "test:browser:unit": "karma start --unit",
+    "test:browser:integration": "karma start --integration",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:debug": "karma start --browser=Chrome",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -48,8 +48,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/util": "1.9.7",
-    "@firebase/component": "0.6.8",
+    "@firebase/util": "1.10.0",
+    "@firebase/component": "0.6.9",
     "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
@@ -57,8 +57,8 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.10",
-    "@firebase/auth": "1.7.8",
+    "@firebase/app": "0.10.11",
+    "@firebase/auth": "1.7.9",
     "rollup": "2.79.1",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",

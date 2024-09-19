@@ -22,6 +22,7 @@ import { useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { FirebaseError, getUA } from '@firebase/util';
+import * as utils from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
@@ -305,6 +306,52 @@ describe('api/_performApiRequest', () => {
         'auth/argument-error'
       );
       expect(mock.calls[0].request).to.eql(request);
+    });
+  });
+
+  context('referer policy exists on fetch request', () => {
+    afterEach(mockFetch.tearDown);
+
+    it('should have referrerPolicy set', async () => {
+      let referrerPolicySet: boolean = false;
+      mockFetch.setUpWithOverride(
+        (input: RequestInfo | URL, request?: RequestInit) => {
+          if (request !== undefined && request.referrerPolicy !== undefined) {
+            referrerPolicySet = true;
+          }
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
+        }
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.fulfilled;
+      expect(referrerPolicySet).to.be.true;
+    });
+
+    it('should not have referrerPolicy set on Cloudflare workers', async () => {
+      sinon.stub(utils, 'isCloudflareWorker').returns(true);
+      let referrerPolicySet: boolean = false;
+      mockFetch.setUpWithOverride(
+        (input: RequestInfo | URL, request?: RequestInit) => {
+          if (request !== undefined && request.referrerPolicy !== undefined) {
+            referrerPolicySet = true;
+          }
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
+        }
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.fulfilled;
+      expect(referrerPolicySet).to.be.false;
+      sinon.restore();
     });
   });
 

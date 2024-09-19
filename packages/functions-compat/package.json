@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-compat",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -31,7 +31,7 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.40",
+    "@firebase/app-compat": "0.2.41",
     "rollup": "2.79.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
@@ -55,7 +55,7 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p --npm-path npm test:node",
@@ -64,10 +64,10 @@
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.6.8",
-    "@firebase/functions": "0.11.7",
+    "@firebase/component": "0.6.9",
+    "@firebase/functions": "0.11.8",
     "@firebase/functions-types": "0.6.2",
-    "@firebase/util": "1.9.7",
+    "@firebase/util": "1.10.0",
     "tslib": "^2.1.0"
   },
   "nyc": {
