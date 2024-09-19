@@ -49,7 +49,7 @@ export function dcFetch<T, U>(
   if (accessToken) {
     headers['X-Firebase-Auth-Token'] = accessToken;
   }
-  if(appId) {
+  if (appId) {
     headers['x-firebase-gmpid'] = appId;
   }
   if (appCheckToken) {

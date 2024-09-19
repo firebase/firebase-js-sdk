@@ -39,10 +39,10 @@ const fakeFetchImpl = sinon.stub().returns(
 describe('GMPID Tests', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
-  let APPID = 'MYAPPID';
+  const APPID = 'MYAPPID';
   beforeEach(() => {
     initializeFetch(fakeFetchImpl);
-    app = initializeApp({ projectId: 'p',appId: APPID }, 'fdsasdf'); // TODO(mtewani): Replace with util function
+    app = initializeApp({ projectId: 'p', appId: APPID }, 'fdsasdf'); // TODO(mtewani): Replace with util function
     dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
   });
   afterEach(async () => {
@@ -63,7 +63,11 @@ describe('GMPID Tests', () => {
   });
   it('should send a request with no gmpid if using the app id is not specified', async () => {
     const app2 = initializeApp({ projectId: 'p' }, 'def'); // TODO(mtewani): Replace with util function
-    const dc2 = getDataConnect(app2, { connector: 'c', location: 'l', service: 's' });
+    const dc2 = getDataConnect(app2, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
     // @ts-ignore
     await executeQuery(queryRef(dc2, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
@@ -74,7 +78,7 @@ describe('GMPID Tests', () => {
         }
       }
     );
-    dc2._delete();
-    deleteApp(app2);
+    await dc2._delete();
+    await deleteApp(app2);
   });
 });
