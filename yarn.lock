@@ -1639,21 +1639,6 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.56.0.tgz#ef20350fec605a7f7035a01764731b2de0f3782b"
   integrity sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==
 
-"@firebase/component@0.6.8":
-  version "0.6.8"
-  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.6.8.tgz#899b9318c0ce0586580e8cda7eaf61296f7fb43b"
-  integrity sha512-LcNvxGLLGjBwB0dJUsBGCej2fqAepWyBubs4jt1Tiuns7QLbXHuyObZ4aMeBjZjWx4m8g1LoVI9QFpSaq/k4/g==
-  dependencies:
-    "@firebase/util" "1.9.7"
-    tslib "^2.1.0"
-
-"@firebase/util@1.9.7":
-  version "1.9.7"
-  resolved "https://registry.npmjs.org/@firebase/util/-/util-1.9.7.tgz#c03b0ae065b3bba22800da0bd5314ef030848038"
-  integrity sha512-fBVNH/8bRbYjqlbIhZ+lBtdAAS4WqZumx03K06/u7fJSpz1TGjEMm1ImvKD47w+xaFKIP2ori6z8BrbakRfjJA==
-  dependencies:
-    tslib "^2.1.0"
-
 "@gar/promisify@^1.0.1":
   version "1.1.2"
   resolved "https://registry.npmjs.org/@gar/promisify/-/promisify-1.1.2.tgz"

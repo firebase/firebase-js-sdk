@@ -37,7 +37,7 @@ export function urlBuilder(
       'Incorrect type for port passed in!'
     );
   }
-  return `${baseUrl}/v1alpha/projects/${project}/locations/${location}/services/${service}/connectors/${connector}`;
+  return `${baseUrl}/v1beta/projects/${project}/locations/${location}/services/${service}/connectors/${connector}`;
 }
 export function addToken(url: string, apiKey?: string): string {
   if (!apiKey) {
