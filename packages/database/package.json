@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -38,7 +38,7 @@
     "test": "run-p --npm-path npm lint test:emulator",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:emulator",
     "test:all": "run-p --npm-path npm lint test:browser test:node",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -51,15 +51,15 @@
   "peerDependencies": {},
   "dependencies": {
     "@firebase/logger": "0.4.2",
-    "@firebase/util": "1.9.7",
-    "@firebase/component": "0.6.8",
+    "@firebase/util": "1.10.0",
+    "@firebase/component": "0.6.9",
     "@firebase/app-check-interop-types": "0.3.2",
     "@firebase/auth-interop-types": "0.2.3",
     "faye-websocket": "0.11.4",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.10",
+    "@firebase/app": "0.10.11",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "typescript": "4.7.4"

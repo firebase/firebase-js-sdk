@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-compat",
-  "version": "0.2.40",
+  "version": "0.2.41",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -32,7 +32,7 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
     "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
@@ -41,10 +41,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app": "0.10.10",
-    "@firebase/util": "1.9.7",
+    "@firebase/app": "0.10.11",
+    "@firebase/util": "1.10.0",
     "@firebase/logger": "0.4.2",
-    "@firebase/component": "0.6.8",
+    "@firebase/component": "0.6.9",
     "tslib": "^2.1.0"
   },
   "devDependencies": {

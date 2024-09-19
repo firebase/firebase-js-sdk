@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, querystring } from '@firebase/util';
+import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -148,14 +148,23 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
+    const fetchArgs: RequestInit = {
+      method,
+      headers,
+      ...body
+    };
+
+    /* Security-conscious server-side frameworks tend to have built in mitigations for referrer
+       problems". See the Cloudflare GitHub issue #487: Error: The 'referrerPolicy' field on
+       'RequestInitializerDict' is not implemented."
+       https://github.com/cloudflare/next-on-pages/issues/487 */
+    if (!isCloudflareWorker()) {
+      fetchArgs.referrerPolicy = 'no-referrer';
+    }
+
     return FetchProvider.fetch()(
       _getFinalTarget(auth, auth.config.apiHost, path, query),
-      {
-        method,
-        headers,
-        referrerPolicy: 'no-referrer',
-        ...body
-      }
+      fetchArgs
     );
   });
 }
