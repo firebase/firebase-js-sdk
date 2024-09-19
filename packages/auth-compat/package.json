@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-compat",
-  "version": "0.5.13",
+  "version": "0.5.14",
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@8 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -37,9 +37,9 @@
     "test": "run-p --npm-path npm lint test:all",
     "test:all": "run-p --npm-path npm test:browser test:node test:integration",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start --single-run",
-    "test:browser:unit": "karma start --single-run --unit",
-    "test:browser:integration": "karma start --single-run --integration",
+    "test:browser": "karma start",
+    "test:browser:unit": "karma start --unit",
+    "test:browser:integration": "karma start --integration",
     "test:node": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts",
     "test:node:integration": "ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --integration",
     "test:webdriver": "rollup -c test/integration/webdriver/static/rollup.config.js && ts-node -O '{\"module\": \"commonjs\", \"target\": \"es6\"}' scripts/run_node_tests.ts --webdriver",
@@ -51,16 +51,16 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/auth": "1.7.8",
+    "@firebase/auth": "1.7.9",
     "@firebase/auth-types": "0.12.2",
-    "@firebase/component": "0.6.8",
-    "@firebase/util": "1.9.7",
+    "@firebase/component": "0.6.9",
+    "@firebase/util": "1.10.0",
     "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.40",
+    "@firebase/app-compat": "0.2.41",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.79.1",
     "rollup-plugin-replace": "2.2.0",

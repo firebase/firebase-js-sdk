@@ -66,7 +66,8 @@ const config = {
 
   webpackMiddleware: { quiet: true, stats: { colors: true } },
 
-  singleRun: false,
+  // Exit with an exit code of 0 if any of the tests fail.
+  singleRun: true,
 
   client: {
     mocha: {
