@@ -18,7 +18,7 @@
 import { platform } from 'os';
 import { Emulator } from './emulator';
 
-const DATABASE_EMULATOR_VERSION = '1.1.17';
+const DATABASE_EMULATOR_VERSION = '1.3.7';
 
 export class DataConnectEmulator extends Emulator {
   //   namespace: string;
@@ -29,15 +29,15 @@ export class DataConnectEmulator extends Emulator {
     switch (os) {
       case 'darwin':
         urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.5?alt=media&token=52c3db6e-2a2a-4094-a482-a8c85ae67a88';
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-macos-v1.3.7?alt=media&token=2cf32435-d479-4929-b963-a97ae1ac3f0b';
         break;
       case 'linux':
         urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v1.3.5?alt=media&token=bafb1f81-2a27-4851-b655-59934985b492';
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-linux-v1.3.7?alt=media&token=fd33b4fc-2e27-4874-893a-2d1f0ecbf116';
         break;
       case 'win32':
         urlString =
-          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v1.3.5?alt=media&token=d3d04c57-992f-4a4b-931d-5c90efd54c5a';
+          'https://firebasestorage.googleapis.com/v0/b/firemat-preview-drop/o/emulator%2Fdataconnect-emulator-windows-v1.3.7?alt=media&token=bd6e60b0-50b4-46db-aa6c-5fcc6e991f39';
         break;
       default:
         throw new Error(
