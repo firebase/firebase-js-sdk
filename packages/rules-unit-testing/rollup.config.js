@@ -20,13 +20,11 @@ import pkg from './package.json';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const plugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript
   })
 ];
-
-const buildPlugins = [typescriptPlugin({ typescript })];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -40,14 +38,16 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...plugins],
+    plugins: [...buildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
-    ],
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
     plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
