@@ -49,7 +49,6 @@ function generateReportForCDNScripts(): Report[] {
   const compatPkgJson = require(`${firebaseRoot}/compat/package.json`);
 
   const special_files = [
-    'firebase-performance-standalone-compat.es2017.js',
     'firebase-performance-standalone-compat.js',
     'firebase-compat.js'
   ];
