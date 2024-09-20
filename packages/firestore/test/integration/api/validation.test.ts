@@ -234,10 +234,12 @@ apiDescribe('Validation:', persistence => {
     validationIt(
       persistence,
       'disallows calling enableIndexedDbPersistence() after use',
-      db => {
-        //doc(db, 'foo/bar');
+      async db => {
+        await getDoc(doc(db, 'foo/bar'));
         expect(() => enableIndexedDbPersistence(db)).to.throw(
-          'SDK cache is already specified.'
+          'Firestore has already been started and persistence can no ' +
+            'longer be enabled. You can only enable persistence before ' +
+            'calling any other methods on a Firestore object.'
         );
       }
     );
