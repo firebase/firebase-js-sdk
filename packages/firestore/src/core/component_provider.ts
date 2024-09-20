@@ -75,6 +75,8 @@ import {
 } from './sync_engine_impl';
 import { OnlineStateSource } from './types';
 
+type Kind = 'memory' | 'persistent';
+
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
@@ -85,11 +87,16 @@ export interface ComponentConfiguration {
   maxConcurrentLimboResolutions: number;
 }
 
+export interface OfflineComponentProviderFactory {
+  build(onlineComponents: OnlineComponentProvider): OfflineComponentProvider;
+}
+
 /**
  * Initializes and wires components that are needed to interface with the local
  * cache. Implementations override `initialize()` to provide all components.
  */
 export interface OfflineComponentProvider {
+  readonly kind: Kind;
   persistence: Persistence;
   sharedClientState: SharedClientState;
   localStore: LocalStore;
@@ -109,6 +116,12 @@ export interface OfflineComponentProvider {
 export class MemoryOfflineComponentProvider
   implements OfflineComponentProvider
 {
+  kind: Kind = 'memory';
+
+  static readonly provider: OfflineComponentProviderFactory = {
+    build: () => new MemoryOfflineComponentProvider()
+  };
+
   persistence!: Persistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
@@ -208,6 +221,7 @@ export class LruGcMemoryOfflineComponentProvider extends MemoryOfflineComponentP
  * Provides all components needed for Firestore with IndexedDB persistence.
  */
 export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentProvider {
+  kind: Kind = 'persistent';
   persistence!: IndexedDbPersistence;
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
@@ -389,11 +403,19 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
   }
 }
 
+export interface OnlineComponentProviderFactory {
+  build(): OnlineComponentProvider;
+}
+
 /**
  * Initializes and wires the components that are needed to interface with the
  * network.
  */
 export class OnlineComponentProvider {
+  static readonly provider: OnlineComponentProviderFactory = {
+    build: () => new OnlineComponentProvider()
+  };
+
   protected localStore!: LocalStore;
   protected sharedClientState!: SharedClientState;
   datastore!: Datastore;
