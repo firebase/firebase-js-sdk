@@ -202,15 +202,28 @@ export interface RulesTestEnvironment {
    */
   unauthenticatedContext(): RulesTestContext;
 
-  /*
+  /**
    * Run a setup function with a context that behaves as if Security Rules were disabled.
    *
-   * This can be used for test setup by importing data into emulators without blocked by Rules.
+   * This can be used for test setup to import data into emulators without being blocked by Rules.
    * ONLY requests issued through the context passed into the callback will bypass Security Rules.
    * Requests issued through other contexts will go through Security Rules as normal.
    *
-   * @param callback a function which takes the Security-Rules-bypassing context and returns a promise.
+   * @param callback - a function which takes the Security-Rules-bypassing context and returns a promise.
    *        The context will be destroyed once the promise resolves / rejects.
+   *
+   * @example
+   * ```javascript
+   * const addTestData = async ({ testEnv, collectionName, testData }) => {
+   *   let docId;
+   *   await testEnv.withSecurityRulesDisabled(async (noRulesContext) => {
+   *     const db = await noRulesContext.firestore();
+   *     const dbCollection = collection(db, collectionName);
+   *     docId = await (await addDoc(dbCollection, testData)).id;
+   *   });
+   *   return docId;
+   * };
+   * ```
    */
   withSecurityRulesDisabled(
     callback: (context: RulesTestContext) => Promise<void>
