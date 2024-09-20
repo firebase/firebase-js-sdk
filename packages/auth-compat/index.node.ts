@@ -25,8 +25,4 @@ export * from './index';
 import { FetchProvider } from '@firebase/auth/internal';
 import './index';
 
-FetchProvider.initialize(
-  fetch as unknown as typeof fetch,
-  Headers as unknown as typeof Headers,
-  Response as unknown as typeof Response
-);
+FetchProvider.initialize(fetch, Headers, Response);
