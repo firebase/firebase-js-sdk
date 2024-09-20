@@ -285,7 +285,14 @@ const completeBuilds = [
     plugins: [
       sourcemaps(),
       resolveModule({ exportConditions: ['lite'] }),
-      rollupTypescriptPlugin({ typescript }),
+      rollupTypescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            declaration: false
+          }
+        }
+      }),
       json({ preferConst: true }),
       commonjs(),
       terser()
