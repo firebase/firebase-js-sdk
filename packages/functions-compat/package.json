@@ -3,7 +3,7 @@
   "version": "0.3.12",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
@@ -11,8 +11,8 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "node": {
-        "import": "./dist/node-esm/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js"
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm2017.js"
       },
       "esm5": "./dist/index.esm5.js",
       "browser": {
