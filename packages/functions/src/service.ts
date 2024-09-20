@@ -104,8 +104,7 @@ export class FunctionsService implements _FirebaseService {
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>,
-    regionOrCustomDomain: string = DEFAULT_REGION,
-    readonly fetchImpl: typeof fetch
+    regionOrCustomDomain: string = DEFAULT_REGION
   ) {
     this.contextProvider = new ContextProvider(
       authProvider,
@@ -212,14 +211,13 @@ export function httpsCallableFromURL<RequestData, ResponseData>(
 async function postJSON(
   url: string,
   body: unknown,
-  headers: { [key: string]: string },
-  fetchImpl: typeof fetch
+  headers: { [key: string]: string }
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
   let response: Response;
   try {
-    response = await fetchImpl(url, {
+    response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(body),
       headers
@@ -296,7 +294,7 @@ async function callAtURL(
 
   const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
-    postJSON(url, body, headers, functionsInstance.fetchImpl),
+    postJSON(url, body, headers),
     failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);

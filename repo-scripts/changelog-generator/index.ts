@@ -17,7 +17,6 @@
 
 import { ChangelogFunctions } from '@changesets/types';
 import { getInfo } from '@changesets/get-github-info';
-import { fetch as undiciFetch, Response as undiciResponse } from 'undici';
 
 const changelogFunctions: ChangelogFunctions = {
   getDependencyReleaseLine: async (
@@ -95,7 +94,7 @@ async function getFixedIssueLink(
   prNumber: number,
   repo: string
 ): Promise<string> {
-  const response = await undiciFetch(
+  const response = await fetch(
     `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
     {
       method: 'GET',
@@ -105,7 +104,7 @@ async function getFixedIssueLink(
     }
   ).then(data => data.json());
 
-  const body = (response as undiciResponse).body;
+  const body = (response as Response).body;
   if (!body) {
     return '';
   }
