@@ -53,7 +53,7 @@ describe('GMPID Tests', () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
-      'https://firebasedataconnect.googleapis.com/v1alpha/projects/p/locations/l/services/s/connectors/c:executeQuery',
+      'https://firebasedataconnect.googleapis.com/v1beta/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
           ['x-firebase-gmpid']: APPID
@@ -71,7 +71,7 @@ describe('GMPID Tests', () => {
     // @ts-ignore
     await executeQuery(queryRef(dc2, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
-      'https://firebasedataconnect.googleapis.com/v1alpha/projects/p/locations/l/services/s/connectors/c:executeQuery',
+      'https://firebasedataconnect.googleapis.com/v1beta/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
           ['x-firebase-gmpid']: APPID
