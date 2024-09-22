@@ -17,8 +17,7 @@
 
 import {
   firestoreClientDeleteAllFieldIndexes,
-  firestoreClientSetPersistentCacheIndexAutoCreationEnabled,
-  FirestoreClient
+  firestoreClientSetPersistentCacheIndexAutoCreationEnabled
 } from '../core/firestore_client';
 import { cast } from '../util/input_validation';
 import { logDebug, logWarn } from '../util/log';
@@ -36,7 +35,7 @@ export class PersistentCacheIndexManager {
   readonly type: 'PersistentCacheIndexManager' = 'PersistentCacheIndexManager';
 
   /** @hideconstructor */
-  constructor(readonly _client: FirestoreClient) {}
+  constructor(readonly _firestore: Firestore) {}
 }
 
 /**
@@ -57,11 +56,11 @@ export function getPersistentCacheIndexManager(
   }
 
   const client = ensureFirestoreConfigured(firestore);
-  if (client._uninitializedComponentsProvider?._offlineKind !== 'persistent') {
+  if (client._uninitializedComponentsProvider?._offline.kind !== 'persistent') {
     return null;
   }
 
-  const instance = new PersistentCacheIndexManager(client);
+  const instance = new PersistentCacheIndexManager(firestore);
   persistentCacheIndexManagerByFirestore.set(firestore, instance);
   return instance;
 }
@@ -99,9 +98,8 @@ export function disablePersistentCacheIndexAutoCreation(
 export function deleteAllPersistentCacheIndexes(
   indexManager: PersistentCacheIndexManager
 ): void {
-  indexManager._client.verifyNotTerminated();
-
-  const promise = firestoreClientDeleteAllFieldIndexes(indexManager._client);
+  const client = ensureFirestoreConfigured(indexManager._firestore);
+  const promise = firestoreClientDeleteAllFieldIndexes(client);
 
   promise
     .then(_ => logDebug('deleting all persistent cache indexes succeeded'))
@@ -114,10 +112,9 @@ function setPersistentCacheIndexAutoCreationEnabled(
   indexManager: PersistentCacheIndexManager,
   isEnabled: boolean
 ): void {
-  indexManager._client.verifyNotTerminated();
-
+  const client = ensureFirestoreConfigured(indexManager._firestore);
   const promise = firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
-    indexManager._client,
+    client,
     isEnabled
   );
 
