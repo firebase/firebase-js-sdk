@@ -1,5 +1,21 @@
 # @firebase/auth
 
+## 1.7.9
+
+### Patch Changes
+
+- [`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741) [#8393](https://github.com/firebase/firebase-js-sdk/pull/8393) - Suppress the use of the `fetch` parameter `referrerPolicy` within Auth for `fetch` requests originating from Cloudflare Workers. Clouldflare Worker environments do not support this parameter and throw when it's used.
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+
+## 1.7.8
+
+### Patch Changes
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
 ## 1.7.7
 
 ### Patch Changes

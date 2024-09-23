@@ -30,8 +30,8 @@
     "repl": "node tools/repl.js",
     "release": "ts-node-script scripts/release/cli.ts",
     "pretest": "node tools/pretest.js",
-    "test": "lerna run --ignore firebase-messaging-integration-test --concurrency 4 --stream test",
-    "test:ci": "lerna run --ignore firebase-messaging-integration-test --concurrency 4 test:ci",
+    "test": "lerna run --ignore firebase-messaging-integration-test --stream test",
+    "test:ci": "lerna run --ignore firebase-messaging-integration-test test:ci",
     "pretest:coverage": "mkdirp coverage",
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
@@ -156,7 +156,6 @@
     "tslint": "6.1.3",
     "typedoc": "0.16.11",
     "typescript": "4.7.4",
-    "undici": "6.19.7",
     "watch": "1.0.2",
     "webpack": "5.76.0",
     "yargs": "17.7.2"
