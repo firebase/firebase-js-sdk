@@ -84,28 +84,4 @@ const browserBuilds = [
   }
 ];
 
-const nodeBuilds = [
-  {
-    input: 'src/index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ]
-  },
-  {
-    input: 'src/index.node.ts',
-    output: [
-      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
-    ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      emitModulePackageFile()
-    ]
-  }
-];
-
-export default [...browserBuilds, ...nodeBuilds];
+export default [...browserBuilds];
