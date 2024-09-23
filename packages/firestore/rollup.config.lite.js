@@ -87,7 +87,7 @@ const allBuilds = [
       typescriptPlugin({
         typescript,
         compilerOptions: {
-          allowJs: true,
+          allowJs: true
         },
         include: ['dist/lite/*.js']
       }),

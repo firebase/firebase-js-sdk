@@ -41,7 +41,7 @@ const esmBuild = {
   },
   plugins: [...buildPlugins, emitModulePackageFile()],
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-}
+};
 
 const cjsBuild = {
   input: 'src/index.ts',

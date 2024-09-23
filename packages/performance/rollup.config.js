@@ -57,6 +57,6 @@ const cjsBuild = {
     ...buildPlugins,
     replace(generateBuildTargetReplaceConfig('cjs', 5))
   ]
-}
+};
 
 export default [esmBuild, cjsBuild];

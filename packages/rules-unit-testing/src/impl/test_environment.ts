@@ -126,7 +126,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     return this.withSecurityRulesDisabled(async context => {
       const { items } = await context.storage().ref().listAll();
       await Promise.all(
-        items.map((item: { delete: () => any; }) => {
+        items.map((item: { delete: () => any }) => {
           return item.delete();
         })
       );
