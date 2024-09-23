@@ -20,8 +20,6 @@ export interface BaseParams {
 // @public
 export enum BlockReason {
     // (undocumented)
-    BLOCKED_REASON_UNSPECIFIED = "BLOCKED_REASON_UNSPECIFIED",
-    // (undocumented)
     OTHER = "OTHER",
     // (undocumented)
     SAFETY = "SAFETY"
@@ -146,8 +144,6 @@ export interface FileDataPart {
 // @public
 export enum FinishReason {
     // (undocumented)
-    FINISH_REASON_UNSPECIFIED = "FINISH_REASON_UNSPECIFIED",
-    // (undocumented)
     MAX_TOKENS = "MAX_TOKENS",
     // (undocumented)
     OTHER = "OTHER",
@@ -181,8 +177,6 @@ export enum FunctionCallingMode {
     ANY = "ANY",
     // (undocumented)
     AUTO = "AUTO",
-    // (undocumented)
-    MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
     // (undocumented)
     NONE = "NONE"
 }
@@ -402,8 +396,6 @@ export interface GroundingMetadata {
 // @public (undocumented)
 export enum HarmBlockMethod {
     // (undocumented)
-    HARM_BLOCK_METHOD_UNSPECIFIED = "HARM_BLOCK_METHOD_UNSPECIFIED",
-    // (undocumented)
     PROBABILITY = "PROBABILITY",
     // (undocumented)
     SEVERITY = "SEVERITY"
@@ -418,9 +410,7 @@ export enum HarmBlockThreshold {
     // (undocumented)
     BLOCK_NONE = "BLOCK_NONE",
     // (undocumented)
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-    // (undocumented)
-    HARM_BLOCK_THRESHOLD_UNSPECIFIED = "HARM_BLOCK_THRESHOLD_UNSPECIFIED"
+    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
 }
 
 // @public
@@ -432,15 +422,11 @@ export enum HarmCategory {
     // (undocumented)
     HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
     // (undocumented)
-    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    // (undocumented)
-    HARM_CATEGORY_UNSPECIFIED = "HARM_CATEGORY_UNSPECIFIED"
+    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT"
 }
 
 // @public
 export enum HarmProbability {
-    // (undocumented)
-    HARM_PROBABILITY_UNSPECIFIED = "HARM_PROBABILITY_UNSPECIFIED",
     // (undocumented)
     HIGH = "HIGH",
     // (undocumented)
@@ -460,9 +446,7 @@ export enum HarmSeverity {
     // (undocumented)
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
     // (undocumented)
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    // (undocumented)
-    HARM_SEVERITY_UNSPECIFIED = "HARM_SEVERITY_UNSPECIFIED"
+    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
 // @public
@@ -499,7 +483,7 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 // @public
 export interface PromptFeedback {
     // (undocumented)
-    blockReason: BlockReason;
+    blockReason?: BlockReason;
     // (undocumented)
     blockReasonMessage?: string;
     // (undocumented)
