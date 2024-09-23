@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,19 +148,6 @@ const nodeBuilds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     onwarn: onWarn
   }
-  /**
-   * Standalone Build for Admin SDK
-   */
-  // {
-  //   input: 'src/index.standalone.ts',
-  //   output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
-  //   plugins: es5BuildPlugins,
-  //   treeshake: {
-  //     moduleSideEffects: false
-  //   },
-  //   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-  //   onwarn: onWarn
-  // }
 ];
 
 export default [...browserBuilds, ...nodeBuilds];
