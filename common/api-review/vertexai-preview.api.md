@@ -622,6 +622,7 @@ export class VertexAIError extends FirebaseError {
 
 // @public
 export const enum VertexAIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
     INVALID_CONTENT = "invalid-content",
