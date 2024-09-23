@@ -243,7 +243,7 @@ describe('request methods', () => {
           false,
           '',
           {
-            timeout: 0
+            timeout: 180000
           }
         );
       } catch (e) {
