@@ -16,7 +16,7 @@ name: Test Firestore
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
 
 env:
   artifactRetentionDays: 14
