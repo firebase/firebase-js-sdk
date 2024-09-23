@@ -3,7 +3,7 @@
   "version": "0.3.14",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "esm5": "dist/index.esm5.js",
@@ -11,8 +11,8 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "node": {
-        "import": "./dist/node-esm/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js"
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm2017.js"
       },
       "esm5": "./dist/index.esm5.js",
       "browser": {
@@ -57,7 +57,7 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_HOST=http://localhost FIREBASE_FUNCTIONS_PORT=5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../functions/dist/functions-public.d.ts -o dist/src/index.d.ts -a -r Functions:types.FirebaseFunctions -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/functions"
