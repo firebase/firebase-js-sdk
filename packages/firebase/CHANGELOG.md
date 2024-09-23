@@ -1,5 +1,55 @@
 # firebase
 
+## 10.13.2
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741), [`629919ea7`](https://github.com/firebase/firebase-js-sdk/commit/629919ea760e35b7d880a099edf7f42b5bcbae4b)]:
+  - @firebase/auth@1.7.9
+  - @firebase/util@1.10.0
+  - @firebase/firestore@4.7.2
+  - @firebase/auth-compat@0.5.14
+  - @firebase/storage@0.13.2
+  - @firebase/analytics@0.10.8
+  - @firebase/analytics-compat@0.2.14
+  - @firebase/app@0.10.11
+  - @firebase/app-check@0.8.8
+  - @firebase/app-check-compat@0.3.15
+  - @firebase/app-compat@0.2.41
+  - @firebase/database@1.0.8
+  - @firebase/database-compat@1.0.8
+  - @firebase/firestore-compat@0.3.37
+  - @firebase/functions@0.11.8
+  - @firebase/functions-compat@0.3.14
+  - @firebase/installations@0.6.9
+  - @firebase/installations-compat@0.2.9
+  - @firebase/messaging@0.12.11
+  - @firebase/messaging-compat@0.2.11
+  - @firebase/performance@0.6.9
+  - @firebase/performance-compat@0.2.9
+  - @firebase/remote-config@0.4.9
+  - @firebase/remote-config-compat@0.2.9
+  - @firebase/storage-compat@0.3.12
+  - @firebase/vertexai-preview@0.0.4
+
+## 10.13.1
+
+### Patch Changes
+
+- [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345) [#8432](https://github.com/firebase/firebase-js-sdk/pull/8432) (fixes [#8431](https://github.com/firebase/firebase-js-sdk/issues/8431)) - Update undici dependency to 6.19.7 due to a memory leak in older versions.
+
+- Updated dependencies [[`2ee2a90ae`](https://github.com/firebase/firebase-js-sdk/commit/2ee2a90aebcf75a0df467c47a5f731b07ce69070), [`05c34c91e`](https://github.com/firebase/firebase-js-sdk/commit/05c34c91e61deb1c148ff1bc99333fc50e9e371f), [`62348e116`](https://github.com/firebase/firebase-js-sdk/commit/62348e116c795d19c5ca58729c250805240ce345)]:
+  - @firebase/functions@0.11.7
+  - @firebase/app@0.10.10
+  - @firebase/auth-compat@0.5.13
+  - @firebase/firestore@4.7.1
+  - @firebase/storage@0.13.1
+  - @firebase/auth@1.7.8
+  - @firebase/functions-compat@0.3.13
+  - @firebase/app-compat@0.2.40
+  - @firebase/storage-compat@0.3.11
+  - @firebase/firestore-compat@0.3.36
+
 ## 10.13.0
 
 ### Minor Changes

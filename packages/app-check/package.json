@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-check",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "The App Check component of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -28,7 +28,7 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --single-run --nocache",
+    "test:browser": "karma start --nocache",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -39,14 +39,14 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/util": "1.9.7",
-    "@firebase/component": "0.6.8",
+    "@firebase/util": "1.10.0",
+    "@firebase/component": "0.6.9",
     "@firebase/logger": "0.4.2",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.9",
+    "@firebase/app": "0.10.11",
     "rollup": "2.79.1",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",

@@ -29,7 +29,7 @@ const LOG_TAG = 'AsyncQueue';
 
 export class AsyncQueueImpl implements AsyncQueue {
   // The last promise in the queue.
-  private tail: Promise<unknown> = Promise.resolve();
+  private tail: Promise<unknown>;
 
   // A list of retryable operations. Retryable operations are run in order and
   // retried with backoff.
@@ -73,7 +73,8 @@ export class AsyncQueueImpl implements AsyncQueue {
     this.backoff.skipBackoff();
   };
 
-  constructor() {
+  constructor(tail: Promise<unknown> = Promise.resolve()) {
+    this.tail = tail;
     const document = getDocument();
     if (document && typeof document.addEventListener === 'function') {
       document.addEventListener('visibilitychange', this.visibilityHandler);
