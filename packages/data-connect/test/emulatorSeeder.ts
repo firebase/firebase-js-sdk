@@ -17,30 +17,9 @@
 
 import fs from 'fs';
 import * as path from 'path';
-//  curl localhost:3628/setupSchema -X POST -d '{
-//    "service_id": "s",
-//    "schema": {
-//      "files": [
-//        {
-//           "path": "schema/post.gql",
-//           "content": "type Post @table {content: String!}"
-//        }
-//      ]
-//    },
-//    "connectors": {
-//      "crud": {
-//        "files": [
-//          {
-//            "path": "operations/post.gql",
-//            "content": "query getPost($id: UUID!) @auth(level: PUBLIC) {post(id: $id) {content}} query listPosts @auth(level: PUBLIC) {posts {content}} mutation createPost($id: UUID!, content: String!) @auth(level: PUBLIC)  {post_insert(data: {id: $id, content: $content})} mutation deletePost($id: UUID!) @auth(level: PUBLIC) { post_delete(id: $id)}"
-//          }
-//        ]
-//      }
-//    }
 
 import { ReferenceType } from '../src';
 
-//  }
 import { EMULATOR_PORT } from './util';
 
 export interface SeedInfo {
