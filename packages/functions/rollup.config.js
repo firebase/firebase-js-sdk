@@ -80,7 +80,7 @@ const builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ]
   }
 ];
