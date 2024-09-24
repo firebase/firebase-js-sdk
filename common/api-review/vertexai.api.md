@@ -195,7 +195,7 @@ export interface FunctionCallPart {
 
 // @public
 export interface FunctionDeclaration {
-    description?: string;
+    description: string;
     name: string;
     parameters?: FunctionDeclarationSchema;
 }
