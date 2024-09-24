@@ -16,6 +16,7 @@
  */
 
 import json from '@rollup/plugin-json';
+import resolve from "@rollup/plugin-node-resolve";
 import pkg from './package.json';
 import typescript from 'typescript';
 import replace from 'rollup-plugin-replace';
@@ -43,7 +44,8 @@ const es2017BuildPlugins = [
       }
     }
   }),
-  json({ preferConst: true })
+  json({ preferConst: true }),
+  resolve()
 ];
 
 const esmBuilds = [
@@ -69,14 +71,14 @@ const esmBuilds = [
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
       emitModulePackageFile()
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
   },
   // sw builds
   {
     input: 'src/index.sw.ts',
     output: { file: pkg.sw, format: 'es', sourcemap: true },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
   }
 ];
 
@@ -88,7 +90,7 @@ const cjsBuilds = [
       ...es5BuildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
   },
   // sw build
   // TODO: This may no longer be necessary when we can provide ESM Node
@@ -102,7 +104,7 @@ const cjsBuilds = [
       ...es5BuildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 5))
     ],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
   }
 ];
 

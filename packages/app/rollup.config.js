@@ -17,6 +17,7 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
+import resolve from '@rollup/plugin-node-resolve'
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
@@ -46,7 +47,8 @@ const es2017BuildPlugins = [
   }),
   json({
     preferConst: true
-  })
+  }),
+  resolve()
 ];
 
 const esmBuilds = [
@@ -73,7 +75,7 @@ const esmBuilds = [
       format: 'es',
       sourcemap: true
     },
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`))),
     plugins: [
       ...es2017BuildPlugins,
       replace({
@@ -89,7 +91,7 @@ const cjsBuilds = [
   {
     input: 'src/index.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`))),
     plugins: [
       ...es5BuildPlugins,
       replace({
