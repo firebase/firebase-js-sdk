@@ -247,7 +247,7 @@ export interface FunctionDeclarationSchemaProperty {
  * @public
  */
 export interface ToolConfig {
-  functionCallingConfig: FunctionCallingConfig;
+  functionCallingConfig?: FunctionCallingConfig;
 }
 
 /**
