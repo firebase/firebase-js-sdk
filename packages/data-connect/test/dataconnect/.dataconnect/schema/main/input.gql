@@ -1,0 +1,49 @@
+scalar Movie_Key
+input Movie_Data {
+  id: String
+  id_expr: String_Expr
+  description: String
+  description_expr: String_Expr
+  genre: String
+  genre_expr: String_Expr
+  name: String
+  name_expr: String_Expr
+  test: String
+  test_expr: String_Expr
+}
+input Movie_Filter {
+  _and: [Movie_Filter!]
+  _not: Movie_Filter
+  _or: [Movie_Filter!]
+  id: String_Filter
+  description: String_Filter
+  genre: String_Filter
+  name: String_Filter
+  test: String_Filter
+}
+input Movie_ListFilter {
+  count: Int_Filter
+  exist: Movie_Filter
+}
+input Movie_ListUpdate {
+  append: [Movie_Data!]
+  delete: Int
+  i: Int
+  prepend: [Movie_Data!]
+  set: [Movie_Data!]
+  update: [Movie_Update!]
+}
+input Movie_Order {
+  id: OrderDirection
+  description: OrderDirection
+  genre: OrderDirection
+  name: OrderDirection
+  test: OrderDirection
+}
+input Movie_Update {
+  id: [String_Update!]
+  description: [String_Update!]
+  genre: [String_Update!]
+  name: [String_Update!]
+  test: [String_Update!]
+}

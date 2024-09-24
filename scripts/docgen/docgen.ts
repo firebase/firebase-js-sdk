@@ -37,7 +37,12 @@ https://github.com/firebase/firebase-js-sdk
 `;
 
 const tmpDir = `${projectRoot}/temp`;
-const EXCLUDED_PACKAGES = ['app-compat', 'util', 'rules-unit-testing'];
+const EXCLUDED_PACKAGES = [
+  'app-compat',
+  'util',
+  'rules-unit-testing',
+  'data-connect'
+];
 
 /**
  * When ordering functions, will prioritize these first params at
