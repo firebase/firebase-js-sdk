@@ -68,7 +68,7 @@ const builds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    plugins: [...es2017BuildPlugins],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

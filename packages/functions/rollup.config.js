@@ -81,7 +81,6 @@ const builds = [
     plugins: [
       ...es2017BuildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2017)),
-      emitModulePackageFile()
     ]
   }
 ];
