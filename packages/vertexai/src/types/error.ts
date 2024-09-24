@@ -78,6 +78,9 @@ export const enum VertexAIErrorCode {
   /** An error associated with a Content object.  */
   INVALID_CONTENT = 'invalid-content',
 
+  /** An error due to the Firebase API not being enabled in the Console. */
+  API_NOT_ENABLED = 'api-not-enabled',
+
   /** An error due to invalid Schema input.  */
   INVALID_SCHEMA = 'invalid-schema',
 
