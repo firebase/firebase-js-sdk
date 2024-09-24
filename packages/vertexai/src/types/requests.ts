@@ -121,7 +121,7 @@ export interface CountTokensRequest {
  */
 export interface RequestOptions {
   /**
-   * Request timeout in milliseconds.
+   * Request timeout in milliseconds. Defaults to 180 seconds (180000ms).
    */
   timeout?: number;
   /**
@@ -153,10 +153,10 @@ export declare interface FunctionDeclaration {
    */
   name: string;
   /**
-   * Optional. Description and purpose of the function. Model uses it to decide
+   * Description and purpose of the function. Model uses it to decide
    * how and whether to call the function.
    */
-  description?: string;
+  description: string;
   /**
    * Optional. Describes the parameters to this function in JSON Schema Object
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
@@ -190,7 +190,7 @@ export declare interface FunctionDeclarationsTool {
  * @public
  */
 export interface ToolConfig {
-  functionCallingConfig: FunctionCallingConfig;
+  functionCallingConfig?: FunctionCallingConfig;
 }
 
 /**

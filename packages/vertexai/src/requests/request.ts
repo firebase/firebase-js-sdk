@@ -215,11 +215,13 @@ export async function makeRequest(
  */
 function buildFetchOptions(requestOptions?: RequestOptions): RequestInit {
   const fetchOptions = {} as RequestInit;
+  let timeoutMillis = 180 * 1000; // default: 180 s
   if (requestOptions?.timeout && requestOptions?.timeout >= 0) {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    setTimeout(() => abortController.abort(), requestOptions.timeout);
-    fetchOptions.signal = signal;
+    timeoutMillis = requestOptions.timeout;
   }
+  const abortController = new AbortController();
+  const signal = abortController.signal;
+  setTimeout(() => abortController.abort(), timeoutMillis);
+  fetchOptions.signal = signal;
   return fetchOptions;
 }
