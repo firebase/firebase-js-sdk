@@ -46,7 +46,7 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const browserBuilds = [
+const builds = [
   {
     input: 'src/index.ts',
     output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
@@ -66,22 +66,24 @@ const browserBuilds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      emitModulePackageFile()
     ]
   },
   {
     input: 'src/index.ts',
     output: {
-      file: './dist/index.cjs.js',
+      file: pkg.main,
       format: 'cjs',
       sourcemap: true
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
       ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
+      emitModulePackageFile()
     ]
   }
 ];
 
-export default [...browserBuilds];
+export default builds;
