@@ -19,8 +19,7 @@
   "dependencies": {
     "@changesets/types": "3.3.0",
     "@changesets/get-github-info": "0.5.2",
-    "@types/node": "20.8.10",
-    "undici": "6.19.7"
+    "@types/node": "20.8.10"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -39,5 +38,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

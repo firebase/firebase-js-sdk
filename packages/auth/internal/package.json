@@ -6,4 +6,7 @@
   "browser": "../dist/esm2017/internal.js",
   "typings": "../dist/esm2017/internal/index.d.ts",
   "private": true
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

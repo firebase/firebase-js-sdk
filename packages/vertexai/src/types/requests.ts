@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -22,6 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
+import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -78,14 +80,20 @@ export interface GenerationConfig {
   presencePenalty?: number;
   frequencyPenalty?: number;
   /**
-   * Output response mimetype of the generated candidate text.
-   * Supported mimetypes are `text/plain` (default, text output) and `application/json`
+   * Output response MIME type of the generated candidate text.
+   * Supported MIME types are `text/plain` (default, text output) and `application/json`
    * (JSON response in the candidates).
-   * The model needs to be prompted to output the appropriate response type,
-   * otherwise the behavior is undefined.
-   * This is a preview feature.
    */
   responseMimeType?: string;
+  /**
+   * Output response schema of the generated candidate text. This
+   * value can be a class generated with a {@link Schema} static method
+   * like `Schema.string()` or `Schema.object()` or it can be a plain
+   * JS object matching the {@link SchemaRequest} interface.
+   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * this is limited to `application/json`.
+   */
+  responseSchema?: TypedSchema | SchemaRequest;
 }
 
 /**
@@ -154,7 +162,7 @@ export declare interface FunctionDeclaration {
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: FunctionDeclarationSchema;
+  parameters?: ObjectSchemaInterface;
 }
 
 /**
@@ -175,71 +183,6 @@ export declare interface FunctionDeclarationsTool {
    * declarations can be provided.
    */
   functionDeclarations?: FunctionDeclaration[];
-}
-
-/**
- * Contains the list of OpenAPI data types
- * as defined by https://swagger.io/docs/specification/data-models/data-types/
- * @public
- */
-export enum FunctionDeclarationSchemaType {
-  /** String type. */
-  STRING = 'STRING',
-  /** Number type. */
-  NUMBER = 'NUMBER',
-  /** Integer type. */
-  INTEGER = 'INTEGER',
-  /** Boolean type. */
-  BOOLEAN = 'BOOLEAN',
-  /** Array type. */
-  ARRAY = 'ARRAY',
-  /** Object type. */
-  OBJECT = 'OBJECT'
-}
-
-/**
- * Schema for parameters passed to {@link FunctionDeclaration.parameters}.
- * @public
- */
-export interface FunctionDeclarationSchema {
-  /** The type of the parameter. */
-  type: FunctionDeclarationSchemaType;
-  /** The format of the parameter. */
-  properties: { [k: string]: FunctionDeclarationSchemaProperty };
-  /** Optional. Description of the parameter. */
-  description?: string;
-  /** Optional. Array of required parameters. */
-  required?: string[];
-}
-
-/**
- * Schema is used to define the format of input/output data.
- * Represents a select subset of an OpenAPI 3.0 schema object.
- * More fields may be added in the future as needed.
- * @public
- */
-export interface FunctionDeclarationSchemaProperty {
-  /**
-   * Optional. The type of the property. {@link
-   * FunctionDeclarationSchemaType}.
-   */
-  type?: FunctionDeclarationSchemaType;
-  /** Optional. The format of the property. */
-  format?: string;
-  /** Optional. The description of the property. */
-  description?: string;
-  /** Optional. Whether the property is nullable. */
-  nullable?: boolean;
-  /** Optional. The items of the property. {@link FunctionDeclarationSchema} */
-  items?: FunctionDeclarationSchema;
-  /** Optional. The enum of the property. */
-  enum?: string[];
-  /** Optional. Map of {@link FunctionDeclarationSchema}. */
-  properties?: { [k: string]: FunctionDeclarationSchema };
-  /** Optional. Array of required property. */
-  required?: string[];
-  /** Optional. The example of the property. */
-  example?: unknown;
 }
 
 /**

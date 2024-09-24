@@ -1671,6 +1671,26 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can query after firestore restart', async () => {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const deferred: Deferred<FirestoreError> = new Deferred();
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+
+      await firestore._restart();
+
+      await expect(deferred.promise)
+        .to.eventually.haveOwnProperty('message')
+        .equal('Firestore shutting down');
+
+      // Call should proceed without error.
+      unsubscribe();
+
+      await setDoc(docRef, { foo: 'bar' });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();
@@ -2203,6 +2223,19 @@ apiDescribe('Database', persistence => {
   it('Can get document from cache with Lru GC enabled.', () => {
     const initialData = { key: 'value' };
     return withTestDb(persistence.toLruGc(), async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
+      return getDocFromCache(docRef).then(doc => {
+        expect(doc.exists()).to.be.true;
+        expect(doc.metadata.fromCache).to.be.true;
+        expect(doc.data()).to.deep.equal(initialData);
+      });
+    });
+  });
+
+  it('Lru GC is enabled by default.', () => {
+    const initialData = { key: 'value' };
+    return withTestDb(persistence, async db => {
       const docRef = doc(collection(db, 'test-collection'));
       await setDoc(docRef, initialData);
       return getDocFromCache(docRef).then(doc => {

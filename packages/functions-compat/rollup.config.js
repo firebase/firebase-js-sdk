@@ -55,27 +55,4 @@ const browserBuilds = [
   }
 ];
 
-const nodeBuilds = [
-  {
-    input: 'src/index.node.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: buildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/index.node.ts',
-    output: {
-      file: pkg.exports['.'].node.import,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [...buildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
-
-export default [...browserBuilds, ...nodeBuilds];
+export default [...browserBuilds];

@@ -53,7 +53,6 @@
     "@firebase/auth-types": "0.12.2",
     "@firebase/component": "0.6.9",
     "@firebase/util": "1.10.0",
-    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
@@ -80,5 +79,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

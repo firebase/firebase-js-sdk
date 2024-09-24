@@ -3,15 +3,15 @@
   "version": "0.11.8",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
   "exports": {
     ".": {
       "types": "./dist/functions-public.d.ts",
       "node": {
-        "import": "./dist/esm-node/index.node.esm.js",
-        "require": "./dist/index.node.cjs.js"
+        "import": "./dist/index.esm2017.js",
+        "require": "./dist/index.cjs.js" 
       },
       "browser": {
         "require": "./dist/index.cjs.js",
@@ -36,7 +36,7 @@
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.ts --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p --npm-path npm test:node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "api-extractor run --local --verbose",
@@ -70,7 +70,6 @@
     "@firebase/auth-interop-types": "0.2.3",
     "@firebase/app-check-interop-types": "0.3.2",
     "@firebase/util": "1.10.0",
-    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "nyc": {
@@ -78,5 +77,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

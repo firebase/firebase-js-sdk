@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import fetch from 'node-fetch';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/database';
