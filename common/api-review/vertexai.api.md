@@ -10,6 +10,15 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export class ArraySchema extends Schema {
+    constructor(schemaParams: SchemaParams, items: TypedSchema);
+    // (undocumented)
+    items: TypedSchema;
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
 export interface BaseParams {
     // (undocumented)
     generationConfig?: GenerationConfig;
@@ -25,6 +34,11 @@ export enum BlockReason {
     OTHER = "OTHER",
     // (undocumented)
     SAFETY = "SAFETY"
+}
+
+// @public
+export class BooleanSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
 }
 
 // @public
@@ -203,42 +217,7 @@ export interface FunctionCallPart {
 export interface FunctionDeclaration {
     description?: string;
     name: string;
-    parameters?: FunctionDeclarationSchema;
-}
-
-// @public
-export interface FunctionDeclarationSchema {
-    description?: string;
-    properties: {
-        [k: string]: FunctionDeclarationSchemaProperty;
-    };
-    required?: string[];
-    type: FunctionDeclarationSchemaType;
-}
-
-// @public
-export interface FunctionDeclarationSchemaProperty {
-    description?: string;
-    enum?: string[];
-    example?: unknown;
-    format?: string;
-    items?: FunctionDeclarationSchema;
-    nullable?: boolean;
-    properties?: {
-        [k: string]: FunctionDeclarationSchema;
-    };
-    required?: string[];
-    type?: FunctionDeclarationSchemaType;
-}
-
-// @public
-export enum FunctionDeclarationSchemaType {
-    ARRAY = "ARRAY",
-    BOOLEAN = "BOOLEAN",
-    INTEGER = "INTEGER",
-    NUMBER = "NUMBER",
-    OBJECT = "OBJECT",
-    STRING = "STRING"
+    parameters?: ObjectSchemaInterface;
 }
 
 // @public
@@ -331,6 +310,7 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
+    responseSchema?: TypedSchema | SchemaRequest;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -479,6 +459,11 @@ export interface InlineDataPart {
 }
 
 // @public
+export class IntegerSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
+// @public
 export interface ModelParams extends BaseParams {
     // (undocumented)
     model: string;
@@ -488,6 +473,34 @@ export interface ModelParams extends BaseParams {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
+}
+
+// @public
+export class NumberSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export class ObjectSchema extends Schema {
+    constructor(schemaParams: SchemaParams, properties: {
+        [k: string]: TypedSchema;
+    }, optionalProperties?: string[]);
+    // (undocumented)
+    optionalProperties: string[];
+    // (undocumented)
+    properties: {
+        [k: string]: TypedSchema;
+    };
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
+export interface ObjectSchemaInterface extends SchemaInterface {
+    // (undocumented)
+    optionalProperties?: string[];
+    // (undocumented)
+    type: SchemaType.OBJECT;
 }
 
 // @public
@@ -549,6 +562,82 @@ export interface SafetySetting {
     threshold: HarmBlockThreshold;
 }
 
+// @public
+export abstract class Schema implements SchemaInterface {
+    constructor(schemaParams: SchemaInterface);
+    [key: string]: unknown;
+    // (undocumented)
+    static array(arrayParams: SchemaParams & {
+        items: Schema;
+    }): ArraySchema;
+    // (undocumented)
+    static boolean(booleanParams?: SchemaParams): BooleanSchema;
+    description?: string;
+    // (undocumented)
+    static enumString(stringParams: SchemaParams & {
+        enum: string[];
+    }): StringSchema;
+    example?: unknown;
+    format?: string;
+    // (undocumented)
+    static integer(integerParams?: SchemaParams): IntegerSchema;
+    nullable: boolean;
+    // (undocumented)
+    static number(numberParams?: SchemaParams): NumberSchema;
+    // (undocumented)
+    static object(objectParams: SchemaParams & {
+        properties: {
+            [k: string]: Schema;
+        };
+        optionalProperties?: string[];
+    }): ObjectSchema;
+    // (undocumented)
+    static string(stringParams?: SchemaParams): StringSchema;
+    // @internal
+    toJSON(): SchemaRequest;
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaInterface extends SchemaShared<SchemaInterface> {
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaParams extends SchemaShared<SchemaInterface> {
+}
+
+// @public
+export interface SchemaRequest extends SchemaShared<SchemaRequest> {
+    required?: string[];
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaShared<T> {
+    // (undocumented)
+    [key: string]: unknown;
+    description?: string;
+    enum?: string[];
+    example?: unknown;
+    format?: string;
+    items?: T;
+    nullable?: boolean;
+    properties?: {
+        [k: string]: T;
+    };
+}
+
+// @public
+export enum SchemaType {
+    ARRAY = "array",
+    BOOLEAN = "boolean",
+    INTEGER = "integer",
+    NUMBER = "number",
+    OBJECT = "object",
+    STRING = "string"
+}
+
 // @public (undocumented)
 export interface Segment {
     // (undocumented)
@@ -572,6 +661,15 @@ export interface StartChatParams extends BaseParams {
 }
 
 // @public
+export class StringSchema extends Schema {
+    constructor(schemaParams?: SchemaParams, enumValues?: string[]);
+    // (undocumented)
+    enum?: string[];
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
 export interface TextPart {
     // (undocumented)
     functionCall?: never;
@@ -591,6 +689,9 @@ export interface ToolConfig {
     // (undocumented)
     functionCallingConfig: FunctionCallingConfig;
 }
+
+// @public
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 
 // @public
 export interface UsageMetadata {
@@ -616,8 +717,6 @@ export class VertexAIError extends FirebaseError {
     readonly code: VertexAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
-    // (undocumented)
-    readonly message: string;
 }
 
 // @public
@@ -625,6 +724,7 @@ export const enum VertexAIErrorCode {
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
     INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
     NO_API_KEY = "no-api-key",
     NO_MODEL = "no-model",
     NO_PROJECT_ID = "no-project-id",
