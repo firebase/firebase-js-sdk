@@ -66,3 +66,11 @@ readonly code: VertexAIErrorCode;
 ```typescript
 readonly customErrorData?: CustomErrorData | undefined;
 ```
+
+## VertexAIError.message
+
+<b>Signature:</b>
+
+```typescript
+readonly message: string;
+```

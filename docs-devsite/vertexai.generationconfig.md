@@ -66,22 +66,12 @@ presencePenalty?: number;
 
 ## GenerationConfig.responseMimeType
 
-Output response MIME type of the generated candidate text. Supported MIME types are `text/plain` (default, text output) and `application/json` (JSON response in the candidates).
+Output response mimetype of the generated candidate text. Supported mimetypes are `text/plain` (default, text output) and `application/json` (JSON response in the candidates). The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature.
 
 <b>Signature:</b>
 
 ```typescript
 responseMimeType?: string;
-```
-
-## GenerationConfig.responseSchema
-
-Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai-preview.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./vertexai-preview.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-responseSchema?: TypedSchema | SchemaRequest;
 ```
 
 ## GenerationConfig.stopSequences
