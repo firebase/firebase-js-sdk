@@ -19,7 +19,7 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "rollup": "2.79.1",
+    "rollup": "3.29.5",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "13.3.0",
