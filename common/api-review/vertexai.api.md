@@ -573,7 +573,7 @@ export type Tool = FunctionDeclarationsTool;
 // @public
 export interface ToolConfig {
     // (undocumented)
-    functionCallingConfig: FunctionCallingConfig;
+    functionCallingConfig?: FunctionCallingConfig;
 }
 
 // @public
