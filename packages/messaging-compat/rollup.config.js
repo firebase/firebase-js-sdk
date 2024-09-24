@@ -51,7 +51,12 @@ const esmBuilds = [
     input: 'src/index.ts',
     output: { file: pkg.esm5, format: 'es', sourcemap: true },
     plugins: [...es5BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   },
   {
     input: 'src/index.ts',
@@ -61,7 +66,12 @@ const esmBuilds = [
       sourcemap: true
     },
     plugins: [...es2017BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   }
 ];
 
@@ -70,7 +80,12 @@ const cjsBuilds = [
     input: 'src/index.ts',
     output: { file: pkg.main, format: 'cjs', sourcemap: true },
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   }
 ];
 

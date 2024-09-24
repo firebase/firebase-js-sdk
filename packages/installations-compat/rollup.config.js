@@ -42,7 +42,12 @@ const esmBuilds = [
   {
     input: 'src/index.ts',
     output: { file: pkg.esm5, format: 'es', sourcemap: true },
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`))),
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      ),
     plugins: [...es5BuildPlugins, emitModulePackageFile()]
   },
   {
@@ -52,7 +57,12 @@ const esmBuilds = [
       format: 'es',
       sourcemap: true
     },
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`))),
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      ),
     plugins: [...es2017BuildPlugins, emitModulePackageFile()]
   }
 ];
@@ -61,7 +71,12 @@ const cjsBuilds = [
   {
     input: 'src/index.ts',
     output: { file: pkg.main, format: 'cjs', sourcemap: true },
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`))),
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      ),
     plugins: es5BuildPlugins
   }
 ];

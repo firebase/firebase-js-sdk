@@ -17,7 +17,7 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import json from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve'
+import resolve from '@rollup/plugin-node-resolve';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 import pkg from './package.json';
@@ -55,7 +55,12 @@ const esmBuilds = [
     input: 'src/index.ts',
     output: { file: pkg.esm5, format: 'es', sourcemap: true },
     plugins: [...es5BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   },
   {
     input: 'src/index.lite.ts',
@@ -64,7 +69,7 @@ const esmBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es5BuildPlugins,
+    plugins: es5BuildPlugins
   },
   {
     input: 'src/index.ts',
@@ -74,7 +79,12 @@ const esmBuilds = [
       sourcemap: true
     },
     plugins: [...es2017BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   },
   {
     input: 'src/index.lite.ts',
@@ -84,7 +94,12 @@ const esmBuilds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => dep !== pkg.dependencies.idb && (id === dep || id.startsWith(`${dep}/`)))
+    external: id =>
+      deps.some(
+        dep =>
+          dep !== pkg.dependencies.idb &&
+          (id === dep || id.startsWith(`${dep}/`))
+      )
   }
 ];
 
