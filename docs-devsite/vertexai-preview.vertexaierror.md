@@ -31,6 +31,7 @@ export declare class VertexAIError extends FirebaseError
 |  --- | --- | --- | --- |
 |  [code](./vertexai-preview.vertexaierror.md#vertexaierrorcode) |  | [VertexAIErrorCode](./vertexai-preview.md#vertexaierrorcode) |  |
 |  [customErrorData](./vertexai-preview.vertexaierror.md#vertexaierrorcustomerrordata) |  | [CustomErrorData](./vertexai-preview.customerrordata.md#customerrordata_interface) \| undefined |  |
+|  [message](./vertexai-preview.vertexaierror.md#vertexaierrormessage) |  | string |  |
 
 ## VertexAIError.(constructor)
 
@@ -64,4 +65,12 @@ readonly code: VertexAIErrorCode;
 
 ```typescript
 readonly customErrorData?: CustomErrorData | undefined;
+```
+
+## VertexAIError.message
+
+<b>Signature:</b>
+
+```typescript
+readonly message: string;
 ```

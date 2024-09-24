@@ -26,8 +26,7 @@ export interface GenerationConfig
 |  [frequencyPenalty](./vertexai-preview.generationconfig.md#generationconfigfrequencypenalty) | number |  |
 |  [maxOutputTokens](./vertexai-preview.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./vertexai-preview.generationconfig.md#generationconfigpresencepenalty) | number |  |
-|  [responseMimeType](./vertexai-preview.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output) and <code>application/json</code> (JSON response in the candidates). |
-|  [responseSchema](./vertexai-preview.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./vertexai-preview.md#typedschema) \| [SchemaRequest](./vertexai-preview.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai-preview.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./vertexai-preview.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMIMEType</code> supports a schema; currently this is limited to <code>application/json</code>. |
+|  [responseMimeType](./vertexai-preview.generationconfig.md#generationconfigresponsemimetype) | string | Output response mimetype of the generated candidate text. Supported mimetypes are <code>text/plain</code> (default, text output) and <code>application/json</code> (JSON response in the candidates). The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature. |
 |  [stopSequences](./vertexai-preview.generationconfig.md#generationconfigstopsequences) | string\[\] |  |
 |  [temperature](./vertexai-preview.generationconfig.md#generationconfigtemperature) | number |  |
 |  [topK](./vertexai-preview.generationconfig.md#generationconfigtopk) | number |  |
@@ -67,22 +66,12 @@ presencePenalty?: number;
 
 ## GenerationConfig.responseMimeType
 
-Output response MIME type of the generated candidate text. Supported MIME types are `text/plain` (default, text output) and `application/json` (JSON response in the candidates).
+Output response mimetype of the generated candidate text. Supported mimetypes are `text/plain` (default, text output) and `application/json` (JSON response in the candidates). The model needs to be prompted to output the appropriate response type, otherwise the behavior is undefined. This is a preview feature.
 
 <b>Signature:</b>
 
 ```typescript
 responseMimeType?: string;
-```
-
-## GenerationConfig.responseSchema
-
-Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./vertexai-preview.schema.md#schema_class) static method like `Schema.string()` or `Schema.object()` or it can be a plain JS object matching the [SchemaRequest](./vertexai-preview.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently this is limited to `application/json`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-responseSchema?: TypedSchema | SchemaRequest;
 ```
 
 ## GenerationConfig.stopSequences
