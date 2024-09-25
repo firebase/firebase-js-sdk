@@ -58,7 +58,7 @@ const esmBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       )
   },
@@ -82,7 +82,7 @@ const esmBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       )
   },
@@ -97,7 +97,7 @@ const esmBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       )
   }

@@ -45,7 +45,7 @@ const esmBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [...es5BuildPlugins, emitModulePackageFile()]
@@ -60,7 +60,7 @@ const esmBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [...es2017BuildPlugins, emitModulePackageFile()]
@@ -74,7 +74,7 @@ const cjsBuilds = [
     external: id =>
       deps.some(
         dep =>
-          dep !== pkg.dependencies.idb &&
+          dep !== 'idb' &&
           (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: es5BuildPlugins
