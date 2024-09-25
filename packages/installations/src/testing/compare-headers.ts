@@ -18,6 +18,7 @@
 import { AssertionError, expect } from 'chai';
 
 // Trick TS since it's set to target ES5.
+// TODO(dlarocque): Improve this since we no longer target ES5.
 declare class HeadersWithEntries extends Headers {
   entries?(): Iterable<[string, string]>;
 }

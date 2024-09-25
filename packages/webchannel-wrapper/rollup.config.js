@@ -25,7 +25,7 @@ import pkg from './package.json';
 
 const closureBlobsDir = '../../node_modules/closure-net/firebase/';
 
-const es2017BuildPlugins = [
+const buildPlugins = [
   copy({
     targets: [
       {
@@ -57,7 +57,7 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()]
+    plugins: [...buildPlugins, emitModulePackageFile()]
   },
   {
     input: join(closureBlobsDir, 'bloom_blob_es2018.js'),
@@ -66,7 +66,7 @@ const esm2017Builds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()]
+    plugins: [...buildPlugins, emitModulePackageFile()]
   }
 ];
 

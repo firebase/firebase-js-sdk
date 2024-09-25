@@ -9,8 +9,7 @@
   "module": "dist/esm2017/index.js",
   "cordova": "dist/cordova/index.js",
   "web-extension": "dist/web-extension-esm2017/index.js",
-  "webworker": "dist/index.webworker.esm5.js",
-  "esm5": "dist/esm5/index.js",
+  "webworker": "dist/index.webworker.js",
   "exports": {
     ".": {
       "types": "./dist/auth-public.d.ts",
@@ -29,9 +28,8 @@
       },
       "webworker": {
         "types": "./dist/index.webworker.d.ts",
-        "default": "./dist/index.webworker.esm5.js"
+        "default": "./dist/index.webworker.js"
       },
-      "esm5": "./dist/esm5/index.js",
       "browser": {
         "require": "./dist/browser-cjs/index.js",
         "import": "./dist/esm2017/index.js"
@@ -63,7 +61,6 @@
         "types": "./dist/cordova/internal/index.d.ts",
         "default": "./dist/cordova/internal.js"
       },
-      "esm5": "./dist/esm5/internal.js",
       "browser": {
         "require": "./dist/browser-cjs/internal.js",
         "import": "./dist/esm2017/internal.js"

@@ -6,7 +6,6 @@
   "main": "dist/index.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "license": "Apache-2.0",
   "typings": "dist/database-compat/src/index.d.ts",
   "files": [
@@ -21,7 +20,6 @@
         "import": "./dist/node-esm/index.js",
         "require": "./dist/index.js"
       },
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.js",
         "import": "./dist/index.esm2017.js"

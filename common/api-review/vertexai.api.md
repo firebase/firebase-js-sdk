@@ -10,6 +10,15 @@ import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
 // @public
+export class ArraySchema extends Schema {
+    constructor(schemaParams: SchemaParams, items: TypedSchema);
+    // (undocumented)
+    items: TypedSchema;
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
 export interface BaseParams {
     // (undocumented)
     generationConfig?: GenerationConfig;
@@ -20,11 +29,14 @@ export interface BaseParams {
 // @public
 export enum BlockReason {
     // (undocumented)
-    BLOCKED_REASON_UNSPECIFIED = "BLOCKED_REASON_UNSPECIFIED",
-    // (undocumented)
     OTHER = "OTHER",
     // (undocumented)
     SAFETY = "SAFETY"
+}
+
+// @public
+export class BooleanSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
 }
 
 // @public
@@ -146,8 +158,6 @@ export interface FileDataPart {
 // @public
 export enum FinishReason {
     // (undocumented)
-    FINISH_REASON_UNSPECIFIED = "FINISH_REASON_UNSPECIFIED",
-    // (undocumented)
     MAX_TOKENS = "MAX_TOKENS",
     // (undocumented)
     OTHER = "OTHER",
@@ -182,8 +192,6 @@ export enum FunctionCallingMode {
     // (undocumented)
     AUTO = "AUTO",
     // (undocumented)
-    MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
-    // (undocumented)
     NONE = "NONE"
 }
 
@@ -201,44 +209,9 @@ export interface FunctionCallPart {
 
 // @public
 export interface FunctionDeclaration {
-    description?: string;
+    description: string;
     name: string;
-    parameters?: FunctionDeclarationSchema;
-}
-
-// @public
-export interface FunctionDeclarationSchema {
-    description?: string;
-    properties: {
-        [k: string]: FunctionDeclarationSchemaProperty;
-    };
-    required?: string[];
-    type: FunctionDeclarationSchemaType;
-}
-
-// @public
-export interface FunctionDeclarationSchemaProperty {
-    description?: string;
-    enum?: string[];
-    example?: unknown;
-    format?: string;
-    items?: FunctionDeclarationSchema;
-    nullable?: boolean;
-    properties?: {
-        [k: string]: FunctionDeclarationSchema;
-    };
-    required?: string[];
-    type?: FunctionDeclarationSchemaType;
-}
-
-// @public
-export enum FunctionDeclarationSchemaType {
-    ARRAY = "ARRAY",
-    BOOLEAN = "BOOLEAN",
-    INTEGER = "INTEGER",
-    NUMBER = "NUMBER",
-    OBJECT = "OBJECT",
-    STRING = "STRING"
+    parameters?: ObjectSchemaInterface;
 }
 
 // @public
@@ -331,6 +304,7 @@ export interface GenerationConfig {
     // (undocumented)
     presencePenalty?: number;
     responseMimeType?: string;
+    responseSchema?: TypedSchema | SchemaRequest;
     // (undocumented)
     stopSequences?: string[];
     // (undocumented)
@@ -402,8 +376,6 @@ export interface GroundingMetadata {
 // @public (undocumented)
 export enum HarmBlockMethod {
     // (undocumented)
-    HARM_BLOCK_METHOD_UNSPECIFIED = "HARM_BLOCK_METHOD_UNSPECIFIED",
-    // (undocumented)
     PROBABILITY = "PROBABILITY",
     // (undocumented)
     SEVERITY = "SEVERITY"
@@ -418,9 +390,7 @@ export enum HarmBlockThreshold {
     // (undocumented)
     BLOCK_NONE = "BLOCK_NONE",
     // (undocumented)
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-    // (undocumented)
-    HARM_BLOCK_THRESHOLD_UNSPECIFIED = "HARM_BLOCK_THRESHOLD_UNSPECIFIED"
+    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
 }
 
 // @public
@@ -432,15 +402,11 @@ export enum HarmCategory {
     // (undocumented)
     HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
     // (undocumented)
-    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    // (undocumented)
-    HARM_CATEGORY_UNSPECIFIED = "HARM_CATEGORY_UNSPECIFIED"
+    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT"
 }
 
 // @public
 export enum HarmProbability {
-    // (undocumented)
-    HARM_PROBABILITY_UNSPECIFIED = "HARM_PROBABILITY_UNSPECIFIED",
     // (undocumented)
     HIGH = "HIGH",
     // (undocumented)
@@ -460,9 +426,7 @@ export enum HarmSeverity {
     // (undocumented)
     HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
     // (undocumented)
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    // (undocumented)
-    HARM_SEVERITY_UNSPECIFIED = "HARM_SEVERITY_UNSPECIFIED"
+    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE"
 }
 
 // @public
@@ -479,6 +443,11 @@ export interface InlineDataPart {
 }
 
 // @public
+export class IntegerSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
+// @public
 export interface ModelParams extends BaseParams {
     // (undocumented)
     model: string;
@@ -491,6 +460,34 @@ export interface ModelParams extends BaseParams {
 }
 
 // @public
+export class NumberSchema extends Schema {
+    constructor(schemaParams?: SchemaParams);
+}
+
+// @public
+export class ObjectSchema extends Schema {
+    constructor(schemaParams: SchemaParams, properties: {
+        [k: string]: TypedSchema;
+    }, optionalProperties?: string[]);
+    // (undocumented)
+    optionalProperties: string[];
+    // (undocumented)
+    properties: {
+        [k: string]: TypedSchema;
+    };
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
+export interface ObjectSchemaInterface extends SchemaInterface {
+    // (undocumented)
+    optionalProperties?: string[];
+    // (undocumented)
+    type: SchemaType.OBJECT;
+}
+
+// @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
 
 // @public
@@ -499,7 +496,7 @@ export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
 // @public
 export interface PromptFeedback {
     // (undocumented)
-    blockReason: BlockReason;
+    blockReason?: BlockReason;
     // (undocumented)
     blockReasonMessage?: string;
     // (undocumented)
@@ -549,6 +546,82 @@ export interface SafetySetting {
     threshold: HarmBlockThreshold;
 }
 
+// @public
+export abstract class Schema implements SchemaInterface {
+    constructor(schemaParams: SchemaInterface);
+    [key: string]: unknown;
+    // (undocumented)
+    static array(arrayParams: SchemaParams & {
+        items: Schema;
+    }): ArraySchema;
+    // (undocumented)
+    static boolean(booleanParams?: SchemaParams): BooleanSchema;
+    description?: string;
+    // (undocumented)
+    static enumString(stringParams: SchemaParams & {
+        enum: string[];
+    }): StringSchema;
+    example?: unknown;
+    format?: string;
+    // (undocumented)
+    static integer(integerParams?: SchemaParams): IntegerSchema;
+    nullable: boolean;
+    // (undocumented)
+    static number(numberParams?: SchemaParams): NumberSchema;
+    // (undocumented)
+    static object(objectParams: SchemaParams & {
+        properties: {
+            [k: string]: Schema;
+        };
+        optionalProperties?: string[];
+    }): ObjectSchema;
+    // (undocumented)
+    static string(stringParams?: SchemaParams): StringSchema;
+    // @internal
+    toJSON(): SchemaRequest;
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaInterface extends SchemaShared<SchemaInterface> {
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaParams extends SchemaShared<SchemaInterface> {
+}
+
+// @public
+export interface SchemaRequest extends SchemaShared<SchemaRequest> {
+    required?: string[];
+    type: SchemaType;
+}
+
+// @public
+export interface SchemaShared<T> {
+    // (undocumented)
+    [key: string]: unknown;
+    description?: string;
+    enum?: string[];
+    example?: unknown;
+    format?: string;
+    items?: T;
+    nullable?: boolean;
+    properties?: {
+        [k: string]: T;
+    };
+}
+
+// @public
+export enum SchemaType {
+    ARRAY = "array",
+    BOOLEAN = "boolean",
+    INTEGER = "integer",
+    NUMBER = "number",
+    OBJECT = "object",
+    STRING = "string"
+}
+
 // @public (undocumented)
 export interface Segment {
     // (undocumented)
@@ -572,6 +645,15 @@ export interface StartChatParams extends BaseParams {
 }
 
 // @public
+export class StringSchema extends Schema {
+    constructor(schemaParams?: SchemaParams, enumValues?: string[]);
+    // (undocumented)
+    enum?: string[];
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
+}
+
+// @public
 export interface TextPart {
     // (undocumented)
     functionCall?: never;
@@ -589,8 +671,11 @@ export type Tool = FunctionDeclarationsTool;
 // @public
 export interface ToolConfig {
     // (undocumented)
-    functionCallingConfig: FunctionCallingConfig;
+    functionCallingConfig?: FunctionCallingConfig;
 }
+
+// @public
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 
 // @public
 export interface UsageMetadata {
@@ -616,15 +701,15 @@ export class VertexAIError extends FirebaseError {
     readonly code: VertexAIErrorCode;
     // (undocumented)
     readonly customErrorData?: CustomErrorData | undefined;
-    // (undocumented)
-    readonly message: string;
 }
 
 // @public
 export const enum VertexAIErrorCode {
+    API_NOT_ENABLED = "api-not-enabled",
     ERROR = "error",
     FETCH_ERROR = "fetch-error",
     INVALID_CONTENT = "invalid-content",
+    INVALID_SCHEMA = "invalid-schema",
     NO_API_KEY = "no-api-key",
     NO_MODEL = "no-model",
     NO_PROJECT_ID = "no-project-id",
