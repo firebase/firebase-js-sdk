@@ -117,7 +117,7 @@
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
     "@types/json-stable-stringify": "1.0.36",
-    "chai-exclude": "2.1.0",
+    "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.1.1",
     "protobufjs": "7.2.6",
     "rollup": "2.79.1",
