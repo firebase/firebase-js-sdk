@@ -10,24 +10,24 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaInterface interface
-Interface for [Schema](./vertexai-preview.schema.md#schema_class) class.
+Interface for [Schema](./vertexai.schema.md#schema_class) class.
 
 <b>Signature:</b>
 
 ```typescript
 export interface SchemaInterface extends SchemaShared<SchemaInterface> 
 ```
-<b>Extends:</b> [SchemaShared](./vertexai-preview.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaInterface](./vertexai-preview.schemainterface.md#schemainterface_interface)<!-- -->&gt;
+<b>Extends:</b> [SchemaShared](./vertexai.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface)<!-- -->&gt;
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./vertexai-preview.schemainterface.md#schemainterfacetype) | [SchemaType](./vertexai-preview.md#schematype) | The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->. |
+|  [type](./vertexai.schemainterface.md#schemainterfacetype) | [SchemaType](./vertexai.md#schematype) | The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->. |
 
 ## SchemaInterface.type
 
-The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->.
+The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->.
 
 <b>Signature:</b>
 

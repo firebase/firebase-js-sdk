@@ -9,25 +9,25 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# NumberSchema class
-Schema class for "number" types.
+# IntegerSchema class
+Schema class for "integer" types.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class NumberSchema extends Schema 
+export declare class IntegerSchema extends Schema 
 ```
-<b>Extends:</b> [Schema](./vertexai-preview.schema.md#schema_class)
+<b>Extends:</b> [Schema](./vertexai.schema.md#schema_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams)](./vertexai-preview.numberschema.md#numberschemaconstructor) |  | Constructs a new instance of the <code>NumberSchema</code> class |
+|  [(constructor)(schemaParams)](./vertexai.integerschema.md#integerschemaconstructor) |  | Constructs a new instance of the <code>IntegerSchema</code> class |
 
-## NumberSchema.(constructor)
+## IntegerSchema.(constructor)
 
-Constructs a new instance of the `NumberSchema` class
+Constructs a new instance of the `IntegerSchema` class
 
 <b>Signature:</b>
 
@@ -39,5 +39,5 @@ constructor(schemaParams?: SchemaParams);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  schemaParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 

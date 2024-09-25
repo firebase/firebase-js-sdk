@@ -10,12 +10,12 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaParams interface
-Params passed to [Schema](./vertexai-preview.schema.md#schema_class) static methods to create specific [Schema](./vertexai-preview.schema.md#schema_class) classes.
+Params passed to [Schema](./vertexai.schema.md#schema_class) static methods to create specific [Schema](./vertexai.schema.md#schema_class) classes.
 
 <b>Signature:</b>
 
 ```typescript
 export interface SchemaParams extends SchemaShared<SchemaInterface> 
 ```
-<b>Extends:</b> [SchemaShared](./vertexai-preview.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaInterface](./vertexai-preview.schemainterface.md#schemainterface_interface)<!-- -->&gt;
+<b>Extends:</b> [SchemaShared](./vertexai.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface)<!-- -->&gt;
 

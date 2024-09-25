@@ -17,19 +17,19 @@ Schema class for "array" types. The `items` param should refer to the type of it
 ```typescript
 export declare class ArraySchema extends Schema 
 ```
-<b>Extends:</b> [Schema](./vertexai-preview.schema.md#schema_class)
+<b>Extends:</b> [Schema](./vertexai.schema.md#schema_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams, items)](./vertexai-preview.arrayschema.md#arrayschemaconstructor) |  | Constructs a new instance of the <code>ArraySchema</code> class |
+|  [(constructor)(schemaParams, items)](./vertexai.arrayschema.md#arrayschemaconstructor) |  | Constructs a new instance of the <code>ArraySchema</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [items](./vertexai-preview.arrayschema.md#arrayschemaitems) |  | [TypedSchema](./vertexai-preview.md#typedschema) |  |
+|  [items](./vertexai.arrayschema.md#arrayschemaitems) |  | [TypedSchema](./vertexai.md#typedschema) |  |
 
 ## ArraySchema.(constructor)
 
@@ -45,8 +45,8 @@ constructor(schemaParams: SchemaParams, items: TypedSchema);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
-|  items | [TypedSchema](./vertexai-preview.md#typedschema) |  |
+|  schemaParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
+|  items | [TypedSchema](./vertexai.md#typedschema) |  |
 
 ## ArraySchema.items
 

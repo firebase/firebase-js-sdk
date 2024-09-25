@@ -17,35 +17,35 @@ Parent class encompassing all Schema types, with static methods that allow build
 ```typescript
 export declare abstract class Schema implements SchemaInterface 
 ```
-<b>Implements:</b> [SchemaInterface](./vertexai-preview.schemainterface.md#schemainterface_interface)
+<b>Implements:</b> [SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams)](./vertexai-preview.schema.md#schemaconstructor) |  | Constructs a new instance of the <code>Schema</code> class |
+|  [(constructor)(schemaParams)](./vertexai.schema.md#schemaconstructor) |  | Constructs a new instance of the <code>Schema</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [description](./vertexai-preview.schema.md#schemadescription) |  | string | Optional. The description of the property. |
-|  [example](./vertexai-preview.schema.md#schemaexample) |  | unknown | Optional. The example of the property. |
-|  [format](./vertexai-preview.schema.md#schemaformat) |  | string | Optional. The format of the property. Supported formats:<br/> <ul> <li>for NUMBER type: "float", "double"</li> <li>for INTEGER type: "int32", "int64"</li> <li>for STRING type: "email", "byte", etc</li> </ul> |
-|  [nullable](./vertexai-preview.schema.md#schemanullable) |  | boolean | Optional. Whether the property is nullable. Defaults to false. |
-|  [type](./vertexai-preview.schema.md#schematype) |  | [SchemaType](./vertexai-preview.md#schematype) | Optional. The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->. |
+|  [description](./vertexai.schema.md#schemadescription) |  | string | Optional. The description of the property. |
+|  [example](./vertexai.schema.md#schemaexample) |  | unknown | Optional. The example of the property. |
+|  [format](./vertexai.schema.md#schemaformat) |  | string | Optional. The format of the property. Supported formats:<br/> <ul> <li>for NUMBER type: "float", "double"</li> <li>for INTEGER type: "int32", "int64"</li> <li>for STRING type: "email", "byte", etc</li> </ul> |
+|  [nullable](./vertexai.schema.md#schemanullable) |  | boolean | Optional. Whether the property is nullable. Defaults to false. |
+|  [type](./vertexai.schema.md#schematype) |  | [SchemaType](./vertexai.md#schematype) | Optional. The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [array(arrayParams)](./vertexai-preview.schema.md#schemaarray) | <code>static</code> |  |
-|  [boolean(booleanParams)](./vertexai-preview.schema.md#schemaboolean) | <code>static</code> |  |
-|  [enumString(stringParams)](./vertexai-preview.schema.md#schemaenumstring) | <code>static</code> |  |
-|  [integer(integerParams)](./vertexai-preview.schema.md#schemainteger) | <code>static</code> |  |
-|  [number(numberParams)](./vertexai-preview.schema.md#schemanumber) | <code>static</code> |  |
-|  [object(objectParams)](./vertexai-preview.schema.md#schemaobject) | <code>static</code> |  |
-|  [string(stringParams)](./vertexai-preview.schema.md#schemastring) | <code>static</code> |  |
+|  [array(arrayParams)](./vertexai.schema.md#schemaarray) | <code>static</code> |  |
+|  [boolean(booleanParams)](./vertexai.schema.md#schemaboolean) | <code>static</code> |  |
+|  [enumString(stringParams)](./vertexai.schema.md#schemaenumstring) | <code>static</code> |  |
+|  [integer(integerParams)](./vertexai.schema.md#schemainteger) | <code>static</code> |  |
+|  [number(numberParams)](./vertexai.schema.md#schemanumber) | <code>static</code> |  |
+|  [object(objectParams)](./vertexai.schema.md#schemaobject) | <code>static</code> |  |
+|  [string(stringParams)](./vertexai.schema.md#schemastring) | <code>static</code> |  |
 
 ## Schema.(constructor)
 
@@ -61,7 +61,7 @@ constructor(schemaParams: SchemaInterface);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaInterface](./vertexai-preview.schemainterface.md#schemainterface_interface) |  |
+|  schemaParams | [SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface) |  |
 
 ## Schema.description
 
@@ -105,7 +105,7 @@ nullable: boolean;
 
 ## Schema.type
 
-Optional. The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->.
+Optional. The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->.
 
 <b>Signature:</b>
 
@@ -127,11 +127,11 @@ static array(arrayParams: SchemaParams & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) &amp; { items: [Schema](./vertexai-preview.schema.md#schema_class)<!-- -->; } |  |
+|  arrayParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) &amp; { items: [Schema](./vertexai.schema.md#schema_class)<!-- -->; } |  |
 
 <b>Returns:</b>
 
-[ArraySchema](./vertexai-preview.arrayschema.md#arrayschema_class)
+[ArraySchema](./vertexai.arrayschema.md#arrayschema_class)
 
 ## Schema.boolean()
 
@@ -145,11 +145,11 @@ static boolean(booleanParams?: SchemaParams): BooleanSchema;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  booleanParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  booleanParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 
 <b>Returns:</b>
 
-[BooleanSchema](./vertexai-preview.booleanschema.md#booleanschema_class)
+[BooleanSchema](./vertexai.booleanschema.md#booleanschema_class)
 
 ## Schema.enumString()
 
@@ -165,11 +165,11 @@ static enumString(stringParams: SchemaParams & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  stringParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) &amp; { enum: string\[\]; } |  |
+|  stringParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) &amp; { enum: string\[\]; } |  |
 
 <b>Returns:</b>
 
-[StringSchema](./vertexai-preview.stringschema.md#stringschema_class)
+[StringSchema](./vertexai.stringschema.md#stringschema_class)
 
 ## Schema.integer()
 
@@ -183,11 +183,11 @@ static integer(integerParams?: SchemaParams): IntegerSchema;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  integerParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  integerParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 
 <b>Returns:</b>
 
-[IntegerSchema](./vertexai-preview.integerschema.md#integerschema_class)
+[IntegerSchema](./vertexai.integerschema.md#integerschema_class)
 
 ## Schema.number()
 
@@ -201,11 +201,11 @@ static number(numberParams?: SchemaParams): NumberSchema;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  numberParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  numberParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 
 <b>Returns:</b>
 
-[NumberSchema](./vertexai-preview.numberschema.md#numberschema_class)
+[NumberSchema](./vertexai.numberschema.md#numberschema_class)
 
 ## Schema.object()
 
@@ -224,11 +224,11 @@ static object(objectParams: SchemaParams & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  objectParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) &amp; { properties: { \[k: string\]: [Schema](./vertexai-preview.schema.md#schema_class)<!-- -->; }; optionalProperties?: string\[\]; } |  |
+|  objectParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) &amp; { properties: { \[k: string\]: [Schema](./vertexai.schema.md#schema_class)<!-- -->; }; optionalProperties?: string\[\]; } |  |
 
 <b>Returns:</b>
 
-[ObjectSchema](./vertexai-preview.objectschema.md#objectschema_class)
+[ObjectSchema](./vertexai.objectschema.md#objectschema_class)
 
 ## Schema.string()
 
@@ -242,9 +242,9 @@ static string(stringParams?: SchemaParams): StringSchema;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  stringParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  stringParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 
 <b>Returns:</b>
 
-[StringSchema](./vertexai-preview.stringschema.md#stringschema_class)
+[StringSchema](./vertexai.stringschema.md#stringschema_class)
 

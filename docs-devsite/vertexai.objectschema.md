@@ -17,20 +17,20 @@ Schema class for "object" types. The `properties` param must be a map of Schema.
 ```typescript
 export declare class ObjectSchema extends Schema 
 ```
-<b>Extends:</b> [Schema](./vertexai-preview.schema.md#schema_class)
+<b>Extends:</b> [Schema](./vertexai.schema.md#schema_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams, properties, optionalProperties)](./vertexai-preview.objectschema.md#objectschemaconstructor) |  | Constructs a new instance of the <code>ObjectSchema</code> class |
+|  [(constructor)(schemaParams, properties, optionalProperties)](./vertexai.objectschema.md#objectschemaconstructor) |  | Constructs a new instance of the <code>ObjectSchema</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [optionalProperties](./vertexai-preview.objectschema.md#objectschemaoptionalproperties) |  | string\[\] |  |
-|  [properties](./vertexai-preview.objectschema.md#objectschemaproperties) |  | { \[k: string\]: [TypedSchema](./vertexai-preview.md#typedschema)<!-- -->; } |  |
+|  [optionalProperties](./vertexai.objectschema.md#objectschemaoptionalproperties) |  | string\[\] |  |
+|  [properties](./vertexai.objectschema.md#objectschemaproperties) |  | { \[k: string\]: [TypedSchema](./vertexai.md#typedschema)<!-- -->; } |  |
 
 ## ObjectSchema.(constructor)
 
@@ -48,8 +48,8 @@ constructor(schemaParams: SchemaParams, properties: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
-|  properties | { \[k: string\]: [TypedSchema](./vertexai-preview.md#typedschema)<!-- -->; } |  |
+|  schemaParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
+|  properties | { \[k: string\]: [TypedSchema](./vertexai.md#typedschema)<!-- -->; } |  |
 |  optionalProperties | string\[\] |  |
 
 ## ObjectSchema.optionalProperties

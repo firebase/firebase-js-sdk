@@ -17,19 +17,19 @@ Schema class for "string" types. Can be used with or without enum values.
 ```typescript
 export declare class StringSchema extends Schema 
 ```
-<b>Extends:</b> [Schema](./vertexai-preview.schema.md#schema_class)
+<b>Extends:</b> [Schema](./vertexai.schema.md#schema_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams, enumValues)](./vertexai-preview.stringschema.md#stringschemaconstructor) |  | Constructs a new instance of the <code>StringSchema</code> class |
+|  [(constructor)(schemaParams, enumValues)](./vertexai.stringschema.md#stringschemaconstructor) |  | Constructs a new instance of the <code>StringSchema</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [enum](./vertexai-preview.stringschema.md#stringschemaenum) |  | string\[\] |  |
+|  [enum](./vertexai.stringschema.md#stringschemaenum) |  | string\[\] |  |
 
 ## StringSchema.(constructor)
 
@@ -45,7 +45,7 @@ constructor(schemaParams?: SchemaParams, enumValues?: string[]);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  schemaParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 |  enumValues | string\[\] |  |
 
 ## StringSchema.enum

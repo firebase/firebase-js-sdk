@@ -10,21 +10,21 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ObjectSchemaInterface interface
-Interface for [ObjectSchema](./vertexai-preview.objectschema.md#objectschema_class) class.
+Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class.
 
 <b>Signature:</b>
 
 ```typescript
 export interface ObjectSchemaInterface extends SchemaInterface 
 ```
-<b>Extends:</b> [SchemaInterface](./vertexai-preview.schemainterface.md#schemainterface_interface)
+<b>Extends:</b> [SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface)
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [optionalProperties](./vertexai-preview.objectschemainterface.md#objectschemainterfaceoptionalproperties) | string\[\] |  |
-|  [type](./vertexai-preview.objectschemainterface.md#objectschemainterfacetype) | [SchemaType.OBJECT](./vertexai-preview.md#schematypeobject_enummember) |  |
+|  [optionalProperties](./vertexai.objectschemainterface.md#objectschemainterfaceoptionalproperties) | string\[\] |  |
+|  [type](./vertexai.objectschemainterface.md#objectschemainterfacetype) | [SchemaType.OBJECT](./vertexai.md#schematypeobject_enummember) |  |
 
 ## ObjectSchemaInterface.optionalProperties
 

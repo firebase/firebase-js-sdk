@@ -10,21 +10,21 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaRequest interface
-Final format for [Schema](./vertexai-preview.schema.md#schema_class) params passed to backend requests.
+Final format for [Schema](./vertexai.schema.md#schema_class) params passed to backend requests.
 
 <b>Signature:</b>
 
 ```typescript
 export interface SchemaRequest extends SchemaShared<SchemaRequest> 
 ```
-<b>Extends:</b> [SchemaShared](./vertexai-preview.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaRequest](./vertexai-preview.schemarequest.md#schemarequest_interface)<!-- -->&gt;
+<b>Extends:</b> [SchemaShared](./vertexai.schemashared.md#schemashared_interface)<!-- -->&lt;[SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface)<!-- -->&gt;
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [required](./vertexai-preview.schemarequest.md#schemarequestrequired) | string\[\] | Optional. Array of required property. |
-|  [type](./vertexai-preview.schemarequest.md#schemarequesttype) | [SchemaType](./vertexai-preview.md#schematype) | The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->. |
+|  [required](./vertexai.schemarequest.md#schemarequestrequired) | string\[\] | Optional. Array of required property. |
+|  [type](./vertexai.schemarequest.md#schemarequesttype) | [SchemaType](./vertexai.md#schematype) | The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->. |
 
 ## SchemaRequest.required
 
@@ -38,7 +38,7 @@ required?: string[];
 
 ## SchemaRequest.type
 
-The type of the property. [SchemaType](./vertexai-preview.md#schematype)<!-- -->.
+The type of the property. [SchemaType](./vertexai.md#schematype)<!-- -->.
 
 <b>Signature:</b>
 

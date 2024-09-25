@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SchemaShared interface
-Basic [Schema](./vertexai-preview.schema.md#schema_class) properties shared across several Schema-related types.
+Basic [Schema](./vertexai.schema.md#schema_class) properties shared across several Schema-related types.
 
 <b>Signature:</b>
 
@@ -22,13 +22,13 @@ export interface SchemaShared<T>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [description](./vertexai-preview.schemashared.md#schemashareddescription) | string | Optional. The description of the property. |
-|  [enum](./vertexai-preview.schemashared.md#schemasharedenum) | string\[\] | Optional. The enum of the property. |
-|  [example](./vertexai-preview.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
-|  [format](./vertexai-preview.schemashared.md#schemasharedformat) | string | Optional. The format of the property. |
-|  [items](./vertexai-preview.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
-|  [nullable](./vertexai-preview.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
-|  [properties](./vertexai-preview.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of Schemas. |
+|  [description](./vertexai.schemashared.md#schemashareddescription) | string | Optional. The description of the property. |
+|  [enum](./vertexai.schemashared.md#schemasharedenum) | string\[\] | Optional. The enum of the property. |
+|  [example](./vertexai.schemashared.md#schemasharedexample) | unknown | Optional. The example of the property. |
+|  [format](./vertexai.schemashared.md#schemasharedformat) | string | Optional. The format of the property. |
+|  [items](./vertexai.schemashared.md#schemashareditems) | T | Optional. The items of the property. |
+|  [nullable](./vertexai.schemashared.md#schemasharednullable) | boolean | Optional. Whether the property is nullable. |
+|  [properties](./vertexai.schemashared.md#schemasharedproperties) | { \[k: string\]: T; } | Optional. Map of Schemas. |
 
 ## SchemaShared.description
 

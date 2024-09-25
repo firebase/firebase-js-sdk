@@ -9,25 +9,25 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# IntegerSchema class
-Schema class for "integer" types.
+# BooleanSchema class
+Schema class for "boolean" types.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class IntegerSchema extends Schema 
+export declare class BooleanSchema extends Schema 
 ```
-<b>Extends:</b> [Schema](./vertexai-preview.schema.md#schema_class)
+<b>Extends:</b> [Schema](./vertexai.schema.md#schema_class)
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(schemaParams)](./vertexai-preview.integerschema.md#integerschemaconstructor) |  | Constructs a new instance of the <code>IntegerSchema</code> class |
+|  [(constructor)(schemaParams)](./vertexai.booleanschema.md#booleanschemaconstructor) |  | Constructs a new instance of the <code>BooleanSchema</code> class |
 
-## IntegerSchema.(constructor)
+## BooleanSchema.(constructor)
 
-Constructs a new instance of the `IntegerSchema` class
+Constructs a new instance of the `BooleanSchema` class
 
 <b>Signature:</b>
 
@@ -39,5 +39,5 @@ constructor(schemaParams?: SchemaParams);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  schemaParams | [SchemaParams](./vertexai-preview.schemaparams.md#schemaparams_interface) |  |
+|  schemaParams | [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) |  |
 
