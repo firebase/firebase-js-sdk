@@ -27,35 +27,14 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
   }),
   json({ preferConst: true })
 ];
 
 const browserBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
-    ]
-  },
   {
     input: 'src/index.ts',
     output: {
@@ -65,7 +44,7 @@ const browserBuilds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017))
     ]
   },
@@ -78,7 +57,7 @@ const browserBuilds = [
     },
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ]
   }
