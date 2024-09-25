@@ -19,15 +19,6 @@ export class ArraySchema extends Schema {
 }
 
 // @public
-export class ArraySchema extends Schema {
-    constructor(schemaParams: SchemaParams, items: TypedSchema);
-    // (undocumented)
-    items: TypedSchema;
-    // @internal (undocumented)
-    toJSON(): SchemaRequest;
-}
-
-// @public
 export interface BaseParams {
     // (undocumented)
     generationConfig?: GenerationConfig;
@@ -41,11 +32,6 @@ export enum BlockReason {
     OTHER = "OTHER",
     // (undocumented)
     SAFETY = "SAFETY"
-}
-
-// @public
-export class BooleanSchema extends Schema {
-    constructor(schemaParams?: SchemaParams);
 }
 
 // @public
@@ -462,11 +448,6 @@ export class IntegerSchema extends Schema {
 }
 
 // @public
-export class IntegerSchema extends Schema {
-    constructor(schemaParams?: SchemaParams);
-}
-
-// @public
 export interface ModelParams extends BaseParams {
     // (undocumented)
     model: string;
@@ -476,34 +457,6 @@ export interface ModelParams extends BaseParams {
     toolConfig?: ToolConfig;
     // (undocumented)
     tools?: Tool[];
-}
-
-// @public
-export class NumberSchema extends Schema {
-    constructor(schemaParams?: SchemaParams);
-}
-
-// @public
-export class ObjectSchema extends Schema {
-    constructor(schemaParams: SchemaParams, properties: {
-        [k: string]: TypedSchema;
-    }, optionalProperties?: string[]);
-    // (undocumented)
-    optionalProperties: string[];
-    // (undocumented)
-    properties: {
-        [k: string]: TypedSchema;
-    };
-    // @internal (undocumented)
-    toJSON(): SchemaRequest;
-}
-
-// @public
-export interface ObjectSchemaInterface extends SchemaInterface {
-    // (undocumented)
-    optionalProperties?: string[];
-    // (undocumented)
-    type: SchemaType.OBJECT;
 }
 
 // @public
@@ -660,21 +613,6 @@ export interface SchemaShared<T> {
 }
 
 // @public
-export interface SchemaShared<T> {
-    // (undocumented)
-    [key: string]: unknown;
-    description?: string;
-    enum?: string[];
-    example?: unknown;
-    format?: string;
-    items?: T;
-    nullable?: boolean;
-    properties?: {
-        [k: string]: T;
-    };
-}
-
-// @public
 export enum SchemaType {
     ARRAY = "array",
     BOOLEAN = "boolean",
@@ -716,15 +654,6 @@ export class StringSchema extends Schema {
 }
 
 // @public
-export class StringSchema extends Schema {
-    constructor(schemaParams?: SchemaParams, enumValues?: string[]);
-    // (undocumented)
-    enum?: string[];
-    // @internal (undocumented)
-    toJSON(): SchemaRequest;
-}
-
-// @public
 export interface TextPart {
     // (undocumented)
     functionCall?: never;
@@ -744,9 +673,6 @@ export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
 }
-
-// @public
-export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
