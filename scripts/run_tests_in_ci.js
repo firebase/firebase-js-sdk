@@ -73,10 +73,10 @@ const argv = yargs.options({
     const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
-      testProcessOutput += data.toString();
+      testProcessOutput += '[stdout]' + data.toString();
     });
     testProcess.childProcess.stderr.on('data', data => {
-      testProcessOutput += data.toString();
+      testProcessOutput += '[stderr]' + data.toString();
     });
 
     await testProcess;
