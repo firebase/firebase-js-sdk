@@ -35,7 +35,7 @@ export interface BaseParams {
 }
 
 /**
- * Params passed to {@link getGenerativeModel}.
+ * Params passed to <code>{@link getGenerativeModel}</code>.
  * @public
  */
 export interface ModelParams extends BaseParams {
@@ -81,17 +81,18 @@ export interface GenerationConfig {
   frequencyPenalty?: number;
   /**
    * Output response MIME type of the generated candidate text.
-   * Supported MIME types are `text/plain` (default, text output) and `application/json`
-   * (JSON response in the candidates).
+   * Supported MIME types are `text/plain` (default, text output),
+   * `application/json` (JSON response in the candidates), and
+   * `text/x.enum`.
    */
   responseMimeType?: string;
   /**
    * Output response schema of the generated candidate text. This
-   * value can be a class generated with a {@link Schema} static method
+   * value can be a class generated with a <code>{@link Schema}</code> static method
    * like `Schema.string()` or `Schema.object()` or it can be a plain
-   * JS object matching the {@link SchemaRequest} interface.
+   * JS object matching the <code>{@link SchemaRequest}</code> interface.
    * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
-   * this is limited to `application/json`.
+   * this is limited to `application/json` and `text/x.enum`.
    */
   responseSchema?: TypedSchema | SchemaRequest;
 }
@@ -116,7 +117,7 @@ export interface CountTokensRequest {
 }
 
 /**
- * Params passed to {@link getGenerativeModel}.
+ * Params passed to <code>{@link getGenerativeModel}</code>.
  * @public
  */
 export interface RequestOptions {
@@ -176,8 +177,8 @@ export declare interface FunctionDeclarationsTool {
    * Optional. One or more function declarations
    * to be passed to the model along with the current user query. Model may
    * decide to call a subset of these functions by populating
-   * {@link FunctionCall} in the response. User should
-   * provide a {@link FunctionResponse} for each
+   * <code>{@link FunctionCall}</code> in the response. User should
+   * provide a <code>{@link FunctionResponse}</code> for each
    * function call in the next turn. Based on the function responses, the model will
    * generate the final response back to the user. Maximum 64 function
    * declarations can be provided.
