@@ -33,7 +33,7 @@
     "memfs": "3.5.3",
     "tmp": "0.2.1",
     "typescript": "4.7.4",
-    "terser": "5.16.1",
+    "terser": "5.16.2",
     "yargs": "17.7.2",
     "@firebase/util": "1.10.0",
     "gzip-size": "6.0.0",
