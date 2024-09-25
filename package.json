@@ -104,7 +104,7 @@
     "eslint": "8.56.0",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-unused-imports": "3.2.0",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "find-free-port": "2.0.0",
     "firebase-tools": "11.30.0",
     "glob": "7.2.3",
