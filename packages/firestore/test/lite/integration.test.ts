@@ -45,6 +45,7 @@ import {
   serverTimestamp,
   vector
 } from '../../src/lite-api/field_value_impl';
+import { findNearest } from '../../src/lite-api/find_nearest';
 import {
   endAt,
   endBefore,
@@ -87,7 +88,10 @@ import {
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
-import { apiDescribe } from '../integration/util/helpers';
+import { AutoId } from '../../src/util/misc';
+import {
+  apiDescribe
+} from '../integration/util/helpers';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
@@ -434,21 +438,25 @@ interface MutationTester {
     documentRef: DocumentReference<AppModelType, DbModelType>,
     data: WithFieldValue<AppModelType>
   ): Promise<void>;
+
   set<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>,
     data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): Promise<void>;
+
   update<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>,
     data: UpdateData<DbModelType>
   ): Promise<void>;
+
   update<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
+
   delete<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>
   ): Promise<void>;
@@ -1765,6 +1773,7 @@ describe('withConverter() support', () => {
             id: string;
             foo: number;
           }
+
           const foo = new ObjectWrapper<Foo>();
           foo.withFieldValueT({ id: '', foo: increment(1) });
           foo.withPartialFieldValueT({ foo: increment(1) });
@@ -2959,4 +2968,47 @@ describe('Vectors', () => {
       expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be.true;
     });
   });
+});
+
+apiDescribe('Vector Query', persistence => {
+  it('supports findNearest by EUCLIDEAN distance', async () => {
+    const testId = AutoId.newId();
+    return withTestDb(async firestore => {
+      const collectionReference = collection(
+        firestore,
+        'index-test-collection'
+      );
+      const docs: Record<string, DocumentData> = {
+        a: { foo: 'bar', testId },
+        b: { foo: 'xxx', testId, embedding: vector([10, 10]) },
+        c: { foo: 'bar', testId, embedding: vector([1, 1]) },
+        d: { foo: 'bar', testId, embedding: vector([10, 0]) },
+        e: { foo: 'bar', testId, embedding: vector([20, 0]) },
+        f: { foo: 'bar', testId, embedding: vector([100, 100]) }
+      };
+
+      for (const docId in docs) {
+        if (!docs.hasOwnProperty(docId)) {continue;}
+        await setDoc(doc(collectionReference, docId), docs[docId]);
+      }
+
+      const baseQuery = query(
+        collectionReference,
+        where('foo', '==', 'bar'),
+        where('testId', '==', testId)
+      );
+
+      const vectorQuery = findNearest(baseQuery, {
+        vectorField: 'embedding',
+        queryVector: [10, 10],
+        limit: 3,
+        distanceMeasure: 'EUCLIDEAN'
+      });
+      const res = await getDocs(vectorQuery);
+      expect(res.size).to.equal(3);
+      expect(res.docs[0].id).to.equal('d');
+      expect(res.docs[1].id).to.equal('c');
+      expect(res.docs[2].id).to.equal('e');
+    });
+  }).timeout(100000);
 });

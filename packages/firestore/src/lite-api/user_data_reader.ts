@@ -920,9 +920,10 @@ function parseScalarValue(
  * Creates a new VectorValue proto value (using the internal format).
  */
 export function parseVectorValue(
-  value: VectorValue,
+  value: VectorValue | number[],
   context: ParseContextImpl
-): ProtoValue {
+): { mapValue: ProtoMapValue } {
+  const values = value instanceof VectorValue ? value.toArray() : value;
   const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
@@ -930,7 +931,7 @@ export function parseVectorValue(
       },
       [VECTOR_MAP_VECTORS_KEY]: {
         arrayValue: {
-          values: value.toArray().map(value => {
+          values: values.map(value => {
             if (typeof value !== 'number') {
               throw context.createError(
                 'VectorValues must only contain numeric values.'
@@ -1001,8 +1002,11 @@ export function fieldPathFromArgument(
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
+  } else if (isCompatFieldPath(path)) {
+    return path._delegate._internalPath;
   } else {
-    const message = 'Field path arguments must be of type string or ';
+    const message =
+      'Field path arguments must be of type string, FieldPath, or Compat<FieldPath>';
     throw createError(
       message,
       methodName,
@@ -1011,6 +1015,19 @@ export function fieldPathFromArgument(
       targetDoc
     );
   }
+}
+
+/**
+ * Type guard to identify Compat<FieldPath>.
+ */
+function isCompatFieldPath(
+  path: PublicFieldPath | Compat<PublicFieldPath>
+): path is Compat<FieldPath> {
+  if (!('_delegate' in path)) {
+    return false;
+  }
+
+  return path._delegate instanceof FieldPath;
 }
 
 /**

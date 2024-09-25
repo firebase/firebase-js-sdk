@@ -18,10 +18,9 @@ set -euo pipefail
 
 # Variables
 PROTOS_DIR="."
-PBJS="$(npm bin)/pbjs"
+PBJS="../../node_modules/.bin/pbjs"
 
-"${PBJS}" --proto_path=. --target=json -o protos.json \
-  -r firestore_v1 \
-  "${PROTOS_DIR}/google/firestore/v1/*.proto" \
+"${PBJS}" --path=. --target=json -o protos.json \
+  -r firestore/v1 "${PROTOS_DIR}/google/firestore/v1/*.proto" \
   "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
   "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"

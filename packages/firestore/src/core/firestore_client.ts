@@ -42,7 +42,11 @@ import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
-import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {
+  Datastore,
+  invokeRunAggregationQueryRpc,
+  invokeRunQueryRpcForVectorQuery
+} from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
@@ -93,6 +97,7 @@ import {
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
+import { VectorQuery } from './vector_query';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 
@@ -550,6 +555,23 @@ export function firestoreClientRunAggregateQuery(
       deferred.resolve(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientRunVectorQuery(
+  client: FirestoreClient,
+  vectorQuery: VectorQuery
+): Promise<Document[]> {
+  const deferred = new Deferred<Document[]>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const datastore = await getDatastore(client);
+      deferred.resolve(invokeRunQueryRpcForVectorQuery(datastore, vectorQuery));
     } catch (e) {
       deferred.reject(e as Error);
     }

@@ -140,6 +140,9 @@ export {
 } from '../src/lite-api/snapshot';
 
 export { VectorValue } from '../src/lite-api/vector_value';
+export { VectorQuery } from '../src/lite-api/vector_query';
+export { VectorQuerySnapshot } from '../src/lite-api/vector_query_snapshot';
+export { VectorQueryOptions } from '../src/lite-api/vector_query_options';
 
 export { WriteBatch, writeBatch } from '../src/lite-api/write_batch';
 

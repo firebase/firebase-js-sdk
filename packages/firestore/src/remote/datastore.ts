@@ -20,6 +20,7 @@ import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
+import { VectorQuery } from '../core/vector_query';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -28,6 +29,7 @@ import {
   ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  firestoreV1ApiClientInterfaces,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
@@ -54,7 +56,8 @@ import {
   toName,
   toQueryTarget,
   toResourcePath,
-  toRunAggregationQueryRequest
+  toRunAggregationQueryRequest,
+  toVectorQueryTarget
 } from './serializer';
 
 /**
@@ -243,12 +246,40 @@ export async function invokeRunQueryRpc(
     datastoreImpl.serializer,
     queryToTarget(query)
   );
+  return invokeRunQueryRpcRequest(datastoreImpl, queryTarget, parent);
+}
+
+export async function invokeRunQueryRpcForVectorQuery(
+  datastore: Datastore,
+  vectorQuery: VectorQuery
+): Promise<Document[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const { queryTarget, parent } = toVectorQueryTarget(
+    datastoreImpl.serializer,
+    vectorQuery,
+    queryToAggregateTarget(vectorQuery.query)
+  );
+  return invokeRunQueryRpcRequest(datastoreImpl, queryTarget, parent);
+}
+
+async function invokeRunQueryRpcRequest(
+  datastoreImpl: DatastoreImpl,
+  queryTarget: ProtoRunQueryRequest,
+  parent: ResourcePath
+): Promise<Document[]> {
+  const runQueryRequest: firestoreV1ApiClientInterfaces.RunQueryRequest = {
+    structuredQuery: queryTarget.structuredQuery
+  };
+
+  if (datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
+    runQueryRequest.parent = queryTarget.parent;
+  }
+
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunQueryRequest,
     ProtoRunQueryResponse
-  >('RunQuery', datastoreImpl.serializer.databaseId, parent, {
-    structuredQuery: queryTarget.structuredQuery
-  });
+  >('RunQuery', datastoreImpl.serializer.databaseId, parent, runQueryRequest);
+
   return (
     response
       // Omit RunQueryResponses that only contain readTimes.
@@ -274,6 +305,7 @@ export async function invokeRunAggregationQueryRpc(
   if (!datastoreImpl.connection.shouldResourcePathBeIncludedInRequest) {
     delete request.parent;
   }
+
   const response = await datastoreImpl.invokeStreamingRPC<
     ProtoRunAggregationQueryRequest,
     ProtoRunAggregationQueryResponse

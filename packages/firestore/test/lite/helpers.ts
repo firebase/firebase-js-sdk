@@ -94,6 +94,22 @@ export function withTestCollectionAndInitialData(
   });
 }
 
+export function withTestCollectionAndNamedDocuments(
+  data: Record<string, DocumentData>,
+  fn: (collRef: CollectionReference<DocumentData>) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(async db => {
+    const coll = collection(db, AutoId.newId());
+    for (const name in data) {
+      if (data.hasOwnProperty(name)) {
+        const ref = doc(coll, name);
+        await setDoc(ref, data[name]);
+      }
+    }
+    return fn(coll);
+  });
+}
+
 export function withTestCollection(
   fn: (collRef: CollectionReference) => void | Promise<void>
 ): Promise<void> {

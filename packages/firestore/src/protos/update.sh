@@ -20,7 +20,8 @@ IFS=$'\n\t'
 # Variables
 PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
-PBJS="$(npm bin)/pbjs"
+PBJS="$(pwd)/../../node_modules/.bin/pbjs"
+PBTS="$(pwd)/../../node_modules/.bin/pbts"
 
 # deletes the temp directory on exit
 function cleanup {
@@ -40,7 +41,7 @@ git clone --depth 1 https://github.com/google/protobuf.git
 
 # Copy necessary protos.
 mkdir -p "${PROTOS_DIR}/google/api"
-cp googleapis/google/api/{annotations.proto,http.proto,client.proto,field_behavior.proto} \
+cp googleapis/google/api/{annotations.proto,http.proto,client.proto,field_behavior.proto,launch_stage.proto} \
    "${PROTOS_DIR}/google/api/"
 
 mkdir -p "${PROTOS_DIR}/google/firestore/v1"
@@ -67,10 +68,18 @@ ex "${PROTOS_DIR}/google/firestore/v1/write.proto" <<eof
 xit
 eof
 
-"${PBJS}" --proto_path=. --target=json -o protos.json \
-  -r firestore_v1 \
-  "${PROTOS_DIR}/google/firestore/v1/*.proto" \
+"${PBJS}" --path="${PROTOS_DIR}" --target=json -o protos.json \
+  -r firestore/v1 "${PROTOS_DIR}/google/firestore/v1/*.proto" \
   "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
   "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
 
+"${PBJS}" --path="${PROTOS_DIR}" --target=static -o temp.js \
+  -r firestore/v1 "${PROTOS_DIR}/google/firestore/v1/*.proto" \
+  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
+  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
+
+"${PBTS}" -o temp.d.ts --no-comments temp.js
+
 cp protos.json "${PROTOS_DIR}/protos.json"
+cp temp.js "${PROTOS_DIR}/temp.js"
+cp temp.d.ts "${PROTOS_DIR}/temp.d.js"

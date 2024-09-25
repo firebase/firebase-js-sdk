@@ -226,6 +226,9 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(query: 
 export function getDoc<AppModelType, DbModelType extends DocumentData>(reference: DocumentReference<AppModelType, DbModelType>): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 
 // @public
+export function getDocs<AppModelType, DbModelType extends DocumentData>(query: VectorQuery<AppModelType, DbModelType>): Promise<VectorQuerySnapshot<AppModelType, DbModelType>>;
+
+// @public (undocumented)
 export function getDocs<AppModelType, DbModelType extends DocumentData>(query: Query<AppModelType, DbModelType>): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
 // @public
@@ -320,7 +323,7 @@ export class QueryEndAtConstraint extends QueryConstraint {
 }
 
 // @public
-export function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType>): boolean;
+export function queryEqual<AppModelType, DbModelType extends DocumentData>(left: Query<AppModelType, DbModelType> | VectorQuery<AppModelType, DbModelType>, right: Query<AppModelType, DbModelType> | VectorQuery<AppModelType, DbModelType>): boolean;
 
 // @public
 export class QueryFieldFilterConstraint extends QueryConstraint {
@@ -390,7 +393,7 @@ export interface Settings {
 }
 
 // @public
-export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
+export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType> | VectorQuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType> | VectorQuerySnapshot<AppModelType, DbModelType>): boolean;
 
 // @public
 export function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
@@ -462,6 +465,37 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(refere
 
 // @public
 export function vector(values?: number[]): VectorValue;
+
+// @public (undocumented)
+export class VectorQuery<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    protected constructor();
+    get query(): Query<AppModelType, DbModelType>;
+}
+
+// @public (undocumented)
+export interface VectorQueryOptions {
+    // (undocumented)
+    distanceMeasure: 'EUCLIDEAN' | 'COSINE' | 'DOT_PRODUCT';
+    // (undocumented)
+    distanceResultField?: string | FieldPath;
+    // (undocumented)
+    distanceThreshold?: number;
+    // (undocumented)
+    limit: number;
+    // (undocumented)
+    queryVector: VectorValue | number[];
+    // (undocumented)
+    vectorField: string | FieldPath;
+}
+
+// @public (undocumented)
+export class VectorQuerySnapshot<AppModelType = DocumentData, DbModelType extends DocumentData = DocumentData> {
+    get docs(): Array<QueryDocumentSnapshot<AppModelType, DbModelType>>;
+    get empty(): boolean;
+    forEach(callback: (result: QueryDocumentSnapshot<AppModelType, DbModelType>) => void, thisArg?: unknown): void;
+    readonly query: VectorQuery<AppModelType, DbModelType>;
+    get size(): number;
+}
 
 // @public
 export class VectorValue {

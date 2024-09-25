@@ -285,9 +285,8 @@ export function queryToTarget(query: Query): Target {
 
 /**
  * Converts this `Query` instance to its corresponding `Target` representation,
- * for use within an aggregate query. Unlike targets for non-aggregate queries,
- * aggregate query targets do not contain normalized order-bys, they only
- * contain explicit order-bys.
+ * for use within an aggregate or vector query. Unlike targets for standard queries,
+ * aggregate and vector query targets do not contain normalized order-bys.
  */
 export function queryToAggregateTarget(query: Query): Target {
   const queryImpl = debugCast(query, QueryImpl);
