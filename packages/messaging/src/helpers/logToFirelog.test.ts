@@ -31,7 +31,7 @@ import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
 import { getFakeMessagingService } from '../testing/fakes/messaging-service';
 
-const LOG_ENDPOINT = "https://play.google.com/log?format=json_proto3";
+const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
 const FCM_TRANSPORT_KEY = LogModule._mergeStrings(
   'AzSCbw63g1R0nCw85jG8',

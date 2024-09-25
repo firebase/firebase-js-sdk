@@ -36,7 +36,7 @@ import {
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 import { MessagingService } from '../messaging-service';
 
-const LOG_ENDPOINT = "https://play.google.com/log?format=json_proto3";
+const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
 const FCM_TRANSPORT_KEY = _mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
@@ -214,7 +214,7 @@ function createAndEnqueueLogEvent(
   /* eslint-disable camelcase */
   logEvent.event_time_ms = Math.floor(Date.now()).toString();
   logEvent.source_extension_json_proto3 = JSON.stringify({
-    messaging_client_event: fcmEvent 
+    messaging_client_event: fcmEvent
   });
 
   if (!!productId) {
