@@ -211,14 +211,6 @@ export class StringSchema extends Schema {
     }
     return obj as SchemaRequest;
   }
-
-  toJSON(): _SchemaRequest {
-    const obj = super.toJSON();
-    if (this.enum) {
-      obj['enum'] = this.enum;
-    }
-    return obj as SchemaRequest;
-  }
 }
 
 /**
