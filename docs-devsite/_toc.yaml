@@ -458,8 +458,12 @@ toc:
   - title: vertexai-preview
     path: /docs/reference/js/vertexai-preview.md
     section:
+      - title: ArraySchema
+        path: /docs/reference/js/vertexai-preview.arrayschema.md
       - title: BaseParams
         path: /docs/reference/js/vertexai-preview.baseparams.md
+      - title: BooleanSchema
+        path: /docs/reference/js/vertexai-preview.booleanschema.md
       - title: ChatSession
         path: /docs/reference/js/vertexai-preview.chatsession.md
       - title: Citation
@@ -492,11 +496,6 @@ toc:
         path: /docs/reference/js/vertexai-preview.functioncallpart.md
       - title: FunctionDeclaration
         path: /docs/reference/js/vertexai-preview.functiondeclaration.md
-      - title: FunctionDeclarationSchema
-        path: /docs/reference/js/vertexai-preview.functiondeclarationschema.md
-      - title: FunctionDeclarationSchemaProperty
-        path: >-
-          /docs/reference/js/vertexai-preview.functiondeclarationschemaproperty.md
       - title: FunctionDeclarationsTool
         path: /docs/reference/js/vertexai-preview.functiondeclarationstool.md
       - title: FunctionResponse
@@ -525,8 +524,16 @@ toc:
         path: /docs/reference/js/vertexai-preview.groundingmetadata.md
       - title: InlineDataPart
         path: /docs/reference/js/vertexai-preview.inlinedatapart.md
+      - title: IntegerSchema
+        path: /docs/reference/js/vertexai-preview.integerschema.md
       - title: ModelParams
         path: /docs/reference/js/vertexai-preview.modelparams.md
+      - title: NumberSchema
+        path: /docs/reference/js/vertexai-preview.numberschema.md
+      - title: ObjectSchema
+        path: /docs/reference/js/vertexai-preview.objectschema.md
+      - title: ObjectSchemaInterface
+        path: /docs/reference/js/vertexai-preview.objectschemainterface.md
       - title: PromptFeedback
         path: /docs/reference/js/vertexai-preview.promptfeedback.md
       - title: RequestOptions
@@ -537,10 +544,22 @@ toc:
         path: /docs/reference/js/vertexai-preview.safetyrating.md
       - title: SafetySetting
         path: /docs/reference/js/vertexai-preview.safetysetting.md
+      - title: Schema
+        path: /docs/reference/js/vertexai-preview.schema.md
+      - title: SchemaInterface
+        path: /docs/reference/js/vertexai-preview.schemainterface.md
+      - title: SchemaParams
+        path: /docs/reference/js/vertexai-preview.schemaparams.md
+      - title: SchemaRequest
+        path: /docs/reference/js/vertexai-preview.schemarequest.md
+      - title: SchemaShared
+        path: /docs/reference/js/vertexai-preview.schemashared.md
       - title: Segment
         path: /docs/reference/js/vertexai-preview.segment.md
       - title: StartChatParams
         path: /docs/reference/js/vertexai-preview.startchatparams.md
+      - title: StringSchema
+        path: /docs/reference/js/vertexai-preview.stringschema.md
       - title: TextPart
         path: /docs/reference/js/vertexai-preview.textpart.md
       - title: ToolConfig

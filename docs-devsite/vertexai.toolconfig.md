@@ -29,5 +29,5 @@ export interface ToolConfig
 <b>Signature:</b>
 
 ```typescript
-functionCallingConfig: FunctionCallingConfig;
+functionCallingConfig?: FunctionCallingConfig;
 ```

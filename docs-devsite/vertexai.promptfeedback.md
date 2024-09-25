@@ -31,7 +31,7 @@ export interface PromptFeedback
 <b>Signature:</b>
 
 ```typescript
-blockReason: BlockReason;
+blockReason?: BlockReason;
 ```
 
 ## PromptFeedback.blockReasonMessage

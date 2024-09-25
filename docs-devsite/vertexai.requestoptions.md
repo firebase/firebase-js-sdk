@@ -37,7 +37,7 @@ baseUrl?: string;
 
 ## RequestOptions.timeout
 
-Request timeout in milliseconds.
+Request timeout in milliseconds. Defaults to 180 seconds (180000ms).
 
 <b>Signature:</b>
 

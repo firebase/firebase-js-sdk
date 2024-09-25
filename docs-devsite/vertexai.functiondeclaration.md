@@ -28,12 +28,12 @@ export declare interface FunctionDeclaration
 
 ## FunctionDeclaration.description
 
-Optional. Description and purpose of the function. Model uses it to decide how and whether to call the function.
+Description and purpose of the function. Model uses it to decide how and whether to call the function.
 
 <b>Signature:</b>
 
 ```typescript
-description?: string;
+description: string;
 ```
 
 ## FunctionDeclaration.name
@@ -53,5 +53,5 @@ Optional. Describes the parameters to this function in JSON Schema Object format
 <b>Signature:</b>
 
 ```typescript
-parameters?: FunctionDeclarationSchema;
+parameters?: ObjectSchemaInterface;
 ```
