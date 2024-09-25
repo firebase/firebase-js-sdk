@@ -89,9 +89,7 @@ import { Timestamp } from '../../src/lite-api/timestamp';
 import { runTransaction } from '../../src/lite-api/transaction';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import { AutoId } from '../../src/util/misc';
-import {
-  apiDescribe
-} from '../integration/util/helpers';
+import { apiDescribe } from '../integration/util/helpers';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
@@ -2988,7 +2986,9 @@ apiDescribe('Vector Query', persistence => {
       };
 
       for (const docId in docs) {
-        if (!docs.hasOwnProperty(docId)) {continue;}
+        if (!docs.hasOwnProperty(docId)) {
+          continue;
+        }
         await setDoc(doc(collectionReference, docId), docs[docId]);
       }
 

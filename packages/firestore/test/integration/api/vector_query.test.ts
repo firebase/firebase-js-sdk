@@ -53,7 +53,9 @@ apiDescribe('vector search', persistence => {
       };
 
       for (const docId in docs) {
-        if (!docs.hasOwnProperty(docId)) {continue;}
+        if (!docs.hasOwnProperty(docId)) {
+          continue;
+        }
         await setDoc(doc(collectionReference, docId), docs[docId]);
       }
 
