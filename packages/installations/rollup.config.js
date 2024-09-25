@@ -47,9 +47,7 @@ const esmBuilds = [
     output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [
       ...es5BuildPlugins,
@@ -66,9 +64,7 @@ const esmBuilds = [
     },
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [
       ...es2017BuildPlugins,

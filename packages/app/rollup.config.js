@@ -77,9 +77,7 @@ const esmBuilds = [
     },
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [
       ...es2017BuildPlugins,
@@ -98,9 +96,7 @@ const cjsBuilds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       ),
     plugins: [
       ...es5BuildPlugins,

@@ -57,9 +57,7 @@ const esmBuilds = [
     plugins: [...es5BuildPlugins, emitModulePackageFile()],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   },
   {
@@ -81,9 +79,7 @@ const esmBuilds = [
     plugins: [...es2017BuildPlugins, emitModulePackageFile()],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   },
   {
@@ -96,9 +92,7 @@ const esmBuilds = [
     plugins: es2017BuildPlugins,
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   }
 ];

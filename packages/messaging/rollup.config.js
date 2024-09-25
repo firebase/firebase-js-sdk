@@ -73,9 +73,7 @@ const esmBuilds = [
     ],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   },
   // sw builds
@@ -85,9 +83,7 @@ const esmBuilds = [
     plugins: es2017BuildPlugins,
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   }
 ];
@@ -102,9 +98,7 @@ const cjsBuilds = [
     ],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   },
   // sw build
@@ -121,9 +115,7 @@ const cjsBuilds = [
     ],
     external: id =>
       deps.some(
-        dep =>
-          dep !== 'idb' &&
-          (id === dep || id.startsWith(`${dep}/`))
+        dep => dep !== 'idb' && (id === dep || id.startsWith(`${dep}/`))
       )
   }
 ];
