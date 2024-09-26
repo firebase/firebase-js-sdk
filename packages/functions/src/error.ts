@@ -66,6 +66,7 @@ export class FunctionsError extends FirebaseError {
     readonly details?: unknown
   ) {
     super(`${FUNCTIONS_TYPE}/${code}`, message || '');
+    // TODO (dlarocque): Set this to be the root of the stack trace.
   }
 }
 

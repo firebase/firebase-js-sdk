@@ -5,7 +5,6 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseError } from '@firebase/util';
 
 // @public
 export function connectFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
@@ -15,12 +14,6 @@ export interface Functions {
     app: FirebaseApp;
     customDomain: string | null;
     region: string;
-}
-
-// @public
-export interface FunctionsError extends FirebaseError {
-    readonly code: FunctionsErrorCode;
-    readonly details?: unknown;
 }
 
 // @public
