@@ -32,7 +32,7 @@ const buildPlugins = [
   json({ preferConst: true })
 ];
 
-const browserBuilds = [
+const builds = [
   {
     input: 'src/index.ts',
     output: {
@@ -40,13 +40,13 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'src/index.ts',
     output: {
-      file: './dist/index.cjs.js',
+      file: pkg.main,
       format: 'cjs',
       sourcemap: true
     },
@@ -55,4 +55,4 @@ const browserBuilds = [
   }
 ];
 
-export default [...browserBuilds];
+export default builds;
