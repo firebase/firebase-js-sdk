@@ -87,8 +87,8 @@ const nodeBuilds = [
     input: 'src/index.node.ts',
     output: {
       file: pkg.main,
-      format: 'cjs', 
-      sourcemap: true 
+      format: 'cjs',
+      sourcemap: true
     },
     plugins: [
       ...buildPlugins,
