@@ -19,20 +19,20 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import {
-    linkWithPhoneNumber,
-    PhoneAuthProvider,
-    reauthenticateWithPhoneNumber,
-    signInAnonymously,
-    signInWithPhoneNumber,
-    unlink,
-    updatePhoneNumber,
-    Auth,
-    OperationType,
-    ProviderId,
-  } from '@firebase/auth';
+  linkWithPhoneNumber,
+  PhoneAuthProvider,
+  reauthenticateWithPhoneNumber,
+  signInAnonymously,
+  signInWithPhoneNumber,
+  unlink,
+  updatePhoneNumber,
+  Auth,
+  OperationType,
+  ProviderId
+} from '@firebase/auth';
 import {
   cleanUpTestInstance,
-  getTestInstance,
+  getTestInstance
 } from '../../helpers/integration/helpers';
 
 import { getEmulatorUrl } from '../../helpers/integration/settings';
@@ -49,16 +49,16 @@ let emulatorUrl: string | null;
 //   • +1 (555) 555-1000, SMS code 123456
 
 const FICTIONAL_PHONE = {
-    phoneNumber: '+15555551000',
-    code: '123456'
-  };
-  
+  phoneNumber: '+15555551000',
+  code: '123456'
+};
+
 // This phone number is not allowlisted. It is used in error test cases to catch errors, as
 // using fictional phone number always receives success response from the server.
 // Note: Don't use this for happy cases because we want to avoid sending actual SMS message.
 const NONFICTIONAL_PHONE = {
-    phoneNumber: '+15555553000',
-  };
+  phoneNumber: '+15555553000'
+};
 
 // These tests are written when reCAPTCHA Enterprise is set to ENFORCE. In order to run these tests
 // you must enable reCAPTCHA Enterprise in Cloud Console and set enforcement state for PHONE_PROVIDER
@@ -67,7 +67,7 @@ const NONFICTIONAL_PHONE = {
 describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', () => {
   beforeEach(() => {
     emulatorUrl = getEmulatorUrl();
-    if(!emulatorUrl) {
+    if (!emulatorUrl) {
       auth = getTestInstance();
       // Sets to false to generate the real reCAPTCHA Enterprise token
       auth.settings.appVerificationDisabledForTesting = false;
@@ -85,8 +85,11 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
       this.skip();
     }
 
-    // This generates real recaptcha token and use it for verification 
-    const confirmationResult = await signInWithPhoneNumber(auth, FICTIONAL_PHONE.phoneNumber);
+    // This generates real recaptcha token and use it for verification
+    const confirmationResult = await signInWithPhoneNumber(
+      auth,
+      FICTIONAL_PHONE.phoneNumber
+    );
     expect(confirmationResult.verificationId).not.to.be.null;
 
     const userCred = await confirmationResult.confirm('123456');
@@ -108,9 +111,9 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
 
     // Use unallowlisted phone number to trigger real reCAPTCHA Enterprise verification
     // Since it will throw an error, no SMS will be sent.
-    await expect(signInWithPhoneNumber(auth, NONFICTIONAL_PHONE.phoneNumber)).to.be.rejectedWith(
-      'auth/invalid-recaptcha-token'
-    );
+    await expect(
+      signInWithPhoneNumber(auth, NONFICTIONAL_PHONE.phoneNumber)
+    ).to.be.rejectedWith('auth/invalid-recaptcha-token');
   });
 
   it('anonymous users can upgrade using phone number', async function () {
@@ -122,7 +125,7 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
 
     const provider = new PhoneAuthProvider(auth);
     const verificationId = await provider.verifyPhoneNumber(
-      FICTIONAL_PHONE.phoneNumber,
+      FICTIONAL_PHONE.phoneNumber
     );
 
     await updatePhoneNumber(
@@ -138,7 +141,9 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
 
     expect(secondSignIn.uid).to.eq(anonId);
     expect(secondSignIn.isAnonymous).to.be.false;
-    expect(secondSignIn.providerData[0].phoneNumber).to.eq(FICTIONAL_PHONE.phoneNumber);
+    expect(secondSignIn.providerData[0].phoneNumber).to.eq(
+      FICTIONAL_PHONE.phoneNumber
+    );
     expect(secondSignIn.providerData[0].providerId).to.eq('phone');
   });
 
@@ -149,7 +154,10 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
     const { user } = await signInAnonymously(auth);
     const { uid: anonId } = user;
 
-    const confirmationResult = await linkWithPhoneNumber(user, FICTIONAL_PHONE.phoneNumber);
+    const confirmationResult = await linkWithPhoneNumber(
+      user,
+      FICTIONAL_PHONE.phoneNumber
+    );
     const linkResult = await confirmationResult.confirm(FICTIONAL_PHONE.code);
     expect(linkResult.operationType).to.eq(OperationType.LINK);
     expect(linkResult.user.uid).to.eq(user.uid);
@@ -167,7 +175,10 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
       this.skip();
     }
     // Create a phone user first
-    let confirmationResult = await signInWithPhoneNumber(auth, FICTIONAL_PHONE.phoneNumber);
+    let confirmationResult = await signInWithPhoneNumber(
+      auth,
+      FICTIONAL_PHONE.phoneNumber
+    );
     const { user } = await confirmationResult.confirm(FICTIONAL_PHONE.code);
     const oldToken = await user.getIdToken();
 
@@ -178,7 +189,8 @@ describe('Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode', 
 
     confirmationResult = await reauthenticateWithPhoneNumber(
       user,
-      FICTIONAL_PHONE.phoneNumber);
+      FICTIONAL_PHONE.phoneNumber
+    );
     await confirmationResult.confirm(FICTIONAL_PHONE.code);
 
     expect(await user.getIdToken()).not.to.eq(oldToken);
