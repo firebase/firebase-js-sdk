@@ -69,7 +69,7 @@ packages/app-check-types @hsubox76 @firebase/jssdk-global-approvers
 packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
+packages/firebase/compat/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
 docs-devsite/ @firebase/firebase-techwriters
 
