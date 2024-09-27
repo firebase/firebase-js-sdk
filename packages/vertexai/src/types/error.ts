@@ -63,30 +63,33 @@ export interface CustomErrorData {
  * @public
  */
 export const enum VertexAIErrorCode {
+  // TODO (dlarocque): Initialize error codes using the `VERTEX_TYPE` constant
+  // in a computed template string literal. Can not do this until we upgrade to
+  // TS5: https://github.com/microsoft/TypeScript/issues/40793
   /** A generic error occurred. */
-  ERROR = 'error',
+  ERROR = 'vertexAI/error',
 
   /** An error occurred in a request. */
-  REQUEST_ERROR = 'request-error',
+  REQUEST_ERROR = 'vertexAI/request-error',
 
   /** An error occurred in a response. */
-  RESPONSE_ERROR = 'response-error',
+  RESPONSE_ERROR = 'vertexAI/response-error',
 
   /** An error occurred while performing a fetch. */
-  FETCH_ERROR = 'fetch-error',
+  FETCH_ERROR = 'vertexAI/fetch-error',
 
   /** An error associated with a Content object.  */
-  INVALID_CONTENT = 'invalid-content',
+  INVALID_CONTENT = 'vertexAI/invalid-content',
 
   /** An error occurred due to a missing Firebase API key. */
-  NO_API_KEY = 'no-api-key',
+  NO_API_KEY = 'vertexAI/no-api-key',
 
   /** An error occurred due to a model name not being specified during initialization. */
-  NO_MODEL = 'no-model',
+  NO_MODEL = 'vertexAI/no-model',
 
   /** An error occurred due to a missing project ID. */
-  NO_PROJECT_ID = 'no-project-id',
+  NO_PROJECT_ID = 'vertexAI/no-project-id',
 
   /** An error occurred while parsing. */
-  PARSE_FAILED = 'parse-failed'
+  PARSE_FAILED = 'vertexAI/parse-failed'
 }

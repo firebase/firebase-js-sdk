@@ -622,15 +622,15 @@ export class VertexAIError extends FirebaseError {
 
 // @public
 export const enum VertexAIErrorCode {
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    NO_API_KEY = "no-api-key",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error"
+    ERROR = "vertexAI/error",
+    FETCH_ERROR = "vertexAI/fetch-error",
+    INVALID_CONTENT = "vertexAI/invalid-content",
+    NO_API_KEY = "vertexAI/no-api-key",
+    NO_MODEL = "vertexAI/no-model",
+    NO_PROJECT_ID = "vertexAI/no-project-id",
+    PARSE_FAILED = "vertexAI/parse-failed",
+    REQUEST_ERROR = "vertexAI/request-error",
+    RESPONSE_ERROR = "vertexAI/response-error"
 }
 
 // @public

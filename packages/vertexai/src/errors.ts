@@ -17,7 +17,6 @@
 
 import { FirebaseError } from '@firebase/util';
 import { VertexAIErrorCode, CustomErrorData } from './types';
-import { VERTEX_TYPE } from './constants';
 
 /**
  * Error class for the Vertex AI in Firebase SDK.
@@ -38,11 +37,9 @@ export class VertexAIError extends FirebaseError {
     readonly customErrorData?: CustomErrorData
   ) {
     // Match error format used by FirebaseError from ErrorFactory
-    const service = VERTEX_TYPE;
     const serviceName = 'VertexAI';
-    const fullCode = `${service}/${code}`;
-    const fullMessage = `${serviceName}: ${message} (${fullCode}).`;
-    super(fullCode, fullMessage);
+    const fullMessage = `${serviceName}: ${message} (${code}).`;
+    super(code, fullMessage);
 
     // FirebaseError initializes a stack trace, but it assumes the error is created from the error
     // factory. Since we break this assumption, we set the stack trace to be originating from this
