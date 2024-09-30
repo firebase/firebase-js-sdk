@@ -22,9 +22,9 @@ export declare interface FunctionDeclaration
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [description](./vertexai.functiondeclaration.md#functiondeclarationdescription) | string | Optional. Description and purpose of the function. Model uses it to decide how and whether to call the function. |
+|  [description](./vertexai.functiondeclaration.md#functiondeclarationdescription) | string | Description and purpose of the function. Model uses it to decide how and whether to call the function. |
 |  [name](./vertexai.functiondeclaration.md#functiondeclarationname) | string | The name of the function to call. Must start with a letter or an underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a max length of 64. |
-|  [parameters](./vertexai.functiondeclaration.md#functiondeclarationparameters) | [FunctionDeclarationSchema](./vertexai.functiondeclarationschema.md#functiondeclarationschema_interface) | Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset. |
+|  [parameters](./vertexai.functiondeclaration.md#functiondeclarationparameters) | [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset. |
 
 ## FunctionDeclaration.description
 
