@@ -72,9 +72,6 @@ export interface ErrorData {
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError extends Error {
-  /** The custom name for all FirebaseErrors. */
-  readonly name: string = ERROR_NAME;
-
   constructor(
     /** The error code for this error. */
     readonly code: string,
@@ -83,6 +80,9 @@ export class FirebaseError extends Error {
     public customData?: Record<string, unknown>
   ) {
     super(message);
+
+    // Set the name of the error to the name of the calling constructor.
+    this.name = this.constructor.name;
 
     // Fix For ES5
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
