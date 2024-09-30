@@ -231,7 +231,9 @@ describe('generateContent()', () => {
     } as Response);
     await expect(
       generateContent(fakeApiSettings, 'model', fakeRequestParams)
-    ).to.be.rejectedWith(/firebasevertexai\.googleapis.*my-project/);
+    ).to.be.rejectedWith(
+      /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
+    );
     expect(mockFetch).to.be.called;
   });
 });
