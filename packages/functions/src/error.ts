@@ -51,6 +51,10 @@ const errorCodeMap: { [name: string]: FunctionsErrorCode } = {
 /**
  * An explicit error that can be thrown from a handler to send an error to the
  * client that called the function.
+ *
+ * See {@link FunctionsErrorCode} for full documentation of codes.
+ *
+ * @public
  */
 export class FunctionsError extends FirebaseError {
   constructor(
@@ -66,7 +70,10 @@ export class FunctionsError extends FirebaseError {
     readonly details?: unknown
   ) {
     super(`${FUNCTIONS_TYPE}/${code}`, message || '');
-    // TODO (dlarocque): Set this to be the root of the stack trace.
+
+    // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,
+    // we also have to do it in all subclasses to allow for correct `instanceof` checks.
+    Object.setPrototypeOf(this, FunctionsError.prototype);
   }
 }
 

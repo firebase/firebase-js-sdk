@@ -23,12 +23,17 @@ Cloud Functions for Firebase
 |  [httpsCallable(functionsInstance, name, options)](./functions.md#httpscallable_1dd297c) | Returns a reference to the callable HTTPS trigger with the given name. |
 |  [httpsCallableFromURL(functionsInstance, url, options)](./functions.md#httpscallablefromurl_7af6987) | Returns a reference to the callable HTTPS trigger with the specified url. |
 
+## Classes
+
+|  Class | Description |
+|  --- | --- |
+|  [FunctionsError](./functions.functionserror.md#functionserror_class) | An explicit error that can be thrown from a handler to send an error to the client that called the function.<!-- -->See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes. |
+
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
 |  [Functions](./functions.functions.md#functions_interface) | A <code>Functions</code> instance. |
-|  [FunctionsError](./functions.functionserror.md#functionserror_interface) | An error returned by the Firebase Functions client SDK. |
 |  [HttpsCallableOptions](./functions.httpscallableoptions.md#httpscallableoptions_interface) | An interface for metadata about how calls should be executed. |
 |  [HttpsCallableResult](./functions.httpscallableresult.md#httpscallableresult_interface) | An <code>HttpsCallableResult</code> wraps a single result from a function call. |
 

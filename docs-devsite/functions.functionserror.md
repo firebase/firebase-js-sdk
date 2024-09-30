@@ -9,32 +9,49 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# FunctionsError interface
-An error returned by the Firebase Functions client SDK.
+# FunctionsError class
+An explicit error that can be thrown from a handler to send an error to the client that called the function.
+
+See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes.
 
 <b>Signature:</b>
 
 ```typescript
-export interface FunctionsError extends FirebaseError 
+export declare class FunctionsError extends FirebaseError 
 ```
 <b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)(code, message, details)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class |
+
 ## Properties
 
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [code](./functions.functionserror.md#functionserrorcode) | [FunctionsErrorCode](./functions.md#functionserrorcode) | A standard error code that will be returned to the client. This also determines the HTTP status code of the response, as defined in code.proto. |
-|  [details](./functions.functionserror.md#functionserrordetails) | unknown | Extra data to be converted to JSON and included in the error response. |
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Extra data to be converted to JSON and included in the error response. |
 
-## FunctionsError.code
+## FunctionsError.(constructor)
 
-A standard error code that will be returned to the client. This also determines the HTTP status code of the response, as defined in code.proto.
+Constructs a new instance of the `FunctionsError` class
 
 <b>Signature:</b>
 
 ```typescript
-readonly code: FunctionsErrorCode;
+constructor(
+    code: FunctionsErrorCode, message?: string, 
+    details?: unknown);
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  code | [FunctionsErrorCode](./functions.md#functionserrorcodecore) |  |
+|  message | string |  |
+|  details | unknown |  |
 
 ## FunctionsError.details
 
