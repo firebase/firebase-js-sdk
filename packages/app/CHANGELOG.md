@@ -1,5 +1,11 @@
 # @firebase/app
 
+## 0.10.12
+
+### Patch Changes
+
+- [`beaa4dffb`](https://github.com/firebase/firebase-js-sdk/commit/beaa4dffb7f48cb12ccc6c1d1b7cdc9c3605fc04) [#8480](https://github.com/firebase/firebase-js-sdk/pull/8480) - Included Data Connect product.
+
 ## 0.10.11
 
 ### Patch Changes
