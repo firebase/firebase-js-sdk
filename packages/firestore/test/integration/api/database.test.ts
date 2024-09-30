@@ -1671,6 +1671,26 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can query after firestore restart', async () => {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const deferred: Deferred<FirestoreError> = new Deferred();
+      const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
+
+      await firestore._restart();
+
+      await expect(deferred.promise)
+        .to.eventually.haveOwnProperty('message')
+        .equal('Firestore shutting down');
+
+      // Call should proceed without error.
+      unsubscribe();
+
+      await setDoc(docRef, { foo: 'bar' });
+      const docSnap = await getDoc(docRef);
+      expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
   it('query listener throws error on termination', async () => {
     return withTestDoc(persistence, async (docRef, firestore) => {
       const deferred: Deferred<FirestoreError> = new Deferred();

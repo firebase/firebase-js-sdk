@@ -1,0 +1,11 @@
+specVersion: "v1beta"
+serviceId: "dataconnect"
+location: "us-west2"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "dataconnect-test"
+      cloudSql:
+        instanceId: "local"
+connectorDirs: ["./connector"]

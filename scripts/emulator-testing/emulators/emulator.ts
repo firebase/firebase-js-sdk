@@ -16,7 +16,11 @@
  */
 
 // @ts-ignore
-import { spawn } from 'child-process-promise';
+import {
+  ChildProcessPromise,
+  spawn,
+  SpawnPromiseResult
+} from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -31,6 +35,8 @@ export abstract class Emulator {
 
   cacheDirectory: string;
   cacheBinaryPath: string;
+
+  isDataConnect = false;
 
   constructor(
     private binaryName: string,
@@ -89,19 +95,29 @@ export abstract class Emulator {
       if (!this.binaryPath) {
         throw new Error('You must call download() before setUp()');
       }
-      const promise = spawn(
-        'java',
-        [
-          '-jar',
-          path.basename(this.binaryPath),
-          '--port',
-          this.port.toString()
-        ],
-        {
-          cwd: path.dirname(this.binaryPath),
-          stdio: 'inherit'
-        }
-      );
+      let promise: ChildProcessPromise<SpawnPromiseResult>;
+      if (this.isDataConnect) {
+        promise = spawn(this.binaryPath, [
+          'dev',
+          '--local_connection_string',
+          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+        ]);
+      } else {
+        promise = spawn(
+          'java',
+          [
+            '-jar',
+            path.basename(this.binaryPath),
+            '--port',
+            this.port.toString()
+          ],
+          {
+            cwd: path.dirname(this.binaryPath),
+            stdio: 'inherit'
+          }
+        );
+      }
+
       promise.catch(reject);
       this.emulator = promise.childProcess;
 
