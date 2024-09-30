@@ -166,12 +166,13 @@ export async function makeRequest(
       ) {
         throw new VertexAIError(
           VertexAIErrorCode.API_NOT_ENABLED,
-          `The Vertex AI for Firebase SDK requires the Firebase Vertex AI API ` +
-            `firebasevertexai.googleapis.com to be enabled for your ` +
-            `project. Get started in the Firebase Console` +
-            ` (https://console.firebase.google.com/project/${url.apiSettings.project}/genai/vertex)` +
-            ` or verify that the API is enabled in the Google Cloud` +
-            ` Console (https://console.developers.google.com/apis/api/firebasevertexai.googleapis.com/overview?project=${url.apiSettings.project}).`,
+          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase
+          API ('firebasevertexai.googleapis.com') to be enabled in your
+          Firebase project. Enable this API by visiting the Firebase Console
+          at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/
+          and clicking "Get started". If you enabled this API recently,
+          wait a few minutes for the action to propagate to our systems and
+          then retry.`,
           {
             status: response.status,
             statusText: response.statusText,

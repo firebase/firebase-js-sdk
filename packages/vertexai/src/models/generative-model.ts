@@ -116,7 +116,7 @@ export class GenerativeModel {
 
   /**
    * Makes a single non-streaming call to the model
-   * and returns an object containing a single {@link GenerateContentResponse}.
+   * and returns an object containing a single <code>{@link GenerateContentResponse}</code>.
    */
   async generateContent(
     request: GenerateContentRequest | string | Array<string | Part>
@@ -163,7 +163,7 @@ export class GenerativeModel {
   }
 
   /**
-   * Gets a new {@link ChatSession} instance which can be used for
+   * Gets a new <code>{@link ChatSession}</code> instance which can be used for
    * multi-turn chats.
    */
   startChat(startChatParams?: StartChatParams): ChatSession {

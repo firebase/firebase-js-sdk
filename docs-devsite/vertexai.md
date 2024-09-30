@@ -25,8 +25,15 @@ The Vertex AI in Firebase Web SDK.
 
 |  Class | Description |
 |  --- | --- |
+|  [ArraySchema](./vertexai.arrayschema.md#arrayschema_class) | Schema class for "array" types. The <code>items</code> param should refer to the type of item that can be a member of the array. |
+|  [BooleanSchema](./vertexai.booleanschema.md#booleanschema_class) | Schema class for "boolean" types. |
 |  [ChatSession](./vertexai.chatsession.md#chatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far. |
 |  [GenerativeModel](./vertexai.generativemodel.md#generativemodel_class) | Class for generative model APIs. |
+|  [IntegerSchema](./vertexai.integerschema.md#integerschema_class) | Schema class for "integer" types. |
+|  [NumberSchema](./vertexai.numberschema.md#numberschema_class) | Schema class for "number" types. |
+|  [ObjectSchema](./vertexai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of Schema. |
+|  [Schema](./vertexai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
+|  [StringSchema](./vertexai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class) | Error class for the Vertex AI in Firebase SDK. |
 
 ## Enumerations
@@ -36,12 +43,12 @@ The Vertex AI in Firebase Web SDK.
 |  [BlockReason](./vertexai.md#blockreason) | Reason that a prompt was blocked. |
 |  [FinishReason](./vertexai.md#finishreason) | Reason that a candidate finished. |
 |  [FunctionCallingMode](./vertexai.md#functioncallingmode) |  |
-|  [FunctionDeclarationSchemaType](./vertexai.md#functiondeclarationschematype) | Contains the list of OpenAPI data types as defined by https://swagger.io/docs/specification/data-models/data-types/ |
 |  [HarmBlockMethod](./vertexai.md#harmblockmethod) |  |
 |  [HarmBlockThreshold](./vertexai.md#harmblockthreshold) | Threshold above which a prompt or candidate will be blocked. |
 |  [HarmCategory](./vertexai.md#harmcategory) | Harm categories that would cause prompts or candidates to be blocked. |
 |  [HarmProbability](./vertexai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
 |  [HarmSeverity](./vertexai.md#harmseverity) | Harm severity levels. |
+|  [SchemaType](./vertexai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [VertexAIErrorCode](./vertexai.md#vertexaierrorcode) | Standardized error codes that [VertexAIError](./vertexai.vertexaierror.md#vertexaierror_class) can have. |
 
 ## Interfaces
@@ -64,8 +71,6 @@ The Vertex AI in Firebase Web SDK.
 |  [FunctionCallingConfig](./vertexai.functioncallingconfig.md#functioncallingconfig_interface) |  |
 |  [FunctionCallPart](./vertexai.functioncallpart.md#functioncallpart_interface) | Content part interface if the part represents a [FunctionCall](./vertexai.functioncall.md#functioncall_interface)<!-- -->. |
 |  [FunctionDeclaration](./vertexai.functiondeclaration.md#functiondeclaration_interface) | Structured representation of a function declaration as defined by the [OpenAPI 3.0 specification](https://spec.openapis.org/oas/v3.0.3)<!-- -->. Included in this declaration are the function name and parameters. This <code>FunctionDeclaration</code> is a representation of a block of code that can be used as a Tool by the model and executed by the client. |
-|  [FunctionDeclarationSchema](./vertexai.functiondeclarationschema.md#functiondeclarationschema_interface) | Schema for parameters passed to [FunctionDeclaration.parameters](./vertexai.functiondeclaration.md#functiondeclarationparameters)<!-- -->. |
-|  [FunctionDeclarationSchemaProperty](./vertexai.functiondeclarationschemaproperty.md#functiondeclarationschemaproperty_interface) | Schema is used to define the format of input/output data. Represents a select subset of an OpenAPI 3.0 schema object. More fields may be added in the future as needed. |
 |  [FunctionDeclarationsTool](./vertexai.functiondeclarationstool.md#functiondeclarationstool_interface) | A <code>FunctionDeclarationsTool</code> is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. |
 |  [FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface) | The result output from a [FunctionCall](./vertexai.functioncall.md#functioncall_interface) that contains a string representing the [FunctionDeclaration.name](./vertexai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing any output from the function is used as context to the model. This should contain the result of a [FunctionCall](./vertexai.functioncall.md#functioncall_interface) made based on model prediction. |
 |  [FunctionResponsePart](./vertexai.functionresponsepart.md#functionresponsepart_interface) | Content part interface if the part represents [FunctionResponse](./vertexai.functionresponse.md#functionresponse_interface)<!-- -->. |
@@ -80,11 +85,16 @@ The Vertex AI in Firebase Web SDK.
 |  [GroundingMetadata](./vertexai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned to client when grounding is enabled. |
 |  [InlineDataPart](./vertexai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [ModelParams](./vertexai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)<!-- -->. |
+|  [ObjectSchemaInterface](./vertexai.objectschemainterface.md#objectschemainterface_interface) | Interface for [ObjectSchema](./vertexai.objectschema.md#objectschema_class) class. |
 |  [PromptFeedback](./vertexai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./vertexai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./vertexai.md#getgenerativemodel_e3037c9)<!-- -->. |
 |  [RetrievedContextAttribution](./vertexai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
 |  [SafetyRating](./vertexai.safetyrating.md#safetyrating_interface) | A safety rating associated with a [GenerateContentCandidate](./vertexai.generatecontentcandidate.md#generatecontentcandidate_interface) |
 |  [SafetySetting](./vertexai.safetysetting.md#safetysetting_interface) | Safety setting that can be sent as part of request parameters. |
+|  [SchemaInterface](./vertexai.schemainterface.md#schemainterface_interface) | Interface for [Schema](./vertexai.schema.md#schema_class) class. |
+|  [SchemaParams](./vertexai.schemaparams.md#schemaparams_interface) | Params passed to [Schema](./vertexai.schema.md#schema_class) static methods to create specific [Schema](./vertexai.schema.md#schema_class) classes. |
+|  [SchemaRequest](./vertexai.schemarequest.md#schemarequest_interface) | Final format for [Schema](./vertexai.schema.md#schema_class) params passed to backend requests. |
+|  [SchemaShared](./vertexai.schemashared.md#schemashared_interface) | Basic [Schema](./vertexai.schema.md#schema_class) properties shared across several Schema-related types. |
 |  [Segment](./vertexai.segment.md#segment_interface) |  |
 |  [StartChatParams](./vertexai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./vertexai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [TextPart](./vertexai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
@@ -108,6 +118,7 @@ The Vertex AI in Firebase Web SDK.
 |  [Part](./vertexai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [Role](./vertexai.md#role) | Role is the producer of the content. |
 |  [Tool](./vertexai.md#tool) | Defines a tool that model can call to access external knowledge. |
+|  [TypedSchema](./vertexai.md#typedschema) | A type that includes all specific Schema types. |
 
 ## function(app, ...)
 
@@ -196,6 +207,16 @@ Defines a tool that model can call to access external knowledge.
 export declare type Tool = FunctionDeclarationsTool;
 ```
 
+## TypedSchema
+
+A type that includes all specific Schema types.
+
+<b>Signature:</b>
+
+```typescript
+export declare type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+```
+
 ## BlockReason
 
 Reason that a prompt was blocked.
@@ -210,7 +231,6 @@ export declare enum BlockReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  BLOCKED\_REASON\_UNSPECIFIED | <code>&quot;BLOCKED_REASON_UNSPECIFIED&quot;</code> |  |
 |  OTHER | <code>&quot;OTHER&quot;</code> |  |
 |  SAFETY | <code>&quot;SAFETY&quot;</code> |  |
 
@@ -228,7 +248,6 @@ export declare enum FinishReason
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  FINISH\_REASON\_UNSPECIFIED | <code>&quot;FINISH_REASON_UNSPECIFIED&quot;</code> |  |
 |  MAX\_TOKENS | <code>&quot;MAX_TOKENS&quot;</code> |  |
 |  OTHER | <code>&quot;OTHER&quot;</code> |  |
 |  RECITATION | <code>&quot;RECITATION&quot;</code> |  |
@@ -250,29 +269,7 @@ export declare enum FunctionCallingMode
 |  --- | --- | --- |
 |  ANY | <code>&quot;ANY&quot;</code> |  |
 |  AUTO | <code>&quot;AUTO&quot;</code> |  |
-|  MODE\_UNSPECIFIED | <code>&quot;MODE_UNSPECIFIED&quot;</code> |  |
 |  NONE | <code>&quot;NONE&quot;</code> |  |
-
-## FunctionDeclarationSchemaType
-
-Contains the list of OpenAPI data types as defined by https://swagger.io/docs/specification/data-models/data-types/
-
-<b>Signature:</b>
-
-```typescript
-export declare enum FunctionDeclarationSchemaType 
-```
-
-## Enumeration Members
-
-|  Member | Value | Description |
-|  --- | --- | --- |
-|  ARRAY | <code>&quot;ARRAY&quot;</code> | Array type. |
-|  BOOLEAN | <code>&quot;BOOLEAN&quot;</code> | Boolean type. |
-|  INTEGER | <code>&quot;INTEGER&quot;</code> | Integer type. |
-|  NUMBER | <code>&quot;NUMBER&quot;</code> | Number type. |
-|  OBJECT | <code>&quot;OBJECT&quot;</code> | Object type. |
-|  STRING | <code>&quot;STRING&quot;</code> | String type. |
 
 ## HarmBlockMethod
 
@@ -287,7 +284,6 @@ export declare enum HarmBlockMethod
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  HARM\_BLOCK\_METHOD\_UNSPECIFIED | <code>&quot;HARM_BLOCK_METHOD_UNSPECIFIED&quot;</code> |  |
 |  PROBABILITY | <code>&quot;PROBABILITY&quot;</code> |  |
 |  SEVERITY | <code>&quot;SEVERITY&quot;</code> |  |
 
@@ -309,7 +305,6 @@ export declare enum HarmBlockThreshold
 |  BLOCK\_MEDIUM\_AND\_ABOVE | <code>&quot;BLOCK_MEDIUM_AND_ABOVE&quot;</code> |  |
 |  BLOCK\_NONE | <code>&quot;BLOCK_NONE&quot;</code> |  |
 |  BLOCK\_ONLY\_HIGH | <code>&quot;BLOCK_ONLY_HIGH&quot;</code> |  |
-|  HARM\_BLOCK\_THRESHOLD\_UNSPECIFIED | <code>&quot;HARM_BLOCK_THRESHOLD_UNSPECIFIED&quot;</code> |  |
 
 ## HarmCategory
 
@@ -329,7 +324,6 @@ export declare enum HarmCategory
 |  HARM\_CATEGORY\_HARASSMENT | <code>&quot;HARM_CATEGORY_HARASSMENT&quot;</code> |  |
 |  HARM\_CATEGORY\_HATE\_SPEECH | <code>&quot;HARM_CATEGORY_HATE_SPEECH&quot;</code> |  |
 |  HARM\_CATEGORY\_SEXUALLY\_EXPLICIT | <code>&quot;HARM_CATEGORY_SEXUALLY_EXPLICIT&quot;</code> |  |
-|  HARM\_CATEGORY\_UNSPECIFIED | <code>&quot;HARM_CATEGORY_UNSPECIFIED&quot;</code> |  |
 
 ## HarmProbability
 
@@ -345,7 +339,6 @@ export declare enum HarmProbability
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  HARM\_PROBABILITY\_UNSPECIFIED | <code>&quot;HARM_PROBABILITY_UNSPECIFIED&quot;</code> |  |
 |  HIGH | <code>&quot;HIGH&quot;</code> |  |
 |  LOW | <code>&quot;LOW&quot;</code> |  |
 |  MEDIUM | <code>&quot;MEDIUM&quot;</code> |  |
@@ -369,7 +362,27 @@ export declare enum HarmSeverity
 |  HARM\_SEVERITY\_LOW | <code>&quot;HARM_SEVERITY_LOW&quot;</code> |  |
 |  HARM\_SEVERITY\_MEDIUM | <code>&quot;HARM_SEVERITY_MEDIUM&quot;</code> |  |
 |  HARM\_SEVERITY\_NEGLIGIBLE | <code>&quot;HARM_SEVERITY_NEGLIGIBLE&quot;</code> |  |
-|  HARM\_SEVERITY\_UNSPECIFIED | <code>&quot;HARM_SEVERITY_UNSPECIFIED&quot;</code> |  |
+
+## SchemaType
+
+Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/)
+
+<b>Signature:</b>
+
+```typescript
+export declare enum SchemaType 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  ARRAY | <code>&quot;array&quot;</code> | Array type. |
+|  BOOLEAN | <code>&quot;boolean&quot;</code> | Boolean type. |
+|  INTEGER | <code>&quot;integer&quot;</code> | Integer type. |
+|  NUMBER | <code>&quot;number&quot;</code> | Number type. |
+|  OBJECT | <code>&quot;object&quot;</code> | Object type. |
+|  STRING | <code>&quot;string&quot;</code> | String type. |
 
 ## VertexAIErrorCode
 
@@ -385,9 +398,11 @@ export declare const enum VertexAIErrorCode
 
 |  Member | Value | Description |
 |  --- | --- | --- |
+|  API\_NOT\_ENABLED | <code>&quot;api-not-enabled&quot;</code> | An error due to the Firebase API not being enabled in the Console. |
 |  ERROR | <code>&quot;error&quot;</code> | A generic error occurred. |
 |  FETCH\_ERROR | <code>&quot;fetch-error&quot;</code> | An error occurred while performing a fetch. |
 |  INVALID\_CONTENT | <code>&quot;invalid-content&quot;</code> | An error associated with a Content object. |
+|  INVALID\_SCHEMA | <code>&quot;invalid-schema&quot;</code> | An error due to invalid Schema input. |
 |  NO\_API\_KEY | <code>&quot;no-api-key&quot;</code> | An error occurred due to a missing Firebase API key. |
 |  NO\_MODEL | <code>&quot;no-model&quot;</code> | An error occurred due to a model name not being specified during initialization. |
 |  NO\_PROJECT\_ID | <code>&quot;no-project-id&quot;</code> | An error occurred due to a missing project ID. |
