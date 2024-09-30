@@ -12,7 +12,7 @@
     "firebase": "10.14.0",
     "chai": "4.4.1",
     "chromedriver": "119.0.1",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "geckodriver": "2.0.4",
     "mocha": "9.2.2",
     "undici": "6.19.7",
