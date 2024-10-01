@@ -54,8 +54,11 @@ firebase emulators:exec --project foo-bar --only auth "yarn test:integration:loc
 
 ### Integration testing with the production backend
 
-Currently, MFA TOTP and password policy tests only run against the production backend (since they are not supported on the emulator yet).
+Currently, MFA TOTP, password policy, and reCAPTCHA Enterprise phone verification tests only run 
+against the production backend (since they are not supported on the emulator yet).
 Running against the backend also makes it a more reliable end-to-end test.
+
+#### TOTP
 
 The TOTP tests require the following email/password combination to exist in the project, so if you are running this test against your test project, please create this user:
 
@@ -70,6 +73,8 @@ curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Conten
       "returnOobLink": true,
     }'
 ```
+
+#### Password policy
 
 The password policy tests require a tenant configured with a password policy that requires all options to exist in the project.
 
@@ -97,6 +102,32 @@ curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Conten
 ```
 
 Replace the tenant ID `passpol-tenant-d7hha` in [test/integration/flows/password_policy.test.ts](https://github.com/firebase/firebase-js-sdk/blob/main/packages/auth/test/integration/flows/password_policy.test.ts) with the ID for the newly created tenant. The tenant ID can be found at the end of the `name` property in the response and is in the format `passpol-tenant-xxxxx`.
+
+#### reCAPTCHA Enterprise phone verification
+
+The reCAPTCHA Enterprise phone verification tests require reCAPTCHA Enterprise to be enabled and
+the following fictional phone number to be configured and in the project. 
+
+If you are running this
+test against your project, please [add this test phone number](https://firebase.google.com/docs/auth/web/phone-auth#create-fictional-phone-numbers-and-verification-codes):
+
+'+1 555-555-1000', SMS code: '123456'
+
+Follow [this guide](https://cloud.google.com/identity-platform/docs/recaptcha-enterprise) to enable reCAPTCHA
+Enterprise, then use the following curl command to set reCAPTCHA Enterprise to ENFORCE for phone provider:
+
+```
+curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Content-Type: application/json"   -H "X-Goog-User-Project: $
+{PROJECT_ID}"   -X POST https://identitytoolkit.googleapis.com/v2/projects/${PROJECT_ID}/config?updateMask=recaptchaConfig.phoneEnforcementState,recaptchaConfig.useSmsBotScore,recaptchaConfig.useSmsTollFraudProtection  -d '
+{
+  "name": "projects/{PROJECT_ID}",
+  "recaptchaConfig": {
+    "phoneEnforcementState": "ENFORCE",
+    "useSmsBotScore": "true",
+    "useSmsTollFraudProtection": "true",
+  },
+}'
+```
 
 ### Selenium Webdriver tests
 

@@ -51,7 +51,8 @@ function getTestFiles(argv) {
     if (argv.prodbackend) {
       return [
         'test/integration/flows/totp.test.ts',
-        'test/integration/flows/password_policy.test.ts'
+        'test/integration/flows/password_policy.test.ts',
+        'test/integration/flows/recaptcha_enterprise.test.ts'
       ];
     }
     return argv.local
