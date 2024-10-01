@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, initializeApp, _registerComponent, _addOrOverwriteComponent } from '@firebase/app';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent,
+  _addOrOverwriteComponent
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AnalyticsService } from '../src/factory';
