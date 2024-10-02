@@ -34,7 +34,8 @@ import {
   count,
   sum,
   average,
-  addDoc
+  addDoc,
+  setLogLevel
 } from '../util/firebase_export';
 import {
   apiDescribe,

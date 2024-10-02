@@ -24,6 +24,8 @@ import {
   NextFn,
   PartialObserver
 } from '../api/observer';
+import { QueryDocumentSnapshot } from '../api/snapshot';
+import { VectorQuerySnapshot } from '../api/vector_query_snapshot';
 import { ListenerDataSource } from '../core/event_manager';
 import {
   firestoreClientAddSnapshotsInSyncListener,
@@ -32,6 +34,7 @@ import {
   firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetDocumentViaSnapshotListener,
   firestoreClientListen,
+  firestoreClientRunVectorQuery,
   firestoreClientWrite
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
@@ -59,6 +62,7 @@ import {
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { VectorQuery } from '../lite-api/vector_query';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -270,17 +274,96 @@ export function getDocsFromServer<
   DbModelType extends DocumentData
 >(
   query: Query<AppModelType, DbModelType>
-): Promise<QuerySnapshot<AppModelType, DbModelType>> {
-  query = cast<Query<AppModelType, DbModelType>>(query, Query);
-  const firestore = cast(query.firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-  const userDataWriter = new ExpUserDataWriter(firestore);
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
-  return firestoreClientGetDocumentsViaSnapshotListener(client, query._query, {
-    source: 'server'
-  }).then(
-    snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
-  );
+/**
+ * Executes the query and returns the results as a `QuerySnapshot` from the
+ * server. Returns an error if the network is not available.
+ *
+ * @returns A `Promise` that will be resolved with the results of the query.
+ */
+export function getDocsFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  vectorQuery: VectorQuery<AppModelType, DbModelType>
+): Promise<VectorQuerySnapshot<AppModelType, DbModelType>>;
+
+/**
+ * Executes the query and returns the results as a `QuerySnapshot` from the
+ * server. Returns an error if the network is not available.
+ *
+ * @returns A `Promise` that will be resolved with the results of the query.
+ */
+export function getDocsFromServer<
+  AppModelType,
+  DbModelType extends DocumentData
+>(
+  queryOrVectorQuery:
+    | Query<AppModelType, DbModelType>
+    | VectorQuery<AppModelType, DbModelType>
+): Promise<
+  | QuerySnapshot<AppModelType, DbModelType>
+  | VectorQuerySnapshot<AppModelType, DbModelType>
+> {
+  // If the query is a Query instance
+  if (
+    'type' in queryOrVectorQuery &&
+    (queryOrVectorQuery.type! === 'query' ||
+      queryOrVectorQuery.type! === 'collection')
+  ) {
+    const query = cast<Query<AppModelType, DbModelType>>(
+      queryOrVectorQuery,
+      Query
+    );
+
+    const firestore = cast(query.firestore, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
+    const userDataWriter = new ExpUserDataWriter(firestore);
+
+    return firestoreClientGetDocumentsViaSnapshotListener(
+      client,
+      query._query,
+      {
+        source: 'server'
+      }
+    ).then(
+      snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
+    );
+  } else {
+    // the query is a VectorQuery instance
+    const vectorQuery: VectorQuery<AppModelType, DbModelType> = cast<
+      VectorQuery<AppModelType, DbModelType>
+    >(queryOrVectorQuery, VectorQuery);
+
+    const firestore = cast(vectorQuery.query.firestore, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
+    const userDataWriter = new ExpUserDataWriter(firestore);
+
+    // Run the aggregation and convert the results
+    return firestoreClientRunVectorQuery(client, vectorQuery._vectorQuery).then(
+      result => {
+        const docs = result.map(
+          doc =>
+            new QueryDocumentSnapshot<AppModelType, DbModelType>(
+              firestore,
+              userDataWriter,
+              doc.key,
+              doc,
+              new SnapshotMetadata(false, false),
+              vectorQuery.query.converter
+            )
+        );
+
+        return new VectorQuerySnapshot<AppModelType, DbModelType>(
+          firestore,
+          userDataWriter,
+          vectorQuery,
+          docs
+        );
+      }
+    );
+  }
 }
 
 /**
