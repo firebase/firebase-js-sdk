@@ -1,0 +1,11 @@
+{
+    "extends": "../../config/api-extractor.json",
+    // Point it to your entry point d.ts file. 
+    "mainEntryPointFilePath": "<projectFolder>/dist/public.d.ts",
+    "apiReport": {
+        /**
+         * apiReport is handled by repo-scripts/prune-dts/extract-public-api.ts
+         */
+        "enabled": false
+    }
+}

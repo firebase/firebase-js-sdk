@@ -36,10 +36,7 @@ import {
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 import { MessagingService } from '../messaging-service';
 
-const FIRELOG_ENDPOINT = _mergeStrings(
-  'hts/frbslgigp.ogepscmv/ieo/eaylg',
-  'tp:/ieaeogn-agolai.o/1frlglgc/o'
-);
+const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
 const FCM_TRANSPORT_KEY = _mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
@@ -97,7 +94,7 @@ export async function _dispatchLogEvents(
     do {
       try {
         response = await fetch(
-          FIRELOG_ENDPOINT.concat('?key=', FCM_TRANSPORT_KEY),
+          LOG_ENDPOINT.concat('&key=', FCM_TRANSPORT_KEY),
           {
             method: 'POST',
             body: JSON.stringify(logRequest)
@@ -216,7 +213,9 @@ function createAndEnqueueLogEvent(
 
   /* eslint-disable camelcase */
   logEvent.event_time_ms = Math.floor(Date.now()).toString();
-  logEvent.source_extension_json_proto3 = JSON.stringify(fcmEvent);
+  logEvent.source_extension_json_proto3 = JSON.stringify({
+    messaging_client_event: fcmEvent
+  });
 
   if (!!productId) {
     logEvent.compliance_data = buildComplianceData(productId);

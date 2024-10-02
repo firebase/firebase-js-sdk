@@ -1,0 +1,18 @@
+query getPost($id: UUID!) @auth(level: PUBLIC) {
+  post(id: $id) {
+    content
+  }
+}
+query listPosts @auth(level: PUBLIC) {
+  posts {
+    id,
+    content
+  }
+}
+query listPosts2  {
+  posts {
+    id,
+    content
+  }
+}
+
