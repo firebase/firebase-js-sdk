@@ -100,7 +100,7 @@ const browserBuilds = [
       alias(generateAliasConfig('browser')),
       ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 5),
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
         '__RUNTIME_ENV__': ''
       })
     ],

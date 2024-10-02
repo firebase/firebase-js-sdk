@@ -55,7 +55,7 @@ const cjsBuild = {
   external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
   plugins: [
     ...buildPlugins,
-    replace(generateBuildTargetReplaceConfig('cjs', 5))
+    replace(generateBuildTargetReplaceConfig('cjs', 2017))
   ]
 };
 
