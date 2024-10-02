@@ -102,3 +102,28 @@ jobs:
         run: xvfb-run yarn test:changed auth
         env:
           BROWSERS: 'Firefox'
+
+  test-webkit:
+    name: Test Auth on Webkit if Changed
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup and yarn install
+        run: |
+          cp config/ci.config.json config/project.json
+          yarn
+          npx playwright install webkit
+      - name: build
+        run: yarn build:changed auth
+      - name: Run tests on changed packages
+        run: yarn test:changed auth
+        env:
+          BROWSERS: 'WebkitHeadless'
