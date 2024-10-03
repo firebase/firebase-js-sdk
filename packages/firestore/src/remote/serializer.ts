@@ -306,7 +306,8 @@ function fromResourceName(name: string): ResourcePath {
   const resource = ResourcePath.fromString(name);
   hardAssert(
     isValidResourceName(resource),
-    'Tried to deserialize invalid key ' + resource.toString()
+    'Tried to deserialize invalid key',
+    { key: resource.toString() }
   );
   return resource;
 }
@@ -389,7 +390,8 @@ function extractLocalPathFromResourceName(
 ): ResourcePath {
   hardAssert(
     resourceName.length > 4 && resourceName.get(4) === 'documents',
-    'tried to deserialize invalid key ' + resourceName.toString()
+    'tried to deserialize invalid key',
+    { key: resourceName.toString() }
   );
   return resourceName.popFirst(5);
 }
@@ -493,7 +495,7 @@ export function fromBatchGetDocumentsResponse(
   } else if ('missing' in result) {
     return fromMissing(serializer, result);
   }
-  return fail('invalid batch get response: ' + JSON.stringify(result));
+  return fail('invalid batch get response', { result });
 }
 
 export function fromWatchChange(
@@ -578,7 +580,7 @@ export function fromWatchChange(
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
-    return fail('Unknown change type ' + JSON.stringify(change));
+    return fail('Unknown change type', { change });
   }
   return watchChange;
 }
@@ -597,7 +599,7 @@ function fromWatchTargetChangeState(
   } else if (state === 'RESET') {
     return WatchTargetChangeState.Reset;
   } else {
-    return fail('Got unexpected TargetChange.state: ' + state);
+    return fail('Got unexpected TargetChange.state', { state });
   }
 }
 
@@ -641,7 +643,7 @@ export function toMutation(
       verify: toName(serializer, mutation.key)
     };
   } else {
-    return fail('Unknown mutation type ' + mutation.type);
+    return fail('Unknown mutation type', { mutationType: mutation.type });
   }
 
   if (mutation.fieldTransforms.length > 0) {
@@ -697,7 +699,7 @@ export function fromMutation(
     const key = fromName(serializer, proto.verify);
     return new VerifyMutation(key, precondition);
   } else {
-    return fail('unknown mutation proto: ' + JSON.stringify(proto));
+    return fail('unknown mutation proto', { proto });
   }
 }
 
@@ -793,7 +795,7 @@ function toFieldTransform(
       increment: transform.operand
     };
   } else {
-    throw fail('Unknown transform: ' + fieldTransform.transform);
+    throw fail('Unknown transform', { transform: fieldTransform.transform });
   }
 }
 
@@ -805,7 +807,8 @@ function fromFieldTransform(
   if ('setToServerValue' in proto) {
     hardAssert(
       proto.setToServerValue === 'REQUEST_TIME',
-      'Unknown server value transform proto: ' + JSON.stringify(proto)
+      'Unknown server value transform proto',
+      { proto }
     );
     transform = new ServerTimestampTransform();
   } else if ('appendMissingElements' in proto) {
@@ -820,7 +823,7 @@ function fromFieldTransform(
       proto.increment!
     );
   } else {
-    fail('Unknown transform proto: ' + JSON.stringify(proto));
+    fail('Unknown transform proto', { proto });
   }
   const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
   return new FieldTransform(fieldPath, transform!);
@@ -837,10 +840,9 @@ export function fromDocumentsTarget(
   documentsTarget: ProtoDocumentsTarget
 ): Target {
   const count = documentsTarget.documents!.length;
-  hardAssert(
-    count === 1,
-    'DocumentsTarget contained other than 1 document: ' + count
-  );
+  hardAssert(count === 1, 'DocumentsTarget contained other than 1 document', {
+    count
+  });
   const name = documentsTarget.documents![0];
   return queryToTarget(newQueryForPath(fromQueryPath(name)));
 }
@@ -1045,7 +1047,7 @@ export function toLabel(purpose: TargetPurpose): string | null {
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
-      return fail('Unrecognized query purpose: ' + purpose);
+      return fail('Unrecognized query purpose', { purpose });
   }
 }
 
@@ -1116,7 +1118,7 @@ function fromFilter(filter: ProtoFilter): Filter {
   } else if (filter.compositeFilter !== undefined) {
     return fromCompositeFilter(filter);
   } else {
-    return fail('Unknown filter: ' + JSON.stringify(filter));
+    return fail('Unknown filter', { filter });
   }
 }
 
@@ -1261,7 +1263,7 @@ export function toFilter(filter: Filter): ProtoFilter {
   } else if (filter instanceof CompositeFilter) {
     return toCompositeFilter(filter);
   } else {
-    return fail('Unrecognized filter type ' + JSON.stringify(filter));
+    return fail('Unrecognized filter type', { filter });
   }
 }
 

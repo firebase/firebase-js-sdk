@@ -578,6 +578,6 @@ export function compareDocs(
     case Direction.DESCENDING:
       return -1 * comparison;
     default:
-      return fail('Unknown direction: ' + orderBy.dir);
+      return fail('Unknown direction', { direction: orderBy.dir });
   }
 }

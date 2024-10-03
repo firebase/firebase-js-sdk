@@ -511,10 +511,16 @@ export class LLRBNode<K, V> {
   // leaves is equal on both sides.  This function verifies that or asserts.
   protected check(): number {
     if (this.isRed() && this.left.isRed()) {
-      throw fail('Red node has red child(' + this.key + ',' + this.value + ')');
+      throw fail('Red node has red child', {
+        key: this.key,
+        value: this.value
+      });
     }
     if (this.right.isRed()) {
-      throw fail('Right child of (' + this.key + ',' + this.value + ') is red');
+      throw fail('Right child of (`key`, `value`) is red', {
+        key: this.key,
+        value: this.value
+      });
     }
     const blackDepth = (this.left as LLRBNode<K, V>).check();
     if (blackDepth !== (this.right as LLRBNode<K, V>).check()) {
