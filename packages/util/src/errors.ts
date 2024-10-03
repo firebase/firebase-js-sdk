@@ -59,8 +59,6 @@ export type ErrorMap<ErrorCode extends string> = {
   readonly [K in ErrorCode]: string;
 };
 
-const ERROR_NAME = 'FirebaseError';
-
 export interface StringLike {
   toString(): string;
 }
