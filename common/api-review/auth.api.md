@@ -712,6 +712,7 @@ export interface RecaptchaParameters {
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
     constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
     clear(): void;
+    isDestroyed(): boolean;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
