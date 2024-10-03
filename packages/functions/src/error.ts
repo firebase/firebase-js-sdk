@@ -49,8 +49,7 @@ const errorCodeMap: { [name: string]: FunctionsErrorCode } = {
 };
 
 /**
- * An explicit error that can be thrown from a handler to send an error to the
- * client that called the function.
+ * An error returned by the Firebase Functions client SDK.
  *
  * See {@link FunctionsErrorCode} for full documentation of codes.
  *
