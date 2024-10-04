@@ -17,6 +17,7 @@
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
 import {
+  CustomSignals,
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
   Value
@@ -108,6 +109,7 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   // * it applies to all retries (like curl's max-time arg)
   // * it is consistent with the Fetch API's signal input
   const abortSignal = new RemoteConfigAbortSignal();
+  const customSignals = rc._storageCache.getCustomSignals();
 
   setTimeout(async () => {
     // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
@@ -118,7 +120,8 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   try {
     await rc._client.fetch({
       cacheMaxAgeMillis: rc.settings.minimumFetchIntervalMillis,
-      signal: abortSignal
+      signal: abortSignal,
+      customSignals: rc._storageCache.getCustomSignals()
     });
 
     await rc._storageCache.setLastFetchStatus('success');
@@ -257,4 +260,10 @@ export function setLogLevel(
  */
 function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
+}
+
+export async function setCustomSignals(
+  remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void> {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  return rc._storageCache.setCustomSignals(customSignals);
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FetchStatus } from '@firebase/remote-config-types';
+import { FetchStatus, CustomSignals } from '@firebase/remote-config-types';
 import {
   FetchResponse,
   FirebaseRemoteConfigObject
@@ -70,7 +70,8 @@ type ProjectNamespaceKeyFieldValue =
   | 'last_successful_fetch_timestamp_millis'
   | 'last_successful_fetch_response'
   | 'settings'
-  | 'throttle_metadata';
+  | 'throttle_metadata'
+  | 'custom_signals';
 
 // Visible for testing.
 export function openDatabase(): Promise<IDBDatabase> {
@@ -179,6 +180,53 @@ export class Storage {
 
   deleteThrottleMetadata(): Promise<void> {
     return this.delete('throttle_metadata');
+  }
+
+  getCustomSignals(): Promise<CustomSignals | undefined> {
+    return this.get<CustomSignals>('custom_signals');
+  }
+
+  async setCustomSignals(customSignals: CustomSignals): Promise<void> {
+    const db = await this.openDbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+      const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
+      const compositeKey = this.createCompositeKey("custom_signals");
+      try {
+        const storedSignalsRequest = objectStore.get(compositeKey);
+        storedSignalsRequest.onerror = event => {
+          reject(toFirebaseError(event, ErrorCode.STORAGE_GET));
+        };
+        storedSignalsRequest.onsuccess = event => {
+          const storedSignals = (event.target as IDBRequest).result.value;
+          const combinedSignals = {
+            ...storedSignals,
+            ...customSignals
+          };
+          const signalsToUpdate = Object.fromEntries(Object.entries(combinedSignals).filter(([_, v]) => v !== null));
+          if (signalsToUpdate) {
+            const setSignalsRequest = objectStore.put({compositeKey, signalsToUpdate});
+            setSignalsRequest.onerror = event => {
+              reject(toFirebaseError(event, ErrorCode.STORAGE_SET));
+            };
+            setSignalsRequest.onsuccess = event => {
+              const result = (event.target as IDBRequest).result;
+              if (result) {
+                resolve(result.value);
+              } else {
+                resolve(undefined);
+              }
+            };
+          }
+        };
+      } catch (e) {
+        reject(
+          ERROR_FACTORY.create(ErrorCode.STORAGE_SET, {
+            originalErrorMessage: (e as Error)?.message
+          })
+        );
+      }
+    });
   }
 
   async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {

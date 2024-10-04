@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { CustomSignals } from "../public_types";
+
 /**
  * Defines a client, as in https://en.wikipedia.org/wiki/Client%E2%80%93server_model, for the
  * Remote Config server (https://firebase.google.com/docs/reference/remote-config/rest).
@@ -99,6 +101,13 @@ export interface FetchRequest {
    * <p>Comparable to passing `headers = { 'If-None-Match': <eTag> }` to the native Fetch API.
    */
   eTag?: string;
+
+
+  /** The custom signals stored for the app instance.
+   * 
+   * <p>Optional in case no custom signals are set for the instance.
+   */
+  customSignals?: CustomSignals;
 }
 
 /**
