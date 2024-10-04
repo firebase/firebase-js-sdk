@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { CustomSignals } from '../public_types';
 import {
   FetchResponse,
   RemoteConfigFetchClient,
@@ -41,6 +42,7 @@ interface FetchRequestBody {
   app_instance_id_token: string;
   app_id: string;
   language_code: string;
+  custom_signals?: CustomSignals;
   /* eslint-enable camelcase */
 }
 
@@ -92,7 +94,8 @@ export class RestClient implements RemoteConfigFetchClient {
       app_instance_id: installationId,
       app_instance_id_token: installationToken,
       app_id: this.appId,
-      language_code: getUserLanguage()
+      language_code: getUserLanguage(),
+      custom_signals: request.customSignals
       /* eslint-enable camelcase */
     };
 
