@@ -203,6 +203,7 @@ export class Storage {
             ...storedSignals,
             ...customSignals
           };
+          // Filter out key-value assignments with null values since they are signals being unset
           const signalsToUpdate = Object.fromEntries(Object.entries(combinedSignals).filter(([_, v]) => v !== null));
           if (signalsToUpdate) {
             const setSignalsRequest = objectStore.put({compositeKey, signalsToUpdate});
