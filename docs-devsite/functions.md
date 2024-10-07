@@ -27,7 +27,7 @@ Cloud Functions for Firebase
 
 |  Class | Description |
 |  --- | --- |
-|  [FunctionsError](./functions.functionserror.md#functionserror_class) | An explicit error that can be thrown from a handler to send an error to the client that called the function.<!-- -->See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes. |
+|  [FunctionsError](./functions.functionserror.md#functionserror_class) | An error returned by the Firebase Functions client SDK.<!-- -->See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes. |
 
 ## Interfaces
 

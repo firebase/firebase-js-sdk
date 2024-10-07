@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FunctionsError class
-An explicit error that can be thrown from a handler to send an error to the client that called the function.
+An error returned by the Firebase Functions client SDK.
 
 See [FunctionsErrorCode](./functions.md#functionserrorcode) for full documentation of codes.
 
