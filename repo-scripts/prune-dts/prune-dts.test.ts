@@ -23,7 +23,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { pruneDts } from './prune-dts';
 
-const testCasesDir = path.resolve(__dirname, 'tests');
+const testCasesDir = path.resolve(__dirname, 'new-tests');
 const tmpDir = os.tmpdir();
 
 const testDataFilter = /(.*).input.d.ts/;

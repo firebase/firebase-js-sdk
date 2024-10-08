@@ -162,7 +162,7 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<T>(
+export async function injectRecaptchaFields<T extends object>(
   auth: AuthInternal,
   request: T,
   action: RecaptchaActionName,
