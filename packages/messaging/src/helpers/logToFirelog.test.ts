@@ -31,10 +31,7 @@ import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
 import { getFakeMessagingService } from '../testing/fakes/messaging-service';
 
-const FIRELOG_ENDPOINT = LogModule._mergeStrings(
-  'hts/frbslgigp.ogepscmv/ieo/eaylg',
-  'tp:/ieaeogn-agolai.o/1frlglgc/o'
-);
+const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
 const FCM_TRANSPORT_KEY = LogModule._mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
@@ -68,7 +65,7 @@ describe('logToFirelog', () => {
 
       // assert
       expect(fetchStub).to.be.calledOnceWith(
-        FIRELOG_ENDPOINT.concat('?key=', FCM_TRANSPORT_KEY),
+        LOG_ENDPOINT.concat('&key=', FCM_TRANSPORT_KEY),
         {
           method: 'POST',
           body: JSON.stringify(LogModule._createLogRequest([getFakeLogEvent()]))
