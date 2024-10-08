@@ -7,6 +7,24 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Prune .d.ts",
+      "program": "${workspaceRoot}/repo-scripts/prune-dts/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/repo-scripts/prune-dts",
+      "args": [
+        "--require",
+        "ts-node/register",
+        "--timeout",
+        "5000",
+        "${workspaceFolder}/repo-scripts/prune-dts/*.test.ts"
+      ],
+      "env": {
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+      },
+      "sourceMaps": true,
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "RTDB Unit Tests (Node)",
       "program": "${workspaceRoot}/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/database",

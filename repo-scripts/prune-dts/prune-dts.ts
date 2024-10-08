@@ -19,6 +19,7 @@ import * as yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import { ESLint } from 'eslint';
+import { assert } from 'console';
 
 /**
  * Prunes a DTS file based on three main rules:
@@ -155,16 +156,19 @@ function maybeHideConstructor(
     ?.find(t => t.tagName.escapedText === 'hideconstructor');
 
   if (hideConstructorTag) {
-    const modifier = ts.createModifier(
+    assert(
+      !ts.canHaveDecorators(node),
+      'Constructor should not have decorators'
+    );
+    const hideConstructorModifier = ts.factory.createModifier(
       hideConstructorTag.comment === 'protected'
         ? ts.SyntaxKind.ProtectedKeyword
         : ts.SyntaxKind.PrivateKeyword
     );
-    return ts.createConstructor(
-      node.decorators,
-      [modifier],
-      /*parameters=*/ [],
-      /* body= */ undefined
+    return ts.factory.createConstructorDeclaration(
+      [...(ts.getModifiers(node) ?? []), hideConstructorModifier],
+      [],
+      undefined
     );
   } else {
     return node;
@@ -192,7 +196,6 @@ function maybeHideConstructor(
 function prunePrivateImports<
   T extends ts.InterfaceDeclaration | ts.ClassDeclaration
 >(
-  factory: ts.NodeFactory,
   program: ts.Program,
   host: ts.CompilerHost,
   sourceFile: ts.SourceFile,
@@ -204,8 +207,8 @@ function prunePrivateImports<
   const prunedHeritageClauses: ts.HeritageClause[] = [];
   // Additional members that are copied from the private symbols into the public
   // symbols
-  const additionalMembers: ts.Node[] = [];
-
+  const inheritedInterfaceProperties: ts.TypeElement[] = [];
+  const inheritedClassMembers: ts.ClassElement[] = [];
   for (const heritageClause of node.heritageClauses || []) {
     const exportedTypes: ts.ExpressionWithTypeArguments[] = [];
     for (const type of heritageClause.types) {
@@ -217,53 +220,53 @@ function prunePrivateImports<
       } else {
         // Hide the type we are inheriting from and merge its declarations
         // into the current class.
-        // TODO: We really only need to do this when the type that is extended
-        // is a class. We should skip this for interfaces.
         const privateType = typeChecker.getTypeAtLocation(type);
-        additionalMembers.push(
-          ...convertPropertiesForEnclosingClass(
-            program,
-            host,
-            sourceFile,
-            privateType.getProperties(),
-            node
-          )
-        );
+        if (ts.isClassDeclaration(node)) {
+          inheritedClassMembers.push(
+            ...convertPropertiesForEnclosingDeclaration<
+              ts.ClassDeclaration,
+              ts.ClassElement
+            >(program, host, sourceFile, privateType.getProperties(), node)
+          );
+        } else if (ts.isInterfaceDeclaration(node)) {
+          inheritedInterfaceProperties.push(
+            ...convertPropertiesForEnclosingDeclaration<
+              ts.InterfaceDeclaration,
+              ts.TypeElement
+            >(program, host, sourceFile, privateType.getProperties(), node)
+          );
+        }
       }
     }
 
     if (exportedTypes.length > 0) {
       prunedHeritageClauses.push(
-        factory.updateHeritageClause(heritageClause, exportedTypes)
+        ts.factory.updateHeritageClause(heritageClause, exportedTypes)
       );
     }
   }
 
   if (ts.isClassDeclaration(node)) {
-    return factory.updateClassDeclaration(
+    const modifiersAndDecorators = [
+      ...(ts.getModifiers(node) ?? []),
+      ...(ts.getDecorators(node) ?? [])
+    ];
+    return ts.factory.updateClassDeclaration(
       node,
-      node.decorators,
-      node.modifiers,
+      modifiersAndDecorators,
       node.name,
       node.typeParameters,
       prunedHeritageClauses,
-      [
-        ...(node.members as ts.NodeArray<ts.ClassElement>),
-        ...(additionalMembers as ts.ClassElement[])
-      ]
+      [...node.members, ...inheritedClassMembers]
     ) as T;
   } else if (ts.isInterfaceDeclaration(node)) {
-    return factory.updateInterfaceDeclaration(
+    return ts.factory.updateInterfaceDeclaration(
       node,
-      node.decorators,
       node.modifiers,
       node.name,
       node.typeParameters,
       prunedHeritageClauses,
-      [
-        ...(node.members as ts.NodeArray<ts.TypeElement>),
-        ...(additionalMembers as ts.TypeElement[])
-      ]
+      [...node.members, ...inheritedInterfaceProperties]
     ) as T;
   } else {
     throw new Error('Only classes or interfaces are supported');
@@ -271,7 +274,7 @@ function prunePrivateImports<
 }
 
 /**
- * Iterates the provided symbols and returns named declarations for these
+ * Iterates over the provided symbols and returns named declarations for these
  * symbols if they are missing from `currentClass`. This allows us to merge
  * class hierarchies for classes whose inherited types are not part of the
  * public API.
@@ -283,9 +286,9 @@ function convertPropertiesForEnclosingClass(
   host: ts.CompilerHost,
   sourceFile: ts.SourceFile,
   parentClassSymbols: ts.Symbol[],
-  currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
-): ts.Node[] {
-  const newMembers: ts.Node[] = [];
+  currentClass: ts.ClassDeclaration
+): ts.ClassElement[] {
+  const newMembers: ts.ClassElement[] = [];
   // The `codefix` package is not public but it does exactly what we want. It's
   // the same package that is used by VSCode to fill in missing members, which
   // is what we are using it for in this script. `codefix` handles missing
@@ -304,12 +307,78 @@ function convertPropertiesForEnclosingClass(
           symbol.escapedName ==
           (missingMember.name as ts.Identifier).escapedText
       );
-      const jsDocComment = originalSymbol
-        ? extractJSDocComment(originalSymbol, newMembers)
-        : undefined;
-      if (jsDocComment) {
-        newMembers.push(jsDocComment, missingMember);
-      } else {
+      if (originalSymbol) {
+        const jsDocComment = extractJSDocComment(originalSymbol, newMembers);
+        if (jsDocComment) {
+          ts.setSyntheticLeadingComments(missingMember, [
+            {
+              kind: ts.SyntaxKind.MultiLineCommentTrivia,
+              text: `*\n${jsDocComment}\n`,
+              hasTrailingNewLine: true,
+              pos: -1,
+              end: -1
+            }
+          ]);
+        }
+
+        newMembers.push(missingMember);
+      }
+    }
+  );
+  return newMembers;
+}
+
+/**
+ * Iterates over the provided symbols and returns named declarations for these
+ * symbols if they are missing from `currentInterface`. This allows us to merge
+ * interface hierarchies for interfaces whose inherited properties are not part of the
+ * public API.
+ *
+ * This method relies on a private API in TypeScript's `codefix` package.
+ */
+function convertPropertiesForEnclosingDeclaration<
+  T extends ts.ClassDeclaration | ts.InterfaceDeclaration,
+  U extends ts.ClassElement | ts.TypeElement
+>(
+  program: ts.Program,
+  host: ts.CompilerHost,
+  sourceFile: ts.SourceFile,
+  parentClassSymbols: ts.Symbol[],
+  currentDeclaration: T
+): U[] {
+  const newMembers: U[] = [];
+  // The `codefix` package is not public but it does exactly what we want. It's
+  // the same package that is used by VSCode to fill in missing members, which
+  // is what we are using it for in this script. `codefix` handles missing
+  // properties, methods and correctly deduces generics.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (ts as any).codefix.createMissingMemberNodes(
+    currentDeclaration,
+    parentClassSymbols,
+    sourceFile,
+    { program, host },
+    /* userPreferences= */ {},
+    /* importAdder= */ undefined,
+    (missingMember: U) => {
+      const originalSymbol = parentClassSymbols.find(
+        symbol =>
+          symbol.escapedName ==
+          (missingMember.name as ts.Identifier).escapedText
+      );
+      if (originalSymbol) {
+        const jsDocComment = extractJSDocComment(originalSymbol, newMembers);
+        if (jsDocComment) {
+          ts.setSyntheticLeadingComments(missingMember, [
+            {
+              kind: ts.SyntaxKind.MultiLineCommentTrivia,
+              text: `*\n${jsDocComment}\n`,
+              hasTrailingNewLine: true,
+              pos: -1,
+              end: -1
+            }
+          ]);
+        }
+
         newMembers.push(missingMember);
       }
     }
@@ -321,7 +390,7 @@ function convertPropertiesForEnclosingClass(
 function extractJSDocComment(
   symbol: ts.Symbol,
   alreadyAddedMembers: ts.Node[]
-): ts.Node | null {
+): string | null {
   const overloadCount = alreadyAddedMembers.filter(
     node =>
       ts.isClassElement(node) &&
@@ -330,37 +399,69 @@ function extractJSDocComment(
 
   // Extract the comment from the overload that we are currently processing.
   let targetIndex = 0;
-  const comments = symbol.getDocumentationComment(undefined).filter(symbol => {
-    // Overload comments are separated by line breaks.
-    if (symbol.kind == 'lineBreak') {
-      ++targetIndex;
-      return false;
-    } else {
-      return overloadCount == targetIndex;
-    }
-  });
+  const commentParts = symbol
+    .getDocumentationComment(undefined)
+    .filter(symbol => {
+      // Overload comments are separated by line breaks.
+      if (symbol.kind == 'lineBreak') {
+        ++targetIndex;
+        return false;
+      } else {
+        return overloadCount == targetIndex;
+      }
+    });
 
-  if (comments.length > 0 && symbol.declarations) {
-    const jsDocTags = ts.getJSDocTags(symbol.declarations[overloadCount]);
-    const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
-    const joinedComments = comments
-      .map(comment => {
-        if (comment.kind === 'linkText') {
-          return comment.text.trim();
-        }
-        return comment.text;
-      })
-      .join('');
-    const formattedComments = joinedComments
-      .replace('*', '\n')
-      .replace(' \n', '\n')
-      .replace('\n ', '\n');
-    return ts.factory.createJSDocComment(
-      formattedComments + maybeNewline,
-      jsDocTags
-    );
+  const comment = commentParts
+    .map(commentPart => {
+      if (commentPart.kind === 'linkText') {
+        /**
+         * Some links will be spread across more than one line. For example:
+         * {@link
+         * DocumentReference}
+         * In this case, we want to remove the leading ' * ' without removing the newline.
+         */
+        const leadingStar = /(?!\n)\s*\* /;
+        /**
+         * For some reason, this text will also have a trailing space (the above example would give
+         * us 'DocumentReference '), so we trim that from the end of the string.
+         */
+        const trailingSpaces = / *$/;
+
+        return commentPart.text
+          .replace(leadingStar, '\n')
+          .replace(trailingSpaces, '');
+      } else {
+        return commentPart.text;
+      }
+    })
+    .join('');
+
+  if (!comment || !symbol.declarations) {
+    return null;
   }
-  return null;
+
+  const declaration = symbol.declarations[overloadCount];
+  const jsDocTags = ts
+    .getJSDocTags(declaration)
+    .map(tag =>
+      tag
+        .getFullText()
+        .split('\n')
+        .map(line => line.replace('*', '').trim())
+        .filter(line => line !== '') // Remove empty lines
+        .map(text => text.replace(/s*\* /, '')) // Remove the '*' prefix from all lines
+        .join('\n')
+    )
+    .join('\n');
+  const maybeNewline = jsDocTags?.length > 0 ? '\n' : '';
+
+  const commentAndTags = `${comment}\n${maybeNewline}${jsDocTags}`.trim();
+  const formattedJSDocComment = commentAndTags
+    .split('\n')
+    .map(line => ` * ${line.trim()}`)
+    .join('\n');
+
+  return formattedJSDocComment;
 }
 
 /**
@@ -468,7 +569,7 @@ function dropPrivateApiTransformer(
   context: ts.TransformationContext
 ): ts.Transformer<ts.SourceFile> {
   const typeChecker = program.getTypeChecker();
-  const { factory } = context;
+  // const { factory } = context;
 
   return (sourceFile: ts.SourceFile) => {
     function visit(node: ts.Node): ts.Node {
@@ -483,9 +584,11 @@ function dropPrivateApiTransformer(
       ) {
         // Remove any types that are not exported.
         if (
-          !node.modifiers?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
+          !ts
+            .getModifiers(node)
+            ?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
         ) {
-          return factory.createNotEmittedStatement(node);
+          return ts.factory.createNotEmittedStatement(node);
         }
       }
 
@@ -498,7 +601,7 @@ function dropPrivateApiTransformer(
       ) {
         // Remove any imports that reference internal APIs, while retaining
         // their public members.
-        return prunePrivateImports(factory, program, host, sourceFile, node);
+        return prunePrivateImports(program, host, sourceFile, node);
       } else if (
         ts.isPropertyDeclaration(node) ||
         ts.isMethodDeclaration(node) ||
@@ -507,7 +610,9 @@ function dropPrivateApiTransformer(
         // Remove any class and interface members that are prefixed with
         // underscores.
         if (hasPrivatePrefix(node.name as ts.Identifier)) {
-          return factory.createNotEmittedStatement(node);
+          const notEmittedStatement =
+            ts.factory.createNotEmittedStatement(node);
+          return notEmittedStatement;
         }
       } else if (ts.isTypeReferenceNode(node)) {
         // For public types that refer internal types, find a public type that
@@ -518,9 +623,9 @@ function dropPrivateApiTransformer(
           node.typeName
         );
         return publicName
-          ? factory.updateTypeReferenceNode(
+          ? ts.factory.updateTypeReferenceNode(
               node,
-              factory.createIdentifier(publicName.name),
+              ts.factory.createIdentifier(publicName.name),
               node.typeArguments
             )
           : node;

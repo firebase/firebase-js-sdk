@@ -87,7 +87,7 @@ export function getEmulatorHostAndPort(
   conf?: EmulatorConfig,
   discovered?: DiscoveredEmulators
 ) {
-  if (conf && ('host' in conf || 'port' in conf)) {
+  if (conf && 'host' in conf && 'port' in conf) {
     const { host, port } = conf;
     if (host || port) {
       if (!host || !port) {

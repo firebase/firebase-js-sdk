@@ -42,7 +42,7 @@ class BundleReaderImpl implements BundleReader {
 
   constructor(
     /** The reader to read from underlying binary bundle data source. */
-    private reader: ReadableStreamReader<Uint8Array>,
+    private reader: ReadableStreamDefaultReader<Uint8Array>,
     readonly serializer: JsonProtoSerializer
   ) {
     this.textDecoder = newTextDecoder();
@@ -192,7 +192,7 @@ class BundleReaderImpl implements BundleReader {
 }
 
 export function newBundleReader(
-  reader: ReadableStreamReader<Uint8Array>,
+  reader: ReadableStreamDefaultReader<Uint8Array>,
   serializer: JsonProtoSerializer
 ): BundleReader {
   return new BundleReaderImpl(reader, serializer);
