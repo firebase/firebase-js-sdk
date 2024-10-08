@@ -1,5 +1,15 @@
 # firebase
 
+## 10.14.1
+
+### Patch Changes
+
+- Updated dependencies [[`d6fa58854`](https://github.com/firebase/firebase-js-sdk/commit/d6fa58854e3cc976eab150154e2786043bc5e563)]:
+  - @firebase/app@0.10.13
+  - @firebase/messaging@0.12.12
+  - @firebase/app-compat@0.2.43
+  - @firebase/messaging-compat@0.2.12
+
 ## 10.14.0
 
 ### Minor Changes

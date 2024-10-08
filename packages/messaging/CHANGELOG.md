@@ -1,5 +1,11 @@
 # @firebase/messaging
 
+## 0.12.12
+
+### Patch Changes
+
+- [`d6fa58854`](https://github.com/firebase/firebase-js-sdk/commit/d6fa58854e3cc976eab150154e2786043bc5e563) [#8534](https://github.com/firebase/firebase-js-sdk/pull/8534) - The logging endpoint has been updated to ensure proper logging of WebPush entries. This resolves an issue where BigQuery logs were missing WebPush data. The payload structure has also been updated in alignment with the latest logging requirements as specified in go/firelog.
+
 ## 0.12.11
 
 ### Patch Changes
