@@ -151,7 +151,7 @@ function keepPublicFunctionsTransformer(
                   param,
                   [
                     ...(ts.getDecorators(param) || []),
-                    ...(ts.getModifiers(param) || []),
+                    ...(ts.getModifiers(param) || [])
                   ],
                   param.dotDotDotToken,
                   param.name,
