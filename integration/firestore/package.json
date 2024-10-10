@@ -14,7 +14,7 @@
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "dependencies": {
-    "@firebase/app": "0.10.12",
+    "@firebase/app": "0.10.13",
     "@firebase/firestore": "4.7.3"
   },
   "devDependencies": {
