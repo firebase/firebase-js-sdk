@@ -57,6 +57,7 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
+    expect(e).to.be.instanceOf(FunctionsError);
     const error = e as FunctionsError;
     expect(error.code).to.equal(`${FUNCTIONS_TYPE}/${code}`);
     expect(error.message).to.equal(message);
