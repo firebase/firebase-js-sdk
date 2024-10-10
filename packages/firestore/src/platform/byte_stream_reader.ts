@@ -27,7 +27,7 @@ import * as rn from './rn/byte_stream_reader';
 export function toByteStreamReader(
   source: BundleSource,
   bytesPerRead: number = DEFAULT_BYTES_PER_READ
-): ReadableStreamReader<Uint8Array> {
+): ReadableStreamDefaultReader<Uint8Array> {
   if (isNode()) {
     return node.toByteStreamReader(source, bytesPerRead);
   } else if (isReactNative()) {

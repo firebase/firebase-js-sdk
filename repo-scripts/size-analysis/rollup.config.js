@@ -42,7 +42,7 @@ export default [
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017',
-            module: 'es2017'
+            module: 'es2015'
           }
         }
       }),
@@ -67,7 +67,7 @@ export default [
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017',
-            module: 'es2017'
+            module: 'es2015'
           }
         }
       }),
