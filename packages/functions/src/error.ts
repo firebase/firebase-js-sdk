@@ -56,15 +56,18 @@ const errorCodeMap: { [name: string]: FunctionsErrorCode } = {
  * @public
  */
 export class FunctionsError extends FirebaseError {
+  /**
+   * Constructs a new instance of the `FunctionsError` class.
+   */
   constructor(
     /**
-     * A standard error code that will be returned to the client. This also
-     * determines the HTTP status code of the response, as defined in code.proto.
-     */
+    * A standard error code that will be returned to the client. This also
+    * determines the HTTP status code of the response, as defined in code.proto.
+    */
     code: FunctionsErrorCode,
     message?: string,
     /**
-     * Extra data to be converted to JSON and included in the error response.
+     * Additional details to be converted to JSON and included in the error response.
      */
     readonly details?: unknown
   ) {

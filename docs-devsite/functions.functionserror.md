@@ -25,23 +25,22 @@ export declare class FunctionsError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, details)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class |
+|  [(constructor)(code, message, details)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Extra data to be converted to JSON and included in the error response. |
+|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Additional details to be converted to JSON and included in the error response. |
 
 ## FunctionsError.(constructor)
 
-Constructs a new instance of the `FunctionsError` class
+Constructs a new instance of the `FunctionsError` class.
 
 <b>Signature:</b>
 
 ```typescript
-constructor(
-    code: FunctionsErrorCode, message?: string, 
+constructor(code: FunctionsErrorCode, message?: string, 
     details?: unknown);
 ```
 
@@ -55,7 +54,7 @@ constructor(
 
 ## FunctionsError.details
 
-Extra data to be converted to JSON and included in the error response.
+Additional details to be converted to JSON and included in the error response.
 
 <b>Signature:</b>
 
