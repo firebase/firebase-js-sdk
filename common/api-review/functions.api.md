@@ -19,7 +19,8 @@ export interface Functions {
 
 // @public
 export class FunctionsError extends FirebaseError {
-    constructor(code: FunctionsErrorCodeCore, message?: string,
+    constructor(
+    code: FunctionsErrorCodeCore, message?: string,
     details?: unknown);
     readonly details?: unknown;
 }
