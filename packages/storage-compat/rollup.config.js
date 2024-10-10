@@ -25,15 +25,7 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    abortOnError: false
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
     abortOnError: false,
@@ -46,41 +38,26 @@ const es2017BuildPlugins = [
   json({ preferConst: true })
 ];
 
-const esmBuilds = [
-  {
-    input: './src/index.ts',
-    output: {
-      file: pkg.esm5,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [...es5BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+const esmBuild = {
+  input: './src/index.ts',
+  output: {
+    file: pkg.browser,
+    format: 'es',
+    sourcemap: true
   },
-  {
-    input: './src/index.ts',
-    output: {
-      file: pkg.browser,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+  plugins: [...buildPlugins, emitModulePackageFile()],
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+};
 
-const cjsBuilds = [
-  {
-    input: './src/index.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: [...es5BuildPlugins],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+const cjsBuild = {
+  input: './src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
+  },
+  plugins: buildPlugins,
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+};
 
-// eslint-disable-next-line import/no-default-export
-export default [...esmBuilds, ...cjsBuilds];
+export default [esmBuild, cjsBuild];

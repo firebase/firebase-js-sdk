@@ -21,17 +21,8 @@ import typescript from 'typescript';
 
 import pkg from './package.json';
 
-/**
- * Common plugins for all builds
- */
-const commonPlugins = [
-  strip({
-    functions: ['debugAssert.*']
-  })
-];
-
 const workerPlugins = [
-  ...commonPlugins,
+  strip({ functions: ['debugAssert.*'] }),
   resolve({
     mainFields: ['webworker', 'module', 'main']
   }),
@@ -44,7 +35,7 @@ const workerPlugins = [
         lib: [
           // TODO: remove this
           'dom',
-          'es2015',
+          'es2017',
           'webworker'
         ]
       }
@@ -52,30 +43,33 @@ const workerPlugins = [
   })
 ];
 
-const es5Builds = [
-  /**
-   * Browser Builds
-   */
+const esmBuilds = [
   {
     input: 'src/index.js',
     output: [{ file: pkg.browser, format: 'esm', sourcemap: true }],
     plugins: [
-      ...commonPlugins,
-      resolve({
-        mainFields: ['module', 'main']
-      })
+      strip({ functions: ['debugAssert.*'] }),
+      resolve({ mainFields: ['module', 'main'] })
     ]
   },
   {
     input: 'src/worker/web-worker.ts',
-    output: [{ file: pkg.webworker, format: 'esm', sourcemap: true }],
+    output: {
+      file: pkg.webworker,
+      format: 'esm',
+      sourcemap: true
+    },
     plugins: workerPlugins
   },
   {
     input: 'src/worker/service-worker.ts',
-    output: [{ file: pkg.serviceworker, format: 'esm', sourcemap: true }],
+    output: {
+      file: pkg.serviceworker,
+      format: 'esm',
+      sourcemap: true
+    },
     plugins: workerPlugins
   }
 ];
 
-export default [...es5Builds];
+export default [...esmBuilds];

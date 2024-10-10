@@ -1,7 +1,7 @@
 {
-  "name": "@firebase/vertexai-preview",
+  "name": "@firebase/vertexai",
   "version": "0.0.4",
-  "description": "A Firebase SDK for VertexAI (preview)",
+  "description": "A Firebase SDK for VertexAI",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {
     "node": ">=18.0.0"
@@ -11,7 +11,7 @@
   "module": "dist/esm/index.esm2017.js",
   "exports": {
     ".": {
-      "types": "./dist/vertexai-preview-public.d.ts",
+      "types": "./dist/vertexai-public.d.ts",
       "node": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/esm/index.esm2017.js"
@@ -40,7 +40,7 @@
     "test:skip-clone": "karma start",
     "test:browser": "yarn testsetup && karma start",
     "api-report": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-preview-public.d.ts",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/vertexai-public.d.ts",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "peerDependencies": {

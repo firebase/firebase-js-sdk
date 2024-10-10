@@ -38,14 +38,6 @@ const es2017Plugins = [
   json({ preferConst: true })
 ];
 
-const es5Plugins = [
-  typescriptPlugin({
-    typescript,
-    transformers: [util.removeAssertTransformer]
-  }),
-  json({ preferConst: true })
-];
-
 const browserBuilds = [
   {
     input: './src/index.ts',
@@ -55,18 +47,6 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: es2017Plugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: './src/index.ts',
-    output: [
-      {
-        file: pkg.esm5,
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: es5Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {

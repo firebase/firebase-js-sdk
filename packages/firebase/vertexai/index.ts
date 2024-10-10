@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from '@firebase/vertexai-preview';
+export * from '@firebase/vertexai';

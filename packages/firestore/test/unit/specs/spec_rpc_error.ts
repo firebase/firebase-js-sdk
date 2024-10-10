@@ -33,7 +33,8 @@ export class RpcError extends Error {
       this.code = mapRpcCodeFromCode(code);
     }
 
-    // TODO(mikelehen): Error is a function not a class in ES5 so extending it
+    // TODO(dlarocque): Improve this since we no longer target ES5.
+    // Error is a function not a class in ES5 so extending it
     // doesn't really work without hackery.  Just manually set .message for now.
     this.message = message;
   }

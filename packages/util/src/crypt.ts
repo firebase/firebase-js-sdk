@@ -104,6 +104,7 @@ interface Base64 {
 // We define it as an object literal instead of a class because a class compiled down to es5 can't
 // be treeshaked. https://github.com/rollup/rollup/issues/1691
 // Static lookup maps, lazily populated by init_()
+// TODO(dlarocque): Define this as a class, since we no longer target ES5.
 export const base64: Base64 = {
   /**
    * Maps bytes to characters.

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "^8.13.0 || >=10.10.0"
+    "node": ">=18.0.0"
   },
   "description": "A script to prune non-exported types from a d.ts.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",

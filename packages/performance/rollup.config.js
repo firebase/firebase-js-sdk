@@ -27,52 +27,36 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
-const es2017BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
+    typescript
   }),
   json({ preferConst: true })
 ];
 
-const esmBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5)),
-      emitModulePackageFile()
-    ]
+const esmBuild = {
+  input: 'src/index.ts',
+  output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('esm', 2017)),
+    emitModulePackageFile()
+  ]
+};
+
+const cjsBuild = {
+  input: 'src/index.ts',
+  output: {
+    file: pkg.main,
+    format: 'cjs',
+    sourcemap: true
   },
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
-      emitModulePackageFile()
-    ]
-  }
-];
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+  plugins: [
+    ...buildPlugins,
+    replace(generateBuildTargetReplaceConfig('cjs', 2017))
+  ]
+};
 
-const cjsBuilds = [
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
-    ]
-  }
-];
-
-export default [...esmBuilds, ...cjsBuilds];
+export default [esmBuild, cjsBuild];

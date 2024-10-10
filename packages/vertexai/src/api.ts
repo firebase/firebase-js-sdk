@@ -26,6 +26,7 @@ import { VertexAIError } from './errors';
 import { GenerativeModel } from './models/generative-model';
 
 export { ChatSession } from './methods/chat-session';
+export * from './requests/schema-builder';
 
 export { GenerativeModel };
 

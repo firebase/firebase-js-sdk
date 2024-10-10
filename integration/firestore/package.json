@@ -32,5 +32,8 @@
     "typescript": "4.2.2",
     "webpack": "5.76.0",
     "webpack-stream": "7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

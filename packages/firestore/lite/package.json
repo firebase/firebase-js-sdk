@@ -6,7 +6,9 @@
   "module": "../dist/lite/index.browser.esm2017.js",
   "browser": "../dist/lite/index.browser.esm2017.js",
   "react-native": "../dist/lite/index.rn.esm2017.js",
-  "esm5": "../dist/lite/index.browser.esm5.js",
   "typings": "../dist/lite/index.d.ts",
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

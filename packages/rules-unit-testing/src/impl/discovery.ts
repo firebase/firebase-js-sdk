@@ -16,7 +16,6 @@
  */
 
 import { EmulatorConfig, HostAndPort } from '../public_types';
-import nodeFetch from 'node-fetch';
 import { makeUrl, fixHostname } from './url';
 
 /**
@@ -27,9 +26,9 @@ import { makeUrl, fixHostname } from './url';
  */
 export async function discoverEmulators(
   hub: HostAndPort,
-  fetch: typeof nodeFetch = nodeFetch
+  fetchImpl: typeof fetch = fetch
 ): Promise<DiscoveredEmulators> {
-  const res = await fetch(makeUrl(hub, '/emulators'));
+  const res = await fetchImpl(makeUrl(hub, '/emulators'));
   if (!res.ok) {
     throw new Error(
       `HTTP Error ${res.status} when attempting to reach Emulator Hub at ${res.url}, are you sure it is running?`

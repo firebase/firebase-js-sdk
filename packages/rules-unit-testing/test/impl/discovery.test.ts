@@ -71,7 +71,7 @@ describe('discoverEmulators()', () => {
     // Connect to port:0. Should always fail (although error codes may differ among OSes).
     await expect(
       discoverEmulators({ host: '127.0.0.1', port: 0 })
-    ).to.be.rejectedWith(/EADDRNOTAVAIL|ECONNREFUSED/);
+    ).to.be.rejectedWith(/EADDRNOTAVAIL|ECONNREFUSED|fetch failed/);
   });
 
   it('throws if response status is not 2xx', async () => {

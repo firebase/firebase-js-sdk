@@ -31,7 +31,6 @@ const TOP_LEVEL_FIELDS = [
   'typings',
   'react-native',
   'cordova',
-  'esm5',
   'webworker',
   'main-esm'
 ];

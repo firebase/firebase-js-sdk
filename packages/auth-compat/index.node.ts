@@ -23,15 +23,6 @@
  */
 export * from './index';
 import { FetchProvider } from '@firebase/auth/internal';
-import {
-  fetch as undiciFetch,
-  Headers as undiciHeaders,
-  Response as undiciResponse
-} from 'undici';
 import './index';
 
-FetchProvider.initialize(
-  undiciFetch as unknown as typeof fetch,
-  undiciHeaders as unknown as typeof Headers,
-  undiciResponse as unknown as typeof Response
-);
+FetchProvider.initialize(fetch, Headers, Response);

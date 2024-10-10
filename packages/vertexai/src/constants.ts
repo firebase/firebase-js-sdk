@@ -21,9 +21,9 @@ export const VERTEX_TYPE = 'vertexAI';
 
 export const DEFAULT_LOCATION = 'us-central1';
 
-export const DEFAULT_BASE_URL = 'https://firebaseml.googleapis.com';
+export const DEFAULT_BASE_URL = 'https://firebasevertexai.googleapis.com';
 
-export const DEFAULT_API_VERSION = 'v2beta';
+export const DEFAULT_API_VERSION = 'v1beta';
 
 export const PACKAGE_VERSION = version;
 

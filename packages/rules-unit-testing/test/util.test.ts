@@ -165,7 +165,7 @@ describe('assertFails()', () => {
 
 describe('withFunctionTriggersDisabled()', () => {
   it('disabling function triggers does not throw, returns value', async function () {
-    const fetchSpy = sinon.spy(require('node-fetch'), 'default');
+    const fetchSpy = sinon.spy(globalThis, 'fetch');
 
     const res = await withFunctionTriggersDisabled(() => {
       return Promise.resolve(1234);
@@ -176,7 +176,7 @@ describe('withFunctionTriggersDisabled()', () => {
   });
 
   it('disabling function triggers always re-enables, event when the function throws', async function () {
-    const fetchSpy = sinon.spy(require('node-fetch'), 'default');
+    const fetchSpy = sinon.spy(globalThis, 'fetch');
 
     const res = withFunctionTriggersDisabled(() => {
       throw new Error('I throw!');

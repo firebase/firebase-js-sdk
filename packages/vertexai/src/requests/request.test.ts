@@ -24,6 +24,7 @@ import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 import { VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
+import { getMockResponse } from '../../test-utils/mock-response';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -243,7 +244,7 @@ describe('request methods', () => {
           false,
           '',
           {
-            timeout: 0
+            timeout: 180000
           }
         );
       } catch (e) {
@@ -356,5 +357,29 @@ describe('request methods', () => {
       }
       expect(fetchStub).to.be.calledOnce;
     });
+  });
+  it('Network error, API not enabled', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-firebasevertexai-api-not-enabled.json'
+    );
+    const fetchStub = stub(globalThis, 'fetch').resolves(
+      mockResponse as Response
+    );
+    try {
+      await makeRequest(
+        'models/model-name',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        ''
+      );
+    } catch (e) {
+      expect((e as VertexAIError).code).to.equal(
+        VertexAIErrorCode.API_NOT_ENABLED
+      );
+      expect((e as VertexAIError).message).to.include('my-project');
+      expect((e as VertexAIError).message).to.include('googleapis.com');
+    }
+    expect(fetchStub).to.be.calledOnce;
   });
 });

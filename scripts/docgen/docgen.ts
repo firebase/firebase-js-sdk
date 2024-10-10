@@ -63,6 +63,9 @@ const PREFERRED_PARAMS = [
   'vertexAI'
 ];
 
+let authApiReportOriginal: string;
+let authApiConfigOriginal: string;
+
 yargs
   .command(
     '$0',
@@ -97,9 +100,6 @@ yargs
 
 process.on('exit', cleanup);
 process.on('SIGINT', cleanup);
-
-let authApiReportOriginal: string;
-let authApiConfigOriginal: string;
 
 function cleanup() {
   try {
@@ -194,8 +194,8 @@ async function generateDocs(
     'utf8'
   );
   const authApiConfigModified = authApiConfigOriginal.replace(
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.d.ts"`,
-    `"mainEntryPointFilePath": "<projectFolder>/dist/esm5/index.doc.d.ts"`
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.d.ts"`,
+    `"mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.doc.d.ts"`
   );
 
   try {

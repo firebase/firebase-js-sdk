@@ -91,7 +91,7 @@ export interface UsageMetadata {
  * @public
  */
 export interface PromptFeedback {
-  blockReason: BlockReason;
+  blockReason?: BlockReason;
   safetyRatings: SafetyRating[];
   blockReasonMessage?: string;
 }
