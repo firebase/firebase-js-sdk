@@ -58,12 +58,13 @@ export abstract class Emulator {
         if (err) reject(err);
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
-        const writer = fs.createWriteStream(filepath);
+        const buf: any[] = [];
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
         // Map the DOM's fetch Reader to node's streaming file system
         // operations. We will need to access class members `binaryPath` and `copyToCache` after the
         // download completes. It's a compilation error to pass `this` into the named function
         // `readChunk`, so the download operation is wrapped in a promise that we wait upon.
+        console.log(process.memoryUsage().heapTotal);
         const downloadPromise = new Promise<void>(
           (downloadComplete, downloadFailed) => {
             fetch(this.binaryUrl)
@@ -75,9 +76,10 @@ export abstract class Emulator {
                   const reader = resp.body.getReader();
                   reader.read().then(function readChunk({ done, value }): any {
                     if (done) {
+                      console.log('done download. buffer length:', buf.length);
                       downloadComplete();
                     } else {
-                      writer.write(value);
+                      buf.push(...value);
                       return reader.read().then(readChunk);
                     }
                   });
@@ -96,6 +98,8 @@ export abstract class Emulator {
             // Change emulator binary file permission to 'rwxr-xr-x'.
             // The execute permission is required for it to be able to start
             // with 'java -jar'.
+            fs.writeFileSync(filepath, new Uint8Array(buf));
+          
             fs.chmod(filepath, 0o755, err => {
               if (err) {
                 reject(err);
@@ -190,8 +194,8 @@ export abstract class Emulator {
     }
 
     if (this.binaryPath) {
-      console.log(`Deleting the emulator jar at ${this.binaryPath}`);
-      // fs.unlinkSync(this.binaryPath);
+      console.log(`Deleting the emulator at ${this.binaryPath}`);
+      fs.unlinkSync(this.binaryPath);
     }
   }
 
