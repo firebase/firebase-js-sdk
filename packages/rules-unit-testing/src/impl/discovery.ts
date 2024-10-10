@@ -84,29 +84,20 @@ export interface DiscoveredEmulators {
  */
 export function getEmulatorHostAndPort(
   emulator: keyof DiscoveredEmulators,
-  conf?: EmulatorConfig,
+  endpoint?: HostAndPort,
   discovered?: DiscoveredEmulators
-) {
-  if (conf && 'host' in conf && 'port' in conf) {
-    const { host, port } = conf;
-    if (host || port) {
-      if (!host || !port) {
-        throw new Error(
-          `Invalid configuration ${emulator}.host=${host} and ${emulator}.port=${port}. ` +
-            'If either parameter is supplied, both must be defined.'
-        );
-      }
-      if (discovered && !discovered[emulator]) {
-        console.warn(
-          `Warning: config for the ${emulator} emulator is specified, but the Emulator hub ` +
-            'reports it as not running. This may lead to errors such as connection refused.'
-        );
-      }
-      return {
-        host: fixHostname(conf.host, discovered?.hub?.host),
-        port: conf.port
-      };
+): HostAndPort | undefined {
+  if (endpoint) {
+    if (discovered && !discovered[emulator]) {
+      console.warn(
+        `Warning: config for the ${emulator} emulator is specified, but the Emulator hub ` +
+          'reports it as not running. This may lead to errors such as connection refused.'
+      );
     }
+    return {
+      host: fixHostname(endpoint.host, discovered?.hub?.host),
+      port: endpoint.port
+    };
   }
   const envVar = EMULATOR_HOST_ENV_VARS[emulator];
   const fallback = discovered?.[emulator] || emulatorFromEnvVar(envVar);
