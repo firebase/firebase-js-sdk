@@ -73,7 +73,7 @@ export async function initializeTestEnvironment(
   for (const emulator of SUPPORTED_EMULATORS) {
     const hostAndPort = getEmulatorHostAndPort(
       emulator,
-      config[emulator],
+      config[emulator]?.endpoint,
       discovered
     );
     if (hostAndPort) {
