@@ -364,3 +364,83 @@ exports.es2017PluginsCompat = function (
     ];
   }
 };
+
+function getPackageJsonExportPaths() {
+  const {
+    exports: {
+      '.': {
+        types: main_types,
+        browser: { require: main_browser_require, import: main_browser_import },
+        node: { require: main_node_require, import: main_node_import },
+        'react-native': main_react_native,
+        esm5: main_esm5
+      },
+      './lite': {
+        types: lite_types,
+        browser: { require: lite_browser_require, import: lite_browser_import },
+        node: { require: lite_node_require, import: lite_node_import },
+        'react-native': lite_react_native,
+        esm5: lite_esm5
+      }
+    }
+  } = pkg;
+
+  const map = new Map();
+  map.set('main_types', main_types);
+  map.set('main_browser_require', main_browser_require);
+  map.set('main_browser_import', main_browser_import);
+  map.set('main_node_require', main_node_require);
+  map.set('main_node_import', main_node_import);
+  map.set('main_react_native', main_react_native);
+  map.set('main_esm5', main_esm5);
+  map.set('lite_types', lite_types);
+  map.set('lite_browser_require', lite_browser_require);
+  map.set('lite_browser_import', lite_browser_import);
+  map.set('lite_node_require', lite_node_require);
+  map.set('lite_node_import', lite_node_import);
+  map.set('lite_react_native', lite_react_native);
+  map.set('lite_esm5', lite_esm5);
+
+  const missingKeys = [];
+  map.forEach((value, key) => {
+    if (!value) {
+      missingKeys.push(key);
+    }
+  });
+
+  if (missingKeys.length > 0) {
+    throw new Error(
+      'missing keys from package.json: ' + missingKeys.join(', ')
+    );
+  }
+
+  return {
+    main: {
+      types: main_types,
+      browser: {
+        require: main_browser_require,
+        import: main_browser_import
+      },
+      node: {
+        require: main_node_require,
+        import: main_node_import
+      },
+      rn: main_react_native,
+      esm5: main_esm5
+    },
+    lite: {
+      types: lite_types,
+      browser: {
+        require: lite_browser_require,
+        import: lite_browser_import
+      },
+      node: {
+        require: lite_node_require,
+        import: lite_node_import
+      },
+      rn: lite_react_native,
+      esm5: lite_esm5
+    }
+  };
+}
+exports.getPackageJsonExportPaths = getPackageJsonExportPaths;
