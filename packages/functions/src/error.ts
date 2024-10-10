@@ -61,9 +61,9 @@ export class FunctionsError extends FirebaseError {
    */
   constructor(
     /**
-    * A standard error code that will be returned to the client. This also
-    * determines the HTTP status code of the response, as defined in code.proto.
-    */
+     * A standard error code that will be returned to the client. This also
+     * determines the HTTP status code of the response, as defined in code.proto.
+     */
     code: FunctionsErrorCode,
     message?: string,
     /**
