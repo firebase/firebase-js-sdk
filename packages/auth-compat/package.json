@@ -60,7 +60,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.2.42",
+    "@firebase/app-compat": "0.2.43",
     "@rollup/plugin-json": "4.1.0",
     "rollup": "2.79.1",
     "rollup-plugin-replace": "2.2.0",
