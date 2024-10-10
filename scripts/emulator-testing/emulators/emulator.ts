@@ -97,7 +97,10 @@ export abstract class Emulator {
             // The execute permission is required for it to be able to start
             // with 'java -jar'.
             fs.chmod(filepath, 0o755, err => {
-              if (err) reject(err);
+              if (err) {
+                reject(err);
+              }
+
               console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
               this.binaryPath = filepath;
               if (this.copyToCache()) {
@@ -121,11 +124,14 @@ export abstract class Emulator {
       }
       let promise: ChildProcessPromise<SpawnPromiseResult>;
       if (this.isDataConnect) {
-        promise = spawn(this.binaryPath, [
-          'dev',
-          '--local_connection_string',
-          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
-        ]);
+        promise = spawn(
+          this.binaryPath, 
+          [
+            'dev',
+            '--local_connection_string',
+            "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+          ]
+        );
       } else {
         promise = spawn(
           'java',
@@ -185,7 +191,7 @@ export abstract class Emulator {
 
     if (this.binaryPath) {
       console.log(`Deleting the emulator jar at ${this.binaryPath}`);
-      fs.unlinkSync(this.binaryPath);
+      // fs.unlinkSync(this.binaryPath);
     }
   }
 

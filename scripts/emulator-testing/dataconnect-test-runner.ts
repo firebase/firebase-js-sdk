@@ -18,6 +18,7 @@
 import { DataConnectEmulator } from './emulators/dataconnect-emulator';
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
+
 function runTest(port: number) {
   console.log(
     'path: ' + path.resolve(__dirname, '../../packages/data-connect')
@@ -38,7 +39,7 @@ async function run(): Promise<void> {
     await emulator.setUp();
     await runTest(emulator.port);
   } finally {
-    await emulator.tearDown();
+    emulator.tearDown();
   }
 }
 run().catch(err => {

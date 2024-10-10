@@ -21,8 +21,6 @@ import { Emulator } from './emulator';
 const DATABASE_EMULATOR_VERSION = '1.3.7';
 
 export class DataConnectEmulator extends Emulator {
-  //   namespace: string;
-
   constructor(port = 3628) {
     const os = platform();
     let urlString = '';

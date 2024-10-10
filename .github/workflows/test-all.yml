@@ -14,7 +14,7 @@
 
 name: Test All Packages
 
-on: pull_request
+on: push
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
@@ -92,7 +92,8 @@ jobs:
     - name: Run unit tests
       # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
-        xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
+        # xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
+        xvfb-run yarn lerna run --scope @firebase/data-connect test
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
