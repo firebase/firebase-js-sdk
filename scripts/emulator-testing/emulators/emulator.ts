@@ -53,70 +53,61 @@ export abstract class Emulator {
       return Promise.resolve();
     }
 
+    const { name: tempDir } = tmp.dirSync({ unsafeCleanup: true });
+    const filepath = path.resolve(tempDir, this.binaryName);
     return new Promise<void>((resolve, reject) => {
-      tmp.dir((err: Error | null, dir: string) => {
-        if (err) reject(err);
-        console.log(`Created temporary directory at [${dir}].`);
-        const filepath: string = path.resolve(dir, this.binaryName);
-        const buf: any[] = [];
-        console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        // Map the DOM's fetch Reader to node's streaming file system
-        // operations. We will need to access class members `binaryPath` and `copyToCache` after the
-        // download completes. It's a compilation error to pass `this` into the named function
-        // `readChunk`, so the download operation is wrapped in a promise that we wait upon.
-        console.log(process.memoryUsage().heapTotal);
-        const downloadPromise = new Promise<void>(
-          (downloadComplete, downloadFailed) => {
-            fetch(this.binaryUrl)
-              .then(resp => {
-                if (resp.status !== 200 || resp.body === null) {
-                  console.log('Download of emulator failed: ', resp.statusText);
-                  downloadFailed();
-                } else {
-                  const reader = resp.body.getReader();
-                  reader.read().then(function readChunk({ done, value }): any {
-                    if (done) {
-                      console.log('done download. buffer length:', buf.length);
-                      downloadComplete();
-                    } else {
-                      buf.push(...value);
-                      return reader.read().then(readChunk);
-                    }
-                  });
+      // We want access to `this.binaryPath` after the download is finished, but we can't since in
+      // `readChunk`, `this` is not inherited from the parent (since it's a named function expression).
+      // To work around this, we wrap the fetch in a promise, then once it's resolved we can access `this` in the callback arrow function.
+      const downloadPromise = new Promise<Uint8Array>(
+        (downloadComplete, downloadFailed) => {
+          fetch(this.binaryUrl)
+            .then(resp => {
+              if (!resp.ok || resp.body === null) {
+                return downloadFailed(
+                  `Failed to download emulator: [${resp.status}] ${resp.statusText}`
+                );
+              }
+
+              const buf = new Uint8Array(2 ** 25); // 32Mb
+              let cur = 0;
+              const reader = resp.body.getReader();
+              reader.read().then(function readChunk({ done, value }): any {
+                if (done) {
+                  return downloadComplete(buf);
                 }
-              })
-              .catch(e => {
-                console.log(`Download of emulator failed: ${e}`);
-                downloadFailed();
+
+                if (!value) {
+                  return downloadFailed(
+                    'Did not receive chunk in response body'
+                  );
+                }
+
+                buf.set(value, cur);
+                cur += value.length;
+                return reader.read().then(readChunk);
               });
-          }
-        );
+            })
+            .catch(err => downloadFailed(err));
+        }
+      );
 
-        downloadPromise.then(
-          () => {
-            console.log('Download complete');
-            // Change emulator binary file permission to 'rwxr-xr-x'.
-            // The execute permission is required for it to be able to start
-            // with 'java -jar'.
-            fs.writeFileSync(filepath, new Uint8Array(buf));
-          
-            fs.chmod(filepath, 0o755, err => {
-              if (err) {
-                reject(err);
-              }
-
-              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
-              this.binaryPath = filepath;
-              if (this.copyToCache()) {
-                console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-              }
-              resolve();
-            });
-          },
-          () => {
-            reject();
+      downloadPromise.then(buf => {
+        fs.writeFileSync(filepath, buf);
+        fs.chmod(filepath, 0o755, err => {
+          if (err) {
+            return reject(err);
           }
-        );
+
+          console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+          // Since we are now in an arrow function, `this` is inherited from the `download()` method, so it is the Emulator object
+          this.binaryPath = filepath;
+          if (this.copyToCache()) {
+            console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+          }
+
+          resolve();
+        });
       });
     });
   }
@@ -128,14 +119,11 @@ export abstract class Emulator {
       }
       let promise: ChildProcessPromise<SpawnPromiseResult>;
       if (this.isDataConnect) {
-        promise = spawn(
-          this.binaryPath, 
-          [
-            'dev',
-            '--local_connection_string',
-            "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
-          ]
-        );
+        promise = spawn(this.binaryPath, [
+          'dev',
+          '--local_connection_string',
+          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+        ]);
       } else {
         promise = spawn(
           'java',
