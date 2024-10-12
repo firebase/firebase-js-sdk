@@ -181,10 +181,20 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
   _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
-      this.getAssertedRecaptcha().reset(this.widgetId);
+      try {
+        console.log("Trying to reset reCAPTCHA");
+        this.getAssertedRecaptcha().reset(this.widgetId);
+      } catch {
+        console.log("Failed to reset reCAPTCHA, ignoring error");
+      }
     }
   }
-
+  /**
+   * Returns if the reCAPTCHA instance has been destroyed.
+   */
+  isDestroyed(): boolean {
+    return this.destroyed
+  }
   /**
    * Clears the reCAPTCHA widget from the page and destroys the instance.
    */
