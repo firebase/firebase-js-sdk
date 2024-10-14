@@ -44,6 +44,7 @@ RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
 RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
+RPC_NAME_URL_MAPPING['ExecutePipeline'] = 'executePipeline';
 
 const RPC_URL_VERSION = 'v1';
 

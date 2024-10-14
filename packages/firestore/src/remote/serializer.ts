@@ -37,6 +37,8 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
+import { Bytes } from '../lite-api/bytes';
+import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
@@ -87,7 +89,11 @@ import {
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult
+  WriteResult as ProtoWriteResult,
+  firestoreV1ApiClientInterfaces,
+  Value as ProtoValue,
+  MapValue as ProtoMapValue,
+  ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -104,6 +110,12 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+
+import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
+
+
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -173,7 +185,7 @@ function fromRpcStatus(status: ProtoStatus): FirestoreError {
  * our generated proto interfaces say Int32Value must be. But GRPC actually
  * expects a { value: <number> } struct.
  */
-function toInt32Proto(
+export function toInt32Proto(
   serializer: JsonProtoSerializer,
   val: number | null
 ): number | { value: number } | null {
@@ -226,7 +238,7 @@ export function toTimestamp(
   }
 }
 
-function fromTimestamp(date: ProtoTimestamp): Timestamp {
+export function fromTimestamp(date: ProtoTimestamp): Timestamp {
   const timestamp = normalizeTimestamp(date);
   return new Timestamp(timestamp.seconds, timestamp.nanos);
 }
@@ -420,6 +432,37 @@ export function toDocument(
     updateTime: toTimestamp(serializer, document.version.toTimestamp()),
     createTime: toTimestamp(serializer, document.createTime.toTimestamp())
   };
+}
+
+export function fromPipelineResponse(
+  serializer: JsonProtoSerializer,
+  proto: ProtoExecutePipelineResponse,
+  document?: ProtoDocument
+): PipelineStreamElement {
+  const output: PipelineStreamElement = {};
+  if (proto.transaction?.length) {
+    output.transaction = proto.transaction;
+  }
+  const executionTime = proto.executionTime
+    ? fromVersion(proto.executionTime)
+    : undefined;
+  output.executionTime = executionTime;
+
+  if (!!document) {
+    output.key = document.name
+      ? fromName(serializer, document.name)
+      : undefined;
+
+    output.fields = new ObjectValue({ mapValue: { fields: document.fields } });
+
+    output.createTime = document.createTime
+      ? fromVersion(document.createTime!)
+      : undefined;
+    output.updateTime = document.updateTime
+      ? fromVersion(document.updateTime!)
+      : undefined;
+  }
+  return output;
 }
 
 export function fromDocument(
@@ -1389,4 +1432,83 @@ export function isValidResourceName(path: ResourcePath): boolean {
     path.get(0) === 'projects' &&
     path.get(2) === 'databases'
   );
+}
+
+export interface ProtoSerializable {
+  _toProto(serializer: JsonProtoSerializer): ProtoValue;
+}
+
+export interface UserData {
+  _readUserData(dataReader: UserDataReader): void;
+}
+
+export function toMapValue(
+  serializer: JsonProtoSerializer,
+  input: Map<string, ProtoSerializable>
+): ProtoValue {
+  const map: ProtoMapValue = { fields: {} };
+  input.forEach((exp: ProtoSerializable, key: string) => {
+    if (typeof key !== 'string') {
+      throw new Error(`Cannot encode map with non-string key: ${key}`);
+    }
+
+    map.fields![key] = exp._toProto(serializer)!;
+  });
+  return {
+    mapValue: map
+  };
+}
+
+export function toNullValue(value: null): ProtoValue {
+  return { nullValue: 'NULL_VALUE' };
+}
+
+export function toBooleanValue(value: boolean): ProtoValue {
+  return { booleanValue: value };
+}
+
+export function toStringValue(value: string): ProtoValue {
+  return { stringValue: value };
+}
+
+export function dateToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Date
+): ProtoValue {
+  const timestamp = Timestamp.fromDate(value);
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function timestampToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Timestamp
+): ProtoValue {
+  // Firestore backend truncates precision down to microseconds. To ensure
+  // offline mode works the same in regards to truncation, perform the
+  // truncation immediately without waiting for the backend to do that.
+  const timestamp = new Timestamp(
+    value.seconds,
+    Math.floor(value.nanoseconds / 1000) * 1000
+  );
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function toGeoPointValue(value: GeoPoint): ProtoValue {
+  return {
+    geoPointValue: {
+      latitude: value.latitude,
+      longitude: value.longitude
+    }
+  };
+}
+
+export function toBytesValue(
+  serializer: JsonProtoSerializer,
+  value: Bytes
+): ProtoValue {
+  return { bytesValue: toBytes(serializer, value._byteString) };
 }

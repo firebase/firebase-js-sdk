@@ -38,11 +38,17 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
+import { Pipeline } from '../pipelines/api/pipeline';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
-import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {
+  Datastore,
+  invokeExecutePipeline,
+  invokeRunAggregationQueryRpc
+} from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
@@ -541,6 +547,23 @@ export function firestoreClientRunAggregateQuery(
       deferred.resolve(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientExecutePipeline(
+  client: FirestoreClient,
+  pipeline: Pipeline
+): Promise<PipelineStreamElement[]> {
+  const deferred = new Deferred<PipelineStreamElement[]>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const datastore = await getDatastore(client);
+      deferred.resolve(invokeExecutePipeline(datastore, pipeline));
     } catch (e) {
       deferred.reject(e as Error);
     }

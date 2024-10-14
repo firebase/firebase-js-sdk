@@ -64,6 +64,7 @@ import { Deferred } from '../util/promise';
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
 import { FirestoreSettings, PersistenceSettings } from './settings';
+import type {PipelineSource} from "../pipelines/api/pipeline-source";
 
 export {
   connectFirestoreEmulator,
@@ -103,6 +104,10 @@ export class Firestore extends LiteFirestore {
     _offline: OfflineComponentProviderFactory;
     _online: OnlineComponentProviderFactory;
   };
+
+  pipeline = function(): PipelineSource {
+    return new PipelineSource(this);
+  }
 
   /** @hideconstructor */
   constructor(
