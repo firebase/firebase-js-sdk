@@ -102,11 +102,14 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * provides the code sent to their phone, call {@link ConfirmationResult.confirm}
  * with the code to sign the user in.
  *
- * For abuse prevention, this method also requires a {@link ApplicationVerifier}.
- * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
+ * For abuse prevention with reCAPTCHA v2, this method requires a {@link ApplicationVerifier}.
+ * This SDK includes a reCAPTCHA-v2-based implementation, {@link RecaptchaVerifier}.
  * This function can work on other platforms that do not support the
  * {@link RecaptchaVerifier} (like React Native), but you need to use a
  * third-party {@link ApplicationVerifier} implementation.
+ *
+ * For abuse prevention with reCAPTCHA Enterprise, {@link ApplicationVerifier} is required in Audit
+ * mode but not in Enforce mode.
  *
  * This method does not work in a Node.js environment or with {@link Auth} instances created with a
  * {@link @firebase/app#FirebaseServerApp}.
