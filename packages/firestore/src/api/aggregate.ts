@@ -25,7 +25,7 @@ import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { ExpUserDataWriter } from './reference_impl';
+import { ExpUserDataWriter } from './user_data_writer';
 
 export {
   aggregateQuerySnapshotEqual,

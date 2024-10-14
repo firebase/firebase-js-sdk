@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { FirestoreClient } from '../../core/firestore_client';
+import { DocumentReference } from '../../lite-api/reference';
+import { UserDataReader } from '../../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../../lite-api/user_data_writer';
+import { DocumentKey } from '../../model/document_key';
+
 import { Pipeline } from './pipeline';
 import {
   CollectionGroupSource,
@@ -20,29 +26,63 @@ import {
   DocumentsSource
 } from './stage';
 
-import { Firestore } from '../../api/database';
-import { DocumentReference } from '../../lite-api/reference';
-
 /**
  * Represents the source of a Firestore {@link Pipeline}.
  * @beta
  */
 export class PipelineSource {
-  constructor(private db: Firestore) {}
+  /**
+   * @internal
+   * @private
+   * @param db
+   * @param userDataReader
+   * @param userDataWriter
+   * @param documentReferenceFactory
+   */
+  constructor(
+    private db: FirestoreClient,
+    private userDataReader: UserDataReader,
+    private userDataWriter: AbstractUserDataWriter,
+    private documentReferenceFactory: (id: DocumentKey) => DocumentReference
+  ) {}
 
   collection(collectionPath: string): Pipeline {
-    return new Pipeline(this.db, [new CollectionSource(collectionPath)]);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      [new CollectionSource(collectionPath)]
+    );
   }
 
   collectionGroup(collectionId: string): Pipeline {
-    return new Pipeline(this.db, [new CollectionGroupSource(collectionId)]);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      [new CollectionGroupSource(collectionId)]
+    );
   }
 
   database(): Pipeline {
-    return new Pipeline(this.db, [new DatabaseSource()]);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      [new DatabaseSource()]
+    );
   }
 
   documents(docs: DocumentReference[]): Pipeline {
-    return new Pipeline(this.db, [DocumentsSource.of(docs)]);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      [DocumentsSource.of(docs)]
+    );
   }
 }

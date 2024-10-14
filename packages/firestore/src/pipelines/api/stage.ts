@@ -12,15 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-import {
-  Accumulator,
-  Expr,
-  Field,
-  FilterCondition,
-  Ordering
-} from './expressions';
-
+import { DocumentReference } from '../../lite-api/reference';
 import { VectorValue } from '../../lite-api/vector_value';
 import { ObjectValue } from '../../model/object_value';
 import {
@@ -33,8 +25,14 @@ import {
   toMapValue,
   toStringValue
 } from '../../remote/serializer';
-import { DocumentReference } from '../../lite-api/reference';
 
+import {
+  Accumulator,
+  Expr,
+  Field,
+  FilterCondition,
+  Ordering
+} from './expressions';
 
 /**
  * @beta

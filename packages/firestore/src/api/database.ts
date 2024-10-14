@@ -46,13 +46,16 @@ import {
   connectFirestoreEmulator,
   Firestore as LiteFirestore
 } from '../lite-api/database';
-import { Query } from '../lite-api/reference';
+import { DocumentReference, Query } from '../lite-api/reference';
+import { newUserDataReader } from '../lite-api/user_data_reader';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../local/indexeddb_persistence';
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
+import { DocumentKey } from '../model/document_key';
+import { PipelineSource } from '../pipelines/api/pipeline-source';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { AsyncQueueImpl } from '../util/async_queue_impl';
@@ -64,7 +67,7 @@ import { Deferred } from '../util/promise';
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
 import { FirestoreSettings, PersistenceSettings } from './settings';
-import type {PipelineSource} from "../pipelines/api/pipeline-source";
+import { ExpUserDataWriter } from './user_data_writer';
 
 export {
   connectFirestoreEmulator,
@@ -105,9 +108,18 @@ export class Firestore extends LiteFirestore {
     _online: OnlineComponentProviderFactory;
   };
 
-  pipeline = function(): PipelineSource {
-    return new PipelineSource(this);
-  }
+  pipeline = (): PipelineSource => {
+    const client = ensureFirestoreConfigured(this);
+    const firestore = this;
+    return new PipelineSource(
+      client,
+      newUserDataReader(firestore),
+      new ExpUserDataWriter(firestore),
+      (key: DocumentKey) => {
+        return new DocumentReference(firestore, null, key);
+      }
+    );
+  };
 
   /** @hideconstructor */
   constructor(

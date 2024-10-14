@@ -13,15 +13,18 @@
 // limitations under the License.
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
-import { ExpUserDataWriter } from '../../api/reference_impl';
-import { firestoreClientExecutePipeline } from '../../core/firestore_client';
-import {DocumentData, DocumentReference} from '../../lite-api/reference';
 import {
-  newUserDataReader,
+  FirestoreClient,
+  firestoreClientExecutePipeline
+} from '../../core/firestore_client';
+import { DocumentData, DocumentReference } from '../../lite-api/reference';
+import {
   parseVectorValue,
   UserDataReader,
   UserDataSource
 } from '../../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../../lite-api/user_data_writer';
+import { DocumentKey } from '../../model/document_key';
 import { ObjectValue } from '../../model/object_value';
 import {
   ExecutePipelineRequest,
@@ -61,7 +64,6 @@ import {
 } from './stage';
 
 import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
-import {ensureFirestoreConfigured, Firestore} from "../../api/database";
 
 interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
@@ -114,8 +116,21 @@ function isReadableUserData(value: any): value is ReadableUserData {
  * ```
  */
 export class Pipeline<AppModelType = DocumentData> {
+  /**
+   * @internal
+   * @private
+   * @param db
+   * @param userDataReader
+   * @param userDataWriter
+   * @param documentReferenceFactory
+   * @param stages
+   * @param converter
+   */
   constructor(
-    private db: Firestore,
+    private db: FirestoreClient,
+    private userDataReader: UserDataReader,
+    private userDataWriter: AbstractUserDataWriter,
+    private documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     private stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
@@ -155,7 +170,14 @@ export class Pipeline<AppModelType = DocumentData> {
         this.readUserData('addFields', this.selectablesToMap(fields))
       )
     );
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -192,7 +214,14 @@ export class Pipeline<AppModelType = DocumentData> {
   select(...selections: Array<Selectable | string>): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Select(this.selectablesToMap(selections)));
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   private selectablesToMap(
@@ -230,15 +259,14 @@ export class Pipeline<AppModelType = DocumentData> {
       | ReadableUserData[]
       | ReadableUserData
   >(name: string, expressionMap: T): T {
-    const userDataReader = newUserDataReader(this.db);
     if (isReadableUserData(expressionMap)) {
-      expressionMap._readUserData(userDataReader);
+      expressionMap._readUserData(this.userDataReader);
     } else if (Array.isArray(expressionMap)) {
       expressionMap.forEach(readableData =>
-        readableData._readUserData(userDataReader)
+        readableData._readUserData(this.userDataReader)
       );
     } else {
-      expressionMap.forEach(expr => expr._readUserData(userDataReader));
+      expressionMap.forEach(expr => expr._readUserData(this.userDataReader));
     }
     return expressionMap;
   }
@@ -277,7 +305,14 @@ export class Pipeline<AppModelType = DocumentData> {
   where(condition: FilterCondition & Expr): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Where(this.readUserData('where', condition)));
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -303,7 +338,14 @@ export class Pipeline<AppModelType = DocumentData> {
   offset(offset: number): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Offset(offset));
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -334,7 +376,14 @@ export class Pipeline<AppModelType = DocumentData> {
   limit(limit: number): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit));
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -372,7 +421,14 @@ export class Pipeline<AppModelType = DocumentData> {
         this.readUserData('distinct', this.selectablesToMap(groups || []))
       )
     );
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -478,13 +534,20 @@ export class Pipeline<AppModelType = DocumentData> {
         )
       );
     }
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   findNearest(options: FindNearestOptions): Pipeline<AppModelType>;
   findNearest(options: FindNearestOptions): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
-    const parseContext = newUserDataReader(this.db).createContext(
+    const parseContext = this.userDataReader.createContext(
       UserDataSource.Argument,
       'findNearest'
     );
@@ -499,7 +562,13 @@ export class Pipeline<AppModelType = DocumentData> {
         options.distanceField
       )
     );
-    return new Pipeline(this.db, copy);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy
+    );
   }
 
   /**
@@ -554,7 +623,14 @@ export class Pipeline<AppModelType = DocumentData> {
       );
     }
 
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   /**
@@ -579,14 +655,20 @@ export class Pipeline<AppModelType = DocumentData> {
    */
   genericStage(name: string, params: any[]): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
-    const dataReader = newUserDataReader(this.db);
     params.forEach(param => {
       if (isReadableUserData(param)) {
-        param._readUserData(dataReader);
+        param._readUserData(this.userDataReader);
       }
     });
     copy.push(new GenericStage(name, params));
-    return new Pipeline(this.db, copy, this.converter);
+    return new Pipeline(
+      this.db,
+      this.userDataReader,
+      this.userDataWriter,
+      this.documentReferenceFactory,
+      copy,
+      this.converter
+    );
   }
 
   // TODO(pipeline) support converter
@@ -687,24 +769,13 @@ export class Pipeline<AppModelType = DocumentData> {
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    // const util = new ExecutionUtil<AppModelType>(
-    //   this.db,
-    //   this.db._serializer!,
-    //   this.converter
-    // );
-    // return util._getResponse(this).then(result => result!);
-    // the query is a VectorQuery instance
-    // the query is a VectorQuery instance
-    const client = ensureFirestoreConfigured(this.db);
-
-    return firestoreClientExecutePipeline(client, this).then(result => {
-      const userDataWriter = new ExpUserDataWriter(this.db);
+    return firestoreClientExecutePipeline(this.db, this).then(result => {
       const docs = result.map(
         element =>
           new PipelineResult<AppModelType>(
-            userDataWriter,
+            this.userDataWriter,
             element.key?.path
-              ? new DocumentReference<DocumentData, DocumentData>(this.db, null, element.key)
+              ? this.documentReferenceFactory(element.key)
               : undefined,
             element.fields,
             element.executionTime?.toTimestamp(),

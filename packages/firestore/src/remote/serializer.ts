@@ -40,6 +40,7 @@ import { TargetId } from '../core/types';
 import { Bytes } from '../lite-api/bytes';
 import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
+import { UserDataReader } from '../lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -57,6 +58,7 @@ import {
 import { normalizeTimestamp } from '../model/normalize';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -90,7 +92,6 @@ import {
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
   WriteResult as ProtoWriteResult,
-  firestoreV1ApiClientInterfaces,
   Value as ProtoValue,
   MapValue as ProtoMapValue,
   ExecutePipelineResponse as ProtoExecutePipelineResponse
@@ -110,12 +111,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-
-import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
-
-
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { PipelineStreamElement } from '../model/pipeline_stream_element';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};

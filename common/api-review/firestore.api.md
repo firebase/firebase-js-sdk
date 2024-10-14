@@ -1076,7 +1076,7 @@ export class Firestore {
     // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
     //
     // (undocumented)
-    pipeline: () => PipelineSource | undefined;
+    pipeline: () => PipelineSource;
     toJSON(): object;
     type: 'firestore-lite' | 'firestore';
 }
@@ -1815,7 +1815,6 @@ export type PersistentTabManager = PersistentSingleTabManager | PersistentMultip
 
 // @beta
 export class Pipeline<AppModelType = DocumentData> {
-    constructor(db: Firestore, stages: Stage[], converter?: unknown);
     addFields(...fields: Selectable[]): Pipeline<AppModelType>;
     aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
     aggregate(options: {
@@ -1854,7 +1853,6 @@ export class PipelineResult<AppModelType = DocumentData> {
 
 // @beta
 export class PipelineSource {
-    constructor(db: Firestore);
     // (undocumented)
     collection(collectionPath: string): Pipeline;
     // (undocumented)
@@ -1863,7 +1861,7 @@ export class PipelineSource {
     database(): Pipeline;
     // (undocumented)
     documents(docs: DocumentReference[]): Pipeline;
-}
+    }
 
 // @public
 export type Primitive = string | number | boolean | undefined | null;

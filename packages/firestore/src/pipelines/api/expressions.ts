@@ -2412,7 +2412,10 @@ export class ArrayReverse extends FirestoreFunction {
 /**
  * @beta
  */
-export class ArrayContains extends FirestoreFunction implements FilterCondition {
+export class ArrayContains
+  extends FirestoreFunction
+  implements FilterCondition
+{
   constructor(private array: Expr, private element: Expr) {
     super('array_contains', [array, element]);
   }
@@ -2422,7 +2425,10 @@ export class ArrayContains extends FirestoreFunction implements FilterCondition 
 /**
  * @beta
  */
-export class ArrayContainsAll extends FirestoreFunction implements FilterCondition {
+export class ArrayContainsAll
+  extends FirestoreFunction
+  implements FilterCondition
+{
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_all', [array, new ListOfExprs(values)]);
   }
@@ -2432,7 +2438,10 @@ export class ArrayContainsAll extends FirestoreFunction implements FilterConditi
 /**
  * @beta
  */
-export class ArrayContainsAny extends FirestoreFunction implements FilterCondition {
+export class ArrayContainsAny
+  extends FirestoreFunction
+  implements FilterCondition
+{
   constructor(private array: Expr, private values: Expr[]) {
     super('array_contains_any', [array, new ListOfExprs(values)]);
   }
@@ -2618,7 +2627,10 @@ export class Like extends FirestoreFunction implements FilterCondition {
 /**
  * @beta
  */
-export class RegexContains extends FirestoreFunction implements FilterCondition {
+export class RegexContains
+  extends FirestoreFunction
+  implements FilterCondition
+{
   constructor(private expr: Expr, private pattern: Expr) {
     super('regex_contains', [expr, pattern]);
   }
@@ -6642,7 +6654,10 @@ export function timestampSub(
  * @param params The arguments to pass to the function.
  * @return A new {@code Function} representing the function call.
  */
-export function genericFunction(name: string, params: Expr[]): FirestoreFunction {
+export function genericFunction(
+  name: string,
+  params: Expr[]
+): FirestoreFunction {
   return new FirestoreFunction(name, params);
 }
 
