@@ -27,8 +27,6 @@ import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
 
-import pkg from './package.json';
-
 const sourcemaps = require('rollup-plugin-sourcemaps');
 const util = require('./rollup.shared');
 
@@ -75,9 +73,9 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.node.ts',
+    input: 'src/index.node.ts',
     output: {
-      file: pkg['main-esm'],
+      file: 'dist/index.node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -90,9 +88,9 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: 'dist/index.node.mjs',
     output: {
-      file: pkg.main,
+      file: 'dist/index.node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -107,9 +105,9 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: 'dist/index.node.mjs',
     output: {
-      file: pkg['main-esm'],
+      file: 'dist/index.node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -126,9 +124,9 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.ts',
+    input: 'src/index.ts',
     output: {
-      file: pkg.browser,
+      file: 'dist/index.esm2017.js',
       format: 'es',
       sourcemap: true
     },
@@ -140,10 +138,10 @@ const allBuilds = [
   },
   // Convert es2017 build to ES5
   {
-    input: pkg['browser'],
+    input: 'dist/index.esm2017.js',
     output: [
       {
-        file: pkg['esm5'],
+        file: 'dist/index.esm5.js',
         format: 'es',
         sourcemap: true
       }
@@ -159,10 +157,10 @@ const allBuilds = [
   },
   // Convert es2017 build to cjs
   {
-    input: pkg['browser'],
+    input: 'dist/index.esm2017.js',
     output: [
       {
-        file: './dist/index.cjs.js',
+        file: 'dist/index.cjs.js',
         format: 'cjs',
         sourcemap: true
       }
@@ -178,10 +176,10 @@ const allBuilds = [
   },
   // es2017 build with build target reporting
   {
-    input: pkg['browser'],
+    input: 'dist/index.esm2017.js',
     output: [
       {
-        file: pkg['browser'],
+        file: 'dist/index.esm2017.js',
         format: 'es',
         sourcemap: true
       }
@@ -197,9 +195,9 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: 'src/index.rn.ts',
     output: {
-      file: pkg['react-native'],
+      file: 'dist/index.rn.js',
       format: 'es',
       sourcemap: true
     },

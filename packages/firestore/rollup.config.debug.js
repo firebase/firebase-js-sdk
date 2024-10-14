@@ -62,9 +62,9 @@ const browserDeps = [
 
 export default [
   {
-    input: './src/index.ts',
+    input: 'src/index.ts',
     output: {
-      file: pkg.browser,
+      file: 'dist/index.esm2017.js',
       format: 'es',
       sourcemap: true
     },
