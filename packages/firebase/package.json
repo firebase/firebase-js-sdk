@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "10.14.0",
+  "version": "10.14.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -399,8 +399,8 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/app": "0.10.12",
-    "@firebase/app-compat": "0.2.42",
+    "@firebase/app": "0.10.13",
+    "@firebase/app-compat": "0.2.43",
     "@firebase/app-types": "0.9.2",
     "@firebase/auth": "1.7.9",
     "@firebase/auth-compat": "0.5.14",
@@ -413,8 +413,8 @@
     "@firebase/functions-compat": "0.3.14",
     "@firebase/installations": "0.6.9",
     "@firebase/installations-compat": "0.2.9",
-    "@firebase/messaging": "0.12.11",
-    "@firebase/messaging-compat": "0.2.11",
+    "@firebase/messaging": "0.12.12",
+    "@firebase/messaging-compat": "0.2.12",
     "@firebase/storage": "0.13.2",
     "@firebase/storage-compat": "0.3.12",
     "@firebase/performance": "0.6.9",
