@@ -541,7 +541,7 @@ export interface SafetySetting {
     // (undocumented)
     category: HarmCategory;
     // (undocumented)
-    method: HarmBlockMethod;
+    method?: HarmBlockMethod;
     // (undocumented)
     threshold: HarmBlockThreshold;
 }
