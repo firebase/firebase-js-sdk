@@ -57,7 +57,7 @@ jobs:
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: build.tar.gz
           path: build.tar.gz
@@ -74,7 +74,7 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
@@ -125,7 +125,7 @@ jobs:
       run: |
         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
@@ -165,7 +165,7 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
@@ -209,7 +209,7 @@ jobs:
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: build.tar.gz
     - name: Unzip build artifact
