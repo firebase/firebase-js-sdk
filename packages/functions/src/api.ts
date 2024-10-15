@@ -32,6 +32,7 @@ import {
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
+export { FunctionsError } from './error';
 export * from './public-types';
 
 /**
