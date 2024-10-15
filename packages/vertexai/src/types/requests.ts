@@ -63,7 +63,7 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
-  method: HarmBlockMethod;
+  method?: HarmBlockMethod;
 }
 
 /**
