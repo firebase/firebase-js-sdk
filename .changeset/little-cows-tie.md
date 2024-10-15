@@ -25,7 +25,7 @@
 '@firebase/database': patch
 'firebase': patch
 '@firebase/template': patch
-'@firebase/vertexai-preview': patch
+'@firebase/vertexai': patch
 '@firebase/storage': patch
 '@firebase/logger': patch
 '@firebase/auth': patch
