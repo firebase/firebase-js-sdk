@@ -93,7 +93,7 @@ jobs:
       # Ignore auth and firestore since they're handled in their own separate jobs.
       run: |
         # xvfb-run yarn lerna run --ignore '{firebase-messaging-integration-test,@firebase/auth*,@firebase/firestore*,firebase-firestore-integration-test}' test:ci
-        xvfb-run yarn lerna run --scope @firebase/data-connect
+        xvfb-run yarn lerna run --scope @firebase/data-connect test:ci
         node scripts/print_test_logs.js
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
