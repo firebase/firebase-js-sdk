@@ -22,28 +22,27 @@ import chaiAsPromised from 'chai-as-promised';
 
 import {
   DataConnect,
-  DataConnectOptions,
   executeQuery,
   getDataConnect,
   mutationRef,
-  queryRef,
+  queryRef
 } from '../../src';
 import { Code, DataConnectError } from '../../src/core/error';
 chai.use(chaiAsPromised);
-const options: DataConnectOptions = {
-  connector: 'c',
-  location: 'l',
-  projectId: 'p',
-  service: 's'
-};
 
 describe('Query Manager Tests', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
+  const APPID = 'MYAPPID';
+  const APPNAME = 'MYAPPNAME';
 
   beforeEach(() => {
-    app = initializeApp({ projectId: 'p' });
-    dc = getDataConnect(app, options);
+    app = initializeApp({ projectId: 'p', appId: APPID }, APPNAME);
+    dc = getDataConnect(app, {
+      connector: 'c',
+      location: 'l',
+      service: 's'
+    });
   });
   afterEach(async () => {
     await dc._delete();
