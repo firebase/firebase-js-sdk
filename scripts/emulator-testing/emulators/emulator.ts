@@ -57,7 +57,12 @@ export abstract class Emulator {
     const { name: tempDir } = tmp.dirSync({ unsafeCleanup: true });
     const filepath = path.resolve(tempDir, this.binaryName);
     let cur = 0;
-    let buf = new Uint8Array(2 ** 26);
+    // The emulators vary in size and are approximately 32MiB. If we define this array to be
+    // only 32MiB, there's a risk in the future that the download will suddenly fail because there
+    // was an increase in emulator size, and the buffer is no longer large enough.
+    // To prevent this, we give some room for an increase in size of the emulators
+    // and make the buffer 64MiB.
+    let buf = new Uint8Array(2 ** 26); // 64 MiB
     return new Promise<void>((resolve, reject) => {
       /**
        * Once the download is `done` in `readChunk`, we want to set `this.binaryPath` to the path of the
