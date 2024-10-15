@@ -24,7 +24,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
-import { addHelpers } from './response-helpers';
+import { createEnhancedContentResponse } from './response-helpers';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -57,7 +57,10 @@ async function getResponsePromise(
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      return addHelpers(aggregateResponses(allResponses));
+      const enhancedResponse = createEnhancedContentResponse(
+        aggregateResponses(allResponses)
+      );
+      return enhancedResponse;
     }
     allResponses.push(value);
   }
@@ -72,7 +75,9 @@ async function* generateResponseSequence(
     if (done) {
       break;
     }
-    yield addHelpers(value);
+
+    const enhancedResponse = createEnhancedContentResponse(value);
+    return enhancedResponse;
   }
 }
 
