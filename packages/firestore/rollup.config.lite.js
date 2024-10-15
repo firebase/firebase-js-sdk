@@ -108,7 +108,8 @@ const allBuilds = [
       }),
       json(),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
+      replace(generateBuildTargetReplaceConfig('cjs', 5)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.node.cjs' })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -125,7 +126,8 @@ const allBuilds = [
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.node.mjs' })
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -167,7 +169,8 @@ const allBuilds = [
     ],
     plugins: [
       ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      replace(generateBuildTargetReplaceConfig('esm', 5)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.browser.esm5' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -186,7 +189,8 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.browser.cjs' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -205,7 +209,8 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace({ '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.browser.mjs' })
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -225,8 +230,9 @@ const allBuilds = [
       ...browserPlugins(),
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
-        '__RUNTIME_ENV__': 'rn'
-      })
+        '__RUNTIME_ENV__': 'rn',
+        '__FIRESTORE_ROLLUP_BUNDLE_ID__': 'lite.rn'
+      }),
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

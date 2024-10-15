@@ -38,6 +38,7 @@
     "packages/firestore/src/local/indexeddb_schema.ts",
     "packages/firestore/src/local/indexeddb_schema_legacy.ts",
     "packages/firestore/src/local/shared_client_state_schema.ts",
+    "packages/firestore/src/util/rollup_info.ts",
     "packages/firestore/src/util/testing_hooks.ts"
   ]
 }

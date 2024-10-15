@@ -1,0 +1,9 @@
+{
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "files": ["rollup.config.ts"],
+  "compilerOptions": {
+    "outDir": "dist/rollup",
+    "module": "ES2020",
+    "moduleResolution": "Node"
+  }
+}

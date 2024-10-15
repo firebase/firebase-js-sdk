@@ -248,3 +248,4 @@ export {
   TestingHooks as _TestingHooks
 } from './util/testing_hooks';
 export { ExistenceFilterMismatchInfo as _TestingHooksExistenceFilterMismatchInfo } from './util/testing_hooks_spi';
+export { ROLLUP_BUNDLE_ID as _ROLLUP_BUNDLE_ID } from './util/rollup_info';
