@@ -198,7 +198,7 @@ export class Storage {
           reject(toFirebaseError(event, ErrorCode.STORAGE_GET));
         };
         storedSignalsRequest.onsuccess = event => {
-          const storedSignals = (event.target as IDBRequest).result.value;
+          const storedSignals = (event.target as IDBRequest).result?.value || {};
           const combinedSignals = {
             ...storedSignals,
             ...customSignals
@@ -206,7 +206,7 @@ export class Storage {
           // Filter out key-value assignments with null values since they are signals being unset
           const signalsToUpdate = Object.fromEntries(Object.entries(combinedSignals).filter(([_, v]) => v !== null));
           if (signalsToUpdate) {
-            const setSignalsRequest = objectStore.put({compositeKey, signalsToUpdate});
+            const setSignalsRequest = objectStore.put({compositeKey, value: signalsToUpdate});
             setSignalsRequest.onerror = event => {
               reject(toFirebaseError(event, ErrorCode.STORAGE_SET));
             };
