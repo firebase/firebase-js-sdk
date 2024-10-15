@@ -57,10 +57,10 @@ export abstract class Emulator {
     const filepath = path.resolve(tempDir, this.binaryName);
     return new Promise<void>((resolve, reject) => {
       /**
-       * Once the download is `done` in `readChunk`, we want to set `this.binaryPath` to the path of the 
+       * Once the download is `done` in `readChunk`, we want to set `this.binaryPath` to the path of the
        * downloaded emulator. Unfortunately, we can't access `this` when inside `readChunk`'s scope, since
        * it's a named function expression, and does not inherit the `this` object from it's parent.
-       * To work around this, we wrap the fetch in a promise, 
+       * To work around this, we wrap the fetch in a promise,
        * then once it's resolved we can access `this` in a callback arrow function that *does* inherit
        * `this` from the parent object, allowing us to set `this.binaryPath`.
        * Note that we can't make readChunk an arrow function, since it needs to be named so that we can
