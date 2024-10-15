@@ -40,7 +40,8 @@ Constructs a new instance of the `FunctionsError` class.
 <b>Signature:</b>
 
 ```typescript
-constructor(code: FunctionsErrorCode, message?: string, 
+constructor(
+    code: FunctionsErrorCode, message?: string, 
     details?: unknown);
 ```
 
