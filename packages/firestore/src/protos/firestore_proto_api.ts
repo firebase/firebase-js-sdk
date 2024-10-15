@@ -356,6 +356,9 @@ export declare namespace firestoreV1ApiClientInterfaces {
     parent?: string;
     structuredQuery?: StructuredQuery;
   }
+  interface PipelineQueryTarget {
+    pipeline?: StructuredPipeline;
+  }
   interface ReadOnly {
     readTime?: string;
   }
@@ -424,6 +427,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Target {
     query?: QueryTarget;
     documents?: DocumentsTarget;
+    pipelineQuery?: PipelineQueryTarget;
     resumeToken?: string | Uint8Array;
     readTime?: Timestamp;
     targetId?: number;
