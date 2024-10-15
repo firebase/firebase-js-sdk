@@ -75,15 +75,17 @@ export abstract class Emulator {
                   const reader = resp.body.getReader();
                   reader.read().then(function readChunk({ done, value }): any {
                     if (done) {
-                      console.log('Emulator download is done.')
+                      console.log('Emulator download is done.');
                       writer.close(err => {
                         if (err) {
-                          downloadFailed(`Failed to close the downloaded emulator file: ${err}`);
+                          downloadFailed(
+                            `Failed to close the downloaded emulator file: ${err}`
+                          );
                         }
 
-                        console.log('Closed downloaded emulator file.')
+                        console.log('Closed downloaded emulator file.');
                         downloadComplete();
-                      })
+                      });
                     } else {
                       writer.write(value);
                       return reader.read().then(readChunk);
