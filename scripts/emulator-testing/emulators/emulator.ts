@@ -53,8 +53,11 @@ export abstract class Emulator {
       return Promise.resolve();
     }
 
+    console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
     const { name: tempDir } = tmp.dirSync({ unsafeCleanup: true });
     const filepath = path.resolve(tempDir, this.binaryName);
+    let cur = 0;
+    let buf = new Uint8Array(2 ** 26);
     return new Promise<void>((resolve, reject) => {
       /**
        * Once the download is `done` in `readChunk`, we want to set `this.binaryPath` to the path of the
@@ -66,7 +69,7 @@ export abstract class Emulator {
        * Note that we can't make readChunk an arrow function, since it needs to be named so that we can
        * perform recursion to read the next chunk.
        */
-      const downloadPromise = new Promise<Uint8Array>(
+      const downloadPromise = new Promise<void>(
         (downloadComplete, downloadFailed) => {
           fetch(this.binaryUrl)
             .then(resp => {
@@ -76,12 +79,10 @@ export abstract class Emulator {
                 );
               }
 
-              const buf = new Uint8Array(2 ** 25); // 32Mb
-              let cur = 0;
               const reader = resp.body.getReader();
               reader.read().then(function readChunk({ done, value }): any {
                 if (done) {
-                  return downloadComplete(buf);
+                  return downloadComplete();
                 }
 
                 if (!value) {
@@ -99,23 +100,26 @@ export abstract class Emulator {
         }
       );
 
-      downloadPromise.then(buf => {
-        fs.writeFileSync(filepath, buf);
-        fs.chmod(filepath, 0o755, err => {
-          if (err) {
-            return reject(err);
-          }
+      downloadPromise
+        .then(() => {
+          console.log('Download complete.');
+          fs.writeFileSync(filepath, buf.slice(0, cur));
+          fs.chmod(filepath, 0o755, err => {
+            if (err) {
+              return reject(err);
+            }
 
-          console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
-          // Since we are now in an arrow function, `this` is inherited from the `download()` method, so it is the Emulator object
-          this.binaryPath = filepath;
-          if (this.copyToCache()) {
-            console.log(`Cached emulator at ${this.cacheBinaryPath}`);
-          }
+            console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+            // Since we are now in an arrow function, `this` is inherited from the `download()` method, so it is the Emulator object
+            this.binaryPath = filepath;
+            if (this.copyToCache()) {
+              console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+            }
 
-          resolve();
-        });
-      });
+            resolve();
+          });
+        })
+        .catch(err => reject(err));
     });
   }
 
