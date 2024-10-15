@@ -75,7 +75,15 @@ export abstract class Emulator {
                   const reader = resp.body.getReader();
                   reader.read().then(function readChunk({ done, value }): any {
                     if (done) {
-                      downloadComplete();
+                      console.log('Emulator download is done.')
+                      writer.close(err => {
+                        if (err) {
+                          downloadFailed(`Failed to close the downloaded emulator file: ${err}`);
+                        }
+
+                        console.log('Closed downloaded emulator file.')
+                        downloadComplete();
+                      })
                     } else {
                       writer.write(value);
                       return reader.read().then(readChunk);
@@ -92,7 +100,6 @@ export abstract class Emulator {
 
         downloadPromise.then(
           () => {
-            console.log('Download complete');
             // Change emulator binary file permission to 'rwxr-xr-x'.
             // The execute permission is required for it to be able to start
             // with 'java -jar'.
