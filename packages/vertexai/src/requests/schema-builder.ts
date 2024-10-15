@@ -239,7 +239,7 @@ export class ArraySchema extends Schema {
 
 /**
  * Schema class for "object" types.
- * The `properties` param must be a map of Schema.
+ * The `properties` param must be a map of `Schema` objects.
  * @public
  */
 export class ObjectSchema extends Schema {
