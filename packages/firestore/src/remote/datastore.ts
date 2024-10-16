@@ -252,7 +252,7 @@ export async function invokeExecutePipeline(
   >(
     'ExecutePipeline',
     datastoreImpl.serializer.databaseId,
-    toResourcePath(datastoreImpl.serializer.databaseId),
+    ResourcePath.emptyPath(),
     executePipelineRequest
   );
 

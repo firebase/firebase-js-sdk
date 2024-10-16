@@ -572,6 +572,8 @@ export declare type Stage = firestoreV1ApiClientInterfaces.Stage;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;
 export declare type StructuredQuery =
   firestoreV1ApiClientInterfaces.StructuredQuery;
+export declare type StructuredPipeline =
+  firestoreV1ApiClientInterfaces.StructuredPipeline;
 export declare type Target = firestoreV1ApiClientInterfaces.Target;
 export declare type TargetChange = firestoreV1ApiClientInterfaces.TargetChange;
 export declare type TransactionOptions =

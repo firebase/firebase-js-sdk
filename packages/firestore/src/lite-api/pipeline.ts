@@ -18,7 +18,7 @@ import { DocumentKey } from '../model/document_key';
 import { ObjectValue } from '../model/object_value';
 import {
   ExecutePipelineRequest,
-  firestoreV1ApiClientInterfaces,
+  StructuredPipeline,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { invokeExecutePipeline } from '../remote/datastore';
@@ -62,8 +62,6 @@ import {
   UserDataSource
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-
-import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
 
 interface ReadableUserData {
   _readUserData(dataReader: UserDataReader): void;
