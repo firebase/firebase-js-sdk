@@ -36,6 +36,7 @@ export function createEnhancedContentResponse(
    * The Vertex AI backend omits default values.
    * This causes the `index` property to be omitted from the first candidate in the
    * response, since it has index 0, and 0 is a default value.
+   * See: https://github.com/firebase/firebase-js-sdk/issues/8566
    */
   if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
     response.candidates[0].index = 0;

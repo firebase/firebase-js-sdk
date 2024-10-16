@@ -151,7 +151,9 @@ export function aggregateResponses(
   for (const response of responses) {
     if (response.candidates) {
       for (const candidate of response.candidates) {
-        const i = candidate.index;
+        // Index will be undefined if it's the first index (0), so we should use 0 if it's undefined.
+        // See: https://github.com/firebase/firebase-js-sdk/issues/8566
+        const i = candidate.index || 0;
         if (!aggregatedResponse.candidates) {
           aggregatedResponse.candidates = [];
         }
