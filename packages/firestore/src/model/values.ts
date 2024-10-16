@@ -89,7 +89,7 @@ export function typeOrder(value: Value): TypeOrder {
     }
     return TypeOrder.ObjectValue;
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail('Invalid value type', { value });
   }
 }
 
@@ -136,7 +136,7 @@ export function valueEquals(left: Value, right: Value): boolean {
     case TypeOrder.MaxValue:
       return true;
     default:
-      return fail('Unexpected value type: ' + JSON.stringify(left));
+      return fail('Unexpected value type', { left });
   }
 }
 
@@ -265,7 +265,7 @@ export function valueCompare(left: Value, right: Value): number {
     case TypeOrder.ObjectValue:
       return compareMaps(left.mapValue!, right.mapValue!);
     default:
-      throw fail('Invalid value type: ' + leftType);
+      throw fail('Invalid value type', { leftType });
   }
 }
 
@@ -445,7 +445,7 @@ function canonifyValue(value: Value): string {
   } else if ('mapValue' in value) {
     return canonifyMap(value.mapValue!);
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail('Invalid value type', { value });
   }
 }
 
@@ -537,7 +537,7 @@ export function estimateByteSize(value: Value): number {
     case TypeOrder.ObjectValue:
       return estimateMapByteSize(value.mapValue!);
     default:
-      throw fail('Invalid value type: ' + JSON.stringify(value));
+      throw fail('Invalid value type', { value });
   }
 }
 
@@ -697,7 +697,7 @@ export function valuesGetLowerBound(value: Value): Value {
     }
     return { mapValue: {} };
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail('Invalid value type', { value });
   }
 }
 
@@ -727,7 +727,7 @@ export function valuesGetUpperBound(value: Value): Value {
     }
     return MAX_VALUE;
   } else {
-    return fail('Invalid value type: ' + JSON.stringify(value));
+    return fail('Invalid value type', { value });
   }
 }
 

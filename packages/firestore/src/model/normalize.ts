@@ -44,7 +44,9 @@ export function normalizeTimestamp(date: Timestamp): {
     // Parse the nanos right out of the string.
     let nanos = 0;
     const fraction = ISO_TIMESTAMP_REG_EXP.exec(date);
-    hardAssert(!!fraction, 'invalid timestamp: ' + date);
+    hardAssert(!!fraction, 'invalid timestamp', {
+      timestamp: date
+    });
     if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction[1];

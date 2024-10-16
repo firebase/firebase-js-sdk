@@ -114,9 +114,9 @@ export class Transaction {
           ref.converter
         );
       } else {
-        throw fail(
-          `BatchGetDocumentsRequest returned unexpected document: ${doc}`
-        );
+        throw fail('BatchGetDocumentsRequest returned unexpected document', {
+          doc
+        });
       }
     });
   }
