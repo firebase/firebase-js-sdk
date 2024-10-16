@@ -39,7 +39,7 @@ category: HarmCategory;
 <b>Signature:</b>
 
 ```typescript
-method: HarmBlockMethod;
+method?: HarmBlockMethod;
 ```
 
 ## SafetySetting.threshold
