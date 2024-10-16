@@ -95,10 +95,11 @@ export class PhoneAuthProvider {
    *
    * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in
    * E.164 format (e.g. +16505550101).
-   * @param applicationVerifier - For abuse prevention with reCAPTCHA v2, this method requires a
-   * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-v2-based implementation,
-   * {@link RecaptchaVerifier}. For abuse prevention with reCAPTCHA Enterprise,
-   * {@link ApplicationVerifier} is required in Audit mode but not in Enforce mode.
+   * @param applicationVerifier - An {@link ApplicationVerifier}, which prevents
+   * requests from unauthorized clients. This SDK includes an implementation
+   * based on reCAPTCHA v2, {@link RecaptchaVerifier}. If you've enabled
+   * reCAPTCHA Enterprise bot protection in Enforce mode, this parameter is
+   * optional; in all other configurations, the parameter is required.
    *
    * @returns A Promise for a verification ID that can be passed to
    * {@link PhoneAuthProvider.credential} to identify this flow.

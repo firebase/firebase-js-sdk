@@ -211,7 +211,7 @@ verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?:
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  phoneOptions | [PhoneInfoOptions](./auth.md#phoneinfooptions) \| string |  |
-|  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | For abuse prevention with reCAPTCHA v2, this method requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-v2-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. For abuse prevention with reCAPTCHA Enterprise, [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) is required in Audit mode but not in Enforce mode. |
+|  applicationVerifier | [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) | An [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->, which prevents requests from unauthorized clients. This SDK includes an implementation based on reCAPTCHA v2, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. If you've enabled reCAPTCHA Enterprise bot protection in Enforce mode, this parameter is optional; in all other configurations, the parameter is required. |
 
 <b>Returns:</b>
 

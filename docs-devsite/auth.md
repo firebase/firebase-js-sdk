@@ -923,9 +923,9 @@ Asynchronously signs in using a phone number.
 
 This method sends a code via SMS to the given phone number, and returns a [ConfirmationResult](./auth.confirmationresult.md#confirmationresult_interface)<!-- -->. After the user provides the code sent to their phone, call [ConfirmationResult.confirm()](./auth.confirmationresult.md#confirmationresultconfirm) with the code to sign the user in.
 
-For abuse prevention with reCAPTCHA v2, this method requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes a reCAPTCHA-v2-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
+For abuse prevention, this method requires a [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->. This SDK includes an implementation based on reCAPTCHA v2, [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class)<!-- -->. This function can work on other platforms that do not support the [RecaptchaVerifier](./auth.recaptchaverifier.md#recaptchaverifier_class) (like React Native), but you need to use a third-party [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) implementation.
 
-For abuse prevention with reCAPTCHA Enterprise, [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface) is required in Audit mode but not in Enforce mode.
+If you've enabled project-level reCAPTCHA Enterprise bot protection in Enforce mode, you can omit the [ApplicationVerifier](./auth.applicationverifier.md#applicationverifier_interface)<!-- -->.
 
 This method does not work in a Node.js environment or with [Auth](./auth.auth.md#auth_interface) instances created with a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface)<!-- -->.
 
