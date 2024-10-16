@@ -20,7 +20,7 @@ import {
   FilterCondition,
   not,
   or
-} from '../api/expressions';
+} from '../lite-api/expressions';
 import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,

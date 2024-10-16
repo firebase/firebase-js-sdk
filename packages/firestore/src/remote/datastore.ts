@@ -20,12 +20,12 @@ import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
+import { Pipeline } from '../lite-api/pipeline';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { ResourcePath } from '../model/path';
 import { PipelineStreamElement } from '../model/pipeline_stream_element';
-import { Pipeline } from '../pipelines/api/pipeline';
 import {
   ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,

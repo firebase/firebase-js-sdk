@@ -1,17 +1,17 @@
-import {
-  firestoreClientExecutePipeline
-} from "../core/firestore_client";
-import {Pipeline as LitePipeline} from "../lite-api/pipeline";
-import {PipelineResult} from "../lite-api/pipeline-result";
-import {DocumentData, DocumentReference} from "../lite-api/reference";
-import {Stage} from "../lite-api/stage";
-import {UserDataReader} from "../lite-api/user_data_reader";
-import {AbstractUserDataWriter} from "../lite-api/user_data_writer";
-import {DocumentKey} from "../model/document_key";
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { PipelineResult } from '../lite-api/pipeline-result';
+import { DocumentData, DocumentReference } from '../lite-api/reference';
+import { Stage } from '../lite-api/stage';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { DocumentKey } from '../model/document_key';
 
-import {ensureFirestoreConfigured, Firestore} from "./database";
+import { ensureFirestoreConfigured, Firestore } from './database';
 
-export class Pipeline<AppModelType = DocumentData> extends LitePipeline<AppModelType> {
+export class Pipeline<
+  AppModelType = DocumentData
+> extends LitePipeline<AppModelType> {
   /**
    * @internal
    * @private
@@ -32,7 +32,14 @@ export class Pipeline<AppModelType = DocumentData> extends LitePipeline<AppModel
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
     converter: unknown = {}
   ) {
-    super(db, userDataReader, userDataWriter, documentReferenceFactory, stages, converter);
+    super(
+      db,
+      userDataReader,
+      userDataWriter,
+      documentReferenceFactory,
+      stages,
+      converter
+    );
   }
 
   /**

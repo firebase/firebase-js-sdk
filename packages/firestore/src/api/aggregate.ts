@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-import { AggregateField, AggregateSpec, DocumentData, Query } from '../api';
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
-import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
+import {
+  AggregateField,
+  AggregateQuerySnapshot,
+  AggregateSpec
+} from '../lite-api/aggregate_types';
+import { DocumentData, Query } from '../lite-api/reference';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FirestoreClient } from '../core/firestore_client';
-import { DocumentReference } from '../lite-api/reference';
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
 
+import { Firestore } from './database';
 import { Pipeline } from './pipeline';
+import { DocumentReference } from './reference';
 import {
   CollectionGroupSource,
   CollectionSource,
   DatabaseSource,
   DocumentsSource
 } from './stage';
+import { UserDataReader } from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
  * Represents the source of a Firestore {@link Pipeline}.
@@ -40,7 +40,7 @@ export class PipelineSource {
    * @param documentReferenceFactory
    */
   constructor(
-    private db: FirestoreClient,
+    private db: Firestore,
     private userDataReader: UserDataReader,
     private userDataWriter: AbstractUserDataWriter,
     private documentReferenceFactory: (id: DocumentKey) => DocumentReference

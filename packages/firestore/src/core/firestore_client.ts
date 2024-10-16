@@ -22,8 +22,8 @@ import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
-import { Pipeline } from '../api/pipeline';
 import { User } from '../auth/user';
+import { Pipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,

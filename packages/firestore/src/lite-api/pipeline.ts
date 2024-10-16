@@ -13,17 +13,7 @@
 // limitations under the License.
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
-import {
-  FirestoreClient,
-  firestoreClientExecutePipeline
-} from '../core/firestore_client';
-import { DocumentData, DocumentReference } from '../lite-api/reference';
-import {
-  parseVectorValue,
-  UserDataReader,
-  UserDataSource
-} from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+
 import { DocumentKey } from '../model/document_key';
 import { ObjectValue } from '../model/object_value';
 import {
@@ -31,11 +21,14 @@ import {
   firestoreV1ApiClientInterfaces,
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
+import { invokeExecutePipeline } from '../remote/datastore';
 import {
   getEncodedDatabaseId,
   JsonProtoSerializer
 } from '../remote/serializer';
 
+import { getDatastore } from './components';
+import { Firestore } from './database';
 import {
   Accumulator,
   AccumulatorTarget,
@@ -46,8 +39,9 @@ import {
   FilterCondition,
   Ordering,
   Selectable
-} from '../lite-api/expressions';
-import { PipelineResult } from '../lite-api/pipeline-result';
+} from './expressions';
+import { PipelineResult } from './pipeline-result';
+import { DocumentData, DocumentReference } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -61,7 +55,13 @@ import {
   Sort,
   Stage,
   Where
-} from '../lite-api/stage';
+} from './stage';
+import {
+  parseVectorValue,
+  UserDataReader,
+  UserDataSource
+} from './user_data_reader';
+import { AbstractUserDataWriter } from './user_data_writer';
 
 import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
 
@@ -115,11 +115,15 @@ function isReadableUserData(value: any): value is ReadableUserData {
  *     .execute();
  * ```
  */
+
+/**
+ * Base-class implementation
+ */
 export class Pipeline<AppModelType = DocumentData> {
   /**
    * @internal
    * @private
-   * @param db
+   * @param liteDb
    * @param userDataReader
    * @param userDataWriter
    * @param documentReferenceFactory
@@ -127,10 +131,18 @@ export class Pipeline<AppModelType = DocumentData> {
    * @param converter
    */
   constructor(
-    private db: FirestoreClient,
+    private liteDb: Firestore,
     private userDataReader: UserDataReader,
-    private userDataWriter: AbstractUserDataWriter,
-    private documentReferenceFactory: (id: DocumentKey) => DocumentReference,
+    /**
+     * @internal
+     * @private
+     */
+    protected userDataWriter: AbstractUserDataWriter,
+    /**
+     * @internal
+     * @private
+     */
+    protected documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     private stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
@@ -171,7 +183,7 @@ export class Pipeline<AppModelType = DocumentData> {
       )
     );
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -215,7 +227,7 @@ export class Pipeline<AppModelType = DocumentData> {
     const copy = this.stages.map(s => s);
     copy.push(new Select(this.selectablesToMap(selections)));
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -306,7 +318,7 @@ export class Pipeline<AppModelType = DocumentData> {
     const copy = this.stages.map(s => s);
     copy.push(new Where(this.readUserData('where', condition)));
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -339,7 +351,7 @@ export class Pipeline<AppModelType = DocumentData> {
     const copy = this.stages.map(s => s);
     copy.push(new Offset(offset));
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -377,7 +389,7 @@ export class Pipeline<AppModelType = DocumentData> {
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit));
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -422,7 +434,7 @@ export class Pipeline<AppModelType = DocumentData> {
       )
     );
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -535,7 +547,7 @@ export class Pipeline<AppModelType = DocumentData> {
       );
     }
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -563,7 +575,7 @@ export class Pipeline<AppModelType = DocumentData> {
       )
     );
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -624,7 +636,7 @@ export class Pipeline<AppModelType = DocumentData> {
     }
 
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -662,7 +674,7 @@ export class Pipeline<AppModelType = DocumentData> {
     });
     copy.push(new GenericStage(name, params));
     return new Pipeline(
-      this.db,
+      this.liteDb,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -769,7 +781,8 @@ export class Pipeline<AppModelType = DocumentData> {
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    return firestoreClientExecutePipeline(this.db, this).then(result => {
+    const datastore = getDatastore(this.liteDb);
+    return invokeExecutePipeline(datastore, this).then(result => {
       const docs = result.map(
         element =>
           new PipelineResult<AppModelType>(

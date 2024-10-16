@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DocumentReference } from '../lite-api/reference';
-import { VectorValue } from '../lite-api/vector_value';
 import { ObjectValue } from '../model/object_value';
 import {
   Stage as ProtoStage,
@@ -33,6 +31,8 @@ import {
   FilterCondition,
   Ordering
 } from './expressions';
+import { DocumentReference } from './reference';
+import { VectorValue } from './vector_value';
 
 /**
  * @beta

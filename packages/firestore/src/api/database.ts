@@ -46,6 +46,7 @@ import {
   connectFirestoreEmulator,
   Firestore as LiteFirestore
 } from '../lite-api/database';
+import { PipelineSource } from '../lite-api/pipeline-source';
 import { DocumentReference, Query } from '../lite-api/reference';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import {
@@ -65,7 +66,6 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
-import { PipelineSource } from './pipeline-source';
 import { FirestoreSettings, PersistenceSettings } from './settings';
 import { ExpUserDataWriter } from './user_data_writer';
 
@@ -109,10 +109,9 @@ export class Firestore extends LiteFirestore {
   };
 
   pipeline = (): PipelineSource => {
-    const client = ensureFirestoreConfigured(this);
     const firestore = this;
     return new PipelineSource(
-      client,
+      this,
       newUserDataReader(firestore),
       new ExpUserDataWriter(firestore),
       (key: DocumentKey) => {

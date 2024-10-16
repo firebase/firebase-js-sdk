@@ -14,18 +14,6 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-
-import { documentId, FieldPath } from '../lite-api/field_path';
-import { GeoPoint } from '../lite-api/geo_point';
-import { DocumentReference } from '../lite-api/reference';
-import { Timestamp } from '../lite-api/timestamp';
-import {
-  fieldPathFromArgument,
-  parseData,
-  UserDataReader,
-  UserDataSource
-} from '../lite-api/user_data_reader';
-import { VectorValue } from '../lite-api/vector_value';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
@@ -39,7 +27,18 @@ import {
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
 
+import { documentId, FieldPath } from './field_path';
+import { GeoPoint } from './geo_point';
 import { Pipeline } from './pipeline';
+import { DocumentReference } from './reference';
+import { Timestamp } from './timestamp';
+import {
+  fieldPathFromArgument,
+  parseData,
+  UserDataReader,
+  UserDataSource
+} from './user_data_reader';
+import { VectorValue } from './vector_value';
 
 /**
  * @beta
