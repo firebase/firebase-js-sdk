@@ -26,6 +26,26 @@ import {
 import { VertexAIError } from '../errors';
 
 /**
+ * Creates an EnhancedGenerateContentResponse object that has helper functions and
+ * other modifications that improve usability.
+ */
+export function createEnhancedContentResponse(
+  response: GenerateContentResponse
+): EnhancedGenerateContentResponse {
+  /**
+   * The Vertex AI backend omits default values.
+   * This causes the `index` property to be omitted from the first candidate in the
+   * response, since it has index 0, and 0 is a default value.
+   */
+  if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
+    response.candidates[0].index = 0;
+  }
+
+  const responseWithHelpers = addHelpers(response);
+  return responseWithHelpers;
+}
+
+/**
  * Adds convenience helper methods to a response object, including stream
  * chunks (as long as each chunk is a complete GenerateContentResponse JSON).
  */
