@@ -37,7 +37,7 @@ export function createEnhancedContentResponse(
    * This causes the `index` property to be omitted from the first candidate in the
    * response, since it has index 0, and 0 is a default value.
    */
-  if (response.candidates && !response.candidates[0].index) {
+  if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
     response.candidates[0].index = 0;
   }
 
