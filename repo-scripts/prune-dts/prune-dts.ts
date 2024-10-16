@@ -19,7 +19,6 @@ import * as yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import { ESLint } from 'eslint';
-import { assert } from 'console';
 
 /**
  * Prunes a DTS file based on three main rules:
@@ -156,10 +155,6 @@ function maybeHideConstructor(
     ?.find(t => t.tagName.escapedText === 'hideconstructor');
 
   if (hideConstructorTag) {
-    assert(
-      !ts.canHaveDecorators(node),
-      'Constructor should not have decorators'
-    );
     const hideConstructorModifier = ts.factory.createModifier(
       hideConstructorTag.comment === 'protected'
         ? ts.SyntaxKind.ProtectedKeyword
@@ -569,7 +564,6 @@ function dropPrivateApiTransformer(
   context: ts.TransformationContext
 ): ts.Transformer<ts.SourceFile> {
   const typeChecker = program.getTypeChecker();
-  // const { factory } = context;
 
   return (sourceFile: ts.SourceFile) => {
     function visit(node: ts.Node): ts.Node {
