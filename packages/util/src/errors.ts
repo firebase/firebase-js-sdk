@@ -84,12 +84,6 @@ export class FirebaseError extends Error {
   ) {
     super(message);
 
-    // Fix For ES5
-    // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-    //                   which we can now use since we no longer target ES5.
-    Object.setPrototypeOf(this, FirebaseError.prototype);
-
     // Maintains proper stack trace for where our error was thrown.
     // Only available on V8.
     if (Error.captureStackTrace) {

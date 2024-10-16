@@ -42,9 +42,6 @@ export class StorageError extends FirebaseError {
       `Firebase Storage: ${message} (${prependCode(code)})`
     );
     this._baseMessage = this.message;
-    // Without this, `instanceof StorageError`, in tests for example,
-    // returns false.
-    Object.setPrototypeOf(this, StorageError.prototype);
   }
 
   get status(): number {
