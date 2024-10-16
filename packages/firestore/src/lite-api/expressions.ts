@@ -14,29 +14,30 @@
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
-import { documentId, FieldPath } from '../../lite-api/field_path';
-import { GeoPoint } from '../../lite-api/geo_point';
-import { DocumentReference } from '../../lite-api/reference';
-import { Timestamp } from '../../lite-api/timestamp';
+
+import { documentId, FieldPath } from '../lite-api/field_path';
+import { GeoPoint } from '../lite-api/geo_point';
+import { DocumentReference } from '../lite-api/reference';
+import { Timestamp } from '../lite-api/timestamp';
 import {
   fieldPathFromArgument,
   parseData,
   UserDataReader,
   UserDataSource
-} from '../../lite-api/user_data_reader';
-import { VectorValue } from '../../lite-api/vector_value';
+} from '../lite-api/user_data_reader';
+import { VectorValue } from '../lite-api/vector_value';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
-} from '../../model/path';
-import { Value as ProtoValue } from '../../protos/firestore_proto_api';
+} from '../model/path';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoSerializable,
   toStringValue,
   UserData
-} from '../../remote/serializer';
-import { hardAssert } from '../../util/assert';
+} from '../remote/serializer';
+import { hardAssert } from '../util/assert';
 
 import { Pipeline } from './pipeline';
 

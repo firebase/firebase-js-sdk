@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FieldPath } from '../../lite-api/field_path';
+import { FieldPath } from '../lite-api/field_path';
 import {
   DocumentData,
   DocumentReference,
   refEqual
-} from '../../lite-api/reference';
-import { fieldPathFromArgument } from '../../lite-api/snapshot';
-import { Timestamp } from '../../lite-api/timestamp';
-import { AbstractUserDataWriter } from '../../lite-api/user_data_writer';
-import { ObjectValue } from '../../model/object_value';
-import { isOptionalEqual } from '../../util/misc';
+} from '../lite-api/reference';
+import { fieldPathFromArgument } from '../lite-api/snapshot';
+import { Timestamp } from '../lite-api/timestamp';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { ObjectValue } from '../model/object_value';
+import { isOptionalEqual } from '../util/misc';
 
 /**
  * @beta

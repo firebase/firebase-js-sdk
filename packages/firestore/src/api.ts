@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './pipelines/api/pipeline-source';
+export { PipelineSource } from './api/pipeline-source';
 
-export { PipelineResult } from './pipelines/api/pipeline-result';
+export { PipelineResult } from './api/pipeline-result';
 
-export { Pipeline } from './pipelines/api/pipeline';
+export { Pipeline } from './api/pipeline';
 
 export {
   Stage,
@@ -38,7 +38,7 @@ export {
   Select,
   Sort,
   GenericStage
-} from './pipelines/api/stage';
+} from './api/stage';
 
 export {
   add,
@@ -179,7 +179,7 @@ export {
   Selectable,
   FilterCondition,
   Accumulator
-} from './pipelines/api/expressions';
+} from './api/expressions';
 
 export {
   aggregateFieldEqual,

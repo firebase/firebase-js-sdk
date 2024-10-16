@@ -1220,7 +1220,7 @@ export function genericFunction(name: string, params: Constant[]): FirestoreFunc
 
 // @beta (undocumented)
 export class GenericStage implements Stage {
-    constructor(name: string, params: any[]);
+    constructor(name: string, params: unknown[]);
     // (undocumented)
     name: string;
 }

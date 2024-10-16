@@ -16,25 +16,25 @@
 import {
   FirestoreClient,
   firestoreClientExecutePipeline
-} from '../../core/firestore_client';
-import { DocumentData, DocumentReference } from '../../lite-api/reference';
+} from '../core/firestore_client';
+import { DocumentData, DocumentReference } from '../lite-api/reference';
 import {
   parseVectorValue,
   UserDataReader,
   UserDataSource
-} from '../../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../../lite-api/user_data_writer';
-import { DocumentKey } from '../../model/document_key';
-import { ObjectValue } from '../../model/object_value';
+} from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { DocumentKey } from '../model/document_key';
+import { ObjectValue } from '../model/object_value';
 import {
   ExecutePipelineRequest,
   firestoreV1ApiClientInterfaces,
   Stage as ProtoStage
-} from '../../protos/firestore_proto_api';
+} from '../protos/firestore_proto_api';
 import {
   getEncodedDatabaseId,
   JsonProtoSerializer
-} from '../../remote/serializer';
+} from '../remote/serializer';
 
 import {
   Accumulator,
@@ -46,8 +46,8 @@ import {
   FilterCondition,
   Ordering,
   Selectable
-} from './expressions';
-import { PipelineResult } from './pipeline-result';
+} from '../lite-api/expressions';
+import { PipelineResult } from '../lite-api/pipeline-result';
 import {
   AddFields,
   Aggregate,
@@ -61,7 +61,7 @@ import {
   Sort,
   Stage,
   Where
-} from './stage';
+} from '../lite-api/stage';
 
 import StructuredPipeline = firestoreV1ApiClientInterfaces.StructuredPipeline;
 

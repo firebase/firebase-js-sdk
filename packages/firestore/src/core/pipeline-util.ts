@@ -13,13 +13,15 @@
 // limitations under the License.
 
 import {
-  CompositeFilter as CompositeFilterInternal,
-  CompositeOperator,
-  FieldFilter as FieldFilterInternal,
-  Filter as FilterInternal,
-  Operator
-} from '../../core/filter';
-import { isNanValue, isNullValue } from '../../model/values';
+  and,
+  Constant,
+  Expr,
+  Field,
+  FilterCondition,
+  not,
+  or
+} from '../api/expressions';
+import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
   Function as ProtoFunction,
@@ -28,19 +30,19 @@ import {
   Pipeline as ProtoPipeline,
   Timestamp as ProtoTimestamp,
   Value as ProtoValue
-} from '../../protos/firestore_proto_api';
-import { fail } from '../../util/assert';
-import { isPlainObject } from '../../util/input_validation';
+} from '../protos/firestore_proto_api';
+import { fail } from '../util/assert';
+import { isPlainObject } from '../util/input_validation';
 
 import {
-  and,
-  Constant,
-  Expr,
-  Field,
-  FilterCondition,
-  not,
-  or
-} from './expressions';
+  CompositeFilter as CompositeFilterInternal,
+  CompositeOperator,
+  FieldFilter as FieldFilterInternal,
+  Filter as FilterInternal,
+  Operator
+} from './filter';
+
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 
 function isITimestamp(obj: any): obj is ProtoTimestamp {
   if (typeof obj !== 'object' || obj === null) {

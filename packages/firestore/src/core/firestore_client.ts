@@ -22,6 +22,7 @@ import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
+import { Pipeline } from '../api/pipeline';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import {
@@ -39,7 +40,6 @@ import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
 import { PipelineStreamElement } from '../model/pipeline_stream_element';
-import { Pipeline } from '../pipelines/api/pipeline';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';

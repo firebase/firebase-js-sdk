@@ -34,6 +34,7 @@ import {
   makeAuthCredentialsProvider,
   OAuthToken
 } from '../api/credentials';
+import {PipelineSource} from "../api/pipeline-source";
 import { User } from '../auth/user';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
 import { Code, FirestoreError } from '../util/error';
@@ -172,6 +173,15 @@ export class Firestore implements FirestoreService {
   protected _terminate(): Promise<void> {
     removeComponents(this);
     return Promise.resolve();
+  }
+
+  // TODO(pipeline) implement pipeline in lite-api
+  /**
+   * @internal
+   * @private
+   */
+  pipeline(): PipelineSource {
+    throw Error("not implemented");
   }
 }
 

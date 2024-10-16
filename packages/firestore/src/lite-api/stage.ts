@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DocumentReference } from '../../lite-api/reference';
-import { VectorValue } from '../../lite-api/vector_value';
-import { ObjectValue } from '../../model/object_value';
+import { DocumentReference } from '../lite-api/reference';
+import { VectorValue } from '../lite-api/vector_value';
+import { ObjectValue } from '../model/object_value';
 import {
   Stage as ProtoStage,
   Value as ProtoValue
-} from '../../protos/firestore_proto_api';
-import { toNumber } from '../../remote/number_serializer';
+} from '../protos/firestore_proto_api';
+import { toNumber } from '../remote/number_serializer';
 import {
   JsonProtoSerializer,
   toMapValue,
   toStringValue
-} from '../../remote/serializer';
+} from '../remote/serializer';
 
 import {
   Accumulator,
@@ -369,7 +369,7 @@ export class Sort implements Stage {
  * @beta
  */
 export class GenericStage implements Stage {
-  constructor(public name: string, params: any[]) {}
+  constructor(public name: string, params: unknown[]) {}
 
   /**
    * @internal

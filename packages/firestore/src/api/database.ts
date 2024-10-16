@@ -55,7 +55,6 @@ import {
 import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../local/lru_garbage_collector_impl';
 import { DocumentKey } from '../model/document_key';
-import { PipelineSource } from '../pipelines/api/pipeline-source';
 import { debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { AsyncQueueImpl } from '../util/async_queue_impl';
@@ -66,6 +65,7 @@ import { Deferred } from '../util/promise';
 
 import { LoadBundleTask } from './bundle';
 import { CredentialsProvider } from './credentials';
+import { PipelineSource } from './pipeline-source';
 import { FirestoreSettings, PersistenceSettings } from './settings';
 import { ExpUserDataWriter } from './user_data_writer';
 

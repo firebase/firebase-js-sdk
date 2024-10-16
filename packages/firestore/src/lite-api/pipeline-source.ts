@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FirestoreClient } from '../../core/firestore_client';
-import { DocumentReference } from '../../lite-api/reference';
-import { UserDataReader } from '../../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../../lite-api/user_data_writer';
-import { DocumentKey } from '../../model/document_key';
+import { FirestoreClient } from '../core/firestore_client';
+import { DocumentReference } from '../lite-api/reference';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
+import { DocumentKey } from '../model/document_key';
 
 import { Pipeline } from './pipeline';
 import {
