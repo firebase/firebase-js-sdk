@@ -6,12 +6,10 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm5.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "esm5": "./dist/esm/index.esm5.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"

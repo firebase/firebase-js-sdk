@@ -57,7 +57,7 @@ describe('User Agent Tests', () => {
       'https://firebasedataconnect.googleapis.com/v1beta/projects/p/locations/l/services/s/connectors/c:executeQuery',
       {
         headers: {
-          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' web/gen'
+          ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen'
         }
       }
     );

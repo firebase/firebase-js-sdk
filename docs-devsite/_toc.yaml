@@ -455,105 +455,124 @@ toc:
         path: /docs/reference/js/storage.uploadtask.md
       - title: UploadTaskSnapshot
         path: /docs/reference/js/storage.uploadtasksnapshot.md
-  - title: vertexai-preview
-    path: /docs/reference/js/vertexai-preview.md
+  - title: vertexai
+    path: /docs/reference/js/vertexai.md
     section:
+      - title: ArraySchema
+        path: /docs/reference/js/vertexai.arrayschema.md
       - title: BaseParams
-        path: /docs/reference/js/vertexai-preview.baseparams.md
+        path: /docs/reference/js/vertexai.baseparams.md
+      - title: BooleanSchema
+        path: /docs/reference/js/vertexai.booleanschema.md
       - title: ChatSession
-        path: /docs/reference/js/vertexai-preview.chatsession.md
+        path: /docs/reference/js/vertexai.chatsession.md
       - title: Citation
-        path: /docs/reference/js/vertexai-preview.citation.md
+        path: /docs/reference/js/vertexai.citation.md
       - title: CitationMetadata
-        path: /docs/reference/js/vertexai-preview.citationmetadata.md
+        path: /docs/reference/js/vertexai.citationmetadata.md
       - title: Content
-        path: /docs/reference/js/vertexai-preview.content.md
+        path: /docs/reference/js/vertexai.content.md
       - title: CountTokensRequest
-        path: /docs/reference/js/vertexai-preview.counttokensrequest.md
+        path: /docs/reference/js/vertexai.counttokensrequest.md
       - title: CountTokensResponse
-        path: /docs/reference/js/vertexai-preview.counttokensresponse.md
+        path: /docs/reference/js/vertexai.counttokensresponse.md
       - title: CustomErrorData
-        path: /docs/reference/js/vertexai-preview.customerrordata.md
+        path: /docs/reference/js/vertexai.customerrordata.md
       - title: Date_2
-        path: /docs/reference/js/vertexai-preview.date_2.md
+        path: /docs/reference/js/vertexai.date_2.md
       - title: EnhancedGenerateContentResponse
-        path: /docs/reference/js/vertexai-preview.enhancedgeneratecontentresponse.md
+        path: /docs/reference/js/vertexai.enhancedgeneratecontentresponse.md
       - title: ErrorDetails
-        path: /docs/reference/js/vertexai-preview.errordetails.md
+        path: /docs/reference/js/vertexai.errordetails.md
       - title: FileData
-        path: /docs/reference/js/vertexai-preview.filedata.md
+        path: /docs/reference/js/vertexai.filedata.md
       - title: FileDataPart
-        path: /docs/reference/js/vertexai-preview.filedatapart.md
+        path: /docs/reference/js/vertexai.filedatapart.md
       - title: FunctionCall
-        path: /docs/reference/js/vertexai-preview.functioncall.md
+        path: /docs/reference/js/vertexai.functioncall.md
       - title: FunctionCallingConfig
-        path: /docs/reference/js/vertexai-preview.functioncallingconfig.md
+        path: /docs/reference/js/vertexai.functioncallingconfig.md
       - title: FunctionCallPart
-        path: /docs/reference/js/vertexai-preview.functioncallpart.md
+        path: /docs/reference/js/vertexai.functioncallpart.md
       - title: FunctionDeclaration
-        path: /docs/reference/js/vertexai-preview.functiondeclaration.md
-      - title: FunctionDeclarationSchema
-        path: /docs/reference/js/vertexai-preview.functiondeclarationschema.md
-      - title: FunctionDeclarationSchemaProperty
-        path: >-
-          /docs/reference/js/vertexai-preview.functiondeclarationschemaproperty.md
+        path: /docs/reference/js/vertexai.functiondeclaration.md
       - title: FunctionDeclarationsTool
-        path: /docs/reference/js/vertexai-preview.functiondeclarationstool.md
+        path: /docs/reference/js/vertexai.functiondeclarationstool.md
       - title: FunctionResponse
-        path: /docs/reference/js/vertexai-preview.functionresponse.md
+        path: /docs/reference/js/vertexai.functionresponse.md
       - title: FunctionResponsePart
-        path: /docs/reference/js/vertexai-preview.functionresponsepart.md
+        path: /docs/reference/js/vertexai.functionresponsepart.md
       - title: GenerateContentCandidate
-        path: /docs/reference/js/vertexai-preview.generatecontentcandidate.md
+        path: /docs/reference/js/vertexai.generatecontentcandidate.md
       - title: GenerateContentRequest
-        path: /docs/reference/js/vertexai-preview.generatecontentrequest.md
+        path: /docs/reference/js/vertexai.generatecontentrequest.md
       - title: GenerateContentResponse
-        path: /docs/reference/js/vertexai-preview.generatecontentresponse.md
+        path: /docs/reference/js/vertexai.generatecontentresponse.md
       - title: GenerateContentResult
-        path: /docs/reference/js/vertexai-preview.generatecontentresult.md
+        path: /docs/reference/js/vertexai.generatecontentresult.md
       - title: GenerateContentStreamResult
-        path: /docs/reference/js/vertexai-preview.generatecontentstreamresult.md
+        path: /docs/reference/js/vertexai.generatecontentstreamresult.md
       - title: GenerationConfig
-        path: /docs/reference/js/vertexai-preview.generationconfig.md
+        path: /docs/reference/js/vertexai.generationconfig.md
       - title: GenerativeContentBlob
-        path: /docs/reference/js/vertexai-preview.generativecontentblob.md
+        path: /docs/reference/js/vertexai.generativecontentblob.md
       - title: GenerativeModel
-        path: /docs/reference/js/vertexai-preview.generativemodel.md
+        path: /docs/reference/js/vertexai.generativemodel.md
       - title: GroundingAttribution
-        path: /docs/reference/js/vertexai-preview.groundingattribution.md
+        path: /docs/reference/js/vertexai.groundingattribution.md
       - title: GroundingMetadata
-        path: /docs/reference/js/vertexai-preview.groundingmetadata.md
+        path: /docs/reference/js/vertexai.groundingmetadata.md
       - title: InlineDataPart
-        path: /docs/reference/js/vertexai-preview.inlinedatapart.md
+        path: /docs/reference/js/vertexai.inlinedatapart.md
+      - title: IntegerSchema
+        path: /docs/reference/js/vertexai.integerschema.md
       - title: ModelParams
-        path: /docs/reference/js/vertexai-preview.modelparams.md
+        path: /docs/reference/js/vertexai.modelparams.md
+      - title: NumberSchema
+        path: /docs/reference/js/vertexai.numberschema.md
+      - title: ObjectSchema
+        path: /docs/reference/js/vertexai.objectschema.md
+      - title: ObjectSchemaInterface
+        path: /docs/reference/js/vertexai.objectschemainterface.md
       - title: PromptFeedback
-        path: /docs/reference/js/vertexai-preview.promptfeedback.md
+        path: /docs/reference/js/vertexai.promptfeedback.md
       - title: RequestOptions
-        path: /docs/reference/js/vertexai-preview.requestoptions.md
+        path: /docs/reference/js/vertexai.requestoptions.md
       - title: RetrievedContextAttribution
-        path: /docs/reference/js/vertexai-preview.retrievedcontextattribution.md
+        path: /docs/reference/js/vertexai.retrievedcontextattribution.md
       - title: SafetyRating
-        path: /docs/reference/js/vertexai-preview.safetyrating.md
+        path: /docs/reference/js/vertexai.safetyrating.md
       - title: SafetySetting
-        path: /docs/reference/js/vertexai-preview.safetysetting.md
+        path: /docs/reference/js/vertexai.safetysetting.md
+      - title: Schema
+        path: /docs/reference/js/vertexai.schema.md
+      - title: SchemaInterface
+        path: /docs/reference/js/vertexai.schemainterface.md
+      - title: SchemaParams
+        path: /docs/reference/js/vertexai.schemaparams.md
+      - title: SchemaRequest
+        path: /docs/reference/js/vertexai.schemarequest.md
+      - title: SchemaShared
+        path: /docs/reference/js/vertexai.schemashared.md
       - title: Segment
-        path: /docs/reference/js/vertexai-preview.segment.md
+        path: /docs/reference/js/vertexai.segment.md
       - title: StartChatParams
-        path: /docs/reference/js/vertexai-preview.startchatparams.md
+        path: /docs/reference/js/vertexai.startchatparams.md
+      - title: StringSchema
+        path: /docs/reference/js/vertexai.stringschema.md
       - title: TextPart
-        path: /docs/reference/js/vertexai-preview.textpart.md
+        path: /docs/reference/js/vertexai.textpart.md
       - title: ToolConfig
-        path: /docs/reference/js/vertexai-preview.toolconfig.md
+        path: /docs/reference/js/vertexai.toolconfig.md
       - title: UsageMetadata
-        path: /docs/reference/js/vertexai-preview.usagemetadata.md
+        path: /docs/reference/js/vertexai.usagemetadata.md
       - title: VertexAI
-        path: /docs/reference/js/vertexai-preview.vertexai.md
+        path: /docs/reference/js/vertexai.vertexai.md
       - title: VertexAIError
-        path: /docs/reference/js/vertexai-preview.vertexaierror.md
+        path: /docs/reference/js/vertexai.vertexaierror.md
       - title: VertexAIOptions
-        path: /docs/reference/js/vertexai-preview.vertexaioptions.md
+        path: /docs/reference/js/vertexai.vertexaioptions.md
       - title: VideoMetadata
-        path: /docs/reference/js/vertexai-preview.videometadata.md
+        path: /docs/reference/js/vertexai.videometadata.md
       - title: WebAttribution
-        path: /docs/reference/js/vertexai-preview.webattribution.md
+        path: /docs/reference/js/vertexai.webattribution.md

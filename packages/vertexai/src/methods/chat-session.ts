@@ -71,7 +71,7 @@ export class ChatSession {
 
   /**
    * Sends a chat message and receives a non-streaming
-   * {@link GenerateContentResult}
+   * <code>{@link GenerateContentResult}</code>
    */
   async sendMessage(
     request: string | Array<string | Part>
@@ -125,7 +125,7 @@ export class ChatSession {
 
   /**
    * Sends a chat message and receives the response as a
-   * {@link GenerateContentStreamResult} containing an iterable stream
+   * <code>{@link GenerateContentStreamResult}</code> containing an iterable stream
    * and a response promise.
    */
   async sendMessageStream(

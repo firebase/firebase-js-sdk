@@ -33,7 +33,11 @@ import { _assert } from '../util/assert';
 import { getModularInstance } from '@firebase/util';
 import { _castAuth } from '../auth/auth_impl';
 import { handleRecaptchaFlow } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
-import { RecaptchaActionName, RecaptchaClientType } from '../../api';
+import {
+  RecaptchaActionName,
+  RecaptchaClientType,
+  RecaptchaAuthProvider
+} from '../../api';
 import { _isFirebaseServerApp } from '@firebase/app';
 import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
@@ -108,7 +112,8 @@ export async function sendSignInLinkToEmail(
     authInternal,
     request,
     RecaptchaActionName.GET_OOB_CODE,
-    api.sendSignInLinkToEmail
+    api.sendSignInLinkToEmail,
+    RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
   );
 }
 

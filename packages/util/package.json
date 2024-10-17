@@ -6,7 +6,6 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "exports": {
     ".": {
       "types": "./dist/util-public.d.ts",
@@ -14,7 +13,6 @@
         "import": "./dist/node-esm/index.node.esm.js",
         "require": "./dist/index.node.cjs.js"
       },
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
@@ -65,5 +63,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

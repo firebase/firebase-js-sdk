@@ -24,7 +24,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
-import { addHelpers } from './response-helpers';
+import { createEnhancedContentResponse } from './response-helpers';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -57,7 +57,10 @@ async function getResponsePromise(
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      return addHelpers(aggregateResponses(allResponses));
+      const enhancedResponse = createEnhancedContentResponse(
+        aggregateResponses(allResponses)
+      );
+      return enhancedResponse;
     }
     allResponses.push(value);
   }
@@ -72,7 +75,9 @@ async function* generateResponseSequence(
     if (done) {
       break;
     }
-    yield addHelpers(value);
+
+    const enhancedResponse = createEnhancedContentResponse(value);
+    yield enhancedResponse;
   }
 }
 
@@ -146,7 +151,9 @@ export function aggregateResponses(
   for (const response of responses) {
     if (response.candidates) {
       for (const candidate of response.candidates) {
-        const i = candidate.index;
+        // Index will be undefined if it's the first index (0), so we should use 0 if it's undefined.
+        // See: https://github.com/firebase/firebase-js-sdk/issues/8566
+        const i = candidate.index || 0;
         if (!aggregatedResponse.candidates) {
           aggregatedResponse.candidates = [];
         }
