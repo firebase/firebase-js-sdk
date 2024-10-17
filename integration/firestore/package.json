@@ -30,7 +30,7 @@
     "mocha": "9.2.2",
     "ts-loader": "9.5.1",
     "typescript": "4.2.2",
-    "webpack": "5.76.0",
+    "webpack": "5.94.0",
     "webpack-stream": "7.0.0"
   }
 }
