@@ -1702,9 +1702,9 @@
     "@types/node" ">=12.12.47"
 
 "@grpc/grpc-js@~1.9.0":
-  version "1.9.1"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.9.1.tgz"
-  integrity sha512-AvDEPQT4teS+J8++cTE5tku4rYCwpPwPguESJUummLs/Ug/O5Bouofnc1mxaDORmwA9QkrJ+PfRQ1Qs7adQgJg==
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.9.2.tgz#151148f6485eab8fb13fe53042d25f4ffa9c7d09"
+  integrity sha512-Lf2pUhNTaviEdEaGgjU+29qw3arX7Qd/45q66F3z1EV5hroE6wM9xSHPvjB8EY+b1RmKZgwnLWXQorC6fZ9g5g==
   dependencies:
     "@grpc/proto-loader" "^0.7.8"
     "@types/node" ">=12.12.47"
@@ -3488,10 +3488,12 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@>=10.0.0", "@types/node@^12.7.1":
-  version "12.20.50"
-  resolved "https://registry.npmjs.org/@types/node/-/node-12.20.50.tgz"
-  integrity sha512-+9axpWx2b2JCVovr7Ilgt96uc6C1zBKOQMpGtRbWT9IoR/8ue32GGMfGA4woP8QyP2gBs6GQWEVM3tCybGCxDA==
+"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
+  version "20.9.0"
+  resolved "https://registry.npmjs.org/@types/node/-/node-20.9.0.tgz"
+  integrity sha512-nekiGu2NDb1BcVofVcEKMIwzlx4NjHlcjhoxxKBNLtz15Y1z7MYf549DFvkHSId02Ax6kGwWntIBPC3l/JZcmw==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/node@10.17.13":
   version "10.17.13"
@@ -3510,17 +3512,10 @@
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@>=12.12.47":
-  version "16.9.6"
-  resolved "https://registry.npmjs.org/@types/node/-/node-16.9.6.tgz"
-  integrity sha512-YHUZhBOMTM3mjFkXVcK+WwAcYmyhe1wL4lfqNtzI0b3qAy7yuSetnM7QJazgE5PFmgVTNGiLOgRFfJMqW7XpSQ==
-
-"@types/node@>=13.7.0":
-  version "20.9.0"
-  resolved "https://registry.npmjs.org/@types/node/-/node-20.9.0.tgz"
-  integrity sha512-nekiGu2NDb1BcVofVcEKMIwzlx4NjHlcjhoxxKBNLtz15Y1z7MYf549DFvkHSId02Ax6kGwWntIBPC3l/JZcmw==
-  dependencies:
-    undici-types "~5.26.4"
+"@types/node@^12.7.1":
+  version "12.20.50"
+  resolved "https://registry.npmjs.org/@types/node/-/node-12.20.50.tgz"
+  integrity sha512-+9axpWx2b2JCVovr7Ilgt96uc6C1zBKOQMpGtRbWT9IoR/8ue32GGMfGA4woP8QyP2gBs6GQWEVM3tCybGCxDA==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
