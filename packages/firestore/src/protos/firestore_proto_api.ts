@@ -559,6 +559,8 @@ export declare type Pipeline = firestoreV1ApiClientInterfaces.Pipeline;
 export declare type Precondition = firestoreV1ApiClientInterfaces.Precondition;
 export declare type Projection = firestoreV1ApiClientInterfaces.Projection;
 export declare type QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
+export declare type PipelineQueryTarget =
+  firestoreV1ApiClientInterfaces.PipelineQueryTarget;
 export declare type ReadOnly = firestoreV1ApiClientInterfaces.ReadOnly;
 export declare type ReadWrite = firestoreV1ApiClientInterfaces.ReadWrite;
 export declare type RollbackRequest =

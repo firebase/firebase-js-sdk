@@ -35,7 +35,11 @@ import {
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { targetIsDocumentTarget, Target } from '../core/target';
+import {
+  targetIsDocumentTarget,
+  Target,
+  targetIsPipelineTarget
+} from '../core/target';
 import { TargetId } from '../core/types';
 import { Bytes } from '../lite-api/bytes';
 import { GeoPoint } from '../lite-api/geo_point';
@@ -84,6 +88,7 @@ import {
   OrderDirection as ProtoOrderDirection,
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
+  PipelineQueryTarget as ProtoPipelineQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
   Aggregation as ProtoAggregation,
   Status as ProtoStatus,
@@ -111,6 +116,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { Pipeline } from '../api';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -1087,14 +1093,28 @@ export function toLabel(purpose: TargetPurpose): string | null {
   }
 }
 
+export function fromPipelineTarget(target: ProtoPipelineQueryTarget): Pipeline {
+  return {} as Pipeline;
+}
+
+export function toPipelineTarget(
+  serializer: JsonProtoSerializer,
+  target: Pipeline
+): ProtoPipelineQueryTarget {
+  return {
+    pipeline: {}
+  };
+}
+
 export function toTarget(
   serializer: JsonProtoSerializer,
   targetData: TargetData
 ): ProtoTarget {
   let result: ProtoTarget;
   const target = targetData.target;
-
-  if (targetIsDocumentTarget(target)) {
+  if (targetIsPipelineTarget(target)) {
+    result = { pipelineQuery: toPipelineTarget(serializer, target) };
+  } else if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
     result = { query: toQueryTarget(serializer, target).queryTarget };

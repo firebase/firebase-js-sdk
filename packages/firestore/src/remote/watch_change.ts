@@ -17,7 +17,7 @@
 
 import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { targetIsDocumentTarget } from '../core/target';
+import { targetIsDocumentTarget, targetIsPipelineTarget } from '../core/target';
 import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -414,7 +414,9 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (targetIsDocumentTarget(target)) {
+      if (targetIsPipelineTarget(target)) {
+        //TODO(pipeline): handle existence filter correctly for pipelines
+      } else if (targetIsDocumentTarget(target)) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
@@ -584,7 +586,11 @@ export class WatchChangeAggregator {
     this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
-        if (targetState.current && targetIsDocumentTarget(targetData.target)) {
+        if (
+          targetState.current &&
+          !targetIsPipelineTarget(targetData.target) &&
+          targetIsDocumentTarget(targetData.target)
+        ) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
