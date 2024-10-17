@@ -847,9 +847,11 @@ describe('Transaction Tests', () => {
       ref1.transaction(
         current => {
           retries++;
-          // We should be getting server events while the transaction is outstanding.
-          for (let i = 0; i < (current || 0); i++) {
-            expect(events[i]).to.equal(i);
+          if (typeof current === 'number') {
+            // We should be getting server events while the transaction is outstanding.
+            for (let i = 0; i < (current || 0); i++) {
+              expect(events[i]).to.equal(i);
+            }
           }
 
           if (current === SETS - 1) {
@@ -919,7 +921,7 @@ describe('Transaction Tests', () => {
         current => {
           if (current == null) {
             return 0;
-          } else if (current < COUNT) {
+          } else if (typeof current === 'number' && current < COUNT) {
             return (current as number) + 1;
           } else {
             shouldCommit = false;
