@@ -6,7 +6,6 @@
   "main": "dist/index.node.cjs.js",
   "module": "dist/index.esm2017.js",
   "browser": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "exports": {
     ".": {
       "types": "./dist/storage-public.d.ts",
@@ -14,7 +13,6 @@
         "import": "./dist/node-esm/index.node.esm.js",
         "default": "./dist/index.node.cjs.js"
       },
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
@@ -50,7 +48,6 @@
   "dependencies": {
     "@firebase/util": "1.10.0",
     "@firebase/component": "0.6.9",
-    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
@@ -73,5 +70,8 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts"
+  "typings": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

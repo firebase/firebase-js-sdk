@@ -8,13 +8,11 @@
     "./webchannel-blob": {
       "types": "./dist/webchannel-blob/webchannel_blob_types.d.ts",
       "require": "./dist/webchannel-blob/webchannel_blob_es2018.js",
-      "esm5": "./dist/webchannel-blob/webchannel_blob_es5.js",
       "default": "./dist/webchannel-blob/esm/webchannel_blob_es2018.js"
     },
     "./bloom-blob": {
       "types": "./dist/bloom-blob/bloom_blob_types.d.ts",
       "require": "./dist/bloom-blob/bloom_blob_es2018.js",
-      "esm5": "./dist/bloom-blob/bloom_blob_es5.js",
       "default": "./dist/bloom-blob/esm/bloom_blob_es2018.js"
     },
     "./package.json": "./package.json"

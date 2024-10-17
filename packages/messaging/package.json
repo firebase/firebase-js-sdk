@@ -8,13 +8,11 @@
   "module": "dist/esm/index.esm2017.js",
   "sw": "dist/esm/index.sw.esm2017.js",
   "sw-main": "dist/index.sw.cjs",
-  "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
       "require": "./dist/index.cjs.js",
       "module": "./dist/esm/index.esm2017.js",
-      "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./sw": {

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { TypedSchema } from '../requests/schema-builder';
 import { Content, Part } from './content';
 import {
   FunctionCallingMode,
@@ -22,6 +23,7 @@ import {
   HarmBlockThreshold,
   HarmCategory
 } from './enums';
+import { ObjectSchemaInterface, SchemaRequest } from './schema';
 
 /**
  * Base parameters for a number of methods.
@@ -33,7 +35,7 @@ export interface BaseParams {
 }
 
 /**
- * Params passed to {@link getGenerativeModel}.
+ * Params passed to <code>{@link getGenerativeModel}</code>.
  * @public
  */
 export interface ModelParams extends BaseParams {
@@ -61,7 +63,7 @@ export interface GenerateContentRequest extends BaseParams {
 export interface SafetySetting {
   category: HarmCategory;
   threshold: HarmBlockThreshold;
-  method: HarmBlockMethod;
+  method?: HarmBlockMethod;
 }
 
 /**
@@ -78,14 +80,21 @@ export interface GenerationConfig {
   presencePenalty?: number;
   frequencyPenalty?: number;
   /**
-   * Output response mimetype of the generated candidate text.
-   * Supported mimetypes are `text/plain` (default, text output) and `application/json`
-   * (JSON response in the candidates).
-   * The model needs to be prompted to output the appropriate response type,
-   * otherwise the behavior is undefined.
-   * This is a preview feature.
+   * Output response MIME type of the generated candidate text.
+   * Supported MIME types are `text/plain` (default, text output),
+   * `application/json` (JSON response in the candidates), and
+   * `text/x.enum`.
    */
   responseMimeType?: string;
+  /**
+   * Output response schema of the generated candidate text. This
+   * value can be a class generated with a <code>{@link Schema}</code> static method
+   * like `Schema.string()` or `Schema.object()` or it can be a plain
+   * JS object matching the <code>{@link SchemaRequest}</code> interface.
+   * <br/>Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * this is limited to `application/json` and `text/x.enum`.
+   */
+  responseSchema?: TypedSchema | SchemaRequest;
 }
 
 /**
@@ -108,12 +117,12 @@ export interface CountTokensRequest {
 }
 
 /**
- * Params passed to {@link getGenerativeModel}.
+ * Params passed to <code>{@link getGenerativeModel}</code>.
  * @public
  */
 export interface RequestOptions {
   /**
-   * Request timeout in milliseconds.
+   * Request timeout in milliseconds. Defaults to 180 seconds (180000ms).
    */
   timeout?: number;
   /**
@@ -145,16 +154,16 @@ export declare interface FunctionDeclaration {
    */
   name: string;
   /**
-   * Optional. Description and purpose of the function. Model uses it to decide
+   * Description and purpose of the function. Model uses it to decide
    * how and whether to call the function.
    */
-  description?: string;
+  description: string;
   /**
    * Optional. Describes the parameters to this function in JSON Schema Object
    * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
-  parameters?: FunctionDeclarationSchema;
+  parameters?: ObjectSchemaInterface;
 }
 
 /**
@@ -168,8 +177,8 @@ export declare interface FunctionDeclarationsTool {
    * Optional. One or more function declarations
    * to be passed to the model along with the current user query. Model may
    * decide to call a subset of these functions by populating
-   * {@link FunctionCall} in the response. User should
-   * provide a {@link FunctionResponse} for each
+   * <code>{@link FunctionCall}</code> in the response. User should
+   * provide a <code>{@link FunctionResponse}</code> for each
    * function call in the next turn. Based on the function responses, the model will
    * generate the final response back to the user. Maximum 64 function
    * declarations can be provided.
@@ -178,76 +187,11 @@ export declare interface FunctionDeclarationsTool {
 }
 
 /**
- * Contains the list of OpenAPI data types
- * as defined by https://swagger.io/docs/specification/data-models/data-types/
- * @public
- */
-export enum FunctionDeclarationSchemaType {
-  /** String type. */
-  STRING = 'STRING',
-  /** Number type. */
-  NUMBER = 'NUMBER',
-  /** Integer type. */
-  INTEGER = 'INTEGER',
-  /** Boolean type. */
-  BOOLEAN = 'BOOLEAN',
-  /** Array type. */
-  ARRAY = 'ARRAY',
-  /** Object type. */
-  OBJECT = 'OBJECT'
-}
-
-/**
- * Schema for parameters passed to {@link FunctionDeclaration.parameters}.
- * @public
- */
-export interface FunctionDeclarationSchema {
-  /** The type of the parameter. */
-  type: FunctionDeclarationSchemaType;
-  /** The format of the parameter. */
-  properties: { [k: string]: FunctionDeclarationSchemaProperty };
-  /** Optional. Description of the parameter. */
-  description?: string;
-  /** Optional. Array of required parameters. */
-  required?: string[];
-}
-
-/**
- * Schema is used to define the format of input/output data.
- * Represents a select subset of an OpenAPI 3.0 schema object.
- * More fields may be added in the future as needed.
- * @public
- */
-export interface FunctionDeclarationSchemaProperty {
-  /**
-   * Optional. The type of the property. {@link
-   * FunctionDeclarationSchemaType}.
-   */
-  type?: FunctionDeclarationSchemaType;
-  /** Optional. The format of the property. */
-  format?: string;
-  /** Optional. The description of the property. */
-  description?: string;
-  /** Optional. Whether the property is nullable. */
-  nullable?: boolean;
-  /** Optional. The items of the property. {@link FunctionDeclarationSchema} */
-  items?: FunctionDeclarationSchema;
-  /** Optional. The enum of the property. */
-  enum?: string[];
-  /** Optional. Map of {@link FunctionDeclarationSchema}. */
-  properties?: { [k: string]: FunctionDeclarationSchema };
-  /** Optional. Array of required property. */
-  required?: string[];
-  /** Optional. The example of the property. */
-  example?: unknown;
-}
-
-/**
  * Tool config. This config is shared for all tools provided in the request.
  * @public
  */
 export interface ToolConfig {
-  functionCallingConfig: FunctionCallingConfig;
+  functionCallingConfig?: FunctionCallingConfig;
 }
 
 /**
