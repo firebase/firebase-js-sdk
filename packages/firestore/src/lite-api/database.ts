@@ -28,6 +28,7 @@ import {
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
+import { PipelineSource, DocumentReference } from '../api';
 import {
   CredentialsProvider,
   EmulatorAuthCredentialsProvider,
@@ -36,17 +37,20 @@ import {
 } from '../api/credentials';
 import { User } from '../auth/user';
 import { DatabaseId, DEFAULT_DATABASE_NAME } from '../core/database_info';
+import { DocumentKey } from '../model/document_key';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { logWarn } from '../util/log';
 
 import { FirestoreService, removeComponents } from './components';
+import { LiteUserDataWriter } from './reference_impl';
 import {
   DEFAULT_HOST,
   FirestoreSettingsImpl,
   PrivateSettings,
   FirestoreSettings
 } from './settings';
+import { newUserDataReader } from './user_data_reader';
 
 export { EmulatorMockTokenOptions } from '@firebase/util';
 
@@ -172,6 +176,19 @@ export class Firestore implements FirestoreService {
   protected _terminate(): Promise<void> {
     removeComponents(this);
     return Promise.resolve();
+  }
+
+  pipeline(): PipelineSource {
+    const userDataWriter = new LiteUserDataWriter(this);
+    const userDataReader = newUserDataReader(this);
+    return new PipelineSource(
+      this,
+      userDataReader,
+      userDataWriter,
+      (key: DocumentKey) => {
+        return new DocumentReference(this, null, key);
+      }
+    );
   }
 }
 
