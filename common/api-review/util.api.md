@@ -213,7 +213,6 @@ export class FirebaseError extends Error {
     customData?: Record<string, unknown> | undefined);
     readonly code: string;
     customData?: Record<string, unknown> | undefined;
-    readonly name: string;
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseSignInProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
