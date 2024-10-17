@@ -1063,7 +1063,8 @@ export async function localStoreReleaseTarget(
 
   localStoreImpl.targetDataByTarget =
     localStoreImpl.targetDataByTarget.remove(targetId);
-  localStoreImpl.targetIdByTarget.delete(targetData!.target);
+  // TODO(pipeline): This needs to handle pipeline properly.
+  localStoreImpl.targetIdByTarget.delete(targetData!.target as Target);
 }
 
 /**
@@ -1220,15 +1221,21 @@ export function localStoreGetCachedTarget(
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
   if (cachedTargetData) {
-    return Promise.resolve(cachedTargetData.target);
+    // TODO(pipeline): This needs to handle pipeline properly.
+    return Promise.resolve(cachedTargetData.target as Target);
   } else {
     return localStoreImpl.persistence.runTransaction(
       'Get target data',
       'readonly',
       txn => {
-        return targetCacheImpl
-          .getTargetDataForTarget(txn, targetId)
-          .next(targetData => (targetData ? targetData.target : null));
+        return (
+          targetCacheImpl
+            .getTargetDataForTarget(txn, targetId)
+            // TODO(pipeline): This needs to handle pipeline properly.
+            .next(targetData =>
+              targetData ? (targetData.target as Target) : null
+            )
+        );
       }
     );
   }

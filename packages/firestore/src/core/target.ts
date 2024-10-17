@@ -52,6 +52,7 @@ import {
   orderByEquals,
   stringifyOrderBy
 } from './order_by';
+import { Pipeline } from '../pipelines/api/pipeline';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -213,6 +214,12 @@ export function targetEquals(left: Target, right: Target): boolean {
   }
 
   return boundEquals(left.endAt, right.endAt);
+}
+
+export function targetIsPipelineTarget(
+  target: Target | Pipeline
+): target is Pipeline {
+  return target instanceof Pipeline;
 }
 
 export function targetIsDocumentTarget(target: Target): boolean {
