@@ -28,10 +28,12 @@ import {
 } from '../lite-api/reference';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
-  fieldPathFromArgument,
   FirestoreDataConverter as LiteFirestoreDataConverter
 } from '../lite-api/snapshot';
-import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
+import {
+  fieldPathFromArgument,
+  UntypedFirestoreDataConverter
+} from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';

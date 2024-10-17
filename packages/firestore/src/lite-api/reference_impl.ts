@@ -26,7 +26,8 @@ import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc,
-  invokeRunQueryRpc
+  invokeRunQueryRpc,
+  invokeRunQueryRpcForVectorQuery
 } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -62,6 +63,8 @@ import {
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { VectorQuery } from './vector_query';
+import { VectorQuerySnapshot } from './vector_query_snapshot';
 
 /**
  * Converts custom model object of type T into `DocumentData` by applying the
@@ -159,34 +162,84 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
  * @returns A Promise that will be resolved with the results of the query.
  */
 export function getDocs<AppModelType, DbModelType extends DocumentData>(
+  query: VectorQuery<AppModelType, DbModelType>
+): Promise<VectorQuerySnapshot<AppModelType, DbModelType>>;
+
+export function getDocs<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
-): Promise<QuerySnapshot<AppModelType, DbModelType>> {
-  query = cast<Query<AppModelType, DbModelType>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(query._query);
+): Promise<QuerySnapshot<AppModelType, DbModelType>>;
 
-  const datastore = getDatastore(query.firestore);
-  const userDataWriter = new LiteUserDataWriter(query.firestore);
-  return invokeRunQueryRpc(datastore, query._query).then(result => {
-    const docs = result.map(
-      doc =>
-        new QueryDocumentSnapshot<AppModelType, DbModelType>(
-          query.firestore,
-          userDataWriter,
-          doc.key,
-          doc,
-          query.converter
-        )
-    );
+export function getDocs<AppModelType, DbModelType extends DocumentData>(
+  queryOrVectorQuery:
+    | Query<AppModelType, DbModelType>
+    | VectorQuery<AppModelType, DbModelType>
+): Promise<
+  | QuerySnapshot<AppModelType, DbModelType>
+  | VectorQuerySnapshot<AppModelType, DbModelType>
+> {
+  // If the query is a Query instance
+  if (
+    'type' in queryOrVectorQuery &&
+    (queryOrVectorQuery.type! === 'query' ||
+      queryOrVectorQuery.type! === 'collection')
+  ) {
+    const query: Query<AppModelType, DbModelType> = cast<
+      Query<AppModelType, DbModelType>
+    >(queryOrVectorQuery, Query);
+    validateHasExplicitOrderByForLimitToLast(query._query);
 
-    if (query._query.limitType === LimitType.Last) {
-      // Limit to last queries reverse the orderBy constraint that was
-      // specified by the user. As such, we need to reverse the order of the
-      // results to return the documents in the expected order.
-      docs.reverse();
-    }
+    const datastore = getDatastore(query.firestore);
+    const userDataWriter = new LiteUserDataWriter(query.firestore);
+    return invokeRunQueryRpc(datastore, query._query).then(result => {
+      const docs = result.map(
+        doc =>
+          new QueryDocumentSnapshot<AppModelType, DbModelType>(
+            query.firestore,
+            userDataWriter,
+            doc.key,
+            doc,
+            query.converter
+          )
+      );
 
-    return new QuerySnapshot<AppModelType, DbModelType>(query, docs);
-  });
+      if (query._query.limitType === LimitType.Last) {
+        // Limit to last queries reverse the orderBy constraint that was
+        // specified by the user. As such, we need to reverse the order of the
+        // results to return the documents in the expected order.
+        docs.reverse();
+      }
+
+      return new QuerySnapshot<AppModelType, DbModelType>(query, docs);
+    });
+  } else {
+    // the query is a VectorQuery instance
+    const vectorQuery: VectorQuery<AppModelType, DbModelType> = cast<
+      VectorQuery<AppModelType, DbModelType>
+    >(queryOrVectorQuery, VectorQuery);
+
+    const datastore = getDatastore(vectorQuery.query.firestore);
+    const userDataWriter = new LiteUserDataWriter(vectorQuery.query.firestore);
+    return invokeRunQueryRpcForVectorQuery(
+      datastore,
+      vectorQuery._vectorQuery
+    ).then(result => {
+      const docs = result.map(
+        doc =>
+          new QueryDocumentSnapshot<AppModelType, DbModelType>(
+            vectorQuery.query.firestore,
+            userDataWriter,
+            doc.key,
+            doc,
+            vectorQuery.query.converter
+          )
+      );
+
+      return new VectorQuerySnapshot<AppModelType, DbModelType>(
+        vectorQuery,
+        docs
+      );
+    });
+  }
 }
 
 /**

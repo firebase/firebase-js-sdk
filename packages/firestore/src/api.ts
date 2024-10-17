@@ -176,7 +176,12 @@ export {
   vector
 } from './api/field_value_impl';
 
-export { VectorValue } from './lite-api/vector_value';
+export { VectorValue } from './api/vector_value';
+export { VectorQuery } from './api/vector_query';
+export { VectorQuerySnapshot } from './api/vector_query_snapshot';
+export { VectorQueryOptions } from './api/vector_query_options';
+
+export { findNearest } from './api/find_nearest';
 
 export { LogLevelString as LogLevel, setLogLevel } from './util/log';
 
