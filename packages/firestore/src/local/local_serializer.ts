@@ -81,7 +81,7 @@ import {
 } from './indexeddb_schema';
 import { DbDocumentOverlayKey, DbTimestampKey } from './indexeddb_sentinels';
 import { TargetData, TargetPurpose } from './target_data';
-import { Pipeline } from '../pipelines/api/pipeline';
+import { Pipeline } from '../api/pipeline';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

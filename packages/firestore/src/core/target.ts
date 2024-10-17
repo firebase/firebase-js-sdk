@@ -52,7 +52,7 @@ import {
   orderByEquals,
   stringifyOrderBy
 } from './order_by';
-import { Pipeline } from '../pipelines/api/pipeline';
+import { Pipeline } from '../api/pipeline';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used

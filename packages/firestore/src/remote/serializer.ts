@@ -116,7 +116,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { Pipeline } from '../api';
+import { Pipeline } from '../api/pipeline';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -1102,7 +1102,7 @@ export function toPipelineTarget(
   target: Pipeline
 ): ProtoPipelineQueryTarget {
   return {
-    pipeline: {}
+    pipeline: target._toStructuredPipeline(serializer)
   };
 }
 

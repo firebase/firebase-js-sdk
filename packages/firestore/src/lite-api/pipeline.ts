@@ -812,13 +812,20 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
    * @private
    */
   _toProto(jsonProtoSerializer: JsonProtoSerializer): ExecutePipelineRequest {
+    return {
+      database: getEncodedDatabaseId(jsonProtoSerializer),
+      structuredPipeline: this._toStructuredPipeline(jsonProtoSerializer)
+    };
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toStructuredPipeline(jsonProtoSerializer: JsonProtoSerializer): StructuredPipeline {
     const stages: ProtoStage[] = this.stages.map(stage =>
       stage._toProto(jsonProtoSerializer)
     );
-    const structuredPipeline: StructuredPipeline = { pipeline: { stages } };
-    return {
-      database: getEncodedDatabaseId(jsonProtoSerializer),
-      structuredPipeline
-    };
+    return { pipeline: { stages } };
   }
 }
