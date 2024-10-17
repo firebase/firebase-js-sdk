@@ -1,5 +1,18 @@
 ## Unreleased
 
+## 0.1.1
+
+### Patch Changes
+
+- [`cf988b0b1`](https://github.com/firebase/firebase-js-sdk/commit/cf988b0b1217a06e5d1b9130d6048178626dac48) [#8570](https://github.com/firebase/firebase-js-sdk/pull/8570) - - Throw error when calling `executeQuery` with mutations
+
+- [`813b9fad6`](https://github.com/firebase/firebase-js-sdk/commit/813b9fad63ff7b8798e4f4e17ccd528a784698d9) [#8565](https://github.com/firebase/firebase-js-sdk/pull/8565) - - Modified user agent to use language instead of platform
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+
 ## 0.1.0
 
 ### Minor Changes

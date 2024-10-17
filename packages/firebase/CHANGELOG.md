@@ -1,5 +1,48 @@
 # firebase
 
+## 11.0.0
+
+### Major Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Release VertexAI in Firebase for general availability.
+
+### Minor Changes
+
+- [`b942e9e6e`](https://github.com/firebase/firebase-js-sdk/commit/b942e9e6e22d184d21f3e452cd35122592a3a372) [#8568](https://github.com/firebase/firebase-js-sdk/pull/8568) - [feature] Added reCAPTCHA Enterprise support for app verification during phone authentication.
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`cf988b0b1`](https://github.com/firebase/firebase-js-sdk/commit/cf988b0b1217a06e5d1b9130d6048178626dac48), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`b942e9e6e`](https://github.com/firebase/firebase-js-sdk/commit/b942e9e6e22d184d21f3e452cd35122592a3a372), [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702), [`813b9fad6`](https://github.com/firebase/firebase-js-sdk/commit/813b9fad63ff7b8798e4f4e17ccd528a784698d9), [`a2146910c`](https://github.com/firebase/firebase-js-sdk/commit/a2146910ccb0efd1e0dc4496c328358d5afdea61)]:
+  - @firebase/data-connect@0.1.1
+  - @firebase/vertexai@1.0.0
+  - @firebase/installations-compat@0.2.10
+  - @firebase/remote-config-compat@0.2.10
+  - @firebase/performance-compat@0.2.10
+  - @firebase/analytics-compat@0.2.15
+  - @firebase/app-check-compat@0.3.16
+  - @firebase/firestore-compat@0.3.39
+  - @firebase/functions-compat@0.3.15
+  - @firebase/messaging-compat@0.2.13
+  - @firebase/database-compat@1.0.9
+  - @firebase/storage-compat@0.3.13
+  - @firebase/installations@0.6.10
+  - @firebase/remote-config@0.4.10
+  - @firebase/auth-compat@0.5.15
+  - @firebase/performance@0.6.10
+  - @firebase/app-compat@0.2.44
+  - @firebase/analytics@0.10.9
+  - @firebase/app-check@0.8.9
+  - @firebase/firestore@4.7.4
+  - @firebase/functions@0.11.9
+  - @firebase/messaging@0.12.13
+  - @firebase/database@1.0.9
+  - @firebase/storage@0.13.3
+  - @firebase/auth@1.8.0
+  - @firebase/util@1.10.1
+  - @firebase/app@0.10.14
+
 ## 10.14.1
 
 ### Patch Changes
