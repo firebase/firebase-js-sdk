@@ -39,14 +39,27 @@ const enum EffectiveConnectionType {
   CONNECTION_4G = 4
 }
 
+type ConnectionType =
+  | 'bluetooth'
+  | 'cellular'
+  | 'ethernet'
+  | 'mixed'
+  | 'none'
+  | 'other'
+  | 'unknown'
+  | 'wifi';
+
 /**
  * NetworkInformation
+ * This API is not well supported in all major browsers, so TypeScript does not provide types for it.
  *
  * ref: https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
  */
+interface NetworkInformation extends EventTarget {
+  readonly type: ConnectionType;
+}
+
 interface NetworkInformationWithEffectiveType extends NetworkInformation {
-  // `effectiveType` is an experimental property and not included in
-  // TypeScript's typings for the native NetworkInformation interface
   readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
 }
 

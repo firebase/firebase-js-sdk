@@ -159,22 +159,20 @@ export async function injectRecaptchaFields<T>(
   captchaResp = false
 ): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
-  let captchaResponse;
+  let captchaResponse: string;
   try {
     captchaResponse = await verifier.verify(action);
   } catch (error) {
     captchaResponse = await verifier.verify(action, true);
   }
-  const newRequest = { ...request };
-  if (!captchaResp) {
-    Object.assign(newRequest, { captchaResponse });
-  } else {
-    Object.assign(newRequest, { 'captchaResp': captchaResponse });
-  }
-  Object.assign(newRequest, { 'clientType': RecaptchaClientType.WEB });
-  Object.assign(newRequest, {
-    'recaptchaVersion': RecaptchaVersion.ENTERPRISE
-  });
+
+  const newRequest: T = {
+    ...request,
+    ...(captchaResp ? { captchaResp: captchaResponse } : { captchaResponse }),
+    clientType: RecaptchaClientType.WEB,
+    recaptchaVersion: RecaptchaVersion.ENTERPRISE
+  };
+
   return newRequest;
 }
 

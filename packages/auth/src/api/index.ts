@@ -237,20 +237,20 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = (await _performApiRequest<T, V | IdTokenMfaResponse>(
+  const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
     path,
     request,
     customErrorMap
-  )) as V;
+  );
   if ('mfaPendingCredential' in serverResponse) {
     _fail(auth, AuthErrorCode.MFA_REQUIRED, {
       _serverResponse: serverResponse
     });
   }
 
-  return serverResponse;
+  return serverResponse as V;
 }
 
 export function _getFinalTarget(
