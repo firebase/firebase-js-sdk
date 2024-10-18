@@ -28,7 +28,7 @@ jobs:
         # get all history for the diff
         fetch-depth: 0
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
     - name: Yarn install
