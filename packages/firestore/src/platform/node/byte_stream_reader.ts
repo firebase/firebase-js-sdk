@@ -26,7 +26,7 @@ import { valueDescription } from '../../util/input_validation';
 export function toByteStreamReader(
   source: BundleSource,
   bytesPerRead: number
-): ReadableStreamReader<Uint8Array> {
+): ReadableStreamDefaultReader<Uint8Array> {
   if (!(source instanceof Uint8Array)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

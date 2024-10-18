@@ -33,7 +33,7 @@ export const DEFAULT_BYTES_PER_READ = 10240;
 export function toByteStreamReaderHelper(
   source: Uint8Array,
   bytesPerRead: number = DEFAULT_BYTES_PER_READ
-): ReadableStreamReader<Uint8Array> {
+): ReadableStreamDefaultReader<Uint8Array> {
   debugAssert(
     bytesPerRead > 0,
     `toByteStreamReader expects positive bytesPerRead, but got ${bytesPerRead}`
