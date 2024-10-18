@@ -64,8 +64,8 @@ export function removeMutationBatch(
     removePromise.next(() => {
       hardAssert(
         numDeleted === 1,
-        'Dangling document-mutation reference found: Missing batch ' +
-          batch.batchId
+        'Dangling document-mutation reference found: Missing batch',
+        { batchId: batch.batchId }
       );
     })
   );
