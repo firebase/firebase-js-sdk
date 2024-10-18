@@ -33,6 +33,7 @@ import {
   FirestoreDataConverter,
   QueryDocumentSnapshot
 } from '../../../src/lite-api/snapshot';
+import { DocumentSnapshot } from '../../../src';
 
 // A union type for testing
 type MyUnionType = string | number;
@@ -632,7 +633,7 @@ describe('FirestoreTypeConverter', () => {
       await setDoc(newDocRef, { stringProperty: 'foo', numberProperty: 42 });
       await updateDoc(newDocRef, { a: 'newFoo', b: 43 });
       const snapshot = await getDoc(newDocRef);
-      const data: PartialWithFieldValue<MyModelType> = snapshot.data()!;
+      const data: MyModelType = snapshot.data()!;
       expect(data.stringProperty).to.equal('newFoo');
       expect(data.numberProperty).to.equal(43);
     }
