@@ -49,10 +49,16 @@ const errorCodeMap: { [name: string]: FunctionsErrorCode } = {
 };
 
 /**
- * An explicit error that can be thrown from a handler to send an error to the
- * client that called the function.
+ * An error returned by the Firebase Functions client SDK.
+ *
+ * See {@link FunctionsErrorCode} for full documentation of codes.
+ *
+ * @public
  */
 export class FunctionsError extends FirebaseError {
+  /**
+   * Constructs a new instance of the `FunctionsError` class.
+   */
   constructor(
     /**
      * A standard error code that will be returned to the client. This also
@@ -61,11 +67,15 @@ export class FunctionsError extends FirebaseError {
     code: FunctionsErrorCode,
     message?: string,
     /**
-     * Extra data to be converted to JSON and included in the error response.
+     * Additional details to be converted to JSON and included in the error response.
      */
     readonly details?: unknown
   ) {
     super(`${FUNCTIONS_TYPE}/${code}`, message || '');
+
+    // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,
+    // we also have to do it in all subclasses to allow for correct `instanceof` checks.
+    Object.setPrototypeOf(this, FunctionsError.prototype);
   }
 }
 

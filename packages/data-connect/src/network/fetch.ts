@@ -26,7 +26,7 @@ export function initializeFetch(fetchImpl: typeof fetch): void {
 function getGoogApiClientValue(_isUsingGen: boolean): string {
   let str = 'gl-js/ fire/' + SDK_VERSION;
   if (_isUsingGen) {
-    str += ' web/gen';
+    str += ' js/gen';
   }
   return str;
 }

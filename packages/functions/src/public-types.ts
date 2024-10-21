@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseError } from '@firebase/util';
 
 /**
  * An `HttpsCallableResult` wraps a single result from a function call.
@@ -143,23 +142,6 @@ export type FunctionsErrorCodeCore =
  * @public
  */
 export type FunctionsErrorCode = `functions/${FunctionsErrorCodeCore}`;
-
-/**
- * An error returned by the Firebase Functions client SDK.
- * @public
- */
-export interface FunctionsError extends FirebaseError {
-  /**
-   * A standard error code that will be returned to the client. This also
-   * determines the HTTP status code of the response, as defined in code.proto.
-   */
-  readonly code: FunctionsErrorCode;
-
-  /**
-   * Extra data to be converted to JSON and included in the error response.
-   */
-  readonly details?: unknown;
-}
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

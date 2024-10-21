@@ -33,6 +33,7 @@ import {
   FirestoreDataConverter,
   QueryDocumentSnapshot
 } from '../../../src/lite-api/snapshot';
+import { DocumentSnapshot } from '../../../src';
 
 // A union type for testing
 type MyUnionType = string | number;
