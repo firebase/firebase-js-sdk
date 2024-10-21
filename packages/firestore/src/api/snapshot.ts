@@ -40,6 +40,8 @@ import { Code, FirestoreError } from '../util/error';
 
 import { Firestore } from './database';
 import { SnapshotListenOptions } from './reference_impl';
+import { Pipeline } from './pipeline';
+import { PipelineResult } from '../lite-api/pipeline-result';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -789,4 +791,38 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   }
 
   return false;
+}
+
+export class PipelineSnapshot<AppModelType = DocumentData> {
+  /**
+   * Metadata about this snapshot, concerning its source and if it has local
+   * modifications.
+   */
+  readonly metadata: SnapshotMetadata;
+
+  /**
+   * The query on which you called `get` or `onSnapshot` in order to get this
+   * `QuerySnapshot`.
+   */
+  readonly pipeline: Pipeline<AppModelType>;
+
+  /** @hideconstructor */
+  constructor(
+    readonly _firestore: Firestore,
+    readonly _userDataWriter: AbstractUserDataWriter,
+    pipeline: Pipeline<AppModelType>,
+    readonly _snapshot: ViewSnapshot
+  ) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+    this.pipeline = pipeline;
+  }
+
+  /** An array of all the documents in the `QuerySnapshot`. */
+  get results(): Array<PipelineResult<AppModelType>> {
+    const result: Array<PipelineResult<AppModelType>> = [];
+    return result;
+  }
 }

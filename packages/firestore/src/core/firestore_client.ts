@@ -23,7 +23,8 @@ import {
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Pipeline } from '../lite-api/pipeline';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { Pipeline } from '../api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,
@@ -79,9 +80,11 @@ import {
   addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
+  eventManagerListenPipeline,
   eventManagerUnlisten,
   ListenOptions,
   Observer,
+  PipelineListener,
   QueryListener,
   removeSnapshotsInSyncListener
 } from './event_manager';
@@ -89,6 +92,7 @@ import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
+  syncEngineListenPipeline,
   syncEngineLoadBundle,
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
@@ -101,6 +105,8 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { Unsubscribe } from '../api/reference_impl';
+import { PipelineSnapshot } from '../api/snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -404,6 +410,10 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
+  eventManager.onListenPipeline = syncEngineListenPipeline.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
   return eventManager;
 }
 
@@ -556,7 +566,7 @@ export function firestoreClientRunAggregateQuery(
 
 export function firestoreClientExecutePipeline(
   client: FirestoreClient,
-  pipeline: Pipeline
+  pipeline: LitePipeline
 ): Promise<PipelineStreamElement[]> {
   const deferred = new Deferred<PipelineStreamElement[]>();
 
@@ -569,6 +579,27 @@ export function firestoreClientExecutePipeline(
     }
   });
   return deferred.promise;
+}
+
+export function firestoreClientListenPipeline(
+  client: FirestoreClient,
+  pipeline: Pipeline,
+  observer: {
+    next?: (snapshot: PipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe {
+  const wrappedObserver = new AsyncObserver(observer);
+  const listener = new PipelineListener(pipeline, wrappedObserver);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return eventManagerListenPipeline(eventManager, listener);
+  });
+  return () => {
+    wrappedObserver.mute();
+    // TODO(pipeline): actually unlisten
+  };
 }
 
 export function firestoreClientWrite(
