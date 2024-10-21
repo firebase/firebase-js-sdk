@@ -33,7 +33,6 @@ import {
   FirestoreDataConverter,
   QueryDocumentSnapshot
 } from '../../../src/lite-api/snapshot';
-import { DocumentSnapshot } from '../../../src';
 
 // A union type for testing
 type MyUnionType = string | number;
@@ -601,7 +600,7 @@ describe('FirestoreTypeConverter', () => {
       stringProperty: string;
       numberProperty: number;
     }
-    const converter = {
+    const converter: FirestoreDataConverter<MyModelType> = {
       toFirestore(
         modelObject: PartialWithFieldValue<MyModelType>,
         options?: SetOptions
