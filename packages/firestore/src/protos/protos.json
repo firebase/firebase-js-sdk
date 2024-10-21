@@ -2343,7 +2343,8 @@
                     "targetType": {
                       "oneof": [
                         "query",
-                        "documents"
+                        "documents",
+                        "pipeline_query"
                       ]
                     },
                     "resumeType": {
@@ -2361,6 +2362,10 @@
                     "documents": {
                       "type": "DocumentsTarget",
                       "id": 3
+                    },
+                    "pipeline_query": {
+                      "type": "PipelineQueryTarget",
+                      "id": 13
                     },
                     "resumeToken": {
                       "type": "bytes",
@@ -2409,6 +2414,21 @@
                         "structuredQuery": {
                           "type": "StructuredQuery",
                           "id": 2
+                        }
+                      }
+                    },
+                    "PipelineQueryTarget": {
+                      "oneofs": {
+                        "pipelineType": {
+                          "oneof": [
+                            "pipeline"
+                          ]
+                        }
+                      },
+                      "fields": {
+                        "pipeline": {
+                          "type": "StructuredPipeline",
+                          "id": 1
                         }
                       }
                     }

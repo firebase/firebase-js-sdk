@@ -101,7 +101,8 @@ export class MemoryTargetCache implements TargetCache {
   }
 
   private saveTargetData(targetData: TargetData): void {
-    this.targets.set(targetData.target, targetData);
+    // TODO(pipeline): This needs to handle pipeline properly.
+    this.targets.set(targetData.target as Target, targetData);
     const targetId = targetData.targetId;
     if (targetId > this.highestTargetId) {
       this.targetIdGenerator = new TargetIdGenerator(targetId);
@@ -117,7 +118,8 @@ export class MemoryTargetCache implements TargetCache {
     targetData: TargetData
   ): PersistencePromise<void> {
     debugAssert(
-      !this.targets.has(targetData.target),
+      // TODO(pipeline): This needs to handle pipeline properly.
+      !this.targets.has(targetData.target as Target),
       'Adding a target that already exists'
     );
     this.saveTargetData(targetData);
@@ -130,7 +132,8 @@ export class MemoryTargetCache implements TargetCache {
     targetData: TargetData
   ): PersistencePromise<void> {
     debugAssert(
-      this.targets.has(targetData.target),
+      // TODO(pipeline): This needs to handle pipeline properly.
+      this.targets.has(targetData.target as Target),
       'Updating a nonexistent target'
     );
     this.saveTargetData(targetData);
@@ -143,10 +146,11 @@ export class MemoryTargetCache implements TargetCache {
   ): PersistencePromise<void> {
     debugAssert(this.targetCount > 0, 'Removing a target from an empty cache');
     debugAssert(
-      this.targets.has(targetData.target),
+      // TODO(pipeline): This needs to handle pipeline properly.
+      this.targets.has(targetData.target as Target),
       'Removing a nonexistent target from the cache'
     );
-    this.targets.delete(targetData.target);
+    this.targets.delete(targetData.target as Target);
     this.references.removeReferencesForId(targetData.targetId);
     this.targetCount -= 1;
     return PersistencePromise.resolve();

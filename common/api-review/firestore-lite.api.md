@@ -1578,12 +1578,21 @@ export class Pipeline<AppModelType = DocumentData> {
     offset(offset: number): Pipeline<AppModelType>;
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
     select(...selections: Array<Selectable | string>): Pipeline<AppModelType>;
+    // Warning: (ae-incompatible-release-tags) The symbol "selectablesToMap" is marked as @public, but its signature references "Selectable" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "selectablesToMap" is marked as @public, but its signature references "Constant" which is marked as @beta
+    //
+    // (undocumented)
+    protected selectablesToMap(selectables: Array<Selectable | string>): Map<string, Constant>;
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
     sort(...orderings: Ordering[]): Pipeline<AppModelType>;
     // (undocumented)
     sort(options: {
         orderings: Ordering[];
     }): Pipeline<AppModelType>;
+    // Warning: (ae-incompatible-release-tags) The symbol "stages" is marked as @public, but its signature references "Stage" which is marked as @beta
+    //
+    // (undocumented)
+    protected stages: Stage[];
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "Constant" which is marked as @beta
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;

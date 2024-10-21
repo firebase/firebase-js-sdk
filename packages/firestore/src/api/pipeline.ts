@@ -1,13 +1,20 @@
-import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import {
+  firestoreClientExecutePipeline,
+  firestoreClientListenPipeline
+} from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { DocumentData, DocumentReference } from '../lite-api/reference';
-import { Stage } from '../lite-api/stage';
+import { AddFields, Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { DocumentSnapshot, PipelineSnapshot } from './snapshot';
+import { FirestoreError } from '../util/error';
+import { Unsubscribe } from './reference_impl';
+import { cast } from '../util/input_validation';
 
 export class Pipeline<
   AppModelType = DocumentData
@@ -93,5 +100,30 @@ export class Pipeline<
 
       return docs;
     });
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _onSnapshot(observer: {
+    next?: (snapshot: PipelineSnapshot) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }): Unsubscribe {
+    this.stages.push(
+      new AddFields(
+        this.selectablesToMap([
+          '__name__',
+          '__create_time__',
+          '__update_time__'
+        ])
+      )
+    );
+
+    const client = ensureFirestoreConfigured(this.db);
+    firestoreClientListenPipeline(client, this, observer);
+
+    return () => {};
   }
 }
