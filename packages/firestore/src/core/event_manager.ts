@@ -24,6 +24,9 @@ import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
+import { Pipeline } from '../api/pipeline';
+import { PipelineSnapshot } from '../api/snapshot';
+import { PipelineResultView } from './sync_engine_impl';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -64,6 +67,8 @@ export interface EventManager {
   onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
   onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
   onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  // TODO(pipeline): consolidate query and pipeline
+  onListenPipeline?: (pipeline: PipelineListener) => Promise<void>;
   terminate(): void;
 }
 
@@ -85,6 +90,7 @@ export class EventManagerImpl implements EventManager {
   ) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
+  onListenPipeline?: (pipeline: PipelineListener) => Promise<void>;
 
   /**
    * Callback invoked when a Query starts listening to the remote store, while
@@ -123,6 +129,7 @@ function validateEventManager(eventManagerImpl: EventManagerImpl): void {
     !!eventManagerImpl.onLastRemoteStoreUnlisten,
     'onLastRemoteStoreUnlisten not set'
   );
+  debugAssert(!!eventManagerImpl.onListenPipeline, 'onListenPipeline not set');
 }
 
 const enum ListenerSetupAction {
@@ -213,6 +220,25 @@ export async function eventManagerListen(
   }
 }
 
+export async function eventManagerListenPipeline(
+  eventManager: EventManager,
+  listener: PipelineListener
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  validateEventManager(eventManagerImpl);
+
+  try {
+    await eventManagerImpl.onListenPipeline!(listener);
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e as Error,
+      `Initialization of query '${listener.pipeline}' failed`
+    );
+    listener.onError(firestoreError);
+    return;
+  }
+}
+
 export async function eventManagerUnlisten(
   eventManager: EventManager,
   listener: QueryListener
@@ -284,6 +310,13 @@ export function eventManagerOnWatchChange(
   if (raisedEvent) {
     raiseSnapshotsInSyncEvent(eventManagerImpl);
   }
+}
+
+export function eventManagerOnPipelineWatchChange(
+  eventManager: EventManager,
+  viewSnaps: PipelineResultView[]
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 }
 
 export function eventManagerOnWatchError(
@@ -565,5 +598,23 @@ export class QueryListener {
 
   listensToRemoteStore(): boolean {
     return this.options.source !== ListenerDataSource.Cache;
+  }
+}
+
+export class PipelineListener {
+  private snap: PipelineResultView | null = null;
+
+  constructor(
+    readonly pipeline: Pipeline,
+    private queryObserver: Observer<PipelineSnapshot>
+  ) {}
+
+  onViewSnapshot(snap: PipelineResultView): boolean {
+    this.snap = snap;
+    return true;
+  }
+
+  onError(error: FirestoreError): void {
+    this.queryObserver.error(error);
   }
 }

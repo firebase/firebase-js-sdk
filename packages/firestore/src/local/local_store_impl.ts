@@ -24,7 +24,12 @@ import {
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { canonifyTarget, Target, targetEquals } from '../core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  targetIsPipelineTarget
+} from '../core/target';
 import { BatchId, TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -90,6 +95,7 @@ import { ClientId } from './shared_client_state';
 import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
+import { Pipeline } from '../api/pipeline';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -935,9 +941,28 @@ export function localStoreReadDocument(
  */
 export function localStoreAllocateTarget(
   localStore: LocalStore,
-  target: Target
+  target: Target | Pipeline
 ): Promise<TargetData> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  if (targetIsPipelineTarget(target)) {
+    return localStoreImpl.persistence.runTransaction(
+      'Allocate pipeline target',
+      'readwrite',
+      txn => {
+        return localStoreImpl.targetCache
+          .allocateTargetId(txn)
+          .next(targetId => {
+            return new TargetData(
+              target,
+              targetId,
+              TargetPurpose.Listen,
+              txn.currentSequenceNumber
+            );
+          });
+      }
+    );
+  }
+
   return localStoreImpl.persistence
     .runTransaction('Allocate target', 'readwrite', txn => {
       let targetData: TargetData;

@@ -141,7 +141,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
      * @private
      */
     protected documentReferenceFactory: (id: DocumentKey) => DocumentReference,
-    private stages: Stage[],
+    protected stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
     private converter: unknown = {}
@@ -236,7 +236,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
     );
   }
 
-  private selectablesToMap(
+  protected selectablesToMap(
     selectables: Array<Selectable | string>
   ): Map<string, Expr> {
     const result = new Map<string, Expr>();
@@ -822,10 +822,21 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
    * @internal
    * @private
    */
-  _toStructuredPipeline(jsonProtoSerializer: JsonProtoSerializer): StructuredPipeline {
+  _toStructuredPipeline(
+    jsonProtoSerializer: JsonProtoSerializer
+  ): StructuredPipeline {
     const stages: ProtoStage[] = this.stages.map(stage =>
       stage._toProto(jsonProtoSerializer)
     );
     return { pipeline: { stages } };
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  // TODO(pipeline): do better than this
+  _toCanonicalId(jsonProtoSerializer: JsonProtoSerializer): String {
+    return JSON.stringify(this._toStructuredPipeline(jsonProtoSerializer));
   }
 }
