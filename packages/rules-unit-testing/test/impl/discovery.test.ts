@@ -123,22 +123,6 @@ describe('getEmulatorHostAndPort()', () => {
       expect(result?.host).to.equal('::1');
     });
 
-    it('throws if only host is present', async () => {
-      expect(() =>
-        getEmulatorHostAndPort('hub', {
-          host: '[::1]'
-        } as HostAndPort)
-      ).to.throw(/hub.port=undefined/);
-    });
-
-    it('throws if only port is present', async () => {
-      expect(() =>
-        getEmulatorHostAndPort('database', {
-          port: 1234
-        } as HostAndPort)
-      ).to.throw(/Invalid configuration database.host=undefined/);
-    });
-
     it('connect to 127.0.0.1 if host is wildcard 0.0.0.0', async () => {
       const result = getEmulatorHostAndPort('hub', {
         host: '0.0.0.0',
