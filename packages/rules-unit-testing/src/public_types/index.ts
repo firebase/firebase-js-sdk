@@ -128,7 +128,7 @@ export interface TestEnvironmentConfig {
  * An object containing the hostname and port number of an emulator.
  * @public
  */
-export type HostAndPort = {
+export interface HostAndPort {
   /**
    * The host of the emulator. Can be omitted if discovered automatically through the hub or
    * specified via environment variables. See `TestEnvironmentConfig` for details.
@@ -140,7 +140,7 @@ export type HostAndPort = {
    * specified via environment variables. See `TestEnvironmentConfig` for details.
    */
   port: number;
-};
+}
 
 /**
  * Configuration for a given emulator.
@@ -149,12 +149,7 @@ export type HostAndPort = {
 export type EmulatorConfig = {
   /** The security rules source code under test for this emulator. Strongly recommended. */
   rules?: string;
-  /**
-   * Endpoint of the emulator. Can be omitted if discovered automatically through the hub.
-   * See `TestEnvironmentConfig` for details.
-   */
-  endpoint?: HostAndPort;
-};
+} & (HostAndPort | {}); // Both or none of host and port should be specified.
 
 /**
  * An object used to control the rules unit test environment. Can be used to create RulesTestContext

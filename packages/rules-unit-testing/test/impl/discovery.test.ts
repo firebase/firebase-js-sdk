@@ -22,7 +22,7 @@ import {
   EMULATOR_HOST_ENV_VARS,
   getEmulatorHostAndPort
 } from '../../src/impl/discovery';
-import { EmulatorConfig, HostAndPort } from '../../src/public_types';
+import { HostAndPort } from '../../src/public_types';
 import { restoreEnvVars, stashEnvVars } from '../test_utils';
 
 describe('discoverEmulators()', () => {
@@ -106,8 +106,10 @@ describe('getEmulatorHostAndPort()', () => {
       expect(result).to.be.undefined;
     });
 
-    it('returns undefined if endpoint is undefined', async () => {
-      const result = getEmulatorHostAndPort('hub');
+    it('returns undefined if config option does not contain host/port', async () => {
+      const result = getEmulatorHostAndPort('hub', {
+        rules: '/* security rules only, no host/port */'
+      });
 
       expect(result).to.be.undefined;
     });
@@ -119,6 +121,22 @@ describe('getEmulatorHostAndPort()', () => {
       });
 
       expect(result?.host).to.equal('::1');
+    });
+
+    it('throws if only host is present', async () => {
+      expect(() =>
+        getEmulatorHostAndPort('hub', {
+          host: '[::1]'
+        } as HostAndPort)
+      ).to.throw(/hub.port=undefined/);
+    });
+
+    it('throws if only port is present', async () => {
+      expect(() =>
+        getEmulatorHostAndPort('database', {
+          port: 1234
+        } as HostAndPort)
+      ).to.throw(/Invalid configuration database.host=undefined/);
     });
 
     it('connect to 127.0.0.1 if host is wildcard 0.0.0.0', async () => {
@@ -286,7 +304,9 @@ describe('getEmulatorHostAndPort()', () => {
 
     it('takes host and port from env var if config has no host/port', async () => {
       process.env[EMULATOR_HOST_ENV_VARS.hub] = '127.0.0.1:3445';
-      const result = getEmulatorHostAndPort('hub');
+      const result = getEmulatorHostAndPort('hub', {
+        rules: '/* security rules only, no host/port */'
+      });
 
       expect(result?.host).to.equal('127.0.0.1');
       expect(result?.port).to.equal(3445);
