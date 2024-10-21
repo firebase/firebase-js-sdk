@@ -39,6 +39,7 @@ import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
+import { VectorQuery } from './vector_query';
 
 /**
  * Document data (for use with {@link @firebase/firestore/lite#(setDoc:1)}) consists of fields mapped to
@@ -640,8 +641,12 @@ export function refEqual<AppModelType, DbModelType extends DocumentData>(
  * Firestore database.
  */
 export function queryEqual<AppModelType, DbModelType extends DocumentData>(
-  left: Query<AppModelType, DbModelType>,
-  right: Query<AppModelType, DbModelType>
+  left:
+    | Query<AppModelType, DbModelType>
+    | VectorQuery<AppModelType, DbModelType>,
+  right:
+    | Query<AppModelType, DbModelType>
+    | VectorQuery<AppModelType, DbModelType>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
@@ -652,6 +657,9 @@ export function queryEqual<AppModelType, DbModelType extends DocumentData>(
       queryEquals(left._query, right._query) &&
       left.converter === right.converter
     );
+  } else if (left instanceof VectorQuery && right instanceof VectorQuery) {
+    return queryEqual(left.query, right.query);
+    // TODO test for equality of other properties
   }
   return false;
 }

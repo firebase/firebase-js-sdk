@@ -37,6 +37,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
+import { VectorQuery } from '../core/vector_query';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
@@ -87,7 +88,8 @@ import {
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult
+  WriteResult as ProtoWriteResult,
+  FindNearest as ProtoFindNearest
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -843,6 +845,39 @@ export function fromDocumentsTarget(
   );
   const name = documentsTarget.documents![0];
   return queryToTarget(newQueryForPath(fromQueryPath(name)));
+}
+export function toVectorQueryTarget(
+  serializer: JsonProtoSerializer,
+  vectorQuery: VectorQuery,
+  target: Target
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
+  const { queryTarget, parent } = toQueryTarget(serializer, target);
+
+  const findNearest: ProtoFindNearest = {};
+  const limit = toInt32Proto(serializer, vectorQuery.limit);
+
+  if (limit != null) {
+    findNearest.limit = limit;
+  }
+
+  findNearest.distanceMeasure = vectorQuery.distanceMeasure;
+  findNearest.vectorField = toFieldPathReference(vectorQuery.vectorField);
+  findNearest.queryVector = vectorQuery.queryVector.value;
+
+  if (vectorQuery.distanceResultField) {
+    findNearest.distanceResultField =
+      vectorQuery.distanceResultField.canonicalString();
+  }
+
+  if (vectorQuery.distanceThreshold !== undefined) {
+    findNearest.distanceThreshold = toInt32Proto(
+      serializer,
+      vectorQuery.distanceThreshold
+    )!;
+  }
+  queryTarget.structuredQuery!.findNearest = findNearest;
+
+  return { queryTarget, parent };
 }
 
 export function toQueryTarget(

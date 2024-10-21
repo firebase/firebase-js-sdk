@@ -52,8 +52,9 @@ import {
 
 import { FieldPath } from './field_path';
 import { DocumentData, DocumentReference, Query } from './reference';
-import { DocumentSnapshot, fieldPathFromArgument } from './snapshot';
+import { DocumentSnapshot } from './snapshot';
 import {
+  fieldPathFromArgument,
   newUserDataReader,
   parseQueryValue,
   UserDataReader

@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { Compat, getModularInstance } from '@firebase/util';
+import { getModularInstance } from '@firebase/util';
 
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { FieldPath as InternalFieldPath } from '../model/path';
 import { arrayEquals } from '../util/misc';
 
 import { Firestore } from './database';
@@ -34,10 +33,11 @@ import {
   WithFieldValue
 } from './reference';
 import {
-  fieldPathFromDotSeparatedString,
+  fieldPathFromArgument,
   UntypedFirestoreDataConverter
 } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { VectorQuerySnapshot } from './vector_query_snapshot';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type
@@ -483,10 +483,12 @@ export class QuerySnapshot<
 export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
   left:
     | DocumentSnapshot<AppModelType, DbModelType>
-    | QuerySnapshot<AppModelType, DbModelType>,
+    | QuerySnapshot<AppModelType, DbModelType>
+    | VectorQuerySnapshot<AppModelType, DbModelType>,
   right:
     | DocumentSnapshot<AppModelType, DbModelType>
     | QuerySnapshot<AppModelType, DbModelType>
+    | VectorQuerySnapshot<AppModelType, DbModelType>
 ): boolean {
   left = getModularInstance(left);
   right = getModularInstance(right);
@@ -505,23 +507,15 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
       queryEqual(left.query, right.query) &&
       arrayEquals(left.docs, right.docs, snapshotEqual)
     );
+  } else if (
+    left instanceof VectorQuerySnapshot &&
+    right instanceof VectorQuerySnapshot
+  ) {
+    return (
+      queryEqual(left.query, right.query) &&
+      arrayEquals(left.docs, right.docs, snapshotEqual)
+    );
   }
 
   return false;
-}
-
-/**
- * Helper that calls `fromDotSeparatedString()` but wraps any error thrown.
- */
-export function fieldPathFromArgument(
-  methodName: string,
-  arg: string | FieldPath | Compat<FieldPath>
-): InternalFieldPath {
-  if (typeof arg === 'string') {
-    return fieldPathFromDotSeparatedString(methodName, arg);
-  } else if (arg instanceof FieldPath) {
-    return arg._internalPath;
-  } else {
-    return arg._delegate._internalPath;
-  }
 }

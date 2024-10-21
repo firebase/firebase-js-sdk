@@ -144,6 +144,19 @@ export interface IValueNullValueEnum {
   values(): ValueNullValue[];
 }
 export declare const ValueNullValueEnum: IValueNullValueEnum;
+export declare type DistanceMeasure =
+  | 'DISTANCE_MEASURE_UNSPECIFIED'
+  | 'EUCLIDEAN'
+  | 'COSINE'
+  | 'DOT_PRODUCT';
+export interface IDistanceMeasureEnum {
+  DISTANCE_MEASURE_UNSPECIFIED: DistanceMeasure;
+  EUCLIDEAN: DistanceMeasure;
+  COSINE: DistanceMeasure;
+  DOT_PRODUCT: DistanceMeasure;
+  values(): DistanceMeasure[];
+}
+export declare const DistanceMeasureEnum: IDistanceMeasureEnum;
 export declare namespace firestoreV1ApiClientInterfaces {
   interface ArrayValue {
     values?: Value[];
@@ -391,6 +404,15 @@ export declare namespace firestoreV1ApiClientInterfaces {
     endAt?: Cursor;
     offset?: number;
     limit?: number | { value: number };
+    findNearest?: FindNearest;
+  }
+  interface FindNearest {
+    vectorField?: FieldReference;
+    queryVector?: Value;
+    distanceMeasure?: DistanceMeasure;
+    limit?: number | { value: number };
+    distanceResultField?: string;
+    distanceThreshold?: number | { value: number };
   }
   interface Target {
     query?: QueryTarget;
@@ -495,6 +517,7 @@ export declare type FieldReference =
 export declare type FieldTransform =
   firestoreV1ApiClientInterfaces.FieldTransform;
 export declare type Filter = firestoreV1ApiClientInterfaces.Filter;
+export declare type FindNearest = firestoreV1ApiClientInterfaces.FindNearest;
 export declare type Index = firestoreV1ApiClientInterfaces.Index;
 export declare type IndexField = firestoreV1ApiClientInterfaces.IndexField;
 export declare type LatLng = firestoreV1ApiClientInterfaces.LatLng;
