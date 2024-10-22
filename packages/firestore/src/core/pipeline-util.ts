@@ -18,10 +18,16 @@ import {
   Expr,
   Field,
   FilterCondition,
+  FirestoreFunction,
   not,
-  or
+  or,
+  Ordering
 } from '../lite-api/expressions';
-import { isNanValue, isNullValue } from '../model/values';
+import {
+  isNanValue,
+  isNullValue,
+  VECTOR_MAP_VECTORS_KEY
+} from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
   Function as ProtoFunction,
@@ -41,6 +47,23 @@ import {
   Filter as FilterInternal,
   Operator
 } from './filter';
+import { Pipeline } from '../lite-api/pipeline';
+import {
+  AddFields,
+  Aggregate,
+  CollectionGroupSource,
+  CollectionSource,
+  DatabaseSource,
+  Distinct,
+  DocumentsSource,
+  FindNearest,
+  Limit,
+  Offset,
+  Select,
+  Sort,
+  Stage,
+  Where
+} from '../lite-api/stage';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -246,4 +269,99 @@ export function toPipelineFilterCondition(
   }
 
   throw new Error(`Failed to convert filter to pipeline conditions: ${f}`);
+}
+
+function canonifyExpr(expr: Expr): string {
+  if (expr instanceof Field) {
+    return `fld(${expr.fieldName()})`;
+  }
+  if (expr instanceof Constant) {
+    return `cst(${expr.value})`;
+  }
+  if (expr instanceof FirestoreFunction) {
+    return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
+  }
+  throw new Error(`Unrecognized expr ${expr}`);
+}
+
+function canonifySortOrderings(orders: Ordering[]): string {
+  return orders.map(o => `${canonifyExpr(o.expr)} ${o.direction}`).join(',');
+}
+
+function canonifyStage(stage: Stage): string {
+  if (stage instanceof AddFields) {
+    return `${stage.name}(${canonifyExprMap(stage.fields)})`;
+  }
+  if (stage instanceof Aggregate) {
+    let result = `${stage.name}(${canonifyExprMap(
+      stage.accumulators as unknown as Map<string, Expr>
+    )})`;
+    if (stage.groups.size > 0) {
+      result = result + `grouping(${canonifyExprMap(stage.groups)})`;
+    }
+    return result;
+  }
+  if (stage instanceof Distinct) {
+    return `${stage.name}(${canonifyExprMap(stage.groups)})`;
+  }
+  if (stage instanceof CollectionSource) {
+    return `${stage.name}(${stage.collectionPath})`;
+  }
+  if (stage instanceof CollectionGroupSource) {
+    return `${stage.name}(${stage.collectionId})`;
+  }
+  if (stage instanceof DatabaseSource) {
+    return `${stage.name}()`;
+  }
+  if (stage instanceof DocumentsSource) {
+    return `${stage.name}(${stage.docPaths.sort()})`;
+  }
+  if (stage instanceof Where) {
+    return `${stage.name}(${canonifyExpr(stage.condition)})`;
+  }
+  if (stage instanceof FindNearest) {
+    const vector = stage._vectorValue.value.mapValue.fields![
+      VECTOR_MAP_VECTORS_KEY
+    ].arrayValue?.values?.map(value => value.doubleValue);
+    let result = `${stage.name}(${canonifyExpr(stage._field)},${
+      stage._distanceMeasure
+    },[${vector}]`;
+    if (!!stage._limit) {
+      result = result + `,${stage._limit}`;
+    }
+    if (!!stage._distanceField) {
+      result = result + `,${stage._distanceField}`;
+    }
+    return result + ')';
+  }
+  if (stage instanceof Limit) {
+    return `${stage.name}(${stage.limit})`;
+  }
+  if (stage instanceof Offset) {
+    return `${stage.name}(${stage.offset})`;
+  }
+  if (stage instanceof Select) {
+    return `${stage.name}(${canonifyExprMap(stage.projections)})`;
+  }
+  if (stage instanceof Sort) {
+    return `${stage.name}(${canonifySortOrderings(stage.orders)})`;
+  }
+
+  throw new Error(`Unrecognized stage ${stage.name}`);
+}
+
+function canonifyExprMap(map: Map<string, Expr>): string {
+  const sortedEntries = Array.from(map.entries()).sort();
+  return `${sortedEntries
+    .map(([key, val]) => `${key}=${canonifyExpr(val)}`)
+    .join(',')}`;
+}
+
+export function canonifyPipeline(p: Pipeline): string {
+  return p.stages.map(s => canonifyStage(s)).join('|');
+}
+
+// TODO(pipeline): do a proper implementation for eq.
+export function pipelineEq(left: Pipeline, right: Pipeline): boolean {
+  return canonifyPipeline(left) === canonifyPipeline(right);
 }

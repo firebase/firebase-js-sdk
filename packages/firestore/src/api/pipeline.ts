@@ -144,4 +144,12 @@ export class Pipeline<
 
     return () => {};
   }
+
+  /**
+   * @internal
+   * @private
+   */
+  _stages(): Stage[] {
+    return this.stages;
+  }
 }

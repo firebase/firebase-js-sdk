@@ -48,7 +48,7 @@ export interface Stage extends ProtoSerializable<ProtoStage> {
 export class AddFields implements Stage {
   name = 'add_fields';
 
-  constructor(private fields: Map<string, Expr>) {}
+  constructor(readonly fields: Map<string, Expr>) {}
 
   /**
    * @internal
@@ -69,8 +69,8 @@ export class Aggregate implements Stage {
   name = 'aggregate';
 
   constructor(
-    private accumulators: Map<string, Accumulator>,
-    private groups: Map<string, Expr>
+    readonly accumulators: Map<string, Accumulator>,
+    readonly groups: Map<string, Expr>
   ) {}
 
   /**
@@ -94,7 +94,7 @@ export class Aggregate implements Stage {
 export class Distinct implements Stage {
   name = 'distinct';
 
-  constructor(private groups: Map<string, Expr>) {}
+  constructor(readonly groups: Map<string, Expr>) {}
 
   /**
    * @internal
@@ -114,7 +114,7 @@ export class Distinct implements Stage {
 export class CollectionSource implements Stage {
   name = 'collection';
 
-  constructor(private collectionPath: string) {
+  constructor(readonly collectionPath: string) {
     if (!this.collectionPath.startsWith('/')) {
       this.collectionPath = '/' + this.collectionPath;
     }
@@ -138,7 +138,7 @@ export class CollectionSource implements Stage {
 export class CollectionGroupSource implements Stage {
   name = 'collection_group';
 
-  constructor(private collectionId: string) {}
+  constructor(readonly collectionId: string) {}
 
   /**
    * @internal
@@ -175,7 +175,7 @@ export class DatabaseSource implements Stage {
 export class DocumentsSource implements Stage {
   name = 'documents';
 
-  constructor(private docPaths: string[]) {}
+  constructor(readonly docPaths: string[]) {}
 
   static of(refs: DocumentReference[]): DocumentsSource {
     return new DocumentsSource(refs.map(ref => '/' + ref.path));
@@ -201,7 +201,7 @@ export class DocumentsSource implements Stage {
 export class Where implements Stage {
   name = 'where';
 
-  constructor(private condition: FilterCondition & Expr) {}
+  constructor(readonly condition: FilterCondition & Expr) {}
 
   /**
    * @internal
@@ -243,11 +243,11 @@ export class FindNearest implements Stage {
    * @param _distanceField
    */
   constructor(
-    private _field: Field,
-    private _vectorValue: ObjectValue,
-    private _distanceMeasure: 'euclidean' | 'cosine' | 'dot_product',
-    private _limit?: number,
-    private _distanceField?: string
+    readonly _field: Field,
+    readonly _vectorValue: ObjectValue,
+    readonly _distanceMeasure: 'euclidean' | 'cosine' | 'dot_product',
+    readonly _limit?: number,
+    readonly _distanceField?: string
   ) {}
 
   /**
@@ -286,7 +286,7 @@ export class FindNearest implements Stage {
 export class Limit implements Stage {
   name = 'limit';
 
-  constructor(private limit: number) {}
+  constructor(readonly limit: number) {}
 
   /**
    * @internal
@@ -306,7 +306,7 @@ export class Limit implements Stage {
 export class Offset implements Stage {
   name = 'offset';
 
-  constructor(private offset: number) {}
+  constructor(readonly offset: number) {}
 
   /**
    * @internal
@@ -326,7 +326,7 @@ export class Offset implements Stage {
 export class Select implements Stage {
   name = 'select';
 
-  constructor(private projections: Map<string, Expr>) {}
+  constructor(readonly projections: Map<string, Expr>) {}
 
   /**
    * @internal
@@ -346,7 +346,7 @@ export class Select implements Stage {
 export class Sort implements Stage {
   name = 'sort';
 
-  constructor(private orders: Ordering[]) {}
+  constructor(readonly orders: Ordering[]) {}
 
   /**
    * @internal
