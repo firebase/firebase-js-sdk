@@ -87,7 +87,14 @@ export function getEmulatorHostAndPort(
   conf?: EmulatorConfig,
   discovered?: DiscoveredEmulators
 ) {
-  if (conf && 'host' in conf && 'port' in conf) {
+  if (conf && ('host' in conf || 'port' in conf)) {
+    const { host, port } = conf as any;
+    if (!host || !port) {
+      throw new Error(
+        `Invalid configuration ${emulator}.host=${host} and ${emulator}.port=${port}. ` +
+          'If either parameter is supplied, both must be defined.'
+      );
+    }
     if (discovered && !discovered[emulator]) {
       console.warn(
         `Warning: config for the ${emulator} emulator is specified, but the Emulator hub ` +
@@ -95,8 +102,8 @@ export function getEmulatorHostAndPort(
       );
     }
     return {
-      host: fixHostname(conf.host, discovered?.hub?.host),
-      port: conf.port
+      host: fixHostname(host, discovered?.hub?.host),
+      port: port
     };
   }
   const envVar = EMULATOR_HOST_ENV_VARS[emulator];

@@ -140,6 +140,22 @@ describe('getEmulatorHostAndPort()', () => {
       expect(result?.host).to.equal('::1');
     });
 
+    it('throws if only host is present', async () => {
+      expect(() =>
+        getEmulatorHostAndPort('hub', {
+          host: '[::1]'
+        } as HostAndPort)
+      ).to.throw(/hub.port=undefined/);
+    });
+
+    it('throws if only port is present', async () => {
+      expect(() =>
+        getEmulatorHostAndPort('database', {
+          port: 1234
+        } as HostAndPort)
+      ).to.throw(/Invalid configuration database.host=undefined/);
+    });
+
     it('uses discovered host/port if both config and env var are unset', async () => {
       const result = getEmulatorHostAndPort('hub', undefined, {
         hub: { host: '::1', port: 3333 }
