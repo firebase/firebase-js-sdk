@@ -126,7 +126,7 @@ export interface RequestOptions {
    */
   timeout?: number;
   /**
-   * Base url for endpoint. Defaults to https://firebaseml.googleapis.com
+   * Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
    */
   baseUrl?: string;
 }
