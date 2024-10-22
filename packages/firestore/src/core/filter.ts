@@ -168,7 +168,7 @@ export class FieldFilter extends Filter {
       case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
-        return fail('Unknown FieldFilter operator: ' + this.op);
+        return fail('Unknown FieldFilter operator', { operator: this.op });
     }
   }
 

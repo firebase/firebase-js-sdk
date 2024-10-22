@@ -219,10 +219,11 @@ export class MutationBatchResult {
   ): MutationBatchResult {
     hardAssert(
       batch.mutations.length === results.length,
-      'Mutations sent ' +
-        batch.mutations.length +
-        ' must equal results received ' +
-        results.length
+      'Mutations sent must equal results received',
+      {
+        mutationsSent: batch.mutations.length,
+        resultsReceived: results.length
+      }
     );
 
     let versionMap = documentVersionMap();
