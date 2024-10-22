@@ -16,14 +16,13 @@ export function assertSucceeds<T>(pr: Promise<T>): Promise<T>;
 // @public
 export type EmulatorConfig = {
     rules?: string;
-    endpoint?: HostAndPort;
-};
+} & (HostAndPort | {});
 
 // @public
-export type HostAndPort = {
+export interface HostAndPort {
     host: string;
     port: number;
-};
+}
 
 // @public
 export function initializeTestEnvironment(config: TestEnvironmentConfig): Promise<RulesTestEnvironment>;
