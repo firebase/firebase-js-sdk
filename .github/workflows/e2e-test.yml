@@ -24,8 +24,33 @@ env:
   NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
+  has-secrets:
+    name: Check for Service Account Key
+    runs-on: ubuntu-latest
+    outputs:
+      has-secrets: ${{ steps.check-secrets.outputs.has-secrets }}
+    steps:
+      - name: Check for Service Account Key
+        id: check-secrets
+        env:
+          HAS_SECRETS: ${{
+            secrets.TEST_PROJECT_CONFIG != '' &&
+            secrets.TEST_ACCOUNT != '' &&
+            secrets.FIREBASE_CLI_TOKEN != '' &&
+            secrets.APP_CHECK_DEBUG_TOKEN != '' &&
+            secrets.JSCORE_CHAT_WEBHOOK_URL != '' &&
+            secrets.RELEASE_TRACKER_URL != '' &&
+            1 ||
+            ''
+            }}
+        if: env.HAS_SECRETS
+        run: |
+          echo "has-secrets=1" >> $GITHUB_OUTPUTS
+
   test:
+    needs: has-secrets
     name: Run E2E Smoke Tests
+    if: needs.has-secrets.outputs.has-secrets
     runs-on: ubuntu-latest
 
     defaults:
