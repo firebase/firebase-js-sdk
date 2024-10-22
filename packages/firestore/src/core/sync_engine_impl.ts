@@ -1169,7 +1169,10 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
     const change = remoteEvent?.targetChanges.get(targetId);
     if (!!change) {
       change.modifiedDocuments.forEach(key => {
-        results.updateResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
+        results.updateResult(
+          key,
+          remoteEvent?.augmentedDocumentUpdates.get(key)!
+        );
       });
       change.addedDocuments.forEach(key => {
         results.addResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);

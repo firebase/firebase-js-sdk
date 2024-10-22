@@ -2009,7 +2009,7 @@ export class Constant extends Expr {
 
   private _protoValue?: ProtoValue;
 
-  private constructor(private value: any) {
+  private constructor(readonly value: any) {
     super();
   }
 
@@ -2191,7 +2191,7 @@ export class Constant extends Expr {
  */
 export class FirestoreFunction extends Expr {
   exprType: ExprType = 'Function';
-  constructor(private name: string, private params: Expr[]) {
+  constructor(readonly name: string, readonly params: Expr[]) {
     super();
   }
 
@@ -6706,8 +6706,8 @@ export function descending(expr: Expr): Ordering {
  */
 export class Ordering {
   constructor(
-    private expr: Expr,
-    private direction: 'ascending' | 'descending'
+    readonly expr: Expr,
+    readonly direction: 'ascending' | 'descending'
   ) {}
 
   /**
