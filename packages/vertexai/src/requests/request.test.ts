@@ -25,7 +25,6 @@ import { DEFAULT_API_VERSION } from '../constants';
 import { VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { base64 } from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
