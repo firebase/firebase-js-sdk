@@ -1,5 +1,11 @@
 # @firebase/database-compat
 
+## 2.0.0
+
+### Major Changes
+
+- [`0f5a9aad0`](https://github.com/firebase/firebase-js-sdk/commit/0f5a9aad0936af4c2df50d083db73306ebe069bc) [#8586](https://github.com/firebase/firebase-js-sdk/pull/8586) - Set required version of Node to >=18.
+
 ## 1.0.9
 
 ### Patch Changes

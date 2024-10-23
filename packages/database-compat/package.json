@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-compat",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "The Realtime Database component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -57,7 +57,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.44",
+    "@firebase/app-compat": "0.2.45",
     "typescript": "5.5.4"
   },
   "repository": {

@@ -1,5 +1,14 @@
 # firebase
 
+## 11.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`0f5a9aad0`](https://github.com/firebase/firebase-js-sdk/commit/0f5a9aad0936af4c2df50d083db73306ebe069bc)]:
+  - @firebase/database-compat@2.0.0
+  - @firebase/app@0.10.15
+  - @firebase/app-compat@0.2.45
+
 ## 11.0.0
 
 ### Major Changes
