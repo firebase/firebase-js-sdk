@@ -18,6 +18,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   linkWithPhoneNumber,
   PhoneAuthProvider,

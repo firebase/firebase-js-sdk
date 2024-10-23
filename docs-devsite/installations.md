@@ -152,7 +152,7 @@ An user defined callback function that gets called when Installations ID changes
 <b>Signature:</b>
 
 ```typescript
-export declare type IdChangeCallbackFn = (installationId: string) => void;
+export type IdChangeCallbackFn = (installationId: string) => void;
 ```
 
 ## IdChangeUnsubscribeFn
@@ -162,5 +162,5 @@ Unsubscribe a callback function previously added via [IdChangeCallbackFn](./inst
 <b>Signature:</b>
 
 ```typescript
-export declare type IdChangeUnsubscribeFn = () => void;
+export type IdChangeUnsubscribeFn = () => void;
 ```

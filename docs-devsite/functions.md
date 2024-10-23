@@ -147,7 +147,7 @@ Possible values: - 'cancelled': The operation was cancelled (typically by the ca
 <b>Signature:</b>
 
 ```typescript
-export declare type FunctionsErrorCode = `functions/${FunctionsErrorCodeCore}`;
+export type FunctionsErrorCode = `functions/${FunctionsErrorCodeCore}`;
 ```
 
 ## FunctionsErrorCodeCore
@@ -157,7 +157,7 @@ Functions error code string appended after "functions/" product prefix. See [Fun
 <b>Signature:</b>
 
 ```typescript
-export declare type FunctionsErrorCodeCore = 'ok' | 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
+export type FunctionsErrorCodeCore = 'ok' | 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
 ```
 
 ## HttpsCallable
@@ -167,5 +167,5 @@ A reference to a "callable" HTTP trigger in Google Cloud Functions.
 <b>Signature:</b>
 
 ```typescript
-export declare type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
+export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (data?: RequestData | null) => Promise<HttpsCallableResult<ResponseData>>;
 ```

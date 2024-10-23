@@ -141,7 +141,7 @@
     "rollup-plugin-typescript2": "0.31.2",
     "selenium-webdriver": "4.8.0",
     "totp-generator": "0.0.14",
-    "typescript": "4.7.4"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/auth",

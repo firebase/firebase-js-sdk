@@ -600,7 +600,7 @@ describe('FirestoreTypeConverter', () => {
       stringProperty: string;
       numberProperty: number;
     }
-    const converter = {
+    const converter: FirestoreDataConverter<MyModelType> = {
       toFirestore(
         modelObject: PartialWithFieldValue<MyModelType>,
         options?: SetOptions

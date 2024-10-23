@@ -325,7 +325,7 @@ Summarizes the outcome of the last attempt to fetch config from the Firebase Rem
 <b>Signature:</b>
 
 ```typescript
-export declare type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
 ```
 
 ## LogLevel
@@ -335,7 +335,7 @@ Defines levels of Remote Config logging.
 <b>Signature:</b>
 
 ```typescript
-export declare type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel = 'debug' | 'error' | 'silent';
 ```
 
 ## ValueSource
@@ -347,5 +347,5 @@ Indicates the source of a value.
 <b>Signature:</b>
 
 ```typescript
-export declare type ValueSource = 'static' | 'default' | 'remote';
+export type ValueSource = 'static' | 'default' | 'remote';
 ```

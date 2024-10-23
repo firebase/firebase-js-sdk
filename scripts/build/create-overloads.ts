@@ -149,8 +149,10 @@ function keepPublicFunctionsTransformer(
               ) {
                 return factory.updateParameterDeclaration(
                   param,
-                  param.decorators,
-                  param.modifiers,
+                  [
+                    ...(ts.getDecorators(param) || []),
+                    ...(ts.getModifiers(param) || [])
+                  ],
                   param.dotDotDotToken,
                   param.name,
                   param.questionToken,
@@ -176,8 +178,7 @@ function keepPublicFunctionsTransformer(
         overloads.push(
           factory.updateFunctionDeclaration(
             node,
-            node.decorators,
-            [],
+            ts.getModifiers(node),
             node.asteriskToken,
             node.name,
             node.typeParameters,
@@ -217,7 +218,6 @@ function keepPublicFunctionsTransformer(
     // hardcode adding `import { FirebaseApp as FirebaseAppCompat } from '@firebase/app-compat'`
     const appCompatImport = factory.createImportDeclaration(
       undefined,
-      undefined,
       factory.createImportClause(
         false,
         undefined,
@@ -233,7 +233,6 @@ function keepPublicFunctionsTransformer(
     );
 
     const importStatement = factory.createImportDeclaration(
-      undefined,
       undefined,
       factory.createImportClause(
         false,
@@ -251,7 +250,6 @@ function keepPublicFunctionsTransformer(
       factory.createStringLiteral(moduleNameToEnhance)
     );
     const moduleToEnhance = factory.createModuleDeclaration(
-      undefined,
       [factory.createModifier(ts.SyntaxKind.DeclareKeyword)],
       factory.createStringLiteral(moduleNameToEnhance),
       factory.createModuleBlock(overloads)
