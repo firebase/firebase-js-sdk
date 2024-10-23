@@ -24,6 +24,7 @@ import {
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
+import { logger } from '../logger';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -83,8 +84,13 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   headers.append('x-goog-api-key', url.apiSettings.apiKey);
   if (url.apiSettings.getAppCheckToken) {
     const appCheckToken = await url.apiSettings.getAppCheckToken();
-    if (appCheckToken && !appCheckToken.error) {
+    if (appCheckToken) {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
+      if (appCheckToken.error) {
+        logger.warn(
+          `Unable to obtain a valid App Check token: ${appCheckToken.error.message}`
+        );
+      }
     }
   }
 

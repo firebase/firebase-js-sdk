@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import { restore, stub } from 'sinon';
+import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import { RequestUrl, Task, getHeaders, makeRequest } from './request';
@@ -169,13 +169,18 @@ describe('request methods', () => {
           project: 'myproject',
           location: 'moon',
           getAppCheckToken: () =>
-            Promise.resolve({ token: 'token', error: Error('oops') })
+            Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
         true,
         {}
       );
+      const warnStub = stub(console, 'warn');
       const headers = await getHeaders(fakeUrl);
-      expect(headers.has('X-Firebase-AppCheck')).to.be.false;
+      expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
+      expect(warnStub).to.be.calledWith(
+        match(/vertexai/),
+        match(/App Check.*oops/)
+      );
     });
     it('adds auth token if it exists', async () => {
       const headers = await getHeaders(fakeUrl);
