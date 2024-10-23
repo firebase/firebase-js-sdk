@@ -24,6 +24,7 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
+import { logger } from '../logger';
 
 /**
  * Creates an EnhancedGenerateContentResponse object that has helper functions and
@@ -56,7 +57,7 @@ export function addHelpers(
   (response as EnhancedGenerateContentResponse).text = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning text from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
@@ -88,7 +89,7 @@ export function addHelpers(
   (response as EnhancedGenerateContentResponse).functionCalls = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning function calls from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
