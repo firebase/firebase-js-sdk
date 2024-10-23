@@ -31,7 +31,7 @@ module.exports = {
     'unused-imports'
   ],
   'parserOptions': {
-    'ecmaVersion': 2015,
+    'ecmaVersion': 2017,
     'sourceType': 'module'
   },
   'overrides': [
