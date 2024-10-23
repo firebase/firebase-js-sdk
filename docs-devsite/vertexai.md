@@ -184,7 +184,7 @@ Content part - includes text, image/video, or function call/response part types.
 <b>Signature:</b>
 
 ```typescript
-export declare type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
 ```
 
 ## Role
@@ -194,7 +194,7 @@ Role is the producer of the content.
 <b>Signature:</b>
 
 ```typescript
-export declare type Role = (typeof POSSIBLE_ROLES)[number];
+export type Role = (typeof POSSIBLE_ROLES)[number];
 ```
 
 ## Tool
@@ -214,7 +214,7 @@ A type that includes all specific Schema types.
 <b>Signature:</b>
 
 ```typescript
-export declare type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
 ```
 
 ## BlockReason
