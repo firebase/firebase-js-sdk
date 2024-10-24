@@ -145,8 +145,20 @@ export interface IValueNullValueEnum {
 }
 export declare const ValueNullValueEnum: IValueNullValueEnum;
 export declare namespace firestoreV1ApiClientInterfaces {
+  interface Aggregation {
+    count?: Count;
+    sum?: Sum;
+    avg?: Avg;
+    alias?: string;
+  }
+  interface AggregationResult {
+    aggregateFields?: ApiClientObjectMap<Value>;
+  }
   interface ArrayValue {
     values?: Value[];
+  }
+  interface Avg {
+    field?: FieldReference;
   }
   interface BatchGetDocumentsRequest {
     database?: string;
@@ -168,6 +180,14 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface BeginTransactionResponse {
     transaction?: string;
   }
+  interface BitSequence {
+    bitmap?: string | Uint8Array;
+    padding?: number;
+  }
+  interface BloomFilter {
+    bits?: BitSequence;
+    hashCount?: number;
+  }
   interface CollectionSelector {
     collectionId?: string;
     allDescendants?: boolean;
@@ -184,6 +204,9 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface CompositeFilter {
     op?: CompositeFilterOp;
     filters?: Filter[];
+  }
+  interface Count {
+    upTo?: number;
   }
   interface Cursor {
     values?: Value[];
@@ -221,18 +244,22 @@ export declare namespace firestoreV1ApiClientInterfaces {
     documents?: string[];
   }
   interface Empty {}
+  interface ExecutePipelineRequest {
+    database?: string;
+    structuredPipeline?: StructuredPipeline;
+    transaction?: string;
+    newTransaction?: TransactionOptions;
+    readTime?: string;
+  }
+  interface ExecutePipelineResponse {
+    transaction?: string;
+    results?: Document[];
+    executionTime?: string;
+  }
   interface ExistenceFilter {
     targetId?: number;
     count?: number;
     unchangedNames?: BloomFilter;
-  }
-  interface BloomFilter {
-    bits?: BitSequence;
-    hashCount?: number;
-  }
-  interface BitSequence {
-    bitmap?: string | Uint8Array;
-    padding?: number;
   }
   interface FieldFilter {
     field?: FieldReference;
@@ -253,6 +280,11 @@ export declare namespace firestoreV1ApiClientInterfaces {
     compositeFilter?: CompositeFilter;
     fieldFilter?: FieldFilter;
     unaryFilter?: UnaryFilter;
+  }
+  interface Function {
+    name?: string;
+    args?: Value[];
+    options?: ApiClientObjectMap<Value>;
   }
   interface Index {
     name?: string;
@@ -310,6 +342,9 @@ export declare namespace firestoreV1ApiClientInterfaces {
     field?: FieldReference;
     direction?: OrderDirection;
   }
+  interface Pipeline {
+    stages?: Stage[];
+  }
   interface Precondition {
     exists?: boolean;
     updateTime?: Timestamp;
@@ -355,32 +390,23 @@ export declare namespace firestoreV1ApiClientInterfaces {
     transaction?: string;
     readTime?: string;
   }
-  interface AggregationResult {
-    aggregateFields?: ApiClientObjectMap<Value>;
-  }
   interface StructuredAggregationQuery {
     structuredQuery?: StructuredQuery;
     aggregations?: Aggregation[];
   }
-  interface Aggregation {
-    count?: Count;
-    sum?: Sum;
-    avg?: Avg;
-    alias?: string;
-  }
-  interface Count {
-    upTo?: number;
-  }
-  interface Sum {
-    field?: FieldReference;
-  }
-  interface Avg {
-    field?: FieldReference;
+  interface Stage {
+    name?: string;
+    args?: Value[];
+    options?: ApiClientObjectMap<Value>;
   }
   interface Status {
     code?: number;
     message?: string;
     details?: Array<ApiClientObjectMap<any>>;
+  }
+  interface StructuredPipeline {
+    pipeline?: Pipeline;
+    options?: ApiClientObjectMap<Value>;
   }
   interface StructuredQuery {
     select?: Projection;
@@ -391,6 +417,9 @@ export declare namespace firestoreV1ApiClientInterfaces {
     endAt?: Cursor;
     offset?: number;
     limit?: number | { value: number };
+  }
+  interface Sum {
+    field?: FieldReference;
   }
   interface Target {
     query?: QueryTarget;
@@ -428,6 +457,10 @@ export declare namespace firestoreV1ApiClientInterfaces {
     geoPointValue?: LatLng;
     arrayValue?: ArrayValue;
     mapValue?: MapValue;
+    fieldReferenceValue?: string;
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    functionValue?: Function;
+    pipelineValue?: Pipeline;
   }
   interface Write {
     update?: Document;
@@ -489,12 +522,17 @@ export declare type DocumentsTarget =
 export declare type Empty = firestoreV1ApiClientInterfaces.Empty;
 export declare type ExistenceFilter =
   firestoreV1ApiClientInterfaces.ExistenceFilter;
+export declare type ExecutePipelineRequest =
+  firestoreV1ApiClientInterfaces.ExecutePipelineRequest;
+export declare type ExecutePipelineResponse =
+  firestoreV1ApiClientInterfaces.ExecutePipelineResponse;
 export declare type FieldFilter = firestoreV1ApiClientInterfaces.FieldFilter;
 export declare type FieldReference =
   firestoreV1ApiClientInterfaces.FieldReference;
 export declare type FieldTransform =
   firestoreV1ApiClientInterfaces.FieldTransform;
 export declare type Filter = firestoreV1ApiClientInterfaces.Filter;
+export declare type Function = firestoreV1ApiClientInterfaces.Function;
 export declare type Index = firestoreV1ApiClientInterfaces.Index;
 export declare type IndexField = firestoreV1ApiClientInterfaces.IndexField;
 export declare type LatLng = firestoreV1ApiClientInterfaces.LatLng;
@@ -513,6 +551,7 @@ export declare type ListenResponse =
 export declare type MapValue = firestoreV1ApiClientInterfaces.MapValue;
 export declare type Operation = firestoreV1ApiClientInterfaces.Operation;
 export declare type Order = firestoreV1ApiClientInterfaces.Order;
+export declare type Pipeline = firestoreV1ApiClientInterfaces.Pipeline;
 export declare type Precondition = firestoreV1ApiClientInterfaces.Precondition;
 export declare type Projection = firestoreV1ApiClientInterfaces.Projection;
 export declare type QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
@@ -529,9 +568,12 @@ export declare type RunAggregationQueryRequest =
 export declare type Aggregation = firestoreV1ApiClientInterfaces.Aggregation;
 export declare type RunAggregationQueryResponse =
   firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
+export declare type Stage = firestoreV1ApiClientInterfaces.Stage;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;
 export declare type StructuredQuery =
   firestoreV1ApiClientInterfaces.StructuredQuery;
+export declare type StructuredPipeline =
+  firestoreV1ApiClientInterfaces.StructuredPipeline;
 export declare type Target = firestoreV1ApiClientInterfaces.Target;
 export declare type TargetChange = firestoreV1ApiClientInterfaces.TargetChange;
 export declare type TransactionOptions =
