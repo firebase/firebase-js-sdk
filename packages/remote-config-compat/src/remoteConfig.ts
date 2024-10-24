@@ -21,7 +21,8 @@ import {
   FetchStatus as FetchSTatusCompat,
   Settings as SettingsCompat,
   LogLevel as RemoteConfigLogLevel,
-  RemoteConfig as RemoteConfigCompat
+  RemoteConfig as RemoteConfigCompat,
+  CustomSignals as RemoteConfigCustomSignals
 } from '@firebase/remote-config-types';
 import {
   RemoteConfig,
@@ -35,7 +36,8 @@ import {
   getNumber,
   getString,
   getValue,
-  isSupported
+  isSupported,
+  setCustomSignals
 } from '@firebase/remote-config';
 
 export { isSupported };
@@ -114,5 +116,9 @@ export class RemoteConfigCompatImpl
   // to differentiate 2p and 3p use-cases.
   setLogLevel(logLevel: RemoteConfigLogLevel): void {
     setLogLevel(this._delegate, logLevel);
+  }
+
+  setCustomSignals(customSignals: RemoteConfigCustomSignals): Promise<void> {
+    return setCustomSignals(this._delegate, customSignals);
   }
 }
