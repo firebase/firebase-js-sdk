@@ -291,6 +291,7 @@ export class WatchChangeAggregator {
 
   /** Keeps track of the documents to update since the last raised snapshot. */
   private pendingDocumentUpdates = mutableDocumentMap();
+  private pendingDocumentUpdatesByTarget = documentTargetMap();
 
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
@@ -596,7 +597,7 @@ export class WatchChangeAggregator {
           // remove this special logic.
           const key = new DocumentKey(targetData.target.path);
           if (
-            this.pendingDocumentUpdates.get(key) === null &&
+            !this.ensureDocumentUpdateByTarget(key).has(targetId) &&
             !this.targetContainsDocument(targetId, key)
           ) {
             this.removeDocumentFromTarget(
@@ -655,6 +656,7 @@ export class WatchChangeAggregator {
     );
 
     this.pendingDocumentUpdates = mutableDocumentMap();
+    this.pendingDocumentUpdatesByTarget = documentTargetMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
       primitiveComparator
@@ -684,6 +686,11 @@ export class WatchChangeAggregator {
       document.key,
       document
     );
+
+    this.pendingDocumentUpdatesByTarget =
+      this.pendingDocumentUpdatesByTarget.insert(
+        document.key,
+        this.ensureDocumentUpdateByTarget(document.key).add(targetId));
 
     this.pendingDocumentTargetMapping =
       this.pendingDocumentTargetMapping.insert(
@@ -722,6 +729,12 @@ export class WatchChangeAggregator {
       this.pendingDocumentTargetMapping.insert(
         key,
         this.ensureDocumentTargetMapping(key).delete(targetId)
+      );
+
+    this.pendingDocumentTargetMapping =
+      this.pendingDocumentTargetMapping.insert(
+        key,
+        this.ensureDocumentTargetMapping(key).add(targetId)
       );
 
     if (updatedDocument) {
@@ -777,6 +790,18 @@ export class WatchChangeAggregator {
       targetMapping = new SortedSet<TargetId>(primitiveComparator);
       this.pendingDocumentTargetMapping =
         this.pendingDocumentTargetMapping.insert(key, targetMapping);
+    }
+
+    return targetMapping;
+  }
+
+  private ensureDocumentUpdateByTarget(key: DocumentKey): SortedSet<TargetId> {
+    let targetMapping = this.pendingDocumentUpdatesByTarget.get(key);
+
+    if (!targetMapping) {
+      targetMapping = new SortedSet<TargetId>(primitiveComparator);
+      this.pendingDocumentUpdatesByTarget =
+        this.pendingDocumentUpdatesByTarget.insert(key, targetMapping);
     }
 
     return targetMapping;
