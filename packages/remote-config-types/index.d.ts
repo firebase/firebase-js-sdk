@@ -97,6 +97,11 @@ export interface RemoteConfig {
    * Defines the log level to use.
    */
   setLogLevel(logLevel: LogLevel): void;
+
+  /**
+   * Sets custom signals for the Remote Config instance.
+   */
+  setCustomSignals(customSignals: CustomSignals): Promise<void>;
 }
 
 /**
