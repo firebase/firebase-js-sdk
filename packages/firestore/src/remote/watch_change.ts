@@ -690,7 +690,8 @@ export class WatchChangeAggregator {
     this.pendingDocumentUpdatesByTarget =
       this.pendingDocumentUpdatesByTarget.insert(
         document.key,
-        this.ensureDocumentUpdateByTarget(document.key).add(targetId));
+        this.ensureDocumentUpdateByTarget(document.key).add(targetId)
+      );
 
     this.pendingDocumentTargetMapping =
       this.pendingDocumentTargetMapping.insert(

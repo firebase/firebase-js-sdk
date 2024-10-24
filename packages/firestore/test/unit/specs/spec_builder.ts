@@ -317,7 +317,10 @@ export class SpecBuilder {
 
   /** Listen to query using the same options as executing a getDoc or getDocs */
   userListensForGet(query: Query, resume?: ResumeSpec): this {
-    this.addUserListenStep(query, resume, { includeMetadataChanges: true, waitForSyncWhenOnline: true });
+    this.addUserListenStep(query, resume, {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    });
     return this;
   }
 
