@@ -1971,6 +1971,11 @@ declare namespace firebase.remoteConfig {
      * Defines the log level to use.
      */
     setLogLevel(logLevel: LogLevel): void;
+
+    /**
+     * Sets custom signals for the Remote Config instance.
+     */
+    setCustomSignals(customSignals: CustomSignals): Promise<void>;
   }
 
   /**
@@ -2046,6 +2051,19 @@ declare namespace firebase.remoteConfig {
    * Defines levels of Remote Config logging.
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
+
+  /**
+   * Defines the type for representing custom signals and their values.
+   * 
+   * <p>The values in CustomSignals must be one of the following types:
+   *
+   * <ul>
+   *   <li><code>string</code>
+   *   <li><code>number</code>
+   * </ul>
+   */
+  export type CustomSignals = {[key: string]: string | number};
+
   /**
    * This method provides two different checks:
    *
