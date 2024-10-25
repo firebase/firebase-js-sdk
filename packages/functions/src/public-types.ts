@@ -64,6 +64,21 @@ export interface HttpsCallableOptions {
   limitedUseAppCheckTokens?: boolean;
 }
 
+
+/**
+ * An interface for metadata about how stream call should be executed.
+ * @public
+ */
+export interface HttpsCallableStreamOptions {
+  /**
+   * An AbortSignal that can be used to cancel the streaming response. When the signal is aborted,
+   * both the underlying connection and stream will be terminated.
+   */
+  signal?: AbortSignal
+}
+
+
+
 /**
  * A `Functions` instance.
  * @public

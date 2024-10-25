@@ -321,7 +321,7 @@ describe('Firebase Functions > Stream', () => {
 
   it('successfully streams data and resolves final result', async () => {
     const functions = createTestService(app, region);
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = sinon.stub(globalThis, 'fetch' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {
@@ -355,7 +355,7 @@ describe('Firebase Functions > Stream', () => {
 
   it('handles network errors', async () => {
     const functions = createTestService(app, region);
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = sinon.stub(globalThis, 'fetch' as any);
 
     mockFetch.rejects(new Error('Network error'));
 
@@ -380,7 +380,7 @@ describe('Firebase Functions > Stream', () => {
 
   it('handles server-side errors', async () => {
     const functions = createTestService(app, region);
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = sinon.stub(globalThis, 'fetch' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {
@@ -429,7 +429,7 @@ describe('Firebase Functions > Stream', () => {
     );
 
     const functions = createTestService(app, region, authProvider);
-    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+    const mockFetch = sinon.stub(globalThis, 'fetch' as any);
 
     const mockResponse = new ReadableStream({
       start(controller) {

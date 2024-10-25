@@ -20,7 +20,8 @@ import {
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableStreamResult,
-  HttpsCallableOptions
+  HttpsCallableOptions,
+  HttpsCallableStreamOptions
 } from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
 import { ContextProvider } from './context';
@@ -186,8 +187,8 @@ export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
     return call(functionsInstance, name, data, options || {});
   };
 
-  callable.stream = (data?: RequestData | null) => {
-    return stream(functionsInstance, name, data);
+  callable.stream = (data?: RequestData | null, options?: HttpsCallableStreamOptions) => {
+    return stream(functionsInstance, name, data, options);
   };
 
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
@@ -207,8 +208,8 @@ export function httpsCallableFromURL<RequestData, ResponseData, StreamData = unk
     return callAtURL(functionsInstance, url, data, options || {});
   };
 
-  callable.stream = (data?: RequestData | null) => {
-    return streamAtURL(functionsInstance, url, options || {});
+  callable.stream = (data?: RequestData | null, options?: HttpsCallableStreamOptions) => {
+    return streamAtURL(functionsInstance, url, options);
   };
   return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
@@ -354,25 +355,29 @@ async function callAtURL(
  * Calls a callable function asynchronously and returns a streaming result.
  * @param name The name of the callable trigger.
  * @param data The data to pass as params to the function.
+ * @param options Streaming request options.
  */
 function stream(
   functionsInstance: FunctionsService,
   name: string,
   data: unknown,
+  options?: HttpsCallableStreamOptions
 ): Promise<HttpsCallableStreamResult> {
   const url = functionsInstance._url(name);
-  return streamAtURL(functionsInstance, url, data);
+  return streamAtURL(functionsInstance, url, options);
 }
 
 /**
  * Calls a callable function asynchronously and return a streaming result.
  * @param url The url of the callable trigger.
  * @param data The data to pass as params to the function.
+ * @param options Streaming request options.
  */
 async function streamAtURL(
   functionsInstance: FunctionsService,
   url: string,
   data: unknown,
+  options?: HttpsCallableStreamOptions
 ): Promise<HttpsCallableStreamResult> {
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
@@ -396,12 +401,31 @@ async function streamAtURL(
 
   let response: Response;
   try {
-    response = await functionsInstance.fetchImpl(url, {
+    response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(body),
-      headers
+      headers,
+      signal: options?.signal
     });
   } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      const error = new FunctionsError(
+        'cancelled',
+        'Request was cancelled.'
+      );
+      return {
+        data: Promise.reject(error),
+        stream: {
+          [Symbol.asyncIterator]() {
+            return {
+              next() {
+                return Promise.reject(error);
+              }
+            };
+          }
+        }
+      };
+    }
     // This could be an unhandled error on the backend, or it could be a
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
@@ -434,10 +458,29 @@ async function streamAtURL(
     resultRejecter = reject;
   });
 
+  // Set up abort handler for the stream
+  options?.signal?.addEventListener('abort', () => {
+    reader.cancel();
+    const error = new FunctionsError(
+      'cancelled',
+      'Request was cancelled.'
+    );
+    resultRejecter(error);
+  });
+
   const stream = {
     [Symbol.asyncIterator]() {
       return {
         async next() {
+          if (options?.signal?.aborted) {
+            const error = new FunctionsError(
+              'cancelled',
+              'Request was cancelled.'
+            );
+            resultRejecter(error)
+            throw error;
+          }
+
           while (true) {
             const { value, done } = await reader.read();
             if (done) return { done: true, value: undefined };
