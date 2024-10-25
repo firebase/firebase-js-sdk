@@ -29,13 +29,23 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 }
 
 /**
+ * An `HttpsCallableStreamResult` wraps a single streaming result from a function call.
+ * @public
+ */
+export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = unknown> {
+  readonly data: Promise<ResponseData>;
+  readonly stream: AsyncIterable<StreamData>;
+}
+
+/**
  * A reference to a "callable" HTTP trigger in Google Cloud Functions.
  * @param data - Data to be passed to callable function.
  * @public
  */
-export type HttpsCallable<RequestData = unknown, ResponseData = unknown> = (
-  data?: RequestData | null
-) => Promise<HttpsCallableResult<ResponseData>>;
+export type HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> = {
+  (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
+  stream: (data?: RequestData | null) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
+};
 
 /**
  * An interface for metadata about how calls should be executed.

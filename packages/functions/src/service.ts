@@ -19,6 +19,7 @@ import { FirebaseApp, _FirebaseService } from '@firebase/app';
 import {
   HttpsCallable,
   HttpsCallableResult,
+  HttpsCallableStreamResult,
   HttpsCallableOptions
 } from './public-types';
 import { _errorForResponse, FunctionsError } from './error';
@@ -176,14 +177,20 @@ export function connectFunctionsEmulator(
  * @param name - The name of the trigger.
  * @public
  */
-export function httpsCallable<RequestData, ResponseData>(
+export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
   functionsInstance: FunctionsService,
   name: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return (data => {
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  const callable = (data?: RequestData | null) => {
     return call(functionsInstance, name, data, options || {});
-  }) as HttpsCallable<RequestData, ResponseData>;
+  };
+
+  callable.stream = (data?: RequestData | null) => {
+    return stream(functionsInstance, name, data);
+  };
+
+  return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
 /**
@@ -191,14 +198,19 @@ export function httpsCallable<RequestData, ResponseData>(
  * @param url - The url of the trigger.
  * @public
  */
-export function httpsCallableFromURL<RequestData, ResponseData>(
+export function httpsCallableFromURL<RequestData, ResponseData, StreamData = unknown>(
   functionsInstance: FunctionsService,
   url: string,
   options?: HttpsCallableOptions
-): HttpsCallable<RequestData, ResponseData> {
-  return (data => {
+): HttpsCallable<RequestData, ResponseData, StreamData> {
+  const callable = (data?: RequestData | null) => {
     return callAtURL(functionsInstance, url, data, options || {});
-  }) as HttpsCallable<RequestData, ResponseData>;
+  };
+
+  callable.stream = (data?: RequestData | null) => {
+    return streamAtURL(functionsInstance, url, options || {});
+  };
+  return callable as HttpsCallable<RequestData, ResponseData, StreamData>;
 }
 
 /**
@@ -248,7 +260,7 @@ async function postJSON(
 /**
  * Calls a callable function asynchronously and returns the result.
  * @param name The name of the callable trigger.
- * @param data The data to pass as params to the function.s
+ * @param data The data to pass as params to the function.
  */
 function call(
   functionsInstance: FunctionsService,
@@ -263,7 +275,7 @@ function call(
 /**
  * Calls a callable function asynchronously and returns the result.
  * @param url The url of the callable trigger.
- * @param data The data to pass as params to the function.s
+ * @param data The data to pass as params to the function.
  */
 async function callAtURL(
   functionsInstance: FunctionsService,
@@ -271,6 +283,7 @@ async function callAtURL(
   data: unknown,
   options: HttpsCallableOptions
 ): Promise<HttpsCallableResult> {
+  console.log(url);
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };
@@ -334,4 +347,127 @@ async function callAtURL(
   const decodedData = decode(responseData);
 
   return { data: decodedData };
+}
+
+/**
+ * Calls a callable function asynchronously and returns a streaming result.
+ * @param name The name of the callable trigger.
+ * @param data The data to pass as params to the function.
+ */
+function stream(
+  functionsInstance: FunctionsService,
+  name: string,
+  data: unknown,
+): Promise<HttpsCallableStreamResult> {
+  const url = functionsInstance._url(name);
+  return streamAtURL(functionsInstance, url, data);
+}
+
+/**
+ * Calls a callable function asynchronously and return a streaming result.
+ * @param url The url of the callable trigger.
+ * @param data The data to pass as params to the function.
+ */
+async function streamAtURL(
+  functionsInstance: FunctionsService,
+  url: string,
+  data: unknown,
+): Promise<HttpsCallableStreamResult> {
+  // Encode any special types, such as dates, in the input data.
+  data = encode(data);
+  const body = { data };
+
+  // Add a header for the authToken.
+  const headers: { [key: string]: string } = {};
+  const context = await functionsInstance.contextProvider.getContext();
+  if (context.authToken) {
+    headers['Authorization'] = 'Bearer ' + context.authToken;
+  }
+  if (context.messagingToken) {
+    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
+  }
+  if (context.appCheckToken !== null) {
+    headers['X-Firebase-AppCheck'] = context.appCheckToken;
+  }
+
+  headers['Content-Type'] = 'application/json';
+  headers['Accept'] = 'text/event-stream';
+
+  let response: Response;
+  try {
+    response = await functionsInstance.fetchImpl(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers
+    });
+  } catch (e) {
+    // This could be an unhandled error on the backend, or it could be a
+    // network error. There's no way to know, since an unhandled error on the
+    // backend will fail to set the proper CORS header, and thus will be
+    // treated as a network error by fetch.
+    const error = _errorForResponse(0, null)
+    return {
+      data: Promise.reject(error),
+      // Return an empty async iterator
+      stream: {
+        [Symbol.asyncIterator]() {
+          return {
+            next() {
+              return Promise.reject(error);
+            }
+          };
+        }
+      }
+    };
+  }
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+
+  let buffer = '';
+  let resultResolver: (value: unknown) => void;
+  let resultRejecter: (reason: any) => void;
+
+  const resultPromise = new Promise<unknown>((resolve, reject) => {
+    resultResolver = resolve;
+    resultRejecter = reject;
+  });
+
+  const stream = {
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) return { done: true, value: undefined };
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const jsonData = JSON.parse(line.slice(6));
+                if ('result' in jsonData) {
+                  resultResolver(decode(jsonData.result));
+                  return { done: true, value: undefined };
+                } else if ('message' in jsonData) {
+                  return { done: false, value: decode(jsonData.message) };
+                } else if ('error' in jsonData) {
+                  const error = _errorForResponse(0, jsonData);
+                  resultRejecter(error)
+                  throw error;
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+  };
+
+  return {
+    stream,
+    data: resultPromise,
+  }
 }

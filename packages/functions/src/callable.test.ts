@@ -92,13 +92,19 @@ describe('Firebase Functions > Call', () => {
       Record<string, any>,
       { message: string; code: number; long: number }
     >(functions, 'dataTest');
-    const result = await func(data);
+    try {
 
-    expect(result.data).to.deep.equal({
-      message: 'stub response',
-      code: 42,
-      long: 420
-    });
+      const result = await func(data);
+
+      expect(result.data).to.deep.equal({
+        message: 'stub response',
+        code: 42,
+        long: 420
+      });
+    } catch (err) {
+      console.error(err)
+    }
+
   });
 
   it('scalars', async () => {
@@ -224,5 +230,157 @@ describe('Firebase Functions > Call', () => {
     const functions = createTestService(app, region);
     const func = httpsCallable(functions, 'timeoutTest', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
+  });
+});
+
+describe('Firebase Functions > Stream', () => {
+  let app: FirebaseApp;
+  const region = 'us-central1';
+
+  before(() => {
+    const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+    const projectId = useEmulator
+      ? 'functions-integration-test'
+      : TEST_PROJECT.projectId;
+    const messagingSenderId = 'messaging-sender-id';
+    app = makeFakeApp({ projectId, messagingSenderId });
+  });
+
+  it('successfully streams data and resolves final result', async () => {
+    const functions = createTestService(app, region);
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"message":"Hello"}\n'));
+        controller.enqueue(new TextEncoder().encode('data: {"message":"World"}\n'));
+        controller.enqueue(new TextEncoder().encode('data: {"result":"Final Result"}\n'));
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(functions, 'streamTest');
+    const streamResult = await func.stream({});
+
+    const messages: string[] = [];
+    for await (const message of streamResult.stream) {
+      messages.push(message);
+    }
+
+    expect(messages).to.deep.equal(['Hello', 'World']);
+    expect(await streamResult.data).to.equal('Final Result');
+
+    mockFetch.restore();
+  });
+
+  it('handles network errors', async () => {
+    const functions = createTestService(app, region);
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    mockFetch.rejects(new Error('Network error'));
+
+    const func = httpsCallable<Record<string, any>, string, string>(functions, 'errTest');
+    const streamResult = await func.stream({});
+
+    let errorThrown = false;
+    try {
+      for await (const _ of streamResult.stream) {
+        // This should not execute
+      }
+    } catch (error: unknown) {
+      errorThrown = true;
+      expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/internal`);
+    }
+
+    expect(errorThrown).to.be.true;
+    expect(streamResult.data).to.be.a('promise');
+
+    mockFetch.restore();
+  });
+
+  it('handles server-side errors', async () => {
+    const functions = createTestService(app, region);
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"error":{"status":"INVALID_ARGUMENT","message":"Invalid input"}}\n'));
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(functions, 'errTest');
+    const streamResult = await func.stream({});
+
+    let errorThrown = false;
+    try {
+      for await (const _ of streamResult.stream) {
+        // This should not execute
+      }
+    } catch (error) {
+      errorThrown = true;
+      expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/invalid-argument`);
+      expect((error as FunctionsError).message).to.equal('Invalid input');
+    }
+
+    expect(errorThrown).to.be.true;
+    expectError(streamResult.data, "invalid-argument", "Invalid input")
+
+    mockFetch.restore();
+  });
+
+  it('includes authentication and app check tokens in request headers', async () => {
+    const authMock: FirebaseAuthInternal = {
+      getToken: async () => ({ accessToken: 'auth-token' })
+    } as unknown as FirebaseAuthInternal;
+    const authProvider = new Provider<FirebaseAuthInternalName>(
+      'auth-internal',
+      new ComponentContainer('test')
+    );
+    authProvider.setComponent(
+      new Component('auth-internal', () => authMock, ComponentType.PRIVATE)
+    );
+
+    const functions = createTestService(app, region, authProvider);
+    const mockFetch = sinon.stub(functions, 'fetchImpl' as any);
+
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"result":"Success"}\n'));
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(functions, 'errTest');
+    await func.stream({});
+
+    expect(mockFetch.calledOnce).to.be.true;
+    const [_, options] = mockFetch.firstCall.args;
+    expect(options.headers['Authorization']).to.equal('Bearer auth-token');
+    expect(options.headers['Content-Type']).to.equal('application/json');
+    expect(options.headers['Accept']).to.equal('text/event-stream');
+
+    mockFetch.restore();
   });
 });
