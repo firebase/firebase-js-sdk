@@ -188,58 +188,38 @@ export class Storage {
 
   async setCustomSignals(customSignals: CustomSignals): Promise<void> {
     const db = await this.openDbPromise;
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
-      const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
-      const compositeKey = this.createCompositeKey('custom_signals');
-      try {
-        const storedSignalsRequest = objectStore.get(compositeKey);
-        storedSignalsRequest.onerror = event => {
-          reject(toFirebaseError(event, ErrorCode.STORAGE_GET));
-        };
-        storedSignalsRequest.onsuccess = event => {
-          const storedSignals =
-            (event.target as IDBRequest).result?.value || {};
-          const combinedSignals = {
-            ...storedSignals,
-            ...customSignals
-          };
-          // Filter out key-value assignments with null values since they are signals being unset
-          const signalsToUpdate = Object.fromEntries(
-            Object.entries(combinedSignals).filter(([_, v]) => v !== null)
-          );
-          if (signalsToUpdate) {
-            const setSignalsRequest = objectStore.put({
-              compositeKey,
-              value: signalsToUpdate
-            });
-            setSignalsRequest.onerror = event => {
-              reject(toFirebaseError(event, ErrorCode.STORAGE_SET));
-            };
-            setSignalsRequest.onsuccess = event => {
-              const result = (event.target as IDBRequest).result;
-              if (result) {
-                resolve(result.value);
-              } else {
-                resolve(undefined);
-              }
-            };
-          }
-        };
-      } catch (e) {
-        reject(
-          ERROR_FACTORY.create(ErrorCode.STORAGE_SET, {
-            originalErrorMessage: (e as Error)?.message
-          })
-        );
-      }
-    });
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    const storedSignals = await this.getWithTransaction<CustomSignals>(
+      'custom_signals',
+      transaction
+    );
+    const combinedSignals = {
+      ...storedSignals,
+      ...customSignals
+    };
+    // Filter out key-value assignments with null values since they are signals being unset
+    const signalsToUpdate = Object.fromEntries(
+      Object.entries(combinedSignals).filter(([_, v]) => v !== null)
+    );
+    return this.setWithTransaction<CustomSignals>(
+      'custom_signals',
+      signalsToUpdate,
+      transaction
+    );
   }
 
-  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {
-    const db = await this.openDbPromise;
+  /**
+   * Gets a value from the database using the provided transaction.
+   *
+   * @param key The key of the value to get.
+   * @param transaction The transaction to use for the operation.
+   * @returns The value associated with the key, or undefined if no such value exists.
+   */
+  async getWithTransaction<T>(
+    key: ProjectNamespaceKeyFieldValue,
+    transaction: IDBTransaction
+  ): Promise<T | undefined> {
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readonly');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
       const compositeKey = this.createCompositeKey(key);
       try {
@@ -265,10 +245,20 @@ export class Storage {
     });
   }
 
-  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
-    const db = await this.openDbPromise;
+  /**
+   * Sets a value in the database using the provided transaction.
+   *
+   * @param key The key of the value to set.
+   * @param value The value to set.
+   * @param transaction The transaction to use for the operation.
+   * @returns A promise that resolves when the operation is complete.
+   */
+  async setWithTransaction<T>(
+    key: ProjectNamespaceKeyFieldValue,
+    value: T,
+    transaction: IDBTransaction
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
       const compositeKey = this.createCompositeKey(key);
       try {
@@ -290,6 +280,18 @@ export class Storage {
         );
       }
     });
+  }
+
+  async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {
+    const db = await this.openDbPromise;
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readonly');
+    return this.getWithTransaction<T>(key, transaction);
+  }
+
+  async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
+    const db = await this.openDbPromise;
+    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    return this.setWithTransaction<T>(key, value, transaction);
   }
 
   async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {
