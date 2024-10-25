@@ -462,7 +462,7 @@ export async function updatePhoneNumber(
 }
 
 // Helper function that fetches and injects a reCAPTCHA v2 token into the request.
-export async function injectRecaptchaV2Token<T>(
+export async function injectRecaptchaV2Token<T extends object>(
   auth: AuthInternal,
   request: T,
   recaptchaV2Verifier: ApplicationVerifierInternal

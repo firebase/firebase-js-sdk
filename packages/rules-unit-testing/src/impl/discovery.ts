@@ -88,7 +88,7 @@ export function getEmulatorHostAndPort(
   discovered?: DiscoveredEmulators
 ) {
   if (conf && ('host' in conf || 'port' in conf)) {
-    const { host, port } = conf;
+    const { host, port } = conf as any;
     if (host || port) {
       if (!host || !port) {
         throw new Error(
@@ -103,8 +103,8 @@ export function getEmulatorHostAndPort(
         );
       }
       return {
-        host: fixHostname(conf.host, discovered?.hub?.host),
-        port: conf.port
+        host: fixHostname(host, discovered?.hub?.host),
+        port: port
       };
     }
   }
