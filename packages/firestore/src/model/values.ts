@@ -59,6 +59,14 @@ export const MIN_VALUE: Value = {
   nullValue: 'NULL_VALUE'
 };
 
+export const TRUE_VALUE: Value = {
+  booleanValue: true
+};
+
+export const FALSE_VALUE: Value = {
+  booleanValue: false
+};
+
 /** Extracts the backend's type order for the provided value. */
 export function typeOrder(value: Value): TypeOrder {
   if ('nullValue' in value) {

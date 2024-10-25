@@ -2166,6 +2166,18 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  _getValue(): ProtoValue {
+    hardAssert(
+      this._protoValue !== undefined,
+      'Value of this constant has not been serialized to proto value'
+    );
+    return this._protoValue;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _readUserData(dataReader: UserDataReader): void {
     const context = dataReader.createContext(
       UserDataSource.Argument,
@@ -2335,8 +2347,8 @@ export class Mod extends FirestoreFunction {
  * @beta
  */
 export class Eq extends FirestoreFunction implements FilterCondition {
-  constructor(private left: Expr, private right: Expr) {
-    super('equals', [left, right]);
+  constructor(readonly left: Expr, readonly right: Expr) {
+    super('eq', [left, right]);
   }
   filterable = true as const;
 }
@@ -2510,7 +2522,7 @@ export class Not extends FirestoreFunction implements FilterCondition {
  * @beta
  */
 export class And extends FirestoreFunction implements FilterCondition {
-  constructor(private conditions: FilterExpr[]) {
+  constructor(protected conditions: FilterExpr[]) {
     super('and', conditions);
   }
 

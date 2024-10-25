@@ -133,7 +133,10 @@ export class Pipeline<AppModelType = DocumentData>
    */
   constructor(
     private liteDb: Firestore,
-    protected userDataReader: UserDataReader,
+    /**
+     * @internal
+     */
+    readonly userDataReader: UserDataReader,
     /**
      * @internal
      * @private
