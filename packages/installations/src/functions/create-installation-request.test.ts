@@ -39,7 +39,7 @@ const FID = 'defenders-of-the-faith';
 
 describe('createInstallationRequest', () => {
   let fakeInstallations: FirebaseInstallationsImpl;
-  let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+  let fetchSpy: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   let inProgressInstallationEntry: InProgressInstallationEntry;
   let response: CreateInstallationResponse;
 

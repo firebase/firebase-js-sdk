@@ -22,10 +22,8 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { DocumentKey } from '../../../src/model/document_key';
-import {
-  newSerializer,
-  newTextEncoder
-} from '../../../src/platform/serializer';
+import { newSerializer } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleElement,
   LimitType as BundleLimitType
@@ -96,7 +94,10 @@ export class TestBundleBuilder {
       query = queryWithLimit(query, query.limit!, LimitType.First);
       bundledLimitType = 'LAST';
     }
-    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
+    const queryTarget = toQueryTarget(
+      this.serializer,
+      queryToTarget(query)
+    ).queryTarget;
     this.elements.push({
       namedQuery: {
         name,
@@ -194,7 +195,12 @@ export const doc2: BundleElement = {
     name: 'projects/test-project/databases/(default)/documents/collectionId/doc2',
     createTime: { seconds: 1, nanos: 2000000 },
     updateTime: { seconds: 3, nanos: 4000 },
-    fields: { foo: { stringValue: 'value1' }, bar: { integerValue: 42 } }
+    fields: {
+      foo: { stringValue: 'value1' },
+      bar: { integerValue: 42 },
+      emptyArray: { arrayValue: {} },
+      emptyMap: { mapValue: {} }
+    }
   }
 };
 export const doc2String = lengthPrefixedString(doc2);

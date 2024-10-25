@@ -24,7 +24,10 @@ import sinonChai from 'sinon-chai';
 import { Auth } from './auth';
 import { CompatPopupRedirectResolver } from './popup_redirect';
 import * as platform from './platform';
-import { FAKE_HEARTBEAT_CONTROLLER_PROVIDER } from '../test/helpers/helpers';
+import {
+  FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+  FAKE_HEARTBEAT_CONTROLLER_PROVIDER
+} from '../test/helpers/helpers';
 
 use(sinonChai);
 
@@ -45,6 +48,7 @@ describe('auth compat', () => {
       underlyingAuth = new exp.AuthImpl(
         app,
         FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
         {
           apiKey: 'api-key'
         } as exp.ConfigInternal
@@ -119,7 +123,7 @@ describe('auth compat', () => {
       }
     });
 
-    it('pulls the persistence and sets as the main persitsence if set', () => {
+    it('pulls the persistence and sets as the main persistence if set', () => {
       if (typeof self !== 'undefined') {
         sessionStorage.setItem(
           'firebase:persistence:api-key:undefined',

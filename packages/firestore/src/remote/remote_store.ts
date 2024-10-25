@@ -24,7 +24,7 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData, TargetPurpose } from '../local/target_data';
+import { TargetData } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
@@ -324,7 +324,7 @@ export function remoteStoreUnlisten(
 }
 
 /**
- * We need to increment the the expected number of pending responses we're due
+ * We need to increment the expected number of pending responses we're due
  * from watch so we wait for the ack to process any messages from this target.
  */
 function sendWatchRequest(
@@ -334,6 +334,17 @@ function sendWatchRequest(
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
+
+  if (
+    targetData.resumeToken.approximateByteSize() > 0 ||
+    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
+  ) {
+    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
+      targetData.targetId
+    ).size;
+    targetData = targetData.withExpectedCount(expectedCount);
+  }
+
   ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 
@@ -364,7 +375,8 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
     getRemoteKeysForTarget: targetId =>
       remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
     getTargetDataForTarget: targetId =>
-      remoteStoreImpl.listenTargets.get(targetId) || null
+      remoteStoreImpl.listenTargets.get(targetId) || null,
+    getDatabaseId: () => remoteStoreImpl.datastore.serializer.databaseId
   });
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
@@ -389,6 +401,13 @@ export function canUseNetwork(remoteStore: RemoteStore): boolean {
 
 function cleanUpWatchStreamState(remoteStoreImpl: RemoteStoreImpl): void {
   remoteStoreImpl.watchChangeAggregator = undefined;
+}
+
+async function onWatchStreamConnected(
+  remoteStoreImpl: RemoteStoreImpl
+): Promise<void> {
+  // Mark the client as online since we got a "connected" notification.
+  remoteStoreImpl.onlineStateTracker.set(OnlineState.Online);
 }
 
 async function onWatchStreamOpen(
@@ -575,7 +594,7 @@ function raiseWatchSnapshot(
 
   // Re-establish listens for the targets that have been invalidated by
   // existence filter mismatches.
-  remoteEvent.targetMismatches.forEach(targetId => {
+  remoteEvent.targetMismatches.forEach((targetId, targetPurpose) => {
     const targetData = remoteStoreImpl.listenTargets.get(targetId);
     if (!targetData) {
       // A watched target might have been removed already.
@@ -603,7 +622,7 @@ function raiseWatchSnapshot(
     const requestTargetData = new TargetData(
       targetData.target,
       targetId,
-      TargetPurpose.ExistenceFilterMismatch,
+      targetPurpose,
       targetData.sequenceNumber
     );
     sendWatchRequest(remoteStoreImpl, requestTargetData);
@@ -911,6 +930,7 @@ function ensureWatchStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
       {
+        onConnected: onWatchStreamConnected.bind(null, remoteStoreImpl),
         onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
         onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl)
@@ -957,6 +977,7 @@ function ensureWriteStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
       {
+        onConnected: () => Promise.resolve(),
         onOpen: onWriteStreamOpen.bind(null, remoteStoreImpl),
         onClose: onWriteStreamClose.bind(null, remoteStoreImpl),
         onHandshakeComplete: onWriteHandshakeComplete.bind(

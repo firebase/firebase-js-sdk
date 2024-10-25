@@ -9,9 +9,6 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "target": "es5",
-    "typeRoots": [
-      "../../node_modules/@types"
-    ]
+    "target": "es2017"
   }
 }

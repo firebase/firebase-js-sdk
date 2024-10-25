@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { FunctionsErrorCode } from '@firebase/functions';
+import { FunctionsError, FunctionsErrorCode } from '@firebase/functions';
 import { createTestService } from '../test/utils';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 
@@ -35,9 +35,9 @@ async function expectError(
     await promise;
   } catch (e) {
     failed = true;
-    expect(e.code).to.equal(code);
-    expect(e.message).to.equal(message);
-    expect(e.details).to.deep.equal(details);
+    expect((e as FunctionsError).code).to.equal(code);
+    expect((e as FunctionsError).message).to.equal(message);
+    expect((e as FunctionsError).details).to.deep.equal(details);
   }
   if (!failed) {
     expect(false, 'Promise should have failed.').to.be.true;

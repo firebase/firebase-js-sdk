@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
+import { BloomFilter as ProtoBloomFilter } from '../protos/firestore_proto_api';
+
 export class ExistenceFilter {
-  // TODO(b/33078163): just use simplest form of existence filter for now
-  constructor(public count: number) {}
+  constructor(public count: number, public unchangedNames?: ProtoBloomFilter) {}
 }

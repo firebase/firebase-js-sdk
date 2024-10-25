@@ -93,6 +93,14 @@ export function createSubscribe<T>(executor: Executor<T>, onNoObservers?: Execut
 // @public
 export const decode: (token: string) => DecodedToken;
 
+// Warning: (ae-missing-release-tag) "DecodeBase64StringError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class DecodeBase64StringError extends Error {
+    // (undocumented)
+    readonly name = "DecodeBase64StringError";
+}
+
 // Warning: (ae-missing-release-tag) "deepCopy" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -193,6 +201,7 @@ export interface FirebaseDefaults {
     config?: Record<string, string>;
     // (undocumented)
     emulatorHosts?: Record<string, string>;
+    forceEnvironment?: 'browser' | 'node';
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -219,10 +228,14 @@ export const getDefaultAppConfig: () => Record<string, string> | undefined;
 export const getDefaultEmulatorHost: (productName: string) => string | undefined;
 
 // @public
+export const getDefaultEmulatorHostnameAndPort: (productName: string) => [hostname: string, port: number] | undefined;
+
+// @public
+export const getDefaults: () => FirebaseDefaults | undefined;
+
+// @public
 export const getExperimentalSetting: <T extends ExperimentalKey>(name: T) => FirebaseDefaults[`_${T}`];
 
-// Warning: (ae-missing-release-tag) "getGlobal" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export function getGlobal(): typeof globalThis;
 
@@ -250,6 +263,11 @@ export function isBrowser(): boolean;
 //
 // @public (undocumented)
 export function isBrowserExtension(): boolean;
+
+// Warning: (ae-missing-release-tag) "isCloudflareWorker" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isCloudflareWorker(): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -315,6 +333,11 @@ export const isValidFormat: (token: string) => boolean;
 //
 // @public
 export const isValidTimestamp: (token: string) => boolean;
+
+// Warning: (ae-missing-release-tag) "isWebWorker" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isWebWorker(): boolean;
 
 // Warning: (ae-missing-release-tag) "jsonEval" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

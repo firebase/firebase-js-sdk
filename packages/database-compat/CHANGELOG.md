@@ -1,5 +1,225 @@
 # @firebase/database-compat
 
+## 2.0.0
+
+### Major Changes
+
+- [`0f5a9aad0`](https://github.com/firebase/firebase-js-sdk/commit/0f5a9aad0936af4c2df50d083db73306ebe069bc) [#8586](https://github.com/firebase/firebase-js-sdk/pull/8586) - Set required version of Node to >=18.
+
+## 1.0.9
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/database@1.0.9
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+  - @firebase/database-types@1.0.6
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`16d62d4fa`](https://github.com/firebase/firebase-js-sdk/commit/16d62d4fa16faddb8cb676c0af3f29b8a5824741)]:
+  - @firebase/util@1.10.0
+  - @firebase/component@0.6.9
+  - @firebase/database@1.0.8
+  - @firebase/database-types@1.0.5
+
+## 1.0.7
+
+### Patch Changes
+
+- [`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d) [#8280](https://github.com/firebase/firebase-js-sdk/pull/8280) (fixes [#8279](https://github.com/firebase/firebase-js-sdk/issues/8279)) - Fixed typos in documentation and some internal variables and parameters.
+
+- Updated dependencies [[`025f2a103`](https://github.com/firebase/firebase-js-sdk/commit/025f2a1037582da7d1afeb7a4d143cb7a154ec9d)]:
+  - @firebase/database@1.0.7
+
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies [[`192561b15`](https://github.com/firebase/firebase-js-sdk/commit/192561b1552a08840d8e341f30f3dbe275465558)]:
+  - @firebase/util@1.9.7
+  - @firebase/component@0.6.8
+  - @firebase/database@1.0.6
+  - @firebase/database-types@1.0.4
+
+## 1.0.5
+
+### Patch Changes
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+- Updated dependencies [[`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7)]:
+  - @firebase/component@0.6.7
+  - @firebase/database@1.0.5
+  - @firebase/database-types@1.0.3
+  - @firebase/logger@0.4.2
+  - @firebase/util@1.9.6
+
+## 1.0.4
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+- Updated dependencies [[`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0)]:
+  - @firebase/database-types@1.0.2
+  - @firebase/component@0.6.6
+  - @firebase/database@1.0.4
+  - @firebase/logger@0.4.1
+  - @firebase/util@1.9.5
+
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`046ac8a39`](https://github.com/firebase/firebase-js-sdk/commit/046ac8a39b483e127a4bbe11a5390a3e6018f2a7), [`434f8418c`](https://github.com/firebase/firebase-js-sdk/commit/434f8418c3db3ae98489a8461c437c248c039070)]:
+  - @firebase/database@1.0.3
+  - @firebase/util@1.9.4
+  - @firebase/component@0.6.5
+  - @firebase/database-types@1.0.1
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`0ecaf6c9f`](https://github.com/firebase/firebase-js-sdk/commit/0ecaf6c9fa14b40d32c52215d9e1c912bcc52bef)]:
+  - @firebase/database@1.0.2
+
+## 1.0.1
+
+### Patch Changes
+
+- [`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905) [#7258](https://github.com/firebase/firebase-js-sdk/pull/7258) - Included `initStandalone` as an internal method to RTDB.
+
+- Updated dependencies [[`82d7df439`](https://github.com/firebase/firebase-js-sdk/commit/82d7df4395d6bd5f569bfc4b3f8f394b0274f905)]:
+  - @firebase/database@1.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- [`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956) [#6541](https://github.com/firebase/firebase-js-sdk/pull/6541) - Updated type of action parameter for DataSnapshot#forEach
+
+### Patch Changes
+
+- Updated dependencies [[`4f904bf41`](https://github.com/firebase/firebase-js-sdk/commit/4f904bf41c2080dc51278f732e08ab95e28c1956)]:
+  - @firebase/database-types@1.0.0
+  - @firebase/database@1.0.0
+
+## 0.3.4
+
+### Patch Changes
+
+- [`b970dc522`](https://github.com/firebase/firebase-js-sdk/commit/b970dc52282e35d4d3fac947e330d830063caa5e) [#7055](https://github.com/firebase/firebase-js-sdk/pull/7055) - Solve @firebase/database-compat/standalone resolution issues with astrojs
+
+- Updated dependencies [[`c59f537b1`](https://github.com/firebase/firebase-js-sdk/commit/c59f537b1262b5d7997291b8c1e9324d378effb6)]:
+  - @firebase/util@1.9.3
+  - @firebase/component@0.6.4
+  - @firebase/database@0.14.4
+  - @firebase/database-types@0.10.4
+
+## 0.3.3
+
+### Patch Changes
+
+- [`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30) [#7007](https://github.com/firebase/firebase-js-sdk/pull/7007) (fixes [#7005](https://github.com/firebase/firebase-js-sdk/issues/7005)) - Move exports.default fields to always be the last field. This fixes a bug caused in 9.17.0 that prevented some bundlers and frameworks from building.
+
+- Updated dependencies [[`d071bd1ac`](https://github.com/firebase/firebase-js-sdk/commit/d071bd1acaa0583b4dd3454387fc58eafddb5c30)]:
+  - @firebase/database@0.14.3
+  - @firebase/util@1.9.2
+  - @firebase/component@0.6.3
+  - @firebase/database-types@0.10.3
+
+## 0.3.2
+
+### Patch Changes
+
+- [`49ee786f2`](https://github.com/firebase/firebase-js-sdk/commit/49ee786f2b022e65aef45693e1a8b546d889ec10) [#6912](https://github.com/firebase/firebase-js-sdk/pull/6912) (fixes [#4603](https://github.com/firebase/firebase-js-sdk/issues/4603)) - Fixed issue where hostname set by `connectDatabaseEmulator` was being overridden by longpolling response
+
+- [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5) [#6981](https://github.com/firebase/firebase-js-sdk/pull/6981) - Added browser CJS entry points (expected by Jest when using JSDOM mode).
+
+- Updated dependencies [[`49ee786f2`](https://github.com/firebase/firebase-js-sdk/commit/49ee786f2b022e65aef45693e1a8b546d889ec10), [`0bab0b7a7`](https://github.com/firebase/firebase-js-sdk/commit/0bab0b7a786d1563bf665904c7097d1fe06efce5)]:
+  - @firebase/database@0.14.2
+  - @firebase/util@1.9.1
+  - @firebase/component@0.6.2
+  - @firebase/database-types@0.10.2
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`d8af08feb`](https://github.com/firebase/firebase-js-sdk/commit/d8af08febfd4507a28bcda38d475b8010ef20f92), [`a4056634a`](https://github.com/firebase/firebase-js-sdk/commit/a4056634a5119dd3f2ca935cae23b90fc99d84ee), [`d4114a4f7`](https://github.com/firebase/firebase-js-sdk/commit/d4114a4f7da3f469c0c900416ac8beee58885ec3), [`06dc1364d`](https://github.com/firebase/firebase-js-sdk/commit/06dc1364d7560f4c563e1ccc89af9cad4cd91df8)]:
+  - @firebase/database@0.14.1
+  - @firebase/util@1.9.0
+  - @firebase/component@0.6.1
+  - @firebase/database-types@0.10.1
+
+## 0.3.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+### Patch Changes
+
+- [`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10) [#6706](https://github.com/firebase/firebase-js-sdk/pull/6706) - Use new wire protocol parameters for startAfter, endBefore.
+
+- Updated dependencies [[`37dd6f6f4`](https://github.com/firebase/firebase-js-sdk/commit/37dd6f6f471d9912db3800b9b377080752af8c10), [`c20633ed3`](https://github.com/firebase/firebase-js-sdk/commit/c20633ed35056cbadc9d65d9ceddf4e28d1ea666), [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be)]:
+  - @firebase/database@0.14.0
+  - @firebase/util@1.8.0
+  - @firebase/component@0.6.0
+  - @firebase/database-types@0.10.0
+  - @firebase/logger@0.4.0
+
+## 0.2.10
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+- Updated dependencies [[`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5)]:
+  - @firebase/component@0.5.21
+  - @firebase/database@0.13.10
+  - @firebase/database-types@0.9.17
+  - @firebase/logger@0.3.4
+  - @firebase/util@1.7.3
+
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`807f06aa2`](https://github.com/firebase/firebase-js-sdk/commit/807f06aa26438a91aaea08fd38efb6c706bb8a5d)]:
+  - @firebase/util@1.7.2
+  - @firebase/component@0.5.20
+  - @firebase/database@0.13.9
+  - @firebase/database-types@0.9.16
+
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`5aa48d0ab`](https://github.com/firebase/firebase-js-sdk/commit/5aa48d0ab432002ccf49d65bf2ff637e82a2b402), [`171b78b76`](https://github.com/firebase/firebase-js-sdk/commit/171b78b762826a640d267dd4dd172ad9459c4561), [`29d034072`](https://github.com/firebase/firebase-js-sdk/commit/29d034072c20af394ce384e42aa10a37d5dfcb18)]:
+  - @firebase/database@0.13.8
+  - @firebase/util@1.7.1
+  - @firebase/component@0.5.19
+  - @firebase/database-types@0.9.15
+
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies [[`fdd4ab464`](https://github.com/firebase/firebase-js-sdk/commit/fdd4ab464b59a107bdcc195df3f01e32efd89ed4)]:
+  - @firebase/util@1.7.0
+  - @firebase/database@0.13.7
+  - @firebase/database-types@0.9.14
+  - @firebase/component@0.5.18
+
 ## 0.2.6
 
 ### Patch Changes

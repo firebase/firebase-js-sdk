@@ -16,6 +16,7 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const webpackBase = require('../../config/webpack.test');
 
 const files = [`src/**/*.test.ts`];
 

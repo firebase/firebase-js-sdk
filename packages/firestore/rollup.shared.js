@@ -34,10 +34,9 @@ const pkg = require('./package.json');
 // This file contains shared utilities for Firestore's rollup builds.
 
 // Firestore is released in a number of different build configurations:
-// - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
-//   ES2017 in ESM format.
-// - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
-//   formats and ES2017 in ESM format.
+// - Browser builds that support persistence in ES2017 CJS and ESM formats.
+// - In-memory Browser builds that support persistence in ES2017 CJS and ESM
+//   formats.
 // - A NodeJS build that supports persistence (to be used with an IndexedDb
 //   shim)
 // - A in-memory only NodeJS build
@@ -46,7 +45,7 @@ const pkg = require('./package.json');
 // for calls to `enablePersistence()` or `clearPersistence()`.
 //
 // We use two different rollup pipelines to take advantage of tree shaking,
-// as Rollup does not support tree shaking for Typescript classes transpiled
+// as Rollup does not support tree shaking for TypeScript classes transpiled
 // down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
 // produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
 // `rollup.config.es.js`.
@@ -144,14 +143,18 @@ const manglePrivatePropertiesOptions = {
     comments: 'all',
     beautify: true
   },
+  keep_fnames: true,
+  keep_classnames: true,
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
     // This can be removed if the problem in the downstream library is fixed
     // or if terser's mangler provides an option to avoid mangling everything
     // that isn't a property.
+    // `lastReasonableEscapeIndex` was causing problems in a switch statement
+    // due to a Closure bug.
     // See issue: https://github.com/firebase/firebase-js-sdk/issues/5384
-    reserved: ['_getProvider'],
+    reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex'],
     properties: {
       regex: /^__PRIVATE_/,
       // All JS Keywords are reserved. Although this should be taken cared of by
@@ -244,11 +247,6 @@ exports.es2017Plugins = function (platform, mangled = false) {
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertAndPrefixInternalTransformer]
       }),
@@ -260,59 +258,10 @@ exports.es2017Plugins = function (platform, mangled = false) {
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertTransformer]
       }),
       json({ preferConst: true })
-    ];
-  }
-};
-
-exports.es2017ToEs5Plugins = function (mangled = false) {
-  if (mangled) {
-    return [
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            allowJs: true
-          }
-        },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
-      }),
-      terser({
-        output: {
-          comments: 'all',
-          beautify: true
-        },
-        // See comment above `manglePrivatePropertiesOptions`. This build did
-        // not have the identical variable name issue but we should be
-        // consistent.
-        mangle: {
-          reserved: ['_getProvider']
-        }
-      }),
-      sourcemaps()
-    ];
-  } else {
-    return [
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            allowJs: true
-          }
-        },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
-      }),
-      sourcemaps()
     ];
   }
 };
@@ -327,11 +276,6 @@ exports.es2017PluginsCompat = function (
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         abortOnError: true,
         transformers: [
@@ -347,11 +291,6 @@ exports.es2017PluginsCompat = function (
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         abortOnError: true,
         transformers: [removeAssertTransformer, pathTransformer]

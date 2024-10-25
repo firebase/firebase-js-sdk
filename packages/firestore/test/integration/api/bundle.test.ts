@@ -57,7 +57,7 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
-// This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
+// This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpers.ts',
 // and manually copied here.
 const BUNDLE_TEMPLATE = [
   '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}',
@@ -69,7 +69,7 @@ const BUNDLE_TEMPLATE = [
   '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
 ];
 
-apiDescribe('Bundles', (persistence: boolean) => {
+apiDescribe('Bundles', persistence => {
   function verifySnapEqualsTestDocs(snap: QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
       { k: 'a', bar: 1 },
@@ -85,7 +85,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
     const projectId: string = db.app.options.projectId!;
 
     // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
-    const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
+    const elements = BUNDLE_TEMPLATE.map(e =>
+      e.replace('{0}', projectId).replace('(default)', db._databaseId.database)
+    );
 
     // Recalculating length prefixes for elements that are not BundleMetadata.
     let bundleContent = '';

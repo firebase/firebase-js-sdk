@@ -23,8 +23,11 @@ import {
   User,
   CompleteFn,
   ErrorFn,
-  Unsubscribe
+  Unsubscribe,
+  PasswordValidationStatus
 } from '../model/public_types';
+import { _initializeRecaptchaConfig } from '../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { _castAuth } from '../core/auth/auth_impl';
 
 export {
   debugErrorMap,
@@ -43,6 +46,9 @@ export {
  * remembered or not. It also makes it easier to never persist the `Auth` state for applications
  * that are shared by other users or have sensitive data.
  *
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * @example
  * ```javascript
  * setPersistence(auth, browserSessionPersistence);
@@ -60,11 +66,75 @@ export function setPersistence(
 ): Promise<void> {
   return getModularInstance(auth).setPersistence(persistence);
 }
+
+/**
+ * Loads the reCAPTCHA configuration into the `Auth` instance.
+ *
+ * @remarks
+ * This will load the reCAPTCHA config, which indicates whether the reCAPTCHA
+ * verification flow should be triggered for each auth provider, into the
+ * current Auth session.
+ *
+ * If initializeRecaptchaConfig() is not invoked, the auth flow will always start
+ * without reCAPTCHA verification. If the provider is configured to require reCAPTCHA
+ * verification, the SDK will transparently load the reCAPTCHA config and restart the
+ * auth flows.
+ *
+ * Thus, by calling this optional method, you will reduce the latency of future auth flows.
+ * Loading the reCAPTCHA config early will also enhance the signal collected by reCAPTCHA.
+ *
+ * This method does not work in a Node.js environment.
+ *
+ * @example
+ * ```javascript
+ * initializeRecaptchaConfig(auth);
+ * ```
+ *
+ * @param auth - The {@link Auth} instance.
+ *
+ * @public
+ */
+export function initializeRecaptchaConfig(auth: Auth): Promise<void> {
+  return _initializeRecaptchaConfig(auth);
+}
+
+/**
+ * Validates the password against the password policy configured for the project or tenant.
+ *
+ * @remarks
+ * If no tenant ID is set on the `Auth` instance, then this method will use the password
+ * policy configured for the project. Otherwise, this method will use the policy configured
+ * for the tenant. If a password policy has not been configured, then the default policy
+ * configured for all projects will be used.
+ *
+ * If an auth flow fails because a submitted password does not meet the password policy
+ * requirements and this method has previously been called, then this method will use the
+ * most recent policy available when called again.
+ *
+ * @example
+ * ```javascript
+ * validatePassword(auth, 'some-password');
+ * ```
+ *
+ * @param auth The {@link Auth} instance.
+ * @param password The password to validate.
+ *
+ * @public
+ */
+export async function validatePassword(
+  auth: Auth,
+  password: string
+): Promise<PasswordValidationStatus> {
+  const authInternal = _castAuth(auth);
+  return authInternal.validatePassword(password);
+}
+
 /**
  * Adds an observer for changes to the signed-in user's ID token.
  *
  * @remarks
  * This includes sign-in, sign-out, and token refresh events.
+ * This will not be triggered automatically upon ID token expiration. Use {@link User.getIdToken} to refresh the ID token.
  *
  * @param auth - The {@link Auth} instance.
  * @param nextOrObserver - callback triggered on change.
@@ -154,6 +224,9 @@ export function useDeviceLanguage(auth: Auth): void {
  * The operation fails with an error if the user to be updated belongs to a different Firebase
  * project.
  *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * @param auth - The {@link Auth} instance.
  * @param user - The new {@link User}.
  *
@@ -168,12 +241,29 @@ export function updateCurrentUser(
 /**
  * Signs out the current user.
  *
+ * @remarks
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * @param auth - The {@link Auth} instance.
  *
  * @public
  */
 export function signOut(auth: Auth): Promise<void> {
   return getModularInstance(auth).signOut();
+}
+
+/**
+ * Revokes the given access token. Currently only supports Apple OAuth access tokens.
+ *
+ * @param auth - The {@link Auth} instance.
+ * @param token - The Apple OAuth access token.
+ *
+ * @public
+ */
+export function revokeAccessToken(auth: Auth, token: string): Promise<void> {
+  const authInternal = _castAuth(auth);
+  return authInternal.revokeAccessToken(token);
 }
 
 export { initializeAuth } from './auth/initialize';

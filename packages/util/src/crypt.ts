@@ -104,6 +104,7 @@ interface Base64 {
 // We define it as an object literal instead of a class because a class compiled down to es5 can't
 // be treeshaked. https://github.com/rollup/rollup/issues/1691
 // Static lookup maps, lazily populated by init_()
+// TODO(dlarocque): Define this as a class, since we no longer target ES5.
 export const base64: Base64 = {
   /**
    * Maps bytes to characters.
@@ -284,7 +285,7 @@ export const base64: Base64 = {
       ++i;
 
       if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
-        throw Error();
+        throw new DecodeBase64StringError();
       }
 
       const outByte1 = (byte1 << 2) | (byte2 >> 4);
@@ -332,6 +333,13 @@ export const base64: Base64 = {
     }
   }
 };
+
+/**
+ * An error encountered while decoding base64 string.
+ */
+export class DecodeBase64StringError extends Error {
+  readonly name = 'DecodeBase64StringError';
+}
 
 /**
  * URL-safe base64 encoding

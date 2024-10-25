@@ -19,8 +19,6 @@
  * @fileoverview Defines the Firebase StorageReference class.
  */
 
-import { PassThrough, Transform, TransformOptions } from 'stream';
-
 import { FbsBlob } from './implementation/blob';
 import { Location } from './implementation/location';
 import { getMappings } from './implementation/metadata';
@@ -48,6 +46,7 @@ import {
   newStreamConnection,
   newTextConnection
 } from './platform/connection';
+import { RequestInfo } from './implementation/requestinfo';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -203,42 +202,42 @@ export function getBlobInternal(
 export function getStreamInternal(
   ref: Reference,
   maxDownloadSizeBytes?: number
-): NodeJS.ReadableStream {
+): ReadableStream {
   ref._throwIfRoot('getStream');
-  const requestInfo = getBytes(
+  const requestInfo: RequestInfo<ReadableStream, ReadableStream> = getBytes(
     ref.storage,
     ref._location,
     maxDownloadSizeBytes
   );
 
-  /** A transformer that passes through the first n bytes. */
-  const newMaxSizeTransform: (n: number) => TransformOptions = n => {
+  // Transforms the stream so that only `maxDownloadSizeBytes` bytes are piped to the result
+  const newMaxSizeTransform = (n: number): Transformer => {
     let missingBytes = n;
     return {
-      transform(chunk, encoding, callback) {
+      transform(chunk, controller: TransformStreamDefaultController) {
         // GCS may not honor the Range header for small files
         if (chunk.length < missingBytes) {
-          this.push(chunk);
+          controller.enqueue(chunk);
           missingBytes -= chunk.length;
         } else {
-          this.push(chunk.slice(0, missingBytes));
-          this.emit('end');
+          controller.enqueue(chunk.slice(0, missingBytes));
+          controller.terminate();
         }
-        callback();
       }
-    } as TransformOptions;
+    };
   };
 
   const result =
     maxDownloadSizeBytes !== undefined
-      ? new Transform(newMaxSizeTransform(maxDownloadSizeBytes))
-      : new PassThrough();
+      ? new TransformStream(newMaxSizeTransform(maxDownloadSizeBytes))
+      : new TransformStream(); // The default transformer forwards all chunks to its readable side
 
   ref.storage
     .makeRequestWithTokens(requestInfo, newStreamConnection)
-    .then(stream => (stream as NodeJS.ReadableStream).pipe(result))
-    .catch(e => result.destroy(e));
-  return result;
+    .then(readableStream => readableStream.pipeThrough(result))
+    .catch(err => result.writable.abort(err));
+
+  return result.readable;
 }
 
 /**
@@ -415,7 +414,7 @@ export function list(
 
 /**
  * A `Promise` that resolves with the metadata for this object. If this
- * object doesn't exist or metadata cannot be retreived, the promise is
+ * object doesn't exist or metadata cannot be retrieved, the promise is
  * rejected.
  * @public
  * @param ref - StorageReference to get metadata from.

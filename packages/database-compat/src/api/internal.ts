@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import {
+  AppCheckInternalComponentName,
+  FirebaseAppCheckInternal
+} from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAuthInternal,
@@ -48,6 +51,7 @@ export function initStandalone<T>({
   url,
   version,
   customAuthImpl,
+  customAppCheckImpl,
   namespace,
   nodeAdmin = false
 }: {
@@ -55,6 +59,7 @@ export function initStandalone<T>({
   url: string;
   version: string;
   customAuthImpl: FirebaseAuthInternal;
+  customAppCheckImpl?: FirebaseAppCheckInternal;
   namespace: T;
   nodeAdmin?: boolean;
 }): {
@@ -63,24 +68,40 @@ export function initStandalone<T>({
 } {
   _setSDKVersion(version);
 
+  const container = new ComponentContainer('database-standalone');
   /**
    * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
    * any actual function.
    */
   const authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
-    new ComponentContainer('database-standalone')
+    container
   );
   authProvider.setComponent(
     new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
   );
+
+  let appCheckProvider: Provider<AppCheckInternalComponentName> = undefined;
+  if (customAppCheckImpl) {
+    appCheckProvider = new Provider<AppCheckInternalComponentName>(
+      'app-check-internal',
+      container
+    );
+    appCheckProvider.setComponent(
+      new Component(
+        'app-check-internal',
+        () => customAppCheckImpl,
+        ComponentType.PRIVATE
+      )
+    );
+  }
 
   return {
     instance: new Database(
       _repoManagerDatabaseFromApp(
         app,
         authProvider,
-        /* appCheckProvider= */ undefined,
+        appCheckProvider,
         url,
         nodeAdmin
       ),

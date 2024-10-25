@@ -27,7 +27,9 @@ export const enum AnalyticsError {
   FETCH_THROTTLE = 'fetch-throttle',
   CONFIG_FETCH_FAILED = 'config-fetch-failed',
   NO_API_KEY = 'no-api-key',
-  NO_APP_ID = 'no-app-id'
+  NO_APP_ID = 'no-app-id',
+  NO_CLIENT_ID = 'no-client-id',
+  INVALID_GTAG_RESOURCE = 'invalid-gtag-resource'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -39,7 +41,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'initializeAnalytics() cannot be called again with different options than those ' +
     'it was initially called with. It can be called again with the same options to ' +
     'return the existing instance, or getAnalytics() can be used ' +
-    'to get a reference to the already-intialized instance.',
+    'to get a reference to the already-initialized instance.',
   [AnalyticsError.ALREADY_INITIALIZED_SETTINGS]:
     'Firebase Analytics has already been initialized.' +
     'settings() must be called before initializing any Analytics instance' +
@@ -64,7 +66,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'contain a valid API key.',
   [AnalyticsError.NO_APP_ID]:
     'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
-    'contain a valid app ID.'
+    'contain a valid app ID.',
+  [AnalyticsError.NO_CLIENT_ID]: 'The "client_id" field is empty.',
+  [AnalyticsError.INVALID_GTAG_RESOURCE]:
+    'Trusted Types detected an invalid gtag resource: {$gtagURL}.'
 };
 
 interface ErrorParams {
@@ -77,6 +82,7 @@ interface ErrorParams {
   };
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]: { errorInfo: string };
   [AnalyticsError.INDEXEDDB_UNAVAILABLE]: { errorInfo: string };
+  [AnalyticsError.INVALID_GTAG_RESOURCE]: { gtagURL: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(

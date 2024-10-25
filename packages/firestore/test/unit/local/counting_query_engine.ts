@@ -20,19 +20,12 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { DocumentOverlayCache } from '../../../src/local/document_overlay_cache';
 import { IndexManager } from '../../../src/local/index_manager';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { MutationQueue } from '../../../src/local/mutation_queue';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import {
-  DocumentKeySet,
-  DocumentMap,
-  OverlayMap
-} from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
-import { Overlay } from '../../../src/model/overlay';
-import { ResourcePath } from '../../../src/model/path';
+import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+import { MutationType } from '../../../src/model/mutation';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
@@ -40,23 +33,23 @@ import { ResourcePath } from '../../../src/model/path';
  */
 export class CountingQueryEngine extends QueryEngine {
   /**
-   * The number of mutations returned by the MutationQueue's
-   * `getAllMutationBatchesAffectingQuery()` API (since the last call to
+   * The number of overlays returned by the DocumentOverlayCache's
+   * `getOverlaysByCollection(Group)` API (since the last call to
    * `resetCounts()`)
    */
-  mutationsReadByCollection = 0;
+  overlaysReadByCollection = 0;
 
   /**
-   * The number of mutations returned by the MutationQueue's
-   * `getAllMutationBatchesAffectingDocumentKey()` and
-   * `getAllMutationBatchesAffectingDocumentKeys()` APIs (since the last call
-   * to `resetCounts()`)
+   * The number of overlays returned by the DocumentOverlayCache's
+   * `getOverlay(s)` APIs (since the last call to `resetCounts()`)
    */
-  mutationsReadByKey = 0;
+  overlaysReadByKey = 0;
+
+  overlayTypes: { [k: string]: MutationType } = {};
 
   /**
    * The number of documents returned by the RemoteDocumentCache's
-   * `getAll()` API (since the last call to `resetCounts()`)
+   * `getAll()` API (since the last call to `resetCounts()`).
    */
   documentsReadByCollection = 0;
 
@@ -66,25 +59,12 @@ export class CountingQueryEngine extends QueryEngine {
    */
   documentsReadByKey = 0;
 
-  /**
-   * The number of documents returned by the OverlayCache's `getOverlays()`
-   * API (since the last call to `resetCounts()`)
-   */
-  overlaysReadByCollection = 0;
-
-  /**
-   * The number of documents returned by the OverlayCache's `getOverlay()`
-   * APIs (since the last call to `resetCounts()`)
-   */
-  overlaysReadByKey = 0;
-
   resetCounts(): void {
-    this.mutationsReadByCollection = 0;
-    this.mutationsReadByKey = 0;
-    this.documentsReadByCollection = 0;
-    this.documentsReadByKey = 0;
     this.overlaysReadByCollection = 0;
     this.overlaysReadByKey = 0;
+    this.overlayTypes = {};
+    this.documentsReadByCollection = 0;
+    this.documentsReadByKey = 0;
   }
 
   getDocumentsMatchingQuery(
@@ -107,8 +87,8 @@ export class CountingQueryEngine extends QueryEngine {
   ): void {
     const view = new LocalDocumentsView(
       this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
-      this.wrapMutationQueue(localDocuments.mutationQueue),
-      this.wrapDocumentOverlayCache(localDocuments.documentOverlayCache),
+      localDocuments.mutationQueue,
+      this.wrapOverlayCache(localDocuments.documentOverlayCache),
       localDocuments.indexManager
     );
     return super.initialize(view, indexManager);
@@ -121,9 +101,21 @@ export class CountingQueryEngine extends QueryEngine {
       setIndexManager: (indexManager: IndexManager) => {
         subject.setIndexManager(indexManager);
       },
-      getAllFromCollection: (transaction, collection, sinceReadTime) => {
+      getDocumentsMatchingQuery: (
+        transaction,
+        query,
+        sinceReadTime,
+        overlays,
+        context
+      ) => {
         return subject
-          .getAllFromCollection(transaction, collection, sinceReadTime)
+          .getDocumentsMatchingQuery(
+            transaction,
+            query,
+            sinceReadTime,
+            overlays,
+            context
+          )
           .next(result => {
             this.documentsReadByCollection += result.size;
             return result;
@@ -168,88 +160,48 @@ export class CountingQueryEngine extends QueryEngine {
     };
   }
 
-  private wrapMutationQueue(subject: MutationQueue): MutationQueue {
-    return {
-      addMutationBatch: subject.addMutationBatch,
-      checkEmpty: subject.checkEmpty,
-      getAllMutationBatches: transaction => {
-        return subject.getAllMutationBatches(transaction).next(result => {
-          this.mutationsReadByKey += result.length;
-          return result;
-        });
-      },
-      getAllMutationBatchesAffectingDocumentKey: (transaction, documentKey) => {
-        return subject
-          .getAllMutationBatchesAffectingDocumentKey(transaction, documentKey)
-          .next(result => {
-            this.mutationsReadByKey += result.length;
-            return result;
-          });
-      },
-      getAllMutationBatchesAffectingDocumentKeys: (
-        transaction,
-        documentKeys
-      ) => {
-        return subject
-          .getAllMutationBatchesAffectingDocumentKeys(transaction, documentKeys)
-          .next(result => {
-            this.mutationsReadByKey += result.length;
-            return result;
-          });
-      },
-      getAllMutationBatchesAffectingQuery: (transaction, query) => {
-        return subject
-          .getAllMutationBatchesAffectingQuery(transaction, query)
-          .next(result => {
-            this.mutationsReadByCollection += result.length;
-            return result;
-          });
-      },
-      getHighestUnacknowledgedBatchId: subject.getHighestUnacknowledgedBatchId,
-      getNextMutationBatchAfterBatchId:
-        subject.getNextMutationBatchAfterBatchId,
-      lookupMutationBatch: subject.lookupMutationBatch,
-      performConsistencyCheck: subject.performConsistencyCheck,
-      removeMutationBatch: subject.removeMutationBatch
-    };
-  }
-
-  private wrapDocumentOverlayCache(
+  private wrapOverlayCache(
     subject: DocumentOverlayCache
   ): DocumentOverlayCache {
     return {
-      getOverlay: (
-        transaction: PersistenceTransaction,
-        key: DocumentKey
-      ): PersistencePromise<Overlay | null> => {
-        this.overlaysReadByKey++;
-        return subject.getOverlay(transaction, key);
+      getOverlay: (transaction, key) => {
+        return subject.getOverlay(transaction, key).next(result => {
+          this.overlaysReadByKey += 1;
+          if (!!result) {
+            this.overlayTypes[key.toString()] = result.mutation.type;
+          }
+          return result;
+        });
       },
-      getOverlays: (
-        transaction: PersistenceTransaction,
-        keys: DocumentKey[]
-      ): PersistencePromise<OverlayMap> => {
-        this.overlaysReadByKey += keys.length;
-        return subject.getOverlays(transaction, keys);
+
+      getOverlays: (transaction, keys) => {
+        return subject.getOverlays(transaction, keys).next(result => {
+          this.overlaysReadByKey += keys.length;
+          result.forEach((key, overlay) => {
+            this.overlayTypes[key.toString()] = overlay.mutation.type;
+          });
+          return result;
+        });
       },
-      getOverlaysForCollection: (
-        transaction: PersistenceTransaction,
-        collection: ResourcePath,
-        sinceBatchId: number
-      ): PersistencePromise<OverlayMap> => {
+
+      getOverlaysForCollection: (transaction, collection, sinceBatchId) => {
         return subject
           .getOverlaysForCollection(transaction, collection, sinceBatchId)
           .next(result => {
             this.overlaysReadByCollection += result.size();
+            result.forEach((key, overlay) => {
+              this.overlayTypes[key.toString()] = overlay.mutation.type;
+            });
             return result;
           });
       },
+
       getOverlaysForCollectionGroup: (
         transaction: PersistenceTransaction,
         collectionGroup: string,
         sinceBatchId: number,
         count: number
-      ): PersistencePromise<OverlayMap> => {
+      ) => {
         return subject
           .getOverlaysForCollectionGroup(
             transaction,
@@ -259,11 +211,24 @@ export class CountingQueryEngine extends QueryEngine {
           )
           .next(result => {
             this.overlaysReadByCollection += result.size();
+            result.forEach((key, overlay) => {
+              this.overlayTypes[key.toString()] = overlay.mutation.type;
+            });
             return result;
           });
       },
-      removeOverlaysForBatchId: subject.removeOverlaysForBatchId,
-      saveOverlays: subject.saveOverlays
+
+      saveOverlays: (transaction, largestBatchId, overlays) => {
+        return subject.saveOverlays(transaction, largestBatchId, overlays);
+      },
+
+      removeOverlaysForBatchId: (transaction, documentKeys, batchId) => {
+        return subject.removeOverlaysForBatchId(
+          transaction,
+          documentKeys,
+          batchId
+        );
+      }
     };
   }
 }

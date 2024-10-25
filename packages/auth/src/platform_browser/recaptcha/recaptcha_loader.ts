@@ -23,14 +23,13 @@ import { Delay } from '../../core/util/delay';
 import { AuthInternal } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
-import { Recaptcha } from './recaptcha';
+import { Recaptcha, isV2 } from './recaptcha';
 import { MockReCaptcha } from './recaptcha_mock';
 
 // ReCaptcha will load using the same callback, so the callback function needs
 // to be kept around
 export const _JSLOAD_CALLBACK = jsHelpers._generateCallbackName('rcb');
 const NETWORK_TIMEOUT_DELAY = new Delay(30000, 60000);
-const RECAPTCHA_BASE = 'https://www.google.com/recaptcha/api.js?';
 
 /**
  * We need to mark this interface as internal explicitly to exclude it in the public typings, because
@@ -59,8 +58,8 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   load(auth: AuthInternal, hl = ''): Promise<Recaptcha> {
     _assert(isHostLanguageValid(hl), auth, AuthErrorCode.ARGUMENT_ERROR);
 
-    if (this.shouldResolveImmediately(hl)) {
-      return Promise.resolve(_window().grecaptcha!);
+    if (this.shouldResolveImmediately(hl) && isV2(_window().grecaptcha)) {
+      return Promise.resolve(_window().grecaptcha! as Recaptcha);
     }
     return new Promise<Recaptcha>((resolve, reject) => {
       const networkTimeout = _window().setTimeout(() => {
@@ -71,14 +70,14 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         _window().clearTimeout(networkTimeout);
         delete _window()[_JSLOAD_CALLBACK];
 
-        const recaptcha = _window().grecaptcha;
+        const recaptcha = _window().grecaptcha as Recaptcha;
 
-        if (!recaptcha) {
+        if (!recaptcha || !isV2(recaptcha)) {
           reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
           return;
         }
 
-        // Wrap the greptcha render function so that we know if the developer has
+        // Wrap the recaptcha render function so that we know if the developer has
         // called it separately
         const render = recaptcha.render;
         recaptcha.render = (container, params) => {
@@ -91,7 +90,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         resolve(recaptcha);
       };
 
-      const url = `${RECAPTCHA_BASE}?${querystring({
+      const url = `${jsHelpers._recaptchaV2ScriptUrl()}?${querystring({
         onload: _JSLOAD_CALLBACK,
         render: 'explicit',
         hl

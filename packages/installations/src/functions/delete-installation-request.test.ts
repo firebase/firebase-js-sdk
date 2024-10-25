@@ -37,7 +37,7 @@ const FID = 'foreclosure-of-a-dream';
 
 describe('deleteInstallationRequest', () => {
   let appConfig: AppConfig;
-  let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+  let fetchSpy: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
 
   beforeEach(() => {

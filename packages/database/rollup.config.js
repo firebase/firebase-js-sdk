@@ -35,22 +35,9 @@ function onWarn(warning, defaultWarn) {
   defaultWarn(warning);
 }
 
-const es5BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
     abortOnError: false
   }),
   json({ preferConst: true })
@@ -61,14 +48,14 @@ const browserBuilds = [
     input: 'src/index.ts',
     output: [
       {
-        file: pkg.esm5,
+        file: pkg.module,
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -80,14 +67,14 @@ const browserBuilds = [
     input: 'src/index.ts',
     output: [
       {
-        file: pkg.module,
-        format: 'es',
+        file: 'dist/index.cjs.js',
+        format: 'cjs',
         sourcemap: true
       }
     ],
     plugins: [
-      ...es2017BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -100,10 +87,14 @@ const browserBuilds = [
 const nodeBuilds = [
   {
     input: 'src/index.node.ts',
-    output: { file: pkg.main, format: 'cjs', sourcemap: true },
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
     plugins: [
-      ...es5BuildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
+      ...buildPlugins,
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     treeshake: {
       moduleSideEffects: false
@@ -119,7 +110,7 @@ const nodeBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace(generateBuildTargetReplaceConfig('esm', 2017)),
       emitModulePackageFile()
     ],
@@ -135,7 +126,7 @@ const nodeBuilds = [
   {
     input: 'src/index.standalone.ts',
     output: [{ file: pkg.standalone, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
+    plugins: buildPlugins,
     treeshake: {
       moduleSideEffects: false
     },

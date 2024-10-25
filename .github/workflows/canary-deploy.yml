@@ -1,9 +1,23 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Canary Deploy
 
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
@@ -13,14 +27,14 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # Canary release script requires git history and tags.
         fetch-depth: 0
-    - name: Set up Node (14)
-      uses: actions/setup-node@v2
+    - name: Set up Node (20)
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
+        node-version: 20.x
     - name: Yarn install
       run: yarn
     - name: Deploy canary
@@ -38,6 +52,7 @@ jobs:
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
         NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_DATA_CONNECT: ${{secrets.NPM_TOKEN_DATA_CONNECT}}
         NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
         NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
         NPM_TOKEN_FIRESTORE: ${{secrets.NPM_TOKEN_FIRESTORE}}
@@ -48,17 +63,15 @@ jobs:
         NPM_TOKEN_INSTALLATIONS_TYPES: ${{secrets.NPM_TOKEN_INSTALLATIONS_TYPES}}
         NPM_TOKEN_LOGGER: ${{secrets.NPM_TOKEN_LOGGER}}
         NPM_TOKEN_MESSAGING: ${{secrets.NPM_TOKEN_MESSAGING}}
-        NPM_TOKEN_MESSAGING_TYPES: ${{secrets.NPM_TOKEN_MESSAGING_TYPES}}
         NPM_TOKEN_PERFORMANCE: ${{secrets.NPM_TOKEN_PERFORMANCE}}
         NPM_TOKEN_PERFORMANCE_TYPES: ${{secrets.NPM_TOKEN_PERFORMANCE_TYPES}}
-        NPM_TOKEN_POLYFILL: ${{secrets.NPM_TOKEN_POLYFILL}}
         NPM_TOKEN_REMOTE_CONFIG: ${{secrets.NPM_TOKEN_REMOTE_CONFIG}}
         NPM_TOKEN_REMOTE_CONFIG_TYPES: ${{secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES}}
         NPM_TOKEN_RULES_UNIT_TESTING: ${{secrets.NPM_TOKEN_RULES_UNIT_TESTING}}
         NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
-        NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+        NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}
@@ -76,3 +89,15 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+    - name: Launch E2E tests workflow
+      # Trigger e2e-test.yml
+      run: |
+        VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
+        VERSION_OR_TAG=`node -e "${VERSION_SCRIPT}"`
+        OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
+        curl -X POST \
+        -H "Content-Type:application/json" \
+        -H "Accept:application/vnd.github.v3+json" \
+        -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
+        -d "{\"event_type\":\"canary-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
+        https://api.github.com/repos/firebase/firebase-js-sdk/dispatches

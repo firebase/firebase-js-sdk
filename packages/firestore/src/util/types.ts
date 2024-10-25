@@ -61,7 +61,7 @@ export interface WindowLike {
 
 /** The subset of the browser's Document interface used by the SDK. */
 export interface DocumentLike {
-  readonly visibilityState: VisibilityState;
+  readonly visibilityState: DocumentVisibilityState;
   addEventListener(type: string, listener: EventListener): void;
   removeEventListener(type: string, listener: EventListener): void;
 }

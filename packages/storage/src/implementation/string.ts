@@ -22,7 +22,7 @@ import { decodeBase64 } from '../platform/base64';
  * An enumeration of the possible string formats for upload.
  * @public
  */
-export type StringFormat = typeof StringFormat[keyof typeof StringFormat];
+export type StringFormat = (typeof StringFormat)[keyof typeof StringFormat];
 /**
  * An enumeration of the possible string formats for upload.
  * @public
@@ -184,6 +184,9 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   try {
     bytes = decodeBase64(value);
   } catch (e) {
+    if ((e as Error).message.includes('polyfill')) {
+      throw e;
+    }
     throw invalidFormat(format, 'Invalid character found');
   }
   const array = new Uint8Array(bytes.length);

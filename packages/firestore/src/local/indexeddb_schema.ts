@@ -51,9 +51,10 @@ import { DbTimestampKey } from './indexeddb_sentinels';
  *     document lookup via `getAll()`.
  * 14. Add overlays.
  * 15. Add indexing support.
+ * 16. Parse timestamp strings before creating index entries.
  */
 
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 17;
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -202,7 +203,7 @@ export interface DbRemoteDocument {
   /** The path to the document's collection (excluding). */
   prefixPath: string[];
 
-  /** The collection ID the document is direclty nested under. */
+  /** The collection ID the document is directly nested under. */
   collectionGroup: string;
 
   /** The document ID. */
@@ -534,4 +535,14 @@ export interface DbDocumentOverlay {
   largestBatchId: number;
   /** The overlay mutation. */
   overlayMutation: ProtoWrite;
+}
+
+/**
+ * An object containing global name/value pair.
+ */
+export interface DbGlobals {
+  /** Name is a globally unique identifier for a value. */
+  name: string;
+  /** Value is a general purpose storage for global data. */
+  value: Uint8Array;
 }

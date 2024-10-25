@@ -25,7 +25,8 @@ import {
   newEventManager,
   eventManagerOnWatchChange,
   QueryListener,
-  eventManagerOnOnlineStateChange
+  eventManagerOnOnlineStateChange,
+  EventManager
 } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
 import { OnlineState } from '../../../src/core/types';
@@ -50,20 +51,37 @@ describe('EventManager', () => {
   function fakeQueryListener(query: Query): any {
     return {
       query,
+      options: {},
       onViewSnapshot: () => {},
       onError: () => {},
-      applyOnlineStateChange: () => {}
+      applyOnlineStateChange: () => {},
+      listensToRemoteStore: () => {}
     };
   }
 
   // mock objects.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let onListenSpy: any, onUnlistenSpy: any;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  let onListenSpy: any,
+    onUnlistenSpy: any,
+    onFirstRemoteStoreListenSpy: any,
+    onLastRemoteStoreUnlistenSpy: any;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   beforeEach(() => {
     onListenSpy = sinon.stub().returns(Promise.resolve(0));
     onUnlistenSpy = sinon.spy();
+    onFirstRemoteStoreListenSpy = sinon.spy();
+    onLastRemoteStoreUnlistenSpy = sinon.spy();
   });
+
+  function eventManagerBindSpy(eventManager: EventManager): void {
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManager.onFirstRemoteStoreListen =
+      onFirstRemoteStoreListenSpy.bind(null);
+    eventManager.onLastRemoteStoreUnlisten =
+      onLastRemoteStoreUnlistenSpy.bind(null);
+  }
 
   it('handles many listenables per query', async () => {
     const query1 = query('foo/bar');
@@ -71,8 +89,7 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query1);
 
     const eventManager = newEventManager();
-    eventManager.onListen = onListenSpy.bind(null);
-    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManagerBindSpy(eventManager);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;
@@ -92,8 +109,7 @@ describe('EventManager', () => {
     const fakeListener1 = fakeQueryListener(query1);
 
     const eventManager = newEventManager();
-    eventManager.onListen = onListenSpy.bind(null);
-    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManagerBindSpy(eventManager);
 
     await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.callCount).to.equal(0);
@@ -118,8 +134,7 @@ describe('EventManager', () => {
     };
 
     const eventManager = newEventManager();
-    eventManager.onListen = onListenSpy.bind(null);
-    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManagerBindSpy(eventManager);
 
     await eventManagerListen(eventManager, fakeListener1);
     await eventManagerListen(eventManager, fakeListener2);
@@ -150,8 +165,7 @@ describe('EventManager', () => {
     };
 
     const eventManager = newEventManager();
-    eventManager.onListen = onListenSpy.bind(null);
-    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+    eventManagerBindSpy(eventManager);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
@@ -224,7 +238,8 @@ describe('QueryListener', () => {
       docChanges: [change1, change4],
       fromCache: snap2.fromCache,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(otherEvents).to.deep.equal([expectedSnap2]);
   });
@@ -396,7 +411,8 @@ describe('QueryListener', () => {
         docChanges: [change3],
         fromCache: snap2.fromCache,
         syncStateChanged: snap2.syncStateChanged,
-        mutatedKeys: snap2.mutatedKeys
+        mutatedKeys: snap2.mutatedKeys,
+        hasCachedResults: snap2.hasCachedResults
       };
       expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
     }
@@ -482,7 +498,8 @@ describe('QueryListener', () => {
       ],
       fromCache: false,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap3.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -517,7 +534,8 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc1 }],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     const expectedSnap2 = {
       query: query1,
@@ -526,7 +544,8 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc2 }],
       fromCache: true,
       syncStateChanged: false,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap2.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
   });
@@ -552,7 +571,8 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -577,7 +597,8 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      mutatedKeys: keys()
+      mutatedKeys: keys(),
+      hasCachedResults: snap1.hasCachedResults
     };
     expect(events).to.deep.equal([expectedSnap]);
   });

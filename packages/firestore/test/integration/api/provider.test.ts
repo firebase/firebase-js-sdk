@@ -25,7 +25,11 @@ import {
   initializeFirestore,
   Firestore,
   terminate,
-  getDoc
+  getDoc,
+  enableIndexedDbPersistence,
+  setDoc,
+  memoryLocalCache,
+  getDocFromCache
 } from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
@@ -62,6 +66,13 @@ describe('Firestore Provider', () => {
     const fs3 = getFirestore(app);
     const fs4 = getFirestore(app, 'name1');
     const fs5 = getFirestore(app, 'name2');
+
+    expect(fs1._databaseId.database).to.be.equal('init1');
+    expect(fs2._databaseId.database).to.be.equal('init2');
+    expect(fs3._databaseId.database).to.be.equal('(default)');
+    expect(fs4._databaseId.database).to.be.equal('name1');
+    expect(fs5._databaseId.database).to.be.equal('name2');
+
     expect(fs1).to.not.be.equal(fs2);
     expect(fs1).to.not.be.equal(fs3);
     expect(fs1).to.not.be.equal(fs4);
@@ -118,6 +129,37 @@ describe('Firestore Provider', () => {
     const fs1 = initializeFirestore(app, DEFAULT_SETTINGS);
     const fs2 = initializeFirestore(app, DEFAULT_SETTINGS);
     expect(fs1).to.be.equal(fs2);
+  });
+
+  it('can still use enableIndexedDbPersistence()', async () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-use-enablePersistence'
+    );
+    const db = initializeFirestore(app, DEFAULT_SETTINGS);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    expect(enableIndexedDbPersistence(db)).to.be.rejected;
+
+    // SDK still functions.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    setDoc(doc(db, 'coll/doc'), { field: 'foo' });
+    expect((await getDocFromCache(doc(db, 'coll/doc'))).data()).to.deep.equal({
+      field: 'foo'
+    });
+  });
+
+  it('cannot mix enableIndexedDbPersistence() and settings.cache', async () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key', projectId: 'test-project' },
+      'test-cannot-mix'
+    );
+    const db = initializeFirestore(app, {
+      ...DEFAULT_SETTINGS,
+      localCache: memoryLocalCache()
+    });
+    expect(() => enableIndexedDbPersistence(db)).to.throw(
+      'SDK cache is already specified.'
+    );
   });
 
   it('cannot use once terminated', () => {

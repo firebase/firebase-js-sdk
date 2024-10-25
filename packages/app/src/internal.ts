@@ -15,16 +15,26 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from './public-types';
+import {
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseServerApp
+} from './public-types';
 import { Component, Provider, Name } from '@firebase/component';
 import { logger } from './logger';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { FirebaseAppImpl } from './firebaseApp';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
 
 /**
  * @internal
  */
 export const _apps = new Map<string, FirebaseApp>();
+
+/**
+ * @internal
+ */
+export const _serverApps = new Map<string, FirebaseServerApp>();
 
 /**
  * Registered components.
@@ -90,6 +100,10 @@ export function _registerComponent<T extends Name>(
     _addComponent(app as FirebaseAppImpl, component);
   }
 
+  for (const serverApp of _serverApps.values()) {
+    _addComponent(serverApp as FirebaseServerAppImpl, component);
+  }
+
   return true;
 }
 
@@ -129,6 +143,34 @@ export function _removeServiceInstance<T extends Name>(
   instanceIdentifier: string = DEFAULT_ENTRY_NAME
 ): void {
   _getProvider(app, name).clearInstance(instanceIdentifier);
+}
+
+/**
+ *
+ * @param obj - an object of type FirebaseApp or FirebaseOptions.
+ *
+ * @returns true if the provide object is of type FirebaseApp.
+ *
+ * @internal
+ */
+export function _isFirebaseApp(
+  obj: FirebaseApp | FirebaseOptions
+): obj is FirebaseApp {
+  return (obj as FirebaseApp).options !== undefined;
+}
+
+/**
+ *
+ * @param obj - an object of type FirebaseApp.
+ *
+ * @returns true if the provided object is of type FirebaseServerAppImpl.
+ *
+ * @internal
+ */
+export function _isFirebaseServerApp(
+  obj: FirebaseApp | FirebaseServerApp
+): obj is FirebaseServerApp {
+  return (obj as FirebaseServerApp).settings !== undefined;
 }
 
 /**

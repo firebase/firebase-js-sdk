@@ -1,5 +1,87 @@
 # @firebase/webchannel-wrapper
 
+## 1.0.2
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+## 1.0.1
+
+### Patch Changes
+
+- [`b09a267ba`](https://github.com/firebase/firebase-js-sdk/commit/b09a267ba8c59d15865173844e73a92588342f61) [#8331](https://github.com/firebase/firebase-js-sdk/pull/8331) - fix: Fix a typo in the webchannel-wrapper's package.json that affected ems5 exports.
+
+## 1.0.0
+
+### Major Changes
+
+- [`4b49630c7`](https://github.com/firebase/firebase-js-sdk/commit/4b49630c7f0e5880c5ae153f50ca2eff5eb32fbd) [#8190](https://github.com/firebase/firebase-js-sdk/pull/8190) - Use closure-net as a dependency of webchannel-wrapper and Firestore.
+
+### Patch Changes
+
+- [`14f9da66f`](https://github.com/firebase/firebase-js-sdk/commit/14f9da66fed45ac3f932ec590ca49c8a827d9fc5) [#8212](https://github.com/firebase/firebase-js-sdk/pull/8212) - fix: Update webchannel-wrapper to fix webchannel multi-byte character decoding bug in fetch streams.
+
+- [`ab883d016`](https://github.com/firebase/firebase-js-sdk/commit/ab883d016015de0436346f586d8442b5703771b7) [#8237](https://github.com/firebase/firebase-js-sdk/pull/8237) - Bump all packages so staging works.
+
+## 0.10.6
+
+### Patch Changes
+
+- [`0c5150106`](https://github.com/firebase/firebase-js-sdk/commit/0c515010607bf2223b468acb94c672b1279ed1a0) [#8079](https://github.com/firebase/firebase-js-sdk/pull/8079) - Update `repository.url` field in all `package.json` files to NPM's preferred format.
+
+## 0.10.5
+
+### Patch Changes
+
+- [`00235ba68`](https://github.com/firebase/firebase-js-sdk/commit/00235ba68fdbb5d9788a14ba2bdd75cad87301e4) [#7771](https://github.com/firebase/firebase-js-sdk/pull/7771) (fixes [#6118](https://github.com/firebase/firebase-js-sdk/issues/6118)) - Fix high memory usage of Firestore in browsers.
+
+## 0.10.3
+
+### Patch Changes
+
+- [`60e4a07d2`](https://github.com/firebase/firebase-js-sdk/commit/60e4a07d2c89b5ea473f903a942aabab03050fa5) [#7593](https://github.com/firebase/firebase-js-sdk/pull/7593) - Fix an issue where Firestore was incorrectly using XHR instead of fetch for streaming response.
+
+## 0.10.2
+
+### Patch Changes
+
+- [`78d2738c2`](https://github.com/firebase/firebase-js-sdk/commit/78d2738c246555556cba8dcfe2932639f80523ea) [#7569](https://github.com/firebase/firebase-js-sdk/pull/7569) - Fix how we enable fetch streams.
+
+## 0.10.1
+
+### Patch Changes
+
+- [`23581c540`](https://github.com/firebase/firebase-js-sdk/commit/23581c54065f6b14a150ef579b71410842ac8518) [#7311](https://github.com/firebase/firebase-js-sdk/pull/7311) - Fix the new `experimentalLongPollingOptions.timeoutSeconds` setting, which was released in v9.22.0 but didn't work.
+
+## 0.10.0
+
+### Minor Changes
+
+- [`98abcd5ed`](https://github.com/firebase/firebase-js-sdk/commit/98abcd5ed9bbc5910c1a94f0580f1ceffe95e564) [#7229](https://github.com/firebase/firebase-js-sdk/pull/7229) - Implemented an optimization in the local cache synchronization logic that reduces the number of billed document reads when documents were deleted on the server while the client was not actively listening to the query (e.g. while the client was offline).
+
+### Patch Changes
+
+- [`5e5c41225`](https://github.com/firebase/firebase-js-sdk/commit/5e5c41225869a5b3f315f2440d382ab010ba2e39) [#7228](https://github.com/firebase/firebase-js-sdk/pull/7228) - Make webchannel-wrapper exports Node-ESM-friendly.
+
+## 0.9.0
+
+### Minor Changes
+
+- [`1625f7a95`](https://github.com/firebase/firebase-js-sdk/commit/1625f7a95cc3ffb666845db0a8044329be74b5be) [#6799](https://github.com/firebase/firebase-js-sdk/pull/6799) - Update TypeScript version to 4.7.4.
+
+## 0.8.1
+
+### Patch Changes
+
+- [`4af28c1a4`](https://github.com/firebase/firebase-js-sdk/commit/4af28c1a42bd25ce2353f694ca1724c6101cbce5) [#6682](https://github.com/firebase/firebase-js-sdk/pull/6682) - Upgrade TypeScript to 4.7.4.
+
+## 0.8.0
+
+### Minor Changes
+
+- [`397317b53`](https://github.com/firebase/firebase-js-sdk/commit/397317b53c4d9d8aee761f566adf3616aef844ed) [#6643](https://github.com/firebase/firebase-js-sdk/pull/6643) - Set withCredentials=true when making requests via non-streaming RPCs, like is done for streaming RPCs.
+
 ## 0.7.0
 
 ### Minor Changes

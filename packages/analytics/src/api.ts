@@ -50,7 +50,8 @@ import {
   setUserProperties as internalSetUserProperties,
   setAnalyticsCollectionEnabled as internalSetAnalyticsCollectionEnabled,
   _setConsentDefaultForInit,
-  _setDefaultEventParametersForInit
+  _setDefaultEventParametersForInit,
+  internalGetGoogleAnalyticsClientId
 } from './functions';
 import { ERROR_FACTORY, AnalyticsError } from './errors';
 
@@ -168,6 +169,24 @@ export function setCurrentScreen(
 }
 
 /**
+ * Retrieves a unique Google Analytics identifier for the web client.
+ * See {@link https://developers.google.com/analytics/devguides/collection/ga4/reference/config#client_id | client_id}.
+ *
+ * @public
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ */
+export async function getGoogleAnalyticsClientId(
+  analyticsInstance: Analytics
+): Promise<string> {
+  analyticsInstance = getModularInstance(analyticsInstance);
+  return internalGetGoogleAnalyticsClientId(
+    wrappedGtagFunction,
+    initializationPromisesMap[analyticsInstance.app.options.appId!]
+  );
+}
+
+/**
  * Use gtag `config` command to set `user_id`.
  *
  * @public
@@ -177,7 +196,7 @@ export function setCurrentScreen(
  */
 export function setUserId(
   analyticsInstance: Analytics,
-  id: string,
+  id: string | null,
   options?: AnalyticsCallOptions
 ): void {
   analyticsInstance = getModularInstance(analyticsInstance);
@@ -422,7 +441,7 @@ export function logEvent(
  * app instance on this device.
  * @public
  * See
- * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+ * {@link https://developers.google.com/analytics/devguides/collection/ga4/views
  * | Page views}.
  */
 export function logEvent(

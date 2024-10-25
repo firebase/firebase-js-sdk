@@ -43,7 +43,7 @@ import { DEFAULT_SETTINGS } from '../util/settings';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
-apiDescribe('Nested Fields', (persistence: boolean) => {
+apiDescribe('Nested Fields', persistence => {
   const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
@@ -240,7 +240,7 @@ apiDescribe('Nested Fields', (persistence: boolean) => {
 // NOTE(mikelehen): I originally combined these tests with the above ones, but
 // Datastore currently prohibits having nested fields and fields with dots in
 // the same entity, so I'm separating them.
-apiDescribe('Fields with special characters', (persistence: boolean) => {
+apiDescribe('Fields with special characters', persistence => {
   const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
@@ -340,7 +340,7 @@ apiDescribe('Fields with special characters', (persistence: boolean) => {
   });
 });
 
-apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
+apiDescribe('Timestamp Fields in snapshots', persistence => {
   // Figure out how to pass in the Timestamp type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const testDataWithTimestamps = (ts: any): AnyTestData => {
@@ -379,7 +379,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
   });
 });
 
-apiDescribe('`undefined` properties', (persistence: boolean) => {
+apiDescribe('`undefined` properties', persistence => {
   const settings = { ...DEFAULT_SETTINGS };
   settings.ignoreUndefinedProperties = true;
 

@@ -32,7 +32,7 @@ const DEFAULT_CACHE_MAX_AGE_MILLIS = 12 * 60 * 60 * 1000; // Twelve hours.
 /**
  * Encapsulates business logic mapping network and storage dependencies to the public SDK API.
  *
- * See {@link https://github.com/FirebasePrivate/firebase-js-sdk/blob/master/packages/firebase/index.d.ts|interface documentation} for method descriptions.
+ * See {@link https://github.com/firebase/firebase-js-sdk/blob/main/packages/firebase/index.d.ts|interface documentation} for method descriptions.
  */
 export class RemoteConfig implements RemoteConfigType {
   /**

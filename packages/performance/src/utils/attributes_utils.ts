@@ -39,17 +39,32 @@ const enum EffectiveConnectionType {
   CONNECTION_4G = 4
 }
 
+type ConnectionType =
+  | 'bluetooth'
+  | 'cellular'
+  | 'ethernet'
+  | 'mixed'
+  | 'none'
+  | 'other'
+  | 'unknown'
+  | 'wifi';
+
 /**
  * NetworkInformation
+ * This API is not well supported in all major browsers, so TypeScript does not provide types for it.
  *
  * ref: https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation
  */
-interface NetworkInformation {
+interface NetworkInformation extends EventTarget {
+  readonly type: ConnectionType;
+}
+
+interface NetworkInformationWithEffectiveType extends NetworkInformation {
   readonly effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
 }
 
 interface NavigatorWithConnection extends Navigator {
-  readonly connection: NetworkInformation;
+  readonly connection: NetworkInformationWithEffectiveType;
 }
 
 const RESERVED_ATTRIBUTE_PREFIXES = ['firebase_', 'google_', 'ga_'];
@@ -59,7 +74,7 @@ const MAX_ATTRIBUTE_VALUE_LENGTH = 100;
 
 export function getServiceWorkerStatus(): ServiceWorkerStatus {
   const navigator = Api.getInstance().navigator;
-  if ('serviceWorker' in navigator) {
+  if (navigator?.serviceWorker) {
     if (navigator.serviceWorker.controller) {
       return ServiceWorkerStatus.CONTROLLED;
     } else {

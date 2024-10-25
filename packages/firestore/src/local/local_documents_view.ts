@@ -46,7 +46,6 @@ import { FieldMask } from '../model/field_mask';
 import {
   calculateOverlayMutation,
   mutationApplyToLocalView,
-  MutationType,
   PatchMutation
 } from '../model/mutation';
 import { Overlay } from '../model/overlay';
@@ -61,6 +60,7 @@ import { MutationQueue } from './mutation_queue';
 import { OverlayedDocument } from './overlayed_document';
 import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
+import { QueryContext } from './query_context';
 import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
@@ -92,7 +92,7 @@ export class LocalDocumentsView {
       .getOverlay(transaction, key)
       .next(value => {
         overlay = value;
-        return this.getBaseDocument(transaction, key, overlay);
+        return this.remoteDocumentCache.getEntry(transaction, key);
       })
       .next(document => {
         if (overlay !== null) {
@@ -243,6 +243,10 @@ export class LocalDocumentsView {
           overlay.mutation.getFieldMask(),
           Timestamp.now()
         );
+      } else {
+        // no overlay exists
+        // Using EMPTY to indicate there is no overlay for the document.
+        mutatedFields.set(doc.key, FieldMask.empty());
       }
     });
 
@@ -352,11 +356,14 @@ export class LocalDocumentsView {
    * @param transaction - The persistence transaction.
    * @param query - The query to match documents against.
    * @param offset - Read time and key to start scanning by (exclusive).
+   * @param context - A optional tracker to keep a record of important details
+   *   during database local query execution.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
@@ -364,13 +371,15 @@ export class LocalDocumentsView {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,
-        offset
+        offset,
+        context
       );
     } else {
       return this.getDocumentsMatchingCollectionQuery(
         transaction,
         query,
-        offset
+        offset,
+        context
       );
     }
   }
@@ -424,11 +433,11 @@ export class LocalDocumentsView {
               if (originalDocs.get(key)) {
                 return PersistencePromise.resolve();
               }
-              return this.getBaseDocument(transaction, key, overlay).next(
-                doc => {
+              return this.remoteDocumentCache
+                .getEntry(transaction, key)
+                .next(doc => {
                   modifiedDocs = modifiedDocs.insert(key, doc);
-                }
-              );
+                });
             }
           )
             .next(() =>
@@ -469,7 +478,8 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     debugAssert(
       query.path.isEmpty(),
@@ -490,7 +500,8 @@ export class LocalDocumentsView {
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
             collectionQuery,
-            offset
+            offset,
+            context
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -503,21 +514,24 @@ export class LocalDocumentsView {
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    offset: IndexOffset
+    offset: IndexOffset,
+    context?: QueryContext
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
-    let remoteDocuments: MutableDocumentMap;
-    return this.remoteDocumentCache
-      .getAllFromCollection(transaction, query.path, offset)
-      .next(queryResults => {
-        remoteDocuments = queryResults;
-        return this.documentOverlayCache.getOverlaysForCollection(
+    let overlays: OverlayMap;
+    return this.documentOverlayCache
+      .getOverlaysForCollection(transaction, query.path, offset.largestBatchId)
+      .next(result => {
+        overlays = result;
+        return this.remoteDocumentCache.getDocumentsMatchingQuery(
           transaction,
-          query.path,
-          offset.largestBatchId
+          query,
+          offset,
+          overlays,
+          context
         );
       })
-      .next(overlays => {
+      .next(remoteDocuments => {
         // As documents might match the query because of their overlay we need to
         // include documents for all overlays in the initial document set.
         overlays.forEach((_, overlay) => {
@@ -549,16 +563,5 @@ export class LocalDocumentsView {
         });
         return results;
       });
-  }
-
-  /** Returns a base document that can be used to apply `overlay`. */
-  private getBaseDocument(
-    transaction: PersistenceTransaction,
-    key: DocumentKey,
-    overlay: Overlay | null
-  ): PersistencePromise<MutableDocument> {
-    return overlay === null || overlay.mutation.type === MutationType.Patch
-      ? this.remoteDocumentCache.getEntry(transaction, key)
-      : PersistencePromise.resolve(MutableDocument.newInvalidDocument(key));
   }
 }

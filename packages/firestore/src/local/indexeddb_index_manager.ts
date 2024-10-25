@@ -16,19 +16,26 @@
  */
 
 import { User } from '../auth/user';
+import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
 import {
-  Bound,
-  canonifyTarget,
+  CompositeFilter,
+  CompositeOperator,
   FieldFilter,
-  Operator,
+  Filter,
+  Operator
+} from '../core/filter';
+import {
+  canonifyTarget,
+  newTarget,
   Target,
   targetEquals,
   targetGetArrayValues,
   targetGetLowerBound,
   targetGetNotInValues,
   targetGetSegmentCount,
-  targetGetUpperBound
+  targetGetUpperBound,
+  targetHasLimit
 } from '../core/target';
 import { FirestoreIndexValueWriter } from '../index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../index/index_byte_encoder';
@@ -53,6 +60,7 @@ import { isArray, refValue } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
+import { getDnfTerms } from '../util/logic_utils';
 import { immediateSuccessor, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { diffSortedSets, SortedSet } from '../util/sorted_set';
@@ -112,7 +120,7 @@ export class IndexedDbIndexManager implements IndexManager {
    */
   private collectionParentsCache = new MemoryCollectionParentIndex();
 
-  private uid: string;
+  private readonly uid: string;
 
   /**
    * Maps from a target to its equivalent list of sub-targets. Each sub-target
@@ -123,7 +131,7 @@ export class IndexedDbIndexManager implements IndexManager {
     (l, r) => targetEquals(l, r)
   );
 
-  constructor(private user: User, private readonly databaseId: DatabaseId) {
+  constructor(user: User, private readonly databaseId: DatabaseId) {
     this.uid = user.uid || '';
   }
 
@@ -202,7 +210,7 @@ export class IndexedDbIndexManager implements IndexManager {
         states.put(
           toDbIndexState(
             indexId,
-            this.user,
+            this.uid,
             index.indexState.sequenceNumber,
             index.indexState.offset
           )
@@ -242,6 +250,39 @@ export class IndexedDbIndexManager implements IndexManager {
           )
         )
       );
+  }
+
+  deleteAllFieldIndexes(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const indexes = indexConfigurationStore(transaction);
+    const entries = indexEntriesStore(transaction);
+    const states = indexStateStore(transaction);
+
+    return indexes
+      .deleteAll()
+      .next(() => entries.deleteAll())
+      .next(() => states.deleteAll());
+  }
+
+  createTargetIndexes(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<void> {
+    return PersistencePromise.forEach(
+      this.getSubTargets(target),
+      (subTarget: Target) => {
+        return this.getIndexType(transaction, subTarget).next(type => {
+          if (type === IndexType.NONE || type === IndexType.PARTIAL) {
+            const targetIndexMatcher = new TargetIndexMatcher(subTarget);
+            const fieldIndex = targetIndexMatcher.buildTargetIndex();
+            if (fieldIndex != null) {
+              return this.addFieldIndex(transaction, fieldIndex);
+            }
+          }
+        });
+      }
+    );
   }
 
   getDocumentsMatchingTarget(
@@ -333,8 +374,28 @@ export class IndexedDbIndexManager implements IndexManager {
     if (subTargets) {
       return subTargets;
     }
-    // TODO(orquery): Implement DNF transform
-    subTargets = [target];
+
+    if (target.filters.length === 0) {
+      subTargets = [target];
+    } else {
+      // There is an implicit AND operation between all the filters stored in the target
+      const dnf: Filter[] = getDnfTerms(
+        CompositeFilter.create(target.filters, CompositeOperator.AND)
+      );
+
+      subTargets = dnf.map(term =>
+        newTarget(
+          target.path,
+          target.collectionGroup,
+          target.orderBy,
+          term.getFilters(),
+          target.limit,
+          target.startAt,
+          target.endAt
+        )
+      );
+    }
+
     this.targetToDnfSubTargets.set(target, subTargets);
     return subTargets;
   }
@@ -459,21 +520,32 @@ export class IndexedDbIndexManager implements IndexManager {
     target: Target
   ): PersistencePromise<IndexType> {
     let indexType = IndexType.FULL;
-    return PersistencePromise.forEach(
-      this.getSubTargets(target),
-      (target: Target) => {
-        return this.getFieldIndex(transaction, target).next(index => {
-          if (!index) {
-            indexType = IndexType.NONE;
-          } else if (
-            indexType !== IndexType.NONE &&
-            index.fields.length < targetGetSegmentCount(target)
-          ) {
-            indexType = IndexType.PARTIAL;
-          }
-        });
+    const subTargets = this.getSubTargets(target);
+    return PersistencePromise.forEach(subTargets, (target: Target) => {
+      return this.getFieldIndex(transaction, target).next(index => {
+        if (!index) {
+          indexType = IndexType.NONE;
+        } else if (
+          indexType !== IndexType.NONE &&
+          index.fields.length < targetGetSegmentCount(target)
+        ) {
+          indexType = IndexType.PARTIAL;
+        }
+      });
+    }).next(() => {
+      // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
+      // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
+      // and apply the limit in memory as a post-processing step.
+      if (
+        targetHasLimit(target) &&
+        subTargets.length > 1 &&
+        indexType === IndexType.FULL
+      ) {
+        return IndexType.PARTIAL;
       }
-    ).next(() => indexType);
+
+      return indexType;
+    });
   }
 
   /**
@@ -533,18 +605,18 @@ export class IndexedDbIndexManager implements IndexManager {
   private encodeValues(
     fieldIndex: FieldIndex,
     target: Target,
-    bound: ProtoValue[] | null
+    values: ProtoValue[] | null
   ): Uint8Array[] {
-    if (bound === null) {
+    if (values === null) {
       return [];
     }
 
     let encoders: IndexByteEncoder[] = [];
     encoders.push(new IndexByteEncoder());
 
-    let boundIdx = 0;
+    let valueIdx = 0;
     for (const segment of fieldIndexGetDirectionalSegments(fieldIndex)) {
-      const value = bound[boundIdx++];
+      const value = values[valueIdx++];
       for (const encoder of encoders) {
         if (this.isInFilter(target, segment.fieldPath) && isArray(value)) {
           encoders = this.expandIndexValues(encoders, segment, value);
@@ -682,7 +754,7 @@ export class IndexedDbIndexManager implements IndexManager {
             states.put(
               toDbIndexState(
                 config.indexId!,
-                this.user,
+                this.uid,
                 nextSequenceNumber,
                 offset
               )
@@ -942,28 +1014,39 @@ export class IndexedDbIndexManager implements IndexManager {
 
     const ranges: IDBKeyRange[] = [];
     for (let i = 0; i < bounds.length; i += 2) {
-      ranges.push(
-        IDBKeyRange.bound(
-          [
-            bounds[i].indexId,
-            this.uid,
-            bounds[i].arrayValue,
-            bounds[i].directionalValue,
-            EMPTY_VALUE,
-            []
-          ] as DbIndexEntryKey,
-          [
-            bounds[i + 1].indexId,
-            this.uid,
-            bounds[i + 1].arrayValue,
-            bounds[i + 1].directionalValue,
-            EMPTY_VALUE,
-            []
-          ] as DbIndexEntryKey
-        )
-      );
+      // If we encounter two bounds that will create an unmatchable key range,
+      // then we return an empty set of key ranges.
+      if (this.isRangeMatchable(bounds[i], bounds[i + 1])) {
+        return [];
+      }
+
+      const lowerBound = [
+        bounds[i].indexId,
+        this.uid,
+        bounds[i].arrayValue,
+        bounds[i].directionalValue,
+        EMPTY_VALUE,
+        []
+      ] as DbIndexEntryKey;
+
+      const upperBound = [
+        bounds[i + 1].indexId,
+        this.uid,
+        bounds[i + 1].arrayValue,
+        bounds[i + 1].directionalValue,
+        EMPTY_VALUE,
+        []
+      ] as DbIndexEntryKey;
+
+      ranges.push(IDBKeyRange.bound(lowerBound, upperBound));
     }
     return ranges;
+  }
+
+  isRangeMatchable(lowerBound: IndexEntry, upperBound: IndexEntry): boolean {
+    // If lower bound is greater than the upper bound, then the key
+    // range can never be matched.
+    return indexEntryComparator(lowerBound, upperBound) > 0;
   }
 
   getMinOffsetFromCollectionGroup(

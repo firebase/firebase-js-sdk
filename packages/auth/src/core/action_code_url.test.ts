@@ -42,7 +42,7 @@ describe('core/action_code_url', () => {
     });
 
     context('operation', () => {
-      it('should identitfy EMAIL_SIGNIN', () => {
+      it('should identify EMAIL_SIGNIN', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
@@ -53,7 +53,7 @@ describe('core/action_code_url', () => {
         );
       });
 
-      it('should identitfy VERIFY_AND_CHANGE_EMAIL', () => {
+      it('should identify VERIFY_AND_CHANGE_EMAIL', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyAndChangeEmail&apiKey=API_KEY&' +
@@ -64,7 +64,7 @@ describe('core/action_code_url', () => {
         );
       });
 
-      it('should identitfy VERIFY_EMAIL', () => {
+      it('should identify VERIFY_EMAIL', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
@@ -75,7 +75,7 @@ describe('core/action_code_url', () => {
         );
       });
 
-      it('should identitfy RECOVER_EMAIL', () => {
+      it('should identify RECOVER_EMAIL', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
@@ -86,7 +86,7 @@ describe('core/action_code_url', () => {
         );
       });
 
-      it('should identitfy PASSWORD_RESET', () => {
+      it('should identify PASSWORD_RESET', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
@@ -97,7 +97,7 @@ describe('core/action_code_url', () => {
         );
       });
 
-      it('should identitfy REVERT_SECOND_FACTOR_ADDITION', () => {
+      it('should identify REVERT_SECOND_FACTOR_ADDITION', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=revertSecondFactorAddition&apiKey=API_KEY&' +

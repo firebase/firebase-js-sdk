@@ -928,6 +928,30 @@
                     }
                   }
                 },
+                "BitSequence": {
+                  "fields": {
+                    "bitmap": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "padding": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
+                "BloomFilter": {
+                  "fields": {
+                    "bits": {
+                      "type": "BitSequence",
+                      "id": 1
+                    },
+                    "hashCount": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
                 "DocumentMask": {
                   "fields": {
                     "fieldPaths": {
@@ -2052,6 +2076,10 @@
                     "once": {
                       "type": "bool",
                       "id": 6
+                    },
+                    "expectedCount": {
+                      "type": "google.protobuf.Int32Value",
+                      "id": 12
                     }
                   },
                   "nested": {
@@ -2279,7 +2307,8 @@
                         "Operator": {
                           "values": {
                             "OPERATOR_UNSPECIFIED": 0,
-                            "AND": 1
+                            "AND": 1,
+                            "OR": 2
                           }
                         }
                       }
@@ -2409,7 +2438,9 @@
                       "oneofs": {
                         "operator": {
                           "oneof": [
-                            "count"
+                            "count",
+                            "sum",
+                            "avg"
                           ]
                         }
                       },
@@ -2417,6 +2448,14 @@
                         "count": {
                           "type": "Count",
                           "id": 1
+                        },
+                        "sum": {
+                          "type": "Sum",
+                          "id": 2
+                        },
+                        "avg": {
+                          "type": "Avg",
+                          "id": 3
                         },
                         "alias": {
                           "type": "string",
@@ -2428,6 +2467,22 @@
                           "fields": {
                             "upTo": {
                               "type": "google.protobuf.Int64Value",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Sum": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
+                              "id": 1
+                            }
+                          }
+                        },
+                        "Avg": {
+                          "fields": {
+                            "field": {
+                              "type": "FieldReference",
                               "id": 1
                             }
                           }
@@ -2633,6 +2688,10 @@
                     "count": {
                       "type": "int32",
                       "id": 2
+                    },
+                    "unchangedNames": {
+                      "type": "BloomFilter",
+                      "id": 3
                     }
                   }
                 }

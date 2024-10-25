@@ -16,6 +16,7 @@
  */
 
 import { Token } from '../api/credentials';
+import { ResourcePath } from '../model/path';
 import { FirestoreError } from '../util/error';
 
 /**
@@ -38,14 +39,15 @@ export interface Connection {
    * representing the JSON to send.
    *
    * @param rpcName - the name of the RPC to invoke
-   * @param path - the path to invoke this RPC on
+   * @param path - the path to invoke this RPC on. An array of path segments
+   * that will be encoded and joined with path separators when required.
    * @param request - the Raw JSON object encoding of the request message
    * @param token - the Token to use for the RPC.
    * @returns a Promise containing the JSON object encoding of the response
    */
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null
@@ -57,7 +59,8 @@ export interface Connection {
    * completion and then returned as an array.
    *
    * @param rpcName - the name of the RPC to invoke
-   * @param path - the path to invoke this RPC on
+   * @param path - the path to invoke this RPC on. An array of path segments
+   * that will be encoded and joined with path separators when required.
    * @param request - the Raw JSON object encoding of the request message
    * @param token - the Token to use for the RPC.
    * @returns a Promise containing an array with the JSON object encodings of the
@@ -65,7 +68,7 @@ export interface Connection {
    */
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
@@ -92,6 +95,13 @@ export interface Connection {
    */
   readonly shouldResourcePathBeIncludedInRequest: boolean;
 
+  /**
+   * Closes and cleans up any resources associated with the connection. Actual
+   * resources cleaned are implementation specific. Failure to call `terminate`
+   * on a connection may result in resource leaks.
+   */
+  terminate(): void;
+
   // TODO(mcg): subscribe to connection state changes.
 }
 
@@ -99,10 +109,14 @@ export interface Connection {
  * A bidirectional stream that can be used to send an receive messages.
  *
  * A stream can be closed locally with close() or can be closed remotely or
- * through network errors. onClose is guaranteed to be called. onOpen will only
- * be called if the stream successfully established a connection.
+ * through network errors. onClose is guaranteed to be called. onOpen will be
+ * called once the stream is ready to send messages (which may or may not be
+ * before an actual connection to the backend has been established). The
+ * onConnected event is called when an actual, physical connection with the
+ * backend has been established, and may occur before or after the onOpen event.
  */
 export interface Stream<I, O> {
+  onConnected(callback: () => void): void;
   onOpen(callback: () => void): void;
   onClose(callback: (err?: FirestoreError) => void): void;
   onMessage(callback: (msg: O) => void): void;

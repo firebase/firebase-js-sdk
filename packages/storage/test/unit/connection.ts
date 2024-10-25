@@ -117,7 +117,7 @@ export class TestingConnection implements Connection<string> {
 
   abort(): void {
     this.state = State.START;
-    this.errorCode = ErrorCode.NO_ERROR;
+    this.errorCode = ErrorCode.ABORT;
     this.resolve();
   }
 

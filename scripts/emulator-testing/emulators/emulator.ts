@@ -16,12 +16,15 @@
  */
 
 // @ts-ignore
-import { spawn } from 'child-process-promise';
+import {
+  ChildProcessPromise,
+  spawn,
+  SpawnPromiseResult
+} from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import fetch from 'node-fetch';
 // @ts-ignore
 import * as tmp from 'tmp';
 
@@ -32,10 +35,12 @@ export abstract class Emulator {
   cacheDirectory: string;
   cacheBinaryPath: string;
 
+  isDataConnect = false;
+
   constructor(
     private binaryName: string,
     private binaryUrl: string,
-    public port: number
+    public readonly port: number
   ) {
     this.cacheDirectory = path.join(os.homedir(), `.cache/firebase-js-sdk`);
     this.cacheBinaryPath = path.join(this.cacheDirectory, binaryName);
@@ -51,35 +56,69 @@ export abstract class Emulator {
     return new Promise<void>((resolve, reject) => {
       tmp.dir((err: Error | null, dir: string) => {
         if (err) reject(err);
-
         console.log(`Created temporary directory at [${dir}].`);
         const filepath: string = path.resolve(dir, this.binaryName);
-        const writeStream: fs.WriteStream = fs.createWriteStream(filepath);
-
+        const writer = fs.createWriteStream(filepath);
         console.log(`Downloading emulator from [${this.binaryUrl}] ...`);
-        fetch(this.binaryUrl).then(resp => {
-          resp.body
-            .pipe(writeStream)
-            .on('finish', () => {
-              console.log(`Saved emulator binary file to [${filepath}].`);
-              // Change emulator binary file permission to 'rwxr-xr-x'.
-              // The execute permission is required for it to be able to start
-              // with 'java -jar'.
-              fs.chmod(filepath, 0o755, err => {
-                if (err) reject(err);
-                console.log(
-                  `Changed emulator file permissions to 'rwxr-xr-x'.`
-                );
-                this.binaryPath = filepath;
+        // Map the DOM's fetch Reader to node's streaming file system
+        // operations. We will need to access class members `binaryPath` and `copyToCache` after the
+        // download completes. It's a compilation error to pass `this` into the named function
+        // `readChunk`, so the download operation is wrapped in a promise that we wait upon.
+        const downloadPromise = new Promise<void>(
+          (downloadComplete, downloadFailed) => {
+            fetch(this.binaryUrl)
+              .then(resp => {
+                if (resp.status !== 200 || resp.body === null) {
+                  console.log('Download of emulator failed: ', resp.statusText);
+                  downloadFailed();
+                } else {
+                  const reader = resp.body.getReader();
+                  reader.read().then(function readChunk({ done, value }): any {
+                    if (done) {
+                      console.log('Emulator download is done.');
+                      writer.close(err => {
+                        if (err) {
+                          downloadFailed(
+                            `Failed to close the downloaded emulator file: ${err}`
+                          );
+                        }
 
-                if (this.copyToCache()) {
-                  console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+                        console.log('Closed downloaded emulator file.');
+                        downloadComplete();
+                      });
+                    } else {
+                      writer.write(value);
+                      return reader.read().then(readChunk);
+                    }
+                  });
                 }
-                resolve();
+              })
+              .catch(e => {
+                console.log(`Download of emulator failed: ${e}`);
+                downloadFailed();
               });
-            })
-            .on('error', reject);
-        });
+          }
+        );
+
+        downloadPromise.then(
+          () => {
+            // Change emulator binary file permission to 'rwxr-xr-x'.
+            // The execute permission is required for it to be able to start
+            // with 'java -jar'.
+            fs.chmod(filepath, 0o755, err => {
+              if (err) reject(err);
+              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+              this.binaryPath = filepath;
+              if (this.copyToCache()) {
+                console.log(`Cached emulator at ${this.cacheBinaryPath}`);
+              }
+              resolve();
+            });
+          },
+          () => {
+            reject();
+          }
+        );
       });
     });
   }
@@ -89,19 +128,29 @@ export abstract class Emulator {
       if (!this.binaryPath) {
         throw new Error('You must call download() before setUp()');
       }
-      const promise = spawn(
-        'java',
-        [
-          '-jar',
-          path.basename(this.binaryPath),
-          '--port',
-          this.port.toString()
-        ],
-        {
-          cwd: path.dirname(this.binaryPath),
-          stdio: 'inherit'
-        }
-      );
+      let promise: ChildProcessPromise<SpawnPromiseResult>;
+      if (this.isDataConnect) {
+        promise = spawn(this.binaryPath, [
+          'dev',
+          '--local_connection_string',
+          "'postgresql://postgres:secretpassword@localhost:5432/postgres?sslmode=disable'"
+        ]);
+      } else {
+        promise = spawn(
+          'java',
+          [
+            '-jar',
+            path.basename(this.binaryPath),
+            '--port',
+            this.port.toString()
+          ],
+          {
+            cwd: path.dirname(this.binaryPath),
+            stdio: 'inherit'
+          }
+        );
+      }
+
       promise.catch(reject);
       this.emulator = promise.childProcess;
 
@@ -119,8 +168,8 @@ export abstract class Emulator {
         if (elapsed > timeout) {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
-          console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
-          fetch(`http://localhost:${this.port}`).then(
+          console.log(`Ping emulator at [http://127.0.0.1:${this.port}] ...`);
+          fetch(`http://127.0.0.1:${this.port}`).then(
             () => {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.

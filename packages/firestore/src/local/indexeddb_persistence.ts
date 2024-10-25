@@ -29,9 +29,11 @@ import { DocumentLike, WindowLike } from '../util/types';
 
 import { BundleCache } from './bundle_cache';
 import { DocumentOverlayCache } from './document_overlay_cache';
+import { GlobalsCache } from './globals_cache';
 import { IndexManager } from './index_manager';
 import { IndexedDbBundleCache } from './indexeddb_bundle_cache';
 import { IndexedDbDocumentOverlayCache } from './indexeddb_document_overlay_cache';
+import { IndexedDbGlobalsCache } from './indexeddb_globals_cache';
 import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { IndexedDbLruDelegateImpl } from './indexeddb_lru_delegate_impl';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
@@ -188,6 +190,7 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
+  private readonly globalsCache: IndexedDbGlobalsCache;
   private readonly targetCache: IndexedDbTargetCache;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly bundleCache: IndexedDbBundleCache;
@@ -232,6 +235,7 @@ export class IndexedDbPersistence implements Persistence {
       this.schemaVersion,
       new SchemaConverter(this.serializer)
     );
+    this.globalsCache = new IndexedDbGlobalsCache();
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -708,6 +712,14 @@ export class IndexedDbPersistence implements Persistence {
     return this._started;
   }
 
+  getGlobalsCache(): GlobalsCache {
+    debugAssert(
+      this.started,
+      'Cannot initialize GlobalsCache before persistence is started.'
+    );
+    return this.globalsCache;
+  }
+
   getMutationQueue(
     user: User,
     indexManager: IndexManager
@@ -977,8 +989,13 @@ export class IndexedDbPersistence implements Persistence {
         // to make sure it gets a chance to run.
         this.markClientZombied();
 
-        if (isSafari() && navigator.appVersion.match(/Version\/1[45]/)) {
-          // On Safari 14 and 15, we do not run any cleanup actions as it might
+        const safariIndexdbBugVersionRegex = /(?:Version|Mobile)\/1[456]/;
+        if (
+          isSafari() &&
+          (navigator.appVersion.match(safariIndexdbBugVersionRegex) ||
+            navigator.userAgent.match(safariIndexdbBugVersionRegex))
+        ) {
+          // On Safari 14, 15, and 16, we do not run any cleanup actions as it might
           // trigger a bug that prevents Safari from re-opening IndexedDB during
           // the next page load.
           // See https://bugs.webkit.org/show_bug.cgi?id=226547

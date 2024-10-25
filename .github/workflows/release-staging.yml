@@ -1,3 +1,17 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Staging Release
 
 on:
@@ -11,11 +25,19 @@ on:
       source-branch:
         description: 'Branch to release from'
         type: choice
-        default: 'master'
+        default: 'main'
         required: true
         options:
-        - master
+        - main
         - v8
+      verbose:
+        description: 'Enable verbose logging'
+        type: boolean
+        default: false
+
+env:
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   deploy:
@@ -24,11 +46,11 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
-    - name: Set up Node (14)
-      uses: actions/setup-node@v2
+    - name: Set up node (20)
+      uses: actions/setup-node@v3
       with:
-        node-version: 14.x
-    - name: Merge master into release
+        node-version: 20.x
+    - name: Merge main into release
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
@@ -41,7 +63,7 @@ jobs:
           })
           console.log(result)
     - name: Checkout current branch (with history)
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
@@ -69,6 +91,7 @@ jobs:
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
         NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_DATA_CONNECT: ${{secrets.NPM_TOKEN_DATA_CONNECT}}
         NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
         NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
         NPM_TOKEN_FIRESTORE: ${{secrets.NPM_TOKEN_FIRESTORE}}
@@ -79,17 +102,15 @@ jobs:
         NPM_TOKEN_INSTALLATIONS_TYPES: ${{secrets.NPM_TOKEN_INSTALLATIONS_TYPES}}
         NPM_TOKEN_LOGGER: ${{secrets.NPM_TOKEN_LOGGER}}
         NPM_TOKEN_MESSAGING: ${{secrets.NPM_TOKEN_MESSAGING}}
-        NPM_TOKEN_MESSAGING_TYPES: ${{secrets.NPM_TOKEN_MESSAGING_TYPES}}
         NPM_TOKEN_PERFORMANCE: ${{secrets.NPM_TOKEN_PERFORMANCE}}
         NPM_TOKEN_PERFORMANCE_TYPES: ${{secrets.NPM_TOKEN_PERFORMANCE_TYPES}}
-        NPM_TOKEN_POLYFILL: ${{secrets.NPM_TOKEN_POLYFILL}}
         NPM_TOKEN_REMOTE_CONFIG: ${{secrets.NPM_TOKEN_REMOTE_CONFIG}}
         NPM_TOKEN_REMOTE_CONFIG_TYPES: ${{secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES}}
         NPM_TOKEN_RULES_UNIT_TESTING: ${{secrets.NPM_TOKEN_RULES_UNIT_TESTING}}
         NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
         NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
-        NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
         NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+        NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
         NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
         NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
         NPM_TOKEN_APP_COMPAT: ${{ secrets.NPM_TOKEN_APP_COMPAT }}
@@ -107,6 +128,7 @@ jobs:
         NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
         NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
         CI: true
+        VERBOSE_NPM_LOGGING: ${{github.event.inputs.verbose}}
     - name: Get release version
       id: get-version
       # STAGING_VERSION = version with staging hash, e.g. 1.2.3-20430523
@@ -114,9 +136,9 @@ jobs:
       run: |
         VERSION_SCRIPT="const pkg = require('./packages/firebase/package.json'); console.log(pkg.version);"
         VERSION=`node -e "${VERSION_SCRIPT}"`
-        echo "::set-output name=STAGING_VERSION::$VERSION"
+        echo "STAGING_VERSION=$VERSION" >> $GITHUB_OUTPUT
         BASE_VERSION=$(echo $VERSION | cut -d "-" -f 1)
-        echo "::set-output name=BASE_VERSION::$BASE_VERSION"
+        echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
     - name: Echo versions in shell
       run: |
         echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
@@ -132,14 +154,28 @@ jobs:
         -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
         -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
+    - name: Check for changes requiring a reference doc publish
+      id: docs-check
+      # If a diff is found (length of DIFF_CONTENTS > 0) it will write DOCS_NEEDED=true
+      run: |
+        LAST_PUBLISHED_VERSION=$(npm info firebase version)
+        DIFF_CONTENTS=$(git diff firebase@$LAST_PUBLISHED_VERSION HEAD docs-devsite)
+        if [ -n "$DIFF_CONTENTS" ]
+        then
+        echo "DOCS_NEEDED=true" >> $GITHUB_OUTPUT
+        else
+        echo "DOCS_NEEDED=false" >> $GITHUB_OUTPUT
+        fi
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
+      if: ${{ always() }}
       run: |
         DATE=$(date +'%m/%d/%Y')
         BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
         STAGING_VERSION=${{ steps.get-version.outputs.STAGING_VERSION }}
         OPERATOR=${{ github.actor }}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
+        DOCS_NEEDED=${{ steps.docs-check.outputs.DOCS_NEEDED }}
         curl -X POST -H "Content-Type:application/json" \
-        -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\"}" \
+        -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\",\"docs_needed\":\"$DOCS_NEEDED\"}" \
         $RELEASE_TRACKER_URL/logStaging

@@ -43,6 +43,11 @@ export const DEFAULT_MAX_OPERATION_RETRY_TIME = 2 * 60 * 1000;
 export const DEFAULT_MAX_UPLOAD_RETRY_TIME = 10 * 60 * 1000;
 
 /**
+ * 1 second
+ */
+export const DEFAULT_MIN_SLEEP_TIME_MILLIS = 1000;
+
+/**
  * This is the value of Number.MIN_SAFE_INTEGER, which is not well supported
  * enough for us to use it directly.
  */

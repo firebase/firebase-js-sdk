@@ -145,19 +145,6 @@ describe('Firebase Storage > Requests', () => {
 
   const metadataContentType = 'application/json; charset=utf-8';
 
-  function readBlob(blob: Blob): Promise<string> {
-    const reader = new FileReader();
-    reader.readAsText(blob);
-    return new Promise((resolve, reject) => {
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = () => {
-        reject(reader.error as Error);
-      };
-    });
-  }
-
   async function assertBodyEquals(
     body: Blob | string | Uint8Array | null,
     expectedStr: string
@@ -167,9 +154,14 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (typeof Blob !== 'undefined' && body instanceof Blob) {
-      return readBlob(body).then(str => {
-        assert.equal(str, expectedStr);
-      });
+      return body
+        .text()
+        .then(str => {
+          assert.equal(str, expectedStr);
+        })
+        .catch(err => {
+          return Promise.reject(err);
+        });
     } else if (body instanceof Uint8Array) {
       const str = decodeUint8Array(body);
       assert.equal(str, expectedStr);
@@ -631,6 +623,71 @@ describe('Firebase Storage > Requests', () => {
     );
 
     return assertBodyEquals(requestInfo.body, smallBlobString);
+  });
+  it('populates requestInfo with the upload command when more chunks are left', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+    const requestInfo = continueResumableUpload(
+      locationNormal,
+      storageService,
+      url,
+      bigBlob,
+      RESUMABLE_UPLOAD_CHUNK_SIZE,
+      mappings
+    );
+    assertObjectIncludes(
+      {
+        url,
+        method: 'POST',
+        urlParams: {},
+        headers: {
+          'X-Goog-Upload-Command': 'upload',
+          'X-Goog-Upload-Offset': '0'
+        }
+      },
+      requestInfo
+    );
+
+    assert.deepEqual(
+      requestInfo.body,
+      bigBlob.slice(0, RESUMABLE_UPLOAD_CHUNK_SIZE)!.uploadData()
+    );
+  });
+  it('populates requestInfo with just the finalize command when no more data needs to be uploaded', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+    const blobSize = bigBlob.size();
+    const requestInfo = continueResumableUpload(
+      locationNormal,
+      storageService,
+      url,
+      bigBlob,
+      RESUMABLE_UPLOAD_CHUNK_SIZE,
+      mappings,
+      {
+        current: blobSize,
+        total: blobSize,
+        finalized: false,
+        metadata: null
+      }
+    );
+    assertObjectIncludes(
+      {
+        url,
+        method: 'POST',
+        urlParams: {},
+        headers: {
+          'X-Goog-Upload-Command': 'finalize',
+          'X-Goog-Upload-Offset': blobSize.toString()
+        }
+      },
+      requestInfo
+    );
+
+    assert.deepEqual(
+      requestInfo.body,
+      bigBlob.slice(blobSize, blobSize)!.uploadData()
+    );
   });
   it('continueResumableUpload handler', () => {
     const url =

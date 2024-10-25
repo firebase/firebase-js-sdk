@@ -24,11 +24,16 @@ import {
   insertScriptTag,
   wrapOrCreateGtag,
   findGtagScriptOnPage,
-  promiseAllSettled
+  promiseAllSettled,
+  createGtagTrustedTypesScriptURL,
+  createTrustedTypesPolicy
 } from './helpers';
-import { GtagCommand } from './constants';
+import { GtagCommand, GTAG_URL } from './constants';
 import { Deferred } from '@firebase/util';
 import { ConsentSettings } from './public-types';
+import { removeGtagScripts } from '../testing/gtag-script-util';
+import { logger } from './logger';
+import { AnalyticsError, ERROR_FACTORY } from './errors';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeAppId = 'my-test-app-1234';
@@ -45,7 +50,76 @@ const fakeDynamicConfig: DynamicConfig = {
 };
 const fakeDynamicConfigPromises = [Promise.resolve(fakeDynamicConfig)];
 
+describe('Trusted Types policies and functions', () => {
+  if (window.trustedTypes) {
+    describe('Trusted types exists', () => {
+      let ttStub: SinonStub;
+
+      beforeEach(() => {
+        ttStub = stub(
+          window.trustedTypes as TrustedTypePolicyFactory,
+          'createPolicy'
+        ).returns({
+          createScriptURL: (s: string) => s
+        } as any);
+      });
+
+      afterEach(() => {
+        removeGtagScripts();
+        ttStub.restore();
+      });
+
+      it('Verify trustedTypes is called if the API is available', () => {
+        const trustedTypesPolicy = createTrustedTypesPolicy(
+          'firebase-js-sdk-policy',
+          {
+            createScriptURL: createGtagTrustedTypesScriptURL
+          }
+        );
+
+        expect(ttStub).to.be.called;
+        expect(trustedTypesPolicy).not.to.be.undefined;
+      });
+
+      it('createGtagTrustedTypesScriptURL verifies gtag URL base exists when a URL is provided', () => {
+        expect(createGtagTrustedTypesScriptURL(GTAG_URL)).to.equal(GTAG_URL);
+      });
+
+      it('createGtagTrustedTypesScriptURL rejects URLs with non-gtag base', () => {
+        const NON_GTAG_URL = 'http://iamnotgtag.com';
+        const loggerWarnStub = stub(logger, 'warn');
+        const errorMessage = ERROR_FACTORY.create(
+          AnalyticsError.INVALID_GTAG_RESOURCE,
+          {
+            gtagURL: NON_GTAG_URL
+          }
+        ).message;
+
+        expect(createGtagTrustedTypesScriptURL(NON_GTAG_URL)).to.equal('');
+        expect(loggerWarnStub).to.be.calledWith(errorMessage);
+      });
+    });
+  }
+  describe('Trusted types does not exist', () => {
+    it('Verify trustedTypes functions are not called if the API is not available', () => {
+      delete window.trustedTypes;
+      const trustedTypesPolicy = createTrustedTypesPolicy(
+        'firebase-js-sdk-policy',
+        {
+          createScriptURL: createGtagTrustedTypesScriptURL
+        }
+      );
+
+      expect(trustedTypesPolicy).to.be.undefined;
+    });
+  });
+});
+
 describe('Gtag wrapping functions', () => {
+  afterEach(() => {
+    removeGtagScripts();
+  });
+
   it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
     delete window['dataLayer'];
     expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
@@ -57,12 +131,22 @@ describe('Gtag wrapping functions', () => {
   });
 
   it('insertScriptIfNeeded inserts script tag', () => {
-    expect(findGtagScriptOnPage()).to.be.null;
-    insertScriptTag('customDataLayerName', fakeMeasurementId);
-    const scriptTag = findGtagScriptOnPage();
+    const customDataLayerName = 'customDataLayerName';
+    expect(findGtagScriptOnPage(customDataLayerName)).to.be.null;
+    insertScriptTag(customDataLayerName, fakeMeasurementId);
+    const scriptTag = findGtagScriptOnPage(customDataLayerName);
     expect(scriptTag).to.not.be.null;
     expect(scriptTag!.src).to.contain(`l=customDataLayerName`);
     expect(scriptTag!.src).to.contain(`id=${fakeMeasurementId}`);
+  });
+
+  // The test above essentially already touches this functionality but it is still valuable
+  it('findGtagScriptOnPage returns gtag instance with matching data layer name', () => {
+    const defaultDataLayerName = 'dataLayer';
+    insertScriptTag(defaultDataLayerName, fakeMeasurementId);
+    const scriptTag = findGtagScriptOnPage(defaultDataLayerName);
+    expect(scriptTag!.src).to.contain(`l=${defaultDataLayerName}`);
+    expect(findGtagScriptOnPage('NON_EXISTENT_DATA_LAYER_ID')).to.be.null;
   });
 
   describe('wrapOrCreateGtag() when user has not previously inserted a gtag script tag on this page', () => {
@@ -91,10 +175,11 @@ describe('Gtag wrapping functions', () => {
         'gtag'
       );
       window['dataLayer'] = [];
-      (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
+      const eventObject = {
         'transaction_id': 'abcd123',
         'send_to': 'some_group'
-      });
+      };
+      (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       initPromise1.resolve(fakeMeasurementId); // Resolves first initialization promise.
@@ -103,8 +188,12 @@ describe('Gtag wrapping functions', () => {
       initPromise2.resolve('other-measurement-id'); // Resolves second initialization promise.
       await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
       await promiseAllSettled(fakeDynamicConfigPromises);
-
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('event');
+      expect(data[1]).to.equal('purchase');
+      expect(data[2]).to.equal(eventObject);
     });
 
     it(
@@ -124,10 +213,11 @@ describe('Gtag wrapping functions', () => {
           'gtag'
         );
         window['dataLayer'] = [];
-        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
+        const eventObject = {
           'transaction_id': 'abcd123',
           'send_to': [fakeMeasurementId, 'some_group']
-        });
+        };
+        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
@@ -137,7 +227,12 @@ describe('Gtag wrapping functions', () => {
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
         await promiseAllSettled(fakeDynamicConfigPromises);
 
-        expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+        const dataLayer = window['dataLayer'] as DataLayer;
+        expect(dataLayer.length).to.equal(1);
+        const data = dataLayer[0];
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -158,9 +253,10 @@ describe('Gtag wrapping functions', () => {
           'gtag'
         );
         window['dataLayer'] = [];
-        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
+        const eventObject = {
           'transaction_id': 'abcd123'
-        });
+        };
+        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
@@ -169,7 +265,12 @@ describe('Gtag wrapping functions', () => {
         initPromise2.resolve(); // Resolves second initialization promise.
         await Promise.all([initPromise1, initPromise2]); // Wait for resolution of Promise.all()
 
-        expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+        const dataLayer = window['dataLayer'] as DataLayer;
+        expect(dataLayer.length).to.equal(1);
+        const data = dataLayer[0];
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -190,17 +291,23 @@ describe('Gtag wrapping functions', () => {
           'gtag'
         );
         window['dataLayer'] = [];
-        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
+        const eventObject = {
           'transaction_id': 'abcd123',
           'send_to': fakeMeasurementId
-        });
+        };
+        (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', eventObject);
         expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
         initPromise1.resolve(); // Resolves first initialization promise.
         await promiseAllSettled(fakeDynamicConfigPromises);
         await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
 
-        expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+        const dataLayer = window['dataLayer'] as DataLayer;
+        expect(dataLayer.length).to.equal(1);
+        const data = dataLayer[0];
+        expect(data[0]).to.equal('event');
+        expect(data[1]).to.equal('purchase');
+        expect(data[2]).to.equal(eventObject);
       }
     );
 
@@ -223,8 +330,13 @@ describe('Gtag wrapping functions', () => {
         'gtag'
       );
       window['dataLayer'] = [];
-      (window['gtag'] as Gtag)(GtagCommand.SET, { 'language': 'en' });
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const eventObject = { 'language': 'en' };
+      (window['gtag'] as Gtag)(GtagCommand.SET, eventObject);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('set');
+      expect(data[1]).to.equal(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "consent" calls', async () => {
@@ -245,7 +357,53 @@ describe('Gtag wrapping functions', () => {
         'update',
         consentParameters
       );
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('consent');
+      expect(data[1]).to.equal('update');
+      expect(data[2]).to.equal(consentParameters);
+    });
+
+    it('new window.gtag function does not wait when sending "get" calls', async () => {
+      wrapOrCreateGtag(
+        { [fakeAppId]: Promise.resolve(fakeMeasurementId) },
+        fakeDynamicConfigPromises,
+        {},
+        'dataLayer',
+        'gtag'
+      );
+      window['dataLayer'] = [];
+      (window['gtag'] as Gtag)(
+        GtagCommand.GET,
+        fakeMeasurementId,
+        'client_id',
+        clientId => console.log(clientId)
+      );
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('get');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal('client_id');
+      expect(data[3]).to.not.be.undefined;
+    });
+
+    it('new window.gtag function does not wait when sending an unknown command', async () => {
+      wrapOrCreateGtag(
+        { [fakeAppId]: Promise.resolve(fakeMeasurementId) },
+        fakeDynamicConfigPromises,
+        {},
+        'dataLayer',
+        'gtag'
+      );
+      window['dataLayer'] = [];
+      (window['gtag'] as Gtag)('new-command-from-gtag-team', fakeMeasurementId);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('new-command-from-gtag-team');
+      expect(data[1]).to.equal(fakeMeasurementId);
     });
 
     it('new window.gtag function waits for initialization promise when sending "config" calls', async () => {
@@ -258,9 +416,14 @@ describe('Gtag wrapping functions', () => {
         'gtag'
       );
       window['dataLayer'] = [];
-      (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
+      const eventObject = {
         'language': 'en'
-      });
+      };
+      (window['gtag'] as Gtag)(
+        GtagCommand.CONFIG,
+        fakeMeasurementId,
+        eventObject
+      );
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       initPromise1.resolve(fakeMeasurementId);
@@ -268,19 +431,33 @@ describe('Gtag wrapping functions', () => {
       expect((window['dataLayer'] as DataLayer).length).to.equal(0);
 
       await Promise.all([initPromise1]); // Wait for resolution of Promise.all()
-
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('config');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal(eventObject);
     });
 
     it('new window.gtag function does not wait when sending "config" calls if there are no pending initialization promises', async () => {
       wrapOrCreateGtag({}, fakeDynamicConfigPromises, {}, 'dataLayer', 'gtag');
       window['dataLayer'] = [];
-      (window['gtag'] as Gtag)(GtagCommand.CONFIG, fakeMeasurementId, {
+      const eventObject = {
         'transaction_id': 'abcd123'
-      });
+      };
+      (window['gtag'] as Gtag)(
+        GtagCommand.CONFIG,
+        fakeMeasurementId,
+        eventObject
+      );
       await promiseAllSettled(fakeDynamicConfigPromises);
       await Promise.resolve(); // Config call is always chained onto initialization promise list, even if empty.
-      expect((window['dataLayer'] as DataLayer).length).to.equal(1);
+      const dataLayer = window['dataLayer'] as DataLayer;
+      expect(dataLayer.length).to.equal(1);
+      const data = dataLayer[0];
+      expect(data[0]).to.equal('config');
+      expect(data[1]).to.equal(fakeMeasurementId);
+      expect(data[2]).to.equal(eventObject);
     });
   });
 

@@ -76,7 +76,7 @@ export abstract class AbstractPopupRedirectOperation
           await this.onExecution();
           this.eventManager.registerConsumer(this);
         } catch (e) {
-          this.reject(e);
+          this.reject(e as Error);
         }
       }
     );
@@ -102,7 +102,7 @@ export abstract class AbstractPopupRedirectOperation
     try {
       this.resolve(await this.getIdpTask(type)(params));
     } catch (e) {
-      this.reject(e);
+      this.reject(e as Error);
     }
   }
 

@@ -220,6 +220,7 @@ export const DbTargetDocumentDocumentTargetsKeyPath = ['path', 'targetId'];
  * The type to represent the single allowed key for the DbTargetGlobal store.
  */
 export type DbTargetGlobalKey = typeof DbTargetGlobalKey;
+
 /**
  * The key string used for the single object that exists in the
  * DbTargetGlobal store.
@@ -371,6 +372,14 @@ export const DbDocumentOverlayCollectionGroupOverlayIndexPath = [
   'largestBatchId'
 ];
 
+/** Name of the IndexedDb object store. */
+export const DbGlobalsStore = 'globals';
+
+export const DbGlobalsKeyPath = 'name';
+
+/** Names of global values */
+export type DbGlobalsKey = 'sessionToken';
+
 // Visible for testing
 export const V1_STORES = [
   DbMutationQueueStore,
@@ -414,6 +423,8 @@ export const V15_STORES = [
   DbIndexStateStore,
   DbIndexEntryStore
 ];
+export const V16_STORES = V15_STORES;
+export const V17_STORES = [...V15_STORES, DbGlobalsStore];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
@@ -424,7 +435,11 @@ export const ALL_STORES = V12_STORES;
 
 /** Returns the object stores for the provided schema. */
 export function getObjectStores(schemaVersion: number): string[] {
-  if (schemaVersion === 15) {
+  if (schemaVersion === 17) {
+    return V17_STORES;
+  } else if (schemaVersion === 16) {
+    return V16_STORES;
+  } else if (schemaVersion === 15) {
     return V15_STORES;
   } else if (schemaVersion === 14) {
     return V14_STORES;

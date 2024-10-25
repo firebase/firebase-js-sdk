@@ -49,7 +49,7 @@ export interface PerformanceTrace {
    * (e.g. if the duration was captured before the Performance SDK was loaded).
    *
    * @param startTime trace start time since epoch in millisec.
-   * @param duration The duraction of the trace in millisec.
+   * @param duration The duration of the trace in millisec.
    * @param options An object which can optionally hold maps of custom metrics and
    * custom attributes.
    */

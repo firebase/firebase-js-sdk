@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { SinonStub, stub, useFakeTimers, restore } from 'sinon';
+import { SinonStub, stub, useFakeTimers, restore, match } from 'sinon';
 import '../testing/setup';
 import {
   fetchDynamicConfig,
@@ -246,7 +246,7 @@ describe('Dynamic Config Fetch Functions', () => {
         });
         // Set fetch timeout to 50 ms.
         await fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
-        expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
+        expect(consoleStub).calledWith(match.any, match(fakeMeasurementId));
         consoleStub.restore();
       }
     );

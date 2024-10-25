@@ -337,14 +337,19 @@ export class Connection {
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
-        this.onHandshake_(
-          payload as {
+        const handshakePayload = {
+          ...(payload as {
             ts: number;
             v: string;
             h: string;
             s: string;
-          }
-        );
+          })
+        };
+        if (this.repoInfo_.isUsingEmulator) {
+          // Upon connecting, the emulator will pass the hostname that it's aware of, but we prefer the user's set hostname via `connectDatabaseEmulator` over what the emulator passes.
+          handshakePayload.h = this.repoInfo_.host;
+        }
+        this.onHandshake_(handshakePayload);
       } else if (cmd === END_TRANSMISSION) {
         this.log_('recvd end transmission on primary');
         this.rx_ = this.secondaryConn_;

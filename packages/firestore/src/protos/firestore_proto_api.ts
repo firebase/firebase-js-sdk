@@ -30,7 +30,7 @@ export declare type Timestamp =
   | string
   | { seconds?: string | number; nanos?: number };
 
-export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
+export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND' | 'OR';
 export interface ICompositeFilterOpEnum {
   OPERATOR_UNSPECIFIED: CompositeFilterOp;
   AND: CompositeFilterOp;
@@ -224,6 +224,15 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface ExistenceFilter {
     targetId?: number;
     count?: number;
+    unchangedNames?: BloomFilter;
+  }
+  interface BloomFilter {
+    bits?: BitSequence;
+    hashCount?: number;
+  }
+  interface BitSequence {
+    bitmap?: string | Uint8Array;
+    padding?: number;
   }
   interface FieldFilter {
     field?: FieldReference;
@@ -355,10 +364,18 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface Aggregation {
     count?: Count;
+    sum?: Sum;
+    avg?: Avg;
     alias?: string;
   }
   interface Count {
     upTo?: number;
+  }
+  interface Sum {
+    field?: FieldReference;
+  }
+  interface Avg {
+    field?: FieldReference;
   }
   interface Status {
     code?: number;
@@ -382,6 +399,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
+    expectedCount?: number | { value: number };
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
@@ -446,6 +464,7 @@ export declare type BeginTransactionRequest =
   firestoreV1ApiClientInterfaces.BeginTransactionRequest;
 export declare type BeginTransactionResponse =
   firestoreV1ApiClientInterfaces.BeginTransactionResponse;
+export declare type BloomFilter = firestoreV1ApiClientInterfaces.BloomFilter;
 export declare type CollectionSelector =
   firestoreV1ApiClientInterfaces.CollectionSelector;
 export declare type CommitRequest =
@@ -507,6 +526,7 @@ export declare type RunQueryResponse =
   firestoreV1ApiClientInterfaces.RunQueryResponse;
 export declare type RunAggregationQueryRequest =
   firestoreV1ApiClientInterfaces.RunAggregationQueryRequest;
+export declare type Aggregation = firestoreV1ApiClientInterfaces.Aggregation;
 export declare type RunAggregationQueryResponse =
   firestoreV1ApiClientInterfaces.RunAggregationQueryResponse;
 export declare type Status = firestoreV1ApiClientInterfaces.Status;

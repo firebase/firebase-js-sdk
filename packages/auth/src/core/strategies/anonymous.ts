@@ -21,6 +21,8 @@ import { UserInternal } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 import { OperationType } from '../../model/enums';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { _serverAppCurrentUserOperationNotSupportedError } from '../../core/util/assert';
 
 /**
  * Asynchronously signs in as an anonymous user.
@@ -29,11 +31,19 @@ import { OperationType } from '../../model/enums';
  * If there is already an anonymous user signed in, that user will be returned; otherwise, a
  * new anonymous user identity will be created and returned.
  *
+ * This method is not supported by {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
+ *
  * @param auth - The {@link Auth} instance.
  *
  * @public
  */
 export async function signInAnonymously(auth: Auth): Promise<UserCredential> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   await authInternal._initializationPromise;
   if (authInternal.currentUser?.isAnonymous) {

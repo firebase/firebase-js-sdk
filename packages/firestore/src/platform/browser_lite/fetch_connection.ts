@@ -16,7 +16,6 @@
  */
 
 import { Token } from '../../api/credentials';
-import { DatabaseInfo } from '../../core/database_info';
 import { Stream } from '../../remote/connection';
 import { RestConnection } from '../../remote/rest_connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
@@ -28,17 +27,6 @@ import { StringMap } from '../../util/types';
  * (e.g. `fetch` or a polyfill).
  */
 export class FetchConnection extends RestConnection {
-  /**
-   * @param databaseInfo - The connection info.
-   * @param fetchImpl - `fetch` or a Polyfill that implements the fetch API.
-   */
-  constructor(
-    databaseInfo: DatabaseInfo,
-    private readonly fetchImpl: typeof fetch
-  ) {
-    super(databaseInfo);
-  }
-
   openStream<Req, Resp>(
     rpcName: string,
     token: Token | null
@@ -56,12 +44,13 @@ export class FetchConnection extends RestConnection {
     let response: Response;
 
     try {
-      response = await this.fetchImpl(url, {
+      response = await fetch(url, {
         method: 'POST',
         headers,
         body: requestJson
       });
-    } catch (err) {
+    } catch (e) {
+      const err = e as { status: number | undefined; statusText: string };
       throw new FirestoreError(
         mapCodeFromHttpStatus(err.status),
         'Request failed with error: ' + err.statusText
@@ -69,9 +58,14 @@ export class FetchConnection extends RestConnection {
     }
 
     if (!response.ok) {
+      let errorResponse = await response.json();
+      if (Array.isArray(errorResponse)) {
+        errorResponse = errorResponse[0];
+      }
+      const errorMessage = errorResponse?.error?.message;
       throw new FirestoreError(
         mapCodeFromHttpStatus(response.status),
-        'Request failed with error: ' + response.statusText
+        `Request failed with error: ${errorMessage ?? response.statusText}`
       );
     }
 

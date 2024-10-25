@@ -31,6 +31,19 @@ import {
 import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { DatabaseId } from '../../../src/core/database_info';
 import {
+  ArrayContainsAnyFilter,
+  ArrayContainsFilter,
+  CompositeFilter,
+  FieldFilter,
+  Filter,
+  filterEquals,
+  InFilter,
+  KeyFieldFilter,
+  NotInFilter,
+  Operator
+} from '../../../src/core/filter';
+import { Direction, OrderBy } from '../../../src/core/order_by';
+import {
   LimitType,
   queryToTarget,
   queryWithEndAt,
@@ -38,21 +51,8 @@ import {
   queryWithStartAt
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import {
-  ArrayContainsAnyFilter,
-  ArrayContainsFilter,
-  Direction,
-  FieldFilter,
-  filterEquals,
-  InFilter,
-  KeyFieldFilter,
-  NotInFilter,
-  Operator,
-  OrderBy,
-  Target,
-  targetEquals,
-  TargetImpl
-} from '../../../src/core/target';
+import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
+import { vector } from '../../../src/lite-api/field_value_impl';
 import { parseQueryValue } from '../../../src/lite-api/user_data_reader';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { FieldMask } from '../../../src/model/field_mask';
@@ -94,7 +94,9 @@ import {
   toQueryTarget,
   toTarget,
   toUnaryOrFieldFilter,
-  toVersion
+  toVersion,
+  fromCompositeFilter,
+  toCompositeFilter
 } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -113,6 +115,8 @@ import {
   doc,
   field,
   filter,
+  andFilter,
+  orFilter,
   key,
   orderBy,
   patchMutation,
@@ -128,6 +132,8 @@ import {
 const userDataWriter = new ExpUserDataWriter(firestore());
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
 const protoJsReader = testUserDataReader(/* useProto3Json= */ false);
+
+const protoCompositeFilterOrOp: api.CompositeFilterOp = 'OR';
 
 /**
  * Runs the serializer test with an optional ProtobufJS verification step
@@ -530,6 +536,35 @@ export function serializerTest(
             'projects/test-project/databases/(default)/documents/docs/1'
         });
       });
+
+      it('converts VectorValue', () => {
+        const original = vector([1, 2, 3]);
+        const objValue = wrap(original);
+        expect(userDataWriter.convertValue(objValue)).to.deep.equal(original);
+
+        const expectedJson: api.Value = {
+          mapValue: {
+            fields: {
+              '__type__': { stringValue: '__vector__' },
+              value: {
+                arrayValue: {
+                  values: [
+                    { doubleValue: 1 },
+                    { doubleValue: 2 },
+                    { doubleValue: 3 }
+                  ]
+                }
+              }
+            }
+          }
+        };
+
+        verifyFieldValueRoundTrip({
+          value: original,
+          valueType: 'mapValue',
+          jsonValue: expectedJson.mapValue
+        });
+      });
     });
 
     describe('toKey', () => {
@@ -799,18 +834,19 @@ export function serializerTest(
     });
 
     it('toDocument() / fromDocument', () => {
-      const d = doc('foo/bar', 42, { a: 5, b: 'b' });
+      const d = doc('foo/bar', 42, { a: 5, b: 'b' }, /* createTime */ 12);
       const proto = {
         name: toName(s, d.key),
         fields: d.data.value.mapValue.fields,
-        updateTime: toVersion(s, d.version)
+        updateTime: toVersion(s, d.version),
+        createTime: toVersion(s, d.createTime)
       };
       const serialized = toDocument(s, d);
       expect(serialized).to.deep.equal(proto);
       expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
-    describe('to/from FieldFilter', () => {
+    describe('to/from UnaryOrFieldFilter', () => {
       addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
@@ -1082,6 +1118,174 @@ export function serializerTest(
       });
     });
 
+    describe('to/from CompositeFilter', () => {
+      addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
+
+      /* eslint-disable no-restricted-properties */
+      it('converts deep collections', () => {
+        const input = orFilter(
+          filter('prop', '<', 42),
+          andFilter(
+            filter('author', '==', 'ehsann'),
+            filter('tags', 'array-contains', 'pending'),
+            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+          )
+        );
+
+        // Encode
+        const actual = toCompositeFilter(input);
+
+        const propProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'prop' },
+            op: 'LESS_THAN',
+            value: { integerValue: '42' }
+          }
+        };
+
+        const authorProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'author' },
+            op: 'EQUAL',
+            value: { stringValue: 'ehsann' }
+          }
+        };
+
+        const tagsProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'tags' },
+            op: 'ARRAY_CONTAINS',
+            value: { stringValue: 'pending' }
+          }
+        };
+
+        const versionProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'version' },
+            op: 'EQUAL',
+            value: { integerValue: '4' }
+          }
+        };
+
+        const nanVersionProtoFilter = {
+          unaryFilter: {
+            field: { fieldPath: 'version' },
+            op: 'IS_NAN'
+          }
+        };
+
+        const innerOrProtoFilter = {
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [versionProtoFilter, nanVersionProtoFilter]
+          }
+        };
+
+        const innerAndProtoFilter = {
+          compositeFilter: {
+            op: 'AND',
+            filters: [authorProtoFilter, tagsProtoFilter, innerOrProtoFilter]
+          }
+        };
+
+        expect(actual).to.deep.equal({
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [propProtoFilter, innerAndProtoFilter]
+          }
+        });
+
+        // Decode
+        const roundtripped = fromCompositeFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(CompositeFilter);
+      });
+    });
+
+    describe('to/from CompositeFilter', () => {
+      addEqualityMatcher({ equalsFn: filterEquals, forType: Filter });
+
+      /* eslint-disable no-restricted-properties */
+      it('converts deep collections', () => {
+        const input = orFilter(
+          filter('prop', '<', 42),
+          andFilter(
+            filter('author', '==', 'ehsann'),
+            filter('tags', 'array-contains', 'pending'),
+            orFilter(filter('version', '==', 4), filter('version', '==', NaN))
+          )
+        );
+
+        // Encode
+        const actual = toCompositeFilter(input);
+
+        const propProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'prop' },
+            op: 'LESS_THAN',
+            value: { integerValue: '42' }
+          }
+        };
+
+        const authorProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'author' },
+            op: 'EQUAL',
+            value: { stringValue: 'ehsann' }
+          }
+        };
+
+        const tagsProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'tags' },
+            op: 'ARRAY_CONTAINS',
+            value: { stringValue: 'pending' }
+          }
+        };
+
+        const versionProtoFilter = {
+          fieldFilter: {
+            field: { fieldPath: 'version' },
+            op: 'EQUAL',
+            value: { integerValue: '4' }
+          }
+        };
+
+        const nanVersionProtoFilter = {
+          unaryFilter: {
+            field: { fieldPath: 'version' },
+            op: 'IS_NAN'
+          }
+        };
+
+        const innerOrProtoFilter = {
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [versionProtoFilter, nanVersionProtoFilter]
+          }
+        };
+
+        const innerAndProtoFilter = {
+          compositeFilter: {
+            op: 'AND',
+            filters: [authorProtoFilter, tagsProtoFilter, innerOrProtoFilter]
+          }
+        };
+
+        expect(actual).to.deep.equal({
+          compositeFilter: {
+            op: protoCompositeFilterOrOp,
+            filters: [propProtoFilter, innerAndProtoFilter]
+          }
+        });
+
+        // Decode
+        const roundtripped = fromCompositeFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(CompositeFilter);
+      });
+    });
+
     it('encodes listen request labels', () => {
       const target = queryToTarget(query('collection/key'));
       let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
@@ -1137,7 +1341,9 @@ export function serializerTest(
           },
           targetId: 1
         });
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts nested ancestor queries', () => {
@@ -1159,7 +1365,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts single filters at first-level collections', () => {
@@ -1192,7 +1400,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts multiple filters at first-level collections', () => {
@@ -1267,7 +1477,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts single filters on deeper collections', () => {
@@ -1302,7 +1514,185 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
+      });
+
+      it('converts multi-layer composite filters with OR at the first layer', () => {
+        const q = queryToTarget(
+          query(
+            'docs',
+            orFilter(
+              filter('prop', '<', 42),
+              filter('name', '==', 'dimond'),
+              andFilter(
+                filter('nan', '==', NaN),
+                filter('null', '==', null),
+                filter('tags', 'array-contains', 'pending')
+              )
+            )
+          )
+        );
+        const result = toTarget(s, wrapTargetData(q));
+        const expected = {
+          query: {
+            parent: 'projects/p/databases/d/documents',
+            structuredQuery: {
+              from: [{ collectionId: 'docs' }],
+              where: {
+                compositeFilter: {
+                  op: protoCompositeFilterOrOp,
+                  filters: [
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'prop' },
+                        op: 'LESS_THAN',
+                        value: { integerValue: '42' }
+                      }
+                    },
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'name' },
+                        op: 'EQUAL',
+                        value: { stringValue: 'dimond' }
+                      }
+                    },
+                    {
+                      compositeFilter: {
+                        op: 'AND',
+                        filters: [
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'nan' },
+                              op: 'IS_NAN'
+                            }
+                          },
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'null' },
+                              op: 'IS_NULL'
+                            }
+                          },
+                          {
+                            fieldFilter: {
+                              field: { fieldPath: 'tags' },
+                              op: 'ARRAY_CONTAINS',
+                              value: { stringValue: 'pending' }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              orderBy: [
+                {
+                  field: { fieldPath: 'prop' },
+                  direction: 'ASCENDING'
+                },
+                {
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
+                  direction: 'ASCENDING'
+                }
+              ]
+            }
+          },
+          targetId: 1
+        };
+        expect(result).to.deep.equal(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
+      });
+
+      it('converts multi-layer composite filters with AND at the first layer', () => {
+        const q = queryToTarget(
+          query(
+            'docs',
+            andFilter(
+              filter('prop', '<', 42),
+              filter('name', '==', 'dimond'),
+              orFilter(
+                filter('nan', '==', NaN),
+                filter('null', '==', null),
+                filter('tags', 'array-contains', 'pending')
+              )
+            )
+          )
+        );
+        const result = toTarget(s, wrapTargetData(q));
+        const expected = {
+          query: {
+            parent: 'projects/p/databases/d/documents',
+            structuredQuery: {
+              from: [{ collectionId: 'docs' }],
+              where: {
+                compositeFilter: {
+                  op: 'AND',
+                  filters: [
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'prop' },
+                        op: 'LESS_THAN',
+                        value: { integerValue: '42' }
+                      }
+                    },
+                    {
+                      fieldFilter: {
+                        field: { fieldPath: 'name' },
+                        op: 'EQUAL',
+                        value: { stringValue: 'dimond' }
+                      }
+                    },
+                    {
+                      compositeFilter: {
+                        op: protoCompositeFilterOrOp,
+                        filters: [
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'nan' },
+                              op: 'IS_NAN'
+                            }
+                          },
+                          {
+                            unaryFilter: {
+                              field: { fieldPath: 'null' },
+                              op: 'IS_NULL'
+                            }
+                          },
+                          {
+                            fieldFilter: {
+                              field: { fieldPath: 'tags' },
+                              op: 'ARRAY_CONTAINS',
+                              value: { stringValue: 'pending' }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              orderBy: [
+                {
+                  field: { fieldPath: 'prop' },
+                  direction: 'ASCENDING'
+                },
+                {
+                  field: { fieldPath: DOCUMENT_KEY_NAME },
+                  direction: 'ASCENDING'
+                }
+              ]
+            }
+          },
+          targetId: 1
+        };
+        expect(result).to.deep.equal(expected);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts order bys', () => {
@@ -1328,7 +1718,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts limits', () => {
@@ -1353,7 +1745,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts startAt/endAt', () => {
@@ -1401,7 +1795,9 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q).queryTarget)).to.deep.equal(
+          q
+        );
       });
 
       it('converts resume tokens', () => {

@@ -39,9 +39,6 @@ coverage
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
-# Bower dependency directory (https://bower.io/)
-bower_components
-
 # node-waf configuration
 .lock-wscript
 
@@ -92,6 +89,15 @@ packages/**/docs
 tsdoc-metadata.json
 
 # generated html docs
-docs-*/
+docs-rut/
 docs/
-toc/
+
+# generated Terraform docs
+.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# vertexai test data
+vertexai-sdk-test-data
+mocks-lookup.ts

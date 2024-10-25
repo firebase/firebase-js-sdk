@@ -38,14 +38,6 @@ const es2017Plugins = [
   json({ preferConst: true })
 ];
 
-const es5Plugins = [
-  typescriptPlugin({
-    typescript,
-    transformers: [util.removeAssertTransformer]
-  }),
-  json({ preferConst: true })
-];
-
 const browserBuilds = [
   {
     input: './src/index.ts',
@@ -61,12 +53,12 @@ const browserBuilds = [
     input: './src/index.ts',
     output: [
       {
-        file: pkg.esm5,
-        format: 'es',
+        file: 'dist/index.cjs.js',
+        format: 'cjs',
         sourcemap: true
       }
     ],
-    plugins: es5Plugins,
+    plugins: es2017Plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

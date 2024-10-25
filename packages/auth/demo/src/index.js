@@ -49,6 +49,8 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithEmailAndPassword,
+  TotpMultiFactorGenerator,
+  TotpSecret,
   unlink,
   updateEmail,
   updatePassword,
@@ -69,7 +71,10 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   browserPopupRedirectResolver,
-  connectAuthEmulator
+  connectAuthEmulator,
+  initializeRecaptchaConfig,
+  validatePassword,
+  revokeAccessToken
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -97,6 +102,8 @@ let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
 let webWorker = null;
+let totpSecret = null;
+let totpDeadlineId = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -109,7 +116,7 @@ const providersIcons = {
 };
 
 /**
- * Returns the active user (i.e. currentUser or lastUser).
+ * Returns active user (currentUser or lastUser).
  * @return {!firebase.User}
  */
 function activeUser() {
@@ -122,62 +129,87 @@ function activeUser() {
 }
 
 /**
+ * Blocks until there is a valid user
+ * then returns the valid user (currentUser or lastUser).
+ * @return {!firebase.User}
+ */
+async function getActiveUserBlocking() {
+  const type = $('input[name=toggle-user-selection]:checked').val();
+  if (type === 'lastUser') {
+    return lastUser;
+  } else {
+    try {
+      await auth.authStateReady();
+      return auth.currentUser;
+    } catch (e) {
+      log(e);
+    }
+  }
+}
+
+/**
  * Refreshes the current user data in the UI, displaying a user info box if
  * a user is signed in, or removing it.
  */
-function refreshUserData() {
-  if (activeUser()) {
-    const user = activeUser();
-    $('.profile').show();
-    $('body').addClass('user-info-displayed');
-    $('div.profile-email,span.profile-email').text(user.email || 'No Email');
-    $('div.profile-phone,span.profile-phone').text(
-      user.phoneNumber || 'No Phone'
-    );
-    $('div.profile-uid,span.profile-uid').text(user.uid);
-    $('div.profile-name,span.profile-name').text(user.displayName || 'No Name');
-    $('input.profile-name').val(user.displayName);
-    $('input.photo-url').val(user.photoURL);
-    if (user.photoURL != null) {
-      let photoURL = user.photoURL;
-      // Append size to the photo URL for Google hosted images to avoid requesting
-      // the image with its original resolution (using more bandwidth than needed)
-      // when it is going to be presented in smaller size.
-      if (
-        photoURL.indexOf('googleusercontent.com') !== -1 ||
-        photoURL.indexOf('ggpht.com') !== -1
-      ) {
-        photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+async function refreshUserData() {
+  try {
+    let user = await getActiveUserBlocking();
+    if (user) {
+      $('.profile').show();
+      $('body').addClass('user-info-displayed');
+      $('div.profile-email,span.profile-email').text(user.email || 'No Email');
+      $('div.profile-phone,span.profile-phone').text(
+        user.phoneNumber || 'No Phone'
+      );
+      $('div.profile-uid,span.profile-uid').text(user.uid);
+      $('div.profile-name,span.profile-name').text(
+        user.displayName || 'No Name'
+      );
+      $('input.profile-name').val(user.displayName);
+      $('input.photo-url').val(user.photoURL);
+      if (user.photoURL != null) {
+        let photoURL = user.photoURL;
+        // Append size to the photo URL for Google hosted images to avoid requesting
+        // the image with its original resolution (using more bandwidth than needed)
+        // when it is going to be presented in smaller size.
+        if (
+          photoURL.indexOf('googleusercontent.com') !== -1 ||
+          photoURL.indexOf('ggpht.com') !== -1
+        ) {
+          photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+        }
+        $('img.profile-image').attr('src', photoURL).show();
+      } else {
+        $('img.profile-image').hide();
       }
-      $('img.profile-image').attr('src', photoURL).show();
-    } else {
-      $('img.profile-image').hide();
-    }
-    $('.profile-email-verified').toggle(user.emailVerified);
-    $('.profile-email-not-verified').toggle(!user.emailVerified);
-    $('.profile-anonymous').toggle(user.isAnonymous);
-    // Display/Hide providers icons.
-    $('.profile-providers').empty();
-    if (user['providerData'] && user['providerData'].length) {
-      const providersCount = user['providerData'].length;
-      for (let i = 0; i < providersCount; i++) {
-        addProviderIcon(user['providerData'][i]['providerId']);
+      $('.profile-email-verified').toggle(user.emailVerified);
+      $('.profile-email-not-verified').toggle(!user.emailVerified);
+      $('.profile-anonymous').toggle(user.isAnonymous);
+      // Display/Hide providers icons.
+      $('.profile-providers').empty();
+      if (user['providerData'] && user['providerData'].length) {
+        const providersCount = user['providerData'].length;
+        for (let i = 0; i < providersCount; i++) {
+          addProviderIcon(user['providerData'][i]['providerId']);
+        }
       }
-    }
-    // Show enrolled second factors if available for the active user.
-    showMultiFactorStatus(user);
-    // Change color.
-    if (user === auth.currentUser) {
-      $('#user-info').removeClass('last-user');
-      $('#user-info').addClass('current-user');
+      // Show enrolled second factors if available for the active user.
+      showMultiFactorStatus(user);
+      // Change color.
+      if (user === auth.currentUser) {
+        $('#user-info').removeClass('last-user');
+        $('#user-info').addClass('current-user');
+      } else {
+        $('#user-info').removeClass('current-user');
+        $('#user-info').addClass('last-user');
+      }
     } else {
-      $('#user-info').removeClass('current-user');
-      $('#user-info').addClass('last-user');
+      $('.profile').slideUp();
+      $('body').removeClass('user-info-displayed');
+      $('input.profile-data').val('');
     }
-  } else {
-    $('.profile').slideUp();
-    $('body').removeClass('user-info-displayed');
-    $('input.profile-data').val('');
+  } catch (error) {
+    log(error);
   }
 }
 
@@ -247,6 +279,10 @@ function showMultiFactorStatus(activeUser) {
         const label = info && (info.displayName || info.uid);
         if (label) {
           $('#enrolled-factors-drop-down').removeClass('open');
+          // Set the last user, in case the current user is logged out.
+          // This can happen if the MFA option being unenrolled is the one that was most recently enrolled into.
+          // See - https://github.com/firebase/firebase-js-sdk/issues/3233
+          setLastUser(activeUser);
           mfaUser.unenroll(info).then(() => {
             refreshUserData();
             alertSuccess('Multi-factor successfully unenrolled.');
@@ -278,6 +314,14 @@ function onAuthError(error) {
     handleMultiFactorSignIn(getMultiFactorResolver(auth, error));
   } else {
     alertError('Error: ' + error.code);
+    if (error.code === 'auth/user-token-expired') {
+      alertError('Token expired, please reauthenticate.');
+    }
+    if (error.code === 'auth/invalid-credential') {
+      alertError(
+        'Login credentials invalid. It is possible that the email/password combination does not exist.'
+      );
+    }
   }
 }
 
@@ -311,7 +355,14 @@ function onUseDeviceLanguage() {
   $('#language-code').val(auth.languageCode);
   alertSuccess('Using device language "' + auth.languageCode + '".');
 }
-
+/**
+ * Set tenant id for the firebase project.
+ */
+function onSetTenantIdClick(_event) {
+  const tenantId = $('#set-tenant').val();
+  auth.tenantId = tenantId === '' ? null : tenantId;
+  alertSuccess('Tenant Id : ' + auth.tenantId);
+}
 /**
  * Changes the Auth state persistence to the specified one.
  */
@@ -403,13 +454,41 @@ function onLinkWithEmailLink() {
  * Re-authenticate a user with email link credential.
  */
 function onReauthenticateWithEmailLink() {
+  if (!activeUser()) {
+    alertError(
+      'No user logged in. Select the "Last User" tab to reauth the previous user.'
+    );
+    return;
+  }
   const email = $('#link-with-email-link-email').val();
   const link = $('#link-with-email-link-link').val() || undefined;
   const credential = EmailAuthProvider.credentialWithLink(email, link);
+  // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
   reauthenticateWithCredential(activeUser(), credential).then(result => {
     logAdditionalUserInfo(result);
     refreshUserData();
-    alertSuccess('User reauthenticated!');
+    alertSuccess('User reauthenticated with email link!');
+  }, onAuthError);
+}
+
+/**
+ * Re-authenticate a user with email and password.
+ */
+function onReauthenticateWithEmailAndPassword() {
+  if (!activeUser()) {
+    alertError(
+      'No user logged in. Select the "Last User" tab to reauth the previous user.'
+    );
+    return;
+  }
+  const email = $('#signin-email').val();
+  const password = $('#signin-password').val();
+  const credential = EmailAuthProvider.credential(email, password);
+  // This will not set auth.currentUser to lastUser if the lastUser is reauthenticated.
+  reauthenticateWithCredential(activeUser(), credential).then(result => {
+    logAdditionalUserInfo(result);
+    refreshUserData();
+    alertSuccess('User reauthenticated with email/password');
   }, onAuthError);
 }
 
@@ -432,6 +511,164 @@ function onSignInWithCustomToken(_event) {
  */
 function onSignInAnonymously() {
   signInAnonymously(auth).then(onAuthUserCredentialSuccess, onAuthError);
+}
+
+function onSetTenantID(_event) {
+  const tenantId = $('#tenant-id').val();
+  auth.tenantId = tenantId;
+  if (tenantId === '') {
+    auth.tenantId = null;
+  }
+}
+
+function onInitializeRecaptchaConfig() {
+  initializeRecaptchaConfig(auth);
+}
+
+/**
+ * Updates the displayed validation status for the inputted password.
+ * @param {string} sectionIdPrefix The ID prefix of the section to show the password requirements in.
+ */
+function onValidatePassword(sectionIdPrefix) {
+  /**
+   * Updates the displayed status for a requirement.
+   * @param {string} id The ID of the DOM element displaying the requirement status.
+   * @param {boolean | undefined} status Whether the requirement is met.
+   */
+  function setRequirementStatus(id, status) {
+    // Hide the requirement if the status does not include it.
+    if (status === undefined) {
+      $(id).hide();
+      return;
+    }
+
+    if (status) {
+      $(id).removeClass('list-group-item-danger');
+      $(id).addClass('list-group-item-success');
+    } else {
+      $(id).removeClass('list-group-item-success');
+      $(id).addClass('list-group-item-danger');
+    }
+    $(id).show();
+  }
+
+  const idPrefix = sectionIdPrefix + 'password-validation-';
+  const requirementsId = idPrefix + 'requirements';
+  const passwordId = sectionIdPrefix + 'password';
+
+  const password = $(passwordId).val();
+  validatePassword(auth, password).then(
+    status => {
+      const passwordPolicy = status.passwordPolicy;
+      const customStrengthOptions = passwordPolicy.customStrengthOptions;
+
+      // Only show options required by the password policy.
+      $(requirementsId).children().hide();
+
+      // Do not show requirements on sign-in if the policy is not enforced for existing passwords.
+      if (
+        sectionIdPrefix === '#signin-' &&
+        !passwordPolicy.forceUpgradeOnSignin
+      ) {
+        return;
+      }
+
+      // Display a message if the password policy is not being enforced.
+      const notEnforcedId = idPrefix + 'not-enforced';
+      if (passwordPolicy.enforcementState === 'OFF') {
+        $(notEnforcedId).show();
+      } else {
+        $(notEnforcedId).hide();
+      }
+
+      if (customStrengthOptions.minPasswordLength) {
+        $(idPrefix + 'min-length').text(
+          customStrengthOptions.minPasswordLength
+        );
+      }
+      if (customStrengthOptions.maxPasswordLength) {
+        $(idPrefix + 'max-length').text(
+          customStrengthOptions.maxPasswordLength
+        );
+      }
+      if (customStrengthOptions.containsNonAlphanumericCharacter) {
+        $(idPrefix + 'allowed-non-alphanumeric-characters').attr(
+          'data-original-title',
+          passwordPolicy.allowedNonAlphanumericCharacters
+        );
+      }
+      Object.keys(status).forEach(requirement => {
+        if (requirement !== 'passwordPolicy') {
+          // Get the requirement ID by converting to kebab case.
+          const requirementId =
+            idPrefix +
+            requirement.replace(/[A-Z]/g, match => '-' + match.toLowerCase());
+          setRequirementStatus(requirementId, status[requirement]);
+        }
+      });
+
+      // Show a note that existing password must meet the policy if trying to sign-in.
+      if (sectionIdPrefix === '#signin-') {
+        const forceUpgradeId = idPrefix + 'force-upgrade';
+        if (passwordPolicy.forceUpgradeOnSignin) {
+          $(forceUpgradeId).show();
+        } else {
+          $(forceUpgradeId).hide();
+        }
+      }
+
+      $(passwordId).prop('disabled', false);
+      $(requirementsId).show();
+
+      // Fix the border radius, since hidden elements are still considered in styling.
+      const borderRadius = '5px';
+      const requirements = $(
+        idPrefix + 'requirements .list-group-item:visible'
+      );
+      requirements.each((index, elem) => {
+        if (index === 0) {
+          $(elem).css('border-top-left-radius', borderRadius);
+          $(elem).css('border-top-right-radius', borderRadius);
+        }
+        if (index === requirements.length - 1) {
+          $(elem).css('border-bottom-left-radius', borderRadius);
+          $(elem).css('border-bottom-right-radius', borderRadius);
+        }
+      });
+    },
+    error => {
+      // Disable the password input and hide the requirements since validation cannot be performed.
+      if (error.code === `auth/unsupported-password-policy-schema-version`) {
+        $(passwordId).prop('disabled', true);
+      }
+      $(requirementsId).hide();
+      onAuthError(error);
+    }
+  );
+}
+
+/**
+ * Hides requirements in a section when the password field is blurred and empty.
+ * @param {string} sectionIdPrefix The ID prefix of the section to hide the password requirements in.
+ */
+function onBlurPassword(sectionIdPrefix) {
+  if ($(sectionIdPrefix + 'password').val() === '') {
+    const id = sectionIdPrefix + 'password-validation-requirements';
+    $(id).hide();
+  }
+}
+
+/**
+ * Toggles text visibility for the password validation input field.
+ * @param {string} sectionIdPrefix The ID prefix of the DOM element of the password input.
+ */
+function onToggleViewPassword(sectionIdPrefix) {
+  const id = sectionIdPrefix + 'password';
+  if ($(id).prop('type') === 'password') {
+    $(id).prop('type', 'text');
+  } else {
+    $(id).prop('type', 'password');
+  }
 }
 
 /**
@@ -462,11 +699,9 @@ function onSignInWithGenericIdPCredential() {
 function makeApplicationVerifier(submitButtonId) {
   const container =
     recaptchaSize === 'invisible' ? submitButtonId : 'recaptcha-container';
-  applicationVerifier = new RecaptchaVerifier(
-    container,
-    { 'size': recaptchaSize },
-    auth
-  );
+  applicationVerifier = new RecaptchaVerifier(auth, container, {
+    'size': recaptchaSize
+  });
 }
 
 /**
@@ -652,6 +887,80 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     }, onAuthError);
 }
 
+async function onStartEnrollWithTotpMultiFactor() {
+  console.log('Starting TOTP enrollment!');
+  if (!activeUser()) {
+    alertError('No active user found.');
+    return;
+  }
+  try {
+    multiFactorSession = await multiFactor(activeUser()).getSession();
+    totpSecret = await TotpMultiFactorGenerator.generateSecret(
+      multiFactorSession
+    );
+    const url = totpSecret.generateQrCodeUrl('test', 'testissuer');
+    console.log('TOTP URL is ' + url);
+    console.log(
+      'Finalize sign in by ' + totpSecret.enrollmentCompletionDeadline
+    );
+    // display the number of seconds left to enroll.
+    $('p.totp-deadline').show();
+    totpDeadlineId = setInterval(function () {
+      var deadline = new Date(totpSecret.enrollmentCompletionDeadline);
+      var t = deadline - new Date().getTime();
+      if (t < 0) {
+        clearInterval(totpDeadlineId);
+        document.getElementById('totp-deadline').innerText =
+          'TOTP enrollment expired!';
+      } else {
+        var minutes = Math.floor(t / (1000 * 60));
+        var seconds = Math.floor((t % (60 * 1000)) / 1000);
+        // accessing the field using $ does not work here.
+        document.getElementById(
+          'totp-deadline'
+        ).innerText = `Time left - ${minutes} minutes, ${seconds} seconds.`;
+      }
+    }, 1000);
+    // Use the QRServer API documented at https://goqr.me/api/doc/
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${url}&amp;size=30x30`;
+    $('img.totp-qr-image').attr('src', qrCodeUrl).show();
+    $('p.totp-text').show();
+  } catch (e) {
+    onAuthError(e);
+  }
+}
+
+async function onFinalizeEnrollWithTotpMultiFactor() {
+  const verificationCode = $('#enroll-mfa-totp-verification-code').val();
+  if (!activeUser() || !totpSecret || !verificationCode) {
+    alertError(' Missing active user OR TOTP secret OR verification code.');
+    return;
+  }
+
+  const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
+    totpSecret,
+    verificationCode
+  );
+  const displayName = $('#enroll-mfa-totp-display-name').val() || undefined;
+
+  try {
+    await multiFactor(activeUser()).enroll(multiFactorAssertion, displayName);
+    refreshUserData();
+    clearTOTPUIState();
+    alertSuccess('TOTP MFA enrolled!');
+  } catch (e) {
+    onAuthError(e);
+  }
+}
+
+function clearTOTPUIState() {
+  $('p.totp-deadline').hide();
+  $('img.totp-qr-image').hide();
+  $('p.totp-text').hide();
+  $('enroll-mfa-totp-verification-code').hide();
+  $('enroll-mfa-totp-display-name').hide();
+  clearInterval(totpDeadlineId);
+}
 /**
  * Signs in or links a provider's credential, based on current tab opened.
  * @param {!AuthCredential} credential The provider's credential.
@@ -919,7 +1228,7 @@ function onApplyActionCode() {
  *     or not.
  */
 function getIdToken(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -944,7 +1253,7 @@ function getIdToken(forceRefresh) {
  *     or not
  */
 function getIdTokenResult(forceRefresh) {
-  if (activeUser() == null) {
+  if (!activeUser()) {
     alertError('No user logged in.');
     return;
   }
@@ -1021,6 +1330,7 @@ function handleMultiFactorSignIn(resolver) {
   );
   // Hide phone form (other second factor types could be supported).
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   // Show second factor recovery dialog.
   $('#multiFactorModal').modal();
 }
@@ -1087,6 +1397,7 @@ function onSelectMultiFactorHint(index) {
   // Hide all forms for handling each type of second factors.
   // Currently only phone is supported.
   $('#multi-factor-phone').addClass('hidden');
+  $('#multi-factor-totp').addClass('hidden');
   if (
     !multiFactorErrorResolver ||
     typeof multiFactorErrorResolver.hints[index] === 'undefined'
@@ -1106,6 +1417,14 @@ function onSelectMultiFactorHint(index) {
     // Clear all input.
     $('#multi-factor-sign-in-verification-id').val('');
     $('#multi-factor-sign-in-verification-code').val('');
+  } else if (multiFactorErrorResolver.hints[index].factorId === 'totp') {
+    // Save selected second factor.
+    selectedMultiFactorHint = multiFactorErrorResolver.hints[index];
+
+    // Show sign-in with totp second factor menu.
+    $('#multi-factor-totp').removeClass('hidden');
+    // Clear all input.
+    $('#multi-factor-totp-sign-in-verification-code').val('');
   } else {
     // 2nd factor not found or not supported by app.
     alertError('Selected 2nd factor is not supported!');
@@ -1154,6 +1473,28 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
   }
   const cred = PhoneAuthProvider.credential(verificationId, code);
   const assertion = PhoneMultiFactorGenerator.assertion(cred);
+  multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
+    onAuthUserCredentialSuccess(userCredential);
+    $('#multiFactorModal').modal('hide');
+  }, onAuthError);
+}
+
+/**
+ * Completes sign-in with the 2nd factor totp assertion.
+ * @param {!jQuery.Event} event The jQuery event object.
+ */
+function onFinalizeSignInWithTotpMultiFactor(event) {
+  event.preventDefault();
+  // Make sure a second factor is selected.
+  const otp = $('#multi-factor-totp-sign-in-verification-code').val();
+  if (!otp || !selectedMultiFactorHint || !multiFactorErrorResolver) {
+    return;
+  }
+
+  const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+    selectedMultiFactorHint.uid,
+    otp
+  );
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
@@ -1264,7 +1605,9 @@ function signInWithPopupRedirect(provider) {
       break;
     case 'reauthenticate':
       if (!activeUser()) {
-        alertError('No user logged in.');
+        alertError(
+          'No user logged in. Select the "Last User" tab to reauth the previous user.'
+        );
         return;
       }
       inst = activeUser();
@@ -1289,7 +1632,6 @@ function signInWithPopupRedirect(provider) {
       customParameters[key] = value;
     }
   });
-  console.log('customParameters: ', customParameters);
   // For older jscore versions that do not support this.
   if (provider.setCustomParameters) {
     // Set custom parameters on current provider.
@@ -1394,13 +1736,58 @@ function logAdditionalUserInfo(response) {
  * Deletes the user account.
  */
 function onDelete() {
-  activeUser()
-    ['delete']()
-    .then(() => {
-      log('User successfully deleted.');
-      alertSuccess('User successfully deleted.');
-      refreshUserData();
-    }, onAuthError);
+  let isAppleProviderLinked = false;
+
+  for (const provider of activeUser().providerData) {
+    if (provider.providerId == 'apple.com') {
+      isAppleProviderLinked = true;
+      break;
+    }
+  }
+
+  if (isAppleProviderLinked) {
+    revokeAppleTokenAndDeleteUser();
+  } else {
+    activeUser()
+      ['delete']()
+      .then(() => {
+        log('User successfully deleted.');
+        alertSuccess('User successfully deleted.');
+        refreshUserData();
+      }, onAuthError);
+  }
+}
+
+function revokeAppleTokenAndDeleteUser() {
+  // Re-auth then revoke the token
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+
+  const auth = getAuth();
+  signInWithPopup(auth, provider).then(result => {
+    // The signed-in user info.
+    const credential = OAuthProvider.credentialFromResult(result);
+    const accessToken = credential.accessToken;
+
+    revokeAccessToken(auth, accessToken)
+      .then(() => {
+        log('Token successfully revoked.');
+
+        // Usual user deletion
+        activeUser()
+          ['delete']()
+          .then(() => {
+            log('User successfully deleted.');
+            alertSuccess('User successfully deleted.');
+            refreshUserData();
+          }, onAuthError);
+      })
+      .catch(error => {
+        log('Failed to revoke token. ', error.message);
+        alertError('Failed to revoke token. ', error.message);
+      });
+  });
 }
 
 /**
@@ -1812,6 +2199,27 @@ function initApp() {
   },
   onAuthError);
 
+  // Try sign in with redirect once upon page load, not on subsequent loads.
+  // This will demonstrate the behavior when signInWithRedirect is called before
+  // auth is fully initialized. This will fail on firebase/auth versions 0.21.0 and lower
+  // due to https://github.com/firebase/firebase-js-sdk/issues/6827
+  /*
+  if (sessionStorage.getItem('redirect-race-test') !== 'done') {
+    console.log('Starting redirect sign in upon page load.');
+    try {
+      sessionStorage.setItem('redirect-race-test', 'done');
+      signInWithRedirect(
+        auth,
+        new GoogleAuthProvider(),
+        browserPopupRedirectResolver
+      ).catch(onAuthError);
+    } catch (error) {
+      console.log('Error while calling signInWithRedirect');
+      console.error(error);
+    }
+  }
+  */
+
   // Bootstrap tooltips.
   $('[data-toggle="tooltip"]').tooltip();
 
@@ -1839,8 +2247,30 @@ function initApp() {
   // Actions listeners.
   $('#sign-up-with-email-and-password').click(onSignUp);
   $('#sign-in-with-email-and-password').click(onSignInWithEmailAndPassword);
+  $('#reauth-with-email-and-password').click(
+    onReauthenticateWithEmailAndPassword
+  );
   $('.sign-in-with-custom-token').click(onSignInWithCustomToken);
   $('#sign-in-anonymously').click(onSignInAnonymously);
+  $('.set-tenant-id').click(onSetTenantID);
+  $('#initialize-recaptcha-config').click(onInitializeRecaptchaConfig);
+
+  $('#signin-password').keyup(() => onValidatePassword('#signin-'));
+  $('#signup-password').keyup(() => onValidatePassword('#signup-'));
+  $('#password-reset-password').keyup(() =>
+    onValidatePassword('#password-reset-')
+  );
+
+  $('#signin-view-password').click(() => onToggleViewPassword('#signin-'));
+  $('#signup-view-password').click(() => onToggleViewPassword('#signup-'));
+  $('#password-reset-view-password').click(() =>
+    onToggleViewPassword('#password-reset-')
+  );
+
+  $('#signin-password').blur(() => onBlurPassword('#signin-'));
+  $('#signup-password').blur(() => onBlurPassword('#signup-'));
+  $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
@@ -1890,7 +2320,7 @@ function initApp() {
   // reCAPTCHA from being re-rendered (default behavior on enter).
   $('#link-reauth-phone-verification-code').keypress(e => {
     if (e.which === 13) {
-      // User first option option as default.
+      // User first option as default.
       onUpdateConfirmPhoneVerification();
       e.preventDefault();
     }
@@ -1938,12 +2368,24 @@ function initApp() {
   $('#sign-in-with-phone-multi-factor').click(
     onFinalizeSignInWithPhoneMultiFactor
   );
+
+  // Completes multi-factor sign-in with supplied OTP(One-Time Password).
+  $('#sign-in-with-totp-multi-factor').click(
+    onFinalizeSignInWithTotpMultiFactor
+  );
+
   // Starts multi-factor enrollment with phone number.
   $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);
   // Completes multi-factor enrollment with supplied SMS code.
   $('#enroll-mfa-confirm-phone-verification').click(
     onFinalizeEnrollWithPhoneMultiFactor
   );
+  // Starts multi-factor enrollment with TOTP.
+  $('#enroll-mfa-totp-start').click(onStartEnrollWithTotpMultiFactor);
+  // Completes multi-factor enrollment with supplied OTP(One-Time Password).
+  $('#enroll-mfa-totp-finalize').click(onFinalizeEnrollWithTotpMultiFactor);
+  // Sets tenant for the current auth instance
+  $('#set-tenant-btn').click(onSetTenantIdClick);
 }
 
 $(initApp);

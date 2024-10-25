@@ -28,7 +28,7 @@ import { DynamicConfig } from './types';
 import { FirebaseApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { removeGtagScript } from '../testing/gtag-script-util';
+import { removeGtagScripts } from '../testing/gtag-script-util';
 import { setDefaultEventParameters } from './api';
 import {
   defaultConsentSettingsForInit,
@@ -68,7 +68,7 @@ describe('initializeAnalytics()', () => {
   });
   afterEach(() => {
     fetchStub.restore();
-    removeGtagScript();
+    removeGtagScripts();
   });
   it('gets FID and measurement ID and calls gtag config with them', async () => {
     stubFetch();

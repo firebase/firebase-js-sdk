@@ -27,6 +27,7 @@ describe('externalizePayload', () => {
         title: 'title',
         body: 'body',
         image: 'image',
+        icon: 'icon',
         // eslint-disable-next-line camelcase
         click_action: 'https://www.self_orgin.com'
       },
@@ -34,11 +35,18 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      fcmMessageId: 'mid'
+      fcmMessageId: 'mid',
+      // eslint-disable-next-line camelcase
+      productId: 123
     };
 
     const payload: MessagePayload = {
-      notification: { title: 'title', body: 'body', image: 'image' },
+      notification: {
+        title: 'title',
+        body: 'body',
+        image: 'image',
+        icon: 'icon'
+      },
       from: 'from',
       collapseKey: 'collapse',
       messageId: 'mid',
@@ -60,7 +68,9 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      fcmMessageId: 'mid'
+      fcmMessageId: 'mid',
+      // eslint-disable-next-line camelcase
+      productId: 123
     };
 
     const payload: MessagePayload = {
@@ -77,7 +87,8 @@ describe('externalizePayload', () => {
       notification: {
         title: 'title',
         body: 'body',
-        image: 'image'
+        image: 'image',
+        icon: 'icon'
       },
       data: {
         foo: 'foo',
@@ -93,14 +104,17 @@ describe('externalizePayload', () => {
       // eslint-disable-next-line camelcase
       collapse_key: 'collapse',
       // eslint-disable-next-line camelcase
-      fcmMessageId: 'mid'
+      fcmMessageId: 'mid',
+      // eslint-disable-next-line camelcase
+      productId: 123
     };
 
     const payload: MessagePayload = {
       notification: {
         title: 'title',
         body: 'body',
-        image: 'image'
+        image: 'image',
+        icon: 'icon'
       },
       data: {
         foo: 'foo',

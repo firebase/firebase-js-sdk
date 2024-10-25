@@ -60,6 +60,11 @@ function propagateNotificationPayload(
   if (!!image) {
     payload.notification!.image = image;
   }
+
+  const icon = messagePayloadInternal.notification!.icon;
+  if (!!icon) {
+    payload.notification!.icon = icon;
+  }
 }
 
 function propagateDataPayload(

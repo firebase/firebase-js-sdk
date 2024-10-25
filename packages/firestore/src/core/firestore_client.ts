@@ -17,34 +17,33 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import {
-  AbstractUserDataWriter,
-  AggregateField,
-  AggregateQuerySnapshot
-} from '../api';
 import { LoadBundleTask } from '../api/bundle';
 import {
   CredentialChangeListener,
   CredentialsProvider
 } from '../api/credentials';
 import { User } from '../auth/user';
-import { Query as LiteQuery } from '../lite-api/reference';
 import { LocalStore } from '../local/local_store';
 import {
+  localStoreConfigureFieldIndexes,
+  localStoreDeleteAllFieldIndexes,
   localStoreExecuteQuery,
   localStoreGetNamedQuery,
   localStoreHandleUserChange,
-  localStoreReadDocument
+  localStoreReadDocument,
+  localStoreSetIndexAutoCreationEnabled
 } from '../local/local_store_impl';
 import { Persistence } from '../local/persistence';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
-import { Datastore } from '../remote/datastore';
+import { newSerializer } from '../platform/serializer';
+import { newTextEncoder } from '../platform/text_serializer';
+import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
 import {
-  canUseNetwork,
   RemoteStore,
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
@@ -57,18 +56,19 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 
+import { Aggregate } from './aggregate';
 import { NamedQuery } from './bundle';
 import {
   ComponentConfiguration,
+  LruGcMemoryOfflineComponentProvider,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
 } from './component_provider';
-import { CountQueryRunner } from './count_query_runner';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   addSnapshotsInSyncListener,
@@ -83,11 +83,13 @@ import {
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
-  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
-  syncEngineWrite
+  syncEngineWrite,
+  triggerRemoteStoreListen,
+  triggerRemoteStoreUnlisten
 } from './sync_engine_impl';
 import { Transaction } from './transaction';
 import { TransactionOptions } from './transaction_options';
@@ -98,10 +100,15 @@ import { ViewSnapshot } from './view_snapshot';
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
+const DOM_EXCEPTION_ABORTED = 20;
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
 /**
- * FirestoreClient is a top-level class that constructs and owns all of the
- * pieces of the client SDK architecture. It is responsible for creating the
- * async queue that is shared by all of the other components in the system.
+ * FirestoreClient is a top-level class that constructs and owns all of the //
+ * pieces of the client SDK architecture. It is responsible for creating the //
+ * async queue that is shared by all of the other components in the system. //
  */
 export class FirestoreClient {
   private user = User.UNAUTHENTICATED;
@@ -112,9 +119,13 @@ export class FirestoreClient {
     appCheckToken: string,
     user: User
   ) => Promise<void> = () => Promise.resolve();
+  _uninitializedComponentsProvider?: {
+    _offline: OfflineComponentProvider;
+    _online: OnlineComponentProvider;
+  };
 
-  offlineComponents?: OfflineComponentProvider;
-  onlineComponents?: OnlineComponentProvider;
+  _offlineComponents?: OfflineComponentProvider;
+  _onlineComponents?: OnlineComponentProvider;
 
   constructor(
     private authCredentials: CredentialsProvider<User>,
@@ -128,8 +139,13 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo
+    private databaseInfo: DatabaseInfo,
+    componentProvider?: {
+      _offline: OfflineComponentProvider;
+      _online: OnlineComponentProvider;
+    }
   ) {
+    this._uninitializedComponentsProvider = componentProvider;
     this.authCredentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
       await this.authCredentialListener(user);
@@ -141,7 +157,7 @@ export class FirestoreClient {
     });
   }
 
-  async getConfiguration(): Promise<ComponentConfiguration> {
+  get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
       databaseInfo: this.databaseInfo,
@@ -163,29 +179,16 @@ export class FirestoreClient {
     this.appCheckCredentialListener = listener;
   }
 
-  /**
-   * Checks that the client has not been terminated. Ensures that other methods on
-   * this class cannot be called after the client is terminated.
-   */
-  verifyNotTerminated(): void {
-    if (this.asyncQueue.isShuttingDown) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'The client has already been terminated.'
-      );
-    }
-  }
-
   terminate(): Promise<void> {
     this.asyncQueue.enterRestrictedMode();
     const deferred = new Deferred();
     this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
-        if (this.onlineComponents) {
-          await this.onlineComponents.terminate();
+        if (this._onlineComponents) {
+          await this._onlineComponents.terminate();
         }
-        if (this.offlineComponents) {
-          await this.offlineComponents.terminate();
+        if (this._offlineComponents) {
+          await this._offlineComponents.terminate();
         }
 
         // The credentials provider must be terminated after shutting down the
@@ -213,7 +216,7 @@ export async function setOfflineComponentProvider(
   client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = await client.getConfiguration();
+  const configuration = client.configuration;
   await offlineComponentProvider.initialize(configuration);
 
   let currentUser = configuration.initialUser;
@@ -233,7 +236,7 @@ export async function setOfflineComponentProvider(
     client.terminate()
   );
 
-  client.offlineComponents = offlineComponentProvider;
+  client._offlineComponents = offlineComponentProvider;
 }
 
 export async function setOnlineComponentProvider(
@@ -242,13 +245,12 @@ export async function setOnlineComponentProvider(
 ): Promise<void> {
   client.asyncQueue.verifyOperationInProgress();
 
-  const offlineComponentProvider = await ensureOfflineComponents(client);
+  const offlineComponents = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
-    offlineComponentProvider,
-    configuration
+    offlineComponents,
+    client.configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
@@ -258,32 +260,102 @@ export async function setOnlineComponentProvider(
   client.setAppCheckTokenChangeListener((_, user) =>
     remoteStoreHandleCredentialChange(onlineComponentProvider.remoteStore, user)
   );
-  client.onlineComponents = onlineComponentProvider;
+  client._onlineComponents = onlineComponentProvider;
+}
+
+/**
+ * Decides whether the provided error allows us to gracefully disable
+ * persistence (as opposed to crashing the client).
+ */
+export function canFallbackFromIndexedDbError(
+  error: FirestoreError | DOMException
+): boolean {
+  if (error.name === 'FirebaseError') {
+    return (
+      error.code === Code.FAILED_PRECONDITION ||
+      error.code === Code.UNIMPLEMENTED
+    );
+  } else if (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException
+  ) {
+    // There are a few known circumstances where we can open IndexedDb but
+    // trying to read/write will fail (e.g. quota exceeded). For
+    // well-understood cases, we attempt to detect these and then gracefully
+    // fall back to memory persistence.
+    // NOTE: Rather than continue to add to this list, we could decide to
+    // always fall back, with the risk that we might accidentally hide errors
+    // representing actual SDK bugs.
+    return (
+      // When the browser is out of quota we could get either quota exceeded
+      // or an aborted error depending on whether the error happened during
+      // schema migration.
+      error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+      error.code === DOM_EXCEPTION_ABORTED ||
+      // Firefox Private Browsing mode disables IndexedDb and returns
+      // INVALID_STATE for any usage.
+      error.code === DOM_EXCEPTION_INVALID_STATE
+    );
+  }
+
+  return true;
 }
 
 async function ensureOfflineComponents(
   client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
-  if (!client.offlineComponents) {
-    logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
-    await setOfflineComponentProvider(
-      client,
-      new MemoryOfflineComponentProvider()
-    );
+  if (!client._offlineComponents) {
+    if (client._uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OfflineComponentProvider');
+      try {
+        await setOfflineComponentProvider(
+          client,
+          client._uninitializedComponentsProvider._offline
+        );
+      } catch (e) {
+        const error = e as FirestoreError | DOMException;
+        if (!canFallbackFromIndexedDbError(error)) {
+          throw error;
+        }
+        logWarn(
+          'Error using user provided cache. Falling back to ' +
+            'memory cache: ' +
+            error
+        );
+        await setOfflineComponentProvider(
+          client,
+          new MemoryOfflineComponentProvider()
+        );
+      }
+    } else {
+      logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+      await setOfflineComponentProvider(
+        client,
+        new LruGcMemoryOfflineComponentProvider(undefined)
+      );
+    }
   }
 
-  return client.offlineComponents!;
+  return client._offlineComponents!;
 }
 
 async function ensureOnlineComponents(
   client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
-  if (!client.onlineComponents) {
-    logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
-    await setOnlineComponentProvider(client, new OnlineComponentProvider());
+  if (!client._onlineComponents) {
+    if (client._uninitializedComponentsProvider) {
+      logDebug(LOG_TAG, 'Using user provided OnlineComponentProvider');
+      await setOnlineComponentProvider(
+        client,
+        client._uninitializedComponentsProvider._online
+      );
+    } else {
+      logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+      await setOnlineComponentProvider(client, new OnlineComponentProvider());
+    }
   }
 
-  return client.onlineComponents!;
+  return client._onlineComponents!;
 }
 
 function getPersistence(client: FirestoreClient): Promise<Persistence> {
@@ -316,6 +388,14 @@ export async function getEventManager(
     onlineComponentProvider.syncEngine
   );
   eventManager.onUnlisten = syncEngineUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onFirstRemoteStoreListen = triggerRemoteStoreListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onLastRemoteStoreUnlisten = triggerRemoteStoreUnlisten.bind(
     null,
     onlineComponentProvider.syncEngine
   );
@@ -445,6 +525,30 @@ export function firestoreClientGetDocumentsViaSnapshotListener(
   return deferred.promise;
 }
 
+export function firestoreClientRunAggregateQuery(
+  client: FirestoreClient,
+  query: Query,
+  aggregates: Aggregate[]
+): Promise<ApiClientObjectMap<Value>> {
+  const deferred = new Deferred<ApiClientObjectMap<Value>>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    // Implement and call executeAggregateQueryViaSnapshotListener, similar
+    // to the implementation in firestoreClientGetDocumentsViaSnapshotListener
+    // above
+    try {
+      // TODO(b/277628384): check `canUseNetwork()` and handle multi-tab.
+      const datastore = await getDatastore(client);
+      deferred.resolve(
+        invokeRunAggregationQueryRpc(datastore, query, aggregates)
+      );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
 export function firestoreClientWrite(
   client: FirestoreClient,
   mutations: Mutation[]
@@ -509,40 +613,6 @@ export function firestoreClientTransaction<T>(
   return deferred.promise;
 }
 
-export function firestoreClientRunCountQuery(
-  client: FirestoreClient,
-  query: LiteQuery<unknown>,
-  userDataWriter: AbstractUserDataWriter
-): Promise<AggregateQuerySnapshot<{ count: AggregateField<number> }>> {
-  const deferred = new Deferred<
-    AggregateQuerySnapshot<{ count: AggregateField<number> }>
-  >();
-  client.asyncQueue.enqueueAndForget(async () => {
-    try {
-      const remoteStore = await getRemoteStore(client);
-      if (!canUseNetwork(remoteStore)) {
-        deferred.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get count result because the client is offline.'
-          )
-        );
-      } else {
-        const datastore = await getDatastore(client);
-        const result = new CountQueryRunner(
-          query,
-          datastore,
-          userDataWriter
-        ).run();
-        deferred.resolve(result);
-      }
-    } catch (e) {
-      deferred.reject(e as Error);
-    }
-  });
-  return deferred.promise;
-}
-
 async function readDocumentFromCache(
   localStore: LocalStore,
   docKey: DocumentKey,
@@ -587,8 +657,9 @@ function readDocumentViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver({
     next: (snap: ViewSnapshot) => {
-      // Remove query first before passing event to user to avoid
+      // Mute and remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
+      wrappedObserver.mute();
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );
@@ -660,7 +731,7 @@ async function executeQueryFromCache(
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const viewChange = view.applyChanges(
       viewDocChanges,
-      /* updateLimboDocuments= */ false
+      /* limboResolutionEnabled= */ false
     );
     result.resolve(viewChange.snapshot!);
   } catch (e) {
@@ -685,8 +756,9 @@ function executeQueryViaSnapshotListener(
 ): Promise<void> {
   const wrappedObserver = new AsyncObserver<ViewSnapshot>({
     next: snapshot => {
-      // Remove query first before passing event to user to avoid
+      // Mute and remove query first before passing event to user to avoid
       // user actions affecting the now stale query.
+      wrappedObserver.mute();
       asyncQueue.enqueueAndForget(() =>
         eventManagerUnlisten(eventManager, listener)
       );
@@ -747,4 +819,36 @@ function createBundleReader(
     content = data;
   }
   return newBundleReader(toByteStreamReader(content), serializer);
+}
+
+export function firestoreClientSetIndexConfiguration(
+  client: FirestoreClient,
+  indexes: FieldIndex[]
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreConfigureFieldIndexes(
+      await getLocalStore(client),
+      indexes
+    );
+  });
+}
+
+export function firestoreClientSetPersistentCacheIndexAutoCreationEnabled(
+  client: FirestoreClient,
+  isEnabled: boolean
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreSetIndexAutoCreationEnabled(
+      await getLocalStore(client),
+      isEnabled
+    );
+  });
+}
+
+export function firestoreClientDeleteAllFieldIndexes(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    return localStoreDeleteAllFieldIndexes(await getLocalStore(client));
+  });
 }

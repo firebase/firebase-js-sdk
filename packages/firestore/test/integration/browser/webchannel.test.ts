@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
-import { DEFAULT_PROJECT_ID } from '../util/settings';
+import { DEFAULT_PROJECT_ID, USE_EMULATOR } from '../util/settings';
 
 /* eslint-disable no-restricted-globals */
 
@@ -33,7 +33,13 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
-  it('receives error messages', done => {
+  // Test does not run on Emulator because emulator does not impose restriction
+  // on project id. This is likely because emulator does not require creation
+  // of project or database before using it. However, it might wrong for
+  // emulator to allow sharing the same stream across different projects and
+  // databases.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)('receives error messages', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();
     const conn = new WebChannelConnection(info);
@@ -57,6 +63,10 @@ describeFn('WebChannel', () => {
       }
     };
 
+    // Register an "onConnected" callback since it's required, even though we
+    // don't care about this event.
+    stream.onConnected(() => {});
+
     // Once the stream is open, send an "add_target" request
     stream.onOpen(() => {
       stream.send(payload);
@@ -64,9 +74,16 @@ describeFn('WebChannel', () => {
 
     // Wait until we receive data, then send a bad "addTarget" request, causing
     // the stream to be closed with an error. In this case, bad means having a
-    // different database ID.
+    // different project id.
     stream.onMessage(msg => {
       if (msg.targetChange) {
+        // Assertion will fail when additional targets are added. This works so
+        // long as backend target id counts up from 1. We expect the second
+        // target to be a bad payload. If this does not fail stream, then we
+        // might receive message that it was successfully added. The following
+        // assertion will catch failure to validate data on backend.
+        expect(msg.targetChange?.targetIds).to.not.include(2);
+
         payload.database = 'projects/some-other-project-id/databases/(default)';
         didSendBadPayload = true;
         stream.send(payload);

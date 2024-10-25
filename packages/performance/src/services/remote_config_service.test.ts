@@ -33,7 +33,7 @@ describe('Performance Monitoring > remote_config_service', () => {
   const LOG_URL = 'https://firebaselogging.test.com';
   const TRANSPORT_KEY = 'pseudo-transport-key';
   const LOG_SOURCE = 2;
-  const NETWORK_SAMPLIG_RATE = 0.25;
+  const NETWORK_SAMPLING_RATE = 0.25;
   const TRACE_SAMPLING_RATE = 0.5;
   const GLOBAL_CLOCK_NOW = 1556524895326;
   const STRINGIFIED_CONFIG = `{"entries":{"fpr_enabled":"true",\
@@ -88,7 +88,7 @@ describe('Performance Monitoring > remote_config_service', () => {
     fetchConfig?: { reject: boolean; value?: Response }
   ): {
     storageGetItemStub: SinonStub<[string], string | null>;
-    fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+    fetchStub: SinonStub<[RequestInfo | URL, RequestInit?], Promise<Response>>;
   } {
     const fetchStub = stub(self, 'fetch');
 
@@ -146,7 +146,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLIG_RATE);
+      ).to.equal(NETWORK_SAMPLING_RATE);
       expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
         TRACE_SAMPLING_RATE
       );
@@ -186,7 +186,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLIG_RATE);
+      ).to.equal(NETWORK_SAMPLING_RATE);
       expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
         TRACE_SAMPLING_RATE
       );
@@ -275,7 +275,7 @@ describe('Performance Monitoring > remote_config_service', () => {
       expect(SettingsService.getInstance().logSource).to.equal(LOG_SOURCE);
       expect(
         SettingsService.getInstance().networkRequestsSamplingRate
-      ).to.equal(NETWORK_SAMPLIG_RATE);
+      ).to.equal(NETWORK_SAMPLING_RATE);
       expect(SettingsService.getInstance().tracesSamplingRate).to.equal(
         TRACE_SAMPLING_RATE
       );

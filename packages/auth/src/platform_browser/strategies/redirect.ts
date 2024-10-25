@@ -25,7 +25,10 @@ import {
 
 import { _castAuth } from '../../core/auth/auth_impl';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
-import { _assertInstanceOf } from '../../core/util/assert';
+import {
+  _assertInstanceOf,
+  _serverAppCurrentUserOperationNotSupportedError
+} from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { AuthEventType } from '../../model/popup_redirect';
 import { UserInternal } from '../../model/user';
@@ -36,12 +39,18 @@ import {
 } from '../../core/strategies/redirect';
 import { FederatedAuthProvider } from '../../core/providers/federated';
 import { getModularInstance } from '@firebase/util';
+import { _isFirebaseServerApp } from '@firebase/app';
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow.
  *
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link signInWithRedirect}.
+ *
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -89,8 +98,17 @@ export async function _signInWithRedirect(
   provider: AuthProvider,
   resolver?: PopupRedirectResolver
 ): Promise<void | never> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   _assertInstanceOf(auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await authInternal._initializationPromise;
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   await _setPendingRedirectStatus(resolverInternal, authInternal);
 
@@ -103,6 +121,13 @@ export async function _signInWithRedirect(
 
 /**
  * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
+ * @remarks
+ * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link reauthenticateWithRedirect}.
+ *
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -113,8 +138,8 @@ export async function _signInWithRedirect(
  *
  * // After returning from the redirect when your app initializes you can obtain the result
  * const result = await getRedirectResult(auth);
- * // Link using a redirect.
- * await linkWithRedirect(result.user, provider);
+ * // Reauthenticate using a redirect.
+ * await reauthenticateWithRedirect(result.user, provider);
  * // This will again trigger a full page redirect away from your app
  *
  * // After returning from the redirect when your app initializes you can obtain the result
@@ -147,6 +172,15 @@ export async function _reauthenticateWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  if (_isFirebaseServerApp(userInternal.auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(userInternal.auth)
+    );
+  }
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _setPendingRedirectStatus(resolverInternal, userInternal.auth);
@@ -162,6 +196,13 @@ export async function _reauthenticateWithRedirect(
 
 /**
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
+ * @remarks
+ * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ * Follow the {@link https://firebase.google.com/docs/auth/web/redirect-best-practices
+ * | best practices} when using {@link linkWithRedirect}.
+ *
+ * This method does not work in a Node.js environment or with {@link Auth} instances
+ * created with a {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -182,7 +223,6 @@ export async function _reauthenticateWithRedirect(
  * @param resolver - An instance of {@link PopupRedirectResolver}, optional
  * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
- *
  * @public
  */
 export function linkWithRedirect(
@@ -199,6 +239,10 @@ export async function _linkWithRedirect(
 ): Promise<void | never> {
   const userInternal = getModularInstance(user) as UserInternal;
   _assertInstanceOf(userInternal.auth, provider, FederatedAuthProvider);
+  // Wait for auth initialization to complete, this will process pending redirects and clear the
+  // PENDING_REDIRECT_KEY in persistence. This should be completed before starting a new
+  // redirect and creating a PENDING_REDIRECT_KEY entry.
+  await userInternal.auth._initializationPromise;
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   await _assertLinkedStatus(false, userInternal, provider.providerId);
@@ -218,8 +262,10 @@ export async function _linkWithRedirect(
  *
  * @remarks
  * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
- * error. If no redirect operation was called, returns a {@link UserCredential}
- * with a null `user`.
+ * error. If no redirect operation was called, returns `null`.
+ *
+ * This method does not work in a Node.js environment or with {@link Auth} instances created with a
+ * {@link @firebase/app#FirebaseServerApp}.
  *
  * @example
  * ```javascript
@@ -265,6 +311,11 @@ export async function _getRedirectResult(
   resolverExtern?: PopupRedirectResolver,
   bypassAuthState = false
 ): Promise<UserCredential | null> {
+  if (_isFirebaseServerApp(auth.app)) {
+    return Promise.reject(
+      _serverAppCurrentUserOperationNotSupportedError(auth)
+    );
+  }
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);
   const action = new RedirectAction(authInternal, resolver, bypassAuthState);

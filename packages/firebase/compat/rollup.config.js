@@ -27,10 +27,14 @@ import json from '@rollup/plugin-json';
 import pkg from '../package.json';
 import compatPkg from './package.json';
 import appPkg from './app/package.json';
+import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file';
 
 const external = Object.keys(pkg.dependencies || {});
 const uglifyOptions = {
-  mangle: true,
+  mangle: {
+    // Hack for a bug in Closure regarding switch block scope
+    reserved: ['__PRIVATE_lastReasonableEscapeIndex']
+  },
   webkit: true // Necessary to avoid https://bugs.webkit.org/show_bug.cgi?id=223533
 };
 
@@ -92,7 +96,25 @@ const typescriptPluginCDN = rollupTypescriptPlugin({
  */
 const appBuilds = [
   /**
-   * App Browser Builds
+   * App ESM Build
+   * Uses "type:module" in package.json to signal this is ESM.
+   * Allows the extension to remain '.js' as some tools do not recognize
+   * '.mjs'.
+   */
+  {
+    input: `${__dirname}/app/index.ts`,
+    output: [
+      {
+        file: resolve(__dirname, 'app', appPkg.browser),
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: [...plugins, typescriptPlugin, emitModulePackageFile()],
+    external: id => external.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
+   * App CJS/MJS Builds
    */
   {
     input: `${__dirname}/app/index.ts`,
@@ -104,11 +126,6 @@ const appBuilds = [
       },
       {
         file: resolve(__dirname, 'app', appPkg.main.replace('.cjs.js', '.mjs')),
-        format: 'es',
-        sourcemap: true
-      },
-      {
-        file: resolve(__dirname, 'app', appPkg.browser),
         format: 'es',
         sourcemap: true
       }
@@ -137,6 +154,28 @@ const componentBuilds = compatPkg.components
   .map(component => {
     const pkg = require(`${__dirname}/${component}/package.json`);
     return [
+      /**
+       * Component ESM build
+       * Uses "type:module" in package.json to signal this is ESM.
+       * Allows the extension to remain '.js' as some tools do not recognize
+       * '.mjs'.
+       */
+      {
+        input: `${__dirname}/${component}/index.ts`,
+        output: [
+          {
+            file: resolve(__dirname, component, pkg.browser),
+            format: 'es',
+            sourcemap: true
+          }
+        ],
+        plugins: [...plugins, typescriptPlugin, emitModulePackageFile()],
+        external: id =>
+          external.some(dep => id === dep || id.startsWith(`${dep}/`))
+      },
+      /**
+       * Component CJS/MJS builds
+       */
       {
         input: `${__dirname}/${component}/index.ts`,
         output: [
@@ -164,6 +203,9 @@ const componentBuilds = compatPkg.components
         external: id =>
           external.some(dep => id === dep || id.startsWith(`${dep}/`))
       },
+      /**
+       * Component UMD build
+       */
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
@@ -242,43 +284,16 @@ const completeBuilds = [
     },
     plugins: [
       sourcemaps(),
-      resolveModule({
-        exportConditions: ['liteesm5', 'esm5']
-      }),
-      typescriptPluginCDN,
-      json(),
-      commonjs(),
-      uglify(uglifyOptions)
-    ]
-  },
-  /**
-   * Performance script Build in ES2017
-   */
-  {
-    input: `${__dirname}/index.perf.ts`,
-    output: {
-      file: 'firebase-performance-standalone-compat.es2017.js',
-      format: 'umd',
-      sourcemap: true,
-      name: GLOBAL_NAME
-    },
-    plugins: [
-      sourcemaps(),
-      resolveModule({
-        exportConditions: ['lite']
-      }),
+      resolveModule({ exportConditions: ['lite'] }),
       rollupTypescriptPlugin({
         typescript,
         tsconfigOverride: {
           compilerOptions: {
-            target: 'es2017',
             declaration: false
           }
         }
       }),
-      json({
-        preferConst: true
-      }),
+      json({ preferConst: true }),
       commonjs(),
       terser()
     ]

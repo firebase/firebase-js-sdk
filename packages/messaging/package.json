@@ -1,27 +1,24 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.9.16",
+  "version": "0.12.13",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "sw": "dist/index.sw.esm2017.js",
+  "sw": "dist/esm/index.sw.esm2017.js",
   "sw-main": "dist/index.sw.cjs",
-  "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
-      "node": "./dist/index.cjs.js",
-      "browser": "./dist/esm/index.esm2017.js",
+      "require": "./dist/index.cjs.js",
       "module": "./dist/esm/index.esm2017.js",
-      "esm5": "./dist/esm/index.esm.js",
-      "default": "./dist/index.cjs.js"
+      "default": "./dist/esm/index.esm2017.js"
     },
     "./sw": {
       "types": "./dist/sw/index-public.d.ts",
-      "node": "./dist/index.sw.cjs",
-      "default": "./dist/index.sw.esm2017.js"
+      "require": "./dist/index.sw.cjs",
+      "default": "./dist/esm/index.sw.esm2017.js"
     },
     "./package.json": "./package.json"
   },
@@ -37,16 +34,17 @@
     "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
     "build:release": "yarn build && yarn typings:public",
     "dev": "rollup -c -w",
-    "test": "run-p test:karma type-check lint ",
-    "test:integration": "run-p test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
+    "test": "run-p --npm-path npm test:karma type-check lint ",
+    "test:integration": "run-p --npm-path npm test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:karma": "karma start --single-run",
+    "test:karma": "karma start",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "api-report": "yarn api-report:main && yarn api-report:sw && yarn api-report:api-json",
     "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
     "api-report:sw": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package messaging-sw --packageRoot . --typescriptDts ./dist/src/index.sw.d.ts --rollupDts ./dist/sw/private.d.ts --untrimmedRollupDts ./dist/sw/internal.d.ts --publicDts ./dist/sw/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
   },
   "license": "Apache-2.0",
@@ -54,25 +52,25 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.5.12",
-    "@firebase/messaging-interop-types": "0.1.0",
-    "@firebase/util": "1.6.3",
-    "@firebase/component": "0.5.17",
-    "idb": "7.0.1",
+    "@firebase/installations": "0.6.10",
+    "@firebase/messaging-interop-types": "0.2.2",
+    "@firebase/util": "1.10.1",
+    "@firebase/component": "0.6.10",
+    "idb": "7.1.1",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.7.33",
-    "rollup": "2.72.1",
+    "@firebase/app": "0.10.15",
+    "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
     "@rollup/plugin-json": "4.1.0",
-    "ts-essentials": "9.1.2",
-    "typescript": "4.2.2"
+    "ts-essentials": "10.0.2",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/messaging",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

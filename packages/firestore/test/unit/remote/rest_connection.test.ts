@@ -21,6 +21,7 @@ import { AppCheckToken, OAuthToken, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SDK_VERSION } from '../../../src/core/version';
+import { ResourcePath } from '../../../src/model/path';
 import { Stream } from '../../../src/remote/connection';
 import { RestConnection } from '../../../src/remote/rest_connection';
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -65,6 +66,7 @@ describe('RestConnection', () => {
     /*ssl=*/ false,
     /*forceLongPolling=*/ false,
     /*autoDetectLongPolling=*/ false,
+    /*longPollingOptions=*/ {},
     /*useFetchStreams=*/ false
   );
   const connection = new TestRestConnection(testDatabaseInfo);
@@ -72,7 +74,9 @@ describe('RestConnection', () => {
   it('url uses from path', async () => {
     await connection.invokeRPC(
       'Commit',
-      'projects/testproject/databases/(default)/documents',
+      new ResourcePath(
+        'projects/testproject/databases/(default)/documents'.split('/')
+      ),
       {},
       null,
       null
@@ -85,7 +89,9 @@ describe('RestConnection', () => {
   it('merges headers', async () => {
     await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/foo',
+      new ResourcePath(
+        'projects/testproject/databases/(default)/documents/foo'.split('/')
+      ),
       {},
       new OAuthToken('owner', User.UNAUTHENTICATED),
       new AppCheckToken('some-app-check-token')
@@ -95,14 +101,18 @@ describe('RestConnection', () => {
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
-      'x-firebase-appcheck': 'some-app-check-token'
+      'x-firebase-appcheck': 'some-app-check-token',
+      'x-goog-request-params': 'project_id=testproject',
+      'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
     });
   });
 
   it('empty app check token is not added to headers', async () => {
     await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/foo',
+      new ResourcePath(
+        'projects/testproject/databases/(default)/documents/foo'.split('/')
+      ),
       {},
       null,
       new AppCheckToken('')
@@ -110,7 +120,9 @@ describe('RestConnection', () => {
     expect(connection.lastHeaders).to.deep.equal({
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
-      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
+      'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
+      'x-goog-request-params': 'project_id=testproject',
+      'google-cloud-resource-prefix': 'projects/testproject/databases/(default)'
       // Note: AppCheck token should not exist here.
     });
   });
@@ -119,7 +131,9 @@ describe('RestConnection', () => {
     connection.nextResponse = Promise.resolve({ response: true });
     const response = await connection.invokeRPC(
       'RunQuery',
-      'projects/testproject/databases/(default)/documents/coll',
+      new ResourcePath(
+        'projects/testproject/databases/(default)/documents/coll'.split('/')
+      ),
       {},
       null,
       null
@@ -133,7 +147,9 @@ describe('RestConnection', () => {
     return expect(
       connection.invokeRPC(
         'RunQuery',
-        'projects/testproject/databases/(default)/documents/coll',
+        new ResourcePath(
+          'projects/testproject/databases/(default)/documents/coll'.split('/')
+        ),
         {},
         null,
         null

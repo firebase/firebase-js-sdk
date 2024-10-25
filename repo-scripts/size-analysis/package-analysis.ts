@@ -31,7 +31,7 @@ const projectRoot = dirname(resolve(__dirname, '../../package.json'));
 /**
  * Support Command Line Options
  * -- inputModule (optional) : can be left unspecified which results in running analysis on all exp modules.
- *            can specify one to many module names seperated by space.
+ *            can specify one to many module names separated by space.
  *            eg: --inputModule "@firebase/functions-exp" "firebase/auth-exp"
  *
  * -- inputDtsFile (optional) : adhoc support. Specify a path to dts file. Must enable -- inputBundleFile if this flag is specified.
@@ -118,10 +118,10 @@ export async function analyzePackageSize(
 }
 
 function mapWorkspaceToPackages(workspaces: string[]): Promise<string[]> {
-  return Promise.all<string[]>(
-    workspaces.map(
+  return Promise.all<Promise<string[]>>(
+    workspaces.map<Promise<string[]>>(
       workspace =>
-        new Promise(resolve => {
+        new Promise<string[]>(resolve => {
           glob(workspace, (err, paths) => {
             if (err) {
               throw err;

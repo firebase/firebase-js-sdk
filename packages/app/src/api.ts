@@ -17,8 +17,10 @@
 
 import {
   FirebaseApp,
+  FirebaseServerApp,
   FirebaseOptions,
-  FirebaseAppSettings
+  FirebaseAppSettings,
+  FirebaseServerAppSettings
 } from './public-types';
 import { DEFAULT_ENTRY_NAME, PLATFORM_LOG_STRING } from './constants';
 import { ERROR_FACTORY, AppError } from './errors';
@@ -30,7 +32,14 @@ import {
 } from '@firebase/component';
 import { version } from '../../firebase/package.json';
 import { FirebaseAppImpl } from './firebaseApp';
-import { _apps, _components, _registerComponent } from './internal';
+import { FirebaseServerAppImpl } from './firebaseServerApp';
+import {
+  _apps,
+  _components,
+  _isFirebaseApp,
+  _registerComponent,
+  _serverApps
+} from './internal';
 import { logger } from './logger';
 import {
   LogLevelString,
@@ -39,7 +48,12 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
-import { deepEqual, getDefaultAppConfig } from '@firebase/util';
+import {
+  deepEqual,
+  getDefaultAppConfig,
+  isBrowser,
+  isWebWorker
+} from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
 
@@ -172,6 +186,126 @@ export function initializeApp(
 }
 
 /**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance.
+ *
+ * The `FirebaseServerApp` is similar to `FirebaseApp`, but is intended for execution in
+ * server side rendering environments only. Initialization will fail if invoked from a
+ * browser environment.
+ *
+ * See
+ * {@link
+ *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
+ *   | Add Firebase to your app} and
+ * {@link
+ *   https://firebase.google.com/docs/web/setup#multiple-projects
+ *   | Initialize multiple projects} for detailed documentation.
+ *
+ * @example
+ * ```javascript
+ *
+ * // Initialize an instance of `FirebaseServerApp`.
+ * // Retrieve your own options values by adding a web app on
+ * // https://console.firebase.google.com
+ * initializeServerApp({
+ *     apiKey: "AIza....",                             // Auth / General Use
+ *     authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
+ *     databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
+ *     storageBucket: "YOUR_APP.appspot.com",          // Storage
+ *     messagingSenderId: "123456789"                  // Cloud Messaging
+ *   },
+ *   {
+ *    authIdToken: "Your Auth ID Token"
+ *   });
+ * ```
+ *
+ * @param options - `Firebase.AppOptions` to configure the app's services, or a
+ *   a `FirebaseApp` instance which contains the `AppOptions` within.
+ * @param config - `FirebaseServerApp` configuration.
+ *
+ * @returns The initialized `FirebaseServerApp`.
+ *
+ * @public
+ */
+export function initializeServerApp(
+  options: FirebaseOptions | FirebaseApp,
+  config: FirebaseServerAppSettings
+): FirebaseServerApp;
+
+export function initializeServerApp(
+  _options: FirebaseOptions | FirebaseApp,
+  _serverAppConfig: FirebaseServerAppSettings
+): FirebaseServerApp {
+  if (isBrowser() && !isWebWorker()) {
+    // FirebaseServerApp isn't designed to be run in browsers.
+    throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_ENVIRONMENT);
+  }
+
+  if (_serverAppConfig.automaticDataCollectionEnabled === undefined) {
+    _serverAppConfig.automaticDataCollectionEnabled = false;
+  }
+
+  let appOptions: FirebaseOptions;
+  if (_isFirebaseApp(_options)) {
+    appOptions = _options.options;
+  } else {
+    appOptions = _options;
+  }
+
+  // Build an app name based on a hash of the configuration options.
+  const nameObj = {
+    ..._serverAppConfig,
+    ...appOptions
+  };
+
+  // However, Do not mangle the name based on releaseOnDeref, since it will vary between the
+  // construction of FirebaseServerApp instances. For example, if the object is the request headers.
+  if (nameObj.releaseOnDeref !== undefined) {
+    delete nameObj.releaseOnDeref;
+  }
+
+  const hashCode = (s: string): number => {
+    return [...s].reduce(
+      (hash, c) => (Math.imul(31, hash) + c.charCodeAt(0)) | 0,
+      0
+    );
+  };
+
+  if (_serverAppConfig.releaseOnDeref !== undefined) {
+    if (typeof FinalizationRegistry === 'undefined') {
+      throw ERROR_FACTORY.create(
+        AppError.FINALIZATION_REGISTRY_NOT_SUPPORTED,
+        {}
+      );
+    }
+  }
+
+  const nameString = '' + hashCode(JSON.stringify(nameObj));
+  const existingApp = _serverApps.get(nameString) as FirebaseServerApp;
+  if (existingApp) {
+    (existingApp as FirebaseServerAppImpl).incRefCount(
+      _serverAppConfig.releaseOnDeref
+    );
+    return existingApp;
+  }
+
+  const container = new ComponentContainer(nameString);
+  for (const component of _components.values()) {
+    container.addComponent(component);
+  }
+
+  const newApp = new FirebaseServerAppImpl(
+    appOptions,
+    _serverAppConfig,
+    nameString,
+    container
+  );
+
+  _serverApps.set(nameString, newApp);
+
+  return newApp;
+}
+
+/**
  * Retrieves a {@link @firebase/app#FirebaseApp} instance.
  *
  * When called with no arguments, the default app is returned. When an app name
@@ -202,7 +336,7 @@ export function initializeApp(
  */
 export function getApp(name: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   const app = _apps.get(name);
-  if (!app && name === DEFAULT_ENTRY_NAME) {
+  if (!app && name === DEFAULT_ENTRY_NAME && getDefaultAppConfig()) {
     return initializeApp();
   }
   if (!app) {
@@ -238,9 +372,20 @@ export function getApps(): FirebaseApp[] {
  * @public
  */
 export async function deleteApp(app: FirebaseApp): Promise<void> {
+  let cleanupProviders = false;
   const name = app.name;
   if (_apps.has(name)) {
+    cleanupProviders = true;
     _apps.delete(name);
+  } else if (_serverApps.has(name)) {
+    const firebaseServerApp = app as FirebaseServerAppImpl;
+    if (firebaseServerApp.decRefCount() <= 0) {
+      _serverApps.delete(name);
+      cleanupProviders = true;
+    }
+  }
+
+  if (cleanupProviders) {
     await Promise.all(
       (app as FirebaseAppImpl).container
         .getProviders()

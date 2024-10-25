@@ -376,7 +376,7 @@ export class DataSnapshot {
   }
 
   /**
-   * Enumerates the top-level children in the `DataSnapshot`.
+   * Enumerates the top-level children in the `IteratedDataSnapshot`.
    *
    * Because of the way JavaScript objects work, the ordering of data in the
    * JavaScript object returned by `val()` is not guaranteed to match the
@@ -393,7 +393,7 @@ export class DataSnapshot {
    * @returns true if enumeration was canceled due to your callback returning
    * true.
    */
-  forEach(action: (child: DataSnapshot) => boolean | void): boolean {
+  forEach(action: (child: IteratedDataSnapshot) => boolean | void): boolean {
     if (this._node.isLeafNode()) {
       return false;
     }
@@ -461,6 +461,13 @@ export class DataSnapshot {
   val(): any {
     return this._node.val();
   }
+}
+
+/**
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
+export interface IteratedDataSnapshot extends DataSnapshot {
+  key: string; // key of the location of this snapshot.
 }
 
 /**
@@ -578,8 +585,8 @@ export interface ThenableReferenceImpl
  * resulting list of items is chronologically sorted. The keys are also
  * designed to be unguessable (they contain 72 random bits of entropy).
  *
- * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}
- * </br>See {@link ttps://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}
+ * See {@link https://firebase.google.com/docs/database/web/lists-of-data#append_to_a_list_of_data | Append to a list of data}.
+ * See {@link https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html | The 2^120 Ways to Ensure Unique Identifiers}.
  *
  * @param parent - The parent location.
  * @param value - Optional value to be written at the generated location.
@@ -602,7 +609,7 @@ export function push(
   // then() and catch() methods and is used as the return value of push(). The
   // second remains a regular Reference and is used as the fulfilled value of
   // the first ThennableReference.
-  const thennablePushRef: Partial<ThenableReferenceImpl> = child(
+  const thenablePushRef: Partial<ThenableReferenceImpl> = child(
     parent,
     name
   ) as ReferenceImpl;
@@ -615,9 +622,9 @@ export function push(
     promise = Promise.resolve(pushRef);
   }
 
-  thennablePushRef.then = promise.then.bind(promise);
-  thennablePushRef.catch = promise.then.bind(promise, undefined);
-  return thennablePushRef as ThenableReferenceImpl;
+  thenablePushRef.then = promise.then.bind(promise);
+  thenablePushRef.catch = promise.then.bind(promise, undefined);
+  return thenablePushRef as ThenableReferenceImpl;
 }
 
 /**
@@ -1676,7 +1683,7 @@ export abstract class QueryConstraint {
 }
 
 class QueryEndAtConstraint extends QueryConstraint {
-  readonly type: 'endAt';
+  readonly type = 'endAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1741,7 +1748,7 @@ export function endAt(
 }
 
 class QueryEndBeforeConstraint extends QueryConstraint {
-  readonly type: 'endBefore';
+  readonly type = 'endBefore';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1782,8 +1789,8 @@ class QueryEndBeforeConstraint extends QueryConstraint {
  *
  * The ending point is exclusive. If only a value is provided, children
  * with a value less than the specified value will be included in the query.
- * If a key is specified, then children must have a value lesss than or equal
- * to the specified value and a a key name less than the specified key.
+ * If a key is specified, then children must have a value less than or equal
+ * to the specified value and a key name less than the specified key.
  *
  * @param value - The value to end before. The argument type depends on which
  * `orderBy*()` function was used in this query. Specify a value that matches
@@ -1802,7 +1809,7 @@ export function endBefore(
 }
 
 class QueryStartAtConstraint extends QueryConstraint {
-  readonly type: 'startAt';
+  readonly type = 'startAt';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1866,7 +1873,7 @@ export function startAt(
 }
 
 class QueryStartAfterConstraint extends QueryConstraint {
-  readonly type: 'startAfter';
+  readonly type = 'startAfter';
 
   constructor(
     private readonly _value: number | string | boolean | null,
@@ -1926,7 +1933,7 @@ export function startAfter(
 }
 
 class QueryLimitToFirstConstraint extends QueryConstraint {
-  readonly type: 'limitToFirst';
+  readonly type = 'limitToFirst';
 
   constructor(private readonly _limit: number) {
     super();
@@ -1974,7 +1981,7 @@ export function limitToFirst(limit: number): QueryConstraint {
 }
 
 class QueryLimitToLastConstraint extends QueryConstraint {
-  readonly type: 'limitToLast';
+  readonly type = 'limitToLast';
 
   constructor(private readonly _limit: number) {
     super();
@@ -2023,7 +2030,7 @@ export function limitToLast(limit: number): QueryConstraint {
 }
 
 class QueryOrderByChildConstraint extends QueryConstraint {
-  readonly type: 'orderByChild';
+  readonly type = 'orderByChild';
 
   constructor(private readonly _path: string) {
     super();
@@ -2086,7 +2093,7 @@ export function orderByChild(path: string): QueryConstraint {
 }
 
 class QueryOrderByKeyConstraint extends QueryConstraint {
-  readonly type: 'orderByKey';
+  readonly type = 'orderByKey';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByKey');
@@ -2114,7 +2121,7 @@ export function orderByKey(): QueryConstraint {
 }
 
 class QueryOrderByPriorityConstraint extends QueryConstraint {
-  readonly type: 'orderByPriority';
+  readonly type = 'orderByPriority';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByPriority');
@@ -2142,7 +2149,7 @@ export function orderByPriority(): QueryConstraint {
 }
 
 class QueryOrderByValueConstraint extends QueryConstraint {
-  readonly type: 'orderByValue';
+  readonly type = 'orderByValue';
 
   _apply<T>(query: QueryImpl): QueryImpl {
     validateNoPreviousOrderByCall(query, 'orderByValue');
@@ -2171,7 +2178,7 @@ export function orderByValue(): QueryConstraint {
 }
 
 class QueryEqualToValueConstraint extends QueryConstraint {
-  readonly type: 'equalTo';
+  readonly type = 'equalTo';
 
   constructor(
     private readonly _value: number | string | boolean | null,

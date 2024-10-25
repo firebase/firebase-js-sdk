@@ -23,7 +23,7 @@ import {
   onSnapshot,
   runTransaction
 } from './util/firebase_export';
-import { withTestDoc } from './util/helpers';
+import { MemoryEagerPersistenceMode, withTestDoc } from './util/helpers';
 
 // Firestore databases can be subject to a ~30s "cold start" delay if they have not been used
 // recently, so before any tests run we "prime" the backend.
@@ -35,7 +35,7 @@ before(
   function (): Promise<void> {
     this.timeout(PRIMING_TIMEOUT_MS);
 
-    return withTestDoc(/*persistence=*/ false, async (doc, db) => {
+    return withTestDoc(new MemoryEagerPersistenceMode(), async (doc, db) => {
       const accumulator = new EventsAccumulator<DocumentSnapshot>();
       const unsubscribe = onSnapshot(doc, accumulator.storeEvent);
 

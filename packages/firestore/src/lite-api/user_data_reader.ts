@@ -20,7 +20,7 @@ import {
   FieldPath as PublicFieldPath,
   SetOptions
 } from '@firebase/firestore-types';
-import { Compat, getModularInstance } from '@firebase/util';
+import { Compat, deepEqual, getModularInstance } from '@firebase/util';
 
 import { ParseContext } from '../api/parse_context';
 import { DatabaseId } from '../core/database_info';
@@ -41,12 +41,17 @@ import {
   NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
+import {
+  TYPE_KEY,
+  VECTOR_MAP_VECTORS_KEY,
+  VECTOR_VALUE_SENTINEL
+} from '../model/values';
 import { newSerializer } from '../platform/serializer';
 import {
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-import { toNumber } from '../remote/number_serializer';
+import { toDouble, toNumber } from '../remote/number_serializer';
 import {
   JsonProtoSerializer,
   toBytes,
@@ -69,6 +74,7 @@ import {
   WithFieldValue
 } from './reference';
 import { Timestamp } from './timestamp';
+import { VectorValue } from './vector_value';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -76,13 +82,18 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * An untyped Firestore Data Converter interface that is shared between the
  * lite, firestore-exp and classic SDK.
  */
-export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: WithFieldValue<T>): DocumentData;
+export interface UntypedFirestoreDataConverter<
+  AppModelType,
+  DbModelType extends DocumentData = DocumentData
+> {
   toFirestore(
-    modelObject: PartialWithFieldValue<T>,
+    modelObject: WithFieldValue<AppModelType>
+  ): WithFieldValue<DbModelType>;
+  toFirestore(
+    modelObject: PartialWithFieldValue<AppModelType>,
     options: SetOptions
-  ): DocumentData;
-  fromFirestore(snapshot: unknown, options?: unknown): T;
+  ): PartialWithFieldValue<DbModelType>;
+  fromFirestore(snapshot: unknown, options?: unknown): AppModelType;
 }
 
 /** The result of parsing document data (e.g. for a setData call). */
@@ -520,13 +531,15 @@ export class ArrayUnionFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayUnionFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValue {
-  constructor(methodName: string, readonly _elements: unknown[]) {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
 
@@ -544,8 +557,10 @@ export class ArrayRemoveFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof ArrayRemoveFieldValueImpl &&
+      deepEqual(this._elements, other._elements)
+    );
   }
 }
 
@@ -563,8 +578,10 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    // TODO(mrschmidt): Implement isEquals
-    return this === other;
+    return (
+      other instanceof NumericIncrementFieldValueImpl &&
+      this._operand === other._operand
+    );
   }
 }
 
@@ -890,11 +907,44 @@ function parseScalarValue(
         value._key.path
       )
     };
+  } else if (value instanceof VectorValue) {
+    return parseVectorValue(value, context);
   } else {
     throw context.createError(
       `Unsupported field value: ${valueDescription(value)}`
     );
   }
+}
+
+/**
+ * Creates a new VectorValue proto value (using the internal format).
+ */
+export function parseVectorValue(
+  value: VectorValue,
+  context: ParseContextImpl
+): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [TYPE_KEY]: {
+        stringValue: VECTOR_VALUE_SENTINEL
+      },
+      [VECTOR_MAP_VECTORS_KEY]: {
+        arrayValue: {
+          values: value.toArray().map(value => {
+            if (typeof value !== 'number') {
+              throw context.createError(
+                'VectorValues must only contain numeric values.'
+              );
+            }
+
+            return toDouble(context.serializer, value);
+          })
+        }
+      }
+    }
+  };
+
+  return { mapValue };
 }
 
 /**
@@ -914,7 +964,8 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof GeoPoint) &&
     !(input instanceof Bytes) &&
     !(input instanceof DocumentReference) &&
-    !(input instanceof FieldValue)
+    !(input instanceof FieldValue) &&
+    !(input instanceof VectorValue)
   );
 }
 
@@ -942,7 +993,7 @@ export function fieldPathFromArgument(
   path: string | PublicFieldPath | Compat<PublicFieldPath>,
   targetDoc?: DocumentKey
 ): InternalFieldPath {
-  // If required, replace the FieldPath Compat class with with the firestore-exp
+  // If required, replace the FieldPath Compat class with the firestore-exp
   // FieldPath.
   path = getModularInstance(path);
 

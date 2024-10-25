@@ -140,7 +140,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       filter('sort', '>=', 2),
       orderBy('sort')
     );
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query1)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -157,7 +160,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
 
   it('returns saved collection group queries', async () => {
     const query = newQueryForCollectionGroup('collection');
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -179,7 +185,10 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       3,
       LimitType.First
     );
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(query1)
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -202,14 +211,14 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
       LimitType.Last
     );
     // Simulating bundle building for limit-to-last queries from the server
-    // SDKs: they save the equivelent limit-to-first queries with a limitType
+    // SDKs: they save the equivalent limit-to-first queries with a limitType
     // value 'LAST'. Client SDKs should apply a withLimitToLast when they see
     // limitType 'LAST' from bundles.
     const limitQuery = queryWithLimit(query1, 3, LimitType.First);
     const queryTarget = toQueryTarget(
       JSON_SERIALIZER,
       queryToTarget(limitQuery)
-    );
+    ).queryTarget;
 
     await cache.setNamedQuery({
       name: 'query-1',

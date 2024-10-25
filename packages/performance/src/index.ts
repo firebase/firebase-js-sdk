@@ -1,5 +1,6 @@
 /**
- * Firebase Performance Monitoring
+ * The Firebase Performance Monitoring Web SDK.
+ * This SDK does not work in a Node.js environment.
  *
  * @packageDocumentation
  */
@@ -136,7 +137,7 @@ function registerPerformance(): void {
     new Component('performance', factory, ComponentType.PUBLIC)
   );
   registerVersion(name, version);
-  // BUILD_TARGET will be replaced by values like esm5, esm2017, cjs5, etc during the compilation
+  // BUILD_TARGET will be replaced by values like esm2017, cjs2017, etc during the compilation
   registerVersion(name, version, '__BUILD_TARGET__');
 }
 

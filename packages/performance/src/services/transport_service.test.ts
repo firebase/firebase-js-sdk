@@ -28,7 +28,10 @@ import { SettingsService } from './settings_service';
 use(sinonChai);
 
 describe('Firebase Performance > transport_service', () => {
-  let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+  let fetchStub: SinonStub<
+    [RequestInfo | URL, RequestInit?],
+    Promise<Response>
+  >;
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
@@ -83,7 +86,7 @@ describe('Firebase Performance > transport_service', () => {
     expect(fetchStub).to.have.been.calledOnce;
   });
 
-  it('successful send a meesage to transport', () => {
+  it('successful send a message to transport', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;

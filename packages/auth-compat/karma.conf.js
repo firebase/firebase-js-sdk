@@ -16,6 +16,7 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const webpackBase = require('../../config/webpack.test');
 const { argv } = require('yargs');
 
 const files = ['src/**/*.test.ts'];
@@ -29,7 +30,6 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-
     client: Object.assign({}, karmaBase.client, getClientConfig())
   });
 

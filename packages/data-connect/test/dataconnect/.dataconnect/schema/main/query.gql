@@ -1,0 +1,4 @@
+extend type Query {
+  movie(id: String, id_expr: String_Expr, key: Movie_Key): Movie
+  movies(where: Movie_Filter, orderBy: [Movie_Order!], limit: Int = 100): [Movie!]
+}

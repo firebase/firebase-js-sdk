@@ -36,7 +36,7 @@ export {
 // Core functionality shared by all clients
 export * from './src';
 
-// Additional DOM dependend functionality; we need to import and then
+// Additional DOM dependent functionality; we need to import and then
 // export separately so that the rollup alias will work (for aliasing these
 // imports in node environments to no-ops and errors... see
 // src/platform_node/index.ts).
@@ -73,6 +73,10 @@ import { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 
 // MFA
 import { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
+import {
+  TotpMultiFactorGenerator,
+  TotpSecret
+} from './src/mfa/assertions/totp';
 
 // Initialization and registration of Auth
 import { getAuth } from './src/platform_browser';
@@ -96,5 +100,7 @@ export {
   RecaptchaVerifier,
   browserPopupRedirectResolver,
   PhoneMultiFactorGenerator,
+  TotpMultiFactorGenerator,
+  TotpSecret,
   getAuth
 };

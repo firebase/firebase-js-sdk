@@ -2,6 +2,7 @@
   "name": "@firebase/changelog-generator",
   "version": "0.1.0",
   "private": true,
+  "type": "commonjs",
   "description": "A package for generating changelog",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -17,18 +18,17 @@
   },
   "dependencies": {
     "@changesets/types": "3.3.0",
-    "@changesets/get-github-info": "0.5.0",
-    "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.1"
+    "@changesets/get-github-info": "0.5.2",
+    "@types/node": "18.19.57"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "4.2.2"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "repo-scripts/changelog-generator",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
@@ -38,5 +38,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

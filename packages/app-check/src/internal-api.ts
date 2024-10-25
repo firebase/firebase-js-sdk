@@ -23,7 +23,7 @@ import {
   ListenerType
 } from './types';
 import { AppCheckTokenListener } from './public-types';
-import { getState, setState } from './state';
+import { getStateReference } from './state';
 import { TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
 import { ensureActivated } from './util';
@@ -65,7 +65,7 @@ export async function getToken(
   const app = appCheck.app;
   ensureActivated(app);
 
-  const state = getState(app);
+  const state = getStateReference(app);
 
   /**
    * First check if there is a token in memory from a previous `getToken()` call.
@@ -78,7 +78,7 @@ export async function getToken(
    * memory and unset the local variable `token`.
    */
   if (token && !isValid(token)) {
-    setState(app, { ...state, token: undefined });
+    state.token = undefined;
     token = undefined;
   }
 
@@ -132,7 +132,7 @@ export async function getToken(
     // Write debug token to indexedDB.
     await writeTokenToStorage(app, tokenFromDebugExchange);
     // Write debug token to state.
-    setState(app, { ...state, token: tokenFromDebugExchange });
+    state.token = tokenFromDebugExchange;
     return { token: tokenFromDebugExchange.token };
   }
 
@@ -153,7 +153,7 @@ export async function getToken(
       });
       shouldCallListeners = true;
     }
-    token = await state.exchangeTokenPromise;
+    token = await getStateReference(app).exchangeTokenPromise;
   } catch (e) {
     if ((e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}`) {
       // Warn if throttled, but do not treat it as an error.
@@ -195,7 +195,7 @@ export async function getToken(
     };
     // write the new token to the memory state as well as the persistent storage.
     // Only do it if we got a valid new token
-    setState(app, { ...state, token });
+    state.token = token;
     await writeTokenToStorage(app, token);
   }
 
@@ -205,6 +205,32 @@ export async function getToken(
   return interopTokenResult;
 }
 
+/**
+ * Internal API for limited use tokens. Skips all FAC state and simply calls
+ * the underlying provider.
+ */
+export async function getLimitedUseToken(
+  appCheck: AppCheckService
+): Promise<AppCheckTokenResult> {
+  const app = appCheck.app;
+  ensureActivated(app);
+
+  const { provider } = getStateReference(app);
+
+  if (isDebugMode()) {
+    const debugToken = await getDebugToken();
+    const { token } = await exchangeToken(
+      getExchangeDebugTokenRequest(app, debugToken),
+      appCheck.heartbeatServiceProvider
+    );
+    return { token };
+  } else {
+    // provider is definitely valid since we ensure AppCheck was activated
+    const { token } = await provider!.getToken();
+    return { token };
+  }
+}
+
 export function addTokenListener(
   appCheck: AppCheckService,
   type: ListenerType,
@@ -212,16 +238,13 @@ export function addTokenListener(
   onError?: (error: Error) => void
 ): void {
   const { app } = appCheck;
-  const state = getState(app);
+  const state = getStateReference(app);
   const tokenObserver: AppCheckTokenObserver = {
     next: listener,
     error: onError,
     type
   };
-  setState(app, {
-    ...state,
-    tokenObservers: [...state.tokenObservers, tokenObserver]
-  });
+  state.tokenObservers = [...state.tokenObservers, tokenObserver];
 
   // Invoke the listener async immediately if there is a valid token
   // in memory.
@@ -255,7 +278,7 @@ export function removeTokenListener(
   app: FirebaseApp,
   listener: AppCheckTokenListener
 ): void {
-  const state = getState(app);
+  const state = getStateReference(app);
 
   const newObservers = state.tokenObservers.filter(
     tokenObserver => tokenObserver.next !== listener
@@ -268,10 +291,7 @@ export function removeTokenListener(
     state.tokenRefresher.stop();
   }
 
-  setState(app, {
-    ...state,
-    tokenObservers: newObservers
-  });
+  state.tokenObservers = newObservers;
 }
 
 /**
@@ -279,13 +299,13 @@ export function removeTokenListener(
  */
 function initTokenRefresher(appCheck: AppCheckService): void {
   const { app } = appCheck;
-  const state = getState(app);
+  const state = getStateReference(app);
   // Create the refresher but don't start it if `isTokenAutoRefreshEnabled`
   // is not true.
   let refresher: Refresher | undefined = state.tokenRefresher;
   if (!refresher) {
     refresher = createTokenRefresher(appCheck);
-    setState(app, { ...state, tokenRefresher: refresher });
+    state.tokenRefresher = refresher;
   }
   if (!refresher.isRunning() && state.isTokenAutoRefreshEnabled) {
     refresher.start();
@@ -298,7 +318,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
     // Keep in mind when this fails for any reason other than the ones
     // for which we should retry, it will effectively stop the proactive refresh.
     async () => {
-      const state = getState(app);
+      const state = getStateReference(app);
       // If there is no token, we will try to load it from storage and use it
       // If there is a token, we force refresh it because we know it's going to expire soon
       let result;
@@ -331,7 +351,7 @@ function createTokenRefresher(appCheck: AppCheckService): Refresher {
       return true;
     },
     () => {
-      const state = getState(app);
+      const state = getStateReference(app);
 
       if (state.token) {
         // issuedAtTime + (50% * total TTL) + 5 minutes
@@ -361,7 +381,7 @@ export function notifyTokenListeners(
   app: FirebaseApp,
   token: AppCheckTokenResult
 ): void {
-  const observers = getState(app).tokenObservers;
+  const observers = getStateReference(app).tokenObservers;
 
   for (const observer of observers) {
     try {

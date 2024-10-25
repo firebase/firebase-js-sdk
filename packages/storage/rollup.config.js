@@ -41,22 +41,9 @@ const deps = Object.keys(
 
 const nodeDeps = [...deps, 'util'];
 
-const es5Plugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false
-  }),
-  json()
-];
-
-const es2017Plugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    },
     abortOnError: false
   }),
   json({ preferConst: true })
@@ -65,12 +52,16 @@ const es2017Plugins = [
 const browserBuilds = [
   {
     input: './src/index.ts',
-    output: { file: pkg.esm5, format: 'es', sourcemap: true },
+    output: {
+      file: pkg.browser,
+      format: 'es',
+      sourcemap: true
+    },
     plugins: [
       alias(generateAliasConfig('browser')),
-      ...es5Plugins,
+      ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 5),
+        ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -82,15 +73,15 @@ const browserBuilds = [
   {
     input: './src/index.ts',
     output: {
-      file: pkg.browser,
-      format: 'es',
+      file: './dist/index.cjs.js',
+      format: 'cjs',
       sourcemap: true
     },
     plugins: [
       alias(generateAliasConfig('browser')),
-      ...es2017Plugins,
+      ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -107,9 +98,9 @@ const browserBuilds = [
     ],
     plugins: [
       alias(generateAliasConfig('browser')),
-      ...es5Plugins,
+      ...buildPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('cjs', 5),
+        ...generateBuildTargetReplaceConfig('cjs', 2017),
         '__RUNTIME_ENV__': ''
       })
     ],
@@ -130,7 +121,7 @@ const nodeBuilds = [
     },
     plugins: [
       alias(generateAliasConfig('node')),
-      ...es2017Plugins,
+      ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 2017),
         '__RUNTIME_ENV__': 'node'
@@ -151,7 +142,7 @@ const nodeBuilds = [
     },
     plugins: [
       alias(generateAliasConfig('node')),
-      ...es2017Plugins,
+      ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': 'node'

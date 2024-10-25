@@ -1,17 +1,15 @@
 {
   "name": "@firebase/analytics-compat",
-  "version": "0.1.13",
+  "version": "0.2.15",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -24,16 +22,16 @@
     "@firebase/app-compat": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.1.34",
-    "rollup": "2.72.1",
+    "@firebase/app-compat": "0.2.45",
+    "rollup": "2.79.1",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.2.2"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/analytics-compat",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk.git"
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
@@ -45,18 +43,19 @@
     "build:deps": "lerna run --scope @firebase/analytics-compat --include-dependencies build",
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser",
+    "test": "run-p --npm-path npm lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
-    "test:browser": "karma start --single-run",
+    "test:browser": "karma start",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../analytics/dist/analytics-public.d.ts -o dist/src/index.d.ts -a -r Analytics:FirebaseAnalytics -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/analytics"
   },
   "typings": "dist/src/index.d.ts",
   "dependencies": {
-    "@firebase/component": "0.5.17",
-    "@firebase/analytics": "0.8.0",
-    "@firebase/analytics-types": "0.7.0",
-    "@firebase/util": "1.6.3",
+    "@firebase/component": "0.6.10",
+    "@firebase/analytics": "0.10.9",
+    "@firebase/analytics-types": "0.8.2",
+    "@firebase/util": "1.10.1",
     "tslib": "^2.1.0"
   },
   "nyc": {

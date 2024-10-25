@@ -126,6 +126,11 @@ const enum PersistentStreamState {
  */
 export interface PersistentStreamListener {
   /**
+   * Called after receiving an acknowledgement from the server, confirming that
+   * we are able to connect to it.
+   */
+  onConnected: () => Promise<void>;
+  /**
    * Called after the stream was established and can accept outgoing
    * messages
    */
@@ -208,6 +213,11 @@ export abstract class PersistentStream<
   }
 
   /**
+   * Count of response messages received.
+   */
+  protected responseCount: number = 0;
+
+  /**
    * Returns true if start() has been called and no error has occurred. True
    * indicates the stream is open or in the process of opening (which
    * encompasses respecting backoff, getting auth tokens, and starting the
@@ -241,6 +251,7 @@ export abstract class PersistentStream<
    * When start returns, isStarted() will return true.
    */
   start(): void {
+    this.responseCount = 0;
     if (this.state === PersistentStreamState.Error) {
       this.performBackoff();
       return;
@@ -424,11 +435,18 @@ export abstract class PersistentStream<
   ): Stream<SendType, ReceiveType>;
 
   /**
-   * Called after the stream has received a message. The function will be
-   * called on the right queue and must return a Promise.
+   * Called when the stream receives first message.
+   * The function will be called on the right queue and must return a Promise.
    * @param message - The message received from the stream.
    */
-  protected abstract onMessage(message: ReceiveType): Promise<void>;
+  protected abstract onFirst(message: ReceiveType): Promise<void>;
+
+  /**
+   * Called on subsequent messages after the stream has received first message.
+   * The function will be called on the right queue and must return a Promise.
+   * @param message - The message received from the stream.
+   */
+  protected abstract onNext(message: ReceiveType): Promise<void>;
 
   private auth(): void {
     debugAssert(
@@ -483,6 +501,9 @@ export abstract class PersistentStream<
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
     this.stream = this.startRpc(authToken, appCheckToken);
+    this.stream.onConnected(() => {
+      dispatchIfNotClosed(() => this.listener!.onConnected());
+    });
     this.stream.onOpen(() => {
       dispatchIfNotClosed(() => {
         debugAssert(
@@ -514,7 +535,11 @@ export abstract class PersistentStream<
     });
     this.stream.onMessage((msg: ReceiveType) => {
       dispatchIfNotClosed(() => {
-        return this.onMessage(msg);
+        if (++this.responseCount === 1) {
+          return this.onFirst(msg);
+        } else {
+          return this.onNext(msg);
+        }
       });
     });
   }
@@ -635,7 +660,11 @@ export class PersistentListenStream extends PersistentStream<
     );
   }
 
-  protected onMessage(watchChangeProto: ProtoListenResponse): Promise<void> {
+  protected onFirst(watchChangeProto: ProtoListenResponse): Promise<void> {
+    return this.onNext(watchChangeProto);
+  }
+
+  protected onNext(watchChangeProto: ProtoListenResponse): Promise<void> {
     // A successful response means the stream is healthy
     this.backoff.reset();
 
@@ -715,8 +744,6 @@ export class PersistentWriteStream extends PersistentStream<
   ProtoWriteResponse,
   WriteStreamListener
 > {
-  private handshakeComplete_ = false;
-
   constructor(
     queue: AsyncQueue,
     connection: Connection,
@@ -752,18 +779,17 @@ export class PersistentWriteStream extends PersistentStream<
    * the stream is ready to accept mutations.
    */
   get handshakeComplete(): boolean {
-    return this.handshakeComplete_;
+    return this.responseCount > 0;
   }
 
   // Override of PersistentStream.start
   start(): void {
-    this.handshakeComplete_ = false;
     this.lastStreamToken = undefined;
     super.start();
   }
 
   protected tearDown(): void {
-    if (this.handshakeComplete_) {
+    if (this.handshakeComplete) {
       this.writeMutations([]);
     }
   }
@@ -779,7 +805,23 @@ export class PersistentWriteStream extends PersistentStream<
     );
   }
 
-  protected onMessage(responseProto: ProtoWriteResponse): Promise<void> {
+  protected onFirst(responseProto: ProtoWriteResponse): Promise<void> {
+    // Always capture the last stream token.
+    hardAssert(
+      !!responseProto.streamToken,
+      'Got a write handshake response without a stream token'
+    );
+    this.lastStreamToken = responseProto.streamToken;
+
+    // The first response is always the handshake response
+    hardAssert(
+      !responseProto.writeResults || responseProto.writeResults.length === 0,
+      'Got mutation results for handshake'
+    );
+    return this.listener!.onHandshakeComplete();
+  }
+
+  protected onNext(responseProto: ProtoWriteResponse): Promise<void> {
     // Always capture the last stream token.
     hardAssert(
       !!responseProto.streamToken,
@@ -787,27 +829,17 @@ export class PersistentWriteStream extends PersistentStream<
     );
     this.lastStreamToken = responseProto.streamToken;
 
-    if (!this.handshakeComplete_) {
-      // The first response is always the handshake response
-      hardAssert(
-        !responseProto.writeResults || responseProto.writeResults.length === 0,
-        'Got mutation results for handshake'
-      );
-      this.handshakeComplete_ = true;
-      return this.listener!.onHandshakeComplete();
-    } else {
-      // A successful first write response means the stream is healthy,
-      // Note, that we could consider a successful handshake healthy, however,
-      // the write itself might be causing an error we want to back off from.
-      this.backoff.reset();
+    // A successful first write response means the stream is healthy,
+    // Note, that we could consider a successful handshake healthy, however,
+    // the write itself might be causing an error we want to back off from.
+    this.backoff.reset();
 
-      const results = fromWriteResults(
-        responseProto.writeResults,
-        responseProto.commitTime
-      );
-      const commitVersion = fromVersion(responseProto.commitTime!);
-      return this.listener!.onMutationResult(commitVersion, results);
-    }
+    const results = fromWriteResults(
+      responseProto.writeResults,
+      responseProto.commitTime
+    );
+    const commitVersion = fromVersion(responseProto.commitTime!);
+    return this.listener!.onMutationResult(commitVersion, results);
   }
 
   /**
@@ -817,7 +849,7 @@ export class PersistentWriteStream extends PersistentStream<
    */
   writeHandshake(): void {
     debugAssert(this.isOpen(), 'Writing handshake requires an opened stream');
-    debugAssert(!this.handshakeComplete_, 'Handshake already completed');
+    debugAssert(!this.handshakeComplete, 'Handshake already completed');
     debugAssert(
       !this.lastStreamToken,
       'Stream token should be empty during handshake'
@@ -833,7 +865,7 @@ export class PersistentWriteStream extends PersistentStream<
   writeMutations(mutations: Mutation[]): void {
     debugAssert(this.isOpen(), 'Writing mutations requires an opened stream');
     debugAssert(
-      this.handshakeComplete_,
+      this.handshakeComplete,
       'Handshake must be complete before writing mutations'
     );
     debugAssert(

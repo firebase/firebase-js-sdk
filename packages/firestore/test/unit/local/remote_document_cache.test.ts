@@ -19,7 +19,11 @@ import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { documentKeySet, DocumentMap } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  DocumentMap,
+  newOverlayMap
+} from '../../../src/model/collections';
 import { MutableDocument, Document } from '../../../src/model/document';
 import {
   IndexOffset,
@@ -27,13 +31,15 @@ import {
   newIndexOffsetFromDocument,
   newIndexOffsetSuccessorFromReadTime
 } from '../../../src/model/field_index';
+import { Overlay } from '../../../src/model/overlay';
 import {
   deletedDoc,
   doc,
   expectEqual,
   field,
+  filter,
   key,
-  path,
+  query,
   version,
   wrap
 } from '../../util/helpers';
@@ -464,9 +470,10 @@ function genericRemoteDocumentCacheTests(
       doc('c/1', VERSION, DOC_DATA)
     ]);
 
-    const matchingDocs = await cache.getAllFromCollection(
-      path('b'),
-      IndexOffset.min()
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('b'),
+      IndexOffset.min(),
+      newOverlayMap()
     );
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
@@ -480,9 +487,10 @@ function genericRemoteDocumentCacheTests(
       doc('a/1/b/1', VERSION, DOC_DATA)
     ]);
 
-    const matchingDocs = await cache.getAllFromCollection(
-      path('a'),
-      IndexOffset.min()
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('a'),
+      IndexOffset.min(),
+      newOverlayMap()
     );
     assertMatches([doc('a/1', VERSION, DOC_DATA)], matchingDocs);
   });
@@ -498,20 +506,62 @@ function genericRemoteDocumentCacheTests(
       doc('b/new', 3, DOC_DATA).setReadTime(version(13))
     ]);
 
-    const matchingDocs = await cache.getAllFromCollection(
-      path('b'),
-      newIndexOffsetSuccessorFromReadTime(version(12), INITIAL_LARGEST_BATCH_ID)
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('b'),
+      newIndexOffsetSuccessorFromReadTime(
+        version(12),
+        INITIAL_LARGEST_BATCH_ID
+      ),
+      newOverlayMap()
     );
     assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
+  });
+
+  it('getDocumentsMatchingQuery() applies query check', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, { matches: true }).setReadTime(version(1))
+    ]);
+    await cache.addEntries([
+      doc('a/2', 1, { matches: true }).setReadTime(version(2))
+    ]);
+    await cache.addEntries([
+      doc('a/3', 1, { matches: false }).setReadTime(version(3))
+    ]);
+
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('a', filter('matches', '==', true)),
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
+      newOverlayMap()
+    );
+    assertMatches([doc('a/2', 1, { matches: true })], matchingDocs);
+  });
+
+  it('getDocumentsMatchingQuery() respects mutated documents', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, { matches: true }).setReadTime(version(1))
+    ]);
+    await cache.addEntries([
+      doc('a/2', 1, { matches: false }).setReadTime(version(2))
+    ]);
+
+    const mutatedDocs = newOverlayMap();
+    mutatedDocs.set(key('a/2'), {} as Overlay);
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('a', filter('matches', '==', true)),
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
+      mutatedDocs
+    );
+    assertMatches([doc('a/2', 1, { matches: false })], matchingDocs);
   });
 
   it('getAll() uses read time rather than update time', async () => {
     await cache.addEntries([doc('b/old', 1, DOC_DATA).setReadTime(version(2))]);
     await cache.addEntries([doc('b/new', 2, DOC_DATA).setReadTime(version(1))]);
 
-    const matchingDocs = await cache.getAllFromCollection(
-      path('b'),
-      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID)
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query('b'),
+      newIndexOffsetSuccessorFromReadTime(version(1), INITIAL_LARGEST_BATCH_ID),
+      newOverlayMap()
     );
     assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
   });
@@ -545,7 +595,11 @@ function genericRemoteDocumentCacheTests(
     document.data.set(field('state'), wrap('new'));
 
     document = await cache
-      .getAllFromCollection(path('coll'), IndexOffset.min())
+      .getDocumentsMatchingQuery(
+        query('coll'),
+        IndexOffset.min(),
+        newOverlayMap()
+      )
       .then(m => m.get(key('coll/doc'))!);
     verifyOldValue(document);
 

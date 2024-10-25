@@ -39,6 +39,8 @@ export interface AppCheckState {
 export interface ReCAPTCHAState {
   initialized: Deferred<GreCAPTCHA>;
   widgetId?: string;
+  // True if the most recent recaptcha check succeeded.
+  succeeded?: boolean;
 }
 
 export interface DebugState {
@@ -58,12 +60,23 @@ const DEBUG_STATE: DebugState = {
   enabled: false
 };
 
-export function getState(app: FirebaseApp): AppCheckState {
-  return APP_CHECK_STATES.get(app) || DEFAULT_STATE;
+/**
+ * Gets a reference to the state object.
+ */
+export function getStateReference(app: FirebaseApp): AppCheckState {
+  return APP_CHECK_STATES.get(app) || { ...DEFAULT_STATE };
 }
 
-export function setState(app: FirebaseApp, state: AppCheckState): void {
+/**
+ * Set once on initialization. The map should hold the same reference to the
+ * same object until this entry is deleted.
+ */
+export function setInitialState(
+  app: FirebaseApp,
+  state: AppCheckState
+): AppCheckState {
   APP_CHECK_STATES.set(app, state);
+  return APP_CHECK_STATES.get(app) as AppCheckState;
 }
 
 // for testing only

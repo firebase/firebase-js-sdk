@@ -1,0 +1,108 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 🐞 Bug Report
+description: File a bug report
+title: 'Title for the bug'
+labels: 'question, new'
+body:
+  - type: markdown
+    id: before-you-start
+    attributes:
+      value: |
+        *[READ THIS]:* Are you in the right place?
+        - For issues or feature requests related to __the code in this repository__, file a GitHub issue.
+        - If this is a __feature request__, make sure the issue title starts with "FR:".
+        - For general technical questions, post a question on [StackOverflow](http://stackoverflow.com/) with the firebase tag.
+        - For general Firebase discussion, use the [firebase-talk](https://groups.google.com/forum/#!forum/firebase-talk) google group.
+        - For help troubleshooting your application that does not fall under one of the above categories, reach out to the personalized [Firebase support channel](https://firebase.google.com/support/).
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: Describe the operating system(s) where you are experiencing the issue.
+      placeholder: ex. iOS 16.4, macOS Ventura 13.4, Windows 11
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (if applicable)
+      description: Describe the environment where you are experiencing the issue. This could include the browser and its version, Node.js version, or any other relevant environment details.
+      placeholder: ex. Chrome 115, Node.js v18.16.0, React Native 
+    validations:
+      required: true
+  - type: input
+    id: firebase-sdk-version
+    attributes:
+      label: Firebase SDK Version
+      description: The Firebase JS SDK version you're using.
+      placeholder: ex. 9.16.0
+    validations:
+      required: true
+  - type: dropdown
+    id: firebase-sdk-products
+    attributes:
+      label: Firebase SDK Product(s)
+      description: Select the Firebase product(s) relevant to your issue. You can select multiple options in the dropdown.
+      multiple: true
+      options:
+        - Analytics
+        - AppCheck
+        - Auth
+        - Component
+        - Database
+        - DataConnect
+        - Firestore
+        - Functions
+        - Installations
+        - Logger
+        - Messaging
+        - Performance
+        - Remote-Config
+        - Storage
+        - VertexAI
+    validations:
+      required: true
+  - type: textarea
+    id: project-tooling
+    attributes:
+      label: Project Tooling
+      description: Describe the tooling your app is built with
+      placeholder: React app with Webpack and Jest
+    validations:
+      required: true
+  - type: textarea
+    id: describe-your-problem
+    attributes:
+      label: Detailed Problem Description
+      description: |
+        Please provide a clear and concise description of the problem. Include:
+        - What you were trying to achieve.
+        - What actually happened.
+        - Any error messages or unexpected behavior you observed.
+        - Relevant log snippets or console output (if available).
+      placeholder: |
+        What were you trying to accomplish? What happened? This should include a background description, log/console output, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-code
+    attributes:
+      label: Steps and code to reproduce issue
+      description: |
+        If possible, provide a minimal, self-contained code snippet or steps that consistently reproduce the issue. 
+        This will significantly aid in debugging.
+    validations:
+      required: true

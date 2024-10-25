@@ -18,11 +18,13 @@
 import {
   FactorId,
   MultiFactorInfo,
-  PhoneMultiFactorInfo
+  PhoneMultiFactorInfo,
+  TotpMultiFactorInfo
 } from '../model/public_types';
 import {
   PhoneMfaEnrollment,
-  MfaEnrollment
+  MfaEnrollment,
+  TotpMfaEnrollment
 } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { _fail } from '../core/util/assert';
@@ -45,6 +47,8 @@ export abstract class MultiFactorInfoImpl implements MultiFactorInfo {
   ): MultiFactorInfoImpl {
     if ('phoneInfo' in enrollment) {
       return PhoneMultiFactorInfoImpl._fromServerResponse(auth, enrollment);
+    } else if ('totpInfo' in enrollment) {
+      return TotpMultiFactorInfoImpl._fromServerResponse(auth, enrollment);
     }
     return _fail(auth, AuthErrorCode.INTERNAL_ERROR);
   }
@@ -65,6 +69,21 @@ export class PhoneMultiFactorInfoImpl
     _auth: AuthInternal,
     enrollment: MfaEnrollment
   ): PhoneMultiFactorInfoImpl {
-    return new PhoneMultiFactorInfoImpl(enrollment);
+    return new PhoneMultiFactorInfoImpl(enrollment as PhoneMfaEnrollment);
+  }
+}
+export class TotpMultiFactorInfoImpl
+  extends MultiFactorInfoImpl
+  implements TotpMultiFactorInfo
+{
+  private constructor(response: TotpMfaEnrollment) {
+    super(FactorId.TOTP, response);
+  }
+
+  static _fromServerResponse(
+    _auth: AuthInternal,
+    enrollment: MfaEnrollment
+  ): TotpMultiFactorInfoImpl {
+    return new TotpMultiFactorInfoImpl(enrollment as TotpMfaEnrollment);
   }
 }

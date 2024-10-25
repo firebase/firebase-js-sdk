@@ -17,8 +17,14 @@
 
 import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
-import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import {
+  DatabaseId,
+  DatabaseInfo,
+  DEFAULT_DATABASE_NAME
+} from '../core/database_info';
+import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
+import { generateUniqueDebugId } from '../util/debug_uid';
 import { FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { StringMap } from '../util/types';
@@ -53,7 +59,8 @@ function getGoogApiClientValue(): string {
 export abstract class RestConnection implements Connection {
   protected readonly databaseId: DatabaseId;
   protected readonly baseUrl: string;
-  private readonly databaseRoot: string;
+  private readonly databasePath: string;
+  private readonly requestParams: string;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
     // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
@@ -64,37 +71,42 @@ export abstract class RestConnection implements Connection {
   constructor(private readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';
+    const projectId = encodeURIComponent(this.databaseId.projectId);
+    const databaseId = encodeURIComponent(this.databaseId.database);
     this.baseUrl = proto + '://' + databaseInfo.host;
-    this.databaseRoot =
-      'projects/' +
-      this.databaseId.projectId +
-      '/databases/' +
-      this.databaseId.database +
-      '/documents';
+    this.databasePath = `projects/${projectId}/databases/${databaseId}`;
+    this.requestParams =
+      this.databaseId.database === DEFAULT_DATABASE_NAME
+        ? `project_id=${projectId}`
+        : `project_id=${projectId}&database_id=${databaseId}`;
   }
 
   invokeRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     req: Req,
     authToken: Token | null,
     appCheckToken: Token | null
   ): Promise<Resp> {
-    const url = this.makeUrl(rpcName, path);
-    logDebug(LOG_TAG, 'Sending: ', url, req);
+    const streamId = generateUniqueDebugId();
+    const url = this.makeUrl(rpcName, path.toUriEncodedString());
+    logDebug(LOG_TAG, `Sending RPC '${rpcName}' ${streamId}:`, url, req);
 
-    const headers = {};
+    const headers: StringMap = {
+      'google-cloud-resource-prefix': this.databasePath,
+      'x-goog-request-params': this.requestParams
+    };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
     return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
-        logDebug(LOG_TAG, 'Received: ', response);
+        logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
       },
       (err: FirestoreError) => {
         logWarn(
           LOG_TAG,
-          `${rpcName} failed with error: `,
+          `RPC '${rpcName}' ${streamId} failed with error: `,
           err,
           'url: ',
           url,
@@ -108,7 +120,7 @@ export abstract class RestConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    path: string,
+    path: ResourcePath,
     request: Req,
     authToken: Token | null,
     appCheckToken: Token | null,
@@ -177,5 +189,14 @@ export abstract class RestConnection implements Connection {
       'Unknown REST mapping for: ' + rpcName
     );
     return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+  }
+
+  /**
+   * Closes and cleans up any resources associated with the connection. This
+   * implementation is a no-op because there are no resources associated
+   * with the RestConnection that need to be cleaned up.
+   */
+  terminate(): void {
+    // No-op
   }
 }

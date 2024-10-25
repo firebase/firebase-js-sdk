@@ -46,11 +46,17 @@ export class LimitedFilter implements NodeFilter {
 
   private readonly reverse_: boolean;
 
+  private readonly startIsInclusive_: boolean;
+
+  private readonly endIsInclusive_: boolean;
+
   constructor(params: QueryParams) {
     this.rangedFilter_ = new RangedFilter(params);
     this.index_ = params.getIndex();
     this.limit_ = params.getLimit();
     this.reverse_ = !params.isViewFromLeft();
+    this.startIsInclusive_ = !params.startAfterSet_;
+    this.endIsInclusive_ = !params.endBeforeSet_;
   }
   updateChild(
     snap: Node,
@@ -119,20 +125,15 @@ export class LimitedFilter implements NodeFilter {
         let count = 0;
         while (iterator.hasNext() && count < this.limit_) {
           const next = iterator.getNext();
-          let inRange;
-          if (this.reverse_) {
-            inRange =
-              this.index_.compare(this.rangedFilter_.getStartPost(), next) <= 0;
+          if (!this.withinDirectionalStart(next)) {
+            // if we have not reached the start, skip to the next element
+            continue;
+          } else if (!this.withinDirectionalEnd(next)) {
+            // if we have reached the end, stop adding elements
+            break;
           } else {
-            inRange =
-              this.index_.compare(next, this.rangedFilter_.getEndPost()) <= 0;
-          }
-          if (inRange) {
             filtered = filtered.updateImmediateChild(next.name, next.node);
             count++;
-          } else {
-            // if we have reached the end post, we cannot keep adding elemments
-            break;
           }
         }
       } else {
@@ -142,33 +143,21 @@ export class LimitedFilter implements NodeFilter {
         filtered = filtered.updatePriority(
           ChildrenNode.EMPTY_NODE
         ) as ChildrenNode;
-        let startPost;
-        let endPost;
-        let cmp;
+
         let iterator;
         if (this.reverse_) {
           iterator = filtered.getReverseIterator(this.index_);
-          startPost = this.rangedFilter_.getEndPost();
-          endPost = this.rangedFilter_.getStartPost();
-          const indexCompare = this.index_.getCompare();
-          cmp = (a: NamedNode, b: NamedNode) => indexCompare(b, a);
         } else {
           iterator = filtered.getIterator(this.index_);
-          startPost = this.rangedFilter_.getStartPost();
-          endPost = this.rangedFilter_.getEndPost();
-          cmp = this.index_.getCompare();
         }
 
         let count = 0;
-        let foundStartPost = false;
         while (iterator.hasNext()) {
           const next = iterator.getNext();
-          if (!foundStartPost && cmp(startPost, next) <= 0) {
-            // start adding
-            foundStartPost = true;
-          }
           const inRange =
-            foundStartPost && count < this.limit_ && cmp(next, endPost) <= 0;
+            count < this.limit_ &&
+            this.withinDirectionalStart(next) &&
+            this.withinDirectionalEnd(next);
           if (inRange) {
             count++;
           } else {
@@ -300,4 +289,26 @@ export class LimitedFilter implements NodeFilter {
       return snap;
     }
   }
+
+  private withinDirectionalStart = (node: NamedNode) =>
+    this.reverse_ ? this.withinEndPost(node) : this.withinStartPost(node);
+
+  private withinDirectionalEnd = (node: NamedNode) =>
+    this.reverse_ ? this.withinStartPost(node) : this.withinEndPost(node);
+
+  private withinStartPost = (node: NamedNode) => {
+    const compareRes = this.index_.compare(
+      this.rangedFilter_.getStartPost(),
+      node
+    );
+    return this.startIsInclusive_ ? compareRes <= 0 : compareRes < 0;
+  };
+
+  private withinEndPost = (node: NamedNode) => {
+    const compareRes = this.index_.compare(
+      node,
+      this.rangedFilter_.getEndPost()
+    );
+    return this.endIsInclusive_ ? compareRes <= 0 : compareRes < 0;
+  };
 }

@@ -104,6 +104,10 @@ export interface ListenProvider {
  */
 let syncTreeNextQueryTag_ = 1;
 
+export function resetSyncTreeTag() {
+  syncTreeNextQueryTag_ = 1;
+}
+
 /**
  * SyncTree is the central class for managing event callback registration, data caching, views
  * (query processing), and event generation.  There are typically two SyncTree instances for

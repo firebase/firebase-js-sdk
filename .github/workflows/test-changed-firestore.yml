@@ -1,64 +1,300 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Test Firestore
 
-on: pull_request
+on:
+  workflow_dispatch:
+  pull_request:
+
+env:
+  artifactRetentionDays: 14
+  # Bump Node memory limit
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
-  test-chrome:
-    name: Test Firestore on Chrome and Node If Changed
+  build:
+    name: Build Firestore
+
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.set-output.outputs.CHANGED }}
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (14)
-        uses: actions/setup-node@v2
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 20.x
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
           yarn
       - name: build
-        run: yarn build:changed firestore
-      - name: Run tests if firestore or its dependencies has changed
-        run: yarn test:changed firestore
+        id: build
+        run: |
+          set -o pipefail
+          yarn build:changed firestore | tee ${{ runner.temp }}/yarn.log.txt
+        continue-on-error: false
+      - name: Check if Firestore is changed
+        id: check-changed
+        run: egrep "Skipping all" ${{ runner.temp }}/yarn.log.txt
+        # Continue when "Skipping all" is not found
+        continue-on-error: true
+      - name: set output
+        # This means "Skipping all" was not found
+        if: steps.check-changed.outcome != 'success'
+        id: set-output
+        run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
+      - name: Archive build
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
+        run: |
+          tar -cf build.tar --exclude=.git .
+          gzip build.tar
+      - name: Upload build archive
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: build.tar.gz
+          path: build.tar.gz
+          retention-days: ${{ env.artifactRetentionDays }}
 
-  test-firefox:
-    name: Test Firestore on Firefox If Changed
+  compat-test-chrome:
+    name: Test Firestore Compatible
     runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci
 
+  test-chrome:
+    name: Test Firestore
+    strategy:
+      matrix:
+        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          EXPERIMENTAL_MODE: true
+
+  test-firestore-nightly-with-chrome:
+    name: Test Nightly Firestore with Chrome
+    strategy:
+      matrix:
+        test-name: ["test:browser:nightly"]
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup against nightly Firestore
+        env:
+          INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
+        run: |
+          echo $INTEG_TESTS_GOOGLE_SERVICES > config/project.json
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          EXPERIMENTAL_MODE: true
+
+
+  compat-test-firefox:
+    name: Test Firestore Compatible on Firefox
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: ubuntu-20.04
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: install Firefox stable
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Checkout Repo
-        uses: actions/checkout@master
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
         with:
-          # This makes Actions fetch all Git history so run-changed script can diff properly.
-          fetch-depth: 0
-      - name: Set up Node (14)
-        uses: actions/setup-node@v2
+          node-version: 20.x
+      - name: Download build archive
+        uses: actions/download-artifact@v3
         with:
-          node-version: 14.x
-      - name: Bump Node memory limit
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
-          yarn
-      - name: build
-        run: yarn build:changed firestore
-      - name: Run tests if firestore or its dependencies has changed
-        run: xvfb-run yarn test:changed firestore
+        run: cp config/ci.config.json config/project.json
+      - name: Run compat tests
+        run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
           BROWSERS: 'Firefox'
+
+  test-firefox:
+    name: Test Firestore on Firefox
+    strategy:
+      matrix:
+        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+    # Whatever version of Firefox comes with 22.04 is causing Firefox
+    # startup to hang when launched by karma. Need to look further into
+    # why.
+    runs-on: ubuntu-20.04
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: install Firefox stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install firefox
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup and yarn install
+        run: cp config/ci.config.json config/project.json
+      - name: Run tests
+        run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
+        env:
+          BROWSERS: 'Firefox'
+          EXPERIMENTAL_MODE: true
+
+  compat-test-webkit:
+    name: Test Firestore Compatible on Webkit
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Test setup
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install webkit
+      - name: Run compat tests
+        run: cd packages/firestore-compat && yarn run test:ci
+        env:
+          BROWSERS: 'WebkitHeadless'
+
+  test-webkit:
+    name: Test Firestore on Webkit
+    strategy:
+      matrix:
+        # TODO (dlarocque): Add test:travis once the browser tests are isolated
+        # Exclude test:travis for now, since it includes node tests, which are failing for
+        # some reason.
+        test-name: ["test:browser", "test:lite:browser", "test:browser:prod:nameddb", "test:lite:browser:nameddb"]
+    runs-on: macos-latest
+    needs: build
+    if: ${{ needs.build.outputs.changed == 'true'}}
+    steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
+      - name: Set up Node (20)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Test setup
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install webkit
+      - name: Run tests
+        run: cd packages/firestore && yarn run ${{ matrix.test-name }}
+        env:
+          BROWSERS: 'WebkitHeadless'
+          EXPERIMENTAL_MODE: true
+  # A job that fails if any required job in the test matrix fails,
+  # to be used as a required check for merging.
+  check-required-tests:
+    runs-on: ubuntu-latest
+    if: always()
+    name: Check all required tests results
+    needs: [build, test-chrome, compat-test-chrome]
+    steps:
+      - name: Check test matrix
+        if: needs.build.result == 'failure' || needs.test-chrome.result == 'failure' || needs.compat-test-chrome.result == 'failure'
+        run: exit 1

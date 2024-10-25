@@ -435,7 +435,7 @@ export class FirebaseIFrameScriptHolder {
   onMessageCB: (...args: unknown[]) => void;
 
   /**
-   * @param commandCB - The callback to be called when control commands are recevied from the server.
+   * @param commandCB - The callback to be called when control commands are received from the server.
    * @param onMessageCB - The callback to be triggered when responses arrive from the server.
    * @param onDisconnect - The callback to be triggered when this tag holder is closed
    * @param urlFn - A function that provides the URL of the endpoint to send data to.
@@ -547,8 +547,8 @@ export class FirebaseIFrameScriptHolder {
     if (this.myIFrame) {
       //We have to actually remove all of the html inside this iframe before removing it from the
       //window, or IE will continue loading and executing the script tags we've already added, which
-      //can lead to some errors being thrown. Setting innerHTML seems to be the easiest way to do this.
-      this.myIFrame.doc.body.innerHTML = '';
+      //can lead to some errors being thrown. Setting textContent seems to be the safest way to do this.
+      this.myIFrame.doc.body.textContent = '';
       setTimeout(() => {
         if (this.myIFrame !== null) {
           document.body.removeChild(this.myIFrame);

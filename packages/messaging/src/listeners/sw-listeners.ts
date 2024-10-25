@@ -40,6 +40,13 @@ import { isConsoleMessage } from '../helpers/is-console-message';
 import { sleep } from '../helpers/sleep';
 import { stageLog } from '../helpers/logToFirelog';
 
+// maxActions is an experimental property and not part of the official
+// TypeScript interface
+// https://developer.mozilla.org/en-US/docs/Web/API/Notification/maxActions
+interface NotificationExperimental extends Notification {
+  maxActions?: number;
+}
+
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
@@ -247,7 +254,7 @@ function showNotification(
   // Note: Firefox does not support the maxActions property.
   // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
   const { actions } = notificationPayloadInternal;
-  const { maxActions } = Notification;
+  const { maxActions } = Notification as unknown as NotificationExperimental;
   if (actions && maxActions && actions.length > maxActions) {
     console.warn(
       `This browser only supports ${maxActions} actions. The remaining actions will not be displayed.`

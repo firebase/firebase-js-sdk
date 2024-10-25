@@ -17,15 +17,16 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
+import { TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
   mutableDocumentMap,
-  MutableDocumentMap,
-  targetIdSet
+  MutableDocumentMap
 } from '../model/collections';
 import { ByteString } from '../util/byte_string';
-import { SortedSet } from '../util/sorted_set';
+import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -43,10 +44,11 @@ export class RemoteEvent {
      */
     readonly targetChanges: Map<TargetId, TargetChange>,
     /**
-     * A set of targets that is known to be inconsistent. Listens for these
-     * targets should be re-established without resume tokens.
+     * A map of targets that is known to be inconsistent, and the purpose for
+     * re-listening. Listens for these targets should be re-established without
+     * resume tokens.
      */
-    readonly targetMismatches: SortedSet<TargetId>,
+    readonly targetMismatches: SortedMap<TargetId, TargetPurpose>,
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
@@ -67,20 +69,22 @@ export class RemoteEvent {
   // PORTING NOTE: Multi-tab only
   static createSynthesizedRemoteEventForCurrentChange(
     targetId: TargetId,
-    current: boolean
+    current: boolean,
+    resumeToken: ByteString
   ): RemoteEvent {
     const targetChanges = new Map<TargetId, TargetChange>();
     targetChanges.set(
       targetId,
       TargetChange.createSynthesizedTargetChangeForCurrentChange(
         targetId,
-        current
+        current,
+        resumeToken
       )
     );
     return new RemoteEvent(
       SnapshotVersion.min(),
       targetChanges,
-      targetIdSet(),
+      new SortedMap<TargetId, TargetPurpose>(primitiveComparator),
       mutableDocumentMap(),
       documentKeySet()
     );
@@ -134,10 +138,11 @@ export class TargetChange {
    */
   static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
-    current: boolean
+    current: boolean,
+    resumeToken: ByteString
   ): TargetChange {
     return new TargetChange(
-      ByteString.EMPTY_BYTE_STRING,
+      resumeToken,
       current,
       documentKeySet(),
       documentKeySet(),

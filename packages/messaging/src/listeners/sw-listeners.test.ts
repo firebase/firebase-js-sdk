@@ -77,17 +77,25 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   // eslint-disable-next-line camelcase
   collapse_key: 'collapse',
   // eslint-disable-next-line camelcase
-  fcmMessageId: 'mid'
+  fcmMessageId: 'mid',
+  productId: 123
 };
+
+// maxActions is an experimental property and not part of the official
+// TypeScript interface
+// https://developer.mozilla.org/en-US/docs/Web/API/Notification/maxActions
+interface NotificationExperimental extends Notification {
+  maxActions?: number;
+}
 
 describe('SwController', () => {
   let addEventListenerStub: Stub<typeof self.addEventListener>;
   // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
   let messaging: MessagingService;
-  let getTokenStub: Stub<typeof tokenManagementModule['getTokenInternal']>;
+  let getTokenStub: Stub<(typeof tokenManagementModule)['getTokenInternal']>;
   let deleteTokenStub: Stub<
-    typeof tokenManagementModule['deleteTokenInternal']
+    (typeof tokenManagementModule)['deleteTokenInternal']
   >;
 
   beforeEach(() => {
@@ -227,10 +235,13 @@ describe('SwController', () => {
     it('warns if there are more action buttons than the browser limit', async () => {
       // This doesn't exist on Firefox:
       // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
-      if (!Notification.maxActions) {
+      if (!(Notification as unknown as NotificationExperimental).maxActions) {
         return;
       }
-      stub(Notification, 'maxActions').value(1);
+      stub(
+        Notification as unknown as NotificationExperimental,
+        'maxActions'
+      ).value(1);
 
       const warnStub = stub(console, 'warn');
 

@@ -210,7 +210,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
 
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcks(query1)
       .watchRemoves(
@@ -265,7 +265,7 @@ describeSpec('Listens:', [], () => {
       return (
         spec()
           // Disable GC so the cache persists across listens.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docAv1)
           .expectEvents(query1, { added: [docAv1] })
@@ -301,7 +301,7 @@ describeSpec('Listens:', [], () => {
       return (
         spec()
           // Disable GC so the cache persists across listens.
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docAv1)
           .expectEvents(query1, { added: [docAv1] })
@@ -334,7 +334,7 @@ describeSpec('Listens:', [], () => {
     return (
       spec()
         // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(visibleQuery)
         .watchAcksFull(visibleQuery, 1000, docAv1)
         .expectEvents(visibleQuery, { added: [docAv1] })
@@ -351,6 +351,7 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -376,7 +377,7 @@ describeSpec('Listens:', [], () => {
     return (
       spec()
         // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(visibleQuery)
         .watchAcksFull(visibleQuery, 1000, docAv1)
         .expectEvents(visibleQuery, { added: [docAv1] })
@@ -396,6 +397,7 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, { resumeToken: 'resume-token-1000' })
+        .expectEvents(visibleQuery, { fromCache: true })
         .watchAcks(visibleQuery)
         .watchSends({ removed: [visibleQuery] }, docAv2)
         .watchCurrents(visibleQuery, 'resume-token-5000')
@@ -405,6 +407,7 @@ describeSpec('Listens:', [], () => {
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get no docs.
         .userListens(allQuery, { resumeToken: 'resume-token-4000' })
+        .expectEvents(allQuery, { fromCache: true })
         .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
     );
@@ -471,7 +474,7 @@ describeSpec('Listens:', [], () => {
     const docB = doc('collection/b', 1000, { key: 'a' });
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         // Add a collection query with two documents, one of which gets deleted
         // (the second document guarantees that we later raise an event from
         // cache).
@@ -505,7 +508,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const deletedDocA = deletedDoc('collection/a', 2000);
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
@@ -525,7 +528,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
@@ -545,7 +548,7 @@ describeSpec('Listens:', [], () => {
       const docA = doc('collection/a', 1000, { key: 'a' });
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcks(query1)
           .watchSends({ affects: [query1] }, docA)
@@ -567,7 +570,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
 
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchRemoves(
         query1,
@@ -583,7 +586,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 2000, { key: 'a' });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -603,7 +606,7 @@ describeSpec('Listens:', [], () => {
     const query1 = query('collection', filter('array', 'array-contains', 42));
     const docA = doc('collection/a', 2000, { foo: 'bar', array: [1, 42, 3] });
     return spec()
-      .withGCEnabled(false)
+      .ensureManualLruGC()
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -625,7 +628,7 @@ describeSpec('Listens:', [], () => {
 
     return (
       spec()
-        .withGCEnabled(false)
+        .ensureManualLruGC()
         .userListens(query1)
         .watchAcksFull(query1, 1000, docA)
         .expectEvents(query1, { added: [docA] })
@@ -654,7 +657,7 @@ describeSpec('Listens:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, 1000, docA)
           .expectEvents(query1, { added: [docA] })
@@ -687,7 +690,7 @@ describeSpec('Listens:', [], () => {
 
       return (
         spec()
-          .withGCEnabled(false)
+          .ensureManualLruGC()
           .userListens(query1)
           .watchAcksFull(query1, initialVersion, docA)
           .expectEvents(query1, { added: [docA] })
@@ -842,7 +845,7 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'a' });
 
-    return client(0, /* withGcEnabled= */ false)
+    return client(0)
       .becomeVisible()
       .client(1)
       .userListens(query1)
@@ -951,9 +954,11 @@ describeSpec('Listens:', [], () => {
   );
 
   // Reproduces b/249494921.
+  // TODO(b/310241864) this test puts the SDK into an invalid state that is now
+  //  failing a hardAssert, so it is being ignored until it can be fixed.
   specTest(
     'Secondary client advances query state with global snapshot from primary',
-    ['multi-client'],
+    ['multi-client', 'no-web', 'no-ios', 'no-android'],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: '1' });
@@ -961,7 +966,6 @@ describeSpec('Listens:', [], () => {
       const docARecreated = doc('collection/a', 2000, {
         key: '2'
       }).setHasLocalMutations();
-
       return (
         client(0)
           .becomeVisible()
@@ -987,6 +991,9 @@ describeSpec('Listens:', [], () => {
           })
           .client(0)
           .writeAcks('collection/a', 2000)
+          // b/310241864: This line causes an add target ack without an add
+          // target request. The unexpected ack puts the SDK into a bad state
+          // which now fails a hardAssert.
           .watchAcksFull(query1, 2000, docADeleted)
           .client(1) // expects no event
           .client(0)
@@ -1695,4 +1702,233 @@ describeSpec('Listens:', [], () => {
       })
       .expectSnapshotsInSyncEvent(2);
   });
+
+  specTest('Empty initial snapshot is raised from cache', [], () => {
+    const query1 = query('collection');
+    return (
+      spec()
+        // Disable GC so the cache persists across listens.
+        .ensureManualLruGC()
+        // Populate the cache with the empty query results.
+        .userListens(query1)
+        .watchAcksFull(query1, 1000)
+        .expectEvents(query1, { fromCache: false })
+        .userUnlistens(query1)
+        .watchRemoves(query1)
+        // Listen to the query again and verify that the empty snapshot is
+        // raised from cache.
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
+        .expectEvents(query1, { fromCache: true })
+        // Verify that another snapshot is raised once the query result comes
+        // back from Watch.
+        .watchAcksFull(query1, 2000)
+        .expectEvents(query1, { fromCache: false })
+    );
+  });
+
+  specTest(
+    'Empty-due-to-delete initial snapshot is raised from cache',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { v: 1 });
+      return (
+        spec()
+          // Disable GC so the cache persists across listens.
+          .ensureManualLruGC()
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, { added: [doc1] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Delete the only document in the result set locally on the client.
+          .userDeletes('collection/a')
+          // Listen to the query again and verify that the empty snapshot is
+          // raised from cache, even though the write is not yet acknowledged.
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, { fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'Empty initial snapshot is raised from cache in multiple tabs',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      return (
+        client(0)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000)
+          .expectEvents(query1, { fromCache: false })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          .client(1)
+          // Re-listen to the query in second client and verify that the empty
+          // snapshot is raised from cache.
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          // Verify that another snapshot is raised once the query result comes
+          // back from Watch.
+          .watchAcksFull(query1, 2000)
+          .client(1)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
+  specTest(
+    'Empty-due-to-delete initial snapshot is raised from cache in multiple tabs',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { v: 1 });
+      const doc1Deleted = deletedDoc('collection/a', 2000);
+
+      return (
+        client(0)
+          // Populate the cache with the empty query results.
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, { added: [doc1] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Delete the only document in the result set locally on the client.
+          .userDeletes('collection/a')
+          // Re-listen to the query in second client and verify that the empty
+          // snapshot is raised from cache with local mutation.
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          // Should get events once stream is caught up.
+          .client(0)
+          .expectListen(query1, { resumeToken: 'resume-token-1000' })
+          .writeAcks('collection/a', 2000)
+          .watchAcksFull(query1, 2000, doc1Deleted)
+          .client(1)
+          .expectEvents(query1, { fromCache: false })
+      );
+    }
+  );
+
+  specTest(
+    'Resuming a query should specify expectedCount when adding the target',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1000, { key: 'b' });
+
+      return (
+        spec()
+          .ensureManualLruGC()
+          .userListens(query1)
+          .watchAcksFull(query1, 1000)
+          .expectEvents(query1, {})
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // There are 0 remote documents from previous listen.
+          .userListens(query1, {
+            resumeToken: 'resume-token-1000',
+            expectedCount: 0
+          })
+          .expectEvents(query1, { fromCache: true })
+          .watchAcksFull(query1, 2000, docA, docB)
+          .expectEvents(query1, { added: [docA, docB] })
+          .userUnlistens(query1)
+          .userListens(query1, {
+            resumeToken: 'resume-token-2000',
+            expectedCount: 2
+          })
+          .expectEvents(query1, { added: [docA, docB], fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'Resuming a query should specify expectedCount that does not include pending mutations',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docBLocal = doc('collection/b', 1000, {
+        key: 'b'
+      }).setHasLocalMutations();
+
+      return spec()
+        .ensureManualLruGC()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .userUnlistens(query1)
+        .userSets('collection/b', { key: 'b' })
+        .userListens(query1, {
+          resumeToken: 'resume-token-1000',
+          expectedCount: 1
+        })
+        .expectEvents(query1, {
+          added: [docA, docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        });
+    }
+  );
+
+  specTest(
+    'ExpectedCount in listen request should work after coming back online',
+    [],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return spec()
+        .ensureManualLruGC()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .disableNetwork()
+        .expectEvents(query1, { fromCache: true })
+        .enableNetwork()
+        .restoreListen(query1, 'resume-token-1000', /* expectedCount= */ 1);
+    }
+  );
+
+  specTest(
+    'Global snapshots would not alter query state if there is no changes',
+    ['multi-client'],
+    () => {
+      const query1 = query('collection');
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        client(0)
+          .becomeVisible()
+          .expectPrimaryState(true)
+          // Populate the cache first
+          .userListens(query1)
+          .watchAcksFull(query1, 1000, docA)
+          .expectEvents(query1, { added: [docA] })
+          .userUnlistens(query1)
+          .watchRemoves(query1)
+          // Listen to the query in the primary client
+          .userListens(query1, { resumeToken: 'resume-token-1000' })
+          .expectEvents(query1, {
+            added: [docA],
+            fromCache: true
+          })
+          .watchAcksFull(query1, 2000, docA)
+          .expectEvents(query1, { fromCache: false })
+          // Reproduces: https://github.com/firebase/firebase-js-sdk/issues/8314
+          // Watch could send a global snapshot from time to time. If there are no view changes,
+          // the query should not be marked as "not-current" as the Target is up to date.
+          .watchSnapshots(3000, [], 'resume-token-3000')
+          // Listen to the query in the secondary tab. The snapshot is up to date.
+          .client(1)
+          .userListens(query1)
+          .expectEvents(query1, { added: [docA], fromCache: false })
+      );
+    }
+  );
 });

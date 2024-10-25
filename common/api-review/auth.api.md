@@ -20,7 +20,7 @@ export interface ActionCodeInfo {
         multiFactorInfo?: MultiFactorInfo | null;
         previousEmail?: string | null;
     };
-    operation: typeof ActionCodeOperation[keyof typeof ActionCodeOperation];
+    operation: (typeof ActionCodeOperation)[keyof typeof ActionCodeOperation];
 }
 
 // @public
@@ -81,6 +81,7 @@ export function applyActionCode(auth: Auth, oobCode: string): Promise<void>;
 // @public
 export interface Auth {
     readonly app: FirebaseApp;
+    authStateReady(): Promise<void>;
     beforeAuthStateChanged(callback: (user: User | null) => void | Promise<void>, onAbort?: () => void): Unsubscribe;
     readonly config: Config;
     readonly currentUser: User | null;
@@ -164,6 +165,7 @@ export const AuthErrorCodes: {
     readonly INVALID_EMAIL: "auth/invalid-email";
     readonly INVALID_EMULATOR_SCHEME: "auth/invalid-emulator-scheme";
     readonly INVALID_IDP_RESPONSE: "auth/invalid-credential";
+    readonly INVALID_LOGIN_CREDENTIALS: "auth/invalid-credential";
     readonly INVALID_MESSAGE_PAYLOAD: "auth/invalid-message-payload";
     readonly INVALID_MFA_SESSION: "auth/invalid-multi-factor-session";
     readonly INVALID_OAUTH_CLIENT_ID: "auth/invalid-oauth-client-id";
@@ -226,6 +228,14 @@ export const AuthErrorCodes: {
     readonly WEAK_PASSWORD: "auth/weak-password";
     readonly WEB_STORAGE_UNSUPPORTED: "auth/web-storage-unsupported";
     readonly ALREADY_INITIALIZED: "auth/already-initialized";
+    readonly RECAPTCHA_NOT_ENABLED: "auth/recaptcha-not-enabled";
+    readonly MISSING_RECAPTCHA_TOKEN: "auth/missing-recaptcha-token";
+    readonly INVALID_RECAPTCHA_TOKEN: "auth/invalid-recaptcha-token";
+    readonly INVALID_RECAPTCHA_ACTION: "auth/invalid-recaptcha-action";
+    readonly MISSING_CLIENT_TYPE: "auth/missing-client-type";
+    readonly MISSING_RECAPTCHA_VERSION: "auth/missing-recaptcha-version";
+    readonly INVALID_RECAPTCHA_VERSION: "auth/invalid-recaptcha-version";
+    readonly INVALID_REQ_TYPE: "auth/invalid-req-type";
 };
 
 // @public
@@ -361,6 +371,7 @@ export class FacebookAuthProvider extends BaseOAuthProvider {
 // @public
 export const FactorId: {
     readonly PHONE: "phone";
+    readonly TOTP: "totp";
 };
 
 // @public
@@ -422,6 +433,9 @@ export const indexedDBLocalPersistence: Persistence;
 export function initializeAuth(app: FirebaseApp, deps?: Dependencies): Auth;
 
 // @public
+export function initializeRecaptchaConfig(auth: Auth): Promise<void>;
+
+// @public
 export const inMemoryPersistence: Persistence;
 
 // @public
@@ -431,7 +445,7 @@ export function isSignInWithEmailLink(auth: Auth, emailLink: string): boolean;
 export function linkWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function linkWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function linkWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -444,13 +458,13 @@ export function multiFactor(user: User): MultiFactorUser;
 
 // @public
 export interface MultiFactorAssertion {
-    readonly factorId: typeof FactorId[keyof typeof FactorId];
+    readonly factorId: (typeof FactorId)[keyof typeof FactorId];
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
     readonly customData: AuthError['customData'] & {
-        readonly operationType: typeof OperationType[keyof typeof OperationType];
+        readonly operationType: (typeof OperationType)[keyof typeof OperationType];
     };
 }
 
@@ -458,7 +472,7 @@ export interface MultiFactorError extends AuthError {
 export interface MultiFactorInfo {
     readonly displayName?: string | null;
     readonly enrollmentTime: string;
-    readonly factorId: typeof FactorId[keyof typeof FactorId];
+    readonly factorId: (typeof FactorId)[keyof typeof FactorId];
     readonly uid: string;
 }
 
@@ -538,7 +552,7 @@ export function parseActionCodeURL(link: string): ActionCodeURL | null;
 
 // @public
 export interface ParsedToken {
-    [key: string]: any;
+    [key: string]: unknown;
     'auth_time'?: string;
     'exp'?: string;
     'firebase'?: {
@@ -548,6 +562,33 @@ export interface ParsedToken {
     };
     'iat'?: string;
     'sub'?: string;
+}
+
+// @public
+export interface PasswordPolicy {
+    readonly allowedNonAlphanumericCharacters: string;
+    readonly customStrengthOptions: {
+        readonly minPasswordLength?: number;
+        readonly maxPasswordLength?: number;
+        readonly containsLowercaseLetter?: boolean;
+        readonly containsUppercaseLetter?: boolean;
+        readonly containsNumericCharacter?: boolean;
+        readonly containsNonAlphanumericCharacter?: boolean;
+    };
+    readonly enforcementState: string;
+    readonly forceUpgradeOnSignin: boolean;
+}
+
+// @public
+export interface PasswordValidationStatus {
+    readonly containsLowercaseLetter?: boolean;
+    readonly containsNonAlphanumericCharacter?: boolean;
+    readonly containsNumericCharacter?: boolean;
+    readonly containsUppercaseLetter?: boolean;
+    readonly isValid: boolean;
+    readonly meetsMaxPasswordLength?: boolean;
+    readonly meetsMinPasswordLength?: boolean;
+    readonly passwordPolicy: PasswordPolicy;
 }
 
 // @public
@@ -584,7 +625,7 @@ export class PhoneAuthProvider {
     static readonly PHONE_SIGN_IN_METHOD: 'phone';
     static readonly PROVIDER_ID: 'phone';
     readonly providerId: "phone";
-    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier: ApplicationVerifier): Promise<string>;
+    verifyPhoneNumber(phoneOptions: PhoneInfoOptions | string, applicationVerifier?: ApplicationVerifier): Promise<string>;
 }
 
 // @public
@@ -651,7 +692,7 @@ export interface ReactNativeAsyncStorage {
 export function reauthenticateWithCredential(user: User, credential: AuthCredential): Promise<UserCredential>;
 
 // @public
-export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function reauthenticateWithPhoneNumber(user: User, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function reauthenticateWithPopup(user: User, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -669,7 +710,7 @@ export interface RecaptchaParameters {
 //
 // @public
 export class RecaptchaVerifier implements ApplicationVerifierInternal {
-    constructor(containerOrId: HTMLElement | string, parameters: RecaptchaParameters, authExtern: Auth);
+    constructor(authExtern: Auth, containerOrId: HTMLElement | string, parameters?: RecaptchaParameters);
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
@@ -684,6 +725,9 @@ export class RecaptchaVerifier implements ApplicationVerifierInternal {
 
 // @public
 export function reload(user: User): Promise<void>;
+
+// @public
+export function revokeAccessToken(auth: Auth, token: string): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "FederatedAuthProvider" needs to be exported by the entry point index.d.ts
 //
@@ -734,7 +778,7 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
-export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier: ApplicationVerifier): Promise<ConfirmationResult>;
+export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
 export function signInWithPopup(auth: Auth, provider: AuthProvider, resolver?: PopupRedirectResolver): Promise<UserCredential>;
@@ -744,6 +788,40 @@ export function signInWithRedirect(auth: Auth, provider: AuthProvider, resolver?
 
 // @public
 export function signOut(auth: Auth): Promise<void>;
+
+// @public
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {
+}
+
+// @public
+export class TotpMultiFactorGenerator {
+    static assertionForEnrollment(secret: TotpSecret, oneTimePassword: string): TotpMultiFactorAssertion;
+    static assertionForSignIn(enrollmentId: string, oneTimePassword: string): TotpMultiFactorAssertion;
+    static FACTOR_ID: 'totp';
+    static generateSecret(session: MultiFactorSession): Promise<TotpSecret>;
+}
+
+// @public
+export interface TotpMultiFactorInfo extends MultiFactorInfo {
+}
+
+// @public
+export class TotpSecret {
+    readonly codeIntervalSeconds: number;
+    readonly codeLength: number;
+    readonly enrollmentCompletionDeadline: string;
+    // Warning: (ae-forgotten-export) The symbol "StartTotpMfaEnrollmentResponse" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    static _fromStartTotpMfaEnrollmentResponse(response: StartTotpMfaEnrollmentResponse, auth: AuthInternal): TotpSecret;
+    generateQrCodeUrl(accountName?: string, issuer?: string): string;
+    readonly hashingAlgorithm: string;
+    // Warning: (ae-forgotten-export) The symbol "TotpVerificationInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    _makeTotpVerificationInfo(otp: string): TotpVerificationInfo;
+    readonly secretKey: string;
+    }
 
 // @public
 export class TwitterAuthProvider extends BaseOAuthProvider {
@@ -798,7 +876,7 @@ export interface User extends UserInfo {
 
 // @public
 export interface UserCredential {
-    operationType: typeof OperationType[keyof typeof OperationType];
+    operationType: (typeof OperationType)[keyof typeof OperationType];
     providerId: string | null;
     user: User;
 }
@@ -821,6 +899,9 @@ export interface UserMetadata {
 
 // @public
 export type UserProfile = Record<string, unknown>;
+
+// @public
+export function validatePassword(auth: Auth, password: string): Promise<PasswordValidationStatus>;
 
 // @public
 export function verifyBeforeUpdateEmail(user: User, newEmail: string, actionCodeSettings?: ActionCodeSettings | null): Promise<void>;

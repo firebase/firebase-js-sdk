@@ -63,7 +63,7 @@ export interface ClientQueryOptions {
 
 export interface WindowClient extends Client {
   readonly focused: boolean;
-  readonly visibilityState: VisibilityState;
+  readonly visibilityState: DocumentVisibilityState;
   focus(): Promise<WindowClient>;
   navigate(url: string): Promise<WindowClient>;
 }

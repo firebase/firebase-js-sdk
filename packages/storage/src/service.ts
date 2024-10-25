@@ -302,7 +302,8 @@ export class FirebaseStorageImpl implements FirebaseStorage {
     requestInfo: RequestInfo<I, O>,
     requestFactory: () => Connection<I>,
     authToken: string | null,
-    appCheckToken: string | null
+    appCheckToken: string | null,
+    retry = true
   ): Request<O> {
     if (!this._deleted) {
       const request = makeRequest(
@@ -311,7 +312,8 @@ export class FirebaseStorageImpl implements FirebaseStorage {
         authToken,
         appCheckToken,
         requestFactory,
-        this._firebaseVersion
+        this._firebaseVersion,
+        retry
       );
       this._requests.add(request);
       // Request removes itself from set when complete.

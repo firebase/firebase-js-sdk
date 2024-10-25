@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, initializeApp, _registerComponent } from '@firebase/app';
+import {
+  FirebaseApp,
+  initializeApp,
+  _registerComponent,
+  _addOrOverwriteComponent
+} from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AnalyticsService } from '../src/factory';
@@ -78,5 +83,18 @@ export function getFullApp(fakeAppParams?: {
     )
   );
   const app = initializeApp({ ...fakeConfig, ...fakeAppParams });
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
+    new Component(
+      'heartbeat',
+      () => {
+        return {
+          triggerHeartbeat: () => {}
+        } as any;
+      },
+      ComponentType.PUBLIC
+    )
+  );
   return app;
 }

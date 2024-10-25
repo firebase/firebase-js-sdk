@@ -19,7 +19,8 @@ const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
 module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
+  const karmaConfig = {
+    ...karmaBase,
     browsers: getTestBrowsers(argv),
     // files to load into karma
     files: getTestFiles(argv),
@@ -30,12 +31,27 @@ module.exports = function (config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
+    frameworks: ['mocha']
+  };
 
-    client: Object.assign({}, karmaBase.client, {
-      firestoreSettings: getFirestoreSettings(argv)
-    })
-  });
+  if (argv.targetBackend) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: argv.targetBackend
+    };
+  } else if (argv.local) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      targetBackend: 'emulator'
+    };
+  }
+
+  if (argv.databaseId) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      databaseId: argv.databaseId
+    };
+  }
 
   config.set(karmaConfig);
 };
@@ -46,17 +62,17 @@ module.exports = function (config) {
  */
 function getTestFiles(argv) {
   const unitTests = 'test/unit/bootstrap.ts';
-  const legcayIntegrationTests = 'test/integration/bootstrap.ts';
+  const legacyIntegrationTests = 'test/integration/bootstrap.ts';
   const liteIntegrationTests = 'test/lite/bootstrap.ts';
   if (argv.unit) {
     return [unitTests];
   } else if (argv.integration) {
-    return [legcayIntegrationTests];
+    return [legacyIntegrationTests];
   } else if (argv.lite) {
     process.env.TEST_PLATFORM = 'browser_lite';
     return [liteIntegrationTests];
   } else {
-    return [unitTests, legcayIntegrationTests];
+    return [unitTests, legacyIntegrationTests];
   }
 }
 
@@ -66,24 +82,6 @@ function getTestBrowsers(argv) {
     browsers = process.env?.BROWSERS?.split(',');
   }
   return browsers;
-}
-
-/**
- * If the --local argument is passed, returns a {host, ssl} FirestoreSettings
- * object that point to localhost instead of production.
- */
-function getFirestoreSettings(argv) {
-  if (argv.local) {
-    return {
-      host: 'localhost:8080',
-      ssl: false
-    };
-  } else {
-    return {
-      host: 'firestore.googleapis.com',
-      ssl: true
-    };
-  }
 }
 
 module.exports.files = getTestFiles(argv);

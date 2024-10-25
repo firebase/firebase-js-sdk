@@ -709,7 +709,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('DocumentSnapshot events for non existent document', () => {
+  it('DocumentSnapshot events for nonexistent document', () => {
     return withTestCollection(persistence, {}, col => {
       const doc = col.doc();
       const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
@@ -1645,6 +1645,30 @@ apiDescribe('Database', (persistence: boolean) => {
         const ref = querySnapshot.docs[0].data().ref!;
         expect(ref).to.be.an.instanceof(DocumentReference);
         expect(untypedDocRef.isEqual(ref)).to.be.true;
+      });
+    });
+
+    it('for DocumentReference.withConverter() that returns undefined', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.QueryDocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post | undefined {
+              return undefined;
+            }
+          });
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.equal(undefined);
       });
     });
   });

@@ -20,20 +20,14 @@ const yargs = require('yargs');
 const fs = require('mz/fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const typescript = require('typescript');
 
 const repoPath = path.resolve(`${__dirname}/../..`);
 
 // Command-line options.
 const { api: apiType, source: sourceFile } = yargs
-  .option('api', {
-    default: 'js',
-    describe: 'api to generate docs for ("js" or "node")',
-    type: 'string'
-  })
   .option('source', {
     default: `${repoPath}/packages/firebase/compat/index.d.ts`,
-    describe: 'Typescript source file(s)',
+    describe: 'TypeScript source file(s)',
     type: 'string'
   })
   .version(false)
@@ -43,7 +37,6 @@ const destinationDir = apiType === 'js' ? 'js/v8' : apiType;
 const docPath = path.resolve(`${__dirname}/html/${destinationDir}`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
-const tempNodeSourcePath = path.resolve(`${__dirname}/index.node.d.ts`);
 const devsitePath = `/docs/reference/${destinationDir}/`;
 
 /**
@@ -61,7 +54,7 @@ function stripPath(path) {
  * Additional config options come from ./typedoc.js
  */
 function runTypedoc() {
-  const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
+  const typeSource = sourceFile;
   const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
   --tsconfig ${__dirname}/tsconfig.json \
   --out ${docPath} \
@@ -108,15 +101,10 @@ function fixLinks(file) {
     let badLinkCleanup = caseFixedLinks.replace(
       /{@link (.+)}/g,
       (all, text) => {
-        // It's expected to have some broken @link tags in Node docs
-        // since they could reference some pages only generated for JS.
-        // Just render as plain text. Warn if it's not a Node doc.
-        if (!file.includes('/node/')) {
-          console.log(
-            `Unable to generate link for "${all} in ${file}", ` +
-              `removing markup and rendering as plain text.`
-          );
-        }
+        console.log(
+          `Unable to generate link for "${all} in ${file}", ` +
+            `removing markup and rendering as plain text.`
+        );
         return text;
       }
     );
@@ -205,45 +193,29 @@ function checkForMissingFilesAndFixFilenameCase() {
 /**
  * Gets a list of html files in generated dir and checks if any are not
  * found in toc.yaml.
- * Option to remove the file if not found (used for node docs).
  *
  * @param {Array} filenamesFromToc Filenames pulled from toc.yaml
- * @param {boolean} shouldRemove Should just remove the file
  */
-function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
+function checkForUnlistedFiles(filenamesFromToc) {
   return fs.readdir(docPath).then(files => {
     const htmlFiles = files
       .filter(filename => filename.slice(-4) === 'html')
       .map(filename => filename.slice(0, -5));
-    const removePromises = [];
     htmlFiles.forEach(filename => {
       if (
         !filenamesFromToc.includes(filename) &&
         filename !== 'index' &&
         filename !== 'globals'
       ) {
-        if (shouldRemove) {
-          console.log(
-            `REMOVING ${docPath}/${filename}.html - not listed in toc.yaml.`
-          );
-          removePromises.push(fs.unlink(`${docPath}/${filename}.html`));
-        } else {
-          // This is just a warning, it doesn't need to finish before
-          // the process continues.
-          console.warn(
-            `Unlisted file: ${filename} generated ` +
-              `but not listed in toc.yaml.`
-          );
-        }
+        // This is just a warning, it doesn't need to finish before
+        // the process continues.
+        console.warn(
+          `Unlisted file: ${filename} generated ` +
+            `but not listed in toc.yaml.`
+        );
       }
     });
-    if (shouldRemove) {
-      return Promise.all(removePromises).then(() =>
-        htmlFiles.filter(filename => filenamesFromToc.includes(filename))
-      );
-    } else {
-      return htmlFiles;
-    }
+    return htmlFiles;
   });
 }
 
@@ -282,8 +254,7 @@ function fixAllLinks(htmlFiles) {
 }
 
 const PROJECT_FILE_PATH = {
-  'js': '/docs/reference/js/v8/_project.yaml',
-  'node': '/docs/reference/node/_project.yaml'
+  'js': '/docs/reference/js/v8/_project.yaml'
 };
 async function setProjectYamlPath(api) {
   const defaultTemplatePath = path.resolve(
@@ -297,55 +268,6 @@ async function setProjectYamlPath(api) {
     `$1${projectFilePath}$2`
   );
   await fs.writeFile(defaultTemplatePath, replacedText);
-}
-
-/**
- * Generate an temporary abridged version of index.d.ts used to create
- * Node docs.
- */
-async function generateNodeSource() {
-  const sourceText = await fs.readFile(sourceFile, 'utf8');
-
-  // Parse index.d.ts. A dummy filename is required but it doesn't create a
-  // file.
-  let typescriptSourceFile = typescript.createSourceFile(
-    'temp.d.ts',
-    sourceText,
-    typescript.ScriptTarget.ES2015,
-    /*setParentNodes */ false
-  );
-
-  /**
-   * Typescript transformer function. Removes nodes tagged with @webonly.
-   */
-  const removeWebOnlyNodes = context => rootNode => {
-    function visit(node) {
-      if (
-        node.jsDoc &&
-        node.jsDoc.some(
-          item =>
-            item.tags &&
-            item.tags.some(tag => tag.tagName.escapedText === 'webonly')
-        )
-      ) {
-        return null;
-      }
-      return typescript.visitEachChild(node, visit, context);
-    }
-    return typescript.visitNode(rootNode, visit);
-  };
-
-  // Use above transformer on source AST to remove nodes tagged with @webonly.
-  const result = typescript.transform(typescriptSourceFile, [
-    removeWebOnlyNodes
-  ]);
-
-  // Convert transformed AST to text and write to file.
-  const printer = typescript.createPrinter();
-  return fs.writeFile(
-    tempNodeSourcePath,
-    printer.printFile(result.transformed[0])
-  );
 }
 
 /**
@@ -371,11 +293,6 @@ Promise.all([
     return generateTempHomeMdFile(tocRaw, homeRaw);
   })
   .then(() => {
-    if (apiType === 'node') {
-      return generateNodeSource();
-    }
-  })
-  .then(() => {
     setProjectYamlPath(apiType);
   })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
@@ -385,10 +302,6 @@ Promise.all([
     console.log(output.stdout);
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
-    // Clean up temp node index.d.ts file if it exists.
-    if (await fs.exists(tempNodeSourcePath)) {
-      fs.unlink(tempNodeSourcePath);
-    }
   })
   // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
   // erroring when it finds an unexpected file in the target dir.
@@ -407,11 +320,8 @@ Promise.all([
   // Not blocking.
   .then(checkForMissingFilesAndFixFilenameCase)
   // Check for files that exist but aren't listed in the TOC and warn.
-  // (If API is node, actually remove the file.)
   // Removal is blocking, warnings aren't.
-  .then(filenamesFromToc =>
-    checkForUnlistedFiles(filenamesFromToc, apiType === 'node')
-  )
+  .then(filenamesFromToc => checkForUnlistedFiles(filenamesFromToc))
   // Write a _toc_autogenerated.yaml to record what files were created.
   .then(htmlFiles => writeGeneratedFileList(htmlFiles))
   // Correct the links in all the generated html files now that files have

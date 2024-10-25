@@ -30,12 +30,14 @@ import {
   getPreviousValue
 } from '../model/server_timestamps';
 import { TypeOrder } from '../model/type_order';
-import { typeOrder } from '../model/values';
+import { VECTOR_MAP_VECTORS_KEY, typeOrder } from '../model/values';
 import {
+  ApiClientObjectMap,
   ArrayValue as ProtoArrayValue,
   LatLng as ProtoLatLng,
   MapValue as ProtoMapValue,
   Timestamp as ProtoTimestamp,
+  Value,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { isValidResourceName } from '../remote/serializer';
@@ -46,6 +48,7 @@ import { forEach } from '../util/obj';
 
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
+import { VectorValue } from './vector_value';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -83,6 +86,8 @@ export abstract class AbstractUserDataWriter {
         return this.convertArray(value.arrayValue!, serverTimestampBehavior);
       case TypeOrder.ObjectValue:
         return this.convertObject(value.mapValue!, serverTimestampBehavior);
+      case TypeOrder.VectorValue:
+        return this.convertVectorValue(value.mapValue!);
       default:
         throw fail('Invalid value type: ' + JSON.stringify(value));
     }
@@ -92,11 +97,34 @@ export abstract class AbstractUserDataWriter {
     mapValue: ProtoMapValue,
     serverTimestampBehavior: ServerTimestampBehavior
   ): DocumentData {
+    return this.convertObjectMap(mapValue.fields, serverTimestampBehavior);
+  }
+
+  /**
+   * @internal
+   */
+  convertObjectMap(
+    fields: ApiClientObjectMap<Value> | undefined,
+    serverTimestampBehavior: ServerTimestampBehavior = 'none'
+  ): DocumentData {
     const result: DocumentData = {};
-    forEach(mapValue.fields, (key, value) => {
+    forEach(fields, (key, value) => {
       result[key] = this.convertValue(value, serverTimestampBehavior);
     });
     return result;
+  }
+
+  /**
+   * @internal
+   */
+  convertVectorValue(mapValue: ProtoMapValue): VectorValue {
+    const values = mapValue.fields?.[
+      VECTOR_MAP_VECTORS_KEY
+    ].arrayValue?.values?.map(value => {
+      return normalizeNumber(value.doubleValue);
+    });
+
+    return new VectorValue(values);
   }
 
   private convertGeoPoint(value: ProtoLatLng): GeoPoint {

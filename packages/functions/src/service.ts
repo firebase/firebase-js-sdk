@@ -105,8 +105,7 @@ export class FunctionsService implements _FirebaseService {
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<MessagingInternalComponentName>,
     appCheckProvider: Provider<AppCheckInternalComponentName>,
-    regionOrCustomDomain: string = DEFAULT_REGION,
-    readonly fetchImpl: typeof fetch
+    regionOrCustomDomain: string = DEFAULT_REGION
   ) {
     this.contextProvider = new ContextProvider(
       authProvider,
@@ -123,7 +122,8 @@ export class FunctionsService implements _FirebaseService {
     // Resolve the region or custom domain overload by attempting to parse it.
     try {
       const url = new URL(regionOrCustomDomain);
-      this.customDomain = url.origin;
+      this.customDomain =
+        url.origin + (url.pathname === '/' ? '' : url.pathname);
       this.region = DEFAULT_REGION;
     } catch (e) {
       this.customDomain = null;
@@ -223,14 +223,13 @@ export function httpsCallableFromURL<RequestData, ResponseData, StreamData = unk
 async function postJSON(
   url: string,
   body: unknown,
-  headers: { [key: string]: string },
-  fetchImpl: typeof fetch
+  headers: { [key: string]: string }
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
   let response: Response;
   try {
-    response = await fetchImpl(url, {
+    response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(body),
       headers
@@ -290,7 +289,9 @@ async function callAtURL(
 
   // Add a header for the authToken.
   const headers: { [key: string]: string } = {};
-  const context = await functionsInstance.contextProvider.getContext();
+  const context = await functionsInstance.contextProvider.getContext(
+    options.limitedUseAppCheckTokens
+  );
   if (context.authToken) {
     headers['Authorization'] = 'Bearer ' + context.authToken;
   }
@@ -306,7 +307,7 @@ async function callAtURL(
 
   const failAfterHandle = failAfter(timeout);
   const response = await Promise.race([
-    postJSON(url, body, headers, functionsInstance.fetchImpl),
+    postJSON(url, body, headers),
     failAfterHandle.promise,
     functionsInstance.cancelAllRequests
   ]);

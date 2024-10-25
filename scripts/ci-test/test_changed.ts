@@ -59,7 +59,7 @@ async function runTests(config: TestConfig) {
       process.exit(0);
     }
 
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+    const lernaCmd = ['lerna', 'run'];
     console.log(chalk`{blue Running tests in:}`);
     for (const task of testTasks) {
       if (task.reason === TestReason.Changed) {
@@ -80,6 +80,14 @@ async function runTests(config: TestConfig) {
     process.exit(0);
   } catch (e) {
     console.error(chalk`{red ${e}}`);
+
+    const chrome_notes = process.env.CHROME_VERSION_NOTES;
+    if (chrome_notes) {
+      console.error();
+      console.error(chalk`{red ${chrome_notes}}`);
+      console.error();
+    }
+
     process.exit(1);
   }
 }

@@ -10,18 +10,19 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or ied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 import '../test/setup';
 import { expect } from 'chai';
-import { spy, stub } from 'sinon';
+import { SinonStub, spy, stub } from 'sinon';
 import {
   setTokenAutoRefreshEnabled,
   initializeAppCheck,
   getToken,
-  onTokenChanged
+  onTokenChanged,
+  getLimitedUseToken
 } from './api';
 import {
   FAKE_SITE_KEY,
@@ -31,7 +32,12 @@ import {
   getFakeAppCheck,
   removegreCAPTCHAScriptsOnPage
 } from '../test/util';
-import { clearState, getState } from './state';
+import {
+  clearState,
+  DEFAULT_STATE,
+  getStateReference,
+  setInitialState
+} from './state';
 import * as reCAPTCHA from './recaptcha';
 import * as util from './util';
 import * as logger from './logger';
@@ -52,15 +58,25 @@ import { getDebugToken } from './debug';
 
 describe('api', () => {
   let app: FirebaseApp;
+  let storageReadStub: SinonStub;
+  let storageWriteStub: SinonStub;
+
+  function setRecaptchaSuccess(isSuccess: boolean = true): void {
+    getStateReference(app).reCAPTCHAState!.succeeded = isSuccess;
+  }
 
   beforeEach(() => {
     app = getFullApp();
+    storageReadStub = stub(storage, 'readTokenFromStorage').resolves(undefined);
+    storageWriteStub = stub(storage, 'writeTokenToStorage');
     stub(util, 'getRecaptcha').returns(getFakeGreCAPTCHA());
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     clearState();
     removegreCAPTCHAScriptsOnPage();
+    storageReadStub.restore();
+    storageWriteStub.restore();
     return deleteApp(app);
   });
 
@@ -216,11 +232,11 @@ describe('api', () => {
     });
 
     it('sets activated to true', () => {
-      expect(getState(app).activated).to.equal(false);
+      expect(getStateReference(app).activated).to.equal(false);
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      expect(getState(app).activated).to.equal(true);
+      expect(getStateReference(app).activated).to.equal(true);
     });
 
     it('isTokenAutoRefreshEnabled value defaults to global setting', () => {
@@ -228,7 +244,7 @@ describe('api', () => {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
       });
-      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(false);
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(false);
     });
 
     it('sets isTokenAutoRefreshEnabled correctly, overriding global setting', () => {
@@ -237,15 +253,16 @@ describe('api', () => {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
         isTokenAutoRefreshEnabled: true
       });
-      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
   });
   describe('setTokenAutoRefreshEnabled()', () => {
     it('sets isTokenAutoRefreshEnabled correctly', () => {
       const app = getFakeApp({ automaticDataCollectionEnabled: false });
       const appCheck = getFakeAppCheck(app);
+      setInitialState(app, { ...DEFAULT_STATE });
       setTokenAutoRefreshEnabled(appCheck, true);
-      expect(getState(app).isTokenAutoRefreshEnabled).to.equal(true);
+      expect(getStateReference(app).isTokenAutoRefreshEnabled).to.equal(true);
     });
   });
   describe('getToken()', () => {
@@ -272,6 +289,22 @@ describe('api', () => {
       );
     });
   });
+  describe('getLimitedUseToken()', () => {
+    it('getLimitedUseToken() calls the internal getLimitedUseToken() function', async () => {
+      const app = getFakeApp({ automaticDataCollectionEnabled: true });
+      const appCheck = getFakeAppCheck(app);
+      const internalgetLimitedUseToken = stub(
+        internalApi,
+        'getLimitedUseToken'
+      ).resolves({
+        token: 'a-token-string'
+      });
+      expect(await getLimitedUseToken(appCheck)).to.eql({
+        token: 'a-token-string'
+      });
+      expect(internalgetLimitedUseToken).to.be.calledWith(appCheck);
+    });
+  });
   describe('onTokenChanged()', () => {
     it('Listeners work when using top-level parameters pattern', async () => {
       const appCheck = initializeAppCheck(app, {
@@ -279,7 +312,9 @@ describe('api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      setRecaptchaSuccess(true);
+
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       const fakeRecaptchaAppCheckToken = {
@@ -291,7 +326,6 @@ describe('api', () => {
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
 
       const listener1 = stub().throws(new Error());
       const listener2 = spy();
@@ -302,7 +336,7 @@ describe('api', () => {
       const unsubscribe1 = onTokenChanged(appCheck, listener1, errorFn1);
       const unsubscribe2 = onTokenChanged(appCheck, listener2, errorFn2);
 
-      expect(getState(app).tokenObservers.length).to.equal(3);
+      expect(getStateReference(app).tokenObservers.length).to.equal(3);
 
       await internalApi.getToken(appCheck as AppCheckService);
 
@@ -315,7 +349,7 @@ describe('api', () => {
       expect(errorFn2).to.not.be.called;
       unsubscribe1();
       unsubscribe2();
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
     });
 
     it('Listeners work when using Observer pattern', async () => {
@@ -324,7 +358,9 @@ describe('api', () => {
         isTokenAutoRefreshEnabled: true
       });
 
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      setRecaptchaSuccess(true);
+
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       const fakeRecaptchaAppCheckToken = {
@@ -336,7 +372,7 @@ describe('api', () => {
       stub(client, 'exchangeToken').returns(
         Promise.resolve(fakeRecaptchaAppCheckToken)
       );
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+      storageWriteStub.returns(Promise.resolve(undefined));
 
       const listener1 = stub().throws(new Error());
       const listener2 = spy();
@@ -357,7 +393,7 @@ describe('api', () => {
         error: errorFn1
       });
 
-      expect(getState(app).tokenObservers.length).to.equal(3);
+      expect(getStateReference(app).tokenObservers.length).to.equal(3);
 
       await internalApi.getToken(appCheck as AppCheckService);
 
@@ -370,7 +406,7 @@ describe('api', () => {
       expect(errorFn2).to.not.be.called;
       unsubscribe1();
       unsubscribe2();
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
     });
 
     it('onError() catches token errors', async () => {
@@ -380,12 +416,14 @@ describe('api', () => {
         isTokenAutoRefreshEnabled: false
       });
 
-      expect(getState(app).tokenObservers.length).to.equal(0);
+      setRecaptchaSuccess(true);
+
+      expect(getStateReference(app).tokenObservers.length).to.equal(0);
 
       const fakeRecaptchaToken = 'fake-recaptcha-token';
       stub(reCAPTCHA, 'getToken').returns(Promise.resolve(fakeRecaptchaToken));
       stub(client, 'exchangeToken').rejects('exchange error');
-      stub(storage, 'writeTokenToStorage').returns(Promise.resolve(undefined));
+      storageWriteStub.returns(Promise.resolve(undefined));
 
       const listener1 = spy();
 
@@ -395,13 +433,13 @@ describe('api', () => {
 
       await internalApi.getToken(appCheck as AppCheckService);
 
-      expect(getState(app).tokenObservers.length).to.equal(1);
+      expect(getStateReference(app).tokenObservers.length).to.equal(1);
 
       expect(errorFn1).to.be.calledOnce;
       expect(errorFn1.args[0][0].name).to.include('exchange error');
 
       unsubscribe1();
-      expect(getState(app).tokenObservers.length).to.equal(0);
+      expect(getStateReference(app).tokenObservers.length).to.equal(0);
     });
   });
 });

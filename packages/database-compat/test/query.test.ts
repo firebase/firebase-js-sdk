@@ -375,34 +375,76 @@ describe('Query Tests', () => {
     expect(queryId(path)).to.equal('default');
 
     expect(queryId(path.startAt('pri', 'name'))).to.equal(
-      '{"sn":"name","sp":"pri"}'
+      '{"sin":true,"sn":"name","sp":"pri"}'
     );
     expect(queryId(path.startAfter('pri', 'name'))).to.equal(
-      '{"sn":"name-","sp":"pri"}'
+      '{"sin":false,"sn":"name","sp":"pri"}'
     );
+    expect(queryId(path.endAt('pri', 'name'))).to.equal(
+      '{"ein":true,"en":"name","ep":"pri"}'
+    );
+    expect(queryId(path.endBefore('pri', 'name'))).to.equal(
+      '{"ein":false,"en":"name","ep":"pri"}'
+    );
+
     expect(queryId(path.startAt('spri').endAt('epri'))).to.equal(
-      '{"ep":"epri","sp":"spri"}'
+      '{"ein":true,"ep":"epri","sin":true,"sp":"spri"}'
+    );
+    expect(queryId(path.startAt('spri').endBefore('epri'))).to.equal(
+      '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":true,"sp":"spri"}'
     );
     expect(queryId(path.startAfter('spri').endAt('epri'))).to.equal(
-      '{"ep":"epri","sn":"[MAX_NAME]","sp":"spri"}'
+      '{"ein":true,"ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
     );
+    expect(queryId(path.startAfter('spri').endBefore('epri'))).to.equal(
+      '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
+    );
+
     expect(
       queryId(path.startAt('spri', 'sname').endAt('epri', 'ename'))
-    ).to.equal('{"en":"ename","ep":"epri","sn":"sname","sp":"spri"}');
+    ).to.equal(
+      '{"ein":true,"en":"ename","ep":"epri","sin":true,"sn":"sname","sp":"spri"}'
+    );
+    expect(
+      queryId(path.startAt('spri', 'sname').endBefore('epri', 'ename'))
+    ).to.equal(
+      '{"ein":false,"en":"ename","ep":"epri","sin":true,"sn":"sname","sp":"spri"}'
+    );
     expect(
       queryId(path.startAfter('spri', 'sname').endAt('epri', 'ename'))
-    ).to.equal('{"en":"ename","ep":"epri","sn":"sname-","sp":"spri"}');
+    ).to.equal(
+      '{"ein":true,"en":"ename","ep":"epri","sin":false,"sn":"sname","sp":"spri"}'
+    );
+    expect(
+      queryId(path.startAfter('spri', 'sname').endBefore('epri', 'ename'))
+    ).to.equal(
+      '{"ein":false,"en":"ename","ep":"epri","sin":false,"sn":"sname","sp":"spri"}'
+    );
+
     expect(queryId(path.startAt('pri').limitToFirst(100))).to.equal(
-      '{"l":100,"sp":"pri","vf":"l"}'
+      '{"l":100,"sin":true,"sp":"pri","vf":"l"}'
     );
     expect(queryId(path.startAfter('pri').limitToFirst(100))).to.equal(
-      '{"l":100,"sn":"[MAX_NAME]","sp":"pri","vf":"l"}'
+      '{"l":100,"sin":false,"sn":"[MAX_NAME]","sp":"pri","vf":"l"}'
     );
+    expect(queryId(path.endAt('pri').limitToLast(100))).to.equal(
+      '{"ein":true,"ep":"pri","l":100,"vf":"r"}'
+    );
+    expect(queryId(path.endBefore('pri').limitToLast(100))).to.equal(
+      '{"ein":false,"en":"[MIN_NAME]","ep":"pri","l":100,"vf":"r"}'
+    );
+
     expect(queryId(path.startAt('bar').orderByChild('foo'))).to.equal(
-      '{"i":"foo","sp":"bar"}'
+      '{"i":"foo","sin":true,"sp":"bar"}'
     );
     expect(queryId(path.startAfter('bar').orderByChild('foo'))).to.equal(
-      '{"i":"foo","sn":"[MAX_NAME]","sp":"bar"}'
+      '{"i":"foo","sin":false,"sn":"[MAX_NAME]","sp":"bar"}'
+    );
+    expect(queryId(path.endAt('bar').orderByChild('foo'))).to.equal(
+      '{"ein":true,"ep":"bar","i":"foo"}'
+    );
+    expect(queryId(path.endBefore('bar').orderByChild('foo'))).to.equal(
+      '{"ein":false,"en":"[MIN_NAME]","ep":"bar","i":"foo"}'
     );
   });
 
@@ -3764,7 +3806,7 @@ describe('Query Tests', () => {
     expect(removedSecond).to.deep.equal(['a']);
   });
 
-  it('Case 2003: Correctly get events for startAtfter/endAt queries when priority changes.', () => {
+  it('Case 2003: Correctly get events for startAfter/endAt queries when priority changes.', () => {
     const ref = getRandomNode() as Reference;
     const addedFirst = [],
       removedFirst = [],

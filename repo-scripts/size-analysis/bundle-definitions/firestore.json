@@ -195,6 +195,40 @@
     ]
   },
   {
+    "name": "Read Write w Persistence",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "collection",
+              "doc",
+              "enableMultiTabIndexedDbPersistence",
+              "getDoc",
+              "getFirestore",
+              "setDoc"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Transaction",
     "dependencies": [
       {
@@ -219,6 +253,72 @@
               "getFirestore",
               "doc",
               "runTransaction"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "CSI Auto Indexing Enable",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "deleteAllPersistentCacheIndexes",
+              "enableIndexedDbPersistence",
+              "enablePersistentCacheIndexAutoCreation",
+              "getFirestore",
+              "getPersistentCacheIndexManager"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "CSI Auto Indexing Disable and Delete",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "deleteAllPersistentCacheIndexes",
+              "disablePersistentCacheIndexAutoCreation",
+              "enableIndexedDbPersistence",
+              "getFirestore",
+              "getPersistentCacheIndexManager"
             ]
           }
         ]

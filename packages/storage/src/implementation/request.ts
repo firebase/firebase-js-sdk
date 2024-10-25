@@ -26,6 +26,7 @@ import { ErrorHandler, RequestHandler, RequestInfo } from './requestinfo';
 import { isJustDef } from './type';
 import { makeQueryString } from './url';
 import { Connection, ErrorCode, Headers, ConnectionType } from './connection';
+import { isRetryStatusCode } from './utils';
 
 export interface Request<T> {
   getPromise(): Promise<T>;
@@ -69,7 +70,8 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     private errorCallback_: ErrorHandler | null,
     private timeout_: number,
     private progressCallback_: ((p1: number, p2: number) => void) | null,
-    private connectionFactory_: () => Connection<I>
+    private connectionFactory_: () => Connection<I>,
+    private retry = true
   ) {
     this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve as (value?: O | PromiseLike<O>) => void;
@@ -93,16 +95,15 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       const connection = this.connectionFactory_();
       this.pendingConnection_ = connection;
 
-      const progressListener: (progressEvent: ProgressEvent) => void =
-        progressEvent => {
-          const loaded = progressEvent.loaded;
-          const total = progressEvent.lengthComputable
-            ? progressEvent.total
-            : -1;
-          if (this.progressCallback_ !== null) {
-            this.progressCallback_(loaded, total);
-          }
-        };
+      const progressListener: (
+        progressEvent: ProgressEvent
+      ) => void = progressEvent => {
+        const loaded = progressEvent.loaded;
+        const total = progressEvent.lengthComputable ? progressEvent.total : -1;
+        if (this.progressCallback_ !== null) {
+          this.progressCallback_(loaded, total);
+        }
+      };
       if (this.progressCallback_ !== null) {
         connection.addUploadProgressListener(progressListener);
       }
@@ -118,7 +119,11 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
           this.pendingConnection_ = null;
           const hitServer = connection.getErrorCode() === ErrorCode.NO_ERROR;
           const status = connection.getStatus();
-          if (!hitServer || this.isRetryStatusCode_(status)) {
+          if (
+            !hitServer ||
+            (isRetryStatusCode(status, this.additionalRetryCodes_) &&
+              this.retry)
+          ) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
@@ -196,22 +201,6 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
       this.pendingConnection_.abort();
     }
   }
-
-  private isRetryStatusCode_(status: number): boolean {
-    // The codes for which to retry came from this page:
-    // https://cloud.google.com/storage/docs/exponential-backoff
-    const isFiveHundredCode = status >= 500 && status < 600;
-    const extraRetryCodes = [
-      // Request Timeout: web server didn't receive full request in time.
-      408,
-      // Too Many Requests: you're getting rate-limited, basically.
-      429
-    ];
-    const isExtraRetryCode = extraRetryCodes.indexOf(status) !== -1;
-    const isRequestSpecificRetryCode =
-      this.additionalRetryCodes_.indexOf(status) !== -1;
-    return isFiveHundredCode || isExtraRetryCode || isRequestSpecificRetryCode;
-  }
 }
 
 /**
@@ -271,7 +260,8 @@ export function makeRequest<I extends ConnectionType, O>(
   authToken: string | null,
   appCheckToken: string | null,
   requestFactory: () => Connection<I>,
-  firebaseVersion?: string
+  firebaseVersion?: string,
+  retry = true
 ): Request<O> {
   const queryPart = makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
@@ -291,6 +281,7 @@ export function makeRequest<I extends ConnectionType, O>(
     requestInfo.errorHandler,
     requestInfo.timeout,
     requestInfo.progressCallback,
-    requestFactory
+    requestFactory,
+    retry
   );
 }

@@ -30,44 +30,30 @@ import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_rep
 
 const util = require('./rollup.shared');
 
-const nodePlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertTransformer]
-    }),
-    json({ preferConst: true })
-  ];
-};
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertTransformer]
+  }),
+  json({ preferConst: true })
+];
 
-const browserPlugins = function () {
-  return [
-    typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          target: 'es2017'
-        }
-      },
-      cacheDir: tmp.dirSync(),
-      abortOnError: true,
-      transformers: [util.removeAssertAndPrefixInternalTransformer]
-    }),
-    json({ preferConst: true }),
-    terser(util.manglePrivatePropertiesOptions)
-  ];
-};
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    cacheDir: tmp.dirSync(),
+    abortOnError: true,
+    transformers: [util.removeAssertAndPrefixInternalTransformer]
+  }),
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
+];
 
 const allBuilds = [
-  // Intermidiate Node ESM build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate Node ESM build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './lite/index.ts',
@@ -78,7 +64,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('node_lite')),
-      ...nodePlugins(),
+      ...nodePlugins,
       replace({
         '__RUNTIME_ENV__': 'node'
       })
@@ -101,14 +87,13 @@ const allBuilds = [
       typescriptPlugin({
         typescript,
         compilerOptions: {
-          allowJs: true,
-          target: 'es5'
+          allowJs: true
         },
         include: ['dist/lite/*.js']
       }),
       json(),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 5))
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -123,14 +108,17 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Intermidiate browser build without build target reporting
-  // this is an intermidiate build used to generate the actual esm and cjs builds
+  // Intermediate browser build without build target reporting
+  // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
     input: './lite/index.ts',
@@ -141,7 +129,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('browser_lite')),
-      ...browserPlugins(),
+      ...browserPlugins,
       // setting it to empty string because browser is the default env
       replace({
         '__RUNTIME_ENV__': ''
@@ -152,19 +140,19 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to ES5
+  // Convert es2017 build to CJS
   {
     input: path.resolve('./lite', pkg.browser),
     output: [
       {
-        file: path.resolve('./lite', pkg.esm5),
+        file: './dist/lite/index.cjs.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
-      ...util.es2017ToEs5Plugins(/* mangled= */ true),
-      replace(generateBuildTargetReplaceConfig('esm', 5))
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('cjs', 2017))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -181,7 +169,10 @@ const allBuilds = [
         sourcemap: true
       }
     ],
-    plugins: [replace(generateBuildTargetReplaceConfig('esm', 2017))],
+    plugins: [
+      sourcemaps(),
+      replace(generateBuildTargetReplaceConfig('esm', 2017))
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -197,7 +188,7 @@ const allBuilds = [
     },
     plugins: [
       alias(util.generateAliasConfig('rn_lite')),
-      ...browserPlugins(),
+      ...browserPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         '__RUNTIME_ENV__': 'rn'

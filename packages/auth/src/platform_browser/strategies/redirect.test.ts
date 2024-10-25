@@ -122,6 +122,37 @@ describe('platform_browser/strategies/redirect', () => {
         'auth/argument-error'
       );
     });
+
+    it('awaits on the auth initialization promise before opening redirect', async () => {
+      // Obtain an auth instance which does not await on the initialization promise.
+      const authWithoutAwait: TestAuth = await testAuth(
+        resolver,
+        undefined,
+        true
+      );
+      // completeRedirectFn calls getRedirectResult under the hood.
+      const getRedirectResultSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_completeRedirectFn'
+      );
+      const openRedirectSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_openRedirect'
+      );
+      await signInWithRedirect(authWithoutAwait, provider);
+      expect(getRedirectResultSpy).to.have.been.called;
+      expect(getRedirectResultSpy).to.have.been.calledBefore(openRedirectSpy);
+      expect(getRedirectResultSpy).to.have.been.calledWith(
+        authWithoutAwait,
+        resolver,
+        true
+      );
+      expect(openRedirectSpy).to.have.been.calledWith(
+        authWithoutAwait,
+        provider,
+        AuthEventType.SIGN_IN_VIA_REDIRECT
+      );
+    });
   });
 
   context('linkWithRedirect', () => {
@@ -154,6 +185,39 @@ describe('platform_browser/strategies/redirect', () => {
       await linkWithRedirect(user, provider);
       expect(spy).to.have.been.calledWith(
         auth,
+        provider,
+        AuthEventType.LINK_VIA_REDIRECT
+      );
+    });
+
+    it('awaits on the auth initialization promise before opening redirect', async () => {
+      // Obtain an auth instance which does not await on the initialization promise.
+      const authWithoutAwait: TestAuth = await testAuth(
+        resolver,
+        undefined,
+        true
+      );
+      user = testUser(authWithoutAwait, 'uid', 'email', true);
+      // completeRedirectFn calls getRedirectResult under the hood.
+      const getRedirectResultSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_completeRedirectFn'
+      );
+      const openRedirectSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_openRedirect'
+      );
+      await authWithoutAwait._updateCurrentUser(user);
+      await linkWithRedirect(user, provider, resolver);
+      expect(getRedirectResultSpy).to.have.been.called;
+      expect(getRedirectResultSpy).to.have.been.calledBefore(openRedirectSpy);
+      expect(getRedirectResultSpy).to.have.been.calledWith(
+        authWithoutAwait,
+        resolver,
+        true
+      );
+      expect(openRedirectSpy).to.have.been.calledWith(
+        authWithoutAwait,
         provider,
         AuthEventType.LINK_VIA_REDIRECT
       );
@@ -231,6 +295,40 @@ describe('platform_browser/strategies/redirect', () => {
       await reauthenticateWithRedirect(user, provider);
       expect(spy).to.have.been.calledWith(
         auth,
+        provider,
+        AuthEventType.REAUTH_VIA_REDIRECT
+      );
+    });
+
+    it('awaits on the auth initialization promise before opening redirect', async () => {
+      // Obtain an auth instance which does not await on the initialization promise.
+      const authWithoutAwait: TestAuth = await testAuth(
+        resolver,
+        undefined,
+        true
+      );
+      user = testUser(authWithoutAwait, 'uid', 'email', true);
+      // completeRedirectFn calls getRedirectResult under the hood.
+      const getRedirectResultSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_completeRedirectFn'
+      );
+      const openRedirectSpy = sinon.spy(
+        _getInstance<PopupRedirectResolverInternal>(resolver),
+        '_openRedirect'
+      );
+      await authWithoutAwait._updateCurrentUser(user);
+      await signInWithRedirect(authWithoutAwait, provider);
+      await reauthenticateWithRedirect(user, provider);
+      expect(getRedirectResultSpy).to.have.been.called;
+      expect(getRedirectResultSpy).to.have.been.calledBefore(openRedirectSpy);
+      expect(getRedirectResultSpy).to.have.been.calledWith(
+        authWithoutAwait,
+        resolver,
+        true
+      );
+      expect(openRedirectSpy).to.have.been.calledWith(
+        authWithoutAwait,
         provider,
         AuthEventType.REAUTH_VIA_REDIRECT
       );

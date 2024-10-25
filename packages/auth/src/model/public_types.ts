@@ -70,7 +70,7 @@ export interface Config {
 /**
  * Interface representing reCAPTCHA parameters.
  *
- * See the [reCAPTCHA docs](https://developers.google.com/recaptcha/docs/display#render_param)
+ * See the {@link https://developers.google.com/recaptcha/docs/display#render_param | reCAPTCHA docs}
  * for the list of accepted parameters. All parameters are accepted except for `sitekey`: Firebase Auth
  * provisions a reCAPTCHA for each project and will configure the site key upon rendering.
  *
@@ -106,7 +106,7 @@ export interface ParsedToken {
     'identities'?: Record<string, string>;
   };
   /** Map of any additional custom claims. */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -193,6 +193,8 @@ export interface Auth {
    * This makes it easy for a user signing in to specify whether their session should be
    * remembered or not. It also makes it easier to never persist the Auth state for applications
    * that are shared by other users or have sensitive data.
+   *
+   * This method does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -289,6 +291,12 @@ export interface Auth {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+  /**
+   * returns a promise that resolves immediately when the initial
+   * auth state is settled. When the promise resolves, the current user might be a valid user
+   * or `null` if the user signed out.
+   */
+  authStateReady(): Promise<void>;
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
   /** The current emulator configuration (or null). */
@@ -313,7 +321,11 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Signs out the current user.
+   * Signs out the current user. This does not automatically revoke the user's ID token.
+   *
+   * @remarks
+   * This method is not supported by {@link Auth} instances created with a
+   * {@link @firebase/app#FirebaseServerApp}.
    */
   signOut(): Promise<void>;
 }
@@ -416,7 +428,7 @@ export interface ActionCodeInfo {
   /**
    * The type of operation that generated the action code.
    */
-  operation: typeof ActionCodeOperationMap[keyof typeof ActionCodeOperationMap];
+  operation: (typeof ActionCodeOperationMap)[keyof typeof ActionCodeOperationMap];
 }
 
 /**
@@ -541,11 +553,15 @@ export interface AuthProvider {
 /**
  * An enum of factors that may be used for multifactor authentication.
  *
+ * Internally we use an enum type for FactorId, ActionCodeOperation, but there is a copy in https://github.com/firebase/firebase-js-sdk/blob/48a2096aec53a7eaa9ffcc2625016ecb9f90d113/packages/auth/src/model/enum_maps.ts#L23 that uses maps.
+ * const enums are better for tree-shaking, however can cause runtime errors if exposed in public APIs, example - https://github.com/microsoft/rushstack/issues/3058
+ * So, we expose enum maps publicly, but use const enums internally to get some tree-shaking benefit.
  * @internal
  */
 export const enum FactorId {
   /** Phone as second factor */
-  PHONE = 'phone'
+  PHONE = 'phone',
+  TOTP = 'totp'
 }
 
 /**
@@ -588,7 +604,7 @@ export interface ConfirmationResult {
  */
 export interface MultiFactorAssertion {
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -628,7 +644,7 @@ export interface MultiFactorError extends AuthError {
     /**
      * The type of operation (sign-in, linking, or re-authentication) that raised the error.
      */
-    readonly operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+    readonly operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
   };
 }
 
@@ -645,7 +661,7 @@ export interface MultiFactorInfo {
   /** The enrollment date of the second factor formatted as a UTC string. */
   readonly enrollmentTime: string;
   /** The identifier of the second factor. */
-  readonly factorId: typeof FactorIdMap[keyof typeof FactorIdMap];
+  readonly factorId: (typeof FactorIdMap)[keyof typeof FactorIdMap];
 }
 
 /**
@@ -657,6 +673,13 @@ export interface PhoneMultiFactorInfo extends MultiFactorInfo {
   /** The phone number associated with the current second factor. */
   readonly phoneNumber: string;
 }
+
+/**
+ * The subclass of the {@link MultiFactorInfo} interface for TOTP
+ * second factors. The `factorId` of this second factor is {@link FactorId}.TOTP.
+ * @public
+ */
+export interface TotpMultiFactorInfo extends MultiFactorInfo {}
 
 /**
  * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
@@ -985,6 +1008,9 @@ export interface User extends UserInfo {
    * Important: this is a security-sensitive operation that requires the user to have recently
    * signed in. If this requirement isn't met, ask the user to authenticate again and then call
    * one of the reauthentication methods like {@link reauthenticateWithCredential}.
+   *
+   * This method is not supported on any {@link User} signed in by {@link Auth} instances
+   * created with a {@link @firebase/app#FirebaseServerApp}.
    */
   delete(): Promise<void>;
   /**
@@ -998,7 +1024,7 @@ export interface User extends UserInfo {
    */
   getIdToken(forceRefresh?: boolean): Promise<string>;
   /**
-   * Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+   * Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service.
    *
    * @remarks
    * Returns the current token if it has not expired or if it will not expire in the next five
@@ -1041,7 +1067,7 @@ export interface UserCredential {
   /**
    * The type of operation which was used to authenticate the user (such as sign-in or link).
    */
-  operationType: typeof OperationTypeMap[keyof typeof OperationTypeMap];
+  operationType: (typeof OperationTypeMap)[keyof typeof OperationTypeMap];
 }
 
 /**
@@ -1228,4 +1254,104 @@ export interface Dependencies {
    * Which {@link AuthErrorMap} to use.
    */
   errorMap?: AuthErrorMap;
+}
+
+/**
+ * The class for asserting ownership of a TOTP second factor. Provided by
+ * {@link TotpMultiFactorGenerator.assertionForEnrollment} and
+ * {@link TotpMultiFactorGenerator.assertionForSignIn}.
+ *
+ * @public
+ */
+
+export interface TotpMultiFactorAssertion extends MultiFactorAssertion {}
+
+/**
+ * A structure specifying password policy requirements.
+ *
+ * @public
+ */
+export interface PasswordPolicy {
+  /**
+   * Requirements enforced by this password policy.
+   */
+  readonly customStrengthOptions: {
+    /**
+     * Minimum password length, or undefined if not configured.
+     */
+    readonly minPasswordLength?: number;
+    /**
+     * Maximum password length, or undefined if not configured.
+     */
+    readonly maxPasswordLength?: number;
+    /**
+     * Whether the password should contain a lowercase letter, or undefined if not configured.
+     */
+    readonly containsLowercaseLetter?: boolean;
+    /**
+     * Whether the password should contain an uppercase letter, or undefined if not configured.
+     */
+    readonly containsUppercaseLetter?: boolean;
+    /**
+     * Whether the password should contain a numeric character, or undefined if not configured.
+     */
+    readonly containsNumericCharacter?: boolean;
+    /**
+     * Whether the password should contain a non-alphanumeric character, or undefined if not configured.
+     */
+    readonly containsNonAlphanumericCharacter?: boolean;
+  };
+  /**
+   * List of characters that are considered non-alphanumeric during validation.
+   */
+  readonly allowedNonAlphanumericCharacters: string;
+  /**
+   * The enforcement state of the policy. Can be 'OFF' or 'ENFORCE'.
+   */
+  readonly enforcementState: string;
+  /**
+   * Whether existing passwords must meet the policy.
+   */
+  readonly forceUpgradeOnSignin: boolean;
+}
+
+/**
+ * A structure indicating which password policy requirements were met or violated and what the
+ * requirements are.
+ *
+ * @public
+ */
+export interface PasswordValidationStatus {
+  /**
+   * Whether the password meets all requirements.
+   */
+  readonly isValid: boolean;
+  /**
+   * Whether the password meets the minimum password length, or undefined if not required.
+   */
+  readonly meetsMinPasswordLength?: boolean;
+  /**
+   * Whether the password meets the maximum password length, or undefined if not required.
+   */
+  readonly meetsMaxPasswordLength?: boolean;
+  /**
+   * Whether the password contains a lowercase letter, or undefined if not required.
+   */
+  readonly containsLowercaseLetter?: boolean;
+  /**
+   * Whether the password contains an uppercase letter, or undefined if not required.
+   */
+  readonly containsUppercaseLetter?: boolean;
+  /**
+   * Whether the password contains a numeric character, or undefined if not required.
+   */
+  readonly containsNumericCharacter?: boolean;
+  /**
+   * Whether the password contains a non-alphanumeric character, or undefined if not required.
+   */
+  readonly containsNonAlphanumericCharacter?: boolean;
+  /**
+   * The policy used to validate the password.
+   */
+  readonly passwordPolicy: PasswordPolicy;
 }

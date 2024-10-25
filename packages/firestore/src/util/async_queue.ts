@@ -115,6 +115,10 @@ export class DelayedOperation<T extends unknown> implements PromiseLike<T> {
     this.deferred.promise.catch(err => {});
   }
 
+  get promise(): Promise<T> {
+    return this.deferred.promise;
+  }
+
   /**
    * Creates and returns a DelayedOperation that has been scheduled to be
    * executed on the provided asyncQueue after the provided delayMs.
@@ -232,7 +236,7 @@ export interface AsyncQueue {
    * `enqueueEvenWhileRestricted()`.
    *
    * @param purgeExistingTasks Whether already enqueued tasked should be
-   * rejected (unless enqueued wih `enqueueEvenWhileRestricted()`). Defaults
+   * rejected (unless enqueued with `enqueueEvenWhileRestricted()`). Defaults
    * to false.
    */
   enterRestrictedMode(purgeExistingTasks?: boolean): void;

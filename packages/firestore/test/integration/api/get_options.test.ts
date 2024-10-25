@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 
 import {
+  collection,
   deleteDoc,
   disableNetwork,
   doc,
@@ -34,10 +35,11 @@ import {
   toDataMap,
   apiDescribe,
   withTestCollection,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  withTestDb
 } from '../util/helpers';
 
-apiDescribe('GetOptions', (persistence: boolean) => {
+apiDescribe('GetOptions', persistence => {
   it('get document while online with default get options', () => {
     const initialData = { key: 'value' };
     return withTestDocAndInitialData(persistence, initialData, docRef => {
@@ -68,10 +70,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
 
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, (docRef, db) => {
-      // Register a snapshot to force the data to stay in the cache and not be
-      // garbage collected.
-      onSnapshot(docRef, () => {});
+    // Use an instance with LRU GC.
+    return withTestDb(persistence.toLruGc(), async db => {
+      const docRef = doc(collection(db, 'test-collection'));
+      await setDoc(docRef, initialData);
       return getDoc(docRef)
         .then(() => disableNetwork(db))
         .then(() => getDoc(docRef))
@@ -267,7 +269,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       // force local cache of these
       return (
         getDocs(colRef)
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(() => disableNetwork(db))
           .then(() => getDocsFromServer(colRef))
@@ -334,7 +336,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       onSnapshot(colRef, () => {});
       return (
         getDocs(colRef)
-          // now go offine. Note that if persistence is disabled, this will cause
+          // now go offline. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
           .then(() => disableNetwork(db))
           .then(() => {
@@ -391,7 +393,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while online with default get options', () => {
+  it('get nonexistent doc while online with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return getDoc(docRef).then(doc => {
         expect(doc.exists()).to.be.false;
@@ -401,7 +403,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing collection while online with default get options', () => {
+  it('get nonexistent collection while online with default get options', () => {
     return withTestCollection(persistence, {}, colRef => {
       return getDocs(colRef).then(qrySnap => {
         //expect(qrySnap.count).to.equal(0);
@@ -413,7 +415,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while offline with default get options', () => {
+  it('get nonexistent doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -445,7 +447,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing collection while offline with default get options', () => {
+  it('get nonexistent collection while offline with default get options', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocs(colRef))
@@ -458,7 +460,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while online with source=cache', () => {
+  it('get nonexistent doc while online with source=cache', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       // Attempt to get doc.  This will fail since there's nothing in cache.
       return getDocFromCache(docRef).then(
@@ -468,7 +470,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing collection while online with source=cache', () => {
+  it('get nonexistent collection while online with source=cache', () => {
     return withTestCollection(persistence, {}, colRef => {
       return getDocsFromCache(colRef).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
@@ -479,7 +481,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while offline with source=cache', () => {
+  it('get nonexistent doc while offline with source=cache', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -494,9 +496,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  // We need the deleted doc to stay in cache, so only run this with persistence.
+  // We need the deleted doc to stay in cache, so only run this test when the
+  // local cache is configured with LRU GC (as opposed to eager GC).
   // eslint-disable-next-line no-restricted-properties,
-  (persistence ? it : it.skip)(
+  (persistence.gc === 'lru' ? it : it.skip)(
     'get deleted doc while offline with source=cache',
     () => {
       return withTestDocAndInitialData(persistence, null, (docRef, db) => {
@@ -516,7 +519,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     }
   );
 
-  it('get non existing collection while offline with source=cache', () => {
+  it('get nonexistent collection while offline with source=cache', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocsFromCache(colRef))
@@ -529,7 +532,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while online with source=server', () => {
+  it('get nonexistent doc while online with source=server', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return getDocFromServer(docRef).then(doc => {
         expect(doc.exists()).to.be.false;
@@ -539,7 +542,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing collection while online with source=server', () => {
+  it('get nonexistent collection while online with source=server', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return getDocsFromServer(colRef).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
@@ -550,7 +553,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing doc while offline with source=server', () => {
+  it('get nonexistent doc while offline with source=server', () => {
     return withTestDocAndInitialData(persistence, null, (docRef, db) => {
       return (
         disableNetwork(db)
@@ -564,7 +567,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     });
   });
 
-  it('get non existing collection while offline with source=server', () => {
+  it('get nonexistent collection while offline with source=server', () => {
     return withTestCollection(persistence, {}, (colRef, db) => {
       return disableNetwork(db)
         .then(() => getDocsFromServer(colRef))

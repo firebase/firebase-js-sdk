@@ -263,7 +263,7 @@ export function extractExports(filePath: string): MemberList {
   for (const expt of exports) {
     // get the source declaration where we can determine the type of the export. e.g. class vs function
     let sourceSymbol = expt;
-    if (sourceSymbol.declarations[0].kind === ts.SyntaxKind.ExportSpecifier) {
+    if (sourceSymbol.declarations?.[0].kind === ts.SyntaxKind.ExportSpecifier) {
       sourceSymbol = checker.getAliasedSymbol(expt);
     }
 
@@ -498,7 +498,7 @@ export async function generateReportForModule(
  *
  * @param pkgJson package.json of the module.
  *
- * This function implements a fallback of locating module's budle file.
+ * This function implements a fallback of locating module's bundle file.
  * It first looks at esm2017 field of package.json, then module field. Main
  * field at the last.
  *

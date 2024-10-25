@@ -25,7 +25,9 @@ const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 // TODO(dwyfrequency): Update object with `storage` and `firestore` packages.
 const crossBrowserPackages = {
   'packages/auth': 'test:browser:unit',
-  'packages/firestore': 'test:browser:unit'
+  'packages/auth-compat': 'test:browser:unit',
+  'packages/firestore': 'test:browser:unit',
+  'packages/firestore-compat': 'test:browser'
 };
 
 function writeLogs(status, name, logText) {
@@ -85,7 +87,15 @@ const argv = yargs.options({
     console.error('Failure: ' + name);
     console.log(stdout);
     console.error(stderr);
+
+    if (process.env.CHROME_VERSION_NOTES) {
+      console.error();
+      console.error(process.env.CHROME_VERSION_NOTES);
+      console.error();
+    }
+
     writeLogs('Failure', name, stdout + '\n' + stderr);
+
     process.exit(1);
   }
 })();

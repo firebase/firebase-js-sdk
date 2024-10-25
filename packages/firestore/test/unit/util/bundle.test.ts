@@ -18,7 +18,7 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
-import { newTextEncoder } from '../../../src/platform/serializer';
+import { newTextEncoder } from '../../../src/platform/text_serializer';
 import {
   BundleReader,
   SizedBundleElement
@@ -59,7 +59,7 @@ const encoder = newTextEncoder();
 export function byteStreamReaderFromString(
   content: string,
   bytesPerRead: number
-): ReadableStreamReader<Uint8Array> {
+): ReadableStreamDefaultReader<Uint8Array> {
   const data = encoder.encode(content);
   return toByteStreamReader(data, bytesPerRead);
 }

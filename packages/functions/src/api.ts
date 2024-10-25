@@ -27,8 +27,12 @@ import {
   httpsCallable as _httpsCallable,
   httpsCallableFromURL as _httpsCallableFromURL
 } from './service';
-import { getModularInstance, getDefaultEmulatorHost } from '@firebase/util';
+import {
+  getModularInstance,
+  getDefaultEmulatorHostnameAndPort
+} from '@firebase/util';
 
+export { FunctionsError } from './error';
 export * from './public-types';
 
 /**
@@ -51,11 +55,9 @@ export function getFunctions(
   const functionsInstance = functionsProvider.getImmediate({
     identifier: regionOrCustomDomain
   });
-  const functionsEmulatorHost = getDefaultEmulatorHost('functions');
-  if (functionsEmulatorHost) {
-    const [host, port] = functionsEmulatorHost.split(':');
-    // eslint-disable-next-line no-restricted-globals
-    connectFunctionsEmulator(functionsInstance, host, parseInt(port, 10));
+  const emulator = getDefaultEmulatorHostnameAndPort('functions');
+  if (emulator) {
+    connectFunctionsEmulator(functionsInstance, ...emulator);
   }
   return functionsInstance;
 }

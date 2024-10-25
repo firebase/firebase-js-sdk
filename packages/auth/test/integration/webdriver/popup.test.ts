@@ -192,7 +192,7 @@ browserDescribe('Popup IdP tests', driver => {
     await widget.fillEmail('bob@bob.test');
     await widget.clickSignIn();
 
-    // On redirect, check that the signed in user is different
+    // On return to main window, check that the signed in user is different
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
     expect(curUser.uid).not.to.eq(anonUser.uid);
@@ -210,7 +210,7 @@ browserDescribe('Popup IdP tests', driver => {
     await widget.fillEmail('bob@bob.test');
     await widget.clickSignIn();
 
-    // On redirect, check that the signed in user is upgraded
+    // On return to main window, check that the signed in user is upgraded
     await driver.selectMainWindow();
     const curUser = await driver.getUserSnapshot();
     expect(curUser.uid).to.eq(anonUser.uid);
@@ -223,7 +223,7 @@ browserDescribe('Popup IdP tests', driver => {
       'user@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
     const widget = new IdPPage(driver.webDriver);
@@ -246,7 +246,7 @@ browserDescribe('Popup IdP tests', driver => {
       'same@test.test'
     );
 
-    // Link using pre-poulated user
+    // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
     const widget = new IdPPage(driver.webDriver);
@@ -283,7 +283,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('a user can sign in again', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
@@ -300,7 +300,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('reauthenticate works for the correct user', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
@@ -327,7 +327,7 @@ browserDescribe('Popup IdP tests', driver => {
     });
 
     it('reauthenticate throws for wrong user', async () => {
-      // Sign in using pre-poulated user
+      // Sign in using pre-populated user
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
@@ -396,6 +396,7 @@ browserDescribe('Popup IdP tests', driver => {
       user = await driver.getUserSnapshot();
       expect(user.uid).to.eq(user1.uid);
       expect(user.email).to.eq(user1.email);
-    }).timeout(12_000); // Test takes a while due to the closed-by-user errors
+    }).timeout(25_000); // Test takes a while due to the closed-by-user errors. Each closed-by-user
+    // takes 8s to timeout, and we have 2 instances.
   });
 });

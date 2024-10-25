@@ -37,12 +37,17 @@ import { Deferred } from '../util/promise';
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
 
+/**
+ * @internal
+ */
 export type AuthTokenFactory = () => string;
 
+/**
+ * @internal
+ */
 export interface FirstPartyCredentialsSettings {
   // These are external types. Prevent minification.
-  ['type']: 'gapi';
-  ['client']: unknown;
+  ['type']: 'firstParty';
   ['sessionIndex']: string;
   ['iamToken']: string | null;
   ['authTokenFactory']: AuthTokenFactory | null;
@@ -230,7 +235,7 @@ export class FirebaseAuthCredentialsProvider
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
    */
-  private tokenListener!: () => void;
+  private tokenListener: (() => void) | undefined;
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
@@ -251,6 +256,10 @@ export class FirebaseAuthCredentialsProvider
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener<User>
   ): void {
+    hardAssert(
+      this.tokenListener === undefined,
+      'Token listener already added'
+    );
     let lastTokenId = this.tokenCounter;
 
     // A change listener that prevents double-firing for the same token change.
@@ -288,8 +297,10 @@ export class FirebaseAuthCredentialsProvider
     const registerAuth = (auth: FirebaseAuthInternal): void => {
       logDebug('FirebaseAuthCredentialsProvider', 'Auth detected');
       this.auth = auth;
-      this.auth.addAuthTokenListener(this.tokenListener);
-      awaitNextToken();
+      if (this.tokenListener) {
+        this.auth.addAuthTokenListener(this.tokenListener);
+        awaitNextToken();
+      }
     };
 
     this.authProvider.onInit(auth => registerAuth(auth));
@@ -360,9 +371,10 @@ export class FirebaseAuthCredentialsProvider
   }
 
   shutdown(): void {
-    if (this.auth) {
-      this.auth.removeAuthTokenListener(this.tokenListener!);
+    if (this.auth && this.tokenListener) {
+      this.auth.removeAuthTokenListener(this.tokenListener);
     }
+    this.tokenListener = undefined;
   }
 
   // Auth.getUid() can return null even with a user logged in. It is because
@@ -379,15 +391,6 @@ export class FirebaseAuthCredentialsProvider
   }
 }
 
-// Manual type definition for the subset of Gapi we use.
-interface Gapi {
-  auth: {
-    getAuthHeaderValueForFirstParty: (
-      userIdentifiers: Array<{ [key: string]: string }>
-    ) => string | null;
-  };
-}
-
 /*
  * FirstPartyToken provides a fresh token each time its value
  * is requested, because if the token is too old, requests will be rejected.
@@ -401,28 +404,20 @@ export class FirstPartyToken implements Token {
   private _headers = new Map();
 
   constructor(
-    private readonly gapi: Gapi | null,
     private readonly sessionIndex: string,
     private readonly iamToken: string | null,
     private readonly authTokenFactory: AuthTokenFactory | null
   ) {}
 
-  /** Gets an authorization token, using a provided factory function, or falling back to First Party GAPI. */
+  /**
+   * Gets an authorization token, using a provided factory function, or return
+   * null.
+   */
   private getAuthToken(): string | null {
     if (this.authTokenFactory) {
       return this.authTokenFactory();
     } else {
-      // Make sure this really is a Gapi client.
-      hardAssert(
-        !!(
-          typeof this.gapi === 'object' &&
-          this.gapi !== null &&
-          this.gapi['auth'] &&
-          this.gapi['auth']['getAuthHeaderValueForFirstParty']
-        ),
-        'unexpected gapi interface'
-      );
-      return this.gapi!['auth']['getAuthHeaderValueForFirstParty']([]);
+      return null;
     }
   }
 
@@ -450,7 +445,6 @@ export class FirstPartyAuthCredentialsProvider
   implements CredentialsProvider<User>
 {
   constructor(
-    private gapi: Gapi | null,
     private sessionIndex: string,
     private iamToken: string | null,
     private authTokenFactory: AuthTokenFactory | null
@@ -459,7 +453,6 @@ export class FirstPartyAuthCredentialsProvider
   getToken(): Promise<Token | null> {
     return Promise.resolve(
       new FirstPartyToken(
-        this.gapi,
         this.sessionIndex,
         this.iamToken,
         this.authTokenFactory
@@ -498,7 +491,7 @@ export class FirebaseAppCheckTokenProvider
    * The AppCheck token listener registered with FirebaseApp, retained here so
    * we can unregister it.
    */
-  private tokenListener!: AppCheckTokenListener;
+  private tokenListener: AppCheckTokenListener | undefined;
   private forceRefresh = false;
   private appCheck: FirebaseAppCheckInternal | null = null;
   private latestAppCheckToken: string | null = null;
@@ -511,6 +504,11 @@ export class FirebaseAppCheckTokenProvider
     asyncQueue: AsyncQueue,
     changeListener: CredentialChangeListener<string>
   ): void {
+    hardAssert(
+      this.tokenListener === undefined,
+      'Token listener already added'
+    );
+
     const onTokenChanged: (
       tokenResult: AppCheckTokenResult
     ) => Promise<void> = tokenResult => {
@@ -538,7 +536,9 @@ export class FirebaseAppCheckTokenProvider
     const registerAppCheck = (appCheck: FirebaseAppCheckInternal): void => {
       logDebug('FirebaseAppCheckTokenProvider', 'AppCheck detected');
       this.appCheck = appCheck;
-      this.appCheck.addTokenListener(this.tokenListener);
+      if (this.tokenListener) {
+        this.appCheck.addTokenListener(this.tokenListener);
+      }
     };
 
     this.appCheckProvider.onInit(appCheck => registerAppCheck(appCheck));
@@ -593,9 +593,10 @@ export class FirebaseAppCheckTokenProvider
   }
 
   shutdown(): void {
-    if (this.appCheck) {
-      this.appCheck.removeTokenListener(this.tokenListener!);
+    if (this.appCheck && this.tokenListener) {
+      this.appCheck.removeTokenListener(this.tokenListener);
     }
+    this.tokenListener = undefined;
   }
 }
 
@@ -668,12 +669,9 @@ export function makeAuthCredentialsProvider(
   if (!credentials) {
     return new EmptyAuthCredentialsProvider();
   }
-
   switch (credentials['type']) {
-    case 'gapi':
-      const client = credentials['client'] as Gapi;
+    case 'firstParty':
       return new FirstPartyAuthCredentialsProvider(
-        client,
         credentials['sessionIndex'] || '0',
         credentials['iamToken'] || null,
         credentials['authTokenFactory'] || null

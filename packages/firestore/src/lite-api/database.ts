@@ -25,7 +25,7 @@ import {
 import {
   createMockUserToken,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHost
+  getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
 
 import {
@@ -73,8 +73,10 @@ export class Firestore implements FirestoreService {
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
-  // all components have shut down.
-  private _terminateTask?: Promise<void>;
+  // all components have shut down. Otherwise, Firestore is not terminated,
+  // which can mean either the FirestoreClient is in the process of starting,
+  // or restarting.
+  private _terminateTask: Promise<void> | 'notTerminated' = 'notTerminated';
 
   /** @hideconstructor */
   constructor(
@@ -104,7 +106,7 @@ export class Firestore implements FirestoreService {
   }
 
   get _terminated(): boolean {
-    return this._terminateTask !== undefined;
+    return this._terminateTask !== 'notTerminated';
   }
 
   _setSettings(settings: PrivateSettings): void {
@@ -132,10 +134,23 @@ export class Firestore implements FirestoreService {
   }
 
   _delete(): Promise<void> {
-    if (!this._terminateTask) {
+    // The `_terminateTask` must be assigned future that completes when
+    // terminate is complete. The existence of this future puts SDK in state
+    // that will not accept further API interaction.
+    if (this._terminateTask === 'notTerminated') {
       this._terminateTask = this._terminate();
     }
     return this._terminateTask;
+  }
+
+  async _restart(): Promise<void> {
+    // The `_terminateTask` must equal 'notTerminated' after restart to
+    // signal that client is in a state that accepts API calls.
+    if (this._terminateTask === 'notTerminated') {
+      await this._terminate();
+    } else {
+      this._terminateTask = 'notTerminated';
+    }
   }
 
   /** Returns a JSON-serializable representation of this `Firestore` instance. */
@@ -184,9 +199,9 @@ export function initializeFirestore(
  * @param app - The {@link @firebase/app#FirebaseApp} with which the `Firestore` instance will
  * be associated.
  * @param settings - A settings object to configure the `Firestore` instance.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns A newly initialized `Firestore` instance.
- * @internal
+ * @beta
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -239,9 +254,9 @@ export function getFirestore(app: FirebaseApp): Firestore;
  * default {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new
  * instance with default settings.
  *
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(databaseId: string): Firestore;
 /**
@@ -251,9 +266,9 @@ export function getFirestore(databaseId: string): Firestore;
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance that the returned {@link Firestore}
  * instance is associated with.
- * @param databaseId - The name of database.
+ * @param databaseId - The name of the database.
  * @returns The {@link Firestore} instance of the provided app.
- * @internal
+ * @beta
  */
 export function getFirestore(app: FirebaseApp, databaseId: string): Firestore;
 export function getFirestore(
@@ -270,10 +285,9 @@ export function getFirestore(
     identifier: databaseId
   }) as Firestore;
   if (!db._initialized) {
-    const firestoreEmulatorHost = getDefaultEmulatorHost('firestore');
-    if (firestoreEmulatorHost) {
-      const [host, port] = firestoreEmulatorHost.split(':');
-      connectFirestoreEmulator(db, host, parseInt(port, 10));
+    const emulator = getDefaultEmulatorHostnameAndPort('firestore');
+    if (emulator) {
+      connectFirestoreEmulator(db, ...emulator);
     }
   }
   return db;
@@ -302,17 +316,18 @@ export function connectFirestoreEmulator(
 ): void {
   firestore = cast(firestore, Firestore);
   const settings = firestore._getSettings();
+  const newHostSetting = `${host}:${port}`;
 
-  if (settings.host !== DEFAULT_HOST && settings.host !== host) {
+  if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(
-      'Host has been set in both settings() and useEmulator(), emulator host ' +
-        'will be used'
+      'Host has been set in both settings() and connectFirestoreEmulator(), emulator host ' +
+        'will be used.'
     );
   }
 
   firestore._setSettings({
     ...settings,
-    host: `${host}:${port}`,
+    host: newHostSetting,
     ssl: false
   });
 

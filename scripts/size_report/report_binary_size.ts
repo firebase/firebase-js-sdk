@@ -49,7 +49,6 @@ function generateReportForCDNScripts(): Report[] {
   const compatPkgJson = require(`${firebaseRoot}/compat/package.json`);
 
   const special_files = [
-    'firebase-performance-standalone-compat.es2017.js',
     'firebase-performance-standalone-compat.js',
     'firebase-compat.js'
   ];
@@ -118,11 +117,9 @@ async function collectBinarySize(pkg: string): Promise<Report[]> {
     'main',
     'module',
     'browser',
-    'esm5',
     'react-native',
     'cordova',
-    'lite',
-    'lite-esm5'
+    'lite'
   ];
   const json = require(pkg);
   for (const field of fields) {
@@ -167,7 +164,7 @@ async function generateSizeReport(): Promise<BinarySizeRequestBody> {
   }
 
   console.log(
-    `Github Action URL: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
+    `GitHub Action URL: https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
   );
 
   return {

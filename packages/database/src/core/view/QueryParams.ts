@@ -22,7 +22,6 @@ import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PathIndex } from '../snap/indexes/PathIndex';
 import { PRIORITY_INDEX, PriorityIndex } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
-import { predecessor, successor } from '../util/NextPushId';
 import { MAX_NAME, MIN_NAME } from '../util/util';
 
 import { IndexedFilter } from './filter/IndexedFilter';
@@ -36,8 +35,10 @@ import { RangedFilter } from './filter/RangedFilter';
 const enum WIRE_PROTOCOL_CONSTANTS {
   INDEX_START_VALUE = 'sp',
   INDEX_START_NAME = 'sn',
+  INDEX_START_IS_INCLUSIVE = 'sin',
   INDEX_END_VALUE = 'ep',
   INDEX_END_NAME = 'en',
+  INDEX_END_IS_INCLUSIVE = 'ein',
   LIMIT = 'l',
   VIEW_FROM = 'vf',
   VIEW_FROM_LEFT = 'l',
@@ -53,8 +54,10 @@ const enum REST_QUERY_CONSTANTS {
   PRIORITY_INDEX = '$priority',
   VALUE_INDEX = '$value',
   KEY_INDEX = '$key',
+  START_AFTER = 'startAfter',
   START_AT = 'startAt',
   END_AT = 'endAt',
+  END_BEFORE = 'endBefore',
   LIMIT_TO_FIRST = 'limitToFirst',
   LIMIT_TO_LAST = 'limitToLast'
 }
@@ -70,10 +73,10 @@ export class QueryParams {
   limitSet_ = false;
   startSet_ = false;
   startNameSet_ = false;
-  startAfterSet_ = false;
+  startAfterSet_ = false; // can only be true if startSet_ is true
   endSet_ = false;
   endNameSet_ = false;
-  endBeforeSet_ = false;
+  endBeforeSet_ = false; // can only be true if endSet_ is true
   limit_ = 0;
   viewFrom_ = '';
   indexStartValue_: unknown | null = null;
@@ -84,14 +87,6 @@ export class QueryParams {
 
   hasStart(): boolean {
     return this.startSet_;
-  }
-
-  hasStartAfter(): boolean {
-    return this.startAfterSet_;
-  }
-
-  hasEndBefore(): boolean {
-    return this.endBeforeSet_;
   }
 
   /**
@@ -191,10 +186,12 @@ export class QueryParams {
     copy.limitSet_ = this.limitSet_;
     copy.limit_ = this.limit_;
     copy.startSet_ = this.startSet_;
+    copy.startAfterSet_ = this.startAfterSet_;
     copy.indexStartValue_ = this.indexStartValue_;
     copy.startNameSet_ = this.startNameSet_;
     copy.indexStartName_ = this.indexStartName_;
     copy.endSet_ = this.endSet_;
+    copy.endBeforeSet_ = this.endBeforeSet_;
     copy.indexEndValue_ = this.indexEndValue_;
     copy.endNameSet_ = this.endNameSet_;
     copy.indexEndName_ = this.indexEndName_;
@@ -274,19 +271,10 @@ export function queryParamsStartAfter(
   key?: string | null
 ): QueryParams {
   let params: QueryParams;
-  if (queryParams.index_ === KEY_INDEX) {
-    if (typeof indexValue === 'string') {
-      indexValue = successor(indexValue as string);
-    }
+  if (queryParams.index_ === KEY_INDEX || !!key) {
     params = queryParamsStartAt(queryParams, indexValue, key);
   } else {
-    let childKey: string;
-    if (key == null) {
-      childKey = MAX_NAME;
-    } else {
-      childKey = successor(key);
-    }
-    params = queryParamsStartAt(queryParams, indexValue, childKey);
+    params = queryParamsStartAt(queryParams, indexValue, MAX_NAME);
   }
   params.startAfterSet_ = true;
   return params;
@@ -318,20 +306,11 @@ export function queryParamsEndBefore(
   indexValue: unknown,
   key?: string | null
 ): QueryParams {
-  let childKey: string;
   let params: QueryParams;
-  if (queryParams.index_ === KEY_INDEX) {
-    if (typeof indexValue === 'string') {
-      indexValue = predecessor(indexValue as string);
-    }
+  if (queryParams.index_ === KEY_INDEX || !!key) {
     params = queryParamsEndAt(queryParams, indexValue, key);
   } else {
-    if (key == null) {
-      childKey = MIN_NAME;
-    } else {
-      childKey = predecessor(key);
-    }
-    params = queryParamsEndAt(queryParams, indexValue, childKey);
+    params = queryParamsEndAt(queryParams, indexValue, MIN_NAME);
   }
   params.endBeforeSet_ = true;
   return params;
@@ -374,18 +353,22 @@ export function queryParamsToRestQueryStringParameters(
   qs[REST_QUERY_CONSTANTS.ORDER_BY] = stringify(orderBy);
 
   if (queryParams.startSet_) {
-    qs[REST_QUERY_CONSTANTS.START_AT] = stringify(queryParams.indexStartValue_);
+    const startParam = queryParams.startAfterSet_
+      ? REST_QUERY_CONSTANTS.START_AFTER
+      : REST_QUERY_CONSTANTS.START_AT;
+    qs[startParam] = stringify(queryParams.indexStartValue_);
     if (queryParams.startNameSet_) {
-      qs[REST_QUERY_CONSTANTS.START_AT] +=
-        ',' + stringify(queryParams.indexStartName_);
+      qs[startParam] += ',' + stringify(queryParams.indexStartName_);
     }
   }
 
   if (queryParams.endSet_) {
-    qs[REST_QUERY_CONSTANTS.END_AT] = stringify(queryParams.indexEndValue_);
+    const endParam = queryParams.endBeforeSet_
+      ? REST_QUERY_CONSTANTS.END_BEFORE
+      : REST_QUERY_CONSTANTS.END_AT;
+    qs[endParam] = stringify(queryParams.indexEndValue_);
     if (queryParams.endNameSet_) {
-      qs[REST_QUERY_CONSTANTS.END_AT] +=
-        ',' + stringify(queryParams.indexEndName_);
+      qs[endParam] += ',' + stringify(queryParams.indexEndName_);
     }
   }
 
@@ -411,12 +394,16 @@ export function queryParamsGetQueryObject(
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_NAME] =
         queryParams.indexStartName_;
     }
+    obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_IS_INCLUSIVE] =
+      !queryParams.startAfterSet_;
   }
   if (queryParams.endSet_) {
     obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_VALUE] = queryParams.indexEndValue_;
     if (queryParams.endNameSet_) {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_NAME] = queryParams.indexEndName_;
     }
+    obj[WIRE_PROTOCOL_CONSTANTS.INDEX_END_IS_INCLUSIVE] =
+      !queryParams.endBeforeSet_;
   }
   if (queryParams.limitSet_) {
     obj[WIRE_PROTOCOL_CONSTANTS.LIMIT] = queryParams.limit_;

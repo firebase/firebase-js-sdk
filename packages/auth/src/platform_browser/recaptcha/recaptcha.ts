@@ -16,10 +16,140 @@
  */
 
 import { RecaptchaParameters } from '../../model/public_types';
+import {
+  GetRecaptchaConfigResponse,
+  RecaptchaEnforcementProviderState
+} from '../../api/authentication/recaptcha';
+import {
+  EnforcementState,
+  RecaptchaAuthProvider,
+  _parseEnforcementState
+} from '../../api/index';
 
+// reCAPTCHA v2 interface
 export interface Recaptcha {
   render: (container: HTMLElement, parameters: RecaptchaParameters) => number;
   getResponse: (id: number) => string;
   execute: (id: number) => unknown;
   reset: (id: number) => unknown;
+}
+
+export function isV2(
+  grecaptcha: Recaptcha | GreCAPTCHA | undefined
+): grecaptcha is Recaptcha {
+  return (
+    grecaptcha !== undefined &&
+    (grecaptcha as Recaptcha).getResponse !== undefined
+  );
+}
+
+// reCAPTCHA Enterprise & v3 shared interface
+export interface GreCAPTCHATopLevel extends GreCAPTCHA {
+  enterprise: GreCAPTCHA;
+}
+
+// reCAPTCHA Enterprise interface
+export interface GreCAPTCHA {
+  ready: (callback: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  render: (
+    container: string | HTMLElement,
+    parameters: GreCAPTCHARenderOption
+  ) => string;
+}
+
+export interface GreCAPTCHARenderOption {
+  sitekey: string;
+  size: 'invisible';
+}
+
+export function isEnterprise(
+  grecaptcha: Recaptcha | GreCAPTCHA | undefined
+): grecaptcha is GreCAPTCHATopLevel {
+  return (
+    grecaptcha !== undefined &&
+    (grecaptcha as GreCAPTCHATopLevel).enterprise !== undefined
+  );
+}
+
+// TODO(chuanr): Replace this with the AuthWindow after resolving the dependency issue in Node.js env.
+declare global {
+  interface Window {
+    grecaptcha?: Recaptcha | GreCAPTCHATopLevel;
+  }
+}
+
+export class RecaptchaConfig {
+  /**
+   * The reCAPTCHA site key.
+   */
+  siteKey: string = '';
+
+  /**
+   * The list of providers and their enablement status for reCAPTCHA Enterprise.
+   */
+  recaptchaEnforcementState: RecaptchaEnforcementProviderState[] = [];
+
+  constructor(response: GetRecaptchaConfigResponse) {
+    if (response.recaptchaKey === undefined) {
+      throw new Error('recaptchaKey undefined');
+    }
+    // Example response.recaptchaKey: "projects/proj123/keys/sitekey123"
+    this.siteKey = response.recaptchaKey.split('/')[3];
+    this.recaptchaEnforcementState = response.recaptchaEnforcementState;
+  }
+
+  /**
+   * Returns the reCAPTCHA Enterprise enforcement state for the given provider.
+   *
+   * @param providerStr - The provider whose enforcement state is to be returned.
+   * @returns The reCAPTCHA Enterprise enforcement state for the given provider.
+   */
+  getProviderEnforcementState(providerStr: string): EnforcementState | null {
+    if (
+      !this.recaptchaEnforcementState ||
+      this.recaptchaEnforcementState.length === 0
+    ) {
+      return null;
+    }
+
+    for (const recaptchaEnforcementState of this.recaptchaEnforcementState) {
+      if (
+        recaptchaEnforcementState.provider &&
+        recaptchaEnforcementState.provider === providerStr
+      ) {
+        return _parseEnforcementState(
+          recaptchaEnforcementState.enforcementState
+        );
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if the reCAPTCHA Enterprise enforcement state for the provider is set to ENFORCE or AUDIT.
+   *
+   * @param providerStr - The provider whose enablement state is to be returned.
+   * @returns Whether or not reCAPTCHA Enterprise protection is enabled for the given provider.
+   */
+  isProviderEnabled(providerStr: string): boolean {
+    return (
+      this.getProviderEnforcementState(providerStr) ===
+        EnforcementState.ENFORCE ||
+      this.getProviderEnforcementState(providerStr) === EnforcementState.AUDIT
+    );
+  }
+
+  /**
+   * Returns true if reCAPTCHA Enterprise protection is enabled in at least one provider, otherwise
+   * returns false.
+   *
+   * @returns Whether or not reCAPTCHA Enterprise protection is enabled for at least one provider.
+   */
+  isAnyProviderEnabled(): boolean {
+    return (
+      this.isProviderEnabled(RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER) ||
+      this.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
+    );
+  }
 }

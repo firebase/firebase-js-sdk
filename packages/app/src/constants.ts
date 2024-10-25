@@ -24,6 +24,7 @@ import { name as appCheckName } from '../../../packages/app-check/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as authCompatName } from '../../../packages/auth-compat/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
+import { name as dataconnectName } from '../../../packages/data-connect/package.json';
 import { name as databaseCompatName } from '../../../packages/database-compat/package.json';
 import { name as functionsName } from '../../../packages/functions/package.json';
 import { name as functionsCompatName } from '../../../packages/functions-compat/package.json';
@@ -38,6 +39,7 @@ import { name as remoteConfigCompatName } from '../../../packages/remote-config-
 import { name as storageName } from '../../../packages/storage/package.json';
 import { name as storageCompatName } from '../../../packages/storage-compat/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
+import { name as vertexName } from '../../../packages/vertexai/package.json';
 import { name as firestoreCompatName } from '../../../packages/firestore-compat/package.json';
 import { name as packageName } from '../../../packages/firebase/package.json';
 
@@ -58,6 +60,7 @@ export const PLATFORM_LOG_STRING = {
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
   [databaseName]: 'fire-rtdb',
+  [dataconnectName]: 'fire-data-connect',
   [databaseCompatName]: 'fire-rtdb-compat',
   [functionsName]: 'fire-fn',
   [functionsCompatName]: 'fire-fn-compat',
@@ -73,6 +76,7 @@ export const PLATFORM_LOG_STRING = {
   [storageCompatName]: 'fire-gcs-compat',
   [firestoreName]: 'fire-fst',
   [firestoreCompatName]: 'fire-fst-compat',
+  [vertexName]: 'fire-vertex',
   'fire-js': 'fire-js', // Platform identifier for JS SDK.
   [packageName]: 'fire-js-all'
 } as const;

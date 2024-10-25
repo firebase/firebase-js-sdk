@@ -26,6 +26,7 @@ import "google/firestore/v1/query.proto";
 import "google/firestore/v1/write.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 import "google/rpc/status.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
@@ -425,7 +426,7 @@ message BatchGetDocumentsResponse {
   bytes transaction = 3;
 
   // The time at which the document was read.
-  // This may be monotically increasing, in this case the previous documents in
+  // This may be monotonically increasing, in this case the previous documents in
   // the result stream are guaranteed not to have changed between their
   // read_time and this one.
   google.protobuf.Timestamp read_time = 4;
@@ -857,6 +858,15 @@ message Target {
 
   // If the target should be removed once it is current and consistent.
   bool once = 6;
+
+  // The number of documents that last matched the query at the resume token or
+  // read time.
+  //
+  // This value is only relevant when a `resume_type` is provided. This value
+  // being present and greater than zero signals that the client wants
+  // `ExistenceFilter.unchanged_names` to be included in the response.
+  //
+  google.protobuf.Int32Value expected_count = 12;
 }
 
 // Targets being watched have changed.

@@ -21,7 +21,6 @@ import {
   ErrorCode
 } from '../../implementation/connection';
 import { internalError } from '../../implementation/error';
-import nodeFetch, { Headers } from 'node-fetch';
 
 /** An override for the text-based Connection. Used in tests. */
 let textFactoryOverride: (() => Connection<string>) | null = null;
@@ -41,7 +40,6 @@ abstract class FetchConnection<T extends ConnectionType>
   protected errorText_ = '';
   protected headers_: Headers | undefined;
   protected sent_: boolean = false;
-  protected fetch_ = nodeFetch;
 
   constructor() {
     this.errorCode_ = ErrorCode.NO_ERROR;
@@ -50,7 +48,7 @@ abstract class FetchConnection<T extends ConnectionType>
   async send(
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string,
+    body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
     if (this.sent_) {
@@ -59,10 +57,10 @@ abstract class FetchConnection<T extends ConnectionType>
     this.sent_ = true;
 
     try {
-      const response = await this.fetch_(url, {
+      const response = await fetch(url, {
         method,
         headers: headers || {},
-        body: body as ArrayBufferView | string
+        body: body as NodeJS.ArrayBufferView | string
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
@@ -146,13 +144,15 @@ export function newBytesConnection(): Connection<ArrayBuffer> {
   return new FetchBytesConnection();
 }
 
-export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream> {
-  private stream_: NodeJS.ReadableStream | null = null;
+export class FetchStreamConnection extends FetchConnection<
+  ReadableStream<Uint8Array>
+> {
+  private stream_: ReadableStream<Uint8Array> | null = null;
 
   async send(
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string,
+    body?: NodeJS.ArrayBufferView | Blob | string,
     headers?: Record<string, string>
   ): Promise<void> {
     if (this.sent_) {
@@ -161,15 +161,15 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
     this.sent_ = true;
 
     try {
-      const response = await this.fetch_(url, {
+      const response = await fetch(url, {
         method,
         headers: headers || {},
-        body: body as ArrayBufferView | string
+        body: body as NodeJS.ArrayBufferView | string
       });
       this.headers_ = response.headers;
       this.statusCode_ = response.status;
       this.errorCode_ = ErrorCode.NO_ERROR;
-      this.stream_ = response.body;
+      this.stream_ = response.body as ReadableStream<Uint8Array>;
     } catch (e) {
       this.errorText_ = (e as Error)?.message;
       // emulate XHR which sets status to 0 when encountering a network error
@@ -178,7 +178,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
     }
   }
 
-  getResponse(): NodeJS.ReadableStream {
+  getResponse(): ReadableStream {
     if (!this.stream_) {
       throw internalError('cannot .getResponse() before sending');
     }
@@ -186,7 +186,7 @@ export class FetchStreamConnection extends FetchConnection<NodeJS.ReadableStream
   }
 }
 
-export function newStreamConnection(): Connection<NodeJS.ReadableStream> {
+export function newStreamConnection(): Connection<ReadableStream<Uint8Array>> {
   return new FetchStreamConnection();
 }
 

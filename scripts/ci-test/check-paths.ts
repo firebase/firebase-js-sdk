@@ -17,7 +17,7 @@
 
 import glob from 'glob';
 import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, parse } from 'path';
 import { projectRoot as root } from '../utils';
 
 /**
@@ -31,7 +31,6 @@ const TOP_LEVEL_FIELDS = [
   'typings',
   'react-native',
   'cordova',
-  'esm5',
   'webworker',
   'main-esm'
 ];
@@ -48,9 +47,9 @@ const results: Result[] = [];
  * Get paths to packages. Only check the ones we actually
  * publish (packages/*).
  */
-function getPaths(): Promise<string[]> {
+function getPkgJsonPaths(): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    glob('packages/*', (err, paths) => {
+    glob('packages/**/package.json', (err, paths) => {
       if (err) reject(err);
       resolve(paths);
     });
@@ -91,12 +90,21 @@ function checkExports(
 }
 
 async function main() {
-  const paths = await getPaths();
+  const paths = await getPkgJsonPaths();
 
   for (const path of paths) {
-    const pkgRoot = `${root}/${path}`;
+    const { dir } = parse(path);
+    if (dir.includes('node_modules') || dir.includes('/demo')) {
+      continue;
+    }
+    const pkgRoot = resolve(root, dir);
     if (existsSync(`${pkgRoot}/package.json`)) {
       const pkg = require(`${pkgRoot}/package.json`);
+      if (!pkg.name) {
+        // Probably dummy package.json with 'type: module'
+        continue;
+      }
+      console.log(`Checking ${dir}/package.json`);
 
       /**
        * Check top level fields.

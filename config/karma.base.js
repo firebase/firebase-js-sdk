@@ -20,6 +20,33 @@ const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
 
+function determineBrowsers() {
+  const supportedBrowsers = ['ChromeHeadless', 'WebkitHeadless', 'Firefox'];
+
+  if (process.env.BROWSERS) {
+    const browsers = process.env.BROWSERS.split(',');
+
+    const validBrowsers = browsers.filter(browser =>
+      supportedBrowsers.includes(browser)
+    );
+    if (validBrowsers.length === 0) {
+      console.error(
+        `The \'BROWSER\' environment variable was set, but no supported browsers were listed. The supported browsers are ${JSON.stringify(
+          supportedBrowsers
+        )}.`
+      );
+      return [];
+    } else {
+      return validBrowsers;
+    }
+  } else {
+    console.log(
+      "The 'BROWSER' environment variable is undefined. Defaulting to 'ChromeHeadless'."
+    );
+    return ['ChromeHeadless'];
+  }
+}
+
 const config = {
   // disable watcher
   autoWatch: false,
@@ -57,16 +84,18 @@ const config = {
   // changes
   autoWatch: false,
 
-  // start these browsers
-  // available browser launchers:
-  // https://npmjs.org/browse/keyword/karma-launcher
-  browsers: process.env?.BROWSERS?.split(',') ?? ['ChromeHeadless'],
+  // Browsers to launch for testing
+  // To use a custom set of browsers, define the BROWSERS environment variable as a comma-seperated list.
+  // Supported browsers are 'ChromeHeadless', 'WebkitHeadless', and 'Firefox'.
+  // See: https://karma-runner.github.io/6.4/config/browsers.html
+  browsers: determineBrowsers(),
 
   webpack: webpackTestConfig,
 
   webpackMiddleware: { quiet: true, stats: { colors: true } },
 
-  singleRun: false,
+  // Exit with an exit code of 0 if any of the tests fail.
+  singleRun: true,
 
   client: {
     mocha: {
@@ -87,11 +116,5 @@ const config = {
 config.mochaReporter = {
   showDiff: true
 };
-// Make it easy to spot failed tests in CI
-if (process.env.CI) {
-  config.mochaReporter = {
-    output: 'minimal'
-  };
-}
 
 module.exports = config;

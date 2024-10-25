@@ -15,7 +15,18 @@
  * limitations under the License.
  */
 
+import { Aggregate } from '../core/aggregate';
+import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
+import {
+  CompositeFilter,
+  compositeFilterIsFlatConjunction,
+  CompositeOperator,
+  FieldFilter,
+  Filter,
+  Operator
+} from '../core/filter';
+import { Direction, OrderBy } from '../core/order_by';
 import {
   LimitType,
   newQuery,
@@ -24,16 +35,7 @@ import {
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  Bound,
-  Direction,
-  FieldFilter,
-  Filter,
-  targetIsDocumentTarget,
-  Operator,
-  OrderBy,
-  Target
-} from '../core/target';
+import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -64,6 +66,7 @@ import { isNanValue, isNullValue } from '../model/values';
 import {
   ApiClientObjectMap as ProtoApiClientObjectMap,
   BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  CompositeFilterOp as ProtoCompositeFilterOp,
   Cursor as ProtoCursor,
   Document as ProtoDocument,
   DocumentMask as ProtoDocumentMask,
@@ -78,6 +81,7 @@ import {
   Precondition as ProtoPrecondition,
   QueryTarget as ProtoQueryTarget,
   RunAggregationQueryRequest as ProtoRunAggregationQueryRequest,
+  Aggregation as ProtoAggregation,
   Status as ProtoStatus,
   Target as ProtoTarget,
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
@@ -120,6 +124,13 @@ const OPERATORS = (() => {
   ops[Operator.IN] = 'IN';
   ops[Operator.NOT_IN] = 'NOT_IN';
   ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
+  return ops;
+})();
+
+const COMPOSITE_OPERATORS = (() => {
+  const ops: { [op: string]: ProtoCompositeFilterOp } = {};
+  ops[CompositeOperator.AND] = 'AND';
+  ops[CompositeOperator.OR] = 'OR';
   return ops;
 })();
 
@@ -251,8 +262,14 @@ export function fromBytes(
     return ByteString.fromBase64String(value ? value : '');
   } else {
     hardAssert(
-      value === undefined || value instanceof Uint8Array,
-      'value must be undefined or Uint8Array'
+      value === undefined ||
+        // Check if the value is an instance of both Buffer and Uint8Array,
+        // despite the fact that Buffer extends Uint8Array. In some
+        // environments, such as jsdom, the prototype chain of Buffer
+        // does not indicate that it extends Uint8Array.
+        value instanceof Buffer ||
+        value instanceof Uint8Array,
+      'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
   }
@@ -274,10 +291,15 @@ export function toResourceName(
   databaseId: DatabaseId,
   path: ResourcePath
 ): string {
-  return fullyQualifiedPrefixPath(databaseId)
-    .child('documents')
-    .child(path)
-    .canonicalString();
+  return toResourcePath(databaseId, path).canonicalString();
+}
+
+export function toResourcePath(
+  databaseId: DatabaseId,
+  path?: ResourcePath
+): ResourcePath {
+  const resourcePath = fullyQualifiedPrefixPath(databaseId).child('documents');
+  return path === undefined ? resourcePath : resourcePath.child(path);
 }
 
 function fromResourceName(name: string): ResourcePath {
@@ -395,7 +417,8 @@ export function toDocument(
   return {
     name: toName(serializer, document.key),
     fields: document.data.value.mapValue.fields,
-    updateTime: toTimestamp(serializer, document.version.toTimestamp())
+    updateTime: toTimestamp(serializer, document.version.toTimestamp()),
+    createTime: toTimestamp(serializer, document.createTime.toTimestamp())
   };
 }
 
@@ -406,8 +429,19 @@ export function fromDocument(
 ): MutableDocument {
   const key = fromName(serializer, document.name!);
   const version = fromVersion(document.updateTime!);
+  // If we read a document from persistence that is missing createTime, it's due
+  // to older SDK versions not storing this information. In such cases, we'll
+  // set the createTime to zero. This can be removed in the long term.
+  const createTime = document.createTime
+    ? fromVersion(document.createTime)
+    : SnapshotVersion.min();
   const data = new ObjectValue({ mapValue: { fields: document.fields } });
-  const result = MutableDocument.newFoundDocument(key, version, data);
+  const result = MutableDocument.newFoundDocument(
+    key,
+    version,
+    createTime,
+    data
+  );
   if (hasCommittedMutations) {
     result.setHasCommittedMutations();
   }
@@ -426,8 +460,11 @@ function fromFound(
   assertPresent(doc.found.updateTime, 'doc.found.updateTime');
   const key = fromName(serializer, doc.found.name);
   const version = fromVersion(doc.found.updateTime);
+  const createTime = doc.found.createTime
+    ? fromVersion(doc.found.createTime)
+    : SnapshotVersion.min();
   const data = new ObjectValue({ mapValue: { fields: doc.found.fields } });
-  return MutableDocument.newFoundDocument(key, version, data);
+  return MutableDocument.newFoundDocument(key, version, createTime, data);
 }
 
 function fromMissing(
@@ -493,10 +530,18 @@ export function fromWatchChange(
     );
     const key = fromName(serializer, entityChange.document.name);
     const version = fromVersion(entityChange.document.updateTime);
+    const createTime = entityChange.document.createTime
+      ? fromVersion(entityChange.document.createTime)
+      : SnapshotVersion.min();
     const data = new ObjectValue({
       mapValue: { fields: entityChange.document.fields }
     });
-    const doc = MutableDocument.newFoundDocument(key, version, data);
+    const doc = MutableDocument.newFoundDocument(
+      key,
+      version,
+      createTime,
+      data
+    );
     const updatedTargetIds = entityChange.targetIds || [];
     const removedTargetIds = entityChange.removedTargetIds || [];
     watchChange = new DocumentWatchChange(
@@ -528,8 +573,8 @@ export function fromWatchChange(
     assertPresent(change.filter, 'filter');
     const filter = change.filter;
     assertPresent(filter.targetId, 'filter.targetId');
-    const count = filter.count || 0;
-    const existenceFilter = new ExistenceFilter(count);
+    const { count = 0, unchangedNames } = filter;
+    const existenceFilter = new ExistenceFilter(count, unchangedNames);
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
@@ -803,17 +848,18 @@ export function fromDocumentsTarget(
 export function toQueryTarget(
   serializer: JsonProtoSerializer,
   target: Target
-): ProtoQueryTarget {
+): { queryTarget: ProtoQueryTarget; parent: ResourcePath } {
   // Dissect the path into parent, collectionId, and optional key filter.
-  const result: ProtoQueryTarget = { structuredQuery: {} };
+  const queryTarget: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
+  let parent: ResourcePath;
   if (target.collectionGroup !== null) {
     debugAssert(
       path.length % 2 === 0,
       'Collection Group queries should be within a document path or root.'
     );
-    result.parent = toQueryPath(serializer, path);
-    result.structuredQuery!.from = [
+    parent = path;
+    queryTarget.structuredQuery!.from = [
       {
         collectionId: target.collectionGroup,
         allDescendants: true
@@ -824,52 +870,93 @@ export function toQueryTarget(
       path.length % 2 !== 0,
       'Document queries with filters are not supported.'
     );
-    result.parent = toQueryPath(serializer, path.popLast());
-    result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
+    parent = path.popLast();
+    queryTarget.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
   }
+  queryTarget.parent = toQueryPath(serializer, parent);
 
-  const where = toFilter(target.filters);
+  const where = toFilters(target.filters);
   if (where) {
-    result.structuredQuery!.where = where;
+    queryTarget.structuredQuery!.where = where;
   }
 
   const orderBy = toOrder(target.orderBy);
   if (orderBy) {
-    result.structuredQuery!.orderBy = orderBy;
+    queryTarget.structuredQuery!.orderBy = orderBy;
   }
 
   const limit = toInt32Proto(serializer, target.limit);
   if (limit !== null) {
-    result.structuredQuery!.limit = limit;
+    queryTarget.structuredQuery!.limit = limit;
   }
 
   if (target.startAt) {
-    result.structuredQuery!.startAt = toStartAtCursor(target.startAt);
+    queryTarget.structuredQuery!.startAt = toStartAtCursor(target.startAt);
   }
   if (target.endAt) {
-    result.structuredQuery!.endAt = toEndAtCursor(target.endAt);
+    queryTarget.structuredQuery!.endAt = toEndAtCursor(target.endAt);
   }
 
-  return result;
+  return { queryTarget, parent };
 }
 
 export function toRunAggregationQueryRequest(
   serializer: JsonProtoSerializer,
-  target: Target
-): ProtoRunAggregationQueryRequest {
-  const queryTarget = toQueryTarget(serializer, target);
+  target: Target,
+  aggregates: Aggregate[],
+  skipAliasing?: boolean
+): {
+  request: ProtoRunAggregationQueryRequest;
+  aliasMap: Record<string, string>;
+  parent: ResourcePath;
+} {
+  const { queryTarget, parent } = toQueryTarget(serializer, target);
+  const aliasMap: Record<string, string> = {};
+
+  const aggregations: ProtoAggregation[] = [];
+  let aggregationNum = 0;
+
+  aggregates.forEach(aggregate => {
+    // Map all client-side aliases to a unique short-form
+    // alias. This avoids issues with client-side aliases that
+    // exceed the 1500-byte string size limit.
+    const serverAlias = skipAliasing
+      ? aggregate.alias
+      : `aggregate_${aggregationNum++}`;
+    aliasMap[serverAlias] = aggregate.alias;
+
+    if (aggregate.aggregateType === 'count') {
+      aggregations.push({
+        alias: serverAlias,
+        count: {}
+      });
+    } else if (aggregate.aggregateType === 'avg') {
+      aggregations.push({
+        alias: serverAlias,
+        avg: {
+          field: toFieldPathReference(aggregate.fieldPath!)
+        }
+      });
+    } else if (aggregate.aggregateType === 'sum') {
+      aggregations.push({
+        alias: serverAlias,
+        sum: {
+          field: toFieldPathReference(aggregate.fieldPath!)
+        }
+      });
+    }
+  });
 
   return {
-    structuredAggregationQuery: {
-      aggregations: [
-        {
-          count: {},
-          alias: 'count_alias'
-        }
-      ],
-      structuredQuery: queryTarget.structuredQuery
+    request: {
+      structuredAggregationQuery: {
+        aggregations,
+        structuredQuery: queryTarget.structuredQuery
+      },
+      parent: queryTarget.parent
     },
-    parent: queryTarget.parent
+    aliasMap,
+    parent
   };
 }
 
@@ -894,7 +981,7 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
 
   let filterBy: Filter[] = [];
   if (query.where) {
-    filterBy = fromFilter(query.where);
+    filterBy = fromFilters(query.where);
   }
 
   let orderBy: OrderBy[] = [];
@@ -937,7 +1024,7 @@ export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
   targetData: TargetData
 ): ProtoApiClientObjectMap<string> | null {
-  const value = toLabel(serializer, targetData.purpose);
+  const value = toLabel(targetData.purpose);
   if (value == null) {
     return null;
   } else {
@@ -947,15 +1034,14 @@ export function toListenRequestLabels(
   }
 }
 
-function toLabel(
-  serializer: JsonProtoSerializer,
-  purpose: TargetPurpose
-): string | null {
+export function toLabel(purpose: TargetPurpose): string | null {
   switch (purpose) {
     case TargetPurpose.Listen:
       return null;
     case TargetPurpose.ExistenceFilterMismatch:
       return 'existence-filter-mismatch';
+    case TargetPurpose.ExistenceFilterMismatchBloom:
+      return 'existence-filter-mismatch-bloom';
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
@@ -973,13 +1059,17 @@ export function toTarget(
   if (targetIsDocumentTarget(target)) {
     result = { documents: toDocumentsTarget(serializer, target) };
   } else {
-    result = { query: toQueryTarget(serializer, target) };
+    result = { query: toQueryTarget(serializer, target).queryTarget };
   }
 
   result.targetId = targetData.targetId;
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+    const expectedCount = toInt32Proto(serializer, targetData.expectedCount);
+    if (expectedCount !== null) {
+      result.expectedCount = expectedCount;
+    }
   } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
     // TODO(wuandy): Consider removing above check because it is most likely true.
     // Right now, many tests depend on this behaviour though (leaving min() out
@@ -988,39 +1078,43 @@ export function toTarget(
       serializer,
       targetData.snapshotVersion.toTimestamp()
     );
+    const expectedCount = toInt32Proto(serializer, targetData.expectedCount);
+    if (expectedCount !== null) {
+      result.expectedCount = expectedCount;
+    }
   }
 
   return result;
 }
 
-function toFilter(filters: Filter[]): ProtoFilter | undefined {
+function toFilters(filters: Filter[]): ProtoFilter | undefined {
   if (filters.length === 0) {
     return;
   }
-  const protos = filters.map(filter => {
-    debugAssert(
-      filter instanceof FieldFilter,
-      'Only FieldFilters are supported'
-    );
-    return toUnaryOrFieldFilter(filter);
-  });
-  if (protos.length === 1) {
-    return protos[0];
-  }
-  return { compositeFilter: { op: 'AND', filters: protos } };
+
+  return toFilter(CompositeFilter.create(filters, CompositeOperator.AND));
 }
 
-function fromFilter(filter: ProtoFilter | undefined): Filter[] {
-  if (!filter) {
-    return [];
-  } else if (filter.unaryFilter !== undefined) {
-    return [fromUnaryFilter(filter)];
+function fromFilters(filter: ProtoFilter): Filter[] {
+  const result = fromFilter(filter);
+
+  if (
+    result instanceof CompositeFilter &&
+    compositeFilterIsFlatConjunction(result)
+  ) {
+    return result.getFilters();
+  }
+
+  return [result];
+}
+
+function fromFilter(filter: ProtoFilter): Filter {
+  if (filter.unaryFilter !== undefined) {
+    return fromUnaryFilter(filter);
   } else if (filter.fieldFilter !== undefined) {
-    return [fromFieldFilter(filter)];
+    return fromFieldFilter(filter);
   } else if (filter.compositeFilter !== undefined) {
-    return filter.compositeFilter
-      .filters!.map(f => fromFilter(f))
-      .reduce((accum, current) => accum.concat(current));
+    return fromCompositeFilter(filter);
   } else {
     return fail('Unknown filter: ' + JSON.stringify(filter));
   }
@@ -1087,6 +1181,12 @@ export function toOperatorName(op: Operator): ProtoFieldFilterOp {
   return OPERATORS[op];
 }
 
+export function toCompositeOperatorName(
+  op: CompositeOperator
+): ProtoCompositeFilterOp {
+  return COMPOSITE_OPERATORS[op];
+}
+
 export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
   switch (op) {
     case 'EQUAL':
@@ -1111,6 +1211,19 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
       return fail('Unspecified operator');
+    default:
+      return fail('Unknown operator');
+  }
+}
+
+export function fromCompositeOperatorName(
+  op: ProtoCompositeFilterOp
+): CompositeOperator {
+  switch (op) {
+    case 'AND':
+      return CompositeOperator.AND;
+    case 'OR':
+      return CompositeOperator.OR;
     default:
       return fail('Unknown operator');
   }
@@ -1141,15 +1254,32 @@ export function fromPropertyOrder(orderBy: ProtoOrder): OrderBy {
   );
 }
 
-export function fromFieldFilter(filter: ProtoFilter): Filter {
-  return FieldFilter.create(
-    fromFieldPathReference(filter.fieldFilter!.field!),
-    fromOperatorName(filter.fieldFilter!.op!),
-    filter.fieldFilter!.value!
-  );
+// visible for testing
+export function toFilter(filter: Filter): ProtoFilter {
+  if (filter instanceof FieldFilter) {
+    return toUnaryOrFieldFilter(filter);
+  } else if (filter instanceof CompositeFilter) {
+    return toCompositeFilter(filter);
+  } else {
+    return fail('Unrecognized filter type ' + JSON.stringify(filter));
+  }
 }
 
-// visible for testing
+export function toCompositeFilter(filter: CompositeFilter): ProtoFilter {
+  const protos = filter.getFilters().map(filter => toFilter(filter));
+
+  if (protos.length === 1) {
+    return protos[0];
+  }
+
+  return {
+    compositeFilter: {
+      op: toCompositeOperatorName(filter.op),
+      filters: protos
+    }
+  };
+}
+
 export function toUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
   if (filter.op === Operator.EQUAL) {
     if (isNanValue(filter.value)) {
@@ -1220,6 +1350,21 @@ export function fromUnaryFilter(filter: ProtoFilter): Filter {
     default:
       return fail('Unknown filter');
   }
+}
+
+export function fromFieldFilter(filter: ProtoFilter): FieldFilter {
+  return FieldFilter.create(
+    fromFieldPathReference(filter.fieldFilter!.field!),
+    fromOperatorName(filter.fieldFilter!.op!),
+    filter.fieldFilter!.value!
+  );
+}
+
+export function fromCompositeFilter(filter: ProtoFilter): CompositeFilter {
+  return CompositeFilter.create(
+    filter.compositeFilter!.filters!.map(filter => fromFilter(filter)),
+    fromCompositeOperatorName(filter.compositeFilter!.op!)
+  );
 }
 
 export function toDocumentMask(fieldMask: FieldMask): ProtoDocumentMask {

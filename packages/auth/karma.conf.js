@@ -16,6 +16,7 @@
  */
 
 const karmaBase = require('../../config/karma.base');
+const webpackBase = require('../../config/webpack.test');
 const { argv } = require('yargs');
 
 module.exports = function (config) {
@@ -26,7 +27,6 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-
     client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
@@ -37,6 +37,13 @@ function getTestFiles(argv) {
   if (argv.unit) {
     return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
   } else if (argv.integration) {
+    if (argv.prodbackend) {
+      return [
+        'test/integration/flows/totp.test.ts',
+        'test/integration/flows/password_policy.test.ts',
+        'test/integration/flows/recaptcha_enterprise.test.ts'
+      ];
+    }
     return argv.local
       ? ['test/integration/flows/*.test.ts']
       : ['test/integration/flows/*!(local).test.ts'];
@@ -48,7 +55,8 @@ function getTestFiles(argv) {
       'src/**/*.test.ts',
       'test/helpers/**/*.test.ts',
       'test/integration/flows/anonymous.test.ts',
-      'test/integration/flows/email.test.ts'
+      'test/integration/flows/email.test.ts',
+      'test/integration/flows/firebaseserverapp.test.ts'
     ];
   }
 }

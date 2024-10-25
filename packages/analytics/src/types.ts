@@ -34,7 +34,7 @@ export interface ThrottleMetadata {
 
 /**
  * Dynamic configuration fetched from server.
- * See https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.webApps/getConfig
+ * See https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects.webApps/getConfig
  */
 export interface DynamicConfig {
   projectId: string;
@@ -73,6 +73,13 @@ export interface Gtag {
     subCommand: 'default' | 'update',
     consentSettings: ConsentSettings
   ): void;
+  (
+    command: 'get',
+    measurementId: string,
+    fieldName: string,
+    callback: (...args: unknown[]) => void
+  ): void;
+  (command: string, ...args: unknown[]): void;
 }
 
 export type DataLayer = IArguments[];

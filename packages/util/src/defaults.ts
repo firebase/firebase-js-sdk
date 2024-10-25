@@ -16,7 +16,7 @@
  */
 
 import { base64Decode } from './crypt';
-import { getGlobal } from './environment';
+import { getGlobal } from './global';
 
 /**
  * Keys for experimental properties on the `FirebaseDefaults` object.
@@ -39,6 +39,11 @@ export interface FirebaseDefaults {
   emulatorHosts?: Record<string, string>;
   _authTokenSyncURL?: string;
   _authIdTokenMaxAge?: number;
+  /**
+   * Override Firebase's runtime environment detection and
+   * force the SDK to act as if it were in the specified environment.
+   */
+  forceEnvironment?: 'browser' | 'node';
   [key: string]: unknown;
 }
 
@@ -53,36 +58,19 @@ const getDefaultsFromGlobal = (): FirebaseDefaults | undefined =>
 
 /**
  * Attempt to read defaults from a JSON string provided to
- * process.env.__FIREBASE_DEFAULTS__ or a JSON file whose path is in
- * process.env.__FIREBASE_DEFAULTS_PATH__
+ * process(.)env(.)__FIREBASE_DEFAULTS__ or a JSON file whose path is in
+ * process(.)env(.)__FIREBASE_DEFAULTS_PATH__
+ * The dots are in parens because certain compilers (Vite?) cannot
+ * handle seeing that variable in comments.
+ * See https://github.com/firebase/firebase-js-sdk/issues/6838
  */
 const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
-  if (typeof process === 'undefined') {
+  if (typeof process === 'undefined' || typeof process.env === 'undefined') {
     return;
   }
   const defaultsJsonString = process.env.__FIREBASE_DEFAULTS__;
-  const defaultsJsonPath = process.env.__FIREBASE_DEFAULTS_PATH__;
   if (defaultsJsonString) {
-    if (defaultsJsonPath) {
-      console.warn(
-        `Values were provided for both __FIREBASE_DEFAULTS__ ` +
-          `and __FIREBASE_DEFAULTS_PATH__. __FIREBASE_DEFAULTS_PATH__ ` +
-          `will be ignored.`
-      );
-    }
     return JSON.parse(defaultsJsonString);
-  }
-  if (defaultsJsonPath && typeof require !== 'undefined') {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const json = require(defaultsJsonPath);
-      return json;
-    } catch (e) {
-      console.warn(
-        `Unable to read defaults from file provided to ` +
-          `__FIREBASE_DEFAULTS_PATH__: ${defaultsJsonPath}`
-      );
-    }
   }
 };
 
@@ -90,7 +78,14 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
   if (typeof document === 'undefined') {
     return;
   }
-  const match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+  let match;
+  try {
+    match = document.cookie.match(/__FIREBASE_DEFAULTS__=([^;]+)/);
+  } catch (e) {
+    // Some environments such as Angular Universal SSR have a
+    // `document` object but error on accessing `document.cookie`.
+    return;
+  }
   const decoded = match && base64Decode(match[1]);
   return decoded && JSON.parse(decoded);
 };
@@ -100,20 +95,63 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
  * (1) if such an object exists as a property of `globalThis`
  * (2) if such an object was provided on a shell environment variable
  * (3) if such an object exists in a cookie
+ * @public
  */
-const getDefaults = (): FirebaseDefaults | undefined =>
-  getDefaultsFromGlobal() ||
-  getDefaultsFromEnvVariable() ||
-  getDefaultsFromCookie();
+export const getDefaults = (): FirebaseDefaults | undefined => {
+  try {
+    return (
+      getDefaultsFromGlobal() ||
+      getDefaultsFromEnvVariable() ||
+      getDefaultsFromCookie()
+    );
+  } catch (e) {
+    /**
+     * Catch-all for being unable to get __FIREBASE_DEFAULTS__ due
+     * to any environment case we have not accounted for. Log to
+     * info instead of swallowing so we can find these unknown cases
+     * and add paths for them if needed.
+     */
+    console.info(`Unable to get __FIREBASE_DEFAULTS__ due to: ${e}`);
+    return;
+  }
+};
 
 /**
  * Returns emulator host stored in the __FIREBASE_DEFAULTS__ object
  * for the given product.
+ * @returns a URL host formatted like `127.0.0.1:9999` or `[::1]:4000` if available
  * @public
  */
 export const getDefaultEmulatorHost = (
   productName: string
 ): string | undefined => getDefaults()?.emulatorHosts?.[productName];
+
+/**
+ * Returns emulator hostname and port stored in the __FIREBASE_DEFAULTS__ object
+ * for the given product.
+ * @returns a pair of hostname and port like `["::1", 4000]` if available
+ * @public
+ */
+export const getDefaultEmulatorHostnameAndPort = (
+  productName: string
+): [hostname: string, port: number] | undefined => {
+  const host = getDefaultEmulatorHost(productName);
+  if (!host) {
+    return undefined;
+  }
+  const separatorIndex = host.lastIndexOf(':'); // Finding the last since IPv6 addr also has colons.
+  if (separatorIndex <= 0 || separatorIndex + 1 === host.length) {
+    throw new Error(`Invalid host ${host} with no separate hostname and port!`);
+  }
+  // eslint-disable-next-line no-restricted-globals
+  const port = parseInt(host.substring(separatorIndex + 1), 10);
+  if (host[0] === '[') {
+    // Bracket-quoted `[ipv6addr]:port` => return "ipv6addr" (without brackets).
+    return [host.substring(1, separatorIndex - 1), port];
+  } else {
+    return [host.substring(0, separatorIndex), port];
+  }
+};
 
 /**
  * Returns Firebase app config stored in the __FIREBASE_DEFAULTS__ object.

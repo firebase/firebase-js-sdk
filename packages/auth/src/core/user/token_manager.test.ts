@@ -23,11 +23,11 @@ import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
+import { Endpoint } from '../../api';
 
 use(chaiAsPromised);
 
@@ -58,7 +58,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.isExpired).to.eq(true);
     });
 
-    it('is fals if exp is far enough in future', () => {
+    it('is false if exp is far enough in future', () => {
       stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH + 10);
       expect(stsTokenManager.isExpired).to.eq(false);
     });
@@ -77,7 +77,7 @@ describe('core/user/token_manager', () => {
       expect(stsTokenManager.refreshToken).to.eq('refresh-token');
     });
 
-    it('falls back to exp and iat when expiresIn is ommited (ie: MFA)', () => {
+    it('falls back to exp and iat when expiresIn is omitted (ie: MFA)', () => {
       const idToken = makeJWT({ 'exp': '180', 'iat': '120' });
       stsTokenManager.updateFromServerResponse({
         idToken,
@@ -144,8 +144,35 @@ describe('core/user/token_manager', () => {
       });
     });
 
-    it('returns null if the refresh token is missing', async () => {
-      expect(await stsTokenManager.getToken(auth)).to.be.null;
+    it('returns non-null if the refresh token is missing but token still valid', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        expirationTime: now + 100_000
+      });
+      const tokens = await stsTokenManager.getToken(auth, false);
+      expect(tokens).to.eql('token');
+    });
+
+    it('throws an error if the refresh token is missing and force refresh is true', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        expirationTime: now + 100_000
+      });
+      await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
+        FirebaseError,
+        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+      );
+    });
+
+    it('throws an error if the refresh token is missing and token is no longer valid', async () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'old-access-token',
+        expirationTime: now - 1
+      });
+      await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
+        FirebaseError,
+        "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
+      );
     });
 
     it('throws an error if expired but refresh token is missing', async () => {

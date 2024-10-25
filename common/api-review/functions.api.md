@@ -18,8 +18,10 @@ export interface Functions {
 }
 
 // @public
-export interface FunctionsError extends FirebaseError {
-    readonly code: FunctionsErrorCode;
+export class FunctionsError extends FirebaseError {
+    constructor(
+    code: FunctionsErrorCodeCore, message?: string,
+    details?: unknown);
     readonly details?: unknown;
 }
 
@@ -46,6 +48,7 @@ export function httpsCallableFromURL<RequestData = unknown, ResponseData = unkno
 
 // @public
 export interface HttpsCallableOptions {
+    limitedUseAppCheckTokens?: boolean;
     timeout?: number;
 }
 

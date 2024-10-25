@@ -75,6 +75,9 @@ import {
   V12_STORES,
   V13_STORES,
   V14_STORES,
+  V15_STORES,
+  V16_STORES,
+  V17_STORES,
   V1_STORES,
   V3_STORES,
   V4_STORES,
@@ -136,8 +139,11 @@ async function withDb(
     schemaConverter
   );
   const database = await simpleDb.ensureDb('IndexedDbPersistenceTests');
-  await fn(simpleDb, database.version, Array.from(database.objectStoreNames));
-  await simpleDb.close();
+  return fn(
+    simpleDb,
+    database.version,
+    Array.from(database.objectStoreNames)
+  ).finally(async () => simpleDb.close());
 }
 
 async function withUnstartedCustomPersistence(
@@ -542,7 +548,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbMutationQueueKey,
             DbMutationQueue
           >(DbMutationQueueStore);
-          // Manually populate the mutation queue and create all indicies.
+          // Manually populate the mutation queue and create all indices.
           return PersistencePromise.forEach(
             testMutations,
             (testMutation: DbMutationBatch) => {
@@ -1229,6 +1235,30 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
+  it('can upgrade from version 14 to 15', async () => {
+    await withDb(14, async () => {});
+    await withDb(15, async (db, version, objectStores) => {
+      expect(version).to.have.equal(15);
+      expect(objectStores).to.have.members(V15_STORES);
+    });
+  });
+
+  it('can upgrade from version 15 to 16', async () => {
+    await withDb(15, async () => {});
+    await withDb(16, async (db, version, objectStores) => {
+      expect(version).to.have.equal(16);
+      expect(objectStores).to.have.members(V16_STORES);
+    });
+  });
+
+  it('can upgrade from version 16 to 17', async () => {
+    await withDb(16, async () => {});
+    await withDb(17, async (db, version, objectStores) => {
+      expect(version).to.have.equal(17);
+      expect(objectStores).to.have.members(V17_STORES);
+    });
+  });
+
   it('downgrading throws a custom error', async function (this: Context) {
     // Upgrade to latest version
     await withDb(SCHEMA_VERSION, async (db, version) => {
@@ -1310,8 +1340,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  const visible: VisibilityState = 'visible';
-  const hidden: VisibilityState = 'hidden';
+  const visible: DocumentVisibilityState = 'visible';
+  const hidden: DocumentVisibilityState = 'hidden';
   const networkEnabled = true;
   const networkDisabled = false;
   const primary = true;
@@ -1319,9 +1349,9 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   type ExpectedPrimaryStateTestCase = [
     boolean,
-    VisibilityState,
+    DocumentVisibilityState,
     boolean,
-    VisibilityState,
+    DocumentVisibilityState,
     boolean
   ];
 

@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
+import { FirestoreLocalCache } from '../api/cache_config';
 import { CredentialsSettings } from '../api/credentials';
+import {
+  ExperimentalLongPollingOptions,
+  cloneLongPollingOptions,
+  longPollingOptionsEqual
+} from '../api/long_polling_options';
 import {
   LRU_COLLECTION_DISABLED,
   LRU_DEFAULT_CACHE_SIZE_BYTES
@@ -27,6 +33,20 @@ import { validateIsNotUsedTogether } from '../util/input_validation';
 // settings() defaults:
 export const DEFAULT_HOST = 'firestore.googleapis.com';
 export const DEFAULT_SSL = true;
+
+// The minimum long-polling timeout is hardcoded on the server. The value here
+// should be kept in sync with the value used by the server, as the server will
+// silently ignore a value below the minimum and fall back to the default.
+// Googlers see b/266868871 for relevant discussion.
+const MIN_LONG_POLLING_TIMEOUT_SECONDS = 5;
+
+// No maximum long-polling timeout is configured in the server, and defaults to
+// 30 seconds, which is what Watch appears to use.
+// Googlers see b/266868871 for relevant discussion.
+const MAX_LONG_POLLING_TIMEOUT_SECONDS = 30;
+
+// Whether long-polling auto-detected is enabled by default.
+const DEFAULT_AUTO_DETECT_LONG_POLLING = true;
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
@@ -48,18 +68,20 @@ export interface FirestoreSettings {
   ignoreUndefinedProperties?: boolean;
 }
 
-/** Undocumented, private additional settings not exposed in our public API. */
+/**
+ * @internal
+ * Undocumented, private additional settings not exposed in our public API.
+ */
 export interface PrivateSettings extends FirestoreSettings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
-  // Used in firestore@exp
   cacheSizeBytes?: number;
-  // Used in firestore@exp
   experimentalForceLongPolling?: boolean;
-  // Used in firestore@exp
   experimentalAutoDetectLongPolling?: boolean;
-  // Used in firestore@exp
+  experimentalLongPollingOptions?: ExperimentalLongPollingOptions;
   useFetchStreams?: boolean;
+
+  localCache?: FirestoreLocalCache;
 }
 
 /**
@@ -80,9 +102,12 @@ export class FirestoreSettingsImpl {
 
   readonly experimentalAutoDetectLongPolling: boolean;
 
+  readonly experimentalLongPollingOptions: ExperimentalLongPollingOptions;
+
   readonly ignoreUndefinedProperties: boolean;
 
   readonly useFetchStreams: boolean;
+  readonly localCache?: FirestoreLocalCache;
 
   // Can be a google-auth-library or gapi client.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,6 +130,7 @@ export class FirestoreSettingsImpl {
 
     this.credentials = settings.credentials;
     this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
+    this.localCache = settings.localCache;
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;
@@ -122,17 +148,33 @@ export class FirestoreSettingsImpl {
       }
     }
 
-    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
-    this.experimentalAutoDetectLongPolling =
-      !!settings.experimentalAutoDetectLongPolling;
-    this.useFetchStreams = !!settings.useFetchStreams;
-
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling,
       'experimentalAutoDetectLongPolling',
       settings.experimentalAutoDetectLongPolling
     );
+
+    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
+
+    if (this.experimentalForceLongPolling) {
+      this.experimentalAutoDetectLongPolling = false;
+    } else if (settings.experimentalAutoDetectLongPolling === undefined) {
+      this.experimentalAutoDetectLongPolling = DEFAULT_AUTO_DETECT_LONG_POLLING;
+    } else {
+      // For backwards compatibility, coerce the value to boolean even though
+      // the TypeScript compiler has narrowed the type to boolean already.
+      // noinspection PointlessBooleanExpressionJS
+      this.experimentalAutoDetectLongPolling =
+        !!settings.experimentalAutoDetectLongPolling;
+    }
+
+    this.experimentalLongPollingOptions = cloneLongPollingOptions(
+      settings.experimentalLongPollingOptions ?? {}
+    );
+    validateLongPollingOptions(this.experimentalLongPollingOptions);
+
+    this.useFetchStreams = !!settings.useFetchStreams;
   }
 
   isEqual(other: FirestoreSettingsImpl): boolean {
@@ -145,8 +187,40 @@ export class FirestoreSettingsImpl {
         other.experimentalForceLongPolling &&
       this.experimentalAutoDetectLongPolling ===
         other.experimentalAutoDetectLongPolling &&
+      longPollingOptionsEqual(
+        this.experimentalLongPollingOptions,
+        other.experimentalLongPollingOptions
+      ) &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties &&
       this.useFetchStreams === other.useFetchStreams
     );
+  }
+}
+
+function validateLongPollingOptions(
+  options: ExperimentalLongPollingOptions
+): void {
+  if (options.timeoutSeconds !== undefined) {
+    if (isNaN(options.timeoutSeconds)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ` +
+          `${options.timeoutSeconds} (must not be NaN)`
+      );
+    }
+    if (options.timeoutSeconds < MIN_LONG_POLLING_TIMEOUT_SECONDS) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ${options.timeoutSeconds} ` +
+          `(minimum allowed value is ${MIN_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
+    if (options.timeoutSeconds > MAX_LONG_POLLING_TIMEOUT_SECONDS) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `invalid long polling timeout: ${options.timeoutSeconds} ` +
+          `(maximum allowed value is ${MAX_LONG_POLLING_TIMEOUT_SECONDS})`
+      );
+    }
   }
 }

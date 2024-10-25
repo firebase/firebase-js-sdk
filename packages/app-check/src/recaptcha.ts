@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { getState, setState } from './state';
+import { getStateReference } from './state';
 import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
 
@@ -28,10 +28,11 @@ export function initializeV3(
   app: FirebaseApp,
   siteKey: string
 ): Promise<GreCAPTCHA> {
-  const state = getState(app);
   const initialized = new Deferred<GreCAPTCHA>();
 
-  setState(app, { ...state, reCAPTCHAState: { initialized } });
+  const state = getStateReference(app);
+  state.reCAPTCHAState = { initialized };
+
   const divId = makeDiv(app);
 
   const grecaptcha = getRecaptcha(false);
@@ -54,10 +55,11 @@ export function initializeEnterprise(
   app: FirebaseApp,
   siteKey: string
 ): Promise<GreCAPTCHA> {
-  const state = getState(app);
   const initialized = new Deferred<GreCAPTCHA>();
 
-  setState(app, { ...state, reCAPTCHAState: { initialized } });
+  const state = getStateReference(app);
+  state.reCAPTCHAState = { initialized };
+
   const divId = makeDiv(app);
 
   const grecaptcha = getRecaptcha(true);
@@ -113,12 +115,12 @@ export async function getToken(app: FirebaseApp): Promise<string> {
   ensureActivated(app);
 
   // ensureActivated() guarantees that reCAPTCHAState is set
-  const reCAPTCHAState = getState(app).reCAPTCHAState!;
+  const reCAPTCHAState = getStateReference(app).reCAPTCHAState!;
   const recaptcha = await reCAPTCHAState.initialized.promise;
 
   return new Promise((resolve, _reject) => {
     // Updated after initialization is complete.
-    const reCAPTCHAState = getState(app).reCAPTCHAState!;
+    const reCAPTCHAState = getStateReference(app).reCAPTCHAState!;
     recaptcha.ready(() => {
       resolve(
         // widgetId is guaranteed to be available if reCAPTCHAState.initialized.promise resolved.
@@ -143,18 +145,23 @@ function renderInvisibleWidget(
 ): void {
   const widgetId = grecaptcha.render(container, {
     sitekey: siteKey,
-    size: 'invisible'
-  });
-
-  const state = getState(app);
-
-  setState(app, {
-    ...state,
-    reCAPTCHAState: {
-      ...state.reCAPTCHAState!, // state.reCAPTCHAState is set in the initialize()
-      widgetId
+    size: 'invisible',
+    // Success callback - set state
+    callback: () => {
+      getStateReference(app).reCAPTCHAState!.succeeded = true;
+    },
+    // Failure callback - set state
+    'error-callback': () => {
+      getStateReference(app).reCAPTCHAState!.succeeded = false;
     }
   });
+
+  const state = getStateReference(app);
+
+  state.reCAPTCHAState = {
+    ...state.reCAPTCHAState!, // state.reCAPTCHAState is set in the initialize()
+    widgetId
+  };
 }
 
 function loadReCAPTCHAV3Script(onload: () => void): void {
@@ -193,4 +200,6 @@ export interface GreCAPTCHA {
 export interface GreCAPTCHARenderOption {
   sitekey: string;
   size: 'invisible';
+  callback: () => void;
+  'error-callback': () => void;
 }

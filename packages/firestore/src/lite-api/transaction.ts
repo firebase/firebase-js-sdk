@@ -20,7 +20,7 @@ import { getModularInstance } from '@firebase/util';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import {
   DEFAULT_TRANSACTION_OPTIONS,
-  TransactionOptions as TranasactionOptionsInternal,
+  TransactionOptions as TransactionOptionsInternal,
   validateTransactionOptions
 } from '../core/transaction_options';
 import { TransactionRunner } from '../core/transaction_runner';
@@ -33,6 +33,7 @@ import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import {
+  DocumentData,
   DocumentReference,
   PartialWithFieldValue,
   SetOptions,
@@ -86,7 +87,9 @@ export class Transaction {
    * @param documentRef - A reference to the document to be read.
    * @returns A `DocumentSnapshot` with the read data.
    */
-  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
+  get<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new LiteUserDataWriter(this._firestore);
     return this._transaction.lookup([ref._key]).then(docs => {
@@ -95,7 +98,7 @@ export class Transaction {
       }
       const doc = docs[0];
       if (doc.isFoundDocument()) {
-        return new DocumentSnapshot(
+        return new DocumentSnapshot<AppModelType, DbModelType>(
           this._firestore,
           userDataWriter,
           doc.key,
@@ -103,7 +106,7 @@ export class Transaction {
           ref.converter
         );
       } else if (doc.isNoDocument()) {
-        return new DocumentSnapshot(
+        return new DocumentSnapshot<AppModelType, DbModelType>(
           this._firestore,
           userDataWriter,
           ref._key,
@@ -127,7 +130,10 @@ export class Transaction {
    * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: WithFieldValue<T>): this;
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: WithFieldValue<AppModelType>
+  ): this;
   /**
    * Writes to the document referred to by the provided {@link
    * DocumentReference}. If the document does not exist yet, it will be created.
@@ -140,14 +146,14 @@ export class Transaction {
    * @throws Error - If the provided input is not a valid Firestore document.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: PartialWithFieldValue<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: PartialWithFieldValue<AppModelType>,
     options: SetOptions
   ): this;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    value: PartialWithFieldValue<T>,
+  set<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    value: PartialWithFieldValue<AppModelType>,
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
@@ -180,7 +186,10 @@ export class Transaction {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update<T>(documentRef: DocumentReference<T>, data: UpdateData<T>): this;
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    data: UpdateData<DbModelType>
+  ): this;
   /**
    * Updates fields in the document referred to by the provided {@link
    * DocumentReference}. The update will fail if applied to a document that does
@@ -196,15 +205,15 @@ export class Transaction {
    * @throws Error - If the provided input is not valid Firestore data.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  update(
-    documentRef: DocumentReference<unknown>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
     field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
-  update<T>(
-    documentRef: DocumentReference<T>,
-    fieldOrUpdateData: string | FieldPath | UpdateData<T>,
+  update<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>,
+    fieldOrUpdateData: string | FieldPath | UpdateData<DbModelType>,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {
@@ -246,7 +255,9 @@ export class Transaction {
    * @param documentRef - A reference to the document to be deleted.
    * @returns This `Transaction` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<unknown>): this {
+  delete<AppModelType, DbModelType extends DocumentData>(
+    documentRef: DocumentReference<AppModelType, DbModelType>
+  ): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;
@@ -279,7 +290,7 @@ export function runTransaction<T>(
 ): Promise<T> {
   firestore = cast(firestore, Firestore);
   const datastore = getDatastore(firestore);
-  const optionsWithDefaults: TranasactionOptionsInternal = {
+  const optionsWithDefaults: TransactionOptionsInternal = {
     ...DEFAULT_TRANSACTION_OPTIONS,
     ...options
   };

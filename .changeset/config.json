@@ -7,7 +7,7 @@
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "master",
+  "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
     "firebase-namespace-integration-test",
@@ -21,7 +21,9 @@
     "firebase-repo-scripts-prune-dts"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
-    "onlyUpdatePeerDependentsWhenOutOfRange": true,
-    "useCalculatedVersionForSnapshots": true
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  },
+  "snapshot": {
+    "useCalculatedVersion": true
   }
 }

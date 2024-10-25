@@ -52,6 +52,7 @@ export { NextFn }
 // @public
 export interface NotificationPayload {
     body?: string;
+    icon?: string;
     image?: string;
     title?: string;
 }

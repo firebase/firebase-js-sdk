@@ -25,7 +25,9 @@ export interface AnalyticsSettings {
 export interface ConsentSettings {
     // (undocumented)
     [key: string]: unknown;
+    ad_personalization?: ConsentStatusString;
     ad_storage?: ConsentStatusString;
+    ad_user_data?: ConsentStatusString;
     analytics_storage?: ConsentStatusString;
     functionality_storage?: ConsentStatusString;
     personalization_storage?: ConsentStatusString;
@@ -132,6 +134,9 @@ export interface EventParams {
 
 // @public
 export function getAnalytics(app?: FirebaseApp): Analytics;
+
+// @public
+export function getGoogleAnalyticsClientId(analyticsInstance: Analytics): Promise<string>;
 
 // @public
 export interface GtagConfigParams {
@@ -421,7 +426,7 @@ export interface SettingsOptions {
 }
 
 // @public
-export function setUserId(analyticsInstance: Analytics, id: string, options?: AnalyticsCallOptions): void;
+export function setUserId(analyticsInstance: Analytics, id: string | null, options?: AnalyticsCallOptions): void;
 
 // @public
 export function setUserProperties(analyticsInstance: Analytics, properties: CustomParams, options?: AnalyticsCallOptions): void;

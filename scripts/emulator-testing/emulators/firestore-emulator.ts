@@ -22,11 +22,11 @@ export class FirestoreEmulator extends Emulator {
 
   constructor(port: number, projectId = 'test-emulator') {
     super(
-      'cloud-firestore-emulator-v1.14.4.jar',
+      'cloud-firestore-emulator-v1.18.1.jar',
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from firestore emulator doc:
       // https://firebase.google.com/docs/firestore/security/test-rules-emulator
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.14.4.jar',
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.19.7.jar',
       port
     );
     this.projectId = projectId;

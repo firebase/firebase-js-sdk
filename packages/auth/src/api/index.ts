@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, querystring } from '@firebase/util';
+import { FirebaseError, isCloudflareWorker, querystring } from '@firebase/util';
 
 import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
@@ -42,7 +42,8 @@ export const enum HttpHeader {
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version',
   X_FIREBASE_GMPID = 'X-Firebase-gmpid',
-  X_FIREBASE_CLIENT = 'X-Firebase-Client'
+  X_FIREBASE_CLIENT = 'X-Firebase-Client',
+  X_FIREBASE_APP_CHECK = 'X-Firebase-AppCheck'
 }
 
 export const enum Endpoint {
@@ -65,7 +66,43 @@ export const enum Endpoint {
   START_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
   WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
-  GET_PROJECT_CONFIG = '/v1/projects'
+  GET_PROJECT_CONFIG = '/v1/projects',
+  GET_RECAPTCHA_CONFIG = '/v2/recaptchaConfig',
+  GET_PASSWORD_POLICY = '/v2/passwordPolicy',
+  TOKEN = '/v1/token',
+  REVOKE_TOKEN = '/v2/accounts:revokeToken'
+}
+
+export const enum RecaptchaClientType {
+  WEB = 'CLIENT_TYPE_WEB',
+  ANDROID = 'CLIENT_TYPE_ANDROID',
+  IOS = 'CLIENT_TYPE_IOS'
+}
+
+export const enum RecaptchaVersion {
+  ENTERPRISE = 'RECAPTCHA_ENTERPRISE'
+}
+
+export const enum RecaptchaActionName {
+  SIGN_IN_WITH_PASSWORD = 'signInWithPassword',
+  GET_OOB_CODE = 'getOobCode',
+  SIGN_UP_PASSWORD = 'signUpPassword',
+  SEND_VERIFICATION_CODE = 'sendVerificationCode',
+  MFA_SMS_ENROLLMENT = 'mfaSmsEnrollment',
+  MFA_SMS_SIGNIN = 'mfaSmsSignIn'
+}
+
+export const enum EnforcementState {
+  ENFORCE = 'ENFORCE',
+  AUDIT = 'AUDIT',
+  OFF = 'OFF',
+  ENFORCEMENT_STATE_UNSPECIFIED = 'ENFORCEMENT_STATE_UNSPECIFIED'
+}
+
+// Providers that have reCAPTCHA Enterprise support.
+export const enum RecaptchaAuthProvider {
+  EMAIL_PASSWORD_PROVIDER = 'EMAIL_PASSWORD_PROVIDER',
+  PHONE_PROVIDER = 'PHONE_PROVIDER'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
@@ -115,14 +152,23 @@ export async function _performApiRequest<T, V>(
       headers[HttpHeader.X_FIREBASE_LOCALE] = auth.languageCode;
     }
 
+    const fetchArgs: RequestInit = {
+      method,
+      headers,
+      ...body
+    };
+
+    /* Security-conscious server-side frameworks tend to have built in mitigations for referrer
+       problems". See the Cloudflare GitHub issue #487: Error: The 'referrerPolicy' field on
+       'RequestInitializerDict' is not implemented."
+       https://github.com/cloudflare/next-on-pages/issues/487 */
+    if (!isCloudflareWorker()) {
+      fetchArgs.referrerPolicy = 'no-referrer';
+    }
+
     return FetchProvider.fetch()(
       _getFinalTarget(auth, auth.config.apiHost, path, query),
-      {
-        method,
-        headers,
-        referrerPolicy: 'no-referrer',
-        ...body
-      }
+      fetchArgs
     );
   });
 }
@@ -181,7 +227,10 @@ export async function _performFetchWithErrorHandling<V>(
     if (e instanceof FirebaseError) {
       throw e;
     }
-    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED);
+    // Changing this to a different error code will log user out when there is a network error
+    // because we treat any error other than NETWORK_REQUEST_FAILED as token is invalid.
+    // https://github.com/firebase/firebase-js-sdk/blob/4fbc73610d70be4e0852e7de63a39cb7897e8546/packages/auth/src/core/auth/auth_impl.ts#L309-L316
+    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED, { 'message': String(e) });
   }
 }
 
@@ -192,20 +241,20 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = (await _performApiRequest<T, V | IdTokenMfaResponse>(
+  const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
     path,
     request,
     customErrorMap
-  )) as V;
+  );
   if ('mfaPendingCredential' in serverResponse) {
     _fail(auth, AuthErrorCode.MFA_REQUIRED, {
       _serverResponse: serverResponse
     });
   }
 
-  return serverResponse;
+  return serverResponse as V;
 }
 
 export function _getFinalTarget(
@@ -221,6 +270,21 @@ export function _getFinalTarget(
   }
 
   return _emulatorUrl(auth.config as ConfigInternal, base);
+}
+
+export function _parseEnforcementState(
+  enforcementStateStr: string
+): EnforcementState {
+  switch (enforcementStateStr) {
+    case 'ENFORCE':
+      return EnforcementState.ENFORCE;
+    case 'AUDIT':
+      return EnforcementState.AUDIT;
+    case 'OFF':
+      return EnforcementState.OFF;
+    default:
+      return EnforcementState.ENFORCEMENT_STATE_UNSPECIFIED;
+  }
 }
 
 class NetworkTimeout<T> {

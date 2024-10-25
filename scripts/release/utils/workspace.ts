@@ -33,7 +33,16 @@ const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 export function mapWorkspaceToPackages(
   workspaces: string[]
 ): Promise<string[]> {
-  return Promise.all<string[]>(
+  const workspacePromises: Promise<string[]>[] = workspaces.map(
+    workspace =>
+      new Promise(resolve => {
+        glob(workspace, (err, paths) => {
+          if (err) throw err;
+          resolve(paths);
+        });
+      })
+  );
+  return Promise.all<Promise<string[]>[]>(
     workspaces.map(
       workspace =>
         new Promise(resolve => {
@@ -43,7 +52,9 @@ export function mapWorkspaceToPackages(
           });
         })
     )
-  ).then(paths => paths.reduce((arr, val) => arr.concat(val), []));
+  ).then(paths =>
+    paths.reduce((arr: string[], val: string[]) => arr.concat(val), [])
+  );
 }
 
 function mapPackagestoPkgJson(packagePaths: string[]) {

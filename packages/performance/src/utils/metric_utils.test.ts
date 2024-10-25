@@ -71,7 +71,7 @@ describe('Firebase Performance > metric_utils', () => {
     });
 
     it('returns false if first paint metric name is used outside of page load traces', () => {
-      expect(isValidMetricName(FIRST_PAINT_COUNTER_NAME, 'some_randome_trace'))
+      expect(isValidMetricName(FIRST_PAINT_COUNTER_NAME, 'some_random_trace'))
         .to.be.false;
     });
 
@@ -79,14 +79,14 @@ describe('Firebase Performance > metric_utils', () => {
       expect(
         isValidMetricName(
           FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
-          'some_randome_trace'
+          'some_random_trace'
         )
       ).to.be.false;
     });
 
     it('returns false if first input delay metric name is used outside of page load traces', () => {
       expect(
-        isValidMetricName(FIRST_INPUT_DELAY_COUNTER_NAME, 'some_randome_trace')
+        isValidMetricName(FIRST_INPUT_DELAY_COUNTER_NAME, 'some_random_trace')
       ).to.be.false;
     });
   });

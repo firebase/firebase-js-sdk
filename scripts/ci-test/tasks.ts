@@ -94,7 +94,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   const depGraph: { [key: string]: any } = JSON.parse(
     (await exec('npx lerna ls --all --graph', { cwd: root })).stdout
   );
-  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
+  const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
   const changedFiles = diff.split('\n');
   let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
@@ -181,8 +181,8 @@ export function filterTasks(
 ): TestTask[] {
   let filteredTasks: TestTask[] = [];
 
-  // `ignorePacakges` and `onlyIncludePackages` should not be defined at same time,
-  // `ignorePacakges` will be ignored if that happens
+  // `ignorePackages` and `onlyIncludePackages` should not be defined at same time,
+  // `ignorePackages` will be ignored if that happens
   if (onlyIncludePackages) {
     filteredTasks = tasks.filter(t => onlyIncludePackages.includes(t.pkgName));
   } else if (ignorePackages) {

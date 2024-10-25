@@ -72,7 +72,7 @@ describe('idb manager', () => {
 
     describe('old DB migration', () => {
       let migrateOldDatabaseStub: Stub<
-        typeof migrateOldDatabaseModule['migrateOldDatabase']
+        (typeof migrateOldDatabaseModule)['migrateOldDatabase']
       >;
 
       beforeEach(() => {

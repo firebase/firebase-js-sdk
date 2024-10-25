@@ -1,9 +1,9 @@
-# Firebase Javascript SDK
+# Firebase JavaScript SDK
 
 <!-- BADGES -->
-![Build Status](https://img.shields.io/github/workflow/status/firebase/firebase-js-sdk/Run%20All%20Tests.svg)
+![Build Status](https://img.shields.io/github/actions/workflow/status/firebase/firebase-js-sdk/test-all.yml)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
-[![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=master)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=main)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=main)
 <!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
@@ -11,7 +11,6 @@ applications using Firebase services. This SDK is distributed via:
 
 - [CDN](https://firebase.google.com/docs/web/setup/#add-sdks-initialize)
 - [npm package](https://www.npmjs.com/package/firebase)
-- [Bower package](https://github.com/firebase/firebase-bower)
 
 To get started using Firebase, see
 [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
@@ -19,8 +18,11 @@ To get started using Firebase, see
 [![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
 ## Upgrade to Version 9
+
 Version 9 has a redesigned API that supports tree-shaking. Read the [Upgrade Guide](https://firebase.google.com/docs/web/modular-upgrade) to learn more.
+
 ## Supported Environments
+
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
 
 ## SDK Dev Workflow
@@ -30,7 +32,8 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. The currently supported versions are `10.15.0` or greater.
+installed on your machine. As of April 19th, 2024 the team has been testing with Node.js version 
+`20.12.2`, but the required version of Node.js may change as we update our dependencies.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -44,9 +47,14 @@ In addition to Node.js we use `yarn` to facilitate multi package development.
 To install `yarn` follow the instructions listed on their website:
 https://yarnpkg.com/en/docs/install
 
+This repo currently supports building with yarn `1.x`. For instance, after installing yarn, run
+```bash
+$ yarn set version 1.22.11
+```
+
 #### Java
 
-The closure compiler requires a modern Java installation. Java 8+ should be installed: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+The closure compiler requires a modern Java installation. Java 11+ should be installed: https://www.oracle.com/java/technologies/downloads/#java11
 
 #### Verify Prerequisites
 
@@ -58,8 +66,8 @@ $ yarn -v
 $ java -version
 ```
 
-Your Node.js version should be `10.15.0` or greater, your `yarn` version should
-be `1.0.0` or greater, and your `java` version should be `1.8.0` or greater.
+Your `node` version should be `20.12.2`, your `yarn` version should
+be between `1.0.0` and `1.22.11`, and your `java` version should be `11.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
 for continuing development on the SDK, staying up to date on the stable versions
@@ -110,8 +118,30 @@ will be overwritten below.
 
 Visit the "Realtime Database" section of the console and create a realtime
 database. When prompted to select the set of initial security rules, select
-any option (e.g. "Start in Production Mode") since these permission settings
+any option (e.g. "Start in Locked Mode") since these permission settings
 will be overwritten below.
+
+#### Storage Setup
+
+Visit the "Storage" section of the console and create a storage bucket. In 
+order to run the tests, you will need to update your bucket's CORS rules.
+
+1. Create a new file called `cors.json` with the contents:
+```json
+[
+    {
+        "origin": ["http://localhost:8089"],
+        "method": ["GET"],
+        "maxAgeSeconds": 3600
+    }
+]
+```
+1. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
+1. You will need to login if this is your first time using `gsutil`. Run `gcloud auth login`
+and follow the instructions to login.
+1. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+
+For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 
 #### Authentication Support
 
@@ -171,14 +201,16 @@ scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
 ### Testing the SDK Locally
 
-Please be sure to build your repo before proceeding any further.
+Please be sure your product's package has been built before proceeding any further. (If you haven't built this repo before, make sure to run `yarn build` at the root)
 In order to manually test your SDK changes locally, you must use [yarn link](https://classic.yarnpkg.com/en/docs/cli/link):
 
 ```shell
 $ cd packages/firebase
 $ yarn link # initialize the linking to the other folder
-$ cd ../<my-test-app-dir> # cd into your personal project directory
-$ yarn link firebase # tell yarn to use the locally built firebase SDK instead
+$ cd ../<my-product> # Example: $ cd ../firestore
+$ yarn link # link your product to make it available elsewhere
+$ cd <my-test-app-dir> # cd into your personal project directory
+$ yarn link firebase @firebase/<my-product> # tell yarn to use the locally built firebase SDK instead
 ```
 
 This will create a symlink and point your `<my-test-app-dir>` to the locally built version of the firebase SDK.

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import fetch from 'node-fetch';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/database';
@@ -76,7 +75,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     try {
       await callback(context);
     } finally {
-      // We eagarly clean up this context to actively prevent misuse outside of the callback, e.g.
+      // We eagerly clean up this context to actively prevent misuse outside of the callback, e.g.
       // storing the context in a variable.
       context.cleanup();
       this.contexts.delete(context);
@@ -126,7 +125,7 @@ export class RulesTestEnvironmentImpl implements RulesTestEnvironment {
     return this.withSecurityRulesDisabled(async context => {
       const { items } = await context.storage().ref().listAll();
       await Promise.all(
-        items.map(item => {
+        items.map((item: { delete: () => any }) => {
           return item.delete();
         })
       );

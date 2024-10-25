@@ -40,6 +40,13 @@ const WIDGET_PATH = '__/auth/handler';
  */
 const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
+/**
+ * Fragment name for the App Check token that gets passed to the widget
+ *
+ * @internal
+ */
+const FIREBASE_APP_CHECK_FRAGMENT_ID = encodeURIComponent('fac');
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type WidgetParams = {
   apiKey: ApiKey;
@@ -54,14 +61,14 @@ type WidgetParams = {
   tid?: string;
 } & { [key: string]: string | undefined };
 
-export function _getRedirectUrl(
+export async function _getRedirectUrl(
   auth: AuthInternal,
   provider: AuthProvider,
   authType: AuthEventType,
   redirectUrl?: string,
   eventId?: string,
   additionalParams?: Record<string, string>
-): string {
+): Promise<string> {
   _assert(auth.config.authDomain, auth, AuthErrorCode.MISSING_AUTH_DOMAIN);
   _assert(auth.config.apiKey, auth, AuthErrorCode.INVALID_API_KEY);
 
@@ -98,7 +105,7 @@ export function _getRedirectUrl(
     params.tid = auth.tenantId;
   }
 
-  // TODO: maybe set eid as endipointId
+  // TODO: maybe set eid as endpointId
   // TODO: maybe set fw as Frameworks.join(",")
 
   const paramsDict = params as Record<string, string | number>;
@@ -107,7 +114,17 @@ export function _getRedirectUrl(
       delete paramsDict[key];
     }
   }
-  return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(1)}`;
+
+  // Sets the App Check token to pass to the widget
+  const appCheckToken = await auth._getAppCheckToken();
+  const appCheckTokenFragment = appCheckToken
+    ? `#${FIREBASE_APP_CHECK_FRAGMENT_ID}=${encodeURIComponent(appCheckToken)}`
+    : '';
+
+  // Start at index 1 to skip the leading '&' in the query string
+  return `${getHandlerBase(auth)}?${querystring(paramsDict).slice(
+    1
+  )}${appCheckTokenFragment}`;
 }
 
 function getHandlerBase({ config }: AuthInternal): string {

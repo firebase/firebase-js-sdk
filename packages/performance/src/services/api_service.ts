@@ -43,7 +43,7 @@ export type EntryType =
  */
 export class Api {
   private readonly performance: Performance;
-  /** PreformanceObserver constructor function. */
+  /** PerformanceObserver constructor function. */
   private readonly PerformanceObserver: typeof PerformanceObserver;
   private readonly windowLocation: Location;
   readonly onFirstInputDelay?: (fn: (fid: number) => void) => void;
@@ -120,7 +120,7 @@ export class Api {
     }
 
     if (!isIndexedDBAvailable()) {
-      consoleLogger.info('IndexedDB is not supported by current browswer');
+      consoleLogger.info('IndexedDB is not supported by current browser');
       return false;
     }
     return true;

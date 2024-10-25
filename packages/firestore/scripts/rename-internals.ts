@@ -48,7 +48,7 @@ class RenameInternals {
         !this.publicApi.has(name) &&
         ignoredIdentifiers.indexOf(node.escapedText.toString()) === -1
       ) {
-        const newIdentifier = ts.createIdentifier(this.prefix + name);
+        const newIdentifier = ts.factory.createIdentifier(this.prefix + name);
         ts.setSourceMapRange(newIdentifier, ts.getSourceMapRange(node));
         return newIdentifier;
       }
@@ -65,7 +65,7 @@ export interface SDKMinifierOptions {
   publicIdentifiers: Set<string>;
   /**
    * A prefix to append to all identifiers that are not referencing the Public
-   * API. Defauls to '_'.
+   * API. Defaults to '_'.
    */
   prefix?: string;
 }

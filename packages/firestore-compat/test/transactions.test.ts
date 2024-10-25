@@ -116,7 +116,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         const snapshot = await this.docRef.get();
         expect(snapshot.exists).to.equal(true);
         expect(snapshot.data()).to.deep.equal(expected);
-      } catch (err) {
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
         expect.fail(
           'Expected the sequence (' +
             this.listStages(this.stages) +
@@ -133,7 +134,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.runTransaction();
         const snapshot = await this.docRef.get();
         expect(snapshot.exists).to.equal(false);
-      } catch (err) {
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
         expect.fail(
           'Expected the sequence (' +
             this.listStages(this.stages) +
@@ -150,8 +152,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.prepareDoc();
         await this.runTransaction();
         succeeded = true;
-      } catch (err) {
-        expect((err as firestore.FirestoreError).code).to.equal(expected);
+      } catch (e) {
+        const err = e as firestore.FirestoreError;
+        expect(err.code).to.equal(expected);
       }
       if (succeeded) {
         expect.fail(
@@ -238,9 +241,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
-  it('runs transactions after getting non-existent document', async () => {
+  it('runs transactions after getting nonexistent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -277,7 +280,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  });
+  }).timeout(10000);
 
   it('runs transactions on existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
@@ -303,7 +306,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('runs transactions on non-existent document', async () => {
+  it('runs transactions on nonexistent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -455,7 +458,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   });
 
   it(
-    'cannot read non-existent document then update, even if ' +
+    'cannot read nonexistent document then update, even if ' +
       'document is written after the read',
     () => {
       return integrationHelpers.withTestDb(persistence, db => {

@@ -75,9 +75,14 @@ export async function publishInCI(
         continue;
       }
     } catch (e) {
-      // 404 from NPM indicates the package doesn't exist there.
-      console.log(`Skipping pkg: ${pkg} - it has never been published to NPM.`);
-      continue;
+      const versionParts = version.split('-');
+      if (versionParts[0] !== '0.0.1') {
+        // 404 from NPM indicates the package doesn't exist there.
+        console.log(
+          `Skipping pkg: ${pkg} - it has never been published to NPM.`
+        );
+        continue;
+      }
     }
 
     const tag = `${pkg}@${version}`;
@@ -108,6 +113,8 @@ async function publishPackageInCI(
   npmTag: string,
   dryRun: boolean
 ) {
+  let stdoutText = '';
+  let stderrText = '';
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
@@ -128,15 +135,40 @@ async function publishPackageInCI(
       args.push('--dry-run');
     }
 
+    if (process.env.VERBOSE_NPM_LOGGING === 'true') {
+      args.push('--verbose');
+    }
+
     // Write proxy registry token for this package to .npmrc.
     await exec(
       `echo "//wombat-dressing-room.appspot.com/:_authToken=${
         process.env[getEnvTokenKey(pkg)]
       }" >> ~/.npmrc`
     );
-
-    return spawn('npm', args, { cwd: path });
+    const spawnPromise = spawn('npm', args, { cwd: path });
+    const childProcess = spawnPromise.childProcess;
+    // These logs can be very verbose. Only print them if there's
+    // an error.
+    childProcess.stdout?.on('data', function (data) {
+      stdoutText += data.toString();
+    });
+    childProcess.stderr?.on('data', function (data) {
+      stderrText += data.toString();
+    });
+    await spawnPromise;
+    if (process.env.VERBOSE_NPM_LOGGING === 'true') {
+      console.log(`stdout for ${pkg} publish:`);
+      console.log(stdoutText);
+      console.log(`stderr for ${pkg} publish:`);
+      console.error(stderrText);
+    }
+    return spawnPromise;
   } catch (err) {
+    console.log(`Error publishing ${pkg}`);
+    console.log(`stdout for ${pkg} publish:`);
+    console.log(stdoutText);
+    console.log(`stderr for ${pkg} publish:`);
+    console.error(stderrText);
     throw err;
   }
 }

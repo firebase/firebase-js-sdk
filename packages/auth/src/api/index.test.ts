@@ -22,6 +22,7 @@ import { useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { FirebaseError, getUA } from '@firebase/util';
+import * as utils from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
@@ -308,6 +309,52 @@ describe('api/_performApiRequest', () => {
     });
   });
 
+  context('referer policy exists on fetch request', () => {
+    afterEach(mockFetch.tearDown);
+
+    it('should have referrerPolicy set', async () => {
+      let referrerPolicySet: boolean = false;
+      mockFetch.setUpWithOverride(
+        (input: RequestInfo | URL, request?: RequestInit) => {
+          if (request !== undefined && request.referrerPolicy !== undefined) {
+            referrerPolicySet = true;
+          }
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
+        }
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.fulfilled;
+      expect(referrerPolicySet).to.be.true;
+    });
+
+    it('should not have referrerPolicy set on Cloudflare workers', async () => {
+      sinon.stub(utils, 'isCloudflareWorker').returns(true);
+      let referrerPolicySet: boolean = false;
+      mockFetch.setUpWithOverride(
+        (input: RequestInfo | URL, request?: RequestInit) => {
+          if (request !== undefined && request.referrerPolicy !== undefined) {
+            referrerPolicySet = true;
+          }
+          return Promise.resolve(new Response(JSON.stringify(serverResponse)));
+        }
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.fulfilled;
+      expect(referrerPolicySet).to.be.false;
+      sinon.restore();
+    });
+  });
+
   context('with network issues', () => {
     afterEach(mockFetch.tearDown);
 
@@ -358,18 +405,20 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request
       );
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/network-request-failed'
-      );
+      await expect(promise)
+        .to.be.rejectedWith(FirebaseError, 'auth/network-request-failed')
+        .eventually.with.nested.property(
+          'customData.message',
+          'Error: network error'
+        );
     });
   });
 
-  context('edgcase error mapping', () => {
+  context('edge case error mapping', () => {
     beforeEach(mockFetch.setUp);
     afterEach(mockFetch.tearDown);
 
-    it('should generate a need_conirmation error with the response', async () => {
+    it('should generate a need_confirmation error with the response', async () => {
       mockEndpoint(Endpoint.SIGN_UP, {
         needConfirmation: true,
         idToken: 'id-token'
@@ -383,7 +432,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.NEED_CONFIRMATION}`
+        );
         expect((e as FirebaseError).customData!._tokenResponse).to.eql({
           needConfirmation: true,
           idToken: 'id-token'
@@ -413,7 +464,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`
+        );
         expect((e as FirebaseError).customData!._tokenResponse).to.eql(
           response
         );
@@ -444,7 +497,9 @@ describe('api/_performApiRequest', () => {
         );
         assert.fail('Call should have failed');
       } catch (e) {
-        expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
+        expect((e as FirebaseError).code).to.eq(
+          `auth/${AuthErrorCode.EMAIL_EXISTS}`
+        );
         expect((e as FirebaseError).customData!.email).to.eq('email@test.com');
         expect((e as FirebaseError).customData!.phoneNumber).to.eq(
           '+1555-this-is-a-number'

@@ -426,7 +426,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -651,7 +651,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -701,7 +701,7 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -1237,7 +1237,7 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
-   * @webonly
+   * The Messaging SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1296,7 +1296,7 @@ declare namespace firebase {
    * The {@link firebase.performance.Performance `Performance`} service does not work with
    * any other app.
    *
-   * @webonly
+   * The Performance SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1315,7 +1315,7 @@ declare namespace firebase {
   /**
    * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
    *
-   * @webonly
+   * The Remote Config SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1335,7 +1335,7 @@ declare namespace firebase {
    * `firebase.analytics()` can be called with no arguments to access the default
    * app's {@link firebase.analytics.Analytics `Analytics`} service.
    *
-   * @webonly
+   * The Analytics SDK does not work in a Node.js environment.
    *
    * @example
    * ```javascript
@@ -1404,7 +1404,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.installations.Installations `Installations`} service for the
      * current app.
      *
-     * @webonly
+     * The Installations SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1418,7 +1418,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
-     * @webonly
+     * The Messaging SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1490,7 +1490,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * The Performance SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1503,7 +1503,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
      *
-     * @webonly
+     * The Remote Config SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1517,7 +1517,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
      * current app. If the current app is not the default one, throws an error.
      *
-     * @webonly
+     * The Analytics SDK does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -1532,7 +1532,9 @@ declare namespace firebase.app {
 }
 
 /**
- * @webonly
+ * Firebase App Check does not work in a Node.js environment using `ReCaptchaV3Provider` or
+ * `ReCaptchaEnterpriseProvider`, but can be used in Node.js if you use
+ * `CustomProvider` and write your own attestation method.
  */
 declare namespace firebase.appCheck {
   /**
@@ -1696,7 +1698,7 @@ declare namespace firebase.appCheck {
 }
 
 /**
- * @webonly
+ * The Installations SDK does not work in a Node.js environment.
  */
 declare namespace firebase.installations {
   /**
@@ -1737,7 +1739,7 @@ declare namespace firebase.installations {
     delete(): Promise<void>;
 
     /**
-     * Sets a new callback that will get called when Installlation ID changes.
+     * Sets a new callback that will get called when Installation ID changes.
      * Returns an unsubscribe function that will remove the callback when called.
      */
     onIdChange(callback: (installationId: string) => void): () => void;
@@ -1745,7 +1747,7 @@ declare namespace firebase.installations {
 }
 
 /**
- * @webonly
+ * The Performance SDK does not work in a Node.js environment.
  */
 declare namespace firebase.performance {
   /**
@@ -1801,7 +1803,7 @@ declare namespace firebase.performance {
      * directly be used (e.g. if the duration was captured before the Performance SDK was loaded).
      *
      * @param startTime Trace start time since epoch in millisec.
-     * @param duration The duraction of the trace in millisec.
+     * @param duration The duration of the trace in millisec.
      * @param options An object which can optionally hold maps of custom metrics and
      * custom attributes.
      */
@@ -1868,7 +1870,7 @@ declare namespace firebase.performance {
 }
 
 /**
- * @webonly
+ * The Remote Config SDK does not work in a Node.js environment.
  */
 declare namespace firebase.remoteConfig {
   /**
@@ -1989,7 +1991,7 @@ declare namespace firebase.remoteConfig {
     /**
      * Gets the value as a boolean.
      *
-     * The following values (case insensitive) are interpreted as true:
+     * The following values (case-insensitive) are interpreted as true:
      * "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
      */
     asBoolean(): boolean;
@@ -2613,8 +2615,7 @@ declare namespace firebase.auth {
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
-     * unsuccessful, fails with an error. If no redirect operation was called,
-     * returns a UserCredential with a null User.
+     * unsuccessful, fails with an error. If no redirect operation was called, returns `null`.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -2671,7 +2672,7 @@ declare namespace firebase.auth {
      *     Firebase console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3351,7 +3352,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @example
      * ```javascript
@@ -3414,7 +3415,7 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
-     * @webonly
+     * This method does not work in a Node.js environment.
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -3463,7 +3464,7 @@ declare namespace firebase.auth {
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/invalid-user-token</dt>
-     * <dd>Thrown if the user to be updated belongs to a diffent Firebase
+     * <dd>Thrown if the user to be updated belongs to a different Firebase
      *     project.</dd>
      * <dt>auth/user-token-expired</dt>
      * <dd>Thrown if the token of the user to be updated is expired.</dd>
@@ -3802,7 +3803,7 @@ declare namespace firebase.auth {
     /**
      * The tenant ID being used for sign-in/linking. If you use
      * {@link firebase.auth.Auth.signInWithRedirect} to sign in, you have to
-     * set the tenant ID on Auth instanace again as the tenant ID is not
+     * set the tenant ID on Auth instance again as the tenant ID is not
      * persisted after redirection.
      */
     tenantId?: string;
@@ -4004,12 +4005,12 @@ declare namespace firebase.auth {
      * @example
      * ```javascript
      * var cred = firebase.auth.GithubAuthProvider.credential(
-     *     // `event` from the Github auth.authResponseChange callback.
+     *     // `event` from the GitHub auth.authResponseChange callback.
      *     event.authResponse.accessToken
      * );
      * ```
      *
-     * @param token Github access token.
+     * @param token GitHub access token.
      * @return {!firebase.auth.OAuthCredential} The auth provider credential.
      */
     static credential(token: string): firebase.auth.OAuthCredential;
@@ -4019,7 +4020,7 @@ declare namespace firebase.auth {
    */
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
     /**
-     * @param scope Github OAuth scope.
+     * @param scope GitHub OAuth scope.
      * @return The provider instance itself.
      */
     addScope(scope: string): firebase.auth.AuthProvider;
@@ -4629,7 +4630,7 @@ declare namespace firebase.auth {
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
    *
-   * @webonly
+   * This class does not work in a Node.js environment.
    *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
@@ -4648,7 +4649,6 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
-   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -4777,7 +4777,7 @@ declare namespace firebase.auth {
 }
 
 /**
- * @webonly
+ * The Analytics SDK does not work in a Node.js environment.
  */
 declare namespace firebase.analytics {
   /**
@@ -4959,7 +4959,7 @@ declare namespace firebase.analytics {
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
      * See
-     * {@link https://developers.google.com/analytics/devguides/collection/ga4/page-view
+     * {@link https://developers.google.com/analytics/devguides/collection/ga4/views
      * | Page views}.
      */
     logEvent(
@@ -5819,7 +5819,7 @@ declare namespace firebase.database {
      *   returning true.
      */
     forEach(
-      action: (a: firebase.database.DataSnapshot) => boolean | void
+      action: (a: firebase.database.IteratedDataSnapshot) => boolean | void
     ): boolean;
     /**
      * Gets the priority value of the data in this `DataSnapshot`.
@@ -5996,6 +5996,10 @@ declare namespace firebase.database {
      * Returns a JSON-serializable representation of this object.
      */
     toJSON(): Object | null;
+  }
+
+  interface IteratedDataSnapshot extends DataSnapshot {
+    key: string; // key of the location of this snapshot.
   }
 
   /**
@@ -6361,7 +6365,7 @@ declare namespace firebase.database {
      *
      * The ending point is exclusive. If only a value is provided, children
      * with a value less than the specified value will be included in the query.
-     * If a key is specified, then children must have a value lesss than or equal
+     * If a key is specified, then children must have a value less than or equal
      * to the specified value and a a key name less than the specified key.
      *
      * @example
@@ -7437,7 +7441,7 @@ declare namespace firebase.database.ServerValue {
 }
 
 /**
- * @webonly
+ * The Messaging SDK does not work in a Node.js environment.
  */
 declare namespace firebase.messaging {
   /**
@@ -7480,7 +7484,7 @@ declare namespace firebase.messaging {
      * @param options.serviceWorkerRegistration The service worker registration for receiving push
      * messaging. If the registration is not provided explicitly, you need to have a
      * `firebase-messaging-sw.js` at your root location. See
-     * {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token}
+     * {@link https://firebase.google.com/docs/cloud-messaging/js/client#access_the_registration_token | Access the registration token}
      * for more details.
      *
      * @return The promise resolves with an FCM registration token.
@@ -8019,10 +8023,34 @@ declare namespace firebase.storage {
   }
 
   /**
-   * An error returned by the Firebase Storage SDK.
+   * Error codes that can be attached to `StorageError` objects.
    */
-  interface FirebaseStorageError extends FirebaseError {
-    serverResponse: string | null;
+  export enum StorageErrorCode {
+    UNKNOWN = 'unknown',
+    OBJECT_NOT_FOUND = 'object-not-found',
+    BUCKET_NOT_FOUND = 'bucket-not-found',
+    PROJECT_NOT_FOUND = 'project-not-found',
+    QUOTA_EXCEEDED = 'quota-exceeded',
+    UNAUTHENTICATED = 'unauthenticated',
+    UNAUTHORIZED = 'unauthorized',
+    UNAUTHORIZED_APP = 'unauthorized-app',
+    RETRY_LIMIT_EXCEEDED = 'retry-limit-exceeded',
+    INVALID_CHECKSUM = 'invalid-checksum',
+    CANCELED = 'canceled',
+    INVALID_EVENT_NAME = 'invalid-event-name',
+    INVALID_URL = 'invalid-url',
+    INVALID_DEFAULT_BUCKET = 'invalid-default-bucket',
+    NO_DEFAULT_BUCKET = 'no-default-bucket',
+    CANNOT_SLICE_BLOB = 'cannot-slice-blob',
+    SERVER_FILE_WRONG_SIZE = 'server-file-wrong-size',
+    NO_DOWNLOAD_URL = 'no-download-url',
+    INVALID_ARGUMENT = 'invalid-argument',
+    INVALID_ARGUMENT_COUNT = 'invalid-argument-count',
+    APP_DELETED = 'app-deleted',
+    INVALID_ROOT_OPERATION = 'invalid-root-operation',
+    INVALID_FORMAT = 'invalid-format',
+    INTERNAL_ERROR = 'internal-error',
+    UNSUPPORTED_ENVIRONMENT = 'unsupported-environment'
   }
 
   interface StorageObserver<T> {
@@ -8222,6 +8250,30 @@ declare namespace firebase.storage {
      */
     totalBytes: number;
   }
+
+  /**
+   * An error returned by the Firebase Storage SDK.
+   */
+  export interface FirebaseStorageError extends FirebaseError {
+    /**
+     * Stores custom error data unique to the `StorageError`.
+     */
+    customData: {
+      serverResponse: string | null;
+    };
+
+    get status(): number;
+    set status(status: number);
+    /**
+     * Compares a `StorageErrorCode` against this error's code, filtering out the prefix.
+     */
+    _codeEquals(code: StorageErrorCode): boolean;
+    /**
+     * Optional response message that was added by the server.
+     */
+    get serverResponse(): null | string;
+    set serverResponse(serverResponse: string | null);
+  }
 }
 
 declare namespace firebase.firestore {
@@ -8280,7 +8332,7 @@ declare namespace firebase.firestore {
      * work around a specific network reliability issue, please tell us about
      * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
-     * @webonly
+     * This setting does not work in a Node.js environment.
      */
     experimentalForceLongPolling?: boolean;
 
@@ -8292,7 +8344,7 @@ declare namespace firebase.firestore {
      * This setting will likely be enabled by default in future releases and cannot be
      * combined with `experimentalForceLongPolling`.
      *
-     * @webonly
+     * This setting does not work in a Node.js environment.
      */
     experimentalAutoDetectLongPolling?: boolean;
 
@@ -8407,7 +8459,7 @@ declare namespace firebase.firestore {
   export interface FirestoreDataConverter<T> {
     /**
      * Called by the Firestore SDK to convert a custom model object of type T
-     * into a plain Javascript object (suitable for writing directly to the
+     * into a plain JavaScript object (suitable for writing directly to the
      * Firestore database). To use `set()` with `merge` and `mergeFields`,
      * `toFirestore()` must be defined with `Partial<T>`.
      */

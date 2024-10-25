@@ -32,7 +32,7 @@ import { PersistencePromise } from './persistence_promise';
 import { PersistenceTransaction } from './persistence_transaction';
 import { isIndexedDbTransactionError } from './simple_db';
 
-const LOG_TAG = 'IndexBackiller';
+const LOG_TAG = 'IndexBackfiller';
 
 /** How long we wait to try running index backfill after SDK initialization. */
 const INITIAL_BACKFILL_DELAY_MS = 15 * 1000;
@@ -76,7 +76,7 @@ export class IndexBackfillerScheduler implements Scheduler {
   private schedule(delay: number): void {
     debugAssert(
       this.task === null,
-      'Cannot schedule IndexBackiller while a task is pending'
+      'Cannot schedule IndexBackfiller while a task is pending'
     );
     logDebug(LOG_TAG, `Scheduled in ${delay}ms`);
     this.task = this.asyncQueue.enqueueAfterDelay(
@@ -130,7 +130,7 @@ export class IndexBackfiller {
 
   /** Writes index entries until the cap is reached. Returns the number of documents processed. */
   private writeIndexEntries(
-    transation: PersistenceTransaction,
+    transaction: PersistenceTransaction,
     maxDocumentsToProcess: number
   ): PersistencePromise<number> {
     const processedCollectionGroups = new Set<string>();
@@ -140,7 +140,7 @@ export class IndexBackfiller {
       () => continueLoop === true && documentsRemaining > 0,
       () => {
         return this.localStore.indexManager
-          .getNextCollectionGroupToUpdate(transation)
+          .getNextCollectionGroupToUpdate(transaction)
           .next((collectionGroup: string | null) => {
             if (
               collectionGroup === null ||
@@ -150,7 +150,7 @@ export class IndexBackfiller {
             } else {
               logDebug(LOG_TAG, `Processing collection: ${collectionGroup}`);
               return this.writeEntriesForCollectionGroup(
-                transation,
+                transaction,
                 collectionGroup,
                 documentsRemaining
               ).next(documentsProcessed => {

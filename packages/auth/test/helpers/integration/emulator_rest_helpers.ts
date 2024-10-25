@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as fetchImpl from 'node-fetch';
 import { getAppConfig, getEmulatorUrl } from './settings';
 
 export interface VerificationSession {
@@ -87,10 +86,9 @@ function buildEmulatorUrlForPath(endpoint: string): string {
 function doFetch(url: string, request?: RequestInit): ReturnType<typeof fetch> {
   if (typeof document !== 'undefined') {
     return fetch(url, request);
+  } else {
+    return fetch(url, request as RequestInit) as unknown as ReturnType<
+      typeof fetch
+    >;
   }
-
-  return fetchImpl.default(
-    url,
-    request as fetchImpl.RequestInit
-  ) as unknown as ReturnType<typeof fetch>;
 }

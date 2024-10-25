@@ -38,6 +38,7 @@ export function getFakeApp(): FirebaseApp {
 
 export function getFakeModularRemoteConfig(): RemoteConfig {
   return {
+    app: getFakeApp(),
     defaultConfig: {},
     fetchTimeMillis: 0,
     lastFetchStatus: 'no-fetch-yet',

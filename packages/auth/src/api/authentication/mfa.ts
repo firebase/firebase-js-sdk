@@ -19,6 +19,8 @@ import {
   _performApiRequest,
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary
 } from '../index';
 import { Auth } from '../../model/public_types';
@@ -47,7 +49,12 @@ export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;
   mfaEnrollmentId: string;
   phoneSignInInfo: {
-    recaptchaToken: string;
+    // reCAPTCHA v2 token
+    recaptchaToken?: string;
+    // reCAPTCHA Enterprise token
+    captchaResponse?: string;
+    clientType?: RecaptchaClientType;
+    recaptchaVersion?: RecaptchaVersion;
   };
   tenantId?: string;
 }
@@ -79,7 +86,19 @@ export interface FinalizePhoneMfaSignInRequest {
   tenantId?: string;
 }
 
+// TOTP MFA Sign in only has a finalize phase. Phone MFA has a start phase to initiate sending an
+// SMS and a finalize phase to complete sign in. With TOTP, the user already has the OTP in the
+// TOTP/Authenticator app.
+export interface FinalizeTotpMfaSignInRequest {
+  mfaPendingCredential: string;
+  totpVerificationInfo: { verificationCode: string };
+  tenantId?: string;
+  mfaEnrollmentId: string;
+}
+
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
+
+export interface FinalizeTotpMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
@@ -88,6 +107,21 @@ export function finalizeSignInPhoneMfa(
   return _performApiRequest<
     FinalizePhoneMfaSignInRequest,
     FinalizePhoneMfaSignInResponse
+  >(
+    auth,
+    HttpMethod.POST,
+    Endpoint.FINALIZE_MFA_SIGN_IN,
+    _addTidIfNecessary(auth, request)
+  );
+}
+
+export function finalizeSignInTotpMfa(
+  auth: Auth,
+  request: FinalizeTotpMfaSignInRequest
+): Promise<FinalizeTotpMfaSignInResponse> {
+  return _performApiRequest<
+    FinalizeTotpMfaSignInRequest,
+    FinalizeTotpMfaSignInResponse
   >(
     auth,
     HttpMethod.POST,
