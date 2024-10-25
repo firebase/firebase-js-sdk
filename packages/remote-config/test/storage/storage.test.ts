@@ -117,4 +117,27 @@ describe('Storage', () => {
 
     expect(actualMetadata).to.be.undefined;
   });
+
+  it('sets and gets custom signals', async () => {
+    const customSignals = { key: 'value', key1: 'value1'};
+
+    await storage.setCustomSignals(customSignals);
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(customSignals);
+  });
+
+  it('upserts custom signals when key is present in storage', async () => {
+    const customSignals = { key: 'value', key1: 'value1'};
+    const updatedSignals = { key: 'value', key1: 'value2'};
+
+    await storage.setCustomSignals(customSignals);
+
+    await storage.setCustomSignals({ key1: 'value2'});
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(updatedSignals);
+  });
 });

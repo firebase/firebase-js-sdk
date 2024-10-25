@@ -37,6 +37,7 @@ describe('StorageCache', () => {
       const status = 'success';
       const lastSuccessfulFetchTimestampMillis = 123;
       const activeConfig = { key: 'value' };
+      const customSignals = { 'key': 'value' };
 
       storage.getLastFetchStatus = sinon
         .stub()
@@ -47,12 +48,16 @@ describe('StorageCache', () => {
       storage.getActiveConfig = sinon
         .stub()
         .returns(Promise.resolve(activeConfig));
+      storage.getCustomSignals = sinon
+        .stub()
+        .returns(Promise.resolve(customSignals));
 
       await storageCache.loadFromStorage();
 
       expect(storage.getLastFetchStatus).to.have.been.called;
       expect(storage.getLastSuccessfulFetchTimestampMillis).to.have.been.called;
       expect(storage.getActiveConfig).to.have.been.called;
+      expect(storage.getCustomSignals).to.have.been.called;
 
       expect(storageCache.getLastFetchStatus()).to.eq(status);
       expect(storageCache.getLastSuccessfulFetchTimestampMillis()).to.deep.eq(
@@ -79,6 +84,26 @@ describe('StorageCache', () => {
       await storageCache.setActiveConfig(activeConfig);
 
       expect(storage.setActiveConfig).to.have.been.calledWith(activeConfig);
+    });
+  });
+
+  describe('setCustomSignals', () => {
+    const customSignals = { key: 'value' };
+
+    beforeEach(() => {
+      storage.setCustomSignals = sinon.stub().returns(Promise.resolve());
+    });
+
+    it('writes to memory cache', async () => {
+      await storageCache.setCustomSignals(customSignals);
+
+      expect(storageCache.getCustomSignals()).to.deep.eq(customSignals);
+    });
+
+    it('writes to persistent storage', async () => {
+      await storageCache.setCustomSignals(customSignals);
+
+      expect(storage.setCustomSignals).to.have.been.calledWith(customSignals);
     });
   });
 });

@@ -42,7 +42,8 @@ import {
   getString,
   getValue,
   setLogLevel,
-  fetchConfig
+  fetchConfig,
+  setCustomSignals
 } from '../src/api';
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
@@ -91,6 +92,20 @@ describe('RemoteConfig', () => {
   afterEach(() => {
     loggerDebugSpy.restore();
     loggerLogLevelSpy.restore();
+  });
+
+  describe('setCustomSignals', () => {
+
+    beforeEach(() => {
+      storageCache.setCustomSignals = sinon.stub();
+      storage.setCustomSignals = sinon.stub();
+    });
+
+    it('call storage API to store signals', async () => {
+      await setCustomSignals(rc, { key: 'value' });
+
+      expect(storageCache.setCustomSignals).to.have.been.calledWith({ key: 'value' });
+    });
   });
 
   // Adapts getUserLanguage tests from packages/auth/test/utils_test.js for TypeScript.
@@ -449,6 +464,7 @@ describe('RemoteConfig', () => {
         .stub()
         .returns(Promise.resolve({ status: 200 } as FetchResponse));
       storageCache.setLastFetchStatus = sinon.stub();
+      storageCache.getCustomSignals = sinon.stub();
       timeoutStub = sinon.stub(window, 'setTimeout');
     });
 
@@ -516,6 +532,12 @@ describe('RemoteConfig', () => {
       expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
         'failure'
       );
+    });
+
+    it('sends custom signals', async () => {
+      await fetchConfig(rc);
+
+      expect(storageCache.getCustomSignals).to.have.been.called;
     });
   });
 });
