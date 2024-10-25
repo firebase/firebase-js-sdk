@@ -588,9 +588,9 @@ export class WatchChangeAggregator {
         if (targetState.current && targetIsDocumentTarget(targetData.target)) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
-          // delete if we have not previously received the document. This
-          // resolves the limbo state of the document, removing it from
-          // limboDocumentRefs.
+          // delete if we have not previously received the document for this
+          // target. This resolves the limbo state of the document, removing it
+          // from limboDocumentRefs.
           //
           // TODO(dimond): Ideally we would have an explicit lookup target
           // instead resulting in an explicit delete message and we could
