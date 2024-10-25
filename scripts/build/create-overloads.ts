@@ -178,7 +178,7 @@ function keepPublicFunctionsTransformer(
         overloads.push(
           factory.updateFunctionDeclaration(
             node,
-            (ts.canHaveDecorators(node) ? ts.getDecorators(node) : []),
+            ts.canHaveDecorators(node) ? ts.getDecorators(node) : [],
             node.asteriskToken,
             node.name,
             node.typeParameters,
