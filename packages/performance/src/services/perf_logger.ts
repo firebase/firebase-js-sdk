@@ -145,7 +145,7 @@ function sendTraceLog(trace: Trace): void {
     return;
   }
 
-  setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
+  sendLog(trace, ResourceType.Trace);
 }
 
 export function logNetworkRequest(networkRequest: NetworkRequest): void {
