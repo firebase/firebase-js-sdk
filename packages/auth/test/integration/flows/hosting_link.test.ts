@@ -54,7 +54,7 @@ describe('Integration test: hosting link validation', () => {
     }
   });
   
-  it('allows user to sign in with default firebase_hosting_link', async () => {
+  it('allows user to sign in with default firebase hosting link', async () => {
     // Sends email link to user using default hosting link.
     await sendSignInLinkToEmail(
       auth,
@@ -63,7 +63,7 @@ describe('Integration test: hosting link validation', () => {
     );
   });
 
-  it('allows user to sign in to a tenant with default firebase_hosting_link', async () => {
+  it('allows user to sign in to a tenant with default firebase hosting link', async () => {
     auth.tenantId = TEST_TENANT_ID;
     // Sends email link to user using default hosting link.
     await sendSignInLinkToEmail(
