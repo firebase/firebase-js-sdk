@@ -682,10 +682,16 @@ export class WatchChangeAggregator {
     const targetState = this.ensureTargetState(targetId);
     targetState.addDocumentChange(document.key, changeType);
 
-    this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
-      document.key,
-      document
-    );
+    const pendingDocumentUpdate = this.pendingDocumentUpdates.get(document.key);
+    if (
+      pendingDocumentUpdate === null ||
+      document.version.compareTo(pendingDocumentUpdate.version) > 0
+    ) {
+      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+        document.key,
+        document
+      );
+    }
 
     this.pendingDocumentUpdatesByTarget =
       this.pendingDocumentUpdatesByTarget.insert(
@@ -739,10 +745,16 @@ export class WatchChangeAggregator {
       );
 
     if (updatedDocument) {
-      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
-        key,
-        updatedDocument
-      );
+      const pendingDocumentUpdate = this.pendingDocumentUpdates.get(key);
+      if (
+        pendingDocumentUpdate === null ||
+        updatedDocument.version.compareTo(pendingDocumentUpdate.version) > 0
+      ) {
+        this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+          key,
+          updatedDocument
+        );
+      }
     }
   }
 

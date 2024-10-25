@@ -323,7 +323,7 @@ describe('RemoteEvent', () => {
     const targets = listens(1, 2);
 
     const doc1a = doc('docs/1', 1, { value: 1 });
-    const doc1b = doc('docs/1', 1, { value: 2 });
+    const doc1b = doc('docs/1', 2, { value: 2 });
 
     const change1 = new DocumentWatchChange([1], [2], doc1a.key, doc1a);
     const change2 = new DocumentWatchChange([2], [1], doc1b.key, doc1b);
