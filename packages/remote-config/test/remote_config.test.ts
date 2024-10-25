@@ -95,7 +95,6 @@ describe('RemoteConfig', () => {
   });
 
   describe('setCustomSignals', () => {
-
     beforeEach(() => {
       storageCache.setCustomSignals = sinon.stub();
       storage.setCustomSignals = sinon.stub();
@@ -104,7 +103,9 @@ describe('RemoteConfig', () => {
     it('call storage API to store signals', async () => {
       await setCustomSignals(rc, { key: 'value' });
 
-      expect(storageCache.setCustomSignals).to.have.been.calledWith({ key: 'value' });
+      expect(storageCache.setCustomSignals).to.have.been.calledWith({
+        key: 'value'
+      });
     });
   });
 
