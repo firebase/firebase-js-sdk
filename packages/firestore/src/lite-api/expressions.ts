@@ -2178,6 +2178,18 @@ export class Constant extends Expr {
    * @private
    * @internal
    */
+  _getValue(): ProtoValue {
+    hardAssert(
+      this._protoValue !== undefined,
+      'Value of this constant has not been serialized to proto value'
+    );
+    return this._protoValue;
+  }
+
+  /**
+   * @private
+   * @internal
+   */
   _readUserData(dataReader: UserDataReader): void {
     const context = dataReader.createContext(
       UserDataSource.Argument,
