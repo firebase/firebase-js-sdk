@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { isIndexedDBAvailable, uuidv4 } from '@firebase/util';
+import { isIndexedDBAvailable } from '@firebase/util';
 import {
   readDebugTokenFromIndexedDB,
   readTokenFromIndexedDB,
@@ -77,7 +77,7 @@ export async function readOrCreateDebugTokenFromStorage(): Promise<string> {
 
   if (!existingDebugToken) {
     // create a new debug token
-    const newToken = uuidv4();
+    const newToken = crypto.randomUUID();
     // We don't need to block on writing to indexeddb
     // In case persistence failed, a new debug token will be generated every time the page is refreshed.
     // It renders the debug token useless because you have to manually register(whitelist) the new token in the firebase console again and again.
