@@ -187,8 +187,6 @@ export type LogLevel = 'debug' | 'error' | 'silent';
  *   <li><code>string</code>
  *   <li><code>number</code>
  * </ul>
- *
- * @alpha
  */
 export type CustomSignals = {[key: string]: string | number};
 

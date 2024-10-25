@@ -109,7 +109,6 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   // * it applies to all retries (like curl's max-time arg)
   // * it is consistent with the Fetch API's signal input
   const abortSignal = new RemoteConfigAbortSignal();
-  const customSignals = rc._storageCache.getCustomSignals();
 
   setTimeout(async () => {
     // Note a very low delay, eg < 10ms, can elapse before listeners are initialized.
@@ -262,6 +261,14 @@ function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
   return Object.keys({ ...obj1, ...obj2 });
 }
 
+/**
+ * Sets the custom signals for the app instance.
+ * 
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param customSignals - Map (key, value) of the custom signals to be set for the app instance.
+ * 
+ * @public
+ */
 export async function setCustomSignals(
   remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void> {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;

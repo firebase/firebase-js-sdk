@@ -9,10 +9,11 @@ import { FirebaseApp } from '@firebase/app';
 // @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 
-// @alpha
-export type CustomSignals = {
+// @public
+export interface CustomSignals {
+    // (undocumented)
     [key: string]: string | number;
-};
+}
 
 // @public
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
@@ -67,9 +68,7 @@ export interface RemoteConfigSettings {
     minimumFetchIntervalMillis: number;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "setCustomSignals" is marked as @public, but its signature references "CustomSignals" which is marked as @alpha
-//
-// @public (undocumented)
+// @public
 export function setCustomSignals(remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void>;
 
 // @public

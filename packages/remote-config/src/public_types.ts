@@ -143,10 +143,10 @@ export type LogLevel = 'debug' | 'error' | 'silent';
  *   <li><code>string</code>
  *   <li><code>number</code>
  * </ul>
- *
- * @alpha
+ * 
+ * @public
  */
-export type CustomSignals = {[key: string]: string | number};
+export interface CustomSignals {[key: string]: string | number};
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
