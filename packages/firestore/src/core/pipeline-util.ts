@@ -365,3 +365,27 @@ export function canonifyPipeline(p: Pipeline): string {
 export function pipelineEq(left: Pipeline, right: Pipeline): boolean {
   return canonifyPipeline(left) === canonifyPipeline(right);
 }
+
+export type PipelineFlavor = 'exact' | 'augmented' | 'keyless';
+
+export function getPipelineFlavor(p: Pipeline): PipelineFlavor {
+  let flavor: PipelineFlavor = 'exact';
+  p.stages.forEach((stage, index) => {
+    if (stage.name === Distinct.name || stage.name === Aggregate.name) {
+      flavor = 'keyless';
+    }
+    if (stage.name === Select.name && flavor === 'exact') {
+      flavor = 'augmented';
+    }
+    // TODO(pipeline): verify the last stage is addFields, and it is added by the SDK.
+    if (
+      stage.name === AddFields.name &&
+      index < p.stages.length - 1 &&
+      flavor === 'exact'
+    ) {
+      flavor = 'augmented';
+    }
+  });
+
+  return flavor;
+}

@@ -21,8 +21,11 @@ import { Firestore } from '../../../src/api/database';
 import { CredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
-import { Field, eq, Constant, doc } from '../../../src';
+import { Field, eq, Constant, doc as docRef } from '../../../src';
 import { canonifyPipeline, pipelineEq } from '../../../src/core/pipeline-util';
+import { runPipeline } from '../../../src/core/pipeline_run';
+
+import { doc } from '../../util/helpers';
 
 const fakeAuthProvider: CredentialsProvider<User> =
   {} as unknown as CredentialsProvider<User>;
@@ -137,7 +140,7 @@ describe('Pipeline Canonify', () => {
   it('works as expected for DocumentsSource stage', () => {
     const p = db
       .pipeline()
-      .documents([doc(db, 'cities/SF'), doc(db, 'cities/LA')]);
+      .documents([docRef(db, 'cities/SF'), docRef(db, 'cities/LA')]);
 
     expect(canonifyPipeline(p)).to.equal('documents(/cities/LA,/cities/SF)');
   });
@@ -188,5 +191,35 @@ describe.only('pipelineEq', () => {
       .select('bar', 'foo');
 
     expect(pipelineEq(p1, p2)).to.be.true;
+  });
+});
+
+describe.only('runPipeline()', () => {
+  it('works with collection stage', () => {
+    const p = db.pipeline().collection('test');
+
+    expect(
+      runPipeline(p, [
+        doc('test/doc1', 1000, { foo: 'bar' }),
+        doc('testNot/doc2', 1000, { foo: 'baz' }),
+        doc('test/doc2', 1000, { foo: 'bazzzz' })
+      ])
+    ).to.deep.equal([
+      doc('test/doc1', 1000, { foo: 'bar' }),
+      doc('test/doc2', 1000, { foo: 'bazzzz' })
+    ]);
+  });
+
+  it('works with simple where', () => {
+    const p = db.pipeline().collection('test').where(eq(`foo`, 42));
+
+    expect(
+      runPipeline(p, [
+        doc('test/doc1', 1000, { foo: 'bar' }),
+        doc('testNot/doc2', 1000, { foo: 'baz' }),
+        doc('test/doc2', 1000, { foo: 42 }),
+        doc('test/doc3', 1000, { foo: '42' })
+      ])
+    ).to.deep.equal([doc('test/doc2', 1000, { foo: 42 })]);
   });
 });
