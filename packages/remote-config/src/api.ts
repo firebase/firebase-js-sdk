@@ -263,14 +263,16 @@ function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
 
 /**
  * Sets the custom signals for the app instance.
- * 
+ *
  * @param remoteConfig - The {@link RemoteConfig} instance.
  * @param customSignals - Map (key, value) of the custom signals to be set for the app instance.
- * 
+ *
  * @public
  */
 export async function setCustomSignals(
-  remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void> {
+  remoteConfig: RemoteConfig,
+  customSignals: CustomSignals
+): Promise<void> {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
   return rc._storageCache.setCustomSignals(customSignals);
 }

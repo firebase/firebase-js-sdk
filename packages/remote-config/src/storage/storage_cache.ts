@@ -33,7 +33,6 @@ export class StorageCache {
   private activeConfig?: FirebaseRemoteConfigObject;
   private customSignals?: CustomSignals;
 
-
   /**
    * Memory-only getters
    */
@@ -52,7 +51,6 @@ export class StorageCache {
   getCustomSignals(): CustomSignals | undefined {
     return this.customSignals;
   }
-
 
   /**
    * Read-ahead getter

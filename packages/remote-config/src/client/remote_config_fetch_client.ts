@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { CustomSignals } from "../public_types";
+import { CustomSignals } from '../public_types';
 
 /**
  * Defines a client, as in https://en.wikipedia.org/wiki/Client%E2%80%93server_model, for the
@@ -102,9 +102,8 @@ export interface FetchRequest {
    */
   eTag?: string;
 
-
   /** The custom signals stored for the app instance.
-   * 
+   *
    * <p>Optional in case no custom signals are set for the instance.
    */
   customSignals?: CustomSignals;

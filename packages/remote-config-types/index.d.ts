@@ -180,7 +180,7 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 /**
  * Defines the type for representing custom signals and their values.
- * 
+ *
  * <p>The values in CustomSignals must be one of the following types:
  *
  * <ul>
@@ -188,7 +188,7 @@ export type LogLevel = 'debug' | 'error' | 'silent';
  *   <li><code>number</code>
  * </ul>
  */
-export type CustomSignals = {[key: string]: string | number};
+export type CustomSignals = { [key: string]: string | number };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

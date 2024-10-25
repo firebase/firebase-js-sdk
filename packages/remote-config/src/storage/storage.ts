@@ -191,22 +191,28 @@ export class Storage {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
-      const compositeKey = this.createCompositeKey("custom_signals");
+      const compositeKey = this.createCompositeKey('custom_signals');
       try {
         const storedSignalsRequest = objectStore.get(compositeKey);
         storedSignalsRequest.onerror = event => {
           reject(toFirebaseError(event, ErrorCode.STORAGE_GET));
         };
         storedSignalsRequest.onsuccess = event => {
-          const storedSignals = (event.target as IDBRequest).result?.value || {};
+          const storedSignals =
+            (event.target as IDBRequest).result?.value || {};
           const combinedSignals = {
             ...storedSignals,
             ...customSignals
           };
           // Filter out key-value assignments with null values since they are signals being unset
-          const signalsToUpdate = Object.fromEntries(Object.entries(combinedSignals).filter(([_, v]) => v !== null));
+          const signalsToUpdate = Object.fromEntries(
+            Object.entries(combinedSignals).filter(([_, v]) => v !== null)
+          );
           if (signalsToUpdate) {
-            const setSignalsRequest = objectStore.put({compositeKey, value: signalsToUpdate});
+            const setSignalsRequest = objectStore.put({
+              compositeKey,
+              value: signalsToUpdate
+            });
             setSignalsRequest.onerror = event => {
               reject(toFirebaseError(event, ErrorCode.STORAGE_SET));
             };

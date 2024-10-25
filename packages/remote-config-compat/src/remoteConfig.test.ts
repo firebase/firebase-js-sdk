@@ -159,14 +159,15 @@ describe('Remote Config Compat', () => {
   });
 
   it('setCustomSignals() calls modular setCustomSignals()', async () => {
-    const modularSetCustomSignalsStub = stub(modularApi, 'setCustomSignals').callsFake(() =>
-      Promise.resolve()
-    );
-    await remoteConfig.setCustomSignals({'customSignal': 'value'});
+    const modularSetCustomSignalsStub = stub(
+      modularApi,
+      'setCustomSignals'
+    ).callsFake(() => Promise.resolve());
+    await remoteConfig.setCustomSignals({ 'customSignal': 'value' });
 
     expect(modularSetCustomSignalsStub).to.have.been.calledWithExactly(
       fakeModularRemoteConfig,
-      {'customSignal': 'value'}
+      { 'customSignal': 'value' }
     );
   });
 });
