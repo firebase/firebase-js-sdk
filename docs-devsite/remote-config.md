@@ -28,6 +28,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 |  [getNumber(remoteConfig, key)](./remote-config.md#getnumber_476c09f) | Gets the value for the given key as a number.<!-- -->Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>. |
 |  [getString(remoteConfig, key)](./remote-config.md#getstring_476c09f) | Gets the value for the given key as a string. Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>. |
 |  [getValue(remoteConfig, key)](./remote-config.md#getvalue_476c09f) | Gets the [Value](./remote-config.value.md#value_interface) for the given key. |
+|  [setCustomSignals(remoteConfig, customSignals)](./remote-config.md#setcustomsignals_aeeb95e) | Sets the custom signals for the app instance. |
 |  [setLogLevel(remoteConfig, logLevel)](./remote-config.md#setloglevel_039a45b) | Defines the log level to use. |
 |  <b>function()</b> |
 |  [isSupported()](./remote-config.md#issupported) | This method provides two different checks:<!-- -->1. Check if IndexedDB exists in the browser environment. 2. Check if the current browser context allows IndexedDB <code>open()</code> calls. |
@@ -36,6 +37,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 |  Interface | Description |
 |  --- | --- |
+|  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> </ul> |
 |  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |
 |  [Value](./remote-config.value.md#value_interface) | Wraps a value with metadata and type-safe getters. |
@@ -275,6 +277,27 @@ export declare function getValue(remoteConfig: RemoteConfig, key: string): Value
 [Value](./remote-config.value.md#value_interface)
 
 The value for the given key.
+
+### setCustomSignals(remoteConfig, customSignals) {:#setcustomsignals_aeeb95e}
+
+Sets the custom signals for the app instance.
+
+<b>Signature:</b>
+
+```typescript
+export declare function setCustomSignals(remoteConfig: RemoteConfig, customSignals: CustomSignals): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance. |
+|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
 
 ### setLogLevel(remoteConfig, logLevel) {:#setloglevel_039a45b}
 

@@ -422,6 +422,8 @@ toc:
   - title: remote-config
     path: /docs/reference/js/remote-config.md
     section:
+      - title: CustomSignals
+        path: /docs/reference/js/remote-config.customsignals.md
       - title: RemoteConfig
         path: /docs/reference/js/remote-config.remoteconfig.md
       - title: RemoteConfigSettings
