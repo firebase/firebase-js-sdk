@@ -49,6 +49,6 @@ jobs:
           should be updated to clone the latest version of the responses: `${{env.latest_tag}}`
     - name: Delete comment when version gets updated
       if: ${{env.cloned_tag == env.latest_tag && steps.fc.outputs.comment-id}}
-      uses: detomarco/delete-comment@850734dd44d8b15fef55b45252613b903ceb06f0
+      uses: detomarco/delete-comment@7d743e576ec2cde9bf90c79792ed959428d7e7d1
       with:
         comment-id: ${{ steps.fc.outputs.comment-id }}
