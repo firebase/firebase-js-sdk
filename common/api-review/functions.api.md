@@ -37,7 +37,7 @@ export function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: string): 
 // @public
 export type HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> = {
     (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
-    stream: (data?: RequestData | null) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
+    stream: (data?: RequestData | null, options?: HttpsCallableStreamOptions) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
 };
 
 // @public
