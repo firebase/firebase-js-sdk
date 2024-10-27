@@ -285,7 +285,6 @@ async function callAtURL(
   data: unknown,
   options: HttpsCallableOptions
 ): Promise<HttpsCallableResult> {
-  console.log(url);
   // Encode any special types, such as dates, in the input data.
   data = encode(data);
   const body = { data };
