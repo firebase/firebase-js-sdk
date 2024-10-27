@@ -58,6 +58,11 @@ export interface HttpsCallableResult<ResponseData = unknown> {
 }
 
 // @public
+export interface HttpsCallableStreamOptions {
+    signal?: AbortSignal;
+}
+
+// @public
 export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = unknown> {
     // (undocumented)
     readonly data: Promise<ResponseData>;
