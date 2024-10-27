@@ -503,6 +503,7 @@ async function streamAtURL(
                   throw error;
                 }
               }
+              // ignore all other lines (newline, comments, etc.)
             }
           }
         }
