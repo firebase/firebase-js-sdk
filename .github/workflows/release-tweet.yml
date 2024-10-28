@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js 20.x
         uses: actions/setup-node@master
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Poll release notes page on devsite
         run: node scripts/ci/poll_release_notes.js
         env:

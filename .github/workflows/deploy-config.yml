@@ -38,7 +38,7 @@ jobs:
     - name: Set up node (20)
       uses: actions/setup-node@v3
       with:
-        node-version: 20.x
+        node-version: 22.10.0
     - name: Yarn install
       run: yarn
     - name: Deploy project config if needed

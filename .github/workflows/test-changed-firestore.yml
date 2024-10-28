@@ -40,7 +40,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -87,7 +87,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -115,7 +115,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -145,7 +145,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
@@ -183,7 +183,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Download build archive
         uses: actions/download-artifact@v3
         with:
@@ -222,7 +222,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -240,7 +240,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Download build archive
         uses: actions/download-artifact@v3
         with:
@@ -277,7 +277,7 @@ jobs:
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          node-version: 22.10.0
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
