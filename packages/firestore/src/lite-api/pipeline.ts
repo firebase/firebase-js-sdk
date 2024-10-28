@@ -223,7 +223,9 @@ export class Pipeline<AppModelType = DocumentData> {
    */
   select(...selections: Array<Selectable | string>): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
-    copy.push(new Select(this.selectablesToMap(selections)));
+    let projections: Map<string, Expr> = this.selectablesToMap(selections);
+    projections = this.readUserData('select', projections);
+    copy.push(new Select(projections));
     return new Pipeline(
       this.liteDb,
       this.userDataReader,
@@ -781,20 +783,24 @@ export class Pipeline<AppModelType = DocumentData> {
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
     const datastore = getDatastore(this.liteDb);
     return invokeExecutePipeline(datastore, this).then(result => {
-      const docs = result.map(
-        element =>
-          new PipelineResult<AppModelType>(
-            this.userDataWriter,
-            element.key?.path
-              ? this.documentReferenceFactory(element.key)
-              : undefined,
-            element.fields,
-            element.executionTime?.toTimestamp(),
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-            //this.converter
-          )
-      );
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult<AppModelType>(
+              this.userDataWriter,
+              element.key?.path
+                ? this.documentReferenceFactory(element.key)
+                : undefined,
+              element.fields,
+              element.executionTime?.toTimestamp(),
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+              //this.converter
+            )
+        );
 
       return docs;
     });

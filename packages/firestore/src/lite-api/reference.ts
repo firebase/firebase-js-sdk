@@ -184,81 +184,21 @@ export class Query<
    * @internal
    */
   pipeline(): Pipeline {
-    throw Error('Not implemented - Query.pipeline()');
-    // let pipeline;
-    // if (this._queryOptions.allDescendants) {
-    //   pipeline = this.firestore
-    //     .pipeline()
-    //     .collectionGroup(this._queryOptions.collectionId);
-    // } else {
-    //   pipeline = this.firestore
-    //     .pipeline()
-    //     .collection(
-    //       this._queryOptions.parentPath.append(this._queryOptions.collectionId)
-    //         .relativeName
-    //     );
-    // }
+    let pipeline;
+    if (this._query.collectionGroup) {
+      pipeline = this.firestore
+        .pipeline()
+        .collectionGroup(this._query.collectionGroup);
+    } else {
+      pipeline = this.firestore
+        .pipeline()
+        .collection(this._query.path.canonicalString());
+    }
 
-    // // filters
-    // for (const f of this._queryOptions.filters) {
-    //   pipeline = pipeline.where(toPipelineFilterCondition(f, this._serializer));
-    // }
+    // TODO(pipeline) convert existing query filters, limits, etc into
+    // pipeline stages
 
-    // // projections
-    // const projections = this._queryOptions.projection?.fields || [];
-    // if (projections.length > 0) {
-    //   pipeline = pipeline.select(
-    //     ...projections.map(p => Field.of(p.fieldPath!))
-    //   );
-    // }
-
-    // // orderbys
-    // const exists = this.createImplicitOrderBy().map(fieldOrder => {
-    //   return Field.of(fieldOrder.field).exists();
-    // });
-    // if (exists.length > 1) {
-    //   const [first, ...rest] = exists;
-    //   pipeline = pipeline.where(and(first, ...rest));
-    // } else if (exists.length === 1) {
-    //   pipeline = pipeline.where(exists[0]);
-    // }
-
-    // const orderings = this.createImplicitOrderBy().map(fieldOrder => {
-    //   let dir: 'ascending' | 'descending' | undefined = undefined;
-    //   switch (fieldOrder.direction) {
-    //     case 'ASCENDING': {
-    //       dir = 'ascending';
-    //       break;
-    //     }
-    //     case 'DESCENDING': {
-    //       dir = 'descending';
-    //       break;
-    //     }
-    //   }
-    //   return new Ordering(Field.of(fieldOrder.field), dir || 'ascending');
-    // });
-    // if (orderings.length > 0) {
-    //   pipeline = pipeline.sort({orderings: orderings});
-    // }
-
-    // // Cursors, Limit and Offset
-    // if (
-    //   !!this._queryOptions.startAt ||
-    //   !!this._queryOptions.endAt ||
-    //   this._queryOptions.limitType === LimitType.Last
-    // ) {
-    //   throw new Error(
-    //     'Query to Pipeline conversion: cursors and limitToLast is not supported yet.'
-    //   );
-    // } else {
-    //   if (this._queryOptions.offset) {
-    //     pipeline = pipeline.offset(this._queryOptions.offset);
-    //   }
-    //   if (this._queryOptions.limit) {
-    //     pipeline = pipeline.limit(this._queryOptions.limit);
-    //   }
-    // }
-    // return pipeline;
+    return pipeline;
   }
 }
 

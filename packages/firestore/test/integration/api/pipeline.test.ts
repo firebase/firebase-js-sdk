@@ -229,6 +229,7 @@ apiDescribe.only('Pipelines', persistence => {
 
   beforeEach(async () => {
     const setupDeferred = new Deferred<void>();
+    testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
       persistence,
       {},
@@ -242,7 +243,7 @@ apiDescribe.only('Pipelines', persistence => {
       }
     );
 
-    await setupDeferred;
+    await setupDeferred.promise;
   });
 
   afterEach(async () => {
@@ -250,13 +251,23 @@ apiDescribe.only('Pipelines', persistence => {
     await withTestCollectionPromise;
   });
 
+  // setLogLevel('debug')
+
   it('empty results as expected', async () => {
     const result = await firestore
       .pipeline()
       .collection(randomCol.path)
       .limit(0)
       .execute();
-    expect(result).to.be.empty;
+    expect(result.length).to.equal(0);
+  });
+
+  it('full results as expected', async () => {
+    const result = await firestore
+      .pipeline()
+      .collection(randomCol.path)
+      .execute();
+    expect(result.length).to.equal(10);
   });
 
   it('returns aggregate results as expected', async () => {
@@ -292,7 +303,8 @@ apiDescribe.only('Pipelines', persistence => {
     ).to.be.rejected;
   });
 
-  it('returns distinct values as expected', async () => {
+  // skip: toLower not supported
+  it.skip('returns distinct values as expected', async () => {
     const results = await randomCol
       .pipeline()
       .where(lt('published', 1900))
@@ -314,6 +326,7 @@ apiDescribe.only('Pipelines', persistence => {
         groups: ['genre']
       })
       .where(gt('avgRating', 4.3))
+      .sort(Field.of('avgRating').descending())
       .execute();
     expectResults(
       results,
@@ -446,7 +459,8 @@ apiDescribe.only('Pipelines', persistence => {
     expect(results.length).to.equal(10);
   });
 
-  it('arrayConcat works', async () => {
+  // skip: arrayConcat not supported
+  it.skip('arrayConcat works', async () => {
     const results = await randomCol
       .pipeline()
       .select(
@@ -510,18 +524,33 @@ apiDescribe.only('Pipelines', persistence => {
         Field.of('title')
       )
       .where(gt('titleLength', 20))
+      .sort(Field.of('title').ascending())
       .execute();
+
     expectResults(
       results,
-      { titleLength: 32, title: "The Hitchhiker's Guide to the Galaxy" },
+
       {
-        titleLength: 27,
+        titleLength: 29,
         title: 'One Hundred Years of Solitude'
+      },
+      {
+        titleLength: 36,
+        title: "The Hitchhiker's Guide to the Galaxy"
+      },
+      {
+        titleLength: 21,
+        title: 'The Lord of the Rings'
+      },
+      {
+        titleLength: 21,
+        title: 'To Kill a Mockingbird'
       }
     );
   });
 
-  it('testToLowercase', async () => {
+  // skip: toLower not supported
+  it.skip('testToLowercase', async () => {
     const results = await randomCol
       .pipeline()
       .select(Field.of('title').toLower().as('lowercaseTitle'))
@@ -532,7 +561,8 @@ apiDescribe.only('Pipelines', persistence => {
     });
   });
 
-  it('testToUppercase', async () => {
+  // skip: toUpper not supported
+  it.skip('testToUppercase', async () => {
     const results = await randomCol
       .pipeline()
       .select(Field.of('author').toUpper().as('uppercaseAuthor'))
@@ -541,7 +571,8 @@ apiDescribe.only('Pipelines', persistence => {
     expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
   });
 
-  it('testTrim', async () => {
+  // skip: trim not supported
+  it.skip('testTrim', async () => {
     const results = await randomCol
       .pipeline()
       .addFields(strConcat(' ', Field.of('title'), ' ').as('spacedTitle'))
