@@ -100,6 +100,9 @@ export interface FirebaseServerApp extends FirebaseApp {
    * ```
    */
   readonly settings: FirebaseServerAppSettings;
+
+  readonly installationsId : string | null;
+  readonly installationsAuthToken : string | null;
 }
 
 /**
@@ -195,6 +198,26 @@ export interface FirebaseServerAppSettings
    * operations fail.
    */
   authIdToken?: string;
+
+  /**
+   * An optional Installations Auth token which allows the use of Remote Config SDK in
+   * SSR enviornments.
+   *
+   * If provided, the `FirebaseServerApp` will attempt to parse the Installations id
+   * from the token.
+   * 
+   * If the token is deemed to be malformed then an error will be
+   * thrown during the invocation of `initializeServerApp`.
+   * 
+   * If the the Installations Id and the provided `installationsAuthToken` are successfully parsed,
+   * then they will be used by the Installations implementation when `getToken` and `getId` are
+   * invoked.
+   * 
+   * Attempting to use Remote Config without providing an `installationsAuthToken` here will cause
+   * Installations to throw errors when Remote Config attempts to query the Installations id and
+   * authToken.
+   */
+  installationsAuthToken?: string;
 
   /**
    * An optional object. If provided, the Firebase SDK uses a `FinalizationRegistry`

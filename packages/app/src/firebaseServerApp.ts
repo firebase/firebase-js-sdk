@@ -26,14 +26,15 @@ import { ComponentContainer } from '@firebase/component';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { name as packageName, version } from '../package.json';
+import { base64Decode } from '@firebase/util';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
-  implements FirebaseServerApp
-{
+  implements FirebaseServerApp {
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object> | null;
   private _refCount: number;
+  private _installationsId: string | null;
 
   constructor(
     options: FirebaseOptions | FirebaseAppImpl,
@@ -66,6 +67,20 @@ export class FirebaseServerAppImpl
       automaticDataCollectionEnabled,
       ...serverConfig
     };
+
+    // Parse the installationAuthToken if provided.
+    if (this._serverConfig.installationsAuthToken !== undefined) {
+      const thirdPart = this._serverConfig.installationsAuthToken.split(".")[1].split(".")[0];
+      const decodedToken = base64Decode(thirdPart);
+      const tokenJSON = JSON.parse(decodedToken ? decodedToken : "");
+      if (!decodedToken || !tokenJSON || tokenJSON.fid === undefined) {
+        throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_INSTALLATIONS_AUTH_TOKEN);
+      } else {
+        this._installationsId = tokenJSON.fid;
+      }
+    } else {
+      this._installationsId = null;
+    }
 
     this._finalizationRegistry = null;
     if (typeof FinalizationRegistry !== 'undefined') {
@@ -123,6 +138,20 @@ export class FirebaseServerAppImpl
   get settings(): FirebaseServerAppSettings {
     this.checkDestroyed();
     return this._serverConfig;
+  }
+
+  get installationsAuthToken(): string | null {
+    this.checkDestroyed();
+    if (this._serverConfig.installationsAuthToken !== undefined) {
+      return this._serverConfig.installationsAuthToken;
+    } else {
+      return null;
+    }
+  }
+
+  get installationsId(): string | null {
+    this.checkDestroyed();
+    return this._installationsId;
   }
 
   /**

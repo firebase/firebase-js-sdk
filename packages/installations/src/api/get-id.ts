@@ -19,6 +19,8 @@ import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { Installations } from '../interfaces/public-types';
+import { _isFirebaseServerApp } from '@firebase/app';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 /**
  * Creates a Firebase Installation if there isn't one for the app and
@@ -28,6 +30,13 @@ import { Installations } from '../interfaces/public-types';
  * @public
  */
 export async function getId(installations: Installations): Promise<string> {
+  if(_isFirebaseServerApp(installations.app)) {
+    if(!installations.app.installationsId) {
+      throw ERROR_FACTORY.create(ErrorCode.SERVER_APP_MISSING_AUTH_TOKEN);
+    } 
+    return installations.app.installationsId;
+  }
+
   const installationsImpl = installations as FirebaseInstallationsImpl;
   const { installationEntry, registrationPromise } = await getInstallationEntry(
     installationsImpl

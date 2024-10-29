@@ -73,6 +73,10 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
+    // (undocumented)
+    installationsAuthToken?: string;
+    // (undocumented)
+    installationsId?: string;
     name: string;
     readonly settings: FirebaseServerAppSettings;
 }
@@ -80,6 +84,7 @@ export interface FirebaseServerApp extends FirebaseApp {
 // @public
 export interface FirebaseServerAppSettings extends Omit<FirebaseAppSettings, 'name'> {
     authIdToken?: string;
+    installationsAuthToken?: string;
     releaseOnDeref?: object;
 }
 
