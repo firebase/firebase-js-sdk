@@ -316,7 +316,8 @@ export class Pipeline<AppModelType = DocumentData> {
    */
   where(condition: FilterCondition & Expr): Pipeline<AppModelType> {
     const copy = this.stages.map(s => s);
-    copy.push(new Where(this.readUserData('where', condition)));
+    this.readUserData('where', condition);
+    copy.push(new Where(condition));
     return new Pipeline(
       this.liteDb,
       this.userDataReader,
