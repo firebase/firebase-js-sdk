@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Value } from '../protos/firestore_proto_api';
+import { ArrayValue, Value } from '../protos/firestore_proto_api';
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
 import {
   And,
@@ -80,7 +80,25 @@ import {
   Constant
 } from '../lite-api/expressions';
 import { FieldPath } from '../model/path';
-import { FALSE_VALUE, TRUE_VALUE, valueEquals } from '../model/values';
+import {
+  FALSE_VALUE,
+  getVectorValue,
+  isArray,
+  isBoolean,
+  isDouble,
+  isInteger,
+  isMapValue,
+  isNumber,
+  isString,
+  isVectorValue,
+  MIN_VALUE,
+  TRUE_VALUE,
+  valueCompare,
+  valueEquals,
+  VECTOR_MAP_VECTORS_KEY
+} from '../model/values';
+
+import { RE2JS } from 're2js';
 
 export interface EvaluableExpr {
   evaluate(
@@ -247,58 +265,283 @@ export class CoreConstant implements EvaluableExpr {
   }
 }
 
-export class CoreAdd implements EvaluableExpr {
-  constructor(private expr: Add) {}
+function asDouble(
+  protoNumber:
+    | { doubleValue: number | string }
+    | { integerValue: number | string }
+): number {
+  if (isDouble(protoNumber)) {
+    return Number(protoNumber.doubleValue);
+  }
+  return Number(protoNumber.integerValue);
+}
+
+function asBigInt(protoNumber: { integerValue: number | string }): bigint {
+  return BigInt(protoNumber.integerValue);
+}
+
+const LongMaxValue = BigInt('0x7fffffffffffffff');
+const LongMinValue = BigInt('-0x8000000000000000');
+
+abstract class BigIntOrDoubleArithmetics<
+  T extends Add | Subtract | Multiply | Divide | Mod
+> implements EvaluableExpr
+{
+  protected constructor(protected expr: T) {}
+
+  getLeft(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    return toEvaluable(this.expr.left).evaluate(context, input);
+  }
+
+  getRight(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    return toEvaluable(this.expr.right).evaluate(context, input);
+  }
+
+  abstract bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined;
+  abstract doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined;
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented'); // Placeholder
+    const left = this.getLeft(context, input);
+    const right = this.getRight(context, input);
+    if (left === undefined || right === undefined) {
+      return undefined;
+    }
+
+    if (
+      (!isDouble(left) && !isInteger(left)) ||
+      (!isDouble(right) && !isInteger(right))
+    ) {
+      return undefined;
+    }
+
+    if (isDouble(left) || isDouble(right)) {
+      return this.doubleArith(left, right);
+    }
+
+    if (isInteger(left) && isInteger(right)) {
+      const result = this.bigIntArith(left, right);
+      if (result === undefined) {
+        return undefined;
+      }
+
+      // Check for overflow
+      if (result < LongMinValue || result > LongMaxValue) {
+        return undefined; // Simulate overflow error
+      } else {
+        return { integerValue: `${result}` };
+      }
+    }
   }
 }
 
-export class CoreSubtract implements EvaluableExpr {
-  constructor(private expr: Subtract) {}
+export class CoreAdd extends BigIntOrDoubleArithmetics<Add> {
+  constructor(protected expr: Add) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented'); // Placeholder
+  bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined {
+    return asBigInt(left) + asBigInt(right);
+  }
+
+  doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined {
+    return { doubleValue: asDouble(left) + asDouble(right) };
   }
 }
 
-export class CoreMultiply implements EvaluableExpr {
-  constructor(private expr: Multiply) {}
+export class CoreSubtract extends BigIntOrDoubleArithmetics<Subtract> {
+  constructor(protected expr: Subtract) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented'); // Placeholder
+  bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined {
+    return asBigInt(left) - asBigInt(right);
+  }
+
+  doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined {
+    return { doubleValue: asDouble(left) - asDouble(right) };
   }
 }
 
-export class CoreDivide implements EvaluableExpr {
-  constructor(private expr: Divide) {}
+export class CoreMultiply extends BigIntOrDoubleArithmetics<Multiply> {
+  constructor(protected expr: Multiply) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented'); // Placeholder
+  bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined {
+    return asBigInt(left) * asBigInt(right);
+  }
+
+  doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined {
+    return { doubleValue: asDouble(left) * asDouble(right) };
   }
 }
 
-export class CoreMod implements EvaluableExpr {
-  constructor(private expr: Mod) {}
+export class CoreDivide extends BigIntOrDoubleArithmetics<Divide> {
+  constructor(protected expr: Divide) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented'); // Placeholder
+  bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined {
+    const rightValue = asBigInt(right);
+    if (rightValue === BigInt(0)) {
+      return undefined;
+    }
+    return asBigInt(left) / rightValue;
+  }
+
+  doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined {
+    const rightValue = asDouble(right);
+    if (rightValue === 0) {
+      return undefined;
+    }
+    return { doubleValue: asDouble(left) / rightValue };
+  }
+}
+
+export class CoreMod extends BigIntOrDoubleArithmetics<Mod> {
+  constructor(protected expr: Mod) {
+    super(expr);
+  }
+
+  bigIntArith(
+    left: { integerValue: number | string },
+    right: {
+      integerValue: number | string;
+    }
+  ): bigint | undefined {
+    const rightValue = asBigInt(right);
+    if (rightValue === BigInt(0)) {
+      return undefined;
+    }
+    return asBigInt(left) % rightValue;
+  }
+
+  doubleArith(
+    left:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        },
+    right:
+      | { doubleValue: number | string }
+      | {
+          integerValue: number | string;
+        }
+  ):
+    | {
+        doubleValue: number;
+      }
+    | undefined {
+    return { doubleValue: asDouble(left) % asDouble(right) };
   }
 }
 
@@ -309,16 +552,225 @@ export class CoreAnd implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    return this.expr.params.every(
-      p => toEvaluable(p).evaluate(context, input) ?? false
-    )
-      ? TRUE_VALUE
-      : FALSE_VALUE;
+    let isError = false;
+    for (const param of this.expr.conditions) {
+      const result = toEvaluable(param).evaluate(context, input);
+      if (result === undefined || !isBoolean(result)) {
+        isError = true;
+        continue;
+      }
+
+      if (isBoolean(result) && !result.booleanValue) {
+        return { booleanValue: false };
+      }
+    }
+    return isError ? undefined : { booleanValue: true };
   }
 }
 
-export class CoreEq implements EvaluableExpr {
-  constructor(private expr: Eq) {}
+export class CoreNot implements EvaluableExpr {
+  constructor(private expr: Not) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const result = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (result === undefined || !isBoolean(result)) {
+      return undefined;
+    }
+
+    return { booleanValue: !result.booleanValue };
+  }
+}
+
+export class CoreOr implements EvaluableExpr {
+  constructor(private expr: Or) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    let isError = false;
+    for (const param of this.expr.conditions) {
+      const result = toEvaluable(param).evaluate(context, input);
+      if (result === undefined || !isBoolean(result)) {
+        isError = true;
+        continue;
+      }
+
+      if (isBoolean(result) && result.booleanValue) {
+        return { booleanValue: true };
+      }
+    }
+    return isError ? undefined : { booleanValue: false };
+  }
+}
+
+export class CoreXor implements EvaluableExpr {
+  constructor(private expr: Xor) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    let result = false;
+    for (const param of this.expr.conditions) {
+      const evaluated = toEvaluable(param).evaluate(context, input);
+      if (evaluated === undefined || !isBoolean(evaluated)) {
+        return undefined;
+      }
+
+      result = CoreXor.xor(result, evaluated.booleanValue);
+    }
+    return { booleanValue: result };
+  }
+
+  static xor(a: boolean, b: boolean): boolean {
+    return (a || b) && !(a && b);
+  }
+}
+
+export class CoreIn implements EvaluableExpr {
+  constructor(private expr: In) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const searchValue = toEvaluable(this.expr.searchValue).evaluate(
+      context,
+      input
+    );
+    if (searchValue === undefined) {
+      return undefined;
+    }
+
+    const candidates = this.expr.candidates.map(candidate =>
+      toEvaluable(candidate).evaluate(context, input)
+    );
+
+    let hasError = false;
+    for (const candidate of candidates) {
+      if (candidate === undefined) {
+        hasError = true;
+        continue;
+      }
+
+      if (valueEquals(searchValue, candidate)) {
+        return TRUE_VALUE;
+      }
+    }
+
+    return hasError ? undefined : FALSE_VALUE;
+  }
+}
+
+export class CoreIsNan implements EvaluableExpr {
+  constructor(private expr: IsNan) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined) {
+      return undefined;
+    }
+
+    if (!isNumber(evaluated) || isInteger(evaluated)) {
+      return FALSE_VALUE;
+    }
+
+    return {
+      booleanValue: isNaN(
+        asDouble(evaluated as { doubleValue: number | string })
+      )
+    };
+  }
+}
+
+export class CoreExists implements EvaluableExpr {
+  constructor(private expr: Exists) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined) {
+      return undefined;
+    }
+
+    return TRUE_VALUE;
+  }
+}
+
+export class CoreIf implements EvaluableExpr {
+  constructor(private expr: If) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const evaluated = toEvaluable(this.expr.condition).evaluate(context, input);
+
+    if (isBoolean(evaluated) && evaluated.booleanValue) {
+      return toEvaluable(this.expr.thenExpr).evaluate(context, input);
+    }
+
+    return toEvaluable(this.expr.elseExpr).evaluate(context, input);
+  }
+}
+
+export class CoreLogicalMax implements EvaluableExpr {
+  constructor(private expr: LogicalMax) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const left = toEvaluable(this.expr.left).evaluate(context, input);
+    const right = toEvaluable(this.expr.right).evaluate(context, input);
+    if (left === undefined && right === undefined) {
+      return undefined;
+    }
+
+    if (valueCompare(left ?? MIN_VALUE, right ?? MIN_VALUE) >= 0) {
+      return left ?? MIN_VALUE;
+    } else {
+      return right ?? MIN_VALUE;
+    }
+  }
+}
+
+export class CoreLogicalMin implements EvaluableExpr {
+  constructor(private expr: LogicalMin) {}
+
+  evaluate(
+    context: EvaluationContext,
+    input: PipelineInputOutput
+  ): Value | undefined {
+    const left = toEvaluable(this.expr.left).evaluate(context, input);
+    const right = toEvaluable(this.expr.right).evaluate(context, input);
+    if (left === undefined && right === undefined) {
+      return undefined;
+    }
+
+    if (valueCompare(left ?? MIN_VALUE, right ?? MIN_VALUE) < 0) {
+      return left ?? MIN_VALUE;
+    } else {
+      return right ?? MIN_VALUE;
+    }
+  }
+}
+
+abstract class ComparisonBase<T extends Eq | Neq | Lt | Lte | Gt | Gte>
+  implements EvaluableExpr
+{
+  protected constructor(protected expr: T) {}
+
+  abstract trueCase(left: Value, right: Value): boolean;
 
   evaluate(
     context: EvaluationContext,
@@ -327,64 +779,69 @@ export class CoreEq implements EvaluableExpr {
     const left = toEvaluable(this.expr.left).evaluate(context, input);
     const right = toEvaluable(this.expr.right).evaluate(context, input);
     if (left === undefined || right === undefined) {
-      return FALSE_VALUE;
+      return undefined;
     }
-    return valueEquals(left, right) ? TRUE_VALUE : FALSE_VALUE;
+    return this.trueCase(left, right) ? TRUE_VALUE : FALSE_VALUE;
   }
 }
 
-export class CoreNeq implements EvaluableExpr {
-  constructor(private expr: Neq) {}
+export class CoreEq extends ComparisonBase<Eq> {
+  constructor(protected expr: Eq) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  trueCase(left: Value, right: Value): boolean {
+    return valueEquals(left, right);
   }
 }
 
-export class CoreLt implements EvaluableExpr {
-  constructor(private expr: Lt) {}
+export class CoreNeq extends ComparisonBase<Neq> {
+  constructor(protected expr: Neq) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  trueCase(left: Value, right: Value): boolean {
+    return !valueEquals(left, right);
   }
 }
 
-export class CoreLte implements EvaluableExpr {
-  constructor(private expr: Lte) {}
+export class CoreLt extends ComparisonBase<Lt> {
+  constructor(protected expr: Lt) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  trueCase(left: Value, right: Value): boolean {
+    return valueCompare(left, right) < 0;
   }
 }
 
-export class CoreGt implements EvaluableExpr {
-  constructor(private expr: Gt) {}
+export class CoreLte extends ComparisonBase<Lte> {
+  constructor(protected expr: Lte) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  trueCase(left: Value, right: Value): boolean {
+    return valueCompare(left, right) <= 0;
   }
 }
 
-export class CoreGte implements EvaluableExpr {
-  constructor(private expr: Gte) {}
+export class CoreGt extends ComparisonBase<Gt> {
+  constructor(protected expr: Gt) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  trueCase(left: Value, right: Value): boolean {
+    return valueCompare(left, right) > 0;
+  }
+}
+
+export class CoreGte extends ComparisonBase<Gte> {
+  constructor(protected expr: Gte) {
+    super(expr);
+  }
+
+  trueCase(left: Value, right: Value): boolean {
+    return valueCompare(left, right) >= 0;
   }
 }
 
@@ -406,7 +863,12 @@ export class CoreArrayReverse implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluated === undefined || !Array.isArray(evaluated.arrayValue)) {
+      return undefined;
+    }
+
+    return { arrayValue: { values: evaluated.arrayValue.reverse() } };
   }
 }
 
@@ -417,7 +879,19 @@ export class CoreArrayContains implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluated === undefined || !isArray(evaluated)) {
+      return undefined;
+    }
+
+    const element = toEvaluable(this.expr.element).evaluate(context, input);
+    if (evaluated === undefined) {
+      return undefined;
+    }
+
+    return evaluated.arrayValue.values?.some(val => valueEquals(val, element!))
+      ? TRUE_VALUE
+      : FALSE_VALUE;
   }
 }
 
@@ -428,7 +902,30 @@ export class CoreArrayContainsAll implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluated === undefined || !isArray(evaluated)) {
+      return undefined;
+    }
+
+    const elements = this.expr.values.map(val =>
+      toEvaluable(val).evaluate(context, input)
+    );
+
+    for (const element of elements) {
+      let found = false;
+      for (const val of evaluated.arrayValue.values ?? []) {
+        if (element !== undefined && valueEquals(val, element!)) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        return FALSE_VALUE;
+      }
+    }
+
+    return TRUE_VALUE;
   }
 }
 
@@ -439,7 +936,24 @@ export class CoreArrayContainsAny implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluated === undefined || !isArray(evaluated)) {
+      return undefined;
+    }
+
+    const elements = this.expr.values.map(val =>
+      toEvaluable(val).evaluate(context, input)
+    );
+
+    for (const element of elements) {
+      for (const val of evaluated.arrayValue.values ?? []) {
+        if (element !== undefined && valueEquals(val, element!)) {
+          return TRUE_VALUE;
+        }
+      }
+    }
+
+    return FALSE_VALUE;
   }
 }
 
@@ -450,111 +964,17 @@ export class CoreArrayLength implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.array).evaluate(context, input);
+    if (evaluated === undefined || !isArray(evaluated)) {
+      return undefined;
+    }
+
+    return { integerValue: `${evaluated.arrayValue.values?.length ?? 0}` };
   }
 }
 
 export class CoreArrayElement implements EvaluableExpr {
   constructor(private expr: ArrayElement) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreIn implements EvaluableExpr {
-  constructor(private expr: In) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreIsNan implements EvaluableExpr {
-  constructor(private expr: IsNan) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreExists implements EvaluableExpr {
-  constructor(private expr: Exists) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreNot implements EvaluableExpr {
-  constructor(private expr: Not) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreOr implements EvaluableExpr {
-  constructor(private expr: Or) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreXor implements EvaluableExpr {
-  constructor(private expr: Xor) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreIf implements EvaluableExpr {
-  constructor(private expr: If) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreLogicalMax implements EvaluableExpr {
-  constructor(private expr: LogicalMax) {}
-
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
-  }
-}
-
-export class CoreLogicalMin implements EvaluableExpr {
-  constructor(private expr: LogicalMin) {}
 
   evaluate(
     context: EvaluationContext,
@@ -571,7 +991,16 @@ export class CoreReverse implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+    if (evaluated === undefined) {
+      return undefined;
+    }
+
+    if (!isString(evaluated)) {
+      return undefined;
+    }
+
+    return { stringValue: evaluated.stringValue.split('').reverse().join('') };
   }
 }
 
@@ -604,7 +1033,14 @@ export class CoreCharLength implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    // return the number of characters in the string
+    return { integerValue: `${evaluated.stringValue.length}` };
   }
 }
 
@@ -615,8 +1051,54 @@ export class CoreByteLength implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.value).evaluate(context, input);
+
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    // return the number of bytes in the string
+    return {
+      integerValue: `${new TextEncoder().encode(evaluated.stringValue).length}`
+    };
   }
+}
+
+function likeToRegex(like: string): string {
+  let result = '';
+  for (let i = 0; i < like.length; i++) {
+    const c = like.charAt(i);
+    switch (c) {
+      case '_':
+        result += '.';
+        break;
+      case '%':
+        result += '.*';
+        break;
+      case '\\':
+        result += '\\\\';
+        break;
+      case '.':
+      case '*':
+      case '?':
+      case '+':
+      case '^':
+      case '$':
+      case '|':
+      case '(':
+      case ')':
+      case '[':
+      case ']':
+      case '{':
+      case '}':
+        result += '\\' + c;
+        break;
+      default:
+        result += c;
+        break;
+    }
+  }
+  return result;
 }
 
 export class CoreLike implements EvaluableExpr {
@@ -626,7 +1108,21 @@ export class CoreLike implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    if (pattern === undefined || !isString(pattern)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: RE2JS.compile(likeToRegex(pattern.stringValue))
+        .matcher(evaluated.stringValue)
+        .find()
+    };
   }
 }
 
@@ -637,7 +1133,21 @@ export class CoreRegexContains implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    if (pattern === undefined || !isString(pattern)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: RE2JS.compile(pattern.stringValue)
+        .matcher(evaluated.stringValue)
+        .find()
+    };
   }
 }
 
@@ -648,7 +1158,21 @@ export class CoreRegexMatch implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const pattern = toEvaluable(this.expr.pattern).evaluate(context, input);
+    if (pattern === undefined || !isString(pattern)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: RE2JS.compile(pattern.stringValue).matches(
+        evaluated.stringValue
+      )
+    };
   }
 }
 
@@ -659,7 +1183,19 @@ export class CoreStrContains implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const substring = toEvaluable(this.expr.substring).evaluate(context, input);
+    if (substring === undefined || !isString(substring)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: evaluated.stringValue.includes(substring.stringValue)
+    };
   }
 }
 
@@ -670,7 +1206,19 @@ export class CoreStartsWith implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const prefix = toEvaluable(this.expr.prefix).evaluate(context, input);
+    if (prefix === undefined || !isString(prefix)) {
+      return undefined;
+    }
+
+    return {
+      booleanValue: evaluated.stringValue.startsWith(prefix.stringValue)
+    };
   }
 }
 
@@ -681,7 +1229,17 @@ export class CoreEndsWith implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    const suffix = toEvaluable(this.expr.suffix).evaluate(context, input);
+    if (suffix === undefined || !isString(suffix)) {
+      return undefined;
+    }
+
+    return { booleanValue: evaluated.stringValue.endsWith(suffix.stringValue) };
   }
 }
 
@@ -692,7 +1250,12 @@ export class CoreToLower implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    return { stringValue: evaluated.stringValue.toLowerCase() };
   }
 }
 
@@ -703,7 +1266,12 @@ export class CoreToUpper implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    return { stringValue: evaluated.stringValue.toUpperCase() };
   }
 }
 
@@ -714,7 +1282,12 @@ export class CoreTrim implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluated = toEvaluable(this.expr.expr).evaluate(context, input);
+    if (evaluated === undefined || !isString(evaluated)) {
+      return undefined;
+    }
+
+    return { stringValue: evaluated.stringValue.trim() };
   }
 }
 
@@ -725,7 +1298,15 @@ export class CoreStrConcat implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const exprs = [this.expr.first, ...this.expr.rest];
+    const evaluated = exprs.map(val =>
+      toEvaluable(val).evaluate(context, input)
+    );
+    if (evaluated.some(val => val === undefined || !isString(val))) {
+      return undefined;
+    }
+
+    return { stringValue: evaluated.map(val => val!.stringValue).join('') };
   }
 }
 
@@ -736,7 +1317,12 @@ export class CoreMapGet implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const evaluatedMap = toEvaluable(this.expr.map).evaluate(context, input);
+    if (evaluatedMap === undefined || !isMapValue(evaluatedMap)) {
+      return undefined;
+    }
+
+    return evaluatedMap.mapValue.fields?.[this.expr.name];
   }
 }
 
@@ -795,36 +1381,119 @@ export class CoreMax implements EvaluableExpr {
   }
 }
 
-export class CoreCosineDistance implements EvaluableExpr {
-  constructor(private expr: CosineDistance) {}
+abstract class DistanceBase<
+  T extends CosineDistance | DotProduct | EuclideanDistance
+> implements EvaluableExpr
+{
+  protected constructor(private expr: T) {}
+
+  abstract calculateDistance(
+    vec1: ArrayValue | undefined,
+    vec2: ArrayValue | undefined
+  ): number | undefined;
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const vector1 = toEvaluable(this.expr.vector1).evaluate(context, input);
+    if (vector1 === undefined || !isVectorValue(vector1)) {
+      return undefined;
+    }
+
+    const vector2 = toEvaluable(this.expr.vector1).evaluate(context, input);
+    if (vector2 === undefined || !isVectorValue(vector2)) {
+      return undefined;
+    }
+
+    const vectorValue1 = getVectorValue(vector1);
+    const vectorValue2 = getVectorValue(vector2);
+    if (
+      vectorValue1 === undefined ||
+      vectorValue2 === undefined ||
+      vectorValue1.values?.length !== vectorValue2.values?.length
+    ) {
+      return undefined;
+    }
+
+    const distance = this.calculateDistance(vectorValue1, vectorValue2);
+    if (distance === undefined || isNaN(distance)) {
+      return undefined;
+    }
+
+    return { doubleValue: distance };
   }
 }
 
-export class CoreDotProduct implements EvaluableExpr {
-  constructor(private expr: DotProduct) {}
+export class CoreCosineDistance extends DistanceBase<CosineDistance> {
+  constructor(expr: CosineDistance) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  calculateDistance(
+    vec1: ArrayValue | undefined,
+    vec2: ArrayValue | undefined
+  ): number | undefined {
+    // calculate cosine distance between vectorValue1.values and vectorValue2.values
+    let dotProduct = 0;
+    let magnitude1 = 0;
+    let magnitude2 = 0;
+    for (let i = 0; i < (vec1?.values || []).length; i++) {
+      dotProduct +=
+        Number(vec1?.values![i].doubleValue) *
+        Number(vec2?.values![i].doubleValue);
+      magnitude1 += Math.pow(Number(vec1?.values![i].doubleValue), 2);
+      magnitude2 += Math.pow(Number(vec2?.values![i].doubleValue), 2);
+    }
+    const magnitude = Math.sqrt(magnitude1) * Math.sqrt(magnitude2);
+    if (magnitude === 0) {
+      return undefined;
+    }
+
+    return 1 - dotProduct / magnitude;
   }
 }
 
-export class CoreEuclideanDistance implements EvaluableExpr {
-  constructor(private expr: EuclideanDistance) {}
+export class CoreDotProduct extends DistanceBase<DotProduct> {
+  constructor(expr: DotProduct) {
+    super(expr);
+  }
 
-  evaluate(
-    context: EvaluationContext,
-    input: PipelineInputOutput
-  ): Value | undefined {
-    throw new Error('Unimplemented');
+  calculateDistance(
+    vec1: ArrayValue | undefined,
+    vec2: ArrayValue | undefined
+  ): number {
+    // calculate dotproduct between vectorValue1.values and vectorValue2.values
+    let dotProduct = 0;
+    for (let i = 0; i < (vec1?.values || []).length; i++) {
+      dotProduct +=
+        Number(vec1?.values![i].doubleValue) *
+        Number(vec2?.values![i].doubleValue);
+    }
+
+    return dotProduct;
+  }
+}
+
+export class CoreEuclideanDistance extends DistanceBase<EuclideanDistance> {
+  constructor(expr: EuclideanDistance) {
+    super(expr);
+  }
+
+  calculateDistance(
+    vec1: ArrayValue | undefined,
+    vec2: ArrayValue | undefined
+  ): number {
+    let euclideanDistance = 0;
+    for (let i = 0; i < (vec1?.values || []).length; i++) {
+      euclideanDistance += Math.pow(
+        Number(vec1?.values![i].doubleValue) -
+          Number(vec2?.values![i].doubleValue),
+        2
+      );
+    }
+
+    return euclideanDistance;
   }
 }
 
@@ -835,7 +1504,14 @@ export class CoreVectorLength implements EvaluableExpr {
     context: EvaluationContext,
     input: PipelineInputOutput
   ): Value | undefined {
-    throw new Error('Unimplemented');
+    const vector = toEvaluable(this.expr.value).evaluate(context, input);
+    if (vector === undefined || !isVectorValue(vector)) {
+      return undefined;
+    }
+
+    const vectorValue = getVectorValue(vector);
+
+    return { integerValue: vectorValue?.values?.length ?? 0 };
   }
 }
 
