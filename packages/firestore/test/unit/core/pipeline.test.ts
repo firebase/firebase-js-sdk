@@ -21,11 +21,23 @@ import { Firestore } from '../../../src/api/database';
 import { CredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId } from '../../../src/core/database_info';
-import { Field, eq, Constant, doc as docRef } from '../../../src';
+import {
+  Field,
+  eq,
+  Constant,
+  doc as docRef,
+  lt,
+  lte,
+  add,
+  multiply,
+  gt,
+  gte
+} from '../../../src';
 import { canonifyPipeline, pipelineEq } from '../../../src/core/pipeline-util';
 import { runPipeline } from '../../../src/core/pipeline_run';
 
 import { doc } from '../../util/helpers';
+import { and, or } from '../../../src/lite-api/expressions';
 
 const fakeAuthProvider: CredentialsProvider<User> =
   {} as unknown as CredentialsProvider<User>;
@@ -210,16 +222,331 @@ describe.only('runPipeline()', () => {
     ]);
   });
 
-  it('works with simple where', () => {
-    const p = db.pipeline().collection('test').where(eq(`foo`, 42));
+  it('works with collection groups', () => {
+    const p = db.pipeline().collectionGroup('test');
 
     expect(
       runPipeline(p, [
         doc('test/doc1', 1000, { foo: 'bar' }),
-        doc('testNot/doc2', 1000, { foo: 'baz' }),
-        doc('test/doc2', 1000, { foo: 42 }),
-        doc('test/doc3', 1000, { foo: '42' })
+        doc('testNot/doc2/test/doc2', 1000, { foo: 'baz' }),
+        doc('test1/doc2', 1000, { foo: 'bazzzz' })
       ])
+    ).to.deep.equal([
+      doc('test/doc1', 1000, { foo: 'bar' }),
+      doc('testNot/doc2/test/doc2', 1000, { foo: 'baz' })
+    ]);
+  });
+
+  it('works with database', () => {
+    const p = db.pipeline().database();
+
+    expect(
+      runPipeline(p, [
+        doc('test/doc1', 1000, { foo: 'bar' }),
+        doc('testNot/doc2/test/doc2', 1000, { foo: 'baz' }),
+        doc('test1/doc2', 1000, { foo: 'bazzzz' })
+      ])
+    ).to.deep.equal([
+      doc('test/doc1', 1000, { foo: 'bar' }),
+      doc('testNot/doc2/test/doc2', 1000, { foo: 'baz' }),
+      doc('test1/doc2', 1000, { foo: 'bazzzz' })
+    ]);
+  });
+
+  it('works with simple wheres', () => {
+    const dataset = [
+      doc('test/doc1', 1000, { foo: 'bar' }),
+      doc('testNot/doc2', 1000, { foo: 'baz' }),
+      doc('test/doc2', 1000, { foo: 42 }),
+      doc('test/doc3', 1000, { foo: '42' })
+    ];
+
+    expect(
+      runPipeline(
+        db.pipeline().collection('test').where(eq(`foo`, 42)),
+        dataset
+      )
     ).to.deep.equal([doc('test/doc2', 1000, { foo: 42 })]);
+
+    expect(
+      runPipeline(
+        db
+          .pipeline()
+          .collection('test')
+          .where(or(eq(`foo`, 42), eq('foo', 'bar'))),
+        dataset
+      )
+    ).to.deep.equal([
+      doc('test/doc1', 1000, { foo: 'bar' }),
+      doc('test/doc2', 1000, { foo: 42 })
+    ]);
+
+    expect(
+      runPipeline(
+        db.pipeline().collection('test').where(lte(`foo`, '42')),
+        dataset
+      )
+    ).to.deep.equal([
+      doc('test/doc2', 1000, { foo: 42 }),
+      doc('test/doc3', 1000, { foo: '42' })
+    ]);
+  });
+
+  // a representative dataset
+  const bookDataset = [
+    doc('test/book0', 1000, {
+      title: "The Hitchhiker's Guide to the Galaxy",
+      author: 'Douglas Adams',
+      genre: 'Science Fiction',
+      published: 1979,
+      rating: 4.2,
+      tags: ['comedy', 'space', 'adventure'],
+      awards: {
+        hugo: true,
+        nebula: false,
+        others: { unknown: { year: 1980 } }
+      },
+      nestedField: { 'level.1': { 'level.2': true } }
+    }),
+    doc('test/book1', 1000, {
+      title: 'Pride and Prejudice',
+      author: 'Jane Austen',
+      genre: 'Romance',
+      published: 1813,
+      rating: 4.5,
+      tags: ['classic', 'social commentary', 'love'],
+      awards: { none: true }
+    }),
+    doc('test/book2', 1000, {
+      title: 'One Hundred Years of Solitude',
+      author: 'Gabriel García Márquez',
+      genre: 'Magical Realism',
+      published: 1967,
+      rating: 4.3,
+      tags: ['family', 'history', 'fantasy'],
+      awards: { nobel: true, nebula: false }
+    }),
+    doc('test/book3', 1000, {
+      title: 'The Lord of the Rings',
+      author: 'J.R.R. Tolkien',
+      genre: 'Fantasy',
+      published: 1954,
+      rating: 4.7,
+      tags: ['adventure', 'magic', 'epic'],
+      awards: { hugo: false, nebula: false }
+    }),
+    doc('test/book4', 1000, {
+      title: "The Handmaid's Tale",
+      author: 'Margaret Atwood',
+      genre: 'Dystopian',
+      published: 1985,
+      rating: 4.1,
+      tags: ['feminism', 'totalitarianism', 'resistance'],
+      awards: { 'arthur c. clarke': true, 'booker prize': false }
+    }),
+    doc('test/book5', 1000, {
+      title: 'Crime and Punishment',
+      author: 'Fyodor Dostoevsky',
+      genre: 'Psychological Thriller',
+      published: 1866,
+      rating: 4.3,
+      tags: ['philosophy', 'crime', 'redemption'],
+      awards: { none: true }
+    }),
+    doc('test/book6', 1000, {
+      title: 'To Kill a Mockingbird',
+      author: 'Harper Lee',
+      genre: 'Southern Gothic',
+      published: 1960,
+      rating: 4.2,
+      tags: ['racism', 'injustice', 'coming-of-age'],
+      awards: { pulitzer: true }
+    }),
+    doc('test/book7', 1000, {
+      title: '1984',
+      author: 'George Orwell',
+      genre: 'Dystopian',
+      published: 1949,
+      rating: 4.2,
+      tags: ['surveillance', 'totalitarianism', 'propaganda'],
+      awards: { prometheus: true }
+    }),
+    doc('test/book8', 1000, {
+      title: 'The Great Gatsby',
+      author: 'F. Scott Fitzgerald',
+      genre: 'Modernist',
+      published: 1925,
+      rating: 4.0,
+      tags: ['wealth', 'american dream', 'love'],
+      awards: { none: true }
+    }),
+    doc('test/book9', 1000, {
+      title: 'Dune',
+      author: 'Frank Herbert',
+      genre: 'Science Fiction',
+      published: 1965,
+      rating: 4.6,
+      tags: ['politics', 'desert', 'ecology'],
+      awards: { hugo: true, nebula: true }
+    })
+  ];
+
+  it('works with array contains', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('tags').arrayContains('adventure'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[0],
+      bookDataset[3]
+    ]);
+  });
+
+  it('works with array contains all', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('tags').arrayContainsAll('adventure', 'magic'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([bookDataset[3]]);
+  });
+
+  it('works with array contains any', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('tags').arrayContainsAny('adventure', 'classic'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[0],
+      bookDataset[1],
+      bookDataset[3]
+    ]);
+  });
+
+  it('works with string queries', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').startsWith('The'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[0],
+      bookDataset[3],
+      bookDataset[4],
+      bookDataset[8]
+    ]);
+
+    const p2 = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').endsWith('Tale'));
+
+    expect(runPipeline(p2, bookDataset)).to.deep.equal([bookDataset[4]]);
+
+    const p3 = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').strContains('Guide'));
+
+    expect(runPipeline(p3, bookDataset)).to.deep.equal([bookDataset[0]]);
+  });
+
+  it('works with like queries', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').like('%the%'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[0],
+      bookDataset[3]
+    ]);
+  });
+
+  it('works with limit', () => {
+    const p = db.pipeline().collection('test').limit(3);
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[0],
+      bookDataset[1],
+      bookDataset[2]
+    ]);
+  });
+
+  it('works with offset', () => {
+    const p = db.pipeline().collection('test').offset(3).limit(3);
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[3],
+      bookDataset[4],
+      bookDataset[5]
+    ]);
+  });
+
+  it('works with regex operations', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').regexMatch('^The.*ings'));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([bookDataset[3]]);
+
+    const p2 = db
+      .pipeline()
+      .collection('test')
+      .where(Field.of('title').regexContains('Guide'));
+
+    expect(runPipeline(p2, bookDataset)).to.deep.equal([bookDataset[0]]);
+  });
+
+  it('works with arithmetics', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(multiply(Field.of('published'), Field.of('rating')).gte(9000));
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[3],
+      bookDataset[9]
+    ]);
+  });
+
+  it('works with logical operators', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .where(
+        and(lt(Field.of('published'), 1900), gte(Field.of('rating'), 4.5))
+      );
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([bookDataset[1]]);
+  });
+
+  it('works with sort', () => {
+    const p = db
+      .pipeline()
+      .collection('test')
+      .sort(Field.of('published').ascending())
+      .limit(3);
+
+    expect(runPipeline(p, bookDataset)).to.deep.equal([
+      bookDataset[1],
+      bookDataset[5],
+      bookDataset[8]
+    ]);
+
+    const p2 = db
+      .pipeline()
+      .collection('test')
+      .sort(Field.of('published').descending())
+      .limit(3);
+
+    expect(runPipeline(p2, bookDataset)).to.deep.equal([
+      bookDataset[4],
+      bookDataset[0],
+      bookDataset[2]
+    ]);
   });
 });

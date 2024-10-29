@@ -281,7 +281,7 @@ function asBigInt(protoNumber: { integerValue: number | string }): bigint {
 }
 
 const LongMaxValue = BigInt('0x7fffffffffffffff');
-const LongMinValue = BigInt('-0x8000000000000000');
+const LongMinValue = -BigInt('0x8000000000000000');
 
 abstract class BigIntOrDoubleArithmetics<
   T extends Add | Subtract | Multiply | Divide | Mod
