@@ -573,6 +573,13 @@ export function refValue(databaseId: DatabaseId, key: DocumentKey): Value {
   };
 }
 
+/** Returns true if `value` is an BooleanValue . */
+export function isBoolean(
+  value?: Value | null
+): value is { booleanValue: boolean } {
+  return !!value && 'booleanValue' in value;
+}
+
 /** Returns true if `value` is an IntegerValue . */
 export function isInteger(
   value?: Value | null
@@ -597,6 +604,13 @@ export function isArray(
   value?: Value | null
 ): value is { arrayValue: ArrayValue } {
   return !!value && 'arrayValue' in value;
+}
+
+/** Returns true if `value` is an ArrayValue. */
+export function isString(
+  value?: Value | null
+): value is { stringValue: string } {
+  return !!value && 'stringValue' in value;
 }
 
 /** Returns true if `value` is a ReferenceValue. */
@@ -631,6 +645,13 @@ export function isMapValue(
 export function isVectorValue(value: ProtoValue | null): boolean {
   const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
   return type === VECTOR_VALUE_SENTINEL;
+}
+
+/** Returns true if `value` is a VetorValue. */
+export function getVectorValue(
+  value: ProtoValue | null
+): ArrayValue | undefined {
+  return (value?.mapValue?.fields || {})[VECTOR_MAP_VECTORS_KEY]?.arrayValue;
 }
 
 /** Creates a deep copy of `source`. */
