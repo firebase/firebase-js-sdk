@@ -122,7 +122,7 @@ export type ExprType =
  * The `Expr` class provides a fluent API for building expressions. You can chain together
  * method calls to create complex expressions.
  */
-export abstract class Expr implements ProtoSerializable, UserData {
+export abstract class Expr implements ProtoSerializable<ProtoValue>, UserData {
   /**
    * Creates an expression that adds this expression to another expression.
    *

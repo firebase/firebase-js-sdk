@@ -1429,8 +1429,8 @@ export function isValidResourceName(path: ResourcePath): boolean {
   );
 }
 
-export interface ProtoSerializable {
-  _toProto(serializer: JsonProtoSerializer): ProtoValue;
+export interface ProtoSerializable<ProtoType> {
+  _toProto(serializer: JsonProtoSerializer): ProtoType;
 }
 
 export interface UserData {
@@ -1439,10 +1439,10 @@ export interface UserData {
 
 export function toMapValue(
   serializer: JsonProtoSerializer,
-  input: Map<string, ProtoSerializable>
+  input: Map<string, ProtoSerializable<ProtoValue>>
 ): ProtoValue {
   const map: ProtoMapValue = { fields: {} };
-  input.forEach((exp: ProtoSerializable, key: string) => {
+  input.forEach((exp: ProtoSerializable<ProtoValue>, key: string) => {
     if (typeof key !== 'string') {
       throw new Error(`Cannot encode map with non-string key: ${key}`);
     }
