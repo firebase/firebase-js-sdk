@@ -172,12 +172,19 @@ export function doc(
 }
 
 export function deletedDoc(
-  keyStr: string,
+  keyStrOrDocumentKey: string | DocumentKey,
   ver: TestSnapshotVersion
 ): MutableDocument {
-  return MutableDocument.newNoDocument(key(keyStr), version(ver)).setReadTime(
+  if (
+    keyStrOrDocumentKey instanceof String ||
+    typeof keyStrOrDocumentKey === 'string'
+  ) {
+    keyStrOrDocumentKey = key(keyStrOrDocumentKey as string);
+  }
+  return MutableDocument.newNoDocument(
+    keyStrOrDocumentKey,
     version(ver)
-  );
+  ).setReadTime(version(ver));
 }
 
 export function unknownDoc(
