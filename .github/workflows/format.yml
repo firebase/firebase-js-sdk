@@ -31,7 +31,7 @@ jobs:
       with:
         # get all history for the diff
         fetch-depth: 0
-    - name: Set up node (20)
+    - name: Set up Node (22.10.0)
       uses: actions/setup-node@v3
       with:
         node-version: 22.10.0

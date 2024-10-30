@@ -46,7 +46,7 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
-    - name: Set up node (20)
+    - name: Set up Node (22.10.0)
       uses: actions/setup-node@v3
       with:
         node-version: 22.10.0

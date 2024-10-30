@@ -37,7 +37,7 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -84,7 +84,7 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -112,7 +112,7 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -142,7 +142,7 @@ jobs:
     needs: build
     if: ${{ github.event_name != 'pull_request' }}
     steps:
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -180,7 +180,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -219,7 +219,7 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -237,7 +237,7 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
@@ -274,7 +274,7 @@ jobs:
           name: build.tar.gz
       - name: Unzip build artifact
         run: tar xf build.tar.gz
-      - name: Set up Node (20)
+      - name: Set up Node (22.10.0)
         uses: actions/setup-node@v3
         with:
           node-version: 22.10.0
