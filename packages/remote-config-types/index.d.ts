@@ -97,11 +97,6 @@ export interface RemoteConfig {
    * Defines the log level to use.
    */
   setLogLevel(logLevel: LogLevel): void;
-
-  /**
-   * Sets custom signals for the Remote Config instance.
-   */
-  setCustomSignals(customSignals: CustomSignals): Promise<void>;
 }
 
 /**
@@ -186,9 +181,10 @@ export type LogLevel = 'debug' | 'error' | 'silent';
  * <ul>
  *   <li><code>string</code>
  *   <li><code>number</code>
+ *   <li><code>null</code>
  * </ul>
  */
-export type CustomSignals = { [key: string]: string | number };
+export type CustomSignals = { [key: string]: string | number | null };
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

@@ -12,7 +12,7 @@ export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 // @public
 export interface CustomSignals {
     // (undocumented)
-    [key: string]: string | number;
+    [key: string]: string | number | null;
 }
 
 // @public

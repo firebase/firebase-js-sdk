@@ -142,12 +142,13 @@ export type LogLevel = 'debug' | 'error' | 'silent';
  * <ul>
  *   <li><code>string</code>
  *   <li><code>number</code>
+ *   <li><code>null</code>
  * </ul>
  *
  * @public
  */
 export interface CustomSignals {
-  [key: string]: string | number;
+  [key: string]: string | number | null;
 }
 
 declare module '@firebase/component' {

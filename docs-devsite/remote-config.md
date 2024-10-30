@@ -37,7 +37,7 @@ The Firebase Remote Config Web SDK. This SDK does not work in a Node.js environm
 
 |  Interface | Description |
 |  --- | --- |
-|  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> </ul> |
+|  [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Defines the type for representing custom signals and their values.<p>The values in CustomSignals must be one of the following types:<ul> <li><code>string</code> <li><code>number</code> <li><code>null</code> </ul> |
 |  [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The Firebase Remote Config service interface. |
 |  [RemoteConfigSettings](./remote-config.remoteconfigsettings.md#remoteconfigsettings_interface) | Defines configuration options for the Remote Config SDK. |
 |  [Value](./remote-config.value.md#value_interface) | Wraps a value with metadata and type-safe getters. |
@@ -293,7 +293,7 @@ export declare function setCustomSignals(remoteConfig: RemoteConfig, customSigna
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  remoteConfig | [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) | The [RemoteConfig](./remote-config.remoteconfig.md#remoteconfig_interface) instance. |
-|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. |
+|  customSignals | [CustomSignals](./remote-config.customsignals.md#customsignals_interface) | Map (key, value) of the custom signals to be set for the app instance. If a key already exists, the value is overwritten. Setting the value of a custom signal null unsets the signal. The signals will be persisted locally on the client. |
 
 <b>Returns:</b>
 

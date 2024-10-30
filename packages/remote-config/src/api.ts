@@ -265,7 +265,9 @@ function getAllKeys(obj1: {} = {}, obj2: {} = {}): string[] {
  * Sets the custom signals for the app instance.
  *
  * @param remoteConfig - The {@link RemoteConfig} instance.
- * @param customSignals - Map (key, value) of the custom signals to be set for the app instance.
+ * @param customSignals - Map (key, value) of the custom signals to be set for the app instance. If
+ * a key already exists, the value is overwritten. Setting the value of a custom signal null unsets
+ * the signal. The signals will be persisted locally on the client.
  *
  * @public
  */

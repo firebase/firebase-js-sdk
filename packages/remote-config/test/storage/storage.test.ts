@@ -140,4 +140,17 @@ describe('Storage', () => {
 
     expect(storedCustomSignals).to.deep.eq(updatedSignals);
   });
+
+  it('deletes custom signal when value supplied is null', async () => {
+    const customSignals = { key: 'value', key1: 'value1' };
+    const updatedSignals = { key: 'value' };
+
+    await storage.setCustomSignals(customSignals);
+
+    await storage.setCustomSignals({ key1: null });
+
+    const storedCustomSignals = await storage.getCustomSignals();
+
+    expect(storedCustomSignals).to.deep.eq(updatedSignals);
+  });
 });
