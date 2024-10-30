@@ -1,5 +1,4 @@
 ---
-'@firebase/remote-config-compat': minor
 '@firebase/remote-config-types': minor
 '@firebase/remote-config': minor
 'firebase': minor
