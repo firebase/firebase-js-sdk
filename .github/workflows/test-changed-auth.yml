@@ -69,6 +69,7 @@ jobs:
 
   test-chrome:
     name: Test Auth on Chrome and Node If Changed
+    needs: build
     runs-on: ubuntu-latest
     steps:
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
@@ -113,6 +114,7 @@ jobs:
         run: xvfb-run yarn test:changed auth
   test-firefox:
     name: Test Auth on Firefox If Changed
+    needs: build
     # Whatever version of Firefox comes with 22.04 is causing Firefox
     # startup to hang when launched by karma. Need to look further into
     # why.
@@ -152,6 +154,7 @@ jobs:
 
   test-webkit:
     name: Test Auth on Webkit if Changed
+    needs: build
     runs-on: macos-latest
 
     steps:
