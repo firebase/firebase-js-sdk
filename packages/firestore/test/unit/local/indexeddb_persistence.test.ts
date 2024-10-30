@@ -21,7 +21,7 @@ import { Context } from 'mocha';
 
 import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { canonifyTarget } from '../../../src/core/target';
+import { canonifyTarget, Target } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -911,7 +911,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTargetStore);
           return targetsStore.iterate((key, value) => {
             const targetData = fromDbTarget(value).target;
-            const expectedCanonicalId = canonifyTarget(targetData);
+            // TODO(pipeline): This needs to handle pipeline properly.
+            const expectedCanonicalId = canonifyTarget(targetData as Target);
 
             const actualCanonicalId = value.canonicalId;
             expect(actualCanonicalId).to.equal(expectedCanonicalId);

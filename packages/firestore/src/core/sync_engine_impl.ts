@@ -45,7 +45,8 @@ import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
-  DocumentMap
+  DocumentMap,
+  mutableDocumentMap
 } from '../model/collections';
 import { MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -81,8 +82,10 @@ import {
 import {
   EventManager,
   eventManagerOnOnlineStateChange,
+  eventManagerOnPipelineWatchChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError
+  eventManagerOnWatchError,
+  PipelineListener
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
@@ -115,6 +118,9 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { Pipeline } from '../api/pipeline';
+import { PipelineSnapshot } from '../api/snapshot';
+import { PipelineResult } from '../lite-api/pipeline-result';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -141,6 +147,56 @@ class QueryView {
      */
     public view: View
   ) {}
+}
+
+export class PipelineResultView {
+  private keyToIndexMap: Map<DocumentKey, number>;
+  constructor(public pipeline: Pipeline, public view: Array<MutableDocument>) {
+    this.keyToIndexMap = new Map<DocumentKey, number>();
+    this.buildKeyToIndexMap();
+  }
+
+  private buildKeyToIndexMap(): void {
+    this.view.forEach((doc, index) => {
+      this.keyToIndexMap.set(doc.key, index);
+    });
+  }
+
+  addResult(key: DocumentKey, doc: MutableDocument) {
+    if (this.keyToIndexMap.has(key)) {
+      throw new Error(`Result with key ${key} already exists.`);
+    }
+    this.view.push(doc);
+    this.keyToIndexMap.set(key, this.view.length - 1);
+  }
+
+  removeResult(key: DocumentKey) {
+    const index = this.keyToIndexMap.get(key);
+    if (index === undefined) {
+      return; // Result not found, nothing to remove
+    }
+
+    // Remove from the array efficiently by swapping with the last element and popping
+    const lastIndex = this.view.length - 1;
+    if (index !== lastIndex) {
+      [this.view[index], this.view[lastIndex]] = [
+        this.view[lastIndex],
+        this.view[index]
+      ];
+      // Update the keyToIndexMap for the swapped element
+      this.keyToIndexMap.set(this.view[index].key, index);
+    }
+    this.view.pop();
+    this.keyToIndexMap.delete(key);
+  }
+
+  updateResult(key: DocumentKey, doc: MutableDocument) {
+    const index = this.keyToIndexMap.get(key);
+    if (index === undefined) {
+      throw new Error(`Result with key ${key} not found.`);
+    }
+    this.view[index] = doc;
+  }
 }
 
 /** Tracks a limbo resolution. */
@@ -208,6 +264,9 @@ class SyncEngineImpl implements SyncEngine {
     queryEquals
   );
   queriesByTarget = new Map<TargetId, Query[]>();
+  // TODO(pipeline): below is a hack for the lack of canonical id for pipelines
+  pipelineByTarget = new Map<TargetId, PipelineListener>();
+  pipelineViewByTarget = new Map<TargetId, PipelineResultView>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
    * limbo resolution query. The strings in this set are the result of calling
@@ -283,6 +342,24 @@ export function newSyncEngine(
     syncEngine._isPrimaryClient = true;
   }
   return syncEngine;
+}
+
+export async function syncEngineListenPipeline(
+  syncEngine: SyncEngine,
+  pipeline: PipelineListener
+): Promise<void> {
+  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
+  const targetData = await localStoreAllocateTarget(
+    syncEngineImpl.localStore,
+    pipeline.pipeline
+  );
+  syncEngineImpl.pipelineByTarget.set(targetData.targetId, pipeline);
+  syncEngineImpl.pipelineViewByTarget.set(
+    targetData.targetId,
+    new PipelineResultView(pipeline.pipeline, [])
+  );
+
+  remoteStoreListen(syncEngineImpl.remoteStore, targetData);
 }
 
 /**
@@ -708,6 +785,7 @@ export async function syncEngineRejectListen(
         primitiveComparator
       ),
       documentUpdates,
+      mutableDocumentMap(),
       resolvedLimboDocuments
     );
 
@@ -1079,10 +1157,30 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   const docChangesInAllViews: LocalViewChanges[] = [];
   const queriesProcessed: Array<Promise<void>> = [];
 
-  if (syncEngineImpl.queryViewsByQuery.isEmpty()) {
+  if (
+    syncEngineImpl.queryViewsByQuery.isEmpty() &&
+    syncEngineImpl.pipelineViewByTarget.size === 0
+  ) {
     // Return early since `onWatchChange()` might not have been assigned yet.
     return;
   }
+
+  syncEngineImpl.pipelineViewByTarget.forEach((results, targetId) => {
+    const change = remoteEvent?.targetChanges.get(targetId);
+    if (!!change) {
+      change.modifiedDocuments.forEach(key => {
+        results.updateResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
+      });
+      change.addedDocuments.forEach(key => {
+        results.addResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
+      });
+      change.removedDocuments.forEach(key => {
+        results.removeResult(key);
+      });
+
+      syncEngineImpl.pipelineByTarget.get(targetId)?.onViewSnapshot(results);
+    }
+  });
 
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
