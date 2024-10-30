@@ -26,6 +26,11 @@ jobs:
     name: Build the SDK
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+      with:
+        # This makes Actions fetch all Git history so build-changed script can diff properly.
+        fetch-depth: 0
     # Install Chrome so the correct version of webdriver can be installed by chromedriver when
     # setting up the repo. This must be done to build and execute Auth properly.
     - name: install Chrome stable
