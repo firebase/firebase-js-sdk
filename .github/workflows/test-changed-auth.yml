@@ -24,10 +24,44 @@ env:
   CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
   CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   CHROME_VALIDATED_VERSION: linux-120.0.6099.71
+  artifactRetentionDays: 14
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
+  build:
+    name: Build the SDK
+    runs-on: ubuntu-latest
+    steps:
+    # Install Chrome so the correct version of webdriver can be installed by chromedriver when
+    # setting up the repo. This must be done to build and execute Auth properly.
+    - name: install Chrome stable
+      run: |
+        npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v3
+    - name: Set up Node (20)
+      uses: actions/setup-node@v3
+      with:
+        node-version: 22.10.0
+    - name: Test setup and yarn install
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn
+    - name: yarn build:changed auth
+      run: yarn build:changed auth
+    - name: Archive build
+      if: ${{ !cancelled() }}
+      run: |
+        tar -cf build.tar --exclude=.git .
+        gzip build.tar
+    - name: Upload build archive
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v3
+      with:
+          name: build.tar.gz
+          path: build.tar.gz
+          retention-days: ${{ env.artifactRetentionDays }}
+
   test-chrome:
     name: Test Auth on Chrome and Node If Changed
     runs-on: ubuntu-latest
@@ -56,6 +90,12 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - name: Set up Node (20)
         uses: actions/setup-node@v3
         with:
@@ -64,8 +104,6 @@ jobs:
         run: |
           cp config/ci.config.json config/project.json
           yarn
-      - name: build
-        run: yarn build:changed auth
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed auth
   test-firefox:
@@ -96,8 +134,12 @@ jobs:
         run: |
           cp config/ci.config.json config/project.json
           yarn
-      - name: build
-        run: yarn build:changed auth
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - name: Run tests on auth changed packages
         run: xvfb-run yarn test:changed auth
         env:
@@ -121,8 +163,12 @@ jobs:
           cp config/ci.config.json config/project.json
           yarn
           npx playwright install webkit
-      - name: build
-        run: yarn build:changed auth
+      - name: Download build archive
+        uses: actions/download-artifact@v3
+        with:
+          name: build.tar.gz
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - name: Run tests on changed packages
         run: yarn test:changed auth
         env:
