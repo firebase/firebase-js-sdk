@@ -197,5 +197,5 @@ A listener that is called whenever the App Check token changes.
 <b>Signature:</b>
 
 ```typescript
-export declare type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
+export type AppCheckTokenListener = (token: AppCheckTokenResult) => void;
 ```

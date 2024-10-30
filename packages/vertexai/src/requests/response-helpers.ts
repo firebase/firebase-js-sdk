@@ -24,6 +24,28 @@ import {
   VertexAIErrorCode
 } from '../types';
 import { VertexAIError } from '../errors';
+import { logger } from '../logger';
+
+/**
+ * Creates an EnhancedGenerateContentResponse object that has helper functions and
+ * other modifications that improve usability.
+ */
+export function createEnhancedContentResponse(
+  response: GenerateContentResponse
+): EnhancedGenerateContentResponse {
+  /**
+   * The Vertex AI backend omits default values.
+   * This causes the `index` property to be omitted from the first candidate in the
+   * response, since it has index 0, and 0 is a default value.
+   * See: https://github.com/firebase/firebase-js-sdk/issues/8566
+   */
+  if (response.candidates && !response.candidates[0].hasOwnProperty('index')) {
+    response.candidates[0].index = 0;
+  }
+
+  const responseWithHelpers = addHelpers(response);
+  return responseWithHelpers;
+}
 
 /**
  * Adds convenience helper methods to a response object, including stream
@@ -35,7 +57,7 @@ export function addHelpers(
   (response as EnhancedGenerateContentResponse).text = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning text from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
@@ -67,7 +89,7 @@ export function addHelpers(
   (response as EnhancedGenerateContentResponse).functionCalls = () => {
     if (response.candidates && response.candidates.length > 0) {
       if (response.candidates.length > 1) {
-        console.warn(
+        logger.warn(
           `This response had ${response.candidates.length} ` +
             `candidates. Returning function calls from the first candidate only. ` +
             `Access response.candidates directly to use the other candidates.`
@@ -119,7 +141,7 @@ export function getText(response: GenerateContentResponse): string {
 }
 
 /**
- * Returns {@link FunctionCall}s associated with first candidate.
+ * Returns <code>{@link FunctionCall}</code>s associated with first candidate.
  */
 export function getFunctionCalls(
   response: GenerateContentResponse

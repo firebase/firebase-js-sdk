@@ -59,7 +59,7 @@ const encoder = newTextEncoder();
 export function byteStreamReaderFromString(
   content: string,
   bytesPerRead: number
-): ReadableStreamReader<Uint8Array> {
+): ReadableStreamDefaultReader<Uint8Array> {
   const data = encoder.encode(content);
   return toByteStreamReader(data, bytesPerRead);
 }

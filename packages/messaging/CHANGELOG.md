@@ -1,5 +1,22 @@
 # @firebase/messaging
 
+## 0.12.13
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/installations@0.6.10
+  - @firebase/component@0.6.10
+  - @firebase/util@1.10.1
+
+## 0.12.12
+
+### Patch Changes
+
+- [`d6fa58854`](https://github.com/firebase/firebase-js-sdk/commit/d6fa58854e3cc976eab150154e2786043bc5e563) [#8534](https://github.com/firebase/firebase-js-sdk/pull/8534) - The logging endpoint has been updated to ensure proper logging of WebPush entries. This resolves an issue where BigQuery logs were missing WebPush data. The payload structure has also been updated in alignment with the latest logging requirements as specified in go/firelog.
+
 ## 0.12.11
 
 ### Patch Changes

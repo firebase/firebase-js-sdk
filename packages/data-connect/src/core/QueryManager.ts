@@ -37,7 +37,7 @@ import { DataConnectTransport } from '../network';
 import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
 
-import { DataConnectError } from './error';
+import { Code, DataConnectError } from './error';
 
 interface TrackedQuery<Data, Variables> {
   ref: Omit<OperationRef<Data, Variables>, 'dataConnect'>;
@@ -172,6 +172,12 @@ export class QueryManager {
   executeQuery<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
   ): QueryPromise<Data, Variables> {
+    if (queryRef.refType !== QUERY_STR) {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `ExecuteQuery can only execute query operation`
+      );
+    }
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,

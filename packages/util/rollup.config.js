@@ -24,30 +24,9 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  })
-];
+const buildPlugins = [typescriptPlugin({ typescript })];
 
 const browserBuilds = [
-  {
-    input: 'index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
   {
     input: 'index.ts',
     output: {
@@ -55,7 +34,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -65,7 +44,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -73,16 +52,22 @@ const browserBuilds = [
 const nodeBuilds = [
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.node.ts',
-    output: [
-      { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
-    ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

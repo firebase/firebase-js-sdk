@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { RequestOptions, VertexAIErrorCode } from '../types';
+import { ErrorDetails, RequestOptions, VertexAIErrorCode } from '../types';
 import { VertexAIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
@@ -24,6 +24,7 @@ import {
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
+import { logger } from '../logger';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -83,8 +84,13 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   headers.append('x-goog-api-key', url.apiSettings.apiKey);
   if (url.apiSettings.getAppCheckToken) {
     const appCheckToken = await url.apiSettings.getAppCheckToken();
-    if (appCheckToken && !appCheckToken.error) {
+    if (appCheckToken) {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
+      if (appCheckToken.error) {
+        logger.warn(
+          `Unable to obtain a valid App Check token: ${appCheckToken.error.message}`
+        );
+      }
     }
   }
 
@@ -151,6 +157,35 @@ export async function makeRequest(
       } catch (e) {
         // ignored
       }
+      if (
+        response.status === 403 &&
+        errorDetails.some(
+          (detail: ErrorDetails) => detail.reason === 'SERVICE_DISABLED'
+        ) &&
+        errorDetails.some((detail: ErrorDetails) =>
+          (
+            detail.links as Array<Record<string, string>>
+          )?.[0]?.description.includes(
+            'Google developers console API activation'
+          )
+        )
+      ) {
+        throw new VertexAIError(
+          VertexAIErrorCode.API_NOT_ENABLED,
+          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase ` +
+            `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
+            `Firebase project. Enable this API by visiting the Firebase Console ` +
+            `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
+            `and clicking "Get started". If you enabled this API recently, ` +
+            `wait a few minutes for the action to propagate to our systems and ` +
+            `then retry.`,
+          {
+            status: response.status,
+            statusText: response.statusText,
+            errorDetails
+          }
+        );
+      }
       throw new VertexAIError(
         VertexAIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,
@@ -165,6 +200,7 @@ export async function makeRequest(
     let err = e as Error;
     if (
       (e as VertexAIError).code !== VertexAIErrorCode.FETCH_ERROR &&
+      (e as VertexAIError).code !== VertexAIErrorCode.API_NOT_ENABLED &&
       e instanceof Error
     ) {
       err = new VertexAIError(
@@ -186,11 +222,13 @@ export async function makeRequest(
  */
 function buildFetchOptions(requestOptions?: RequestOptions): RequestInit {
   const fetchOptions = {} as RequestInit;
+  let timeoutMillis = 180 * 1000; // default: 180 s
   if (requestOptions?.timeout && requestOptions?.timeout >= 0) {
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-    setTimeout(() => abortController.abort(), requestOptions.timeout);
-    fetchOptions.signal = signal;
+    timeoutMillis = requestOptions.timeout;
   }
+  const abortController = new AbortController();
+  const signal = abortController.signal;
+  setTimeout(() => abortController.abort(), timeoutMillis);
+  fetchOptions.signal = signal;
   return fetchOptions;
 }
