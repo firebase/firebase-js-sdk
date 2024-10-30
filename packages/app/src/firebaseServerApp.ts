@@ -30,7 +30,8 @@ import { base64Decode } from '@firebase/util';
 
 export class FirebaseServerAppImpl
   extends FirebaseAppImpl
-  implements FirebaseServerApp {
+  implements FirebaseServerApp
+{
   private readonly _serverConfig: FirebaseServerAppSettings;
   private _finalizationRegistry: FinalizationRegistry<object> | null;
   private _refCount: number;
@@ -69,17 +70,20 @@ export class FirebaseServerAppImpl
     };
 
     // Parse the installationAuthToken if provided.
+    this._installationsId = null;
     if (this._serverConfig.installationsAuthToken !== undefined) {
-      const thirdPart = this._serverConfig.installationsAuthToken.split(".")[1].split(".")[0];
-      const decodedToken = base64Decode(thirdPart);
-      const tokenJSON = JSON.parse(decodedToken ? decodedToken : "");
-      if (!decodedToken || !tokenJSON || tokenJSON.fid === undefined) {
-        throw ERROR_FACTORY.create(AppError.INVALID_SERVER_APP_INSTALLATIONS_AUTH_TOKEN);
-      } else {
+      try {
+        const decodedToken = base64Decode(
+          this._serverConfig.installationsAuthToken.split('.')[1]
+        );
+        const tokenJSON = JSON.parse(decodedToken ? decodedToken : '');
         this._installationsId = tokenJSON.fid;
+      } catch (e) {
+        console.warn(e);
       }
-    } else {
-      this._installationsId = null;
+      if (!this._installationsId) {
+        console.error('INVALID SERVER APP INSTALLATIONS AUTH TOKEN!');
+      }
     }
 
     this._finalizationRegistry = null;
