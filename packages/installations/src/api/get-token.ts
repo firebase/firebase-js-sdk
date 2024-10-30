@@ -34,10 +34,10 @@ export async function getToken(
   installations: Installations,
   forceRefresh = false
 ): Promise<string> {
-  if(_isFirebaseServerApp(installations.app)) {
-    if(installations.app.installationsAuthToken === undefined) {
+  if (_isFirebaseServerApp(installations.app)) {
+    if (installations.app.installationsAuthToken === undefined) {
       throw ERROR_FACTORY.create(ErrorCode.SERVER_APP_MISSING_AUTH_TOKEN);
-    } 
+    }
     return installations.app.installationsAuthToken;
   }
   const installationsImpl = installations as FirebaseInstallationsImpl;

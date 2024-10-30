@@ -30,10 +30,10 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
  * @public
  */
 export async function getId(installations: Installations): Promise<string> {
-  if(_isFirebaseServerApp(installations.app)) {
-    if(!installations.app.installationsId) {
+  if (_isFirebaseServerApp(installations.app)) {
+    if (!installations.app.installationsId) {
       throw ERROR_FACTORY.create(ErrorCode.SERVER_APP_MISSING_AUTH_TOKEN);
-    } 
+    }
     return installations.app.installationsId;
   }
 

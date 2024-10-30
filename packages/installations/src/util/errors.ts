@@ -39,7 +39,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.DELETE_PENDING_REGISTRATION]:
     "Can't delete installation while there is a pending registration request.",
   [ErrorCode.SERVER_APP_MISSING_AUTH_TOKEN]:
-    "The instance of FirebaseServerApp was not initialized with a valid installationsAuthToken"
+    'The instance of FirebaseServerApp was not initialized with a valid installationsAuthToken'
 };
 
 interface ErrorParams {
