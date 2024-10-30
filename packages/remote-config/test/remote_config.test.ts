@@ -442,7 +442,7 @@ describe('RemoteConfig', () => {
 
   describe('fetch', () => {
     let timeoutStub: sinon.SinonStub<
-      [(...args: any[]) => void, number, ...any[]]
+      [callback: (args: void) => void, ms?: number | undefined]
     >;
     beforeEach(() => {
       client.fetch = sinon

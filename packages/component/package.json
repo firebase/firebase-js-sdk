@@ -1,17 +1,15 @@
 {
   "name": "@firebase/component",
-  "version": "0.6.9",
+  "version": "0.6.10",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm5.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "esm5": "./dist/esm/index.esm5.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -33,14 +31,14 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/util": "1.10.0",
+    "@firebase/util": "1.10.1",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/component",
@@ -56,5 +54,8 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

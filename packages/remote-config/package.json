@@ -1,17 +1,15 @@
 {
   "name": "@firebase/remote-config",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "The Remote Config package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/esm/index.esm2017.js",
   "module": "dist/esm/index.esm2017.js",
-  "esm5": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/remote-config-public.d.ts",
       "require": "./dist/index.cjs.js",
-      "esm5": "./dist/esm/index.esm.js",
       "default": "./dist/esm/index.esm2017.js"
     },
     "./package.json": "./package.json"
@@ -42,18 +40,18 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.6.9",
-    "@firebase/logger": "0.4.2",
-    "@firebase/util": "1.10.0",
-    "@firebase/component": "0.6.9",
+    "@firebase/installations": "0.6.10",
+    "@firebase/logger": "0.4.3",
+    "@firebase/util": "1.10.1",
+    "@firebase/component": "0.6.10",
     "tslib": "^2.1.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.10.11",
+    "@firebase/app": "0.10.15",
     "rollup": "2.79.1",
     "rollup-plugin-typescript2": "0.31.2",
-    "typescript": "4.7.4"
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/remote-config",

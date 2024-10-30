@@ -13,13 +13,12 @@
     }
   ],
   "ignoreDeps": [
-    "karma-sauce-launcher",
     "protractor",
     "long",
     "rollup-plugin-copy-assets",
-    "whatwg-fetch",
     "typedoc",
-    "@microsoft/tsdoc"
+    "@microsoft/tsdoc",
+    "idb"
   ],
   "ignorePaths": [
     "auth/demo",

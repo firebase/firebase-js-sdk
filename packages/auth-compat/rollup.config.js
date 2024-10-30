@@ -27,40 +27,9 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-/**
- * Common plugins for all builds
- */
-const commonPlugins = [json(), resolve()];
-
-const es5BuildPlugins = [
-  ...commonPlugins,
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const es2017BuildPlugins = [
-  ...commonPlugins,
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  })
-];
+const buildPlugins = [json(), resolve(), typescriptPlugin({ typescript })];
 
 const browserBuilds = [
-  {
-    input: 'index.ts',
-    output: [{ file: pkg.esm5, format: 'es', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
   {
     input: 'index.ts',
     output: {
@@ -68,7 +37,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -81,7 +50,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: es2017BuildPlugins,
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: false
@@ -92,8 +61,12 @@ const browserBuilds = [
 const nodeBuilds = [
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: true
@@ -104,7 +77,7 @@ const nodeBuilds = [
     output: [
       { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
     ],
-    plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+    plugins: [...buildPlugins, emitModulePackageFile()],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
     treeshake: {
       moduleSideEffects: true
@@ -144,7 +117,7 @@ const umdBuild = {
              );
            }`
   },
-  plugins: [...es5BuildPlugins, uglify()],
+  plugins: [...buildPlugins, uglify()],
   external: ['@firebase/app-compat', '@firebase/app']
 };
 

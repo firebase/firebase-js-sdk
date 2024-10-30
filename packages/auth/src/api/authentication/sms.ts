@@ -18,6 +18,8 @@
 import {
   Endpoint,
   HttpMethod,
+  RecaptchaClientType,
+  RecaptchaVersion,
   _addTidIfNecessary,
   _makeTaggedError,
   _performApiRequest,
@@ -30,8 +32,13 @@ import { Auth } from '../../model/public_types';
 
 export interface SendPhoneVerificationCodeRequest {
   phoneNumber: string;
-  recaptchaToken: string;
+  // reCAPTCHA v2 token
+  recaptchaToken?: string;
   tenantId?: string;
+  // reCAPTCHA Enterprise token
+  captchaResponse?: string;
+  clientType?: RecaptchaClientType;
+  recaptchaVersion?: RecaptchaVersion;
 }
 
 export interface SendPhoneVerificationCodeResponse {

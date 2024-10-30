@@ -62,12 +62,21 @@ describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
-      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: 'myfunc',
+              description: 'mydesc'
+            }
+          ]
+        }
+      ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
       systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
     });
     expect(genModel.tools?.length).to.equal(1);
-    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -122,12 +131,21 @@ describe('GenerativeModel', () => {
   it('generateContent overrides model values', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
-      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: 'myfunc',
+              description: 'mydesc'
+            }
+          ]
+        }
+      ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
       systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
     });
     expect(genModel.tools?.length).to.equal(1);
-    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -139,7 +157,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent({
       contents: [{ role: 'user', parts: [{ text: 'hello' }] }],
-      tools: [{ functionDeclarations: [{ name: 'otherfunc' }] }],
+      tools: [
+        {
+          functionDeclarations: [
+            { name: 'otherfunc', description: 'otherdesc' }
+          ]
+        }
+      ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.AUTO } },
       systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
     });
@@ -162,12 +186,14 @@ describe('GenerativeModel', () => {
   it('passes params through to chat.sendMessage', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
-      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      tools: [
+        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+      ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
       systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
     });
     expect(genModel.tools?.length).to.equal(1);
-    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -222,12 +248,14 @@ describe('GenerativeModel', () => {
   it('startChat overrides model values', async () => {
     const genModel = new GenerativeModel(fakeVertexAI, {
       model: 'my-model',
-      tools: [{ functionDeclarations: [{ name: 'myfunc' }] }],
+      tools: [
+        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+      ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
       systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
     });
     expect(genModel.tools?.length).to.equal(1);
-    expect(genModel.toolConfig?.functionCallingConfig.mode).to.equal(
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
@@ -239,7 +267,13 @@ describe('GenerativeModel', () => {
     );
     await genModel
       .startChat({
-        tools: [{ functionDeclarations: [{ name: 'otherfunc' }] }],
+        tools: [
+          {
+            functionDeclarations: [
+              { name: 'otherfunc', description: 'otherdesc' }
+            ]
+          }
+        ],
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.AUTO }
         },
