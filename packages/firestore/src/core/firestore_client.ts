@@ -80,12 +80,11 @@ import {
   addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
-  eventManagerListenPipeline,
   eventManagerUnlisten,
   ListenOptions,
   Observer,
-  PipelineListener,
   QueryListener,
+  QueryOrPipeline,
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
@@ -410,10 +409,6 @@ export async function getEventManager(
     null,
     onlineComponentProvider.syncEngine
   );
-  eventManager.onListenPipeline = syncEngineListenPipeline.bind(
-    null,
-    onlineComponentProvider.syncEngine
-  );
   return eventManager;
 }
 
@@ -459,7 +454,7 @@ export function firestoreClientWaitForPendingWrites(
 
 export function firestoreClientListen(
   client: FirestoreClient,
-  query: Query,
+  query: QueryOrPipeline,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
@@ -579,27 +574,6 @@ export function firestoreClientExecutePipeline(
     }
   });
   return deferred.promise;
-}
-
-export function firestoreClientListenPipeline(
-  client: FirestoreClient,
-  pipeline: Pipeline,
-  observer: {
-    next?: (snapshot: PipelineSnapshot) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe {
-  const wrappedObserver = new AsyncObserver(observer);
-  const listener = new PipelineListener(pipeline, wrappedObserver);
-  client.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(client);
-    return eventManagerListenPipeline(eventManager, listener);
-  });
-  return () => {
-    wrappedObserver.mute();
-    // TODO(pipeline): actually unlisten
-  };
 }
 
 export function firestoreClientWrite(

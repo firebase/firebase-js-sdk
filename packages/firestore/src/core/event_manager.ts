@@ -27,6 +27,7 @@ import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { Pipeline } from '../api/pipeline';
 import { PipelineSnapshot } from '../api/snapshot';
 import { PipelineResultView } from './sync_engine_impl';
+import { canonifyPipeline, pipelineEq } from './pipeline-util';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -50,6 +51,12 @@ export interface Observer<T> {
   error: EventHandler<FirestoreError>;
 }
 
+export type QueryOrPipeline = Query | Pipeline;
+
+export function isPipeline(q: QueryOrPipeline): q is Pipeline {
+  return q instanceof Pipeline;
+}
+
 /**
  * EventManager is responsible for mapping queries to query event emitters.
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
@@ -61,14 +68,15 @@ export interface Observer<T> {
  */
 export interface EventManager {
   onListen?: (
-    query: Query,
+    query: QueryOrPipeline,
     enableRemoteListen: boolean
   ) => Promise<ViewSnapshot>;
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
-  // TODO(pipeline): consolidate query and pipeline
-  onListenPipeline?: (pipeline: PipelineListener) => Promise<void>;
+  onUnlisten?: (
+    query: QueryOrPipeline,
+    disableRemoteListen: boolean
+  ) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: QueryOrPipeline) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: QueryOrPipeline) => Promise<void>;
   terminate(): void;
 }
 
@@ -77,7 +85,8 @@ export function newEventManager(): EventManager {
 }
 
 export class EventManagerImpl implements EventManager {
-  queries: ObjectMap<Query, QueryListenersInfo> = newQueriesObjectMap();
+  queries: ObjectMap<QueryOrPipeline, QueryListenersInfo> =
+    newQueriesObjectMap();
 
   onlineState: OnlineState = OnlineState.Unknown;
 
@@ -85,23 +94,25 @@ export class EventManagerImpl implements EventManager {
 
   /** Callback invoked when a Query is first listen to. */
   onListen?: (
-    query: Query,
+    query: QueryOrPipeline,
     enableRemoteListen: boolean
   ) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
-  onUnlisten?: (query: Query, disableRemoteListen: boolean) => Promise<void>;
-  onListenPipeline?: (pipeline: PipelineListener) => Promise<void>;
+  onUnlisten?: (
+    query: QueryOrPipeline,
+    disableRemoteListen: boolean
+  ) => Promise<void>;
 
   /**
    * Callback invoked when a Query starts listening to the remote store, while
    * already listening to the cache.
    */
-  onFirstRemoteStoreListen?: (query: Query) => Promise<void>;
+  onFirstRemoteStoreListen?: (query: QueryOrPipeline) => Promise<void>;
   /**
    * Callback invoked when a Query stops listening to the remote store, while
    * still listening to the cache.
    */
-  onLastRemoteStoreUnlisten?: (query: Query) => Promise<void>;
+  onLastRemoteStoreUnlisten?: (query: QueryOrPipeline) => Promise<void>;
 
   terminate(): void {
     errorAllTargets(
@@ -111,10 +122,43 @@ export class EventManagerImpl implements EventManager {
   }
 }
 
-function newQueriesObjectMap(): ObjectMap<Query, QueryListenersInfo> {
-  return new ObjectMap<Query, QueryListenersInfo>(
-    q => canonifyQuery(q),
-    queryEquals
+export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return stringifyQuery(q);
+}
+
+export function canonifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return canonifyQuery(q);
+}
+
+export function queryOrPipelineEqual(
+  left: QueryOrPipeline,
+  right: QueryOrPipeline
+): boolean {
+  if (left instanceof Pipeline && right instanceof Pipeline) {
+    return pipelineEq(left, right);
+  }
+  if (
+    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
+    (!(left instanceof Pipeline) && right instanceof Pipeline)
+  ) {
+    return false;
+  }
+
+  return queryEquals(left as Query, right as Query);
+}
+
+function newQueriesObjectMap(): ObjectMap<QueryOrPipeline, QueryListenersInfo> {
+  return new ObjectMap<QueryOrPipeline, QueryListenersInfo>(
+    q => canonifyQueryOrPipeline(q),
+    queryOrPipelineEqual
   );
 }
 
@@ -129,7 +173,6 @@ function validateEventManager(eventManagerImpl: EventManagerImpl): void {
     !!eventManagerImpl.onLastRemoteStoreUnlisten,
     'onLastRemoteStoreUnlisten not set'
   );
-  debugAssert(!!eventManagerImpl.onListenPipeline, 'onListenPipeline not set');
 }
 
 const enum ListenerSetupAction {
@@ -194,7 +237,11 @@ export async function eventManagerListen(
   } catch (e) {
     const firestoreError = wrapInUserErrorIfRecoverable(
       e as Error,
-      `Initialization of query '${stringifyQuery(listener.query)}' failed`
+      `Initialization of query '${
+        isPipeline(listener.query)
+          ? canonifyPipeline(listener.query)
+          : stringifyQuery(listener.query)
+      }' failed`
     );
     listener.onError(firestoreError);
     return;
@@ -217,25 +264,6 @@ export async function eventManagerListen(
     if (raisedEvent) {
       raiseSnapshotsInSyncEvent(eventManagerImpl);
     }
-  }
-}
-
-export async function eventManagerListenPipeline(
-  eventManager: EventManager,
-  listener: PipelineListener
-): Promise<void> {
-  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
-  validateEventManager(eventManagerImpl);
-
-  try {
-    await eventManagerImpl.onListenPipeline!(listener);
-  } catch (e) {
-    const firestoreError = wrapInUserErrorIfRecoverable(
-      e as Error,
-      `Initialization of query '${listener.pipeline}' failed`
-    );
-    listener.onError(firestoreError);
-    return;
   }
 }
 
@@ -310,13 +338,6 @@ export function eventManagerOnWatchChange(
   if (raisedEvent) {
     raiseSnapshotsInSyncEvent(eventManagerImpl);
   }
-}
-
-export function eventManagerOnPipelineWatchChange(
-  eventManager: EventManager,
-  viewSnaps: PipelineResultView[]
-): void {
-  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
 }
 
 export function eventManagerOnWatchError(
@@ -445,7 +466,7 @@ export class QueryListener {
   private onlineState = OnlineState.Unknown;
 
   constructor(
-    readonly query: Query,
+    readonly query: QueryOrPipeline,
     private queryObserver: Observer<ViewSnapshot>,
     options?: ListenOptions
   ) {

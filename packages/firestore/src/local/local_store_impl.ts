@@ -96,6 +96,7 @@ import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
 import { Pipeline } from '../api/pipeline';
+import { QueryOrPipeline } from '../core/event_manager';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -1109,7 +1110,7 @@ export async function localStoreReleaseTarget(
  */
 export function localStoreExecuteQuery(
   localStore: LocalStore,
-  query: Query,
+  query: QueryOrPipeline,
   usePreviousResults: boolean
 ): Promise<QueryResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);

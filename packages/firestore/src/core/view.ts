@@ -35,6 +35,7 @@ import {
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
+import { QueryOrPipeline } from './event_manager';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
@@ -89,7 +90,7 @@ export class View {
   private docComparator: (d1: Document, d2: Document) => number;
 
   constructor(
-    private query: Query,
+    private query: QueryOrPipeline,
     /** Documents included in the remote target */
     private _syncedDocuments: DocumentKeySet
   ) {

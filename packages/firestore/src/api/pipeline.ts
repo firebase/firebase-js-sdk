@@ -1,6 +1,6 @@
 import {
   firestoreClientExecutePipeline,
-  firestoreClientListenPipeline
+  firestoreClientListen
 } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
@@ -140,7 +140,8 @@ export class Pipeline<
     this.stages.push(new Sort([Field.of('__name__').ascending()]));
 
     const client = ensureFirestoreConfigured(this.db);
-    firestoreClientListenPipeline(client, this, { next, error, complete });
+    // TODO(pipeline) hook up options
+    firestoreClientListen(client, this, {}, observer);
 
     return () => {};
   }

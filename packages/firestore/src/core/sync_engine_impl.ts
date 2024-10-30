@@ -80,12 +80,16 @@ import {
   bundleSuccessProgress
 } from './bundle_impl';
 import {
+  canonifyQueryOrPipeline,
   EventManager,
   eventManagerOnOnlineStateChange,
-  eventManagerOnPipelineWatchChange,
   eventManagerOnWatchChange,
   eventManagerOnWatchError,
-  PipelineListener
+  isPipeline,
+  PipelineListener,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  stringifyQueryOrPipeline
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
@@ -134,7 +138,7 @@ class QueryView {
     /**
      * The query itself.
      */
-    public query: Query,
+    public query: QueryOrPipeline,
     /**
      * The target number created by the client that is used in the watch
      * stream to identify this query.
@@ -252,7 +256,7 @@ interface SyncEngineListener {
   onWatchChange?(snapshots: ViewSnapshot[]): void;
 
   /** Handles the failure of a query. */
-  onWatchError?(query: Query, error: FirestoreError): void;
+  onWatchError?(query: QueryOrPipeline, error: FirestoreError): void;
 }
 
 /**
@@ -280,14 +284,11 @@ class SyncEngineImpl implements SyncEngine {
    */
   applyDocChanges?: ApplyDocChangesHandler;
 
-  queryViewsByQuery = new ObjectMap<Query, QueryView>(
-    q => canonifyQuery(q),
-    queryEquals
+  queryViewsByQuery = new ObjectMap<QueryOrPipeline, QueryView>(
+    q => canonifyQueryOrPipeline(q),
+    queryOrPipelineEqual
   );
-  queriesByTarget = new Map<TargetId, Query[]>();
-  // TODO(pipeline): below is a hack for the lack of canonical id for pipelines
-  pipelineByTarget = new Map<TargetId, PipelineListener>();
-  pipelineViewByTarget = new Map<TargetId, PipelineResultView>();
+  queriesByTarget = new Map<TargetId, QueryOrPipeline[]>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
    * limbo resolution query. The strings in this set are the result of calling
@@ -365,24 +366,6 @@ export function newSyncEngine(
   return syncEngine;
 }
 
-export async function syncEngineListenPipeline(
-  syncEngine: SyncEngine,
-  pipeline: PipelineListener
-): Promise<void> {
-  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
-  const targetData = await localStoreAllocateTarget(
-    syncEngineImpl.localStore,
-    pipeline.pipeline
-  );
-  syncEngineImpl.pipelineByTarget.set(targetData.targetId, pipeline);
-  syncEngineImpl.pipelineViewByTarget.set(
-    targetData.targetId,
-    new PipelineResultView(pipeline.pipeline, [])
-  );
-
-  remoteStoreListen(syncEngineImpl.remoteStore, targetData);
-}
-
 /**
  * Initiates the new listen, resolves promise when listen enqueued to the
  * server. All the subsequent view snapshots or errors are sent to the
@@ -390,7 +373,7 @@ export async function syncEngineListenPipeline(
  */
 export async function syncEngineListen(
   syncEngine: SyncEngine,
-  query: Query,
+  query: QueryOrPipeline,
   shouldListenToRemote: boolean = true
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
@@ -423,7 +406,7 @@ export async function syncEngineListen(
 /** Query has been listening to the cache, and tries to initiate the remote store listen */
 export async function triggerRemoteStoreListen(
   syncEngine: SyncEngine,
-  query: Query
+  query: QueryOrPipeline
 ): Promise<void> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
   await allocateTargetAndMaybeListen(
@@ -436,13 +419,13 @@ export async function triggerRemoteStoreListen(
 
 async function allocateTargetAndMaybeListen(
   syncEngineImpl: SyncEngineImpl,
-  query: Query,
+  query: QueryOrPipeline,
   shouldListenToRemote: boolean,
   shouldInitializeView: boolean
 ): Promise<ViewSnapshot | undefined> {
   const targetData = await localStoreAllocateTarget(
     syncEngineImpl.localStore,
-    queryToTarget(query)
+    isPipeline(query) ? query : queryToTarget(query)
   );
 
   const targetId = targetData.targetId;
@@ -481,7 +464,7 @@ async function allocateTargetAndMaybeListen(
  */
 async function initializeViewAndComputeSnapshot(
   syncEngineImpl: SyncEngineImpl,
-  query: Query,
+  query: QueryOrPipeline,
   targetId: TargetId,
   current: boolean,
   resumeToken: ByteString
@@ -532,14 +515,14 @@ async function initializeViewAndComputeSnapshot(
 /** Stops listening to the query. */
 export async function syncEngineUnlisten(
   syncEngine: SyncEngine,
-  query: Query,
+  query: QueryOrPipeline,
   shouldUnlistenToRemote: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
   debugAssert(
     !!queryView,
-    'Trying to unlisten on query not found:' + stringifyQuery(query)
+    'Trying to unlisten on query not found:' + stringifyQueryOrPipeline(query)
   );
 
   // Only clean up the query view and target if this is the only query mapped
@@ -548,7 +531,7 @@ export async function syncEngineUnlisten(
   if (queries.length > 1) {
     syncEngineImpl.queriesByTarget.set(
       queryView.targetId,
-      queries.filter(q => !queryEquals(q, query))
+      queries.filter(q => !queryOrPipelineEqual(q, query))
     );
     syncEngineImpl.queryViewsByQuery.delete(query);
     return;
@@ -590,13 +573,13 @@ export async function syncEngineUnlisten(
 /** Unlistens to the remote store while still listening to the cache. */
 export async function triggerRemoteStoreUnlisten(
   syncEngine: SyncEngine,
-  query: Query
+  query: QueryOrPipeline
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
   debugAssert(
     !!queryView,
-    'Trying to unlisten on query not found:' + stringifyQuery(query)
+    'Trying to unlisten on query not found:' + stringifyQueryOrPipeline(query)
   );
   const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
 
@@ -1186,34 +1169,12 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
   const docChangesInAllViews: LocalViewChanges[] = [];
   const queriesProcessed: Array<Promise<void>> = [];
 
-  if (
-    syncEngineImpl.queryViewsByQuery.isEmpty() &&
-    syncEngineImpl.pipelineViewByTarget.size === 0
-  ) {
+  if (syncEngineImpl.queryViewsByQuery.isEmpty()) {
     // Return early since `onWatchChange()` might not have been assigned yet.
     return;
   }
 
-  syncEngineImpl.pipelineViewByTarget.forEach((results, targetId) => {
-    const change = remoteEvent?.targetChanges.get(targetId);
-    if (!!change) {
-      change.modifiedDocuments.forEach(key => {
-        results.updateResult(
-          key,
-          remoteEvent?.augmentedDocumentUpdates.get(key)!
-        );
-      });
-      change.addedDocuments.forEach(key => {
-        results.addResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
-      });
-      change.removedDocuments.forEach(key => {
-        results.removeResult(key);
-      });
-
-      syncEngineImpl.pipelineByTarget.get(targetId)?.onViewSnapshot(results);
-    }
-  });
-
+  // TODO(pipeline): will this work for pipelines?
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
       !!syncEngineImpl.applyDocChanges,
@@ -1354,7 +1315,7 @@ export function syncEngineGetRemoteKeysForTarget(
       const queryView = syncEngineImpl.queryViewsByQuery.get(query);
       debugAssert(
         !!queryView,
-        `No query view found for ${stringifyQuery(query)}`
+        `No query view found for ${stringifyQueryOrPipeline(query)}`
       );
       keySet = keySet.unionWith(queryView.view.syncedDocuments);
     }
@@ -1563,14 +1524,14 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       // state (the list of syncedDocuments may have gotten out of sync).
       targetData = await localStoreAllocateTarget(
         syncEngineImpl.localStore,
-        queryToTarget(queries[0])
+        isPipeline(queries[0]) ? queries[0] : queryToTarget(queries[0])
       );
 
       for (const query of queries) {
         const queryView = syncEngineImpl.queryViewsByQuery.get(query);
         debugAssert(
           !!queryView,
-          `No query view found for ${stringifyQuery(query)}`
+          `No query view found for ${stringifyQueryOrPipeline(query)}`
         );
 
         const viewChange = await synchronizeViewAndComputeSnapshot(
@@ -1669,7 +1630,8 @@ export async function syncEngineApplyTargetState(
       case 'not-current': {
         const changes = await localStoreGetNewDocumentChanges(
           syncEngineImpl.localStore,
-          queryCollectionGroup(query[0])
+          // TODO(pipeline): handle pipeline properly
+          queryCollectionGroup(query[0] as Query)
         );
         const synthesizedRemoteEvent =
           RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
