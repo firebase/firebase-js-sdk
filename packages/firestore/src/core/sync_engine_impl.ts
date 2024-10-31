@@ -999,6 +999,11 @@ function removeAndCleanupTarget(
 ): void {
   syncEngineImpl.sharedClientState.removeLocalQueryTarget(targetId);
 
+  // TODO(pipeline): REMOVE this hack.
+  if(!syncEngineImpl.queriesByTarget.has(targetId)||syncEngineImpl.queriesByTarget.get(targetId)!.length !== 0){
+    return;
+  }
+
   debugAssert(
     syncEngineImpl.queriesByTarget.has(targetId) &&
       syncEngineImpl.queriesByTarget.get(targetId)!.length !== 0,

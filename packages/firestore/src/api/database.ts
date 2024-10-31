@@ -46,7 +46,7 @@ import {
   connectFirestoreEmulator,
   Firestore as LiteFirestore
 } from '../lite-api/database';
-import { PipelineSource } from '../lite-api/pipeline-source';
+import { PipelineSource } from './pipeline_source';
 import { DocumentReference, Query } from '../lite-api/reference';
 import { newUserDataReader } from '../lite-api/user_data_reader';
 import {

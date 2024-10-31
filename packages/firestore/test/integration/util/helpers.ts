@@ -53,6 +53,7 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
+import {PipelineSnapshot} from '../../../src/api/snapshot';
 
 /* eslint-disable no-restricted-globals */
 
@@ -218,8 +219,12 @@ apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
-export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
-  return docSet.docs.map(d => d.data());
+export function toDataArray(docSet: QuerySnapshot|PipelineSnapshot): DocumentData[] {
+  if(docSet instanceof QuerySnapshot){
+    return docSet.docs.map(d => d.data());
+  } else{
+    return docSet.results.map(d => d.data()!);
+  }
 }
 
 /** Converts the changes in a QuerySnapshot to an array with the data of each document. */

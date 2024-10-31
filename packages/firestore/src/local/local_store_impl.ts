@@ -1050,6 +1050,13 @@ export async function localStoreReleaseTarget(
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetData = localStoreImpl.targetDataByTarget.get(targetId);
+
+  // TODO(pipeline): this is a hack that only works because pipelines are the only ones returning nulls here.
+  // REMOVE ASAP.
+  if(targetData === null) {
+    return;
+  }
+
   debugAssert(
     targetData !== null,
     `Tried to release nonexistent target: ${targetId}`

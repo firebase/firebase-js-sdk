@@ -130,7 +130,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
    */
   constructor(
     private liteDb: Firestore,
-    private userDataReader: UserDataReader,
+    protected userDataReader: UserDataReader,
     /**
      * @internal
      * @private
@@ -144,7 +144,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
     protected stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()
-    private converter: unknown = {}
+    protected converter: unknown = {}
   ) {}
 
   /**
@@ -265,7 +265,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
    * @return the expressionMap argument.
    * @private
    */
-  private readUserData<
+  protected readUserData<
     T extends
       | Map<string, ReadableUserData>
       | ReadableUserData[]

@@ -22,15 +22,16 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource
-} from './stage';
-import { UserDataReader } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
+} from '../lite-api/stage';
+import {PipelineSource as LitePipelineSource} from '../lite-api/pipeline-source';
+import { UserDataReader } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 
 /**
  * Represents the source of a Firestore {@link Pipeline}.
  * @beta
  */
-export class PipelineSource {
+export class PipelineSource extends LitePipelineSource{
   /**
    * @internal
    * @private
@@ -40,15 +41,17 @@ export class PipelineSource {
    * @param documentReferenceFactory
    */
   constructor(
-    protected db: Firestore,
-    protected userDataReader: UserDataReader,
-    protected userDataWriter: AbstractUserDataWriter,
-    protected documentReferenceFactory: (id: DocumentKey) => DocumentReference
-  ) {}
+    db: Firestore,
+    userDataReader: UserDataReader,
+    userDataWriter: AbstractUserDataWriter,
+    documentReferenceFactory: (id: DocumentKey) => DocumentReference
+  ) {
+    super(db, userDataReader, userDataWriter, documentReferenceFactory);
+  }
 
   collection(collectionPath: string): Pipeline {
     return new Pipeline(
-      this.db,
+      this.db as Firestore,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -58,7 +61,7 @@ export class PipelineSource {
 
   collectionGroup(collectionId: string): Pipeline {
     return new Pipeline(
-      this.db,
+      this.db as Firestore,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -68,7 +71,7 @@ export class PipelineSource {
 
   database(): Pipeline {
     return new Pipeline(
-      this.db,
+      this.db as Firestore,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -78,7 +81,7 @@ export class PipelineSource {
 
   documents(docs: DocumentReference[]): Pipeline {
     return new Pipeline(
-      this.db,
+      this.db as Firestore,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
