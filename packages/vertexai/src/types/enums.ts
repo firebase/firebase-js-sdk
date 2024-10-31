@@ -32,7 +32,6 @@ export const POSSIBLE_ROLES = ['user', 'model', 'function', 'system'] as const;
  * @public
  */
 export enum HarmCategory {
-  HARM_CATEGORY_UNSPECIFIED = 'HARM_CATEGORY_UNSPECIFIED',
   HARM_CATEGORY_HATE_SPEECH = 'HARM_CATEGORY_HATE_SPEECH',
   HARM_CATEGORY_SEXUALLY_EXPLICIT = 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
   HARM_CATEGORY_HARASSMENT = 'HARM_CATEGORY_HARASSMENT',
@@ -44,8 +43,6 @@ export enum HarmCategory {
  * @public
  */
 export enum HarmBlockThreshold {
-  // Threshold is unspecified.
-  HARM_BLOCK_THRESHOLD_UNSPECIFIED = 'HARM_BLOCK_THRESHOLD_UNSPECIFIED',
   // Content with NEGLIGIBLE will be allowed.
   BLOCK_LOW_AND_ABOVE = 'BLOCK_LOW_AND_ABOVE',
   // Content with NEGLIGIBLE and LOW will be allowed.
@@ -60,8 +57,6 @@ export enum HarmBlockThreshold {
  * @public
  */
 export enum HarmBlockMethod {
-  // The harm block method is unspecified.
-  HARM_BLOCK_METHOD_UNSPECIFIED = 'HARM_BLOCK_METHOD_UNSPECIFIED',
   // The harm block method uses both probability and severity scores.
   SEVERITY = 'SEVERITY',
   // The harm block method uses the probability score.
@@ -73,8 +68,6 @@ export enum HarmBlockMethod {
  * @public
  */
 export enum HarmProbability {
-  // Probability is unspecified.
-  HARM_PROBABILITY_UNSPECIFIED = 'HARM_PROBABILITY_UNSPECIFIED',
   // Content has a negligible chance of being unsafe.
   NEGLIGIBLE = 'NEGLIGIBLE',
   // Content has a low chance of being unsafe.
@@ -90,8 +83,6 @@ export enum HarmProbability {
  * @public
  */
 export enum HarmSeverity {
-  // Harm severity unspecified.
-  HARM_SEVERITY_UNSPECIFIED = 'HARM_SEVERITY_UNSPECIFIED',
   // Negligible level of harm severity.
   HARM_SEVERITY_NEGLIGIBLE = 'HARM_SEVERITY_NEGLIGIBLE',
   // Low level of harm severity.
@@ -107,8 +98,6 @@ export enum HarmSeverity {
  * @public
  */
 export enum BlockReason {
-  // A blocked reason was not specified.
-  BLOCKED_REASON_UNSPECIFIED = 'BLOCKED_REASON_UNSPECIFIED',
   // Content was blocked by safety settings.
   SAFETY = 'SAFETY',
   // Content was blocked, but the reason is uncategorized.
@@ -120,8 +109,6 @@ export enum BlockReason {
  * @public
  */
 export enum FinishReason {
-  // Default value. This value is unused.
-  FINISH_REASON_UNSPECIFIED = 'FINISH_REASON_UNSPECIFIED',
   // Natural stop point of the model or provided stop sequence.
   STOP = 'STOP',
   // The maximum number of tokens as specified in the request was reached.
@@ -138,8 +125,6 @@ export enum FinishReason {
  * @public
  */
 export enum FunctionCallingMode {
-  // Unspecified function calling mode. This value should not be used.
-  MODE_UNSPECIFIED = 'MODE_UNSPECIFIED',
   // Default model behavior, model decides to predict either a function call
   // or a natural language response.
   AUTO = 'AUTO',

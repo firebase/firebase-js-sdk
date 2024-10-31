@@ -27,14 +27,7 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const es5BuildPlugins = [
-  typescriptPlugin({
-    typescript
-  }),
-  json()
-];
-
-const es2017BuildPlugins = [
+const buildPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -55,7 +48,7 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('esm', 2017),
         __PACKAGE_VERSION__: pkg.version
@@ -72,7 +65,7 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: [
-      ...es2017BuildPlugins,
+      ...buildPlugins,
       replace({
         ...generateBuildTargetReplaceConfig('cjs', 2017),
         __PACKAGE_VERSION__: pkg.version
@@ -85,8 +78,12 @@ const browserBuilds = [
 // const nodeBuilds = [
 //   {
 //     input: 'index.node.ts',
-//     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-//     plugins: es2017BuildPlugins,
+//     output: {
+//      file: pkg.main,
+//      format: 'cjs',
+//      sourcemap: true
+//    },
+//     plugins: buildPlugins,
 //     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 //   },
 //   {
@@ -94,7 +91,7 @@ const browserBuilds = [
 //     output: [
 //       { file: pkg.exports['.'].node.import, format: 'es', sourcemap: true }
 //     ],
-//     plugins: [...es2017BuildPlugins, emitModulePackageFile()],
+//     plugins: [...buildPlugins, emitModulePackageFile()],
 //     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 //   }
 // ];

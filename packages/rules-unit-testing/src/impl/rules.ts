@@ -17,7 +17,6 @@
 
 import { HostAndPort } from '../public_types';
 import { makeUrl } from './url';
-import fetch from 'node-fetch';
 
 /**
  * @private

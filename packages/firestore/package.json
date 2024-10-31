@@ -1,8 +1,8 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.7.2",
+  "version": "4.7.4",
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=18.0.0"
   },
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -62,7 +62,6 @@
         "import": "./dist/index.node.mjs"
       },
       "react-native": "./dist/index.rn.js",
-      "esm5": "./dist/index.esm5.js",
       "browser": {
         "require": "./dist/index.cjs.js",
         "import": "./dist/index.esm2017.js"
@@ -76,7 +75,6 @@
         "import": "./dist/lite/index.node.mjs"
       },
       "react-native": "./dist/lite/index.rn.esm2017.js",
-      "esm5": "./dist/lite/index.browser.esm5.js",
       "browser": {
         "require": "./dist/lite/index.cjs.js",
         "import": "./dist/lite/index.browser.esm2017.js"
@@ -90,29 +88,27 @@
   "react-native": "dist/index.rn.js",
   "browser": "dist/index.esm2017.js",
   "module": "dist/index.esm2017.js",
-  "esm5": "dist/index.esm5.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
     "lite/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.6.9",
-    "@firebase/logger": "0.4.2",
-    "@firebase/util": "1.10.0",
-    "@firebase/webchannel-wrapper": "1.0.1",
+    "@firebase/component": "0.6.10",
+    "@firebase/logger": "0.4.3",
+    "@firebase/util": "1.10.1",
+    "@firebase/webchannel-wrapper": "1.0.2",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
-    "undici": "6.19.7",
     "tslib": "^2.1.0"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.10.11",
-    "@firebase/app-compat": "0.2.41",
-    "@firebase/auth": "1.7.9",
+    "@firebase/app": "0.10.15",
+    "@firebase/app-compat": "0.2.45",
+    "@firebase/auth": "1.8.0",
     "@rollup/plugin-alias": "5.1.0",
     "@rollup/plugin-json": "4.1.0",
     "@types/eslint": "7.29.0",
@@ -128,8 +124,8 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.31.2",
     "rollup-plugin-dts": "5.3.1",
-    "ts-node": "10.9.1",
-    "typescript": "4.7.4"
+    "ts-node": "10.9.2",
+    "typescript": "5.5.4"
   },
   "repository": {
     "directory": "packages/firestore",

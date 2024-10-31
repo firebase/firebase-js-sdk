@@ -1,5 +1,34 @@
 # @firebase/app
 
+## 0.10.15
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.14
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/logger@0.4.3
+  - @firebase/util@1.10.1
+
+## 0.10.13
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.10.12
+
+### Patch Changes
+
+- [`beaa4dffb`](https://github.com/firebase/firebase-js-sdk/commit/beaa4dffb7f48cb12ccc6c1d1b7cdc9c3605fc04) [#8480](https://github.com/firebase/firebase-js-sdk/pull/8480) - Included Data Connect product.
+
 ## 0.10.11
 
 ### Patch Changes

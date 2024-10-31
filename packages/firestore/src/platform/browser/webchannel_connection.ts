@@ -359,7 +359,7 @@ export class WebChannelConnection extends RestConnection {
           // Use any because msgData.error is not typed.
           const msgDataOrError: WebChannelError | object = msgData;
           const error =
-            msgDataOrError.error ||
+            (msgDataOrError as WebChannelError)?.error ||
             (msgDataOrError as WebChannelError[])[0]?.error;
           if (error) {
             logDebug(

@@ -220,4 +220,20 @@ describe('generateContent()', () => {
     ).to.be.rejectedWith(/400.*invalid argument/);
     expect(mockFetch).to.be.called;
   });
+  it('api not enabled (403)', async () => {
+    const mockResponse = getMockResponse(
+      'unary-failure-firebasevertexai-api-not-enabled.json'
+    );
+    const mockFetch = stub(globalThis, 'fetch').resolves({
+      ok: false,
+      status: 403,
+      json: mockResponse.json
+    } as Response);
+    await expect(
+      generateContent(fakeApiSettings, 'model', fakeRequestParams)
+    ).to.be.rejectedWith(
+      /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
+    );
+    expect(mockFetch).to.be.called;
+  });
 });

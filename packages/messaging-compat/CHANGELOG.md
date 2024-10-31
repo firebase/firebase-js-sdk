@@ -1,5 +1,23 @@
 # @firebase/messaging-compat
 
+## 0.2.13
+
+### Patch Changes
+
+- [`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702) [#8475](https://github.com/firebase/firebase-js-sdk/pull/8475) - Remove ES5 bundles. The minimum required ES version is now ES2017.
+
+- Updated dependencies [[`479226bf3`](https://github.com/firebase/firebase-js-sdk/commit/479226bf3ebd99017bb12fa21440c75715658702)]:
+  - @firebase/component@0.6.10
+  - @firebase/messaging@0.12.13
+  - @firebase/util@1.10.1
+
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [[`d6fa58854`](https://github.com/firebase/firebase-js-sdk/commit/d6fa58854e3cc976eab150154e2786043bc5e563)]:
+  - @firebase/messaging@0.12.12
+
 ## 0.2.11
 
 ### Patch Changes

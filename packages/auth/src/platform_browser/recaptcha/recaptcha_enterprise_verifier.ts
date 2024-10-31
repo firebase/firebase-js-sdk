@@ -22,7 +22,8 @@ import {
   RecaptchaClientType,
   RecaptchaVersion,
   RecaptchaActionName,
-  RecaptchaProvider
+  RecaptchaAuthProvider,
+  EnforcementState
 } from '../../api';
 
 import { Auth } from '../../model/public_types';
@@ -30,6 +31,9 @@ import { AuthInternal } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import * as jsHelpers from '../load_js';
 import { AuthErrorCode } from '../../core/errors';
+import { StartPhoneMfaEnrollmentRequest } from '../../api/account_management/mfa';
+import { StartPhoneMfaSignInRequest } from '../../api/authentication/mfa';
+import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 
 export const RECAPTCHA_ENTERPRISE_VERIFIER_TYPE = 'recaptcha-enterprise';
 export const FAKE_TOKEN = 'NO_RECAPTCHA';
@@ -119,6 +123,12 @@ export class RecaptchaEnterpriseVerifier {
       }
     }
 
+    // Returns Promise for a mock token when appVerificationDisabledForTesting is true.
+    if (this.auth.settings.appVerificationDisabledForTesting) {
+      const mockRecaptcha = new MockGreCAPTCHATopLevel();
+      return mockRecaptcha.execute('siteKey', { action: 'verify' });
+    }
+
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth)
         .then(siteKey => {
@@ -152,21 +162,66 @@ export class RecaptchaEnterpriseVerifier {
   }
 }
 
-export async function injectRecaptchaFields<T>(
+export async function injectRecaptchaFields<T extends object>(
   auth: AuthInternal,
   request: T,
   action: RecaptchaActionName,
-  captchaResp = false
+  isCaptchaResp = false,
+  isFakeToken = false
 ): Promise<T> {
   const verifier = new RecaptchaEnterpriseVerifier(auth);
   let captchaResponse;
-  try {
-    captchaResponse = await verifier.verify(action);
-  } catch (error) {
-    captchaResponse = await verifier.verify(action, true);
+
+  if (isFakeToken) {
+    captchaResponse = FAKE_TOKEN;
+  } else {
+    try {
+      captchaResponse = await verifier.verify(action);
+    } catch (error) {
+      captchaResponse = await verifier.verify(action, true);
+    }
   }
+
   const newRequest = { ...request };
-  if (!captchaResp) {
+  if (
+    action === RecaptchaActionName.MFA_SMS_ENROLLMENT ||
+    action === RecaptchaActionName.MFA_SMS_SIGNIN
+  ) {
+    if ('phoneEnrollmentInfo' in newRequest) {
+      const phoneNumber = (
+        newRequest as unknown as StartPhoneMfaEnrollmentRequest
+      ).phoneEnrollmentInfo.phoneNumber;
+      const recaptchaToken = (
+        newRequest as unknown as StartPhoneMfaEnrollmentRequest
+      ).phoneEnrollmentInfo.recaptchaToken;
+
+      Object.assign(newRequest, {
+        'phoneEnrollmentInfo': {
+          phoneNumber,
+          recaptchaToken,
+          captchaResponse,
+          'clientType': RecaptchaClientType.WEB,
+          'recaptchaVersion': RecaptchaVersion.ENTERPRISE
+        }
+      });
+    } else if ('phoneSignInInfo' in newRequest) {
+      const recaptchaToken = (
+        newRequest as unknown as StartPhoneMfaSignInRequest
+      ).phoneSignInInfo.recaptchaToken;
+
+      Object.assign(newRequest, {
+        'phoneSignInInfo': {
+          recaptchaToken,
+          captchaResponse,
+          'clientType': RecaptchaClientType.WEB,
+          'recaptchaVersion': RecaptchaVersion.ENTERPRISE
+        }
+      });
+    }
+    return newRequest;
+  }
+
+  if (!isCaptchaResp) {
     Object.assign(newRequest, { captchaResponse });
   } else {
     Object.assign(newRequest, { 'captchaResp': captchaResponse });
@@ -179,45 +234,112 @@ export async function injectRecaptchaFields<T>(
 }
 
 type ActionMethod<TRequest, TResponse> = (
-  auth: Auth,
+  auth: AuthInternal,
   request: TRequest
 ) => Promise<TResponse>;
 
-export async function handleRecaptchaFlow<TRequest, TResponse>(
+export async function handleRecaptchaFlow<TRequest extends object, TResponse>(
   authInstance: AuthInternal,
   request: TRequest,
   actionName: RecaptchaActionName,
-  actionMethod: ActionMethod<TRequest, TResponse>
+  actionMethod: ActionMethod<TRequest, TResponse>,
+  recaptchaAuthProvider: RecaptchaAuthProvider
 ): Promise<TResponse> {
-  if (
-    authInstance
-      ._getRecaptchaConfig()
-      ?.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)
-  ) {
-    const requestWithRecaptcha = await injectRecaptchaFields(
-      authInstance,
-      request,
-      actionName,
-      actionName === RecaptchaActionName.GET_OOB_CODE
-    );
-    return actionMethod(authInstance, requestWithRecaptcha);
+  if (recaptchaAuthProvider === RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER) {
+    if (
+      authInstance
+        ._getRecaptchaConfig()
+        ?.isProviderEnabled(RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER)
+    ) {
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName,
+        actionName === RecaptchaActionName.GET_OOB_CODE
+      );
+      return actionMethod(authInstance, requestWithRecaptcha);
+    } else {
+      return actionMethod(authInstance, request).catch(async error => {
+        if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
+          console.log(
+            `${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`
+          );
+          const requestWithRecaptcha = await injectRecaptchaFields(
+            authInstance,
+            request,
+            actionName,
+            actionName === RecaptchaActionName.GET_OOB_CODE
+          );
+          return actionMethod(authInstance, requestWithRecaptcha);
+        } else {
+          return Promise.reject(error);
+        }
+      });
+    }
+  } else if (recaptchaAuthProvider === RecaptchaAuthProvider.PHONE_PROVIDER) {
+    if (
+      authInstance
+        ._getRecaptchaConfig()
+        ?.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
+    ) {
+      const requestWithRecaptcha = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName
+      );
+
+      return actionMethod(authInstance, requestWithRecaptcha).catch(
+        async error => {
+          if (
+            authInstance
+              ._getRecaptchaConfig()
+              ?.getProviderEnforcementState(
+                RecaptchaAuthProvider.PHONE_PROVIDER
+              ) === EnforcementState.AUDIT
+          ) {
+            // AUDIT mode
+            if (
+              error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}` ||
+              error.code === `auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`
+            ) {
+              console.log(
+                `Failed to verify with reCAPTCHA Enterprise. Automatically triggering the reCAPTCHA v2 flow to complete the ${actionName} flow.`
+              );
+              // reCAPTCHA Enterprise token is missing or reCAPTCHA Enterprise token
+              // check fails.
+              // Fallback to reCAPTCHA v2 flow.
+              const requestWithRecaptchaFields = await injectRecaptchaFields(
+                authInstance,
+                request,
+                actionName,
+                false, // isCaptchaResp
+                true // isFakeToken
+              );
+              // This will call the PhoneApiCaller to fetch and inject reCAPTCHA v2 token.
+              return actionMethod(authInstance, requestWithRecaptchaFields);
+            }
+          }
+          // ENFORCE mode or AUDIT mode with any other error.
+          return Promise.reject(error);
+        }
+      );
+    } else {
+      // Do reCAPTCHA v2 flow.
+      const requestWithRecaptchaFields = await injectRecaptchaFields(
+        authInstance,
+        request,
+        actionName,
+        false, // isCaptchaResp
+        true // isFakeToken
+      );
+
+      // This will call the PhoneApiCaller to fetch and inject v2 token.
+      return actionMethod(authInstance, requestWithRecaptchaFields);
+    }
   } else {
-    return actionMethod(authInstance, request).catch(async error => {
-      if (error.code === `auth/${AuthErrorCode.MISSING_RECAPTCHA_TOKEN}`) {
-        console.log(
-          `${actionName} is protected by reCAPTCHA Enterprise for this project. Automatically triggering the reCAPTCHA flow and restarting the flow.`
-        );
-        const requestWithRecaptcha = await injectRecaptchaFields(
-          authInstance,
-          request,
-          actionName,
-          actionName === RecaptchaActionName.GET_OOB_CODE
-        );
-        return actionMethod(authInstance, requestWithRecaptcha);
-      } else {
-        return Promise.reject(error);
-      }
-    });
+    return Promise.reject(
+      recaptchaAuthProvider + ' provider is not supported.'
+    );
   }
 }
 
@@ -236,7 +358,7 @@ export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
     authInternal._tenantRecaptchaConfigs[authInternal.tenantId] = config;
   }
 
-  if (config.isProviderEnabled(RecaptchaProvider.EMAIL_PASSWORD_PROVIDER)) {
+  if (config.isAnyProviderEnabled()) {
     const verifier = new RecaptchaEnterpriseVerifier(authInternal);
     void verifier.verify();
   }

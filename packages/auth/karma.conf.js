@@ -27,17 +27,6 @@ module.exports = function (config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
-    // undici is a fetch polyfill that test helpers call for Node tests, and browser tests should
-    // ignore its import to avoid compilation errors in those test helpers.
-    webpack: {
-      ...webpackBase,
-      resolve: {
-        ...webpackBase.resolve,
-        alias: {
-          'undici': false
-        }
-      }
-    },
     client: Object.assign({}, karmaBase.client, getClientConfig(argv))
   });
 
@@ -51,7 +40,8 @@ function getTestFiles(argv) {
     if (argv.prodbackend) {
       return [
         'test/integration/flows/totp.test.ts',
-        'test/integration/flows/password_policy.test.ts'
+        'test/integration/flows/password_policy.test.ts',
+        'test/integration/flows/recaptcha_enterprise.test.ts'
       ];
     }
     return argv.local

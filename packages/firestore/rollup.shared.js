@@ -34,10 +34,9 @@ const pkg = require('./package.json');
 // This file contains shared utilities for Firestore's rollup builds.
 
 // Firestore is released in a number of different build configurations:
-// - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
-//   ES2017 in ESM format.
-// - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
-//   formats and ES2017 in ESM format.
+// - Browser builds that support persistence in ES2017 CJS and ESM formats.
+// - In-memory Browser builds that support persistence in ES2017 CJS and ESM
+//   formats.
 // - A NodeJS build that supports persistence (to be used with an IndexedDb
 //   shim)
 // - A in-memory only NodeJS build
@@ -250,11 +249,6 @@ exports.es2017Plugins = function (platform, mangled = false) {
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertAndPrefixInternalTransformer]
       }),
@@ -266,59 +260,10 @@ exports.es2017Plugins = function (platform, mangled = false) {
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertTransformer]
       }),
       json({ preferConst: true })
-    ];
-  }
-};
-
-exports.es2017ToEs5Plugins = function (mangled = false) {
-  if (mangled) {
-    return [
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            allowJs: true
-          }
-        },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
-      }),
-      terser({
-        output: {
-          comments: 'all',
-          beautify: true
-        },
-        // See comment above `manglePrivatePropertiesOptions`. This build did
-        // not have the identical variable name issue but we should be
-        // consistent.
-        mangle: {
-          reserved: ['_getProvider']
-        }
-      }),
-      sourcemaps()
-    ];
-  } else {
-    return [
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            allowJs: true
-          }
-        },
-        include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
-      }),
-      sourcemaps()
     ];
   }
 };
@@ -333,11 +278,6 @@ exports.es2017PluginsCompat = function (
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         abortOnError: true,
         transformers: [
@@ -353,11 +293,6 @@ exports.es2017PluginsCompat = function (
       alias(generateAliasConfig(platform)),
       typescriptPlugin({
         typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
         cacheDir: tmp.dirSync(),
         abortOnError: true,
         transformers: [removeAssertTransformer, pathTransformer]

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "3.0.4",
+  "version": "4.0.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -20,7 +20,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=18.0.0"
   },
   "files": [
     "dist"
@@ -43,7 +43,7 @@
     "rollup-plugin-typescript2": "0.31.2"
   },
   "peerDependencies": {
-    "firebase": "^10.0.0"
+    "firebase": "^11.0.0"
   },
   "repository": {
     "directory": "packages/rules-unit-testing",
@@ -53,9 +53,5 @@
   "typings": "dist/index.d.ts",
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "dependencies": {
-    "node-fetch": "2.6.7",
-    "@types/node-fetch": "2.6.4"
   }
 }

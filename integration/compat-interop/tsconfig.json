@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "dist",
-    "target": "ES5",
+    "target": "es2017",
     "sourceMap": true,
     "esModuleInterop": true
   },

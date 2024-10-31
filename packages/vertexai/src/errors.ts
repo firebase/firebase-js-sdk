@@ -28,21 +28,21 @@ export class VertexAIError extends FirebaseError {
   /**
    * Constructs a new instance of the `VertexAIError` class.
    *
-   * @param code - The error code from {@link VertexAIErrorCode}.
+   * @param code - The error code from <code>{@link VertexAIErrorCode}</code>.
    * @param message - A human-readable message describing the error.
    * @param customErrorData - Optional error data.
    */
   constructor(
     readonly code: VertexAIErrorCode,
-    readonly message: string,
+    message: string,
     readonly customErrorData?: CustomErrorData
   ) {
     // Match error format used by FirebaseError from ErrorFactory
     const service = VERTEX_TYPE;
     const serviceName = 'VertexAI';
     const fullCode = `${service}/${code}`;
-    const fullMessage = `${serviceName}: ${message} (${fullCode}).`;
-    super(fullCode, fullMessage);
+    const fullMessage = `${serviceName}: ${message} (${fullCode})`;
+    super(code, fullMessage);
 
     // FirebaseError initializes a stack trace, but it assumes the error is created from the error
     // factory. Since we break this assumption, we set the stack trace to be originating from this
@@ -56,6 +56,8 @@ export class VertexAIError extends FirebaseError {
 
     // Allows instanceof VertexAIError in ES5/ES6
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
+    //                   which we can now use since we no longer target ES5.
     Object.setPrototypeOf(this, VertexAIError.prototype);
 
     // Since Error is an interface, we don't inherit toString and so we define it ourselves.
