@@ -35,8 +35,10 @@ export async function getToken(
   forceRefresh = false
 ): Promise<string> {
   if (_isFirebaseServerApp(installations.app)) {
-    if (installations.app.installationsAuthToken === undefined) {
-      throw ERROR_FACTORY.create(ErrorCode.SERVER_APP_MISSING_AUTH_TOKEN);
+    if (!installations.app.installationsAuthToken) {
+      throw ERROR_FACTORY.create(
+        ErrorCode.SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN
+      );
     }
     return installations.app.installationsAuthToken;
   }
