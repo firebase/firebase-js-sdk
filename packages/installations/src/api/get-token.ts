@@ -35,12 +35,12 @@ export async function getToken(
   forceRefresh = false
 ): Promise<string> {
   if (_isFirebaseServerApp(installations.app)) {
-    if (!installations.app.installationsAuthToken) {
+    if (!installations.app.settings.installationsAuthToken) {
       throw ERROR_FACTORY.create(
         ErrorCode.SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN
       );
     }
-    return installations.app.installationsAuthToken;
+    return installations.app.settings.installationsAuthToken;
   }
   const installationsImpl = installations as FirebaseInstallationsImpl;
   await completeInstallationRegistration(installationsImpl);

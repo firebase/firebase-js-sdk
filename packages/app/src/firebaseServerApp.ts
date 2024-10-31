@@ -144,15 +144,6 @@ export class FirebaseServerAppImpl
     return this._serverConfig;
   }
 
-  get installationsAuthToken(): string | null {
-    this.checkDestroyed();
-    if (this._serverConfig.installationsAuthToken !== undefined) {
-      return this._serverConfig.installationsAuthToken;
-    } else {
-      return null;
-    }
-  }
-
   get installationsId(): string | null {
     this.checkDestroyed();
     return this._installationsId;

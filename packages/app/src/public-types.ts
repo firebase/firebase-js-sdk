@@ -101,8 +101,11 @@ export interface FirebaseServerApp extends FirebaseApp {
    */
   readonly settings: FirebaseServerAppSettings;
 
+  /**
+   * The parsed Firebase Installations Id token if a `installationsAuthToken` was provided to
+   * {@link (initializeServerApp:1) | initializeServerApp()}. Null otherwise.
+   */
   readonly installationsId: string | null;
-  readonly installationsAuthToken: string | null;
 }
 
 /**

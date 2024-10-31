@@ -73,9 +73,6 @@ export interface FirebaseOptions {
 
 // @public
 export interface FirebaseServerApp extends FirebaseApp {
-    // (undocumented)
-    readonly installationsAuthToken: string | null;
-    // (undocumented)
     readonly installationsId: string | null;
     name: string;
     readonly settings: FirebaseServerAppSettings;
