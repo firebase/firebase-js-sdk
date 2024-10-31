@@ -129,6 +129,37 @@
     ]
   },
   {
+    "name": "Pipeline Query with lt filter",
+    "dependencies": [
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "app",
+            "imports": [
+              "initializeApp"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore",
+            "imports": [
+              "getFirestore",
+              "lt",
+              "Field"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Query Cursors",
     "dependencies": [
       {
