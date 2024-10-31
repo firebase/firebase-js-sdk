@@ -23,11 +23,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up node (20)
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: yarn install
-      run: yarn
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - name: Restore cached node_modules
+      uses: actions/cache@v4
+      id: node_modules
+      with:
+        path: "**/node_modules"
+        key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+    - run: yarn install --frozen-lockfile
     - name: yarn lint
       run: yarn lint

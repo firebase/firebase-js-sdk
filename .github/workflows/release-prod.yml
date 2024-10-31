@@ -32,10 +32,6 @@ jobs:
       contents: write
 
     steps:
-    - name: Set up node (20)
-      uses: actions/setup-node@v3
-      with:
-        node-version: 22.10.0
     - name: Checkout release branch (with history)
       uses: actions/checkout@v4
       with:
@@ -43,8 +39,12 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
         token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-    - name: Yarn install
-      run: yarn
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - run: yarn install --frozen-lockfile
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run

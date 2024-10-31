@@ -37,18 +37,23 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.10.0
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Test setup and yarn install
-        run: |
-          cp config/ci.config.json config/project.json
-          yarn
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
+      - run: cp config/ci.config.json config/project.json
       - name: build
         id: build
         run: |
@@ -65,17 +70,14 @@ jobs:
         if: steps.check-changed.outcome != 'success'
         id: set-output
         run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
-      - name: Archive build
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
-        run: |
-          tar -cf build.tar --exclude=.git .
-          gzip build.tar
       - name: Upload build archive
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: build.tar.gz
-          path: build.tar.gz
+          name: dists-changed-firestore-${{ github.sha }}
+          path: |
+            packages/**/dist
+            repo-scripts/**/dist
           retention-days: ${{ env.artifactRetentionDays }}
 
   compat-test-chrome:
@@ -84,22 +86,28 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+          name: dists-changed-firestore-${{ github.sha }}
+      - run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
 
@@ -112,22 +120,28 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+          name: dists-changed-firestore-${{ github.sha }}
+      - run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
         env:
@@ -142,20 +156,27 @@ jobs:
     needs: build
     if: ${{ github.event_name != 'pull_request' }}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
+          name: dists-changed-firestore-${{ github.sha }}
       - name: Test setup against nightly Firestore
         env:
           INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
@@ -180,18 +201,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install firefox
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+          name: dists-changed-firestore-${{ github.sha }}
+      - run: cp config/ci.config.json config/project.json
       - name: Run compat tests
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
@@ -214,17 +241,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install firefox
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+          name: dists-changed-firestore-${{ github.sha }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
+      - run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
@@ -237,20 +270,25 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Test setup
-        run: |
-          cp config/ci.config.json config/project.json
-          npx playwright install webkit
+          name: dists-changed-firestore-${{ github.sha }}
+      - run: cp config/ci.config.json config/project.json
+      - run: npx playwright install webkit
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
         env:
@@ -268,20 +306,25 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - uses: actions/checkout@v4
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+          name: dists-changed-firestore-${{ github.sha }}
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
-      - name: Test setup
-        run: |
-          cp config/ci.config.json config/project.json
-          npx playwright install webkit
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
+      - run: cp config/ci.config.json config/project.json
+      - run: npx playwright install webkit
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
         env:

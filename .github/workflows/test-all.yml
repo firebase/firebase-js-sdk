@@ -31,62 +31,65 @@ env:
 
 jobs:
   build:
-    name: Build the SDK
     runs-on: ubuntu-latest
     steps:
-    # Install Chrome so the correct version of webdriver can be installed by chromedriver when
-    # setting up the repo. This must be done to build and execute Auth properly.
-    - name: install Chrome stable
-      run: |
-        npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v3
-    - name: Set up Node (20)
-      uses: actions/setup-node@v3
-      with:
-        node-version: 22.10.0
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
-    - name: yarn build
-      run: yarn build
-    - name: Archive build
-      if: ${{ !cancelled() }}
-      run: |
-        tar -cf build.tar --exclude=.git .
-        gzip build.tar
-    - name: Upload build archive
-      if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v3
-      with:
-          name: build.tar.gz
-          path: build.tar.gz
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Restore cached node_modules
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: "**/node_modules"
+          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: yarn install --frozen-lockfile
+      - name: install Chrome stable
+        run: |
+          npx @puppeteer/browsers install chrome@stable
+      - name: Test setup
+        run: cp config/ci.config.json config/project.json
+      - name: yarn build
+        run: yarn build
+      - name: Upload build archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: dists-${{ github.sha }}
+          path: |
+            packages/**/dist
+            repo-scripts/**/dist
           retention-days: ${{ env.artifactRetentionDays }}
-        
+
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
   test-the-rest:
     name: (bulk) Node.js and Browser (Chrome) Tests
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
-    - name: Set up Node (20)
-      uses: actions/setup-node@v3
+        name: dists-${{ github.sha }}
+    - uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - name: Restore cached node_modules
+      uses: actions/cache@v4
+      id: node_modules
+      with:
+        path: "**/node_modules"
+        key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+    - run: yarn install --frozen-lockfile
+    - run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -110,6 +113,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
       # install Chrome first, so the correct version of webdriver can be installed by chromedriver
       # when setting up the repo
     - name: install Chrome stable
@@ -121,23 +125,26 @@ jobs:
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
         fi
-    - name: Test Evn TEMP
+    - name: Test Env TEMP
       run: |
         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
-    - name: Set up Node (20)
-      uses: actions/setup-node@v3
+        name: dists-${{ github.sha }}
+    - uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - name: Restore cached node_modules
+      uses: actions/cache@v4
+      id: node_modules
+      with:
+        path: "**/node_modules"
+        key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+    - run: yarn install --frozen-lockfile
+    - run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -160,24 +167,28 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
-    - name: Set up Node (20)
-      uses: actions/setup-node@v3
+        name: dists-${{ github.sha }}
+    - uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - name: Restore cached node_modules
+      uses: actions/cache@v4
+      id: node_modules
+      with:
+        path: "**/node_modules"
+        key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+    - run: yarn install --frozen-lockfile
+    - run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -195,6 +206,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
+
   test-firestore-integration:
     strategy:
       fail-fast: false
@@ -204,22 +216,28 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
     - name: Download build archive
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: build.tar.gz
-    - name: Unzip build artifact
-      run: tar xf build.tar.gz
-    - name: Set up Node (20)
-      uses: actions/setup-node@v3
+        name: dists-${{ github.sha }}
+    - uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - name: Restore cached node_modules
+      uses: actions/cache@v4
+      id: node_modules
+      with:
+        path: "**/node_modules"
+        key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+    - run: yarn install --frozen-lockfile
     - run: cp config/ci.config.json config/project.json
-    - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore
     - run: xvfb-run yarn karma:singlerun

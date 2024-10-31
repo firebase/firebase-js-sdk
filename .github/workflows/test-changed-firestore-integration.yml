@@ -69,15 +69,14 @@ jobs:
       continue-on-error: true
 
     - name: Set up Node (20)
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version-file: '.nvmrc'
     - name: install Chrome stable
       run: |
         sudo apt-get update
         sudo apt-get install google-chrome-stable
-    - name: Test setup and yarn install
-      run: yarn
+    - run: yarn install --frozen-lockfile
     - name: build
       run: yarn build:changed firestore-integration
     - name: Run tests if firestore or its dependencies has changed

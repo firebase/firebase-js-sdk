@@ -46,10 +46,6 @@ jobs:
     # Block this workflow if run on a non-release branch.
     if: github.event.inputs.release-branch == 'release' || endsWith(github.event.inputs.release-branch, '-releasebranch')
     steps:
-    - name: Set up node (20)
-      uses: actions/setup-node@v3
-      with:
-        node-version: 22.10.0
     - name: Merge main into release
       uses: actions/github-script@v6
       with:
@@ -68,8 +64,12 @@ jobs:
         # Release script requires git history and tags.
         fetch-depth: 0
         ref: ${{ github.event.inputs.release-branch }}
-    - name: Yarn install
-      run: yarn
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: yarn
+        cache-dependency-path: yarn.lock
+    - run: yarn install --frozen-lockfile
     - name: Publish to NPM
       # --skipTests No need to run tests
       # --skipReinstall Yarn install has already been run

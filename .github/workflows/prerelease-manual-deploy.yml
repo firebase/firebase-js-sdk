@@ -34,12 +34,18 @@ jobs:
           with:
             # Canary release script requires git history and tags.
             fetch-depth: 0
-        - name: Set up node (20)
-          uses: actions/setup-node@v3
+        - uses: actions/setup-node@v4
           with:
-            node-version: 22.10.0
-        - name: Yarn install
-          run: yarn
+            node-version-file: '.nvmrc'
+            cache: yarn
+            cache-dependency-path: yarn.lock
+        - name: Restore cached node_modules
+          uses: actions/cache@v4
+          id: node_modules
+          with:
+            path: "**/node_modules"
+            key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        - run: yarn install --frozen-lockfile
         - name: Deploy prerelease
           run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -t ${{ github.event.inputs.npmTag }}
           env:
