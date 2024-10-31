@@ -19,7 +19,8 @@ import {
 } from '../protos/firestore_proto_api';
 import { toNumber } from '../remote/number_serializer';
 import {
-  JsonProtoSerializer, ProtoSerializable,
+  JsonProtoSerializer,
+  ProtoSerializable,
   toMapValue,
   toStringValue
 } from '../remote/serializer';
@@ -37,7 +38,7 @@ import { VectorValue } from './vector_value';
 /**
  * @beta
  */
-export interface Stage extends ProtoSerializable<ProtoStage>{
+export interface Stage extends ProtoSerializable<ProtoStage> {
   name: string;
 }
 

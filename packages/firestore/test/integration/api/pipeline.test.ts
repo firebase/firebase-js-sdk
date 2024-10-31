@@ -48,7 +48,6 @@ import {
   regexMatch,
   setDoc,
   startsWith,
-  strConcat,
   subtract
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
@@ -304,18 +303,18 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   // skip: toLower not supported
-  it.skip('returns distinct values as expected', async () => {
-    const results = await randomCol
-      .pipeline()
-      .where(lt('published', 1900))
-      .distinct(Field.of('genre').toLower().as('lowerGenre'))
-      .execute();
-    expectResults(
-      results,
-      { lowerGenre: 'romance' },
-      { lowerGenre: 'psychological thriller' }
-    );
-  });
+  // it.skip('returns distinct values as expected', async () => {
+  //   const results = await randomCol
+  //     .pipeline()
+  //     .where(lt('published', 1900))
+  //     .distinct(Field.of('genre').toLower().as('lowerGenre'))
+  //     .execute();
+  //   expectResults(
+  //     results,
+  //     { lowerGenre: 'romance' },
+  //     { lowerGenre: 'psychological thriller' }
+  //   );
+  // });
 
   it('returns group and accumulate results', async () => {
     const results = await randomCol
@@ -460,18 +459,18 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   // skip: arrayConcat not supported
-  it.skip('arrayConcat works', async () => {
-    const results = await randomCol
-      .pipeline()
-      .select(
-        Field.of('tags').arrayConcat(['newTag1', 'newTag2']).as('modifiedTags')
-      )
-      .limit(1)
-      .execute();
-    expectResults(results, {
-      modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
-    });
-  });
+  // it.skip('arrayConcat works', async () => {
+  //   const results = await randomCol
+  //     .pipeline()
+  //     .select(
+  //       Field.of('tags').arrayConcat(['newTag1', 'newTag2']).as('modifiedTags')
+  //     )
+  //     .limit(1)
+  //     .execute();
+  //   expectResults(results, {
+  //     modifiedTags: ['comedy', 'space', 'adventure', 'newTag1', 'newTag2']
+  //   });
+  // });
 
   it('testStrConcat', async () => {
     const results = await randomCol
@@ -550,43 +549,43 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   // skip: toLower not supported
-  it.skip('testToLowercase', async () => {
-    const results = await randomCol
-      .pipeline()
-      .select(Field.of('title').toLower().as('lowercaseTitle'))
-      .limit(1)
-      .execute();
-    expectResults(results, {
-      lowercaseTitle: "the hitchhiker's guide to the galaxy"
-    });
-  });
+  // it.skip('testToLowercase', async () => {
+  //   const results = await randomCol
+  //     .pipeline()
+  //     .select(Field.of('title').toLower().as('lowercaseTitle'))
+  //     .limit(1)
+  //     .execute();
+  //   expectResults(results, {
+  //     lowercaseTitle: "the hitchhiker's guide to the galaxy"
+  //   });
+  // });
 
   // skip: toUpper not supported
-  it.skip('testToUppercase', async () => {
-    const results = await randomCol
-      .pipeline()
-      .select(Field.of('author').toUpper().as('uppercaseAuthor'))
-      .limit(1)
-      .execute();
-    expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
-  });
+  // it.skip('testToUppercase', async () => {
+  //   const results = await randomCol
+  //     .pipeline()
+  //     .select(Field.of('author').toUpper().as('uppercaseAuthor'))
+  //     .limit(1)
+  //     .execute();
+  //   expectResults(results, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+  // });
 
   // skip: trim not supported
-  it.skip('testTrim', async () => {
-    const results = await randomCol
-      .pipeline()
-      .addFields(strConcat(' ', Field.of('title'), ' ').as('spacedTitle'))
-      .select(
-        Field.of('spacedTitle').trim().as('trimmedTitle'),
-        Field.of('spacedTitle')
-      )
-      .limit(1)
-      .execute();
-    expectResults(results, {
-      spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-      trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
-    });
-  });
+  // it.skip('testTrim', async () => {
+  //   const results = await randomCol
+  //     .pipeline()
+  //     .addFields(strConcat(' ', Field.of('title'), ' ').as('spacedTitle'))
+  //     .select(
+  //       Field.of('spacedTitle').trim().as('trimmedTitle'),
+  //       Field.of('spacedTitle')
+  //     )
+  //     .limit(1)
+  //     .execute();
+  //   expectResults(results, {
+  //     spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+  //     trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+  //   });
+  // });
 
   it('testLike', async () => {
     const results = await randomCol
