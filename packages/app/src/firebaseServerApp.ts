@@ -81,8 +81,10 @@ export class FirebaseServerAppImpl
       } catch (e) {
         console.warn(e);
       }
-      if (!this._installationsId) {
-        console.error('INVALID SERVER APP INSTALLATIONS AUTH TOKEN!');
+      if (this._installationsId === null) {
+        throw ERROR_FACTORY.create(
+          AppError.INVALID_SERVER_APP_INSTALLATIONS_AUTH_TOKEN
+        );
       }
     }
 
