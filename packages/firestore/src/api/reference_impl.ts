@@ -17,6 +17,7 @@
 
 import { getModularInstance } from '@firebase/util';
 
+import { collectionGroupP, collectionP } from '../api';
 import {
   CompleteFn,
   ErrorFn,
@@ -854,11 +855,13 @@ function _pipeline(query: Query): Pipeline {
   let pipeline: Pipeline;
   const firestore = cast(query.firestore, Firestore);
   if (query._query.collectionGroup) {
-    pipeline = _pipelineSource(firestore).collectionGroup(
+    pipeline = collectionGroupP(
+      _pipelineSource(firestore),
       query._query.collectionGroup
     );
   } else {
-    pipeline = _pipelineSource(firestore).collection(
+    pipeline = collectionP(
+      _pipelineSource(firestore),
       query._query.path.canonicalString()
     );
   }

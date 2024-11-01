@@ -15,11 +15,29 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './api/pipeline-source';
+export {
+  PipelineSource,
+  collection as collectionP,
+  collectionGroup as collectionGroupP,
+  documents,
+  database
+} from './api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline } from './api/pipeline';
+export { Pipeline, execute } from './api/pipeline';
+export {
+  where as whereP,
+  sort,
+  limit as limitP,
+  addFields,
+  select,
+  aggregate as aggregateP,
+  genericStage,
+  distinct,
+  offset,
+  findNearest
+} from './lite-api/pipeline';
 
 export {
   Stage,

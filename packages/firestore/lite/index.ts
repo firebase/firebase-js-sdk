@@ -27,11 +27,31 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-export { PipelineSource } from '../src/lite-api/pipeline-source';
+export {
+  PipelineSource,
+  collection as collectionP,
+  collectionGroup as collectionGroupP,
+  documents,
+  database
+} from '../src/lite-api/pipeline-source';
 
 export { PipelineResult } from '../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../src/lite-api/pipeline';
+
+export {
+  where as whereP,
+  sort,
+  limit as limitP,
+  addFields,
+  select,
+  aggregate,
+  genericStage,
+  distinct,
+  offset,
+  findNearest,
+  execute
+} from '../src/lite-api/pipeline';
 
 export {
   Stage,

@@ -21,6 +21,7 @@ import {
 } from '@firebase/firestore-types';
 import { getModularInstance } from '@firebase/util';
 
+import { collectionGroupP, collectionP } from '../../lite/index';
 import { LimitType } from '../core/query';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Precondition } from '../model/mutation';
@@ -132,11 +133,13 @@ export function pipeline(
 function _pipeline(query: Query): Pipeline {
   let pipeline;
   if (query._query.collectionGroup) {
-    pipeline = _pipelineSource(query.firestore).collectionGroup(
+    pipeline = collectionGroupP(
+      _pipelineSource(query.firestore),
       query._query.collectionGroup
     );
   } else {
-    pipeline = _pipelineSource(query.firestore).collection(
+    pipeline = collectionP(
+      _pipelineSource(query.firestore),
       query._query.path.canonicalString()
     );
   }

@@ -40,49 +40,58 @@ export class PipelineSource {
    * @param documentReferenceFactory
    */
   constructor(
-    private db: Firestore,
-    private userDataReader: UserDataReader,
-    private userDataWriter: AbstractUserDataWriter,
-    private documentReferenceFactory: (id: DocumentKey) => DocumentReference
+    public _db: Firestore,
+    public _userDataReader: UserDataReader,
+    public _userDataWriter: AbstractUserDataWriter,
+    public _documentReferenceFactory: (id: DocumentKey) => DocumentReference
   ) {}
+}
 
-  collection(collectionPath: string): Pipeline {
-    return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
-      [new CollectionSource(collectionPath)]
-    );
-  }
+export function collection(
+  pipelineSource: PipelineSource,
+  collectionPath: string
+): Pipeline {
+  return new Pipeline(
+    pipelineSource._db,
+    pipelineSource._userDataReader,
+    pipelineSource._userDataWriter,
+    pipelineSource._documentReferenceFactory,
+    [new CollectionSource(collectionPath)]
+  );
+}
 
-  collectionGroup(collectionId: string): Pipeline {
-    return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
-      [new CollectionGroupSource(collectionId)]
-    );
-  }
+export function collectionGroup(
+  pipelineSource: PipelineSource,
+  collectionId: string
+): Pipeline {
+  return new Pipeline(
+    pipelineSource._db,
+    pipelineSource._userDataReader,
+    pipelineSource._userDataWriter,
+    pipelineSource._documentReferenceFactory,
+    [new CollectionGroupSource(collectionId)]
+  );
+}
 
-  database(): Pipeline {
-    return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
-      [new DatabaseSource()]
-    );
-  }
+export function database(pipelineSource: PipelineSource): Pipeline {
+  return new Pipeline(
+    pipelineSource._db,
+    pipelineSource._userDataReader,
+    pipelineSource._userDataWriter,
+    pipelineSource._documentReferenceFactory,
+    [new DatabaseSource()]
+  );
+}
 
-  documents(docs: DocumentReference[]): Pipeline {
-    return new Pipeline(
-      this.db,
-      this.userDataReader,
-      this.userDataWriter,
-      this.documentReferenceFactory,
-      [DocumentsSource.of(docs)]
-    );
-  }
+export function documents(
+  pipelineSource: PipelineSource,
+  docs: DocumentReference[]
+): Pipeline {
+  return new Pipeline(
+    pipelineSource._db,
+    pipelineSource._userDataReader,
+    pipelineSource._userDataWriter,
+    pipelineSource._documentReferenceFactory,
+    [DocumentsSource.of(docs)]
+  );
 }
