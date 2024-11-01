@@ -24,6 +24,8 @@ import {
   NextFn,
   PartialObserver
 } from '../api/observer';
+import { Pipeline } from '../api/pipeline';
+import { PipelineSource } from '../api/pipeline-source';
 import { ListenerDataSource } from '../core/event_manager';
 import {
   firestoreClientAddSnapshotsInSyncListener,
@@ -57,9 +59,10 @@ import {
   parseUpdateData,
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
+import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -840,5 +843,56 @@ function convertToDocSnapshot<AppModelType, DbModelType extends DocumentData>(
     doc,
     new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache),
     ref.converter
+  );
+}
+
+/**
+ * @private
+ * @internal
+ */
+function _pipeline(query: Query): Pipeline {
+  let pipeline: Pipeline;
+  const firestore = cast(query.firestore, Firestore);
+  if (query._query.collectionGroup) {
+    pipeline = _pipelineSource(firestore).collectionGroup(
+      query._query.collectionGroup
+    );
+  } else {
+    pipeline = _pipelineSource(firestore).collection(
+      query._query.path.canonicalString()
+    );
+  }
+
+  // TODO(pipeline) convert existing query filters, limits, etc into
+  // pipeline stages
+
+  return pipeline;
+}
+
+function _pipelineSource(firestore: Firestore): PipelineSource {
+  return new PipelineSource(
+    firestore,
+    newUserDataReader(firestore),
+    new ExpUserDataWriter(firestore),
+    (key: DocumentKey) => {
+      return new DocumentReference(firestore, null, key);
+    }
+  );
+}
+
+export function pipeline(firestore: Firestore): PipelineSource;
+export function pipeline(query: Query): Pipeline;
+export function pipeline(
+  queryOrFirestore: Query | Firestore
+): Pipeline | PipelineSource {
+  if (queryOrFirestore instanceof Query) {
+    return _pipeline(queryOrFirestore);
+  } else if (queryOrFirestore instanceof Firestore) {
+    return _pipelineSource(queryOrFirestore);
+  }
+
+  throw new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    'pipeline() requires argument of type Firestore or Query'
   );
 }

@@ -1073,10 +1073,6 @@ export interface FindNearestOptions {
 // @public
 export class Firestore {
     get app(): FirebaseApp;
-    // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
-    //
-    // (undocumented)
-    pipeline: () => PipelineSource;
     toJSON(): object;
     type: 'firestore-lite' | 'firestore';
 }
@@ -1813,39 +1809,71 @@ export interface PersistentSingleTabManagerSettings {
 // @public
 export type PersistentTabManager = PersistentSingleTabManager | PersistentMultipleTabManager;
 
-// @public
+// @public (undocumented)
 export class Pipeline<AppModelType = DocumentData> {
     // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
     addFields(...fields: Selectable[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
     aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
-    aggregate(options: {
-        accumulators: AccumulatorTarget[];
-        groups?: Array<string | Selectable>;
-    }): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    aggregate(options: { accumulators: AccumulatorTarget[]; groups?: Array<string | Selectable>; }): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    converter: any;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
     distinct(...groups: Array<string | Selectable>): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
     execute(): Promise<Array<PipelineResult<AppModelType>>>;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "findNearest" is marked as @public, but its signature references "FindNearestOptions" which is marked as @beta
     //
     // (undocumented)
     findNearest(options: FindNearestOptions): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
     genericStage(name: string, params: any[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
     limit(limit: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    liteDb: any;
+    /* Excluded from this release type: __constructor */
     offset(offset: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    readUserData: any;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
     select(...selections: Array<Selectable | string>): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    selectablesToMap: any;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
     sort(...orderings: Ordering[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
     // (undocumented)
-    sort(options: {
-        orderings: Ordering[];
-    }): Pipeline<AppModelType>;
+    sort(options: { orderings: Ordering[]; }): Pipeline<AppModelType>;
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    stages: any;
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    userDataReader: any;
+    /* Excluded from this release type: __constructor */
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "Constant" which is marked as @beta
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
 }
+
+// Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
+//
+// @public (undocumented)
+export function pipeline(firestore: Firestore): PipelineSource;
+
+// @public (undocumented)
+export function pipeline(query: Query): Pipeline;
 
 // @beta
 export class PipelineResult<AppModelType = DocumentData> {
@@ -2464,8 +2492,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10108:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10109:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10138:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10093:26 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10093:61 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10120:21 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```

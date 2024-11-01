@@ -22,6 +22,7 @@ import {
 import { getModularInstance } from '@firebase/util';
 
 import { LimitType } from '../core/query';
+import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -30,12 +31,15 @@ import {
 } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { Bytes } from './bytes';
 import { getDatastore } from './components';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
+import { Pipeline } from './pipeline';
+import { PipelineSource } from './pipeline-source';
 import { validateHasExplicitOrderByForLimitToLast } from './query';
 import {
   CollectionReference,
@@ -106,6 +110,54 @@ export class LiteUserDataWriter extends AbstractUserDataWriter {
     const key = this.convertDocumentKey(name, this.firestore._databaseId);
     return new DocumentReference(this.firestore, /* converter= */ null, key);
   }
+}
+
+export function pipeline(query: Query): Pipeline;
+export function pipeline(firestore: Firestore): PipelineSource;
+export function pipeline(
+  queryOrFirestore: Query | Firestore
+): Pipeline | PipelineSource {
+  if (queryOrFirestore instanceof Query) {
+    return _pipeline(queryOrFirestore);
+  } else if (queryOrFirestore instanceof Firestore) {
+    return _pipelineSource(queryOrFirestore);
+  }
+
+  throw new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    'pipeline() requires argument of type Firestore or Query'
+  );
+}
+
+function _pipeline(query: Query): Pipeline {
+  let pipeline;
+  if (query._query.collectionGroup) {
+    pipeline = _pipelineSource(query.firestore).collectionGroup(
+      query._query.collectionGroup
+    );
+  } else {
+    pipeline = _pipelineSource(query.firestore).collection(
+      query._query.path.canonicalString()
+    );
+  }
+
+  // TODO(pipeline) convert existing query filters, limits, etc into
+  // pipeline stages
+
+  return pipeline;
+}
+
+export function _pipelineSource(firestore: Firestore): PipelineSource {
+  const userDataWriter = new LiteUserDataWriter(firestore);
+  const userDataReader = newUserDataReader(firestore);
+  return new PipelineSource(
+    firestore,
+    userDataReader,
+    userDataWriter,
+    (key: DocumentKey) => {
+      return new DocumentReference(firestore, null, key);
+    }
+  );
 }
 
 /**

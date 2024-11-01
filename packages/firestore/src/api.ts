@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource } from './api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline } from './lite-api/pipeline';
+export { Pipeline } from './api/pipeline';
 
 export {
   Stage,
@@ -308,7 +308,8 @@ export {
 export {
   ListenSource,
   SnapshotListenOptions,
-  Unsubscribe
+  Unsubscribe,
+  pipeline
 } from './api/reference_impl';
 
 export { TransactionOptions } from './api/transaction_options';

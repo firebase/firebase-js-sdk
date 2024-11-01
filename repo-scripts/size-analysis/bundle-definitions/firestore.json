@@ -152,7 +152,8 @@
             "imports": [
               "getFirestore",
               "lt",
-              "Field"
+              "Field",
+              "pipeline"
             ]
           }
         ]

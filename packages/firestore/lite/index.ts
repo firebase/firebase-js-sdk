@@ -271,7 +271,8 @@ export {
   updateDoc,
   setDoc,
   getDoc,
-  getDocs
+  getDocs,
+  pipeline
 } from '../src/lite-api/reference_impl';
 
 export {

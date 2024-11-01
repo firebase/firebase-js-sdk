@@ -43,6 +43,7 @@ import {
   neq,
   not,
   orExpression,
+  pipeline,
   PipelineResult,
   regexContains,
   regexMatch,
@@ -253,8 +254,7 @@ apiDescribe.only('Pipelines', persistence => {
   // setLogLevel('debug')
 
   it('empty results as expected', async () => {
-    const result = await firestore
-      .pipeline()
+    const result = await pipeline(firestore)
       .collection(randomCol.path)
       .limit(0)
       .execute();
@@ -262,23 +262,20 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('full results as expected', async () => {
-    const result = await firestore
-      .pipeline()
+    const result = await pipeline(firestore)
       .collection(randomCol.path)
       .execute();
     expect(result.length).to.equal(10);
   });
 
   it('returns aggregate results as expected', async () => {
-    let result = await firestore
-      .pipeline()
+    let result = await pipeline(firestore)
       .collection(randomCol.path)
       .aggregate(countAll().as('count'))
       .execute();
     expectResults(result, { count: 10 });
 
-    result = await randomCol
-      .pipeline()
+    result = await pipeline(randomCol)
       .where(eq('genre', 'Science Fiction'))
       .aggregate(
         countAll().as('count'),
@@ -291,8 +288,7 @@ apiDescribe.only('Pipelines', persistence => {
 
   it('rejects groups without accumulators', async () => {
     await expect(
-      randomCol
-        .pipeline()
+      pipeline(randomCol)
         .where(lt('published', 1900))
         .aggregate({
           accumulators: [],
@@ -317,8 +313,7 @@ apiDescribe.only('Pipelines', persistence => {
   // });
 
   it('returns group and accumulate results', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(lt(Field.of('published'), 1984))
       .aggregate({
         accumulators: [avg('rating').as('avgRating')],
@@ -336,8 +331,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('returns min and max accumulations', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .aggregate(
         countAll().as('count'),
         Field.of('rating').max().as('maxRating'),
@@ -352,8 +346,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('can select fields', async () => {
-    const results = await firestore
-      .pipeline()
+    const results = await pipeline(firestore)
       .collection(randomCol.path)
       .select('title', 'author')
       .sort(Field.of('author').ascending())
@@ -380,16 +373,14 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('where with and', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(andExpression(gt('rating', 4.5), eq('genre', 'Science Fiction')))
       .execute();
     expectResults(results, 'book10');
   });
 
   it('where with or', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(orExpression(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
       .select('title')
       .execute();
@@ -402,8 +393,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('offset and limits', async () => {
-    const results = await firestore
-      .pipeline()
+    const results = await pipeline(firestore)
       .collection(randomCol.path)
       .sort(Field.of('author').ascending())
       .offset(5)
@@ -419,8 +409,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('arrayContains works', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(arrayContains('tags', 'comedy'))
       .select('title')
       .execute();
@@ -428,8 +417,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('arrayContainsAny works', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(arrayContainsAny('tags', ['comedy', 'classic']))
       .select('title')
       .execute();
@@ -441,8 +429,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('arrayContainsAll works', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(Field.of('tags').arrayContainsAll('adventure', 'magic'))
       .select('title')
       .execute();
@@ -450,8 +437,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('arrayLength works', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(Field.of('tags').arrayLength().as('tagsCount'))
       .where(eq('tagsCount', 3))
       .execute();
@@ -473,8 +459,7 @@ apiDescribe.only('Pipelines', persistence => {
   // });
 
   it('testStrConcat', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(
         Field.of('author').strConcat(' - ', Field.of('title')).as('bookInfo')
       )
@@ -486,8 +471,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testStartsWith', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(startsWith('title', 'The'))
       .select('title')
       .sort(Field.of('title').ascending())
@@ -502,8 +486,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testEndsWith', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(endsWith('title', 'y'))
       .select('title')
       .sort(Field.of('title').descending())
@@ -516,8 +499,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testLength', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(
         Field.of('title').charLength().as('titleLength'),
         Field.of('title')
@@ -588,8 +570,7 @@ apiDescribe.only('Pipelines', persistence => {
   // });
 
   it('testLike', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(like('title', '%Guide%'))
       .select('title')
       .execute();
@@ -597,24 +578,21 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testRegexContains', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(regexContains('title', '(?i)(the|of)'))
       .execute();
     expect(results.length).to.equal(5);
   });
 
   it('testRegexMatches', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(regexMatch('title', '.*(?i)(the|of).*'))
       .execute();
     expect(results.length).to.equal(5);
   });
 
   it('testArithmeticOperations', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(
         add(Field.of('rating'), 1).as('ratingPlusOne'),
         subtract(Field.of('published'), 1900).as('yearsSince1900'),
@@ -632,8 +610,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testComparisonOperators', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(
         andExpression(
           gt('rating', 4.2),
@@ -656,8 +633,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testLogicalOperators', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(
         orExpression(
           andExpression(gt('rating', 4.5), eq('genre', 'Science Fiction')),
@@ -676,8 +652,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testChecks', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(not(Field.of('rating').isNaN()))
       .select(
         Field.of('rating').eq(null).as('ratingIsNull'),
@@ -689,8 +664,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testMapGet', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(
         Field.of('awards').mapGet('hugo').as('hugoAward'),
         Field.of('awards').mapGet('others').as('others'),
@@ -734,8 +708,7 @@ apiDescribe.only('Pipelines', persistence => {
   it('testDistanceFunctions', async () => {
     const sourceVector = [0.1, 0.1];
     const targetVector = [0.5, 0.8];
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .select(
         cosineDistance(Constant.vector(sourceVector), targetVector).as(
           'cosineDistance'
@@ -758,8 +731,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('testNestedFields', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(eq('awards.hugo', true))
       .select('title', 'awards.hugo')
       .execute();
@@ -771,8 +743,7 @@ apiDescribe.only('Pipelines', persistence => {
   });
 
   it('test mapGet with field name including . notation', async () => {
-    const results = await randomCol
-      .pipeline()
+    const results = await pipeline(randomCol)
       .where(eq('awards.hugo', true))
       .select(
         'title',
