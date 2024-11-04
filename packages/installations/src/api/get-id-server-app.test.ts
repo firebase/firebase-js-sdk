@@ -17,23 +17,27 @@
 
 import { expect } from 'chai';
 import { getId } from './get-id';
-import { FAKE_INSTALLATIONS_ID, getFakeInstallations, getFakeServerApp } from '../testing/fake-generators';
+import {
+  FAKE_INSTALLATIONS_ID,
+  getFakeInstallations,
+  getFakeServerApp
+} from '../testing/fake-generators';
 
 describe('getId-serverapp', () => {
-  it('getId with firebaseServerApp with authIdToken returns valid id', async() => {
-    const installationsAuthToken = "fakeToken";
+  it('getId with firebaseServerApp with authIdToken returns valid id', async () => {
+    const installationsAuthToken = 'fakeToken';
     const serverApp = getFakeServerApp(installationsAuthToken);
     const installations = getFakeInstallations(serverApp);
     const fid = await getId(installations);
     expect(fid).to.equal(FAKE_INSTALLATIONS_ID);
   });
-  it('getId with firebaseServerApp without authIdToken throws', async() => {
+  it('getId with firebaseServerApp without authIdToken throws', async () => {
     const serverApp = getFakeServerApp();
     const installations = getFakeInstallations(serverApp);
     let fails = false;
     try {
       await getId(installations);
-    } catch (e) { 
+    } catch (e) {
       console.error(e);
       fails = true;
     }

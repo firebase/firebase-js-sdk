@@ -17,14 +17,17 @@
 
 import { expect, use } from 'chai';
 import { getToken } from './get-token';
-import { getFakeInstallations, getFakeServerApp } from '../testing/fake-generators';
+import {
+  getFakeInstallations,
+  getFakeServerApp
+} from '../testing/fake-generators';
 import chaiAsPromised from 'chai-as-promised';
 
 use(chaiAsPromised);
 
 describe('getToken-serverapp', () => {
   it('getToken with firebaseServerApp with authIdToken returns valid token', async () => {
-    const installationsAuthToken = "fakeToken.abc123";
+    const installationsAuthToken = 'fakeToken';
     const serverApp = getFakeServerApp(installationsAuthToken);
     const installations = getFakeInstallations(serverApp);
     const token = await getToken(installations);
@@ -36,7 +39,7 @@ describe('getToken-serverapp', () => {
     let fails = false;
     try {
       await getToken(installations);
-    } catch (e) { 
+    } catch (e) {
       fails = true;
     }
     expect(fails).to.be.true;
