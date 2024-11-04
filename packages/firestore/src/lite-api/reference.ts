@@ -37,7 +37,6 @@ import { AutoId } from '../util/misc';
 import { Firestore } from './database';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
-import { Pipeline } from './pipeline';
 import { FirestoreDataConverter } from './snapshot';
 import { NestedUpdateFields, Primitive } from './types';
 
@@ -178,29 +177,17 @@ export class Query<
       this._query
     );
   }
-
-  /**
-   * @private
-   * @internal
-   */
-  pipeline(): Pipeline {
-    let pipeline;
-    if (this._query.collectionGroup) {
-      pipeline = this.firestore
-        .pipeline()
-        .collectionGroup(this._query.collectionGroup);
-    } else {
-      pipeline = this.firestore
-        .pipeline()
-        .collection(this._query.path.canonicalString());
-    }
-
-    // TODO(pipeline) convert existing query filters, limits, etc into
-    // pipeline stages
-
-    return pipeline;
-  }
 }
+
+// Undocumented method of Query. This is only
+// in place to give developers a runtime error suggesting
+// how to correctly initialize Firestore for use with Pipelines.
+// @ts-ignore
+Query.prototype.pipeline = function () {
+  throw new Error(
+    'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+  );
+};
 
 /**
  * A `DocumentReference` refers to a document location in a Firestore database

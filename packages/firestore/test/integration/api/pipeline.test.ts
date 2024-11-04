@@ -48,11 +48,13 @@ import {
   regexMatch,
   setDoc,
   startsWith,
-  subtract
+  subtract,
+  useFirestorePipelines
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 
 use(chaiAsPromised);
+useFirestorePipelines();
 
 apiDescribe.only('Pipelines', persistence => {
   addEqualityMatcher();
