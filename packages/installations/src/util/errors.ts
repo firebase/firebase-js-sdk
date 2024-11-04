@@ -25,7 +25,7 @@ export const enum ErrorCode {
   REQUEST_FAILED = 'request-failed',
   APP_OFFLINE = 'app-offline',
   DELETE_PENDING_REGISTRATION = 'delete-pending-registration',
-  SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN = 'server-app-missing-installatoins-auth-token'
+  SERVER_APP_MISSING_INSTALLATIONS_AUTH_TOKEN = 'server-app-missing-installations-auth-token'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
