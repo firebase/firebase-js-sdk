@@ -70,6 +70,7 @@ export class FirebaseServerAppImpl
     };
 
     // Parse the installationAuthToken if provided.
+    // TODO: kick off the token verification process.
     this._installationsId = null;
     if (this._serverConfig.installationsAuthToken !== undefined) {
       try {
