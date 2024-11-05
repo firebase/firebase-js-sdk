@@ -1,33 +1,22 @@
-import { Pipeline } from '../lite-api/pipeline';
-import { PipelineSource } from '../lite-api/pipeline-source';
-import { newUserDataReader } from '../lite-api/user_data_reader';
 import { DocumentKey } from '../model/document_key';
 
 import { Firestore } from './database';
+import { Pipeline } from './pipeline';
+import { PipelineSource } from './pipeline-source';
 import { DocumentReference, Query } from './reference';
-import { ExpUserDataWriter } from './user_data_writer';
-
-declare module './database' {
-  interface Firestore {
-    pipeline(): PipelineSource;
-  }
-}
-
-declare module './reference' {
-  interface Query {
-    pipeline(): Pipeline;
-  }
-}
+import { LiteUserDataWriter } from './reference_impl';
+import { newUserDataReader } from './user_data_reader';
 
 export function useFirestorePipelines(): void {
   Firestore.prototype.pipeline = function (): PipelineSource {
-    const firestore = this;
+    const userDataWriter = new LiteUserDataWriter(this);
+    const userDataReader = newUserDataReader(this);
     return new PipelineSource(
       this,
-      newUserDataReader(firestore),
-      new ExpUserDataWriter(firestore),
+      userDataReader,
+      userDataWriter,
       (key: DocumentKey) => {
-        return new DocumentReference(firestore, null, key);
+        return new DocumentReference(this, null, key);
       }
     );
   };

@@ -33,7 +33,7 @@ export { PipelineResult } from '../src/lite-api/pipeline-result';
 
 export { Pipeline } from '../src/lite-api/pipeline';
 
-export { useFirestorePipelines } from '../src/lite-api/database-augmentation';
+export { useFirestorePipelines } from '../src/lite-api/database_augmentation';
 
 export {
   Stage,
