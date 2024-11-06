@@ -161,7 +161,7 @@
     ]
   },
   {
-    "name": "Pipeline Query with lt plus and filter",
+    "name": "Pipeline Query with lt plus and function",
     "dependencies": [
       {
         "packageName": "firebase",
