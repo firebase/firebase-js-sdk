@@ -41,10 +41,10 @@ export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = 
  * @param data - Data to be passed to callable function.
  * @public
  */
-export type HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> = {
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> {
   (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
   stream: (data?: RequestData | null, options?: HttpsCallableStreamOptions) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
-};
+}
 
 /**
  * An interface for metadata about how calls should be executed.

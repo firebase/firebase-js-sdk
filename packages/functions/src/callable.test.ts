@@ -107,9 +107,8 @@ describe('Firebase Functions > Call', () => {
         long: 420
       });
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-
   });
 
   it('scalars', async () => {
@@ -325,13 +324,41 @@ describe('Firebase Functions > Stream', () => {
 
   afterEach(() => {
     mockFetch.restore();
-  })
+  });
 
   it('successfully streams data and resolves final result', async () => {
     const mockResponse = new ReadableStream({
       start(controller) {
         controller.enqueue(new TextEncoder().encode('data: {"message":"Hello"}\n'));
         controller.enqueue(new TextEncoder().encode('data: {"message":"World"}\n'));
+        controller.enqueue(new TextEncoder().encode('data: {"result":"Final Result"}\n'));
+        controller.close();
+      }
+    });
+
+    mockFetch.resolves({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(functions, 'streamTest');
+    const streamResult = await func.stream({});
+
+    const messages: string[] = [];
+    for await (const message of streamResult.stream) {
+      messages.push(message);
+    }
+
+    expect(messages).to.deep.equal(['Hello', 'World']);
+    expect(await streamResult.data).to.equal('Final Result');
+  });
+
+  it('successfully process request chunk with multiple events', async () => {
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"message":"Hello"}\n\ndata: {"message":"World"}\n'));
         controller.enqueue(new TextEncoder().encode('data: {"result":"Final Result"}\n'));
         controller.close();
       }
@@ -372,7 +399,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/internal`);
     }
     expect(errorThrown).to.be.true;
-    expectError(streamResult.data, "internal", "Internal");
+    await expectError(streamResult.data, "internal", "Internal");
   });
 
   it('handles server-side errors', async () => {
@@ -405,7 +432,7 @@ describe('Firebase Functions > Stream', () => {
     }
 
     expect(errorThrown).to.be.true;
-    expectError(streamResult.data, "invalid-argument", "Invalid input")
+    await expectError(streamResult.data, "invalid-argument", "Invalid input");
   });
 
   it('includes authentication and app check tokens in request headers', async () => {
@@ -497,7 +524,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(errorThrown).to.be.true;
-    expectError(streamResult.data, "cancelled", "Request was cancelled")
+    await expectError(streamResult.data, "cancelled", "Request was cancelled");
   });
 
   it('aborts during streaming', async () => {
@@ -539,7 +566,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(messages).to.deep.equal(['First']);
-    expectError(streamResult.data, "cancelled", "Request was cancelled")
+    await expectError(streamResult.data, "cancelled", "Request was cancelled");
   });
 
   it('fails immediately with pre-aborted signal', async () => {
@@ -564,7 +591,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(errorThrown).to.be.true;
-    expectError(streamResult.data, "cancelled", "Request was cancelled")
+    await expectError(streamResult.data, "cancelled", "Request was cancelled");
   });
 
   it('properly handles AbortSignal.timeout()', async () => {
@@ -589,13 +616,13 @@ describe('Firebase Functions > Stream', () => {
     const streamResult = await func.stream({}, { signal });
 
     try {
-      for await (const message of streamResult.stream) {
+      for await (const _ of streamResult.stream) {
         // Should not execute
       }
       throw new Error('Stream should have timed out');
     } catch (error) {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
-    expectError(streamResult.data, "cancelled", "Request was cancelled")
+    await expectError(streamResult.data, "cancelled", "Request was cancelled");
   });
 });

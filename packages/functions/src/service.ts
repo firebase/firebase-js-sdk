@@ -184,7 +184,7 @@ export function httpsCallable<RequestData, ResponseData, StreamData = unknown>(
   name: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  const callable = (data?: RequestData | null) => {
+  const callable = (data?: RequestData | null): Promise<HttpsCallableResult> => {
     return call(functionsInstance, name, data, options || {});
   };
 
@@ -205,7 +205,7 @@ export function httpsCallableFromURL<RequestData, ResponseData, StreamData = unk
   url: string,
   options?: HttpsCallableOptions
 ): HttpsCallable<RequestData, ResponseData, StreamData> {
-  const callable = (data?: RequestData | null) => {
+  const callable = (data?: RequestData | null): Promise<HttpsCallableResult> => {
     return callAtURL(functionsInstance, url, data, options || {});
   };
 
@@ -431,7 +431,7 @@ async function streamAtURL(
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
     // treated as a network error by fetch.
-    const error = _errorForResponse(0, null)
+    const error = _errorForResponse(0, null);
     return {
       data: Promise.reject(error),
       // Return an empty async iterator
@@ -450,10 +450,10 @@ async function streamAtURL(
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
 
-  let pendingLines: string[] = [];
+  const pendingLines: string[] = [];
   let buffer = '';
   let resultResolver: (value: unknown) => void;
-  let resultRejecter: (reason: any) => void;
+  let resultRejecter: (reason: unknown) => void;
 
   const resultPromise = new Promise<unknown>((resolve, reject) => {
     resultResolver = resolve;
@@ -461,7 +461,7 @@ async function streamAtURL(
   });
 
   options?.signal?.addEventListener('abort', () => {
-    reader.cancel();
+    void reader.cancel();
     const error = new FunctionsError(
       'cancelled',
       'Request was cancelled.'
@@ -472,9 +472,9 @@ async function streamAtURL(
   const stream = {
     [Symbol.asyncIterator]() {
 
-      const processLine = (line: string | undefined) => {
+      const processLine = (line: string | undefined): { done: boolean, value: unknown } | null => {
         // ignore all other lines (newline, comments, etc.)
-        if (!line?.startsWith('data: ')) return null;
+        if (!line?.startsWith('data: ')) { return null; }
 
         try {
           const jsonData = JSON.parse(line.slice(6));
@@ -492,7 +492,7 @@ async function streamAtURL(
           }
           return null; // Unrecognize keys. Skip this line.
         } catch (error) {
-          // Not json. Skip this line.
+          return null;
         }
       };
       return {
@@ -502,13 +502,13 @@ async function streamAtURL(
               'cancelled',
               'Request was cancelled.'
             );
-            resultRejecter(error)
+            resultRejecter(error);
             throw error;
           }
 
           while (pendingLines.length > 0) {
             const result = processLine(pendingLines.shift());
-            if (result) return result;
+            if (result) { return result; }
           }
 
           while (true) {
@@ -517,7 +517,7 @@ async function streamAtURL(
             if (done) {
               if (buffer.trim()) {
                 const result = processLine(buffer);
-                if (result) return result;
+                if (result) { return result; }
               }
               return { done: true, value: undefined };
             }
@@ -529,7 +529,7 @@ async function streamAtURL(
 
             if (pendingLines.length > 0) {
               const result = processLine(pendingLines.shift());
-              if (result) return result;
+              if (result) { return result; }
             }
           }
         }
@@ -540,5 +540,5 @@ async function streamAtURL(
   return {
     stream,
     data: resultPromise,
-  }
+  };
 }
