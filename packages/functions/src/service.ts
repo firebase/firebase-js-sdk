@@ -474,7 +474,9 @@ async function streamAtURL(
 
       const processLine = (line: string | undefined): { done: boolean, value: unknown } | null => {
         // ignore all other lines (newline, comments, etc.)
-        if (!line?.startsWith('data: ')) { return null; }
+        if (!line?.startsWith('data: ')) {
+          return null;
+        }
 
         try {
           const jsonData = JSON.parse(line.slice(6));
@@ -492,6 +494,10 @@ async function streamAtURL(
           }
           return null; // Unrecognize keys. Skip this line.
         } catch (error) {
+          if (error instanceof FunctionsError) {
+            throw error;
+          }
+          // ignore other parsing error
           return null;
         }
       };
