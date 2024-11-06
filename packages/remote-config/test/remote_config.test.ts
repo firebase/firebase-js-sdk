@@ -107,21 +107,25 @@ describe('RemoteConfig', () => {
         key: 'value'
       });
     });
-    
+
     it('throws an error when supplied with a custom signal key greater than 250 characters', async () => {
       const longKey = 'a'.repeat(251);
       const customSignals = { [longKey]: 'value' };
 
-      await expect(setCustomSignals(rc, customSignals)).to.eventually.be.rejectedWith(
+      await expect(
+        setCustomSignals(rc, customSignals)
+      ).to.eventually.be.rejectedWith(
         `Remote Config: Custom signal key ${longKey} is too long, max allowed length is 250.`
       );
     });
-    
+
     it('throws an error when supplied with a custom signal value greater than 500 characters', async () => {
       const longValue = 'a'.repeat(501);
       const customSignals = { 'key': longValue };
 
-      await expect(setCustomSignals(rc, customSignals)).to.eventually.be.rejectedWith(
+      await expect(
+        setCustomSignals(rc, customSignals)
+      ).to.eventually.be.rejectedWith(
         'Remote Config: Value supplied for custom signal key is too long, max allowed length is 500.'
       );
     });

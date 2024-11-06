@@ -204,7 +204,9 @@ export class Storage {
     );
 
     // Throw an error if the number of custom signals to be stored exceeds the limit
-    if (Object.keys(signalsToUpdate).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS) {
+    if (
+      Object.keys(signalsToUpdate).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+    ) {
       throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
         maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
       });

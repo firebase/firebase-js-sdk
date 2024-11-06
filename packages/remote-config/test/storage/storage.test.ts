@@ -158,11 +158,12 @@ describe('Storage', () => {
     const customSignals: { [key: string]: string } = {};
     for (let i = 0; i < 101; i++) {
       customSignals[`key${i}`] = `value${i}`;
-    }    
+    }
 
-    await expect(storage.setCustomSignals(customSignals)).to.eventually.be.rejectedWith(
+    await expect(
+      storage.setCustomSignals(customSignals)
+    ).to.eventually.be.rejectedWith(
       'Remote Config: Setting more than 100 custom signals is not supported.'
     );
-
   });
 });

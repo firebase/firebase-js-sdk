@@ -96,8 +96,8 @@ interface ErrorParams {
   [ErrorCode.FETCH_PARSE]: { originalErrorMessage: string };
   [ErrorCode.FETCH_STATUS]: { httpStatus: number };
   [ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS]: { maxSignals: number };
-  [ErrorCode.CUSTOM_SIGNAL_KEY_LENGTH]: { key: string, maxLength: number };
-  [ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH]: { key: string, maxLength: number };
+  [ErrorCode.CUSTOM_SIGNAL_KEY_LENGTH]: { key: string; maxLength: number };
+  [ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH]: { key: string; maxLength: number };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(

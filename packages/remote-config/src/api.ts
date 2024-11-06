@@ -23,7 +23,11 @@ import {
   Value
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
-import { RC_COMPONENT_NAME, RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH, RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH } from './constants';
+import {
+  RC_COMPONENT_NAME,
+  RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH,
+  RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
+} from './constants';
 import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
@@ -285,7 +289,10 @@ export async function setCustomSignals(
       });
     }
     const value = customSignals[key];
-    if (typeof value === 'string' && value.length > RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH) {
+    if (
+      typeof value === 'string' &&
+      value.length > RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
+    ) {
       throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH, {
         key,
         maxLength: RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
