@@ -21,6 +21,7 @@ import {
   FirebaseRemoteConfigObject
 } from '../client/remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
+import { RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS } from '../constants';
 import { FirebaseError } from '@firebase/util';
 
 /**
@@ -201,6 +202,14 @@ export class Storage {
     const signalsToUpdate = Object.fromEntries(
       Object.entries(combinedSignals).filter(([_, v]) => v !== null)
     );
+
+    // Throw an error if the number of custom signals to be stored exceeds the limit
+    if (Object.keys(signalsToUpdate).length > RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS) {
+      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS, {
+        maxSignals: RC_CUSTOM_SIGNAL_MAX_ALLOWED_SIGNALS
+      });
+    }
+
     return this.setWithTransaction<CustomSignals>(
       'custom_signals',
       signalsToUpdate,

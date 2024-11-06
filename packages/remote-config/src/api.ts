@@ -23,8 +23,8 @@ import {
   Value
 } from './public_types';
 import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
-import { RC_COMPONENT_NAME } from './constants';
-import { ErrorCode, hasErrorCode } from './errors';
+import { RC_COMPONENT_NAME, RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH, RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH } from './constants';
+import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
@@ -276,5 +276,22 @@ export async function setCustomSignals(
   customSignals: CustomSignals
 ): Promise<void> {
   const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  // eslint-disable-next-line guard-for-in
+  for (const key in customSignals) {
+    if (key.length > RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH) {
+      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_KEY_LENGTH, {
+        key,
+        maxLength: RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH
+      });
+    }
+    const value = customSignals[key];
+    if (typeof value === 'string' && value.length > RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH) {
+      throw ERROR_FACTORY.create(ErrorCode.CUSTOM_SIGNAL_VALUE_LENGTH, {
+        key,
+        maxLength: RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
+      });
+    }
+  }
+
   return rc._storageCache.setCustomSignals(customSignals);
 }
