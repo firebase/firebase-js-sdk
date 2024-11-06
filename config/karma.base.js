@@ -31,7 +31,7 @@ function determineBrowsers() {
     );
     if (validBrowsers.length === 0) {
       console.error(
-        `The \'BROWSER\' environment variable was set, but no supported browsers were listed. The supported browsers are ${JSON.stringify(
+        `he \'BROWSER\' environment variable was set, but no supported browsers were listed. The supported browsers are ${JSON.stringify(
           supportedBrowsers
         )}.`
       );
