@@ -399,7 +399,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/internal`);
     }
     expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, "internal", "Internal");
+    await expectError(streamResult.data, "internal", "internal");
   });
 
   it('handles server-side errors', async () => {
@@ -524,7 +524,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, "cancelled", "Request was cancelled");
+    await expectError(streamResult.data, "cancelled", "Request was cancelled.");
   });
 
   it('aborts during streaming', async () => {
@@ -566,7 +566,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(messages).to.deep.equal(['First']);
-    await expectError(streamResult.data, "cancelled", "Request was cancelled");
+    await expectError(streamResult.data, "cancelled", "Request was cancelled.");
   });
 
   it('fails immediately with pre-aborted signal', async () => {
@@ -591,7 +591,7 @@ describe('Firebase Functions > Stream', () => {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
     expect(errorThrown).to.be.true;
-    await expectError(streamResult.data, "cancelled", "Request was cancelled");
+    await expectError(streamResult.data, "cancelled", "Request was cancelled.");
   });
 
   it('properly handles AbortSignal.timeout()', async () => {
@@ -623,6 +623,6 @@ describe('Firebase Functions > Stream', () => {
     } catch (error) {
       expect((error as FunctionsError).code).to.equal(`${FUNCTIONS_TYPE}/cancelled`);
     }
-    await expectError(streamResult.data, "cancelled", "Request was cancelled");
+    await expectError(streamResult.data, "cancelled", "Request was cancelled.");
   });
 });
