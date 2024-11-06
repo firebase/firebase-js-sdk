@@ -24,7 +24,8 @@ import {
 import { invokeExecutePipeline } from '../remote/datastore';
 import {
   getEncodedDatabaseId,
-  JsonProtoSerializer, ProtoSerializable
+  JsonProtoSerializer,
+  ProtoSerializable
 } from '../remote/serializer';
 
 import { getDatastore } from './components';
@@ -117,7 +118,9 @@ function isReadableUserData(value: any): value is ReadableUserData {
 /**
  * Base-class implementation
  */
-export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<ExecutePipelineRequest>{
+export class Pipeline<AppModelType = DocumentData>
+  implements ProtoSerializable<ExecutePipelineRequest>
+{
   /**
    * @internal
    * @private
@@ -135,7 +138,7 @@ export class Pipeline<AppModelType = DocumentData> implements ProtoSerializable<
      * @internal
      * @private
      */
-    protected userDataWriter: AbstractUserDataWriter,
+    readonly userDataWriter: AbstractUserDataWriter,
     /**
      * @internal
      * @private

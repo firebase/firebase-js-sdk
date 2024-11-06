@@ -23,7 +23,7 @@ import {
   DatabaseSource,
   DocumentsSource
 } from '../lite-api/stage';
-import {PipelineSource as LitePipelineSource} from '../lite-api/pipeline-source';
+import { PipelineSource as LitePipelineSource } from '../lite-api/pipeline-source';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 
@@ -31,7 +31,7 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
  * Represents the source of a Firestore {@link Pipeline}.
  * @beta
  */
-export class PipelineSource extends LitePipelineSource{
+export class PipelineSource extends LitePipelineSource {
   /**
    * @internal
    * @private

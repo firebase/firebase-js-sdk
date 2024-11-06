@@ -2336,7 +2336,7 @@ export class Mod extends FirestoreFunction {
  */
 export class Eq extends FirestoreFunction implements FilterCondition {
   constructor(private left: Expr, private right: Expr) {
-    super('eq', [left, right]);
+    super('equals', [left, right]);
   }
   filterable = true as const;
 }

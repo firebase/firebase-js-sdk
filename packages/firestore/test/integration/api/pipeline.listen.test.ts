@@ -36,24 +36,31 @@ import {
   Field,
   Firestore,
   gt,
-  like, limitToLast,
+  like,
+  limitToLast,
   lt,
   lte,
   mapGet,
   neq,
-  not, onSnapshot, orderBy,
+  not,
+  onSnapshot,
+  orderBy,
   orExpression,
-  PipelineResult, query, QuerySnapshot,
+  PipelineResult,
+  query,
+  QuerySnapshot,
   regexContains,
   regexMatch,
-  setDoc, setLogLevel,
+  setDoc,
+  setLogLevel,
   startsWith,
   strConcat,
-  subtract
+  subtract,
+  updateDoc
 } from '../util/firebase_export';
-import {apiDescribe, toDataArray, withTestCollection} from '../util/helpers';
-import {EventsAccumulator} from '../util/events_accumulator';
-import {PipelineSnapshot} from '../../../src/api/snapshot';
+import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
+import { EventsAccumulator } from '../util/events_accumulator';
+import { PipelineSnapshot } from '../../../src/api/snapshot';
 
 use(chaiAsPromised);
 
@@ -219,6 +226,7 @@ apiDescribe('Pipelines', persistence => {
 
   beforeEach(async () => {
     const setupDeferred = new Deferred<void>();
+    testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
       persistence,
       {},
@@ -232,8 +240,7 @@ apiDescribe('Pipelines', persistence => {
       }
     );
 
-    await setupDeferred;
-
+    await setupDeferred.promise;
     setLogLevel('debug');
   });
 
@@ -279,6 +286,54 @@ apiDescribe('Pipelines', persistence => {
           others: { unknown: { year: 1980 } }
         },
         nestedField: { 'level.1': { 'level.2': true } }
+      }
+    ]);
+
+    await updateDoc(doc(randomCol, 'book1'), { rating: 4.3 });
+    snapshot = await storeEvent.awaitEvent();
+    snapshot = await storeEvent.awaitEvent();
+    expect(toDataArray(snapshot)).to.deep.equal([
+      {
+        title: "The Hitchhiker's Guide to the Galaxy",
+        author: 'Douglas Adams',
+        genre: 'Science Fiction',
+        published: 1979,
+        rating: 4.3,
+        tags: ['comedy', 'space', 'adventure'],
+        awards: {
+          hugo: true,
+          nebula: false,
+          others: { unknown: { year: 1980 } }
+        },
+        nestedField: { 'level.1': { 'level.2': true } }
+      }
+    ]);
+
+    await updateDoc(doc(randomCol, 'book2'), { author: 'Douglas Adams' });
+    snapshot = await storeEvent.awaitEvent();
+    expect(toDataArray(snapshot)).to.deep.equal([
+      {
+        title: "The Hitchhiker's Guide to the Galaxy",
+        author: 'Douglas Adams',
+        genre: 'Science Fiction',
+        published: 1979,
+        rating: 4.3,
+        tags: ['comedy', 'space', 'adventure'],
+        awards: {
+          hugo: true,
+          nebula: false,
+          others: { unknown: { year: 1980 } }
+        },
+        nestedField: { 'level.1': { 'level.2': true } }
+      },
+      {
+        title: 'Pride and Prejudice',
+        author: 'Douglas Adams', //'Jane Austen',
+        genre: 'Romance',
+        published: 1813,
+        rating: 4.5,
+        tags: ['classic', 'social commentary', 'love'],
+        awards: { none: true }
       }
     ]);
   });

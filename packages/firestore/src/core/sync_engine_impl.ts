@@ -121,6 +121,7 @@ import { ViewSnapshot } from './view_snapshot';
 import { Pipeline } from '../api/pipeline';
 import { PipelineSnapshot } from '../api/snapshot';
 import { PipelineResult } from '../lite-api/pipeline-result';
+import { doc } from '../lite-api/reference';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -150,9 +151,12 @@ class QueryView {
 }
 
 export class PipelineResultView {
-  private keyToIndexMap: Map<DocumentKey, number>;
+  private keyToIndexMap: ObjectMap<DocumentKey, number>;
   constructor(public pipeline: Pipeline, public view: Array<MutableDocument>) {
-    this.keyToIndexMap = new Map<DocumentKey, number>();
+    this.keyToIndexMap = new ObjectMap<DocumentKey, number>(
+      key => key.toString(),
+      (a, b) => a.isEqual(b)
+    );
     this.buildKeyToIndexMap();
   }
 
@@ -196,6 +200,23 @@ export class PipelineResultView {
       throw new Error(`Result with key ${key} not found.`);
     }
     this.view[index] = doc;
+  }
+
+  toPipelineSnapshot(): PipelineSnapshot {
+    return new PipelineSnapshot(
+      this.pipeline,
+      this.view.map(
+        d =>
+          new PipelineResult(
+            this.pipeline.userDataWriter,
+            doc(this.pipeline.db, d.key.toString()),
+            d.data,
+            d.readTime.toTimestamp(),
+            d.createTime.toTimestamp(),
+            d.version.toTimestamp()
+          )
+      )
+    );
   }
 }
 
@@ -1000,7 +1021,10 @@ function removeAndCleanupTarget(
   syncEngineImpl.sharedClientState.removeLocalQueryTarget(targetId);
 
   // TODO(pipeline): REMOVE this hack.
-  if(!syncEngineImpl.queriesByTarget.has(targetId)||syncEngineImpl.queriesByTarget.get(targetId)!.length !== 0){
+  if (
+    !syncEngineImpl.queriesByTarget.has(targetId) ||
+    syncEngineImpl.queriesByTarget.get(targetId)!.length !== 0
+  ) {
     return;
   }
 
@@ -1174,7 +1198,10 @@ export async function syncEngineEmitNewSnapsAndNotifyLocalStore(
     const change = remoteEvent?.targetChanges.get(targetId);
     if (!!change) {
       change.modifiedDocuments.forEach(key => {
-        results.updateResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
+        results.updateResult(
+          key,
+          remoteEvent?.augmentedDocumentUpdates.get(key)!
+        );
       });
       change.addedDocuments.forEach(key => {
         results.addResult(key, remoteEvent?.augmentedDocumentUpdates.get(key)!);
@@ -1319,16 +1346,20 @@ export function syncEngineGetRemoteKeysForTarget(
   } else {
     let keySet = documentKeySet();
     const queries = syncEngineImpl.queriesByTarget.get(targetId);
-    if (!queries) {
+    const pipelineView = syncEngineImpl.pipelineViewByTarget.get(targetId);
+    if (!queries && !pipelineView) {
       return keySet;
     }
-    for (const query of queries) {
+    for (const query of queries ?? []) {
       const queryView = syncEngineImpl.queryViewsByQuery.get(query);
       debugAssert(
         !!queryView,
         `No query view found for ${stringifyQuery(query)}`
       );
       keySet = keySet.unionWith(queryView.view.syncedDocuments);
+    }
+    for (const doc of pipelineView?.view ?? []) {
+      keySet = keySet.add(doc.key);
     }
     return keySet;
   }

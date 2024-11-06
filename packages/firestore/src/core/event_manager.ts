@@ -602,15 +602,16 @@ export class QueryListener {
 }
 
 export class PipelineListener {
-  private snap: PipelineResultView | null = null;
+  private view: PipelineResultView | null = null;
 
   constructor(
     readonly pipeline: Pipeline,
     private queryObserver: Observer<PipelineSnapshot>
   ) {}
 
-  onViewSnapshot(snap: PipelineResultView): boolean {
-    this.snap = snap;
+  onViewSnapshot(view: PipelineResultView): boolean {
+    this.view = view;
+    this.queryObserver.next(view.toPipelineSnapshot());
     return true;
   }
 

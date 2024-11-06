@@ -1053,7 +1053,7 @@ export async function localStoreReleaseTarget(
 
   // TODO(pipeline): this is a hack that only works because pipelines are the only ones returning nulls here.
   // REMOVE ASAP.
-  if(targetData === null) {
+  if (targetData === null) {
     return;
   }
 

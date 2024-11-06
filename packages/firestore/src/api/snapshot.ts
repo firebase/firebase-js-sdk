@@ -795,12 +795,6 @@ export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(
 
 export class PipelineSnapshot<AppModelType = DocumentData> {
   /**
-   * Metadata about this snapshot, concerning its source and if it has local
-   * modifications.
-   */
-  readonly metadata: SnapshotMetadata;
-
-  /**
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
@@ -808,21 +802,14 @@ export class PipelineSnapshot<AppModelType = DocumentData> {
 
   /** @hideconstructor */
   constructor(
-    readonly _firestore: Firestore,
-    readonly _userDataWriter: AbstractUserDataWriter,
     pipeline: Pipeline<AppModelType>,
-    readonly _snapshot: ViewSnapshot
+    readonly _snapshot: PipelineResult<AppModelType>[]
   ) {
-    this.metadata = new SnapshotMetadata(
-      _snapshot.hasPendingWrites,
-      _snapshot.fromCache
-    );
     this.pipeline = pipeline;
   }
 
   /** An array of all the documents in the `QuerySnapshot`. */
   get results(): Array<PipelineResult<AppModelType>> {
-    const result: Array<PipelineResult<AppModelType>> = [];
-    return result;
+    return this._snapshot;
   }
 }

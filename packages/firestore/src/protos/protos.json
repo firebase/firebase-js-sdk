@@ -2363,7 +2363,7 @@
                       "type": "DocumentsTarget",
                       "id": 3
                     },
-                    "pipeline_query": {
+                    "pipelineQuery": {
                       "type": "PipelineQueryTarget",
                       "id": 13
                     },
