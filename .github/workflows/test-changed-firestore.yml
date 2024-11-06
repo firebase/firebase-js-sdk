@@ -51,7 +51,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - run: cp config/ci.config.json config/project.json
       - name: build
@@ -97,7 +97,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
@@ -131,7 +131,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
@@ -167,7 +167,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - name: install Chrome stable
         run: |
@@ -212,7 +212,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
@@ -255,7 +255,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -281,7 +281,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
@@ -321,7 +321,7 @@ jobs:
         id: node_modules
         with:
           path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-firestore-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
       - run: cp config/ci.config.json config/project.json
       - run: npx playwright install webkit
