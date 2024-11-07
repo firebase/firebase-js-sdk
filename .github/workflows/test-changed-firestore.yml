@@ -83,6 +83,12 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -90,12 +96,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ github.sha }}
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -110,6 +110,12 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -117,12 +123,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ github.sha }}
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -139,6 +139,12 @@ jobs:
     needs: build
     if: ${{ github.event_name != 'pull_request' }}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -146,12 +152,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install google-chrome-stable
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ github.sha }}
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup against nightly Firestore
         env:
           INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
@@ -172,6 +172,12 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+      - name: Unzip build artifact
+        run: tar xf build.tar.gz
       - name: install Firefox stable
         run: |
           sudo apt-get update
@@ -179,12 +185,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Download build archive
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ github.sha }}
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -231,15 +231,15 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
         run: tar xf build.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
