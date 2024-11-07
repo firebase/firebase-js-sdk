@@ -91,7 +91,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -118,7 +118,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -147,7 +147,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install google-chrome-stable
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -180,7 +180,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -209,7 +209,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install firefox
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -235,7 +235,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
@@ -262,7 +262,7 @@ jobs:
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
       - name: Download build archive
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ github.sha }}
       - name: Unzip build artifact
