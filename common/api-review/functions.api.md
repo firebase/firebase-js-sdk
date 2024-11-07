@@ -35,10 +35,12 @@ export type FunctionsErrorCodeCore = 'ok' | 'cancelled' | 'unknown' | 'invalid-a
 export function getFunctions(app?: FirebaseApp, regionOrCustomDomain?: string): Functions;
 
 // @public
-export type HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> = {
+export interface HttpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown> {
+    // (undocumented)
     (data?: RequestData | null): Promise<HttpsCallableResult<ResponseData>>;
+    // (undocumented)
     stream: (data?: RequestData | null, options?: HttpsCallableStreamOptions) => Promise<HttpsCallableStreamResult<ResponseData, StreamData>>;
-};
+}
 
 // @public
 export function httpsCallable<RequestData = unknown, ResponseData = unknown, StreamData = unknown>(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable<RequestData, ResponseData, StreamData>;
