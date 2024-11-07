@@ -74,10 +74,8 @@ jobs:
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-          path: |
-            packages/**/dist
-            repo-scripts/**/dist
+          name: build-changed-firestore-${{ github.sha }}
+          path: .
           retention-days: ${{ env.artifactRetentionDays }}
 
   compat-test-chrome:
@@ -94,20 +92,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-      - run: cp config/ci.config.json config/project.json
+          name: build-changed-firestore-${{ github.sha }}
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
 
@@ -128,20 +116,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-      - run: cp config/ci.config.json config/project.json
+          name: build-changed-firestore-${{ github.sha }}
       - name: Run tests
         run: cd packages/firestore && yarn run ${{ matrix.test-name }}
         env:
@@ -164,19 +142,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
+          name: build-changed-firestore-${{ github.sha }}
       - name: Test setup against nightly Firestore
         env:
           INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
@@ -205,20 +174,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-      - run: cp config/ci.config.json config/project.json
+          name: build-changed-firestore-${{ github.sha }}
       - name: Run compat tests
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
@@ -243,21 +202,10 @@ jobs:
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-      - uses: actions/checkout@v4
+          name: build-changed-firestore-${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
-      - run: cp config/ci.config.json config/project.json
       - name: Run tests
         run: cd packages/firestore && xvfb-run yarn run ${{ matrix.test-name }}
         env:
@@ -270,24 +218,13 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
-      - run: cp config/ci.config.json config/project.json
+          name: build-changed-firestore-${{ github.sha }}
       - run: npx playwright install webkit
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
@@ -310,19 +247,10 @@ jobs:
       - name: Download build archive
         uses: actions/download-artifact@v4
         with:
-          name: dists-changed-firestore-${{ github.sha }}
+          name: build-changed-firestore-${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - name: Restore cached node_modules
-        uses: actions/cache@v4
-        id: node_modules
-        with:
-          path: "**/node_modules"
-          key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --frozen-lockfile
       - run: cp config/ci.config.json config/project.json
       - run: npx playwright install webkit
       - name: Run tests
