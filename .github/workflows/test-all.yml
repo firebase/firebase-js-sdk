@@ -33,6 +33,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Install Chrome so the correct version of webdriver can be installed by chromedriver when
+      # setting up the repo. This must be done to build and execute Auth properly.
+      - name: install Chrome stable
+        run: |
+          npx @puppeteer/browsers install chrome@stable
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -46,9 +51,6 @@ jobs:
           path: "**/node_modules"
           key: node_modules-${{ runner.arch }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --frozen-lockfile
-      - name: install Chrome stable
-        run: |
-          npx @puppeteer/browsers install chrome@stable
       - name: Test setup
         run: cp config/ci.config.json config/project.json
       - name: yarn build
@@ -68,11 +70,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
     # install Chrome first, so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v4
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -167,11 +169,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v4
+    # install Chrome so the correct version of webdriver can be installed by chromedriver when setting up the repo
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
