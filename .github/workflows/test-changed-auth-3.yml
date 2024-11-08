@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Test Auth
+name: Test Auth With Archived Build
 
 on: pull_request
 
@@ -28,6 +28,47 @@ env:
   NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # install Chrome first, so the correct version of webdriver can be installed by chromedriver
+      # when setting up the repo
+      #
+      # Note: we only need to check the chrome version change in one job as the warning annotation
+      # is appended to the entire workflow results, not just this job's results.
+      - name: install Chrome stable
+        env:
+          CHROME_VERSION_MISMATCH_MESSAGE: "The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+        run: |
+          npx @puppeteer/browsers install chrome@stable
+          chromeVersionString=$(ls chrome)
+          if [ "$CHROME_VALIDATED_VERSION" != "$chromeVersionString" ]; then
+          echo "::warning ::The Chrome version doesn't match the previously validated version. Consider updating CHROME_VALIDATED_VERSION in the GitHub workflow if tests pass."
+          echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
+          echo "CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE" >> "$GITHUB_ENV"
+          fi
+      - name: Test Env TEMP
+        run: |
+         echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all Git history so that the build:changed script can use diffs
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - run: yarn
+      - run: cp config/ci.config.json config/project.json
+      - run: yarn build:changed core
+      - name: Upload build archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: dists-changed-auth-${{ github.sha }}
+          path: |
+            packages/**/dist
+            repo-scripts/**/dist
+          retention-days: ${{ env.artifactRetentionDays }}
+
   test-chrome:
     name: Test Auth on Chrome and Node If Changed
     runs-on: ubuntu-latest
@@ -56,16 +97,17 @@ jobs:
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
-      - name: Set up Node (20)
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version: .nvmrc
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
           yarn
-      - name: build
-        run: yarn build:changed auth
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: dists-changed-auth-${{ github.sha }}
       - name: Run tests on changed packages
         run: xvfb-run yarn test:changed auth
   test-firefox:
@@ -89,15 +131,17 @@ jobs:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: .nvmrc
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
           yarn
-      - name: build
-        run: yarn build:changed auth
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: dists-changed-auth-${{ github.sha }}
       - name: Run tests on auth changed packages
         run: xvfb-run yarn test:changed auth
         env:
@@ -113,16 +157,18 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Node (20)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 22.10.0
+          node-version-file: .nvmrc
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
           yarn
           npx playwright install webkit
-      - name: build
-        run: yarn build:changed auth
+      - name: Download build archive
+        uses: actions/download-artifact@v4
+        with:
+          name: dists-changed-auth-${{ github.sha }}
       - name: Run tests on changed packages
         run: yarn test:changed auth
         env:
