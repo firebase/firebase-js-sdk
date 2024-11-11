@@ -1821,33 +1821,58 @@ export type PersistentTabManager = PersistentSingleTabManager | PersistentMultip
 
 // @public
 export class Pipeline<AppModelType = DocumentData> {
+    /* Excluded from this release type: _db */
     // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
     addFields(...fields: Selectable[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
     aggregate(...accumulators: AccumulatorTarget[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     aggregate(options: {
         accumulators: AccumulatorTarget[];
         groups?: Array<string | Selectable>;
     }): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
     distinct(...groups: Array<string | Selectable>): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
     execute(): Promise<Array<PipelineResult<AppModelType>>>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "findNearest" is marked as @public, but its signature references "FindNearestOptions" which is marked as @beta
     //
     // (undocumented)
     findNearest(options: FindNearestOptions): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     genericStage(name: string, params: any[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     limit(limit: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     offset(offset: number): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
     select(...selections: Array<Selectable | string>): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
     sort(...orderings: Ordering[]): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // (undocumented)
     sort(options: {
         orderings: Ordering[];
     }): Pipeline<AppModelType>;
+    /* Excluded from this release type: userDataWriter */
+    /* Excluded from this release type: documentReferenceFactory */
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "FilterCondition" which is marked as @beta
     // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "Constant" which is marked as @beta
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
@@ -2474,8 +2499,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10115:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10116:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10145:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10116:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10117:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10146:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```

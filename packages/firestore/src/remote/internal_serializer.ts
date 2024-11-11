@@ -25,6 +25,7 @@ import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
 import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
+import {getDatastore} from "../lite-api/components";
 
 /**
  * @internal
@@ -107,7 +108,8 @@ export function _internalPipelineToExecutePipelineRequestProto(
 ): any {
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
-  const serializer = client._onlineComponents?.datastore.serializer;
+  const datastore = getDatastore(firestore);
+  const serializer = datastore.serializer;
   if (serializer === undefined) {
     return null;
   }

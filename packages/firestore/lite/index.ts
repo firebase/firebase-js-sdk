@@ -73,8 +73,6 @@ export {
   arrayLength,
   inAny,
   notInAny,
-  and as andExpression,
-  or as orExpression,
   xor,
   ifFunction,
   not,
@@ -99,9 +97,6 @@ export {
   strConcat,
   mapGet,
   countAll,
-  count as countExpression,
-  sum as sumExpression,
-  avg,
   min,
   max,
   cosineDistance,
@@ -192,7 +187,9 @@ export {
   SelectableExpr,
   Selectable,
   FilterCondition,
-  Accumulator
+  Accumulator,
+  sum as sumFunction,
+  avg as avgFunction
 } from '../src/lite-api/expressions';
 
 export {
@@ -243,6 +240,10 @@ export {
 
 export {
   and,
+  or,
+} from '../src/lite-api/overloads';
+
+export {
   endAt,
   endBefore,
   startAt,
@@ -250,7 +251,6 @@ export {
   limit,
   limitToLast,
   where,
-  or,
   orderBy,
   query,
   QueryConstraint,

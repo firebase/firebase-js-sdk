@@ -794,7 +794,7 @@ apiDescribe.only('Pipelines', persistence => {
     );
   });
 
-  it('supports internal serialization to proto', async () => {
+  it.only('supports internal serialization to proto', async () => {
     const pipeline = firestore
       .pipeline()
       .collection('books')
@@ -807,6 +807,7 @@ apiDescribe.only('Pipelines', persistence => {
 
     const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
     expect(proto).not.to.be.null;
+    console.log(JSON.stringify(proto, null, 2))
   });
 
   // TODO(pipeline) support converter

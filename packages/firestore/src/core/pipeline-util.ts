@@ -13,14 +13,16 @@
 // limitations under the License.
 
 import {
-  and,
   Constant,
   Expr,
   Field,
   FilterCondition,
   not,
-  or
 } from '../lite-api/expressions';
+import {
+  and,
+  or
+} from '../lite-api/overloads';
 import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
