@@ -124,7 +124,7 @@ export class Pipeline<AppModelType = DocumentData>
   /**
    * @internal
    * @private
-   * @param liteDb
+   * @param _db
    * @param userDataReader
    * @param userDataWriter
    * @param documentReferenceFactory
@@ -132,7 +132,11 @@ export class Pipeline<AppModelType = DocumentData>
    * @param converter
    */
   constructor(
-    private liteDb: Firestore,
+    /**
+     * @internal
+     * @private
+     */
+    public _db: Firestore,
     private userDataReader: UserDataReader,
     /**
      * @internal
@@ -184,7 +188,7 @@ export class Pipeline<AppModelType = DocumentData>
       )
     );
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -230,7 +234,7 @@ export class Pipeline<AppModelType = DocumentData>
     projections = this.readUserData('select', projections);
     copy.push(new Select(projections));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -322,7 +326,7 @@ export class Pipeline<AppModelType = DocumentData>
     this.readUserData('where', condition);
     copy.push(new Where(condition));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -355,7 +359,7 @@ export class Pipeline<AppModelType = DocumentData>
     const copy = this.stages.map(s => s);
     copy.push(new Offset(offset));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -393,7 +397,7 @@ export class Pipeline<AppModelType = DocumentData>
     const copy = this.stages.map(s => s);
     copy.push(new Limit(limit));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -438,7 +442,7 @@ export class Pipeline<AppModelType = DocumentData>
       )
     );
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -551,7 +555,7 @@ export class Pipeline<AppModelType = DocumentData>
       );
     }
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -579,7 +583,7 @@ export class Pipeline<AppModelType = DocumentData>
       )
     );
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -640,7 +644,7 @@ export class Pipeline<AppModelType = DocumentData>
     }
 
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -678,7 +682,7 @@ export class Pipeline<AppModelType = DocumentData>
     });
     copy.push(new GenericStage(name, params));
     return new Pipeline(
-      this.liteDb,
+      this._db,
       this.userDataReader,
       this.userDataWriter,
       this.documentReferenceFactory,
@@ -785,7 +789,7 @@ export class Pipeline<AppModelType = DocumentData>
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    const datastore = getDatastore(this.liteDb);
+    const datastore = getDatastore(this._db);
     return invokeExecutePipeline(datastore, this).then(result => {
       const docs = result
         // Currently ignore any response from ExecutePipeline that does

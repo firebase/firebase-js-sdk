@@ -6,6 +6,7 @@ import { Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
+import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
 
@@ -23,7 +24,7 @@ export class Pipeline<
    * @param converter
    */
   constructor(
-    private db: Firestore,
+    db: Firestore,
     userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
     documentReferenceFactory: (id: DocumentKey) => DocumentReference,
@@ -74,7 +75,8 @@ export class Pipeline<
    * @return A Promise representing the asynchronous pipeline execution.
    */
   execute(): Promise<Array<PipelineResult<AppModelType>>> {
-    const client = ensureFirestoreConfigured(this.db);
+    const firestore = cast(this._db, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
     return firestoreClientExecutePipeline(client, this).then(result => {
       const docs = result.map(
         element =>
