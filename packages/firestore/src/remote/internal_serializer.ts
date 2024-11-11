@@ -19,6 +19,7 @@ import { ensureFirestoreConfigured, Firestore } from '../api/database';
 import { AggregateImpl } from '../core/aggregate';
 import { queryToAggregateTarget, queryToTarget } from '../core/query';
 import { AggregateSpec } from '../lite-api/aggregate_types';
+import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -86,4 +87,29 @@ export function _internalAggregationQueryToProtoRunAggregationQueryRequest<
     aggregates,
     /* skipAliasing= */ true
   ).request;
+}
+
+/**
+ * @internal
+ * @private
+ *
+ * This function is for internal use only.
+ *
+ * Returns the `ExecutePipelineRequest` representation of the given query.
+ * Returns `null` if the Firestore client associated with the given query has
+ * not been initialized or has been terminated.
+ *
+ * @param pipeline - The Pipeline to convert to proto representation.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function _internalPipelineToExecutePipelineRequestProto(
+  pipeline: Pipeline
+): any {
+  const firestore = cast(pipeline._db, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+  const serializer = client._onlineComponents?.datastore.serializer;
+  if (serializer === undefined) {
+    return null;
+  }
+  return pipeline._toProto(serializer);
 }

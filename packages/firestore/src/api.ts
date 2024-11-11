@@ -61,8 +61,6 @@ export {
   arrayLength,
   inAny,
   notInAny,
-  and as andExpression,
-  or as orExpression,
   xor,
   ifFunction,
   not,
@@ -183,6 +181,8 @@ export {
   Accumulator
 } from './lite-api/expressions';
 
+export { and, or } from './lite-api/overloads';
+
 export {
   aggregateFieldEqual,
   aggregateQuerySnapshotEqual,
@@ -282,12 +282,10 @@ export {
 } from './api/reference';
 
 export {
-  and,
   endAt,
   endBefore,
   limit,
   limitToLast,
-  or,
   orderBy,
   OrderByDirection,
   query,
@@ -392,7 +390,8 @@ export { isBase64Available as _isBase64Available } from './platform/base64';
 export { DatabaseId as _DatabaseId } from './core/database_info';
 export {
   _internalQueryToProtoQueryTarget,
-  _internalAggregationQueryToProtoRunAggregationQueryRequest
+  _internalAggregationQueryToProtoRunAggregationQueryRequest,
+  _internalPipelineToExecutePipelineRequestProto
 } from './remote/internal_serializer';
 export {
   cast as _cast,

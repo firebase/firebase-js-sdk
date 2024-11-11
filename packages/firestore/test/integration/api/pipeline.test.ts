@@ -18,8 +18,9 @@ import chaiAsPromised from 'chai-as-promised';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
+  _internalPipelineToExecutePipelineRequestProto,
   add,
-  andExpression,
+  and,
   arrayContains,
   arrayContainsAny,
   avg,
@@ -42,7 +43,7 @@ import {
   mapGet,
   neq,
   not,
-  orExpression,
+  or,
   PipelineResult,
   regexContains,
   regexMatch,
@@ -384,7 +385,7 @@ apiDescribe.only('Pipelines', persistence => {
   it('where with and', async () => {
     const results = await randomCol
       .pipeline()
-      .where(andExpression(gt('rating', 4.5), eq('genre', 'Science Fiction')))
+      .where(and(gt('rating', 4.5), eq('genre', 'Science Fiction')))
       .execute();
     expectResults(results, 'book10');
   });
@@ -392,7 +393,7 @@ apiDescribe.only('Pipelines', persistence => {
   it('where with or', async () => {
     const results = await randomCol
       .pipeline()
-      .where(orExpression(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
+      .where(or(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
       .select('title')
       .execute();
     expectResults(
@@ -637,7 +638,7 @@ apiDescribe.only('Pipelines', persistence => {
     const results = await randomCol
       .pipeline()
       .where(
-        andExpression(
+        and(
           gt('rating', 4.2),
           lte(Field.of('rating'), 4.5),
           neq('genre', 'Science Fiction')
@@ -661,8 +662,8 @@ apiDescribe.only('Pipelines', persistence => {
     const results = await randomCol
       .pipeline()
       .where(
-        orExpression(
-          andExpression(gt('rating', 4.5), eq('genre', 'Science Fiction')),
+        or(
+          and(gt('rating', 4.5), eq('genre', 'Science Fiction')),
           lt('published', 1900)
         )
       )
@@ -791,6 +792,21 @@ apiDescribe.only('Pipelines', persistence => {
       },
       { title: 'Dune', 'nestedField.level.`1`': null, nested: null }
     );
+  });
+
+  it('supports internal serialization to proto', async () => {
+    const pipeline = firestore
+      .pipeline()
+      .collection('books')
+      .where(eq('awards.hugo', true))
+      .select(
+        'title',
+        Field.of('nestedField.level.1'),
+        mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+      );
+
+    const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
+    expect(proto).not.to.be.null;
   });
 
   // TODO(pipeline) support converter

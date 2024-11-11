@@ -46,6 +46,7 @@ import {
   connectFirestoreEmulator,
   Firestore as LiteFirestore
 } from '../lite-api/database';
+import type { PipelineSource } from '../lite-api/pipeline-source';
 import { Query } from '../lite-api/reference';
 import {
   indexedDbClearPersistence,
@@ -128,17 +129,16 @@ export class Firestore extends LiteFirestore {
       await terminate;
     }
   }
-}
 
-// Undocumented method of Firestore. This is only
-// in place to give developers a runtime error suggesting
-// how to correctly initialize Firestore for use with Pipelines.
-// @ts-ignore
-Firestore.prototype.pipeline = function (): unknown {
-  throw new Error(
-    'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
-  );
-};
+  /**
+   * Pipeline query.
+   */
+  pipeline(): PipelineSource {
+    throw new Error(
+      'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
+    );
+  }
+}
 
 /**
  * Initializes a new instance of {@link Firestore} with the provided settings.

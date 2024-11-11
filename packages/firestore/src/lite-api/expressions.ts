@@ -4520,44 +4520,6 @@ export function notInAny(element: Expr | string, others: any[]): Not {
 /**
  * @beta
  *
- * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
- *
- * ```typescript
- * // Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
- * // the 'status' field is "active"
- * const condition = and(gt("age", 18), eq("city", "London"), eq("status", "active"));
- * ```
- *
- * @param left The first filter condition.
- * @param right Additional filter conditions to 'AND' together.
- * @return A new {@code Expr} representing the logical 'AND' operation.
- */
-export function and(left: FilterExpr, ...right: FilterExpr[]): And {
-  return new And([left, ...right]);
-}
-
-/**
- * @beta
- *
- * Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
- *
- * ```typescript
- * // Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
- * // the 'status' field is "active"
- * const condition = or(gt("age", 18), eq("city", "London"), eq("status", "active"));
- * ```
- *
- * @param left The first filter condition.
- * @param right Additional filter conditions to 'OR' together.
- * @return A new {@code Expr} representing the logical 'OR' operation.
- */
-export function or(left: FilterExpr, ...right: FilterExpr[]): Or {
-  return new Or([left, ...right]);
-}
-
-/**
- * @beta
- *
  * Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple filter
  * conditions.
  *

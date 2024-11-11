@@ -100,11 +100,15 @@ export class And extends FirestoreFunction implements FilterCondition {
     filterable: true;
 }
 
+// @beta
+export function and(left: FilterExpr, ...right: FilterExpr[]): And;
+
 // @public
 export function and(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
 
-// @beta
-export function andExpression(left: FilterExpr, ...right: FilterExpr[]): And;
+// @public (undocumented)
+export namespace and {
+}
 
 // @beta (undocumented)
 export class ArrayConcat extends FirestoreFunction {
@@ -1738,8 +1742,15 @@ export class Or extends FirestoreFunction implements FilterCondition {
     filterable: true;
 }
 
+// @beta
+export function or(left: FilterExpr, ...right: FilterExpr[]): Or;
+
 // @public
 export function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
+
+// @public (undocumented)
+export namespace or {
+}
 
 // @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryOrderByConstraint;
@@ -1751,9 +1762,6 @@ export type OrderByDirection = 'desc' | 'asc';
 export class Ordering {
     constructor(expr: Constant, direction: 'ascending' | 'descending');
     }
-
-// @beta
-export function orExpression(left: FilterExpr, ...right: FilterExpr[]): Or;
 
 // @public
 export type PartialWithFieldValue<T> = Partial<T> | (T extends Primitive ? T : T extends {} ? {
@@ -2466,8 +2474,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10111:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10112:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/index.d.ts:10141:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10115:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10116:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/index.d.ts:10145:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```
