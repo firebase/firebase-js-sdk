@@ -19,12 +19,13 @@ import {
   DocumentsSource,
   Limit,
   Offset,
+  Ordering,
   Pipeline,
   Sort,
   Stage,
   Where
 } from '../api';
-import { MutableDocument } from '../model/document';
+import { Document, MutableDocument } from '../model/document';
 import {
   MIN_VALUE,
   TRUE_VALUE,
@@ -33,12 +34,15 @@ import {
 } from '../model/values';
 import { toEvaluable } from './expressions';
 import { UserDataReader } from '../lite-api/user_data_reader';
+import { Query, queryMatches } from './query';
+import { isPipeline, QueryOrPipeline } from './pipeline-util';
 
 export type PipelineInputOutput = MutableDocument;
 
 export interface EvaluationContext {
   userDataReader: UserDataReader;
 }
+
 export function runPipeline(
   pipeline: Pipeline,
   input: Array<PipelineInputOutput>
@@ -53,6 +57,29 @@ export function runPipeline(
   }
 
   return current;
+}
+
+export function pipelineMatches(
+  pipeline: Pipeline,
+  data: PipelineInputOutput
+): boolean {
+  // TODO(pipeline): this is not true for aggregations, and we need to examine if there are other
+  // stages that will not work this way.
+  return runPipeline(pipeline, [data]).length > 0;
+}
+
+export function queryOrPipelineMatches(
+  query: QueryOrPipeline,
+  data: PipelineInputOutput
+): boolean {
+  return isPipeline(query)
+    ? pipelineMatches(query, data)
+    : queryMatches(query, data);
+}
+
+export function pipelineMatchesAllDocuments(pipeline: Pipeline): boolean {
+  // TODO(pipeline): implement properly.
+  return false;
 }
 
 function evaluate(
@@ -184,4 +211,58 @@ function evaluateDocuments(
   return input.filter(input => {
     return stage.docPaths.includes(input.key.path.canonicalString());
   });
+}
+
+export function newPipelineComparator(
+  pipeline: Pipeline
+): (d1: Document, d2: Document) => number {
+  const orderings = lastEffectiveSort(pipeline);
+  return (d1: Document, d2: Document): number => {
+    for (const ordering of orderings) {
+      const leftValue = toEvaluable(ordering.expr).evaluate(
+        { userDataReader: pipeline.userDataReader },
+        d1 as MutableDocument
+      );
+      const rightValue = toEvaluable(ordering.expr).evaluate(
+        { userDataReader: pipeline.userDataReader },
+        d2 as MutableDocument
+      );
+      const comparison = valueCompare(
+        leftValue || MIN_VALUE,
+        rightValue || MIN_VALUE
+      );
+      if (comparison !== 0) {
+        return ordering.direction === 'ascending' ? comparison : -comparison;
+      }
+    }
+    return 0;
+  };
+}
+
+function lastEffectiveSort(pipeline: Pipeline): Ordering[] {
+  // return the last sort stage, throws exception if it doesn't exist
+  // TODO(pipeline): this implementation is wrong, there are stages that can invalidate
+  // the orderings later. The proper way to manipulate the pipeline so that last Sort
+  // always has effects.
+  for (let i = pipeline.stages.length - 1; i >= 0; i--) {
+    const stage = pipeline.stages[i];
+    if (stage instanceof Sort) {
+      return stage.orders;
+    }
+  }
+  throw new Error('Pipeline must contain at least one Sort stage');
+}
+
+export function getLastEffectiveLimit(pipeline: Pipeline): number | undefined {
+  // return the last sort stage, throws exception if it doesn't exist
+  // TODO(pipeline): this implementation is wrong, there are stages that can invalidate
+  // the orderings later. The proper way to manipulate the pipeline so that last Sort
+  // always has effects.
+  for (let i = pipeline.stages.length - 1; i >= 0; i--) {
+    const stage = pipeline.stages[i];
+    if (stage instanceof Limit) {
+      return stage.limit;
+    }
+  }
+  return undefined;
 }

@@ -24,8 +24,14 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { PersistenceTransaction } from '../../../src/local/persistence_transaction';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MutableDocumentMap,
+  OverlayMap
+} from '../../../src/model/collections';
 import { MutationType } from '../../../src/model/mutation';
+import { doc, key, keys } from '../../util/helpers';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
@@ -98,6 +104,12 @@ export class CountingQueryEngine extends QueryEngine {
     subject: RemoteDocumentCache
   ): RemoteDocumentCache {
     return {
+      getAllEntries(
+        transaction: PersistenceTransaction
+      ): PersistencePromise<MutableDocumentMap> {
+        // TODO(pipeline): support pipeline
+        return subject.getAllEntries(transaction);
+      },
       setIndexManager: (indexManager: IndexManager) => {
         subject.setIndexManager(indexManager);
       },
@@ -164,6 +176,13 @@ export class CountingQueryEngine extends QueryEngine {
     subject: DocumentOverlayCache
   ): DocumentOverlayCache {
     return {
+      getAllOverlays(
+        transaction: PersistenceTransaction,
+        sinceBatchId: number
+      ): PersistencePromise<OverlayMap> {
+        // TODO(pipeline): support pipeline
+        return subject.getAllOverlays(transaction, sinceBatchId);
+      },
       getOverlay: (transaction, key) => {
         return subject.getOverlay(transaction, key).next(result => {
           this.overlaysReadByKey += 1;

@@ -21,13 +21,18 @@ import { Code, FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 
-import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import { Query, stringifyQuery } from './query';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { Pipeline } from '../api/pipeline';
 import { PipelineSnapshot } from '../api/snapshot';
-import { PipelineResultView } from './sync_engine_impl';
-import { canonifyPipeline, pipelineEq } from './pipeline-util';
+import {
+  canonifyPipeline,
+  canonifyQueryOrPipeline,
+  isPipeline,
+  QueryOrPipeline,
+  queryOrPipelineEqual
+} from './pipeline-util';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -49,12 +54,6 @@ class QueryListenersInfo {
 export interface Observer<T> {
   next: EventHandler<T>;
   error: EventHandler<FirestoreError>;
-}
-
-export type QueryOrPipeline = Query | Pipeline;
-
-export function isPipeline(q: QueryOrPipeline): q is Pipeline {
-  return q instanceof Pipeline;
 }
 
 /**
@@ -120,39 +119,6 @@ export class EventManagerImpl implements EventManager {
       new FirestoreError(Code.ABORTED, 'Firestore shutting down')
     );
   }
-}
-
-export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {
-  if (isPipeline(q)) {
-    return canonifyPipeline(q);
-  }
-
-  return stringifyQuery(q);
-}
-
-export function canonifyQueryOrPipeline(q: QueryOrPipeline): string {
-  if (isPipeline(q)) {
-    return canonifyPipeline(q);
-  }
-
-  return canonifyQuery(q);
-}
-
-export function queryOrPipelineEqual(
-  left: QueryOrPipeline,
-  right: QueryOrPipeline
-): boolean {
-  if (left instanceof Pipeline && right instanceof Pipeline) {
-    return pipelineEq(left, right);
-  }
-  if (
-    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
-    (!(left instanceof Pipeline) && right instanceof Pipeline)
-  ) {
-    return false;
-  }
-
-  return queryEquals(left as Query, right as Query);
 }
 
 function newQueriesObjectMap(): ObjectMap<QueryOrPipeline, QueryListenersInfo> {
@@ -619,24 +585,5 @@ export class QueryListener {
 
   listensToRemoteStore(): boolean {
     return this.options.source !== ListenerDataSource.Cache;
-  }
-}
-
-export class PipelineListener {
-  private view: PipelineResultView | null = null;
-
-  constructor(
-    readonly pipeline: Pipeline,
-    private queryObserver: Observer<PipelineSnapshot>
-  ) {}
-
-  onViewSnapshot(view: PipelineResultView): boolean {
-    this.view = view;
-    this.queryObserver.next(view.toPipelineSnapshot());
-    return true;
-  }
-
-  onError(error: FirestoreError): void {
-    this.queryObserver.error(error);
   }
 }

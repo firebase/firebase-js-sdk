@@ -20,6 +20,8 @@ import { DocumentData, DocumentReference, refEqual } from './reference';
 import { fieldPathFromArgument } from './snapshot';
 import { Timestamp } from './timestamp';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { Document } from '../model/document';
+import { Pipeline } from './pipeline';
 
 /**
  * @beta
@@ -225,5 +227,19 @@ export function pipelineResultEqual<AppModelType>(
   return (
     isOptionalEqual(left._ref, right._ref, refEqual) &&
     isOptionalEqual(left._fields, right._fields, (l, r) => l.isEqual(r))
+  );
+}
+
+export function toPipelineResult<T>(
+  doc: Document,
+  pipeline: Pipeline<T>
+): PipelineResult<T> {
+  return new PipelineResult<T>(
+    pipeline.userDataWriter,
+    pipeline.documentReferenceFactory(doc.key),
+    doc.data,
+    doc.readTime.toTimestamp(),
+    doc.createTime.toTimestamp(),
+    doc.version.toTimestamp()
   );
 }

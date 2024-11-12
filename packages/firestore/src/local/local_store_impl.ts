@@ -96,7 +96,14 @@ import { isIndexedDbTransactionError } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData, TargetPurpose } from './target_data';
 import { Pipeline } from '../api/pipeline';
-import { QueryOrPipeline } from '../core/event_manager';
+
+import {
+  canonifyTargetOrPipeline,
+  isPipeline,
+  QueryOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 
 export const LOG_TAG = 'LocalStore';
 
@@ -177,9 +184,9 @@ class LocalStoreImpl implements LocalStore {
 
   /** Maps a target to its targetID. */
   // TODO(wuandy): Evaluate if TargetId can be part of Target.
-  targetIdByTarget = new ObjectMap<Target, TargetId>(
-    t => canonifyTarget(t),
-    targetEquals
+  targetIdByTarget = new ObjectMap<TargetOrPipeline, TargetId>(
+    t => canonifyTargetOrPipeline(t),
+    targetOrPipelineEqual
   );
 
   /**
@@ -1023,7 +1030,7 @@ export function localStoreAllocateTarget(
 export function localStoreGetTargetData(
   localStore: LocalStore,
   transaction: PersistenceTransaction,
-  target: Target
+  target: Target | Pipeline
 ): PersistencePromise<TargetData | null> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const targetId = localStoreImpl.targetIdByTarget.get(target);
@@ -1121,7 +1128,11 @@ export function localStoreExecuteQuery(
     'Execute query',
     'readwrite', // Use readwrite instead of readonly so indexes can be created
     txn => {
-      return localStoreGetTargetData(localStoreImpl, txn, queryToTarget(query))
+      return localStoreGetTargetData(
+        localStoreImpl,
+        txn,
+        isPipeline(query) ? query : queryToTarget(query)
+      )
         .next(targetData => {
           if (targetData) {
             lastLimboFreeSnapshotVersion =
@@ -1144,11 +1155,14 @@ export function localStoreExecuteQuery(
           )
         )
         .next(documents => {
-          setMaxReadTime(
-            localStoreImpl,
-            queryCollectionGroup(query),
-            documents
-          );
+          // TODO(pipeline): this needs to be adapted to support pipelines as well
+          if (!isPipeline(query)) {
+            setMaxReadTime(
+              localStoreImpl,
+              queryCollectionGroup(query),
+              documents
+            );
+          }
           return { documents, remoteKeys };
         });
     }

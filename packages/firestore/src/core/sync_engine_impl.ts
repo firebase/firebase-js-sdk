@@ -80,16 +80,10 @@ import {
   bundleSuccessProgress
 } from './bundle_impl';
 import {
-  canonifyQueryOrPipeline,
   EventManager,
   eventManagerOnOnlineStateChange,
   eventManagerOnWatchChange,
-  eventManagerOnWatchError,
-  isPipeline,
-  PipelineListener,
-  QueryOrPipeline,
-  queryOrPipelineEqual,
-  stringifyQueryOrPipeline
+  eventManagerOnWatchError
 } from './event_manager';
 import { ListenSequence } from './listen_sequence';
 import {
@@ -126,6 +120,13 @@ import { Pipeline } from '../api/pipeline';
 import { PipelineSnapshot } from '../api/snapshot';
 import { PipelineResult } from '../lite-api/pipeline-result';
 import { doc } from '../lite-api/reference';
+import {
+  canonifyQueryOrPipeline,
+  isPipeline,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  stringifyQueryOrPipeline
+} from './pipeline-util';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -152,76 +153,6 @@ class QueryView {
      */
     public view: View
   ) {}
-}
-
-export class PipelineResultView {
-  private keyToIndexMap: ObjectMap<DocumentKey, number>;
-  constructor(public pipeline: Pipeline, public view: Array<MutableDocument>) {
-    this.keyToIndexMap = new ObjectMap<DocumentKey, number>(
-      key => key.toString(),
-      (a, b) => a.isEqual(b)
-    );
-    this.buildKeyToIndexMap();
-  }
-
-  private buildKeyToIndexMap(): void {
-    this.view.forEach((doc, index) => {
-      this.keyToIndexMap.set(doc.key, index);
-    });
-  }
-
-  addResult(key: DocumentKey, doc: MutableDocument) {
-    if (this.keyToIndexMap.has(key)) {
-      throw new Error(`Result with key ${key} already exists.`);
-    }
-    this.view.push(doc);
-    this.keyToIndexMap.set(key, this.view.length - 1);
-  }
-
-  removeResult(key: DocumentKey) {
-    const index = this.keyToIndexMap.get(key);
-    if (index === undefined) {
-      return; // Result not found, nothing to remove
-    }
-
-    // Remove from the array efficiently by swapping with the last element and popping
-    const lastIndex = this.view.length - 1;
-    if (index !== lastIndex) {
-      [this.view[index], this.view[lastIndex]] = [
-        this.view[lastIndex],
-        this.view[index]
-      ];
-      // Update the keyToIndexMap for the swapped element
-      this.keyToIndexMap.set(this.view[index].key, index);
-    }
-    this.view.pop();
-    this.keyToIndexMap.delete(key);
-  }
-
-  updateResult(key: DocumentKey, doc: MutableDocument) {
-    const index = this.keyToIndexMap.get(key);
-    if (index === undefined) {
-      throw new Error(`Result with key ${key} not found.`);
-    }
-    this.view[index] = doc;
-  }
-
-  toPipelineSnapshot(): PipelineSnapshot {
-    return new PipelineSnapshot(
-      this.pipeline,
-      this.view.map(
-        d =>
-          new PipelineResult(
-            this.pipeline.userDataWriter,
-            doc(this.pipeline.db, d.key.toString()),
-            d.data,
-            d.readTime.toTimestamp(),
-            d.createTime.toTimestamp(),
-            d.version.toTimestamp()
-          )
-      )
-    );
-  }
 }
 
 /** Tracks a limbo resolution. */
@@ -1307,8 +1238,7 @@ export function syncEngineGetRemoteKeysForTarget(
   } else {
     let keySet = documentKeySet();
     const queries = syncEngineImpl.queriesByTarget.get(targetId);
-    const pipelineView = syncEngineImpl.pipelineViewByTarget.get(targetId);
-    if (!queries && !pipelineView) {
+    if (!queries) {
       return keySet;
     }
     for (const query of queries ?? []) {
@@ -1318,9 +1248,6 @@ export function syncEngineGetRemoteKeysForTarget(
         `No query view found for ${stringifyQueryOrPipeline(query)}`
       );
       keySet = keySet.unionWith(queryView.view.syncedDocuments);
-    }
-    for (const doc of pipelineView?.view ?? []) {
-      keySet = keySet.add(doc.key);
     }
     return keySet;
   }

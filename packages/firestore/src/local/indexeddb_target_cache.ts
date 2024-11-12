@@ -49,6 +49,11 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { SimpleDbStore } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -250,12 +255,12 @@ export class IndexedDbTargetCache implements TargetCache {
 
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = canonifyTarget(target);
+    const canonicalId = canonifyTargetOrPipeline(target);
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -269,7 +274,7 @@ export class IndexedDbTargetCache implements TargetCache {
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
           // TODO(pipeline): This needs to handle pipeline properly.
-          if (targetEquals(target, found.target as Target)) {
+          if (targetOrPipelineEqual(target, found.target)) {
             result = found;
             control.done();
           }

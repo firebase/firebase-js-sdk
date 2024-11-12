@@ -146,7 +146,7 @@ export class Pipeline<AppModelType = DocumentData>
      * @internal
      * @private
      */
-    protected documentReferenceFactory: (id: DocumentKey) => DocumentReference,
+    readonly documentReferenceFactory: (id: DocumentKey) => DocumentReference,
     readonly stages: Stage[],
     // TODO(pipeline) support converter
     //private converter:  FirestorePipelineConverter<AppModelType> = defaultPipelineConverter()

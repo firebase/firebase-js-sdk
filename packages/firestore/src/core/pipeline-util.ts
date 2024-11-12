@@ -37,7 +37,7 @@ import {
   Timestamp as ProtoTimestamp,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-import { fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { isPlainObject } from '../util/input_validation';
 
 import {
@@ -47,7 +47,6 @@ import {
   Filter as FilterInternal,
   Operator
 } from './filter';
-import { Pipeline } from '../lite-api/pipeline';
 import {
   AddFields,
   Aggregate,
@@ -64,6 +63,15 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
+import { Pipeline } from '../api/pipeline';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  targetIsPipelineTarget
+} from './target';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
@@ -357,12 +365,17 @@ function canonifyExprMap(map: Map<string, Expr>): string {
     .join(',')}`;
 }
 
-export function canonifyPipeline(p: Pipeline): string {
+export function canonifyPipeline(p: LitePipeline): string;
+export function canonifyPipeline(p: Pipeline): string;
+export function canonifyPipeline(p: Pipeline | LitePipeline): string {
   return p.stages.map(s => canonifyStage(s)).join('|');
 }
 
 // TODO(pipeline): do a proper implementation for eq.
-export function pipelineEq(left: Pipeline, right: Pipeline): boolean {
+export function pipelineEq(
+  left: Pipeline | LitePipeline,
+  right: Pipeline | LitePipeline
+): boolean {
   return canonifyPipeline(left) === canonifyPipeline(right);
 }
 
@@ -388,4 +401,121 @@ export function getPipelineFlavor(p: Pipeline): PipelineFlavor {
   });
 
   return flavor;
+}
+
+export type PipelineSourceType =
+  | 'collection'
+  | 'collection-group'
+  | 'database'
+  | 'documents';
+
+export function getPipelineSourceType(
+  p: Pipeline
+): PipelineSourceType | 'unknown' {
+  debugAssert(p.stages.length > 0, 'Pipeline must have at least one stage');
+  const source = p.stages[0];
+
+  if (
+    source.name === CollectionSource.name ||
+    source.name === CollectionGroupSource.name ||
+    source.name === DatabaseSource.name ||
+    source.name === DocumentsSource.name
+  ) {
+    return source.name as PipelineSourceType;
+  }
+
+  return 'unknown';
+}
+
+export function getPipelineCollection(p: Pipeline): string | undefined {
+  if (getPipelineSourceType(p) === 'collection') {
+    return (p.stages[0] as CollectionSource).collectionPath;
+  }
+  return undefined;
+}
+
+export function getPipelineCollectionGroup(p: Pipeline): string | undefined {
+  if (getPipelineSourceType(p) === 'collection-group') {
+    return (p.stages[0] as CollectionGroupSource).collectionId;
+  }
+  return undefined;
+}
+
+export function getPipelineDocuments(p: Pipeline): string[] | undefined {
+  if (getPipelineSourceType(p) === 'documents') {
+    return (p.stages[0] as DocumentsSource).docPaths;
+  }
+  return undefined;
+}
+
+export type QueryOrPipeline = Query | Pipeline;
+
+export function isPipeline(q: QueryOrPipeline): q is Pipeline {
+  return q instanceof Pipeline;
+}
+
+export function stringifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return stringifyQuery(q);
+}
+
+export function canonifyQueryOrPipeline(q: QueryOrPipeline): string {
+  if (isPipeline(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return canonifyQuery(q);
+}
+
+export function queryOrPipelineEqual(
+  left: QueryOrPipeline,
+  right: QueryOrPipeline
+): boolean {
+  if (left instanceof Pipeline && right instanceof Pipeline) {
+    return pipelineEq(left, right);
+  }
+  if (
+    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
+    (!(left instanceof Pipeline) && right instanceof Pipeline)
+  ) {
+    return false;
+  }
+
+  return queryEquals(left as Query, right as Query);
+}
+
+export type TargetOrPipeline = Target | Pipeline;
+
+export function canonifyTargetOrPipeline(q: TargetOrPipeline): string {
+  if (targetIsPipelineTarget(q)) {
+    return canonifyPipeline(q);
+  }
+
+  return canonifyTarget(q as Target);
+}
+
+export function targetOrPipelineEqual(
+  left: TargetOrPipeline,
+  right: TargetOrPipeline
+): boolean {
+  if (left instanceof Pipeline && right instanceof Pipeline) {
+    return pipelineEq(left, right);
+  }
+  if (
+    (left instanceof Pipeline && !(right instanceof Pipeline)) ||
+    (!(left instanceof Pipeline) && right instanceof Pipeline)
+  ) {
+    return false;
+  }
+
+  return targetEquals(left as Target, right as Target);
+}
+
+export function pipelineHasRanges(pipeline: Pipeline): boolean {
+  return pipeline.stages.some(
+    stage => stage.name === Limit.name || stage.name === Offset.name
+  );
 }

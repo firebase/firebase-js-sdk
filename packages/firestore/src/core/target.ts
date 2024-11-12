@@ -53,6 +53,7 @@ import {
   stringifyOrderBy
 } from './order_by';
 import { Pipeline } from '../api/pipeline';
+import { TargetOrPipeline } from './pipeline-util';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -217,7 +218,7 @@ export function targetEquals(left: Target, right: Target): boolean {
 }
 
 export function targetIsPipelineTarget(
-  target: Target | Pipeline
+  target: TargetOrPipeline
 ): target is Pipeline {
   return target instanceof Pipeline;
 }

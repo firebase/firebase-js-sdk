@@ -31,14 +31,19 @@ import { PersistenceTransaction } from './persistence_transaction';
 import { ReferenceSet } from './reference_set';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
+import {
+  canonifyTargetOrPipeline,
+  TargetOrPipeline,
+  targetOrPipelineEqual
+} from '../core/pipeline-util';
 
 export class MemoryTargetCache implements TargetCache {
   /**
    * Maps a target to the data about that target
    */
-  private targets = new ObjectMap<Target, TargetData>(
-    t => canonifyTarget(t),
-    targetEquals
+  private targets = new ObjectMap<TargetOrPipeline, TargetData>(
+    t => canonifyTargetOrPipeline(t),
+    targetOrPipelineEqual
   );
 
   /** The last received snapshot version. */
@@ -186,7 +191,7 @@ export class MemoryTargetCache implements TargetCache {
 
   getTargetData(
     transaction: PersistenceTransaction,
-    target: Target
+    target: TargetOrPipeline
   ): PersistencePromise<TargetData | null> {
     const targetData = this.targets.get(target) || null;
     return PersistencePromise.resolve(targetData);

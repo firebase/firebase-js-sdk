@@ -84,14 +84,12 @@ import {
   ListenOptions,
   Observer,
   QueryListener,
-  QueryOrPipeline,
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
-  syncEngineListenPipeline,
   syncEngineLoadBundle,
   syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
@@ -106,6 +104,7 @@ import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { Unsubscribe } from '../api/reference_impl';
 import { PipelineSnapshot } from '../api/snapshot';
+import { QueryOrPipeline } from './pipeline-util';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

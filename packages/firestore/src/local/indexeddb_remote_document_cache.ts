@@ -192,6 +192,21 @@ class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
     ).next(() => results);
   }
 
+  getAllEntries(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MutableDocumentMap> {
+    let results = mutableDocumentMap();
+    return remoteDocumentsStore(transaction)
+      .iterate((dbKey, dbDoc) => {
+        const doc = this.maybeDecodeDocument(
+          DocumentKey.fromSegments(dbDoc.prefixPath.concat(dbDoc.documentId)),
+          dbDoc
+        );
+        results = results.insert(doc.key, doc);
+      })
+      .next(() => results);
+  }
+
   /**
    * Looks up several entries in the cache.
    *

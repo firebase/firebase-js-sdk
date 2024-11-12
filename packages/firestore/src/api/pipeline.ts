@@ -11,12 +11,14 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { DocumentSnapshot, PipelineSnapshot } from './snapshot';
+import { DocumentSnapshot, PipelineSnapshot, QuerySnapshot } from './snapshot';
 import { FirestoreError } from '../util/error';
 import { Unsubscribe } from './reference_impl';
 import { cast } from '../util/input_validation';
 import { Field, FilterCondition } from '../api';
 import { Expr } from '../lite-api/expressions';
+import { CompleteFn, ErrorFn, NextFn } from './observer';
+import { ViewSnapshot } from '../core/view_snapshot';
 
 export class Pipeline<
   AppModelType = DocumentData
@@ -140,6 +142,13 @@ export class Pipeline<
     this.stages.push(new Sort([Field.of('__name__').ascending()]));
 
     const client = ensureFirestoreConfigured(this.db);
+    const observer = {
+      next: (snapshot: ViewSnapshot) => {
+        new PipelineSnapshot(this, snapshot);
+      },
+      error: error,
+      complete: complete
+    };
     // TODO(pipeline) hook up options
     firestoreClientListen(client, this, {}, observer);
 

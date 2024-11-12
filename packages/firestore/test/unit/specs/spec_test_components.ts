@@ -448,7 +448,8 @@ export class EventAggregator implements Observer<ViewSnapshot> {
 
   next(view: ViewSnapshot): void {
     this.pushEvent({
-      query: view.query,
+      // TODO(pipeline): support pipelines in spec tests.
+      query: view.query as Query,
       view
     });
   }
