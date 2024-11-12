@@ -22,12 +22,12 @@ export interface RequestOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [baseUrl](./vertexai.requestoptions.md#requestoptionsbaseurl) | string | Base url for endpoint. Defaults to https://firebaseml.googleapis.com |
+|  [baseUrl](./vertexai.requestoptions.md#requestoptionsbaseurl) | string | Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com |
 |  [timeout](./vertexai.requestoptions.md#requestoptionstimeout) | number | Request timeout in milliseconds. Defaults to 180 seconds (180000ms). |
 
 ## RequestOptions.baseUrl
 
-Base url for endpoint. Defaults to https://firebaseml.googleapis.com
+Base url for endpoint. Defaults to https://firebasevertexai.googleapis.com
 
 <b>Signature:</b>
 

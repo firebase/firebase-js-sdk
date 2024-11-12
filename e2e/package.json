@@ -34,10 +34,10 @@
     "karma-typescript": "5.5.4",
     "karma-typescript-es6-transform": "5.5.4",
     "mocha": "9.2.2",
-    "typescript": "4.7.4",
+    "typescript": "5.5.4",
     "webpack": "5.76.0",
-    "webpack-cli": "4.10.0",
-    "webpack-dev-server": "4.11.1"
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.1.0"
   },
   "engines": {
     "node": ">=18.0.0"

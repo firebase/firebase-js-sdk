@@ -990,7 +990,7 @@ Whether a particular consent type has been granted or denied.
 <b>Signature:</b>
 
 ```typescript
-export declare type ConsentStatusString = 'granted' | 'denied';
+export type ConsentStatusString = 'granted' | 'denied';
 ```
 
 ## Currency
@@ -1000,7 +1000,7 @@ Standard Google Analytics currency type.
 <b>Signature:</b>
 
 ```typescript
-export declare type Currency = string | number;
+export type Currency = string | number;
 ```
 
 ## CustomEventName
@@ -1010,7 +1010,7 @@ Any custom event name string not in the standard list of recommended event names
 <b>Signature:</b>
 
 ```typescript
-export declare type CustomEventName<T> = T extends EventNameString ? never : T;
+export type CustomEventName<T> = T extends EventNameString ? never : T;
 ```
 
 ## EventNameString
@@ -1020,5 +1020,5 @@ Type for standard Google Analytics event names. `logEvent` also accepts any cust
 <b>Signature:</b>
 
 ```typescript
-export declare type EventNameString = 'add_payment_info' | 'add_shipping_info' | 'add_to_cart' | 'add_to_wishlist' | 'begin_checkout' | 'checkout_progress' | 'exception' | 'generate_lead' | 'login' | 'page_view' | 'purchase' | 'refund' | 'remove_from_cart' | 'screen_view' | 'search' | 'select_content' | 'select_item' | 'select_promotion' | 'set_checkout_option' | 'share' | 'sign_up' | 'timing_complete' | 'view_cart' | 'view_item' | 'view_item_list' | 'view_promotion' | 'view_search_results';
+export type EventNameString = 'add_payment_info' | 'add_shipping_info' | 'add_to_cart' | 'add_to_wishlist' | 'begin_checkout' | 'checkout_progress' | 'exception' | 'generate_lead' | 'login' | 'page_view' | 'purchase' | 'refund' | 'remove_from_cart' | 'screen_view' | 'search' | 'select_content' | 'select_item' | 'select_promotion' | 'set_checkout_option' | 'share' | 'sign_up' | 'timing_complete' | 'view_cart' | 'view_item' | 'view_item_list' | 'view_promotion' | 'view_search_results';
 ```

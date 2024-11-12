@@ -2114,7 +2114,7 @@ Map of OAuth Custom Parameters.
 <b>Signature:</b>
 
 ```typescript
-export declare type CustomParameters = Record<string, string>;
+export type CustomParameters = Record<string, string>;
 ```
 
 ## NextOrObserver
@@ -2124,7 +2124,7 @@ Type definition for an event callback.
 <b>Signature:</b>
 
 ```typescript
-export declare type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
+export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 ```
 
 ## PhoneInfoOptions
@@ -2136,7 +2136,7 @@ The information that's required depends on whether you are doing single-factor s
 <b>Signature:</b>
 
 ```typescript
-export declare type PhoneInfoOptions = PhoneSingleFactorInfoOptions | PhoneMultiFactorEnrollInfoOptions | PhoneMultiFactorSignInInfoOptions;
+export type PhoneInfoOptions = PhoneSingleFactorInfoOptions | PhoneMultiFactorEnrollInfoOptions | PhoneMultiFactorSignInInfoOptions;
 ```
 
 ## UserProfile
@@ -2146,5 +2146,5 @@ User profile used in [AdditionalUserInfo](./auth.additionaluserinfo.md#additiona
 <b>Signature:</b>
 
 ```typescript
-export declare type UserProfile = Record<string, unknown>;
+export type UserProfile = Record<string, unknown>;
 ```

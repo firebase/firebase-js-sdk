@@ -24,6 +24,7 @@ import {
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
+import { logger } from '../logger';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -83,8 +84,13 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   headers.append('x-goog-api-key', url.apiSettings.apiKey);
   if (url.apiSettings.getAppCheckToken) {
     const appCheckToken = await url.apiSettings.getAppCheckToken();
-    if (appCheckToken && !appCheckToken.error) {
+    if (appCheckToken) {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
+      if (appCheckToken.error) {
+        logger.warn(
+          `Unable to obtain a valid App Check token: ${appCheckToken.error.message}`
+        );
+      }
     }
   }
 
@@ -166,13 +172,13 @@ export async function makeRequest(
       ) {
         throw new VertexAIError(
           VertexAIErrorCode.API_NOT_ENABLED,
-          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase
-          API ('firebasevertexai.googleapis.com') to be enabled in your
-          Firebase project. Enable this API by visiting the Firebase Console
-          at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/
-          and clicking "Get started". If you enabled this API recently,
-          wait a few minutes for the action to propagate to our systems and
-          then retry.`,
+          `The Vertex AI in Firebase SDK requires the Vertex AI in Firebase ` +
+            `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
+            `Firebase project. Enable this API by visiting the Firebase Console ` +
+            `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
+            `and clicking "Get started". If you enabled this API recently, ` +
+            `wait a few minutes for the action to propagate to our systems and ` +
+            `then retry.`,
           {
             status: response.status,
             statusText: response.statusText,

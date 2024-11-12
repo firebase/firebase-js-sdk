@@ -29,6 +29,7 @@ import { formatBlockErrorMessage } from '../requests/response-helpers';
 import { validateChatHistory } from './chat-session-helpers';
 import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
+import { logger } from '../logger';
 
 /**
  * Do not log a message for this error.
@@ -112,7 +113,7 @@ export class ChatSession {
         } else {
           const blockErrorMessage = formatBlockErrorMessage(result.response);
           if (blockErrorMessage) {
-            console.warn(
+            logger.warn(
               `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
             );
           }
@@ -169,7 +170,7 @@ export class ChatSession {
         } else {
           const blockErrorMessage = formatBlockErrorMessage(response);
           if (blockErrorMessage) {
-            console.warn(
+            logger.warn(
               `sendMessageStream() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
             );
           }
@@ -182,7 +183,7 @@ export class ChatSession {
         if (e.message !== SILENT_ERROR) {
           // Users do not have access to _sendPromise to catch errors
           // downstream from streamPromise, so they should not throw.
-          console.error(e);
+          logger.error(e);
         }
       });
     return streamPromise;
