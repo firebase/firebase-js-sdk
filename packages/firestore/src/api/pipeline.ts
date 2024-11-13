@@ -1,7 +1,8 @@
 import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult } from '../lite-api/pipeline-result';
-import { DocumentData, DocumentReference } from '../lite-api/reference';
+import { PipelineSource } from '../lite-api/pipeline-source';
+import { DocumentData, DocumentReference, Query } from '../lite-api/reference';
 import { Stage } from '../lite-api/stage';
 import { UserDataReader } from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
@@ -96,4 +97,22 @@ export class Pipeline<
       return docs;
     });
   }
+}
+
+/**
+ * Experimental Modular API for console testing.
+ * @param firestore
+ */
+export function pipeline(firestore: Firestore): PipelineSource;
+
+/**
+ * Experimental Modular API for console testing.
+ * @param query
+ */
+export function pipeline(query: Query): Pipeline;
+
+export function pipeline(
+  firestoreOrQuery: Firestore | Query
+): PipelineSource | Pipeline {
+  return firestoreOrQuery.pipeline();
 }

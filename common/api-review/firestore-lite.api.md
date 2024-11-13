@@ -639,6 +639,9 @@ export function euclideanDistance(expr: Constant, other: VectorValue): Euclidean
 // @beta
 export function euclideanDistance(expr: Constant, other: Constant): EuclideanDistance;
 
+// @beta
+export function execute<AppModelType>(pipeline: Pipeline<AppModelType>): Promise<Array<PipelineResult<AppModelType>>>;
+
 // @beta (undocumented)
 export class Exists extends FirestoreFunction implements FilterCondition {
     constructor(expr: Constant);
@@ -1612,6 +1615,14 @@ export class Pipeline<AppModelType = DocumentData> {
     where(condition: FilterCondition & Constant): Pipeline<AppModelType>;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "PipelineSource" which is marked as @beta
+//
+// @public
+export function pipeline(firestore: Firestore): PipelineSource;
+
+// @public
+export function pipeline(query: Query): Pipeline;
+
 // @beta
 export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: _ref */
@@ -2203,8 +2214,8 @@ export function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
 
 // Warnings were encountered during analysis:
 //
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9237:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9238:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /home/runner/work/firebase-js-sdk/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9267:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9243:9 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AccumulatorTarget" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9244:9 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/index.d.ts:9273:9 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
 
 ```

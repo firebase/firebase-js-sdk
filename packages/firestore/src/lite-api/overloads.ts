@@ -1,20 +1,12 @@
 import { CompositeOperator } from '../core/filter';
 
-import {
-  And, Avg, Expr, Field,
-  FilterExpr,
-  Or, Sum
-} from './expressions';
-
+import { And, FilterExpr, Or } from './expressions';
 import {
   QueryCompositeFilterConstraint,
   QueryConstraint,
   QueryFilterConstraint,
   validateQueryFilterConstraint
 } from './query';
-import {FieldPath} from "./field_path";
-import {AggregateField} from "./aggregate_types";
-import {fieldPathFromArgument} from "./user_data_reader";
 
 /**
  * @beta
@@ -53,8 +45,7 @@ export function or(
 ): Or | QueryCompositeFilterConstraint {
   if (leftFilterExprOrQueryConstraint === undefined) {
     return or._orFilters();
-  }
-  else if (
+  } else if (
     leftFilterExprOrQueryConstraint instanceof QueryConstraint ||
     leftFilterExprOrQueryConstraint instanceof QueryCompositeFilterConstraint ||
     leftFilterExprOrQueryConstraint === undefined
@@ -65,7 +56,7 @@ export function or(
     );
   } else {
     // @ts-ignore
-    return or._orFunction(leftFilterExprOrQueryConstraint, ...(right));
+    return or._orFunction(leftFilterExprOrQueryConstraint, ...right);
   }
 }
 
@@ -83,10 +74,7 @@ or._orFilters = function (
   );
 };
 
-or._orFunction = function (
-  left: FilterExpr,
-  ...right: FilterExpr[]
-): Or {
+or._orFunction = function (left: FilterExpr, ...right: FilterExpr[]): Or {
   throw new Error(
     'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
   );
@@ -160,10 +148,7 @@ and._andFilters = function (
   );
 };
 
-and._andFunction = function (
-  left: FilterExpr,
-  ...right: FilterExpr[]
-): And {
+and._andFunction = function (left: FilterExpr, ...right: FilterExpr[]): And {
   throw new Error(
     'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
   );

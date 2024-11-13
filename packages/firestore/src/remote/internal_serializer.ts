@@ -19,13 +19,13 @@ import { ensureFirestoreConfigured, Firestore } from '../api/database';
 import { AggregateImpl } from '../core/aggregate';
 import { queryToAggregateTarget, queryToTarget } from '../core/query';
 import { AggregateSpec } from '../lite-api/aggregate_types';
+import { getDatastore } from '../lite-api/components';
 import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
 import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
-import {getDatastore} from "../lite-api/components";
 
 /**
  * @internal
@@ -105,9 +105,9 @@ export function _internalAggregationQueryToProtoRunAggregationQueryRequest<
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function _internalPipelineToExecutePipelineRequestProto(
   pipeline: Pipeline
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   const firestore = cast(pipeline._db, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
   const datastore = getDatastore(firestore);
   const serializer = datastore.serializer;
   if (serializer === undefined) {

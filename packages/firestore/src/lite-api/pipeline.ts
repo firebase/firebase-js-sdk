@@ -42,7 +42,8 @@ import {
   Selectable
 } from './expressions';
 import { PipelineResult } from './pipeline-result';
-import { DocumentData, DocumentReference } from './reference';
+import { PipelineSource } from './pipeline-source';
+import { DocumentData, DocumentReference, Query } from './reference';
 import {
   AddFields,
   Aggregate,
@@ -828,4 +829,22 @@ export class Pipeline<AppModelType = DocumentData>
       structuredPipeline
     };
   }
+}
+
+/**
+ * Experimental Modular API for console testing.
+ * @param firestore
+ */
+export function pipeline(firestore: Firestore): PipelineSource;
+
+/**
+ * Experimental Modular API for console testing.
+ * @param query
+ */
+export function pipeline(query: Query): Pipeline;
+
+export function pipeline(
+  firestoreOrQuery: Firestore | Query
+): PipelineSource | Pipeline {
+  return firestoreOrQuery.pipeline();
 }

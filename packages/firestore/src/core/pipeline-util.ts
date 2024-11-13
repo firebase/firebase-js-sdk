@@ -17,12 +17,9 @@ import {
   Expr,
   Field,
   FilterCondition,
-  not,
+  not
 } from '../lite-api/expressions';
-import {
-  and,
-  or
-} from '../lite-api/overloads';
+import { and, or } from '../lite-api/overloads';
 import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,

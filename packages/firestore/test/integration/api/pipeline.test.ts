@@ -15,6 +15,8 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { pipeline } from '../../../src/api/pipeline';
+import { execute } from '../../../src/lite-api/pipeline_impl';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -57,7 +59,7 @@ import { apiDescribe, withTestCollection } from '../util/helpers';
 use(chaiAsPromised);
 useFirestorePipelines();
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
@@ -807,7 +809,6 @@ apiDescribe.only('Pipelines', persistence => {
 
     const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
     expect(proto).not.to.be.null;
-    console.log(JSON.stringify(proto, null, 2))
   });
 
   // TODO(pipeline) support converter
@@ -843,4 +844,46 @@ apiDescribe.only('Pipelines', persistence => {
   //     myTitle: 'Crime and Punishment',
   //   });
   // });
+  describe('modular API', () => {
+    it('works when creating a pipeline from a Firestore instance', async () => {
+      const myPipeline = pipeline(firestore)
+        .collection(randomCol.path)
+        .where(lt(Field.of('published'), 1984))
+        .aggregate({
+          accumulators: [avg('rating').as('avgRating')],
+          groups: ['genre']
+        })
+        .where(gt('avgRating', 4.3))
+        .sort(Field.of('avgRating').descending());
+
+      const results = await execute(myPipeline);
+
+      expectResults(
+        results,
+        { avgRating: 4.7, genre: 'Fantasy' },
+        { avgRating: 4.5, genre: 'Romance' },
+        { avgRating: 4.4, genre: 'Science Fiction' }
+      );
+    });
+
+    it('works when creating a pipeline from a collection', async () => {
+      const myPipeline = pipeline(randomCol)
+        .where(lt(Field.of('published'), 1984))
+        .aggregate({
+          accumulators: [avg('rating').as('avgRating')],
+          groups: ['genre']
+        })
+        .where(gt('avgRating', 4.3))
+        .sort(Field.of('avgRating').descending());
+
+      const results = await execute(myPipeline);
+
+      expectResults(
+        results,
+        { avgRating: 4.7, genre: 'Fantasy' },
+        { avgRating: 4.5, genre: 'Romance' },
+        { avgRating: 4.4, genre: 'Science Fiction' }
+      );
+    });
+  });
 });

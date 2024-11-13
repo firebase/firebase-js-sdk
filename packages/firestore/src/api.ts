@@ -19,9 +19,11 @@ export { PipelineSource } from './lite-api/pipeline-source';
 
 export { PipelineResult } from './lite-api/pipeline-result';
 
-export { Pipeline } from './lite-api/pipeline';
+export { Pipeline, pipeline } from './api/pipeline';
 
 export { useFirestorePipelines } from './api/database_augmentation';
+
+export { execute } from './lite-api/pipeline_impl';
 
 export {
   Stage,

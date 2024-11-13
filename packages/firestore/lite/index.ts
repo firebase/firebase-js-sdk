@@ -31,9 +31,11 @@ export { PipelineSource } from '../src/lite-api/pipeline-source';
 
 export { PipelineResult } from '../src/lite-api/pipeline-result';
 
-export { Pipeline } from '../src/lite-api/pipeline';
+export { Pipeline, pipeline } from '../src/lite-api/pipeline';
 
 export { useFirestorePipelines } from '../src/lite-api/database_augmentation';
+
+export { execute } from '../src/lite-api/pipeline_impl';
 
 export {
   Stage,
@@ -238,10 +240,7 @@ export {
   queryEqual
 } from '../src/lite-api/reference';
 
-export {
-  and,
-  or,
-} from '../src/lite-api/overloads';
+export { and, or } from '../src/lite-api/overloads';
 
 export {
   endAt,
