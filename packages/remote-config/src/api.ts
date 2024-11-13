@@ -16,19 +16,21 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
+import { deepEqual } from '@firebase/util';
 import {
   CustomSignals,
   LogLevel as RemoteConfigLogLevel,
   RemoteConfig,
-  Value
+  Value,
+  RemoteConfigOptions
 } from './public_types';
-import { RemoteConfigAbortSignal } from './client/remote_config_fetch_client';
+import { RemoteConfigAbortSignal, FetchResponse } from './client/remote_config_fetch_client';
 import {
   RC_COMPONENT_NAME,
   RC_CUSTOM_SIGNAL_KEY_MAX_LENGTH,
   RC_CUSTOM_SIGNAL_VALUE_MAX_LENGTH
 } from './constants';
-import { ErrorCode, hasErrorCode } from './errors';
+import { ERROR_FACTORY, ErrorCode, hasErrorCode } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Value as ValueImpl } from './value';
 import { LogLevel as FirebaseLogLevel } from '@firebase/logger';
@@ -41,9 +43,17 @@ import { getModularInstance } from '@firebase/util';
  *
  * @public
  */
-export function getRemoteConfig(app: FirebaseApp = getApp()): RemoteConfig {
+export function getRemoteConfig(app: FirebaseApp = getApp(), options: RemoteConfigOptions = {}): RemoteConfig {
   app = getModularInstance(app);
   const rcProvider = _getProvider(app, RC_COMPONENT_NAME);
+  if (rcProvider.isInitialized()) {
+    const initialOptions = rcProvider.getOptions() as RemoteConfigOptions;
+    if (deepEqual(initialOptions, options)) {
+      return rcProvider.getImmediate();
+    }
+    throw ERROR_FACTORY.create(ErrorCode.ALREADY_INITIALIZED);
+  }
+  rcProvider.initialize({ options });
   return rcProvider.getImmediate();
 }
 
@@ -144,6 +154,24 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 }
 
 /**
+ * Manually hydrates the config state without making an async fetch request.
+ * @param remoteConfig - The {@link RemoteConfig} instance.
+ * @param fetchResponse - The fetchResponse containing the config values and eTag
+ *    with which to hydrate the internal state.
+ */
+export async function setConfigState(remoteConfig: RemoteConfig, fetchResponse: FetchResponse) {
+  const rc = getModularInstance(remoteConfig) as RemoteConfigImpl;
+  await Promise.all([
+    rc._storage.setLastSuccessfulFetchResponse(fetchResponse),
+    rc._storageCache.setLastSuccessfulFetchTimestampMillis(Date.now()),
+    rc._storageCache.setLastFetchStatus('success'),
+    // TODO - maybe we just call activate() here?
+    rc._storage.setActiveConfigEtag(fetchResponse.eTag || ''),
+    rc._storageCache.setActiveConfig(fetchResponse.config || {}),
+  ]);
+}
+
+/**
  * Gets all config.
  *
  * @param remoteConfig - The {@link RemoteConfig} instance.
@@ -223,7 +251,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
-        ' Await on ensureInitialized if the intent was to get a previously activated value.'
+      ' Await on ensureInitialized if the intent was to get a previously activated value.'
     );
   }
   const activeConfig = rc._storageCache.getActiveConfig();
@@ -234,7 +262,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): Value {
   }
   rc._logger.debug(
     `Returning static value for key "${key}".` +
-      ' Define a default or remote value if this is unintentional.'
+    ' Define a default or remote value if this is unintentional.'
   );
   return new ValueImpl('static');
 }

@@ -18,6 +18,18 @@
 import { FirebaseApp } from '@firebase/app';
 
 /**
+ * Options for Remote Config initialization.
+ * 
+ * @public
+ */
+export interface RemoteConfigOptions {
+  /**
+   * The ID of the template to use. If not provided, defaults to "firebase"
+   */
+  templateId?: string;
+}
+
+/**
  * The Firebase Remote Config service interface.
  *
  * @public
