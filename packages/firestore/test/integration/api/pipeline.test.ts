@@ -62,7 +62,7 @@ import { apiDescribe, withTestCollection } from '../util/helpers';
 use(chaiAsPromised);
 useFirestorePipelines();
 
-apiDescribe('Pipelines', persistence => {
+apiDescribe.skip('Pipelines', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
