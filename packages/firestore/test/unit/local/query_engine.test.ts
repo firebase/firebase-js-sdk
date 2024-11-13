@@ -116,11 +116,25 @@ class TestLocalDocumentsView extends LocalDocumentsView {
 }
 
 describe('QueryEngine', async () => {
-  describe('MemoryEagerPersistence', async () => {
+  describe('MemoryEagerPersistence usePipeline=false', async () => {
     /* not durable and without client side indexing */
     genericQueryEngineTest(
       persistenceHelpers.testMemoryEagerPersistence,
-      false
+      {
+        configureCsi: false,
+        convertToPipeline: false
+      }
+    );
+  });
+
+  describe('MemoryEagerPersistence usePipeline=true', async () => {
+    /* not durable and without client side indexing */
+    genericQueryEngineTest(
+      persistenceHelpers.testMemoryEagerPersistence,
+      {
+        configureCsi: false,
+        convertToPipeline: true
+      }
     );
   });
 
@@ -129,14 +143,30 @@ describe('QueryEngine', async () => {
     return;
   }
 
-  describe('IndexedDbPersistence configureCsi=false', async () => {
+  describe('IndexedDbPersistence configureCsi=false usePipeline=false', async () => {
     /* durable but without client side indexing */
-    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, false);
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence,
+      {
+        configureCsi: false,
+        convertToPipeline: false
+    });
   });
 
-  describe('IndexedDbQueryEngine configureCsi=true', async () => {
+  describe('IndexedDbPersistence configureCsi=false usePipeline=true', async () => {
+    /* durable but without client side indexing */
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence,
+      {
+        configureCsi: false,
+        convertToPipeline: true
+      });
+  });
+
+  describe('IndexedDbQueryEngine configureCsi=true usePipeline=false', async () => {
     /* durable and with client side indexing */
-    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, true);
+    genericQueryEngineTest(persistenceHelpers.testIndexedDbPersistence, {
+      configureCsi: true,
+      convertToPipeline: false
+    });
   });
 });
 
@@ -151,7 +181,7 @@ describe('QueryEngine', async () => {
  */
 function genericQueryEngineTest(
   persistencePromise: () => Promise<Persistence>,
-  configureCsi: boolean
+  options: { configureCsi: boolean; convertToPipeline: boolean }
 ): void {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
@@ -296,7 +326,7 @@ function genericQueryEngineTest(
   });
 
   // Tests in this section do not support client side indexing
-  if (!configureCsi) {
+  if (!options.configureCsi) {
     it('uses target mapping for initial view', async () => {
       const query1 = query('coll', filter('matches', '==', true));
 
@@ -733,9 +763,9 @@ function genericQueryEngineTest(
   }
 
   // Tests in this section require client side indexing
-  if (configureCsi) {
+  if (options.configureCsi) {
     it('combines indexed with non-indexed results', async () => {
-      debugAssert(configureCsi, 'Test requires durable persistence');
+      debugAssert(options.configureCsi, 'Test requires durable persistence');
 
       const doc1 = doc('coll/a', 1, { 'foo': true });
       const doc2 = doc('coll/b', 2, { 'foo': true });
@@ -769,7 +799,7 @@ function genericQueryEngineTest(
     });
 
     it('uses partial index for limit queries', async () => {
-      debugAssert(configureCsi, 'Test requires durable persistence');
+      debugAssert(options.configureCsi, 'Test requires durable persistence');
 
       const doc1 = doc('coll/1', 1, { 'a': 1, 'b': 0 });
       const doc2 = doc('coll/2', 1, { 'a': 1, 'b': 1 });
@@ -805,7 +835,7 @@ function genericQueryEngineTest(
     });
 
     it('re-fills indexed limit queries', async () => {
-      debugAssert(configureCsi, 'Test requires durable persistence');
+      debugAssert(options.configureCsi, 'Test requires durable persistence');
 
       const doc1 = doc('coll/1', 1, { 'a': 1 });
       const doc2 = doc('coll/2', 1, { 'a': 2 });
@@ -848,7 +878,7 @@ function genericQueryEngineTest(
       nonmatchingDocumentCount?: number;
       expectedPostQueryExecutionIndexType: IndexType;
     }): Promise<void> => {
-      debugAssert(configureCsi, 'Test requires durable persistence');
+      debugAssert(options.configureCsi, 'Test requires durable persistence');
 
       const matchingDocuments: MutableDocument[] = [];
       for (let i = 0; i < (config.matchingDocumentCount ?? 3); i++) {
@@ -974,7 +1004,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1058,7 +1088,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1149,7 +1179,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1221,7 +1251,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1307,7 +1337,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1386,7 +1416,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1434,7 +1464,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
 
@@ -1493,7 +1523,7 @@ function genericQueryEngineTest(
     let expectFunction = expectFullCollectionQuery;
     let lastLimboFreeSnapshot = MISSING_LAST_LIMBO_FREE_SNAPSHOT;
 
-    if (configureCsi) {
+    if (options.configureCsi) {
       expectFunction = expectOptimizedCollectionQuery;
       lastLimboFreeSnapshot = SnapshotVersion.min();
       await indexManager.addFieldIndex(
