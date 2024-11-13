@@ -21,8 +21,21 @@ import { createNetworkRequestEntry } from '../resources/network_request';
 import { TRACE_MEASURE_PREFIX } from '../constants';
 import { getIid } from './iid_service';
 import { PerformanceController } from '../controllers/perf';
+import { WebVitalMetrics } from '../resources/web_vitals';
+import {
+  onCLS,
+  onLCP,
+  onINP,
+  LCPMetricWithAttribution,
+  CLSMetricWithAttribution,
+  INPMetricWithAttribution
+} from 'web-vitals/attribution';
 
 const FID_WAIT_TIME_MS = 5000;
+
+const webVitalMetrics: WebVitalMetrics = {};
+
+let sentPageLoadTrace: boolean = false;
 
 export function setupOobResources(
   performanceController: PerformanceController
@@ -53,41 +66,40 @@ function setupNetworkRequests(
 
 function setupOobTraces(performanceController: PerformanceController): void {
   const api = Api.getInstance();
-  const navigationTimings = api.getEntriesByType(
-    'navigation'
-  ) as PerformanceNavigationTiming[];
-  const paintTimings = api.getEntriesByType('paint');
-  // If First Input Delay polyfill is added to the page, report the fid value.
-  // https://github.com/GoogleChromeLabs/first-input-delay
-  if (api.onFirstInputDelay) {
-    // If the fid call back is not called for certain time, continue without it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let timeoutId: any = setTimeout(() => {
-      Trace.createOobTrace(
-        performanceController,
-        navigationTimings,
-        paintTimings
-      );
-      timeoutId = undefined;
-    }, FID_WAIT_TIME_MS);
-    api.onFirstInputDelay((fid: number) => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        Trace.createOobTrace(
-          performanceController,
-          navigationTimings,
-          paintTimings,
-          fid
-        );
-      }
-    });
+  // Better support for Safari
+  if ('onpagehide' in window) {
+    api.document.addEventListener('pagehide', () =>
+      sendOobTrace(performanceController)
+    );
   } else {
-    Trace.createOobTrace(
-      performanceController,
-      navigationTimings,
-      paintTimings
+    api.document.addEventListener('unload', () =>
+      sendOobTrace(performanceController)
     );
   }
+  api.document.addEventListener('visibilitychange', () => {
+    if (api.document.visibilityState === 'hidden') {
+      sendOobTrace(performanceController);
+    }
+  });
+
+  onLCP((metric: LCPMetricWithAttribution) => {
+    webVitalMetrics.lcp = {
+      value: metric.value,
+      elementAttribution: metric.attribution.element
+    };
+  });
+  onCLS((metric: CLSMetricWithAttribution) => {
+    webVitalMetrics.cls = {
+      value: metric.value,
+      elementAttribution: metric.attribution.largestShiftTarget
+    };
+  });
+  onINP((metric: INPMetricWithAttribution) => {
+    webVitalMetrics.inp = {
+      value: metric.value,
+      elementAttribution: metric.attribution.interactionTarget
+    };
+  });
 }
 
 function setupUserTimingTraces(
@@ -118,4 +130,49 @@ function createUserTimingTrace(
     return;
   }
   Trace.createUserTimingTrace(performanceController, measureName);
+}
+
+function sendOobTrace(performanceController: PerformanceController): void {
+  if (!sentPageLoadTrace) {
+    sentPageLoadTrace = true;
+    const api = Api.getInstance();
+    const navigationTimings = api.getEntriesByType(
+      'navigation'
+    ) as PerformanceNavigationTiming[];
+    const paintTimings = api.getEntriesByType('paint');
+    // If First Input Delay polyfill is added to the page, report the fid value.
+    // https://github.com/GoogleChromeLabs/first-input-delay
+    if (api.onFirstInputDelay) {
+      // If the fid call back is not called for certain time, continue without it.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let timeoutId: any = setTimeout(() => {
+        Trace.createOobTrace(
+          performanceController,
+          navigationTimings,
+          paintTimings,
+          webVitalMetrics
+        );
+        timeoutId = undefined;
+      }, FID_WAIT_TIME_MS);
+      api.onFirstInputDelay((fid: number) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          Trace.createOobTrace(
+            performanceController,
+            navigationTimings,
+            paintTimings,
+            webVitalMetrics,
+            fid
+          );
+        }
+      });
+    } else {
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings,
+        webVitalMetrics
+      );
+    }
+  }
 }

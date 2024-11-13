@@ -14,9 +14,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -43,6 +41,7 @@
     "@firebase/util": "1.10.3",
     "@firebase/component": "0.6.12",
     "tslib": "^2.1.0"
+    "web-vitals": "^4.2.4"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -62,9 +61,7 @@
   },
   "typings": "dist/src/index.d.ts",
   "nyc": {
-    "extension": [
-      ".ts"
-    ],
+    "extension": [".ts"],
     "reportDir": "./coverage/node"
   }
 }
