@@ -1,16 +1,20 @@
 import { CompositeOperator } from '../core/filter';
 
 import {
-  And as AndFunction,
+  And, Avg, Expr, Field,
   FilterExpr,
-  Or as OrFunction
+  Or, Sum
 } from './expressions';
+
 import {
   QueryCompositeFilterConstraint,
   QueryConstraint,
   QueryFilterConstraint,
   validateQueryFilterConstraint
 } from './query';
+import {FieldPath} from "./field_path";
+import {AggregateField} from "./aggregate_types";
+import {fieldPathFromArgument} from "./user_data_reader";
 
 /**
  * @beta
@@ -27,7 +31,7 @@ import {
  * @param right Additional filter conditions to 'OR' together.
  * @return A new {@code Expr} representing the logical 'OR' operation.
  */
-export function or(left: FilterExpr, ...right: FilterExpr[]): OrFunction;
+export function or(left: FilterExpr, ...right: FilterExpr[]): Or;
 
 /**
  * Creates a new {@link QueryCompositeFilterConstraint} that is a disjunction of
@@ -46,12 +50,13 @@ export function or(
 export function or(
   leftFilterExprOrQueryConstraint?: FilterExpr | QueryFilterConstraint,
   ...right: FilterExpr[] | QueryFilterConstraint[]
-): OrFunction | QueryCompositeFilterConstraint {
+): Or | QueryCompositeFilterConstraint {
   if (leftFilterExprOrQueryConstraint === undefined) {
     return or._orFilters();
   }
-  if (
+  else if (
     leftFilterExprOrQueryConstraint instanceof QueryConstraint ||
+    leftFilterExprOrQueryConstraint instanceof QueryCompositeFilterConstraint ||
     leftFilterExprOrQueryConstraint === undefined
   ) {
     return or._orFilters(
@@ -59,10 +64,8 @@ export function or(
       ...(right as QueryFilterConstraint[])
     );
   } else {
-    return or._orFunction(
-      leftFilterExprOrQueryConstraint as FilterExpr,
-      ...(right as FilterExpr[])
-    );
+    // @ts-ignore
+    return or._orFunction(leftFilterExprOrQueryConstraint, ...(right));
   }
 }
 
@@ -83,7 +86,7 @@ or._orFilters = function (
 or._orFunction = function (
   left: FilterExpr,
   ...right: FilterExpr[]
-): OrFunction {
+): Or {
   throw new Error(
     'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
   );
@@ -104,7 +107,7 @@ or._orFunction = function (
  * @param right Additional filter conditions to 'AND' together.
  * @return A new {@code Expr} representing the logical 'AND' operation.
  */
-export function and(left: FilterExpr, ...right: FilterExpr[]): AndFunction;
+export function and(left: FilterExpr, ...right: FilterExpr[]): And;
 
 /**
  * Creates a new {@link QueryCompositeFilterConstraint} that is a conjunction of
@@ -123,7 +126,7 @@ export function and(
 export function and(
   leftFilterExprOrQueryConstraint?: FilterExpr | QueryFilterConstraint,
   ...right: FilterExpr[] | QueryFilterConstraint[]
-): AndFunction | QueryCompositeFilterConstraint {
+): And | QueryCompositeFilterConstraint {
   if (leftFilterExprOrQueryConstraint === undefined) {
     return and._andFilters();
   }
@@ -160,7 +163,7 @@ and._andFilters = function (
 and._andFunction = function (
   left: FilterExpr,
   ...right: FilterExpr[]
-): AndFunction {
+): And {
   throw new Error(
     'Pipelines not initialized. Your application must call `useFirestorePipelines()` before using Firestore Pipeline features.'
   );

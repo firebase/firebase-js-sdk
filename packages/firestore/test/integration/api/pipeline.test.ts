@@ -794,7 +794,7 @@ apiDescribe.only('Pipelines', persistence => {
     );
   });
 
-  it.only('supports internal serialization to proto', async () => {
+  it('supports internal serialization to proto', async () => {
     const pipeline = firestore
       .pipeline()
       .collection('books')
