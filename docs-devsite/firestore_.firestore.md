@@ -31,6 +31,7 @@ export declare class Firestore
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [pipeline()](./firestore_.firestore.md#firestorepipeline) |  | Pipeline query. |
 |  [toJSON()](./firestore_.firestore.md#firestoretojson) |  | Returns a JSON-serializable representation of this <code>Firestore</code> instance. |
 
 ## Firestore.app
@@ -52,6 +53,19 @@ Whether it's a [Firestore](./firestore_.firestore.md#firestore_class) or Firesto
 ```typescript
 type: 'firestore-lite' | 'firestore';
 ```
+
+## Firestore.pipeline()
+
+Pipeline query.
+
+<b>Signature:</b>
+
+```typescript
+pipeline(): PipelineSource;
+```
+<b>Returns:</b>
+
+[PipelineSource](./firestore_.pipelinesource.md#pipelinesource_class)
 
 ## Firestore.toJSON()
 

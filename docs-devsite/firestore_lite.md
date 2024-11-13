@@ -25,23 +25,637 @@ https://github.com/firebase/firebase-js-sdk
 |  [collectionGroup(firestore, collectionId)](./firestore_lite.md#collectiongroup_1838fc3) | Creates and returns a new <code>Query</code> instance that includes all documents in the database that are contained in a collection or subcollection with the given <code>collectionId</code>. |
 |  [connectFirestoreEmulator(firestore, host, port, options)](./firestore_lite.md#connectfirestoreemulator_7c247cd) | Modify this instance to communicate with the Cloud Firestore emulator.<!-- -->Note: This must be called before this instance has been used to do any operations. |
 |  [doc(firestore, path, pathSegments)](./firestore_lite.md#doc_1eb4c23) | Gets a <code>DocumentReference</code> instance that refers to the document at the specified absolute path. |
+|  [pipeline(firestore)](./firestore_lite.md#pipeline_231a8e0) | Experimental Modular API for console testing. |
 |  [runTransaction(firestore, updateFunction, options)](./firestore_lite.md#runtransaction_6f03ec4) | Executes the given <code>updateFunction</code> and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the <code>updateFunction</code>. If it fails to commit after 5 attempts, the transaction fails.<!-- -->The maximum number of writes allowed in a single transaction is 500. |
 |  [terminate(firestore)](./firestore_lite.md#terminate_231a8e0) | Terminates the provided <code>Firestore</code> instance.<!-- -->After calling <code>terminate()</code> only the <code>clearIndexedDbPersistence()</code> functions may be used. Any other function will throw a <code>FirestoreError</code>. Termination does not cancel any pending writes, and any promises that are awaiting a response from the server will not be resolved.<!-- -->To restart after termination, create a new instance of <code>Firestore</code> with [getFirestore()](./firestore_.md#getfirestore)<!-- -->.<!-- -->Note: Under normal circumstances, calling <code>terminate()</code> is not required. This function is useful only when you want to force this instance to release all of its resources or in combination with [clearIndexedDbPersistence()](./firestore_.md#clearindexeddbpersistence_231a8e0) to ensure that all local state is destroyed between test runs. |
 |  [writeBatch(firestore)](./firestore_lite.md#writebatch_231a8e0) | Creates a write batch, used for performing multiple writes as a single atomic operation. The maximum number of writes allowed in a single WriteBatch is 500.<!-- -->The result of these writes will only be reflected in document reads that occur after the returned promise resolves. If the client is offline, the write fails. If you would like to see local modifications or buffer writes until the client is online, use the full Firestore SDK. |
 |  <b>function()</b> |
 |  [count()](./firestore_lite.md#count) | Create an AggregateField object that can be used to compute the count of documents in the result set of a query. |
+|  [countAll()](./firestore_lite.md#countall) | <b><i>(BETA)</i></b> Creates an aggregation that counts the total number of stage inputs.
+```typescript
+// Count the total number of users
+countAll().as("totalUsers");
+
+```
+ A new  representing the 'countAll' aggregation. |
 |  [deleteField()](./firestore_lite.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore_lite.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore_lite.md#getfirestore) | Returns the existing default [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
 |  [serverTimestamp()](./firestore_lite.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
+|  [useFirestorePipelines()](./firestore_lite.md#usefirestorepipelines) |  |
+|  <b>function(array, ...)</b> |
+|  [arrayConcat(array, elements)](./firestore_lite.md#arrayconcat_0b3ddb9) | <b><i>(BETA)</i></b> Creates an expression that concatenates an array expression with other arrays.
+```typescript
+// Combine the 'items' array with two new item arrays
+arrayConcat(Field.of("items"), [Field.of("newItems"), Field.of("otherItems")]);
+
+```
+ |
+|  [arrayConcat(array, elements)](./firestore_lite.md#arrayconcat_21991c1) | <b><i>(BETA)</i></b> Creates an expression that concatenates an array expression with other arrays and/or values.
+```typescript
+// Combine the 'tags' array with a new array
+arrayConcat(Field.of("tags"), ["newTag1", "newTag2"]);
+
+```
+ |
+|  [arrayConcat(array, elements)](./firestore_lite.md#arrayconcat_f8d5d5e) | <b><i>(BETA)</i></b> Creates an expression that concatenates a field's array value with other arrays.
+```typescript
+// Combine the 'items' array with two new item arrays
+arrayConcat("items", [Field.of("newItems"), Field.of("otherItems")]);
+
+```
+ |
+|  [arrayConcat(array, elements)](./firestore_lite.md#arrayconcat_5a66d99) | <b><i>(BETA)</i></b> Creates an expression that concatenates a field's array value with other arrays and/or values.
+```typescript
+// Combine the 'tags' array with a new array
+arrayConcat("tags", ["newTag1", "newTag2"]);
+
+```
+ |
+|  [arrayContains(array, element)](./firestore_lite.md#arraycontains_01ea7c0) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains a specific element.
+```typescript
+// Check if the 'colors' array contains the value of field 'selectedColor'
+arrayContains(Field.of("colors"), Field.of("selectedColor"));
+
+```
+ |
+|  [arrayContains(array, element)](./firestore_lite.md#arraycontains_60f8f2f) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains a specific element.
+```typescript
+// Check if the 'colors' array contains "red"
+arrayContains(Field.of("colors"), "red");
+
+```
+ |
+|  [arrayContains(array, element)](./firestore_lite.md#arraycontains_0ebdbfe) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains a specific element.
+```typescript
+// Check if the 'colors' array contains the value of field 'selectedColor'
+arrayContains("colors", Field.of("selectedColor"));
+
+```
+ |
+|  [arrayContains(array, element)](./firestore_lite.md#arraycontains_8f718df) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains a specific value.
+```typescript
+// Check if the 'colors' array contains "red"
+arrayContains("colors", "red");
+
+```
+ |
+|  [arrayContainsAll(array, values)](./firestore_lite.md#arraycontainsall_7b7433a) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains all the specified elements.
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
+arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+ |
+|  [arrayContainsAll(array, values)](./firestore_lite.md#arraycontainsall_d919466) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains all the specified elements.
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
+arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+ |
+|  [arrayContainsAll(array, values)](./firestore_lite.md#arraycontainsall_b40e2df) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions.
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
+arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+ |
+|  [arrayContainsAll(array, values)](./firestore_lite.md#arraycontainsall_b08efbb) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions.
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
+arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+ |
+|  [arrayContainsAny(array, values)](./firestore_lite.md#arraycontainsany_7b7433a) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains any of the specified elements.
+```typescript
+// Check if the 'categories' array contains either values from field "cate1" or "Science"
+arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+
+```
+ |
+|  [arrayContainsAny(array, values)](./firestore_lite.md#arraycontainsany_d919466) | <b><i>(BETA)</i></b> Creates an expression that checks if an array expression contains any of the specified elements.
+```typescript
+// Check if the 'categories' array contains either values from field "cate1" or "Science"
+arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+
+```
+ |
+|  [arrayContainsAny(array, values)](./firestore_lite.md#arraycontainsany_b40e2df) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements.
+```typescript
+// Check if the 'groups' array contains either the value from the 'userGroup' field
+// or the value "guest"
+arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+
+```
+ |
+|  [arrayContainsAny(array, values)](./firestore_lite.md#arraycontainsany_b08efbb) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements.
+```typescript
+// Check if the 'groups' array contains either the value from the 'userGroup' field
+// or the value "guest"
+arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+
+```
+ |
+|  [arrayLength(array)](./firestore_lite.md#arraylength_0bb5dbb) | <b><i>(BETA)</i></b> Creates an expression that calculates the length of an array expression.
+```typescript
+// Get the number of items in the 'cart' array
+arrayLength(Field.of("cart"));
+
+```
+ |
+|  <b>function(condition, ...)</b> |
+|  [ifFunction(condition, thenExpr, elseExpr)](./firestore_lite.md#iffunction_f7b2404) | <b><i>(BETA)</i></b> Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false.
+```typescript
+// If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
+ifFunction(
+    gt("age", 18), Constant.of("Adult"), Constant.of("Minor"));
+
+```
+ |
 |  <b>function(databaseId, ...)</b> |
 |  [getFirestore(databaseId)](./firestore_lite.md#getfirestore_53dc891) | <b><i>(BETA)</i></b> Returns the existing [Firestore](./firestore_.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
+|  <b>function(element, ...)</b> |
+|  [inAny(element, others)](./firestore_lite.md#inany_a73b259) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is equal to any of the provided values or expressions.
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny(Field.of("category"), [Constant.of("Electronics"), Field.of("primaryType")]);
+
+```
+ |
+|  [inAny(element, others)](./firestore_lite.md#inany_f5721c6) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is equal to any of the provided values or expressions.
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny(Field.of("category"), ["Electronics", Field.of("primaryType")]);
+
+```
+ |
+|  [inAny(element, others)](./firestore_lite.md#inany_c6646ea) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny("category", [Constant.of("Electronics"), Field.of("primaryType")]);
+
+```
+ |
+|  [inAny(element, others)](./firestore_lite.md#inany_e6877aa) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny("category", ["Electronics", Field.of("primaryType")]);
+
+```
+ |
+|  [notInAny(element, others)](./firestore_lite.md#notinany_a73b259) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny(Field.of("status"), [Constant.of("pending"), Field.of("rejectedStatus")]);
+
+```
+ |
+|  [notInAny(element, others)](./firestore_lite.md#notinany_f5721c6) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny(Field.of("status"), ["pending", Field.of("rejectedStatus")]);
+
+```
+ |
+|  [notInAny(element, others)](./firestore_lite.md#notinany_c6646ea) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is not equal to any of the provided values or expressions.
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny("status", [Constant.of("pending"), Field.of("rejectedStatus")]);
+
+```
+ |
+|  [notInAny(element, others)](./firestore_lite.md#notinany_e6877aa) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is not equal to any of the provided values or expressions.
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny("status", ["pending", Field.of("rejectedStatus")]);
+
+```
+ |
 |  <b>function(elements, ...)</b> |
 |  [arrayRemove(elements)](./firestore_lite.md#arrayremove_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_.md#setdoc_ee215ad) or  that tells the server to remove the given elements from any array value that already exists on the server. All instances of each element specified will be removed from the array. If the field being modified is not already an array it will be overwritten with an empty array. |
 |  [arrayUnion(elements)](./firestore_lite.md#arrayunion_7d853aa) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to union the given elements with any array value that already exists on the server. Each specified element that doesn't already exist in the array will be added to the end. If the field being modified is not already an array it will be overwritten with an array containing exactly the specified elements. |
+|  <b>function(expr, ...)</b> |
+|  [ascending(expr)](./firestore_lite.md#ascending_f3fb767) | <b><i>(BETA)</i></b> Creates an [Ordering](./firestore_.ordering.md#ordering_class) that sorts documents in ascending order based on this expression.
+```typescript
+// Sort documents by the 'name' field in ascending order
+firestore.pipeline().collection("users")
+  .sort(ascending(Field.of("name")));
+
+```
+ |
+|  [byteLength(expr)](./firestore_lite.md#bytelength_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that calculates the byte length of a string in UTF-8, or just the length of a Blob.
+```typescript
+// Calculate the length of the 'myString' field in bytes.
+byteLength(Field.of("myString"));
+
+```
+ |
+|  [charLength(expr)](./firestore_lite.md#charlength_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that calculates the character length of a string expression in UTF-8.
+```typescript
+// Get the character length of the 'name' field in UTF-8.
+strLength(Field.of("name"));
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_b4c7dc2) | <b><i>(BETA)</i></b> Calculates the Cosine distance between a field's vector value and a double array.
+```typescript
+// Calculate the Cosine distance between the 'location' field and a target location
+cosineDistance("location", [37.7749, -122.4194]);
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_8d2bd9d) | <b><i>(BETA)</i></b> Calculates the Cosine distance between a field's vector value and a VectorValue.
+```typescript
+// Calculate the Cosine distance between the 'location' field and a target location
+cosineDistance("location", new VectorValue([37.7749, -122.4194]));
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_c9ae0bc) | <b><i>(BETA)</i></b> Calculates the Cosine distance between a field's vector value and a vector expression.
+```typescript
+// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
+cosineDistance("userVector", Field.of("itemVector"));
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_e701952) | <b><i>(BETA)</i></b> Calculates the Cosine distance between a vector expression and a double array.
+```typescript
+// Calculate the cosine distance between the 'location' field and a target location
+cosineDistance(Field.of("location"), [37.7749, -122.4194]);
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_cc2e83e) | <b><i>(BETA)</i></b> Calculates the Cosine distance between a vector expression and a VectorValue.
+```typescript
+// Calculate the cosine distance between the 'location' field and a target location
+cosineDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+
+```
+ |
+|  [cosineDistance(expr, other)](./firestore_lite.md#cosinedistance_0896fbd) | <b><i>(BETA)</i></b> Calculates the Cosine distance between two vector expressions.
+```typescript
+// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
+cosineDistance(Field.of("userVector"), Field.of("itemVector"));
+
+```
+ |
+|  [descending(expr)](./firestore_lite.md#descending_f3fb767) | <b><i>(BETA)</i></b> Creates an [Ordering](./firestore_.ordering.md#ordering_class) that sorts documents in descending order based on this expression.
+```typescript
+// Sort documents by the 'createdAt' field in descending order
+firestore.pipeline().collection("users")
+  .sort(descending(Field.of("createdAt")));
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_b4c7dc2) | <b><i>(BETA)</i></b> Calculates the dot product between a field's vector value and a double array.
+```typescript
+// Calculate the dot product distance between a feature vector and a target vector
+dotProduct("features", [0.5, 0.8, 0.2]);
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_8d2bd9d) | <b><i>(BETA)</i></b> Calculates the dot product between a field's vector value and a VectorValue.
+```typescript
+// Calculate the dot product distance between a feature vector and a target vector
+dotProduct("features", new VectorValue([0.5, 0.8, 0.2]));
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_c9ae0bc) | <b><i>(BETA)</i></b> Calculates the dot product between a field's vector value and a vector expression.
+```typescript
+// Calculate the dot product distance between two document vectors: 'docVector1' and 'docVector2'
+dotProduct("docVector1", Field.of("docVector2"));
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_e701952) | <b><i>(BETA)</i></b> Calculates the dot product between a vector expression and a double array.
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+dotProduct(Field.of("features"), [0.5, 0.8, 0.2]);
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_cc2e83e) | <b><i>(BETA)</i></b> Calculates the dot product between a vector expression and a VectorValue.
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+dotProduct(Field.of("features"), new VectorValue([0.5, 0.8, 0.2]));
+
+```
+ |
+|  [dotProduct(expr, other)](./firestore_lite.md#dotproduct_0896fbd) | <b><i>(BETA)</i></b> Calculates the dot product between two vector expressions.
+```typescript
+// Calculate the dot product between two document vectors: 'docVector1' and 'docVector2'
+dotProduct(Field.of("docVector1"), Field.of("docVector2"));
+
+```
+ |
+|  [endsWith(expr, suffix)](./firestore_lite.md#endswith_88569cd) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value ends with a given postfix.
+```typescript
+// Check if the 'filename' field ends with ".txt"
+endsWith("filename", ".txt");
+
+```
+ |
+|  [endsWith(expr, suffix)](./firestore_lite.md#endswith_e2e794e) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value ends with a given postfix.
+```typescript
+// Check if the 'url' field ends with the value of the 'extension' field
+endsWith("url", Field.of("extension"));
+
+```
+ |
+|  [endsWith(expr, suffix)](./firestore_lite.md#endswith_6308b81) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression ends with a given postfix.
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
+endsWith(Field.of("fullName"), "Jr.");
+
+```
+ |
+|  [endsWith(expr, suffix)](./firestore_lite.md#endswith_ab1cc39) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression ends with a given postfix.
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
+endsWith(Field.of("fullName"), Constant.of("Jr."));
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_b4c7dc2) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between a field's vector value and a double array.
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance("location", [37.7749, -122.4194]);
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_8d2bd9d) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between a field's vector value and a VectorValue.
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance("location", new VectorValue([37.7749, -122.4194]));
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_c9ae0bc) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between a field's vector value and a vector expression.
+```typescript
+// Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
+euclideanDistance("pointA", Field.of("pointB"));
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_e701952) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between a vector expression and a double array.
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+
+euclideanDistance(Field.of("location"), [37.7749, -122.4194]);
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_cc2e83e) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between a vector expression and a VectorValue.
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+
+```
+ |
+|  [euclideanDistance(expr, other)](./firestore_lite.md#euclideandistance_0896fbd) | <b><i>(BETA)</i></b> Calculates the Euclidean distance between two vector expressions.
+```typescript
+// Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
+euclideanDistance(Field.of("pointA"), Field.of("pointB"));
+
+```
+ |
+|  [reverse(expr)](./firestore_lite.md#reverse_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that reverses a string.
+```typescript
+// Reverse the value of the 'myString' field.
+reverse(Field.of("myString"));
+
+```
+ |
+|  [startsWith(expr, prefix)](./firestore_lite.md#startswith_484d9f3) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value starts with a given prefix.
+```typescript
+// Check if the 'name' field starts with "Mr."
+startsWith("name", "Mr.");
+
+```
+ |
+|  [startsWith(expr, prefix)](./firestore_lite.md#startswith_7deb5c7) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value starts with a given prefix.
+```typescript
+// Check if the 'fullName' field starts with the value of the 'firstName' field
+startsWith("fullName", Field.of("firstName"));
+
+```
+ |
+|  [startsWith(expr, prefix)](./firestore_lite.md#startswith_68300d1) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression starts with a given prefix.
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
+startsWith(Field.of("fullName"), "Mr.");
+
+```
+ |
+|  [startsWith(expr, prefix)](./firestore_lite.md#startswith_5774b68) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression starts with a given prefix.
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
+startsWith(Field.of("fullName"), Field.of("prefix"));
+
+```
+ |
+|  [timestampToUnixMicros(expr)](./firestore_lite.md#timestamptounixmicros_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to microseconds since epoch.
+timestampToUnixMicros(Field.of("timestamp"));
+
+```
+ |
+|  [timestampToUnixMillis(expr)](./firestore_lite.md#timestamptounixmillis_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to milliseconds since epoch.
+timestampToUnixMillis(Field.of("timestamp"));
+
+```
+ |
+|  [timestampToUnixSeconds(expr)](./firestore_lite.md#timestamptounixseconds_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to seconds since epoch.
+timestampToUnixSeconds(Field.of("timestamp"));
+
+```
+ |
+|  [toLower(expr)](./firestore_lite.md#tolower_1e536ed) | <b><i>(BETA)</i></b> Creates an expression that converts a string field to lowercase.
+```typescript
+// Convert the 'name' field to lowercase
+toLower("name");
+
+```
+ |
+|  [toLower(expr)](./firestore_lite.md#tolower_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that converts a string expression to lowercase.
+```typescript
+// Convert the 'name' field to lowercase
+toLower(Field.of("name"));
+
+```
+ |
+|  [toUpper(expr)](./firestore_lite.md#toupper_1e536ed) | <b><i>(BETA)</i></b> Creates an expression that converts a string field to uppercase.
+```typescript
+// Convert the 'title' field to uppercase
+toUpper("title");
+
+```
+ |
+|  [toUpper(expr)](./firestore_lite.md#toupper_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that converts a string expression to uppercase.
+```typescript
+// Convert the 'title' field to uppercase
+toUppercase(Field.of("title"));
+
+```
+ |
+|  [trim(expr)](./firestore_lite.md#trim_1e536ed) | <b><i>(BETA)</i></b> Creates an expression that removes leading and trailing whitespace from a string field.
+```typescript
+// Trim whitespace from the 'userInput' field
+trim("userInput");
+
+```
+ |
+|  [trim(expr)](./firestore_lite.md#trim_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that removes leading and trailing whitespace from a string expression.
+```typescript
+// Trim whitespace from the 'userInput' field
+trim(Field.of("userInput"));
+
+```
+ |
+|  [unixMicrosToTimestamp(expr)](./firestore_lite.md#unixmicrostotimestamp_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'microseconds' field as microseconds since epoch.
+unixMicrosToTimestamp(Field.of("microseconds"));
+
+```
+ |
+|  [unixMillisToTimestamp(expr)](./firestore_lite.md#unixmillistotimestamp_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'milliseconds' field as milliseconds since epoch.
+unixMillisToTimestamp(Field.of("milliseconds"));
+
+```
+ |
+|  [unixSecondsToTimestamp(expr)](./firestore_lite.md#unixsecondstotimestamp_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'seconds' field as seconds since epoch.
+unixSecondsToTimestamp(Field.of("seconds"));
+
+```
+ |
+|  [vectorLength(expr)](./firestore_lite.md#vectorlength_f3fb767) | <b><i>(BETA)</i></b> Creates an expression that calculates the length of a Firestore Vector.
+```typescript
+// Get the vector length (dimension) of the field 'embedding'.
+vectorLength(Field.of("embedding"));
+
+```
+ |
 |  <b>function(field, ...)</b> |
 |  [average(field)](./firestore_lite.md#average_aacc3a9) | Create an AggregateField object that can be used to compute the average of a specified field over a range of documents in the result set of a query. |
+|  [byteLength(field)](./firestore_lite.md#bytelength_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob.
+```typescript
+// Calculate the length of the 'myString' field in bytes.
+byteLength("myString");
+
+```
+ |
+|  [charLength(field)](./firestore_lite.md#charlength_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that calculates the character length of a string field in UTF8.
+```typescript
+// Get the character length of the 'name' field in UTF-8.
+strLength("name");
+
+```
+ |
+|  [exists(field)](./firestore_lite.md#exists_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that checks if a field exists.
+```typescript
+// Check if the document has a field named "phoneNumber"
+exists("phoneNumber");
+
+```
+ |
+|  [replaceAll(field, find, replace)](./firestore_lite.md#replaceall_b257ab0) | <b><i>(BETA)</i></b> Creates an expression that replaces all occurrences of a substring within a string represented by a field with another substring.
+```typescript
+// Replace all occurrences of "hello" with "hi" in the 'message' field.
+replaceAll("message", "hello", "hi");
+
+```
+ |
+|  [replaceFirst(field, find, replace)](./firestore_lite.md#replacefirst_b257ab0) | <b><i>(BETA)</i></b> Creates an expression that replaces the first occurrence of a substring within a string represented by a field with another substring.
+```typescript
+// Replace the first occurrence of "hello" with "hi" in the 'message' field.
+replaceFirst("message", "hello", "hi");
+
+```
+ |
+|  [reverse(field)](./firestore_lite.md#reverse_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that reverses a string represented by a field.
+```typescript
+// Reverse the value of the 'myString' field.
+reverse("myString");
+
+```
+ |
 |  [sum(field)](./firestore_lite.md#sum_aacc3a9) | Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query. |
+|  [timestampAdd(field, unit, amount)](./firestore_lite.md#timestampadd_565792c) | <b><i>(BETA)</i></b> Creates an expression that adds a specified amount of time to a timestamp represented by a field.
+```typescript
+// Add 1 day to the 'timestamp' field.
+timestampAdd("timestamp", "day", 1);
+
+```
+ |
+|  [timestampSub(field, unit, amount)](./firestore_lite.md#timestampsub_565792c) | <b><i>(BETA)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp represented by a field.
+```typescript
+// Subtract 1 day from the 'timestamp' field.
+timestampSub("timestamp", "day", 1);
+
+```
+ |
+|  [timestampToUnixMicros(field)](./firestore_lite.md#timestamptounixmicros_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to microseconds since epoch.
+timestampToUnixMicros("timestamp");
+
+```
+ |
+|  [timestampToUnixMillis(field)](./firestore_lite.md#timestamptounixmillis_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to milliseconds since epoch.
+timestampToUnixMillis("timestamp");
+
+```
+ |
+|  [timestampToUnixSeconds(field)](./firestore_lite.md#timestamptounixseconds_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+```typescript
+// Convert the 'timestamp' field to seconds since epoch.
+timestampToUnixSeconds("timestamp");
+
+```
+ |
+|  [unixMicrosToTimestamp(field)](./firestore_lite.md#unixmicrostotimestamp_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'microseconds' field as microseconds since epoch.
+unixMicrosToTimestamp("microseconds");
+
+```
+ |
+|  [unixMillisToTimestamp(field)](./firestore_lite.md#unixmillistotimestamp_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'milliseconds' field as milliseconds since epoch.
+unixMillisToTimestamp("milliseconds");
+
+```
+ |
+|  [unixSecondsToTimestamp(field)](./firestore_lite.md#unixsecondstotimestamp_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+```typescript
+// Interpret the 'seconds' field as seconds since epoch.
+unixSecondsToTimestamp("seconds");
+
+```
+ |
+|  [vectorLength(field)](./firestore_lite.md#vectorlength_0fb8cd4) | <b><i>(BETA)</i></b> Creates an expression that calculates the length of a Firestore Vector represented by a field.
+```typescript
+// Get the vector length (dimension) of the field 'embedding'.
+vectorLength("embedding");
+
+```
+ |
 |  <b>function(fieldPath, ...)</b> |
 |  [orderBy(fieldPath, directionStr)](./firestore_lite.md#orderby_006d61f) | Creates a [QueryOrderByConstraint](./firestore_.queryorderbyconstraint.md#queryorderbyconstraint_class) that sorts the query result by the specified field, optionally in descending order instead of ascending.<!-- -->Note: Documents that do not contain the specified field will not be present in the query result. |
 |  [where(fieldPath, opStr, value)](./firestore_lite.md#where_0fae4bf) | Creates a [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) that enforces that documents must contain the specified field and that the value should satisfy the relation constraint provided. |
@@ -50,23 +664,577 @@ https://github.com/firebase/firebase-js-sdk
 |  [endBefore(fieldValues)](./firestore_lite.md#endbefore_8b2f2c8) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAfter(fieldValues)](./firestore_lite.md#startafter_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
 |  [startAt(fieldValues)](./firestore_lite.md#startat_8b2f2c8) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided fields relative to the order of the query. The order of the field values must match the order of the order by clauses of the query. |
+|  <b>function(filter, ...)</b> |
+|  [not(filter)](./firestore_lite.md#not_5520849) | <b><i>(BETA)</i></b> Creates an expression that negates a filter condition.
+```typescript
+// Find documents where the 'completed' field is NOT true
+not(eq("completed", true));
+
+```
+ |
+|  <b>function(first, ...)</b> |
+|  [strConcat(first, elements)](./firestore_lite.md#strconcat_0f1bdbf) | <b><i>(BETA)</i></b> Creates an expression that concatenates string functions, fields or constants together.
+```typescript
+// Combine the 'firstName', " ", and 'lastName' fields into a single string
+strConcat("firstName", " ", Field.of("lastName"));
+
+```
+ |
+|  [strConcat(first, elements)](./firestore_lite.md#strconcat_1eb0ac1) | <b><i>(BETA)</i></b> Creates an expression that concatenates string expressions together.
+```typescript
+// Combine the 'firstName', " ", and 'lastName' fields into a single string
+strConcat(Field.of("firstName"), " ", Field.of("lastName"));
+
+```
+ |
 |  <b>function(left, ...)</b> |
+|  [add(left, right)](./firestore_lite.md#add_be96f75) | <b><i>(BETA)</i></b> Creates an expression that adds two expressions together.
+```typescript
+// Add the value of the 'quantity' field and the 'reserve' field.
+add(Field.of("quantity"), Field.of("reserve"));
+
+```
+ |
+|  [add(left, right)](./firestore_lite.md#add_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that adds an expression to a constant value.
+```typescript
+// Add 5 to the value of the 'age' field
+add(Field.of("age"), 5);
+
+```
+ |
+|  [add(left, right)](./firestore_lite.md#add_674c63f) | <b><i>(BETA)</i></b> Creates an expression that adds a field's value to an expression.
+```typescript
+// Add the value of the 'quantity' field and the 'reserve' field.
+add("quantity", Field.of("reserve"));
+
+```
+ |
+|  [add(left, right)](./firestore_lite.md#add_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that adds a field's value to a constant value.
+```typescript
+// Add 5 to the value of the 'age' field
+add("age", 5);
+
+```
+ |
 |  [aggregateFieldEqual(left, right)](./firestore_lite.md#aggregatefieldequal_e80a2b2) | Compares two 'AggregateField<!-- -->\` instances for equality. |
 |  [aggregateQuerySnapshotEqual(left, right)](./firestore_lite.md#aggregatequerysnapshotequal_1529a20) | Compares two <code>AggregateQuerySnapshot</code> instances for equality.<!-- -->Two <code>AggregateQuerySnapshot</code> instances are considered "equal" if they have underlying queries that compare equal, and the same data. |
+|  [and(left, right)](./firestore_lite.md#and_eba7e36) | <b><i>(BETA)</i></b> Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
+```typescript
+// Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
+// the 'status' field is "active"
+const condition = and(gt("age", 18), eq("city", "London"), eq("status", "active"));
+
+```
+ |
+|  [divide(left, right)](./firestore_lite.md#divide_be96f75) | <b><i>(BETA)</i></b> Creates an expression that divides two expressions.
+```typescript
+// Divide the 'total' field by the 'count' field
+divide(Field.of("total"), Field.of("count"));
+
+```
+ |
+|  [divide(left, right)](./firestore_lite.md#divide_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that divides an expression by a constant value.
+```typescript
+// Divide the 'value' field by 10
+divide(Field.of("value"), 10);
+
+```
+ |
+|  [divide(left, right)](./firestore_lite.md#divide_674c63f) | <b><i>(BETA)</i></b> Creates an expression that divides a field's value by an expression.
+```typescript
+// Divide the 'total' field by the 'count' field
+divide("total", Field.of("count"));
+
+```
+ |
+|  [divide(left, right)](./firestore_lite.md#divide_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that divides a field's value by a constant value.
+```typescript
+// Divide the 'value' field by 10
+divide("value", 10);
+
+```
+ |
+|  [eq(left, right)](./firestore_lite.md#eq_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if two expressions are equal.
+```typescript
+// Check if the 'age' field is equal to an expression
+eq(Field.of("age"), Field.of("minAge").add(10));
+
+```
+ |
+|  [eq(left, right)](./firestore_lite.md#eq_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is equal to a constant value.
+```typescript
+// Check if the 'age' field is equal to 21
+eq(Field.of("age"), 21);
+
+```
+ |
+|  [eq(left, right)](./firestore_lite.md#eq_674c63f) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is equal to an expression.
+```typescript
+// Check if the 'age' field is equal to the 'limit' field
+eq("age", Field.of("limit"));
+
+```
+ |
+|  [eq(left, right)](./firestore_lite.md#eq_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is equal to a constant value.
+```typescript
+// Check if the 'city' field is equal to string constant "London"
+eq("city", "London");
+
+```
+ |
+|  [gt(left, right)](./firestore_lite.md#gt_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if the first expression is greater than the second expression.
+```typescript
+// Check if the 'age' field is greater than 18
+gt(Field.of("age"), Constant(9).add(9));
+
+```
+ |
+|  [gt(left, right)](./firestore_lite.md#gt_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is greater than a constant value.
+```typescript
+// Check if the 'age' field is greater than 18
+gt(Field.of("age"), 18);
+
+```
+ |
+|  [gt(left, right)](./firestore_lite.md#gt_674c63f) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is greater than an expression.
+```typescript
+// Check if the value of field 'age' is greater than the value of field 'limit'
+gt("age", Field.of("limit"));
+
+```
+ |
+|  [gt(left, right)](./firestore_lite.md#gt_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is greater than a constant value.
+```typescript
+// Check if the 'price' field is greater than 100
+gt("price", 100);
+
+```
+ |
+|  [gte(left, right)](./firestore_lite.md#gte_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if the first expression is greater than or equal to the second expression.
+```typescript
+// Check if the 'quantity' field is greater than or equal to the field "threshold"
+gte(Field.of("quantity"), Field.of("threshold"));
+
+```
+ |
+|  [gte(left, right)](./firestore_lite.md#gte_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is greater than or equal to a constant value.
+```typescript
+// Check if the 'quantity' field is greater than or equal to 10
+gte(Field.of("quantity"), 10);
+
+```
+ |
+|  [gte(left, right)](./firestore_lite.md#gte_674c63f) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is greater than or equal to an expression.
+```typescript
+// Check if the value of field 'age' is greater than or equal to the value of field 'limit'
+gte("age", Field.of("limit"));
+
+```
+ |
+|  [gte(left, right)](./firestore_lite.md#gte_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is greater than or equal to a constant value.
+```typescript
+// Check if the 'score' field is greater than or equal to 80
+gte("score", 80);
+
+```
+ |
+|  [like(left, pattern)](./firestore_lite.md#like_33ec01b) | <b><i>(BETA)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison against a field.
+```typescript
+// Check if the 'title' field contains the string "guide"
+like("title", "%guide%");
+
+```
+ |
+|  [like(left, pattern)](./firestore_lite.md#like_dd84184) | <b><i>(BETA)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison against a field.
+```typescript
+// Check if the 'title' field contains the string "guide"
+like("title", Field.of("pattern"));
+
+```
+ |
+|  [like(left, pattern)](./firestore_lite.md#like_3aaffe0) | <b><i>(BETA)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison.
+```typescript
+// Check if the 'title' field contains the string "guide"
+like(Field.of("title"), "%guide%");
+
+```
+ |
+|  [like(left, pattern)](./firestore_lite.md#like_a2c3e8b) | <b><i>(BETA)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison.
+```typescript
+// Check if the 'title' field contains the string "guide"
+like(Field.of("title"), Field.of("pattern"));
+
+```
+ |
+|  [logicalMax(left, right)](./firestore_lite.md#logicalmax_be96f75) | <b><i>(BETA)</i></b> Creates an expression that returns the larger value between two expressions, based on Firestore's value type ordering.
+```typescript
+// Returns the larger value between the 'field1' field and the 'field2' field.
+logicalMax(Field.of("field1"), Field.of("field2"));
+
+```
+ |
+|  [logicalMax(left, right)](./firestore_lite.md#logicalmax_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that returns the larger value between an expression and a constant value, based on Firestore's value type ordering.
+```typescript
+// Returns the larger value between the 'value' field and 10.
+logicalMax(Field.of("value"), 10);
+
+```
+ |
+|  [logicalMax(left, right)](./firestore_lite.md#logicalmax_674c63f) | <b><i>(BETA)</i></b> Creates an expression that returns the larger value between a field and an expression, based on Firestore's value type ordering.
+```typescript
+// Returns the larger value between the 'field1' field and the 'field2' field.
+logicalMax("field1", Field.of('field2'));
+
+```
+ |
+|  [logicalMax(left, right)](./firestore_lite.md#logicalmax_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that returns the larger value between a field and a constant value, based on Firestore's value type ordering.
+```typescript
+// Returns the larger value between the 'value' field and 10.
+logicalMax("value", 10);
+
+```
+ |
+|  [logicalMin(left, right)](./firestore_lite.md#logicalmin_be96f75) | <b><i>(BETA)</i></b> Creates an expression that returns the smaller value between two expressions, based on Firestore's value type ordering.
+```typescript
+// Returns the smaller value between the 'field1' field and the 'field2' field.
+logicalMin(Field.of("field1"), Field.of("field2"));
+
+```
+ |
+|  [logicalMin(left, right)](./firestore_lite.md#logicalmin_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that returns the smaller value between an expression and a constant value, based on Firestore's value type ordering.
+```typescript
+// Returns the smaller value between the 'value' field and 10.
+logicalMin(Field.of("value"), 10);
+
+```
+ |
+|  [logicalMin(left, right)](./firestore_lite.md#logicalmin_674c63f) | <b><i>(BETA)</i></b> Creates an expression that returns the smaller value between a field and an expression, based on Firestore's value type ordering.
+```typescript
+// Returns the smaller value between the 'field1' field and the 'field2' field.
+logicalMin("field1", Field.of("field2"));
+
+```
+ |
+|  [logicalMin(left, right)](./firestore_lite.md#logicalmin_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that returns the smaller value between a field and a constant value, based on Firestore's value type ordering.
+```typescript
+// Returns the smaller value between the 'value' field and 10.
+logicalMin("value", 10);
+
+```
+ |
+|  [lt(left, right)](./firestore_lite.md#lt_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if the first expression is less than the second expression.
+```typescript
+// Check if the 'age' field is less than 30
+lt(Field.of("age"), Field.of("limit"));
+
+```
+ |
+|  [lt(left, right)](./firestore_lite.md#lt_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is less than a constant value.
+```typescript
+// Check if the 'age' field is less than 30
+lt(Field.of("age"), 30);
+
+```
+ |
+|  [lt(left, right)](./firestore_lite.md#lt_674c63f) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is less than an expression.
+```typescript
+// Check if the 'age' field is less than the 'limit' field
+lt("age", Field.of("limit"));
+
+```
+ |
+|  [lt(left, right)](./firestore_lite.md#lt_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is less than a constant value.
+```typescript
+// Check if the 'price' field is less than 50
+lt("price", 50);
+
+```
+ |
+|  [lte(left, right)](./firestore_lite.md#lte_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if the first expression is less than or equal to the second expression.
+```typescript
+// Check if the 'quantity' field is less than or equal to 20
+lte(Field.of("quantity"), Field.of("limit"));
+
+```
+ |
+|  [lte(left, right)](./firestore_lite.md#lte_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is less than or equal to a constant value.
+```typescript
+// Check if the 'quantity' field is less than or equal to 20
+lte(Field.of("quantity"), 20);
+
+```
+ |
+|  [lte(left, right)](./firestore_lite.md#lte_674c63f) | Creates an expression that checks if a field's value is less than or equal to an expression.
+```typescript
+// Check if the 'quantity' field is less than or equal to the 'limit' field
+lte("quantity", Field.of("limit"));
+
+```
+ |
+|  [lte(left, right)](./firestore_lite.md#lte_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is less than or equal to a constant value.
+```typescript
+// Check if the 'score' field is less than or equal to 70
+lte("score", 70);
+
+```
+ |
+|  [mod(left, right)](./firestore_lite.md#mod_be96f75) | <b><i>(BETA)</i></b> Creates an expression that calculates the modulo (remainder) of dividing two expressions.
+```typescript
+// Calculate the remainder of dividing 'field1' by 'field2'.
+mod(Field.of("field1"), Field.of("field2"));
+
+```
+ |
+|  [mod(left, right)](./firestore_lite.md#mod_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant.
+```typescript
+// Calculate the remainder of dividing 'field1' by 5.
+mod(Field.of("field1"), 5);
+
+```
+ |
+|  [mod(left, right)](./firestore_lite.md#mod_674c63f) | <b><i>(BETA)</i></b> Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression.
+```typescript
+// Calculate the remainder of dividing 'field1' by 'field2'.
+mod("field1", Field.of("field2"));
+
+```
+ |
+|  [mod(left, right)](./firestore_lite.md#mod_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant.
+```typescript
+// Calculate the remainder of dividing 'field1' by 5.
+mod("field1", 5);
+
+```
+ |
+|  [multiply(left, right)](./firestore_lite.md#multiply_be96f75) | <b><i>(BETA)</i></b> Creates an expression that multiplies two expressions together.
+```typescript
+// Multiply the 'quantity' field by the 'price' field
+multiply(Field.of("quantity"), Field.of("price"));
+
+```
+ |
+|  [multiply(left, right)](./firestore_lite.md#multiply_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that multiplies an expression by a constant value.
+```typescript
+// Multiply the value of the 'price' field by 2
+multiply(Field.of("price"), 2);
+
+```
+ |
+|  [multiply(left, right)](./firestore_lite.md#multiply_674c63f) | <b><i>(BETA)</i></b> Creates an expression that multiplies a field's value by an expression.
+```typescript
+// Multiply the 'quantity' field by the 'price' field
+multiply("quantity", Field.of("price"));
+
+```
+ |
+|  [multiply(left, right)](./firestore_lite.md#multiply_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that multiplies a field's value by a constant value.
+```typescript
+// Multiply the 'value' field by 2
+multiply("value", 2);
+
+```
+ |
+|  [neq(left, right)](./firestore_lite.md#neq_be96f75) | <b><i>(BETA)</i></b> Creates an expression that checks if two expressions are not equal.
+```typescript
+// Check if the 'status' field is not equal to field 'finalState'
+neq(Field.of("status"), Field.of("finalState"));
+
+```
+ |
+|  [neq(left, right)](./firestore_lite.md#neq_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression is not equal to a constant value.
+```typescript
+// Check if the 'status' field is not equal to "completed"
+neq(Field.of("status"), "completed");
+
+```
+ |
+|  [neq(left, right)](./firestore_lite.md#neq_674c63f) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is not equal to an expression.
+```typescript
+// Check if the 'status' field is not equal to the value of 'expectedStatus'
+neq("status", Field.of("expectedStatus"));
+
+```
+ |
+|  [neq(left, right)](./firestore_lite.md#neq_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value is not equal to a constant value.
+```typescript
+// Check if the 'country' field is not equal to "USA"
+neq("country", "USA");
+
+```
+ |
+|  [or(left, right)](./firestore_lite.md#or_eba7e36) | <b><i>(BETA)</i></b> Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
+```typescript
+// Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
+// the 'status' field is "active"
+const condition = or(gt("age", 18), eq("city", "London"), eq("status", "active"));
+
+```
+ |
 |  [queryEqual(left, right)](./firestore_lite.md#queryequal_7a1f045) | Returns true if the provided queries point to the same collection and apply the same constraints. |
 |  [refEqual(left, right)](./firestore_lite.md#refequal_598b780) | Returns true if the provided references are equal. |
+|  [regexContains(left, pattern)](./firestore_lite.md#regexcontains_33ec01b) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring.
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains("description", "(?i)example");
+
+```
+ |
+|  [regexContains(left, pattern)](./firestore_lite.md#regexcontains_dd84184) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring.
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains("description", Field.of("pattern"));
+
+```
+ |
+|  [regexContains(left, pattern)](./firestore_lite.md#regexcontains_3aaffe0) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression contains a specified regular expression as a substring.
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains(Field.of("description"), "(?i)example");
+
+```
+ |
+|  [regexContains(left, pattern)](./firestore_lite.md#regexcontains_a2c3e8b) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression contains a specified regular expression as a substring.
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains(Field.of("description"), Field.of("pattern"));
+
+```
+ |
+|  [regexMatch(left, pattern)](./firestore_lite.md#regexmatch_33ec01b) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field matches a specified regular expression.
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+
+```
+ |
+|  [regexMatch(left, pattern)](./firestore_lite.md#regexmatch_dd84184) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field matches a specified regular expression.
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch("email", Field.of("pattern"));
+
+```
+ |
+|  [regexMatch(left, pattern)](./firestore_lite.md#regexmatch_3aaffe0) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression matches a specified regular expression.
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch(Field.of("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+
+```
+ |
+|  [regexMatch(left, pattern)](./firestore_lite.md#regexmatch_a2c3e8b) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression matches a specified regular expression.
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch(Field.of("email"), Field.of("pattern"));
+
+```
+ |
 |  [snapshotEqual(left, right)](./firestore_lite.md#snapshotequal_5109204) | Returns true if the provided snapshots are equal. |
+|  [strContains(left, substring)](./firestore_lite.md#strcontains_18eaf5d) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field contains a specified substring.
+```typescript
+// Check if the 'description' field contains "example".
+strContains("description", "example");
+
+```
+ |
+|  [strContains(left, substring)](./firestore_lite.md#strcontains_f0f1f2f) | <b><i>(BETA)</i></b> Creates an expression that checks if a string field contains a substring specified by an expression.
+```typescript
+// Check if the 'description' field contains the value of the 'keyword' field.
+strContains("description", Field.of("keyword"));
+
+```
+ |
+|  [strContains(left, substring)](./firestore_lite.md#strcontains_5fdbd29) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression contains a specified substring.
+```typescript
+// Check if the 'description' field contains "example".
+strContains(Field.of("description"), "example");
+
+```
+ |
+|  [strContains(left, substring)](./firestore_lite.md#strcontains_d9d749f) | <b><i>(BETA)</i></b> Creates an expression that checks if a string expression contains a substring specified by another expression.
+```typescript
+// Check if the 'description' field contains the value of the 'keyword' field.
+strContains(Field.of("description"), Field.of("keyword"));
+
+```
+ |
+|  [subtract(left, right)](./firestore_lite.md#subtract_be96f75) | <b><i>(BETA)</i></b> Creates an expression that subtracts two expressions.
+```typescript
+// Subtract the 'discount' field from the 'price' field
+subtract(Field.of("price"), Field.of("discount"));
+
+```
+ |
+|  [subtract(left, right)](./firestore_lite.md#subtract_010ba9e) | <b><i>(BETA)</i></b> Creates an expression that subtracts a constant value from an expression.
+```typescript
+// Subtract the constant value 2 from the 'value' field
+subtract(Field.of("value"), 2);
+
+```
+ |
+|  [subtract(left, right)](./firestore_lite.md#subtract_674c63f) | <b><i>(BETA)</i></b> Creates an expression that subtracts an expression from a field's value.
+```typescript
+// Subtract the 'discount' field from the 'price' field
+subtract("price", Field.of("discount"));
+
+```
+ |
+|  [subtract(left, right)](./firestore_lite.md#subtract_1f46a76) | <b><i>(BETA)</i></b> Creates an expression that subtracts a constant value from a field's value.
+```typescript
+// Subtract 20 from the value of the 'total' field
+subtract("total", 20);
+
+```
+ |
+|  [xor(left, right)](./firestore_lite.md#xor_eba7e36) | <b><i>(BETA)</i></b> Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple filter conditions.
+```typescript
+// Check if only one of the conditions is true: 'age' greater than 18, 'city' is "London",
+// or 'status' is "active".
+const condition = xor(
+    gt("age", 18),
+    eq("city", "London"),
+    eq("status", "active"));
+
+```
+ |
 |  <b>function(limit, ...)</b> |
 |  [limit(limit)](./firestore_lite.md#limit_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the first matching documents. |
 |  [limitToLast(limit)](./firestore_lite.md#limittolast_ec46c78) | Creates a [QueryLimitConstraint](./firestore_.querylimitconstraint.md#querylimitconstraint_class) that only returns the last matching documents.<!-- -->You must specify at least one <code>orderBy</code> clause for <code>limitToLast</code> queries, otherwise an exception will be thrown during execution. |
 |  <b>function(logLevel, ...)</b> |
 |  [setLogLevel(logLevel)](./firestore_lite.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
+|  <b>function(mapExpr, ...)</b> |
+|  [mapGet(mapExpr, subField)](./firestore_lite.md#mapget_9715f90) | <b><i>(BETA)</i></b> Accesses a value from a map (object) expression using the provided key.
+```typescript
+// Get the 'city' value from the 'address' map field
+mapGet(Field.of("address"), "city");
+
+```
+ |
+|  <b>function(mapField, ...)</b> |
+|  [mapGet(mapField, subField)](./firestore_lite.md#mapget_b37bbb6) | <b><i>(BETA)</i></b> Accesses a value from a map (object) field using the provided key.
+```typescript
+// Get the 'city' value from the 'address' map field
+mapGet("address", "city");
+
+```
+ |
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  <b>function(name, ...)</b> |
+|  [genericFunction(name, params)](./firestore_lite.md#genericfunction_b886545) | <b><i>(BETA)</i></b> Creates functions that work on the backend but do not exist in the SDK yet.
+```typescript
+// Call a user defined function named "myFunc" with the arguments 10 and 20
+// This is the same of the 'sum(Field.of("price"))', if it did not exist
+genericFunction("sum", [Field.of("price")]);
+
+```
+ |
+|  <b>function(pipeline, ...)</b> |
+|  [execute(pipeline)](./firestore_lite.md#execute_86486e6) | <b><i>(BETA)</i></b> Modular API for console experimentation. |
 |  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getDocs(query)](./firestore_lite.md#getdocs_4e56953) | Executes the query and returns the results as a [QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->.<!-- -->All queries are executed directly by the server, even if the query was previously executed. Recent modifications are only reflected in the retrieved results if they have already been applied by the backend. If the client is offline, the operation fails. To see previously cached result and local modifications, use the full Firestore SDK. |
+|  [pipeline(query)](./firestore_lite.md#pipeline_20b2416) | Experimental Modular API for console testing. |
 |  [query(query, compositeFilter, queryConstraints)](./firestore_lite.md#query_9f7b0f4) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  [query(query, queryConstraints)](./firestore_lite.md#query_0f46da1) | Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints. |
 |  <b>function(queryConstraints, ...)</b> |
@@ -89,6 +1257,141 @@ https://github.com/firebase/firebase-js-sdk
 |  [endBefore(snapshot)](./firestore_lite.md#endbefore_9a4477f) | Creates a [QueryEndAtConstraint](./firestore_.queryendatconstraint.md#queryendatconstraint_class) that modifies the result set to end before the provided document (exclusive). The end position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAfter(snapshot)](./firestore_lite.md#startafter_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start after the provided document (exclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the orderBy of the query. |
 |  [startAt(snapshot)](./firestore_lite.md#startat_9a4477f) | Creates a [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) that modifies the result set to start at the provided document (inclusive). The starting position is relative to the order of the query. The document must contain all of the fields provided in the <code>orderBy</code> of this query. |
+|  <b>function(timestamp, ...)</b> |
+|  [timestampAdd(timestamp, unit, amount)](./firestore_lite.md#timestampadd_87db576) | <b><i>(BETA)</i></b> Creates an expression that adds a specified amount of time to a timestamp.
+```typescript
+// Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
+timestampAdd(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+
+```
+ |
+|  [timestampAdd(timestamp, unit, amount)](./firestore_lite.md#timestampadd_46a2d7e) | <b><i>(BETA)</i></b> Creates an expression that adds a specified amount of time to a timestamp.
+```typescript
+// Add 1 day to the 'timestamp' field.
+timestampAdd(Field.of("timestamp"), "day", 1);
+
+```
+ |
+|  [timestampSub(timestamp, unit, amount)](./firestore_lite.md#timestampsub_87db576) | <b><i>(BETA)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp.
+```typescript
+// Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
+timestampSub(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+
+```
+ |
+|  [timestampSub(timestamp, unit, amount)](./firestore_lite.md#timestampsub_46a2d7e) | <b><i>(BETA)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp.
+```typescript
+// Subtract 1 day from the 'timestamp' field.
+timestampSub(Field.of("timestamp"), "day", 1);
+
+```
+ |
+|  <b>function(value, ...)</b> |
+|  [avgFunction(value)](./firestore_lite.md#avgfunction_f83680a) | <b><i>(BETA)</i></b> Creates an aggregation that calculates the average (mean) of values from an expression across multiple stage inputs.
+```typescript
+// Calculate the average age of users
+avg(Field.of("age")).as("averageAge");
+
+```
+ |
+|  [avgFunction(value)](./firestore_lite.md#avgfunction_7c807cd) | <b><i>(BETA)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs.
+```typescript
+// Calculate the average age of users
+avg("age").as("averageAge");
+
+```
+ |
+|  [exists(value)](./firestore_lite.md#exists_f83680a) | <b><i>(BETA)</i></b> Creates an expression that checks if a field exists.
+```typescript
+// Check if the document has a field named "phoneNumber"
+exists(Field.of("phoneNumber"));
+
+```
+ |
+|  [isNan(value)](./firestore_lite.md#isnan_f83680a) | <b><i>(BETA)</i></b> Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+```typescript
+// Check if the result of a calculation is NaN
+isNaN(Field.of("value").divide(0));
+
+```
+ |
+|  [isNan(value)](./firestore_lite.md#isnan_7c807cd) | <b><i>(BETA)</i></b> Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+```typescript
+// Check if the result of a calculation is NaN
+isNaN("value");
+
+```
+ |
+|  [max(value)](./firestore_lite.md#max_f83680a) | <b><i>(BETA)</i></b> Creates an aggregation that finds the maximum value of an expression across multiple stage inputs.
+```typescript
+// Find the highest score in a leaderboard
+max(Field.of("score")).as("highestScore");
+
+```
+ |
+|  [max(value)](./firestore_lite.md#max_7c807cd) | <b><i>(BETA)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
+```typescript
+// Find the highest score in a leaderboard
+max("score").as("highestScore");
+
+```
+ |
+|  [min(value)](./firestore_lite.md#min_f83680a) | <b><i>(BETA)</i></b> Creates an aggregation that finds the minimum value of an expression across multiple stage inputs.
+```typescript
+// Find the lowest price of all products
+min(Field.of("price")).as("lowestPrice");
+
+```
+ |
+|  [min(value)](./firestore_lite.md#min_7c807cd) | <b><i>(BETA)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
+```typescript
+// Find the lowest price of all products
+min("price").as("lowestPrice");
+
+```
+ |
+|  [replaceAll(value, find, replace)](./firestore_lite.md#replaceall_f06d323) | <b><i>(BETA)</i></b> Creates an expression that replaces all occurrences of a substring within a string with another substring.
+```typescript
+// Replace all occurrences of "hello" with "hi" in the 'message' field.
+replaceAll(Field.of("message"), "hello", "hi");
+
+```
+ |
+|  [replaceAll(value, find, replace)](./firestore_lite.md#replaceall_26a7926) | <b><i>(BETA)</i></b> Creates an expression that replaces all occurrences of a substring within a string with another substring, where the substring to find and the replacement substring are specified by expressions.
+```typescript
+// Replace all occurrences of the value in 'findField' with the value in 'replaceField' in the 'message' field.
+replaceAll(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+
+```
+ |
+|  [replaceFirst(value, find, replace)](./firestore_lite.md#replacefirst_f06d323) | <b><i>(BETA)</i></b> Creates an expression that replaces the first occurrence of a substring within a string with another substring.
+```typescript
+// Replace the first occurrence of "hello" with "hi" in the 'message' field.
+replaceFirst(Field.of("message"), "hello", "hi");
+
+```
+ |
+|  [replaceFirst(value, find, replace)](./firestore_lite.md#replacefirst_26a7926) | <b><i>(BETA)</i></b> Creates an expression that replaces the first occurrence of a substring within a string with another substring, where the substring to find and the replacement substring are specified by expressions.
+```typescript
+// Replace the first occurrence of the value in 'findField' with the value in 'replaceField' in the 'message' field.
+replaceFirst(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+
+```
+ |
+|  [sumFunction(value)](./firestore_lite.md#sumfunction_f83680a) | <b><i>(BETA)</i></b> Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs.
+```typescript
+// Calculate the total revenue from a set of orders
+sum(Field.of("orderAmount")).as("totalRevenue");
+
+```
+ |
+|  [sumFunction(value)](./firestore_lite.md#sumfunction_7c807cd) | <b><i>(BETA)</i></b> Creates an aggregation that calculates the sum of a field's values across multiple stage inputs.
+```typescript
+// Calculate the total revenue from a set of orders
+sum("orderAmount").as("totalRevenue");
+
+```
+ |
 |  <b>function(values, ...)</b> |
 |  [vector(values)](./firestore_lite.md#vector_0dbdaf2) | Creates a new <code>VectorValue</code> constructed with a copy of the given array of numbers. |
 
@@ -96,19 +1399,95 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Class | Description |
 |  --- | --- |
+|  [Add](./firestore_lite.add.md#add_class) | <b><i>(BETA)</i></b> |
+|  [AddFields](./firestore_lite.addfields.md#addfields_class) | <b><i>(BETA)</i></b> |
+|  [Aggregate](./firestore_lite.aggregate.md#aggregate_class) | <b><i>(BETA)</i></b> |
 |  [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class) | Represents an aggregation that can be performed by Firestore. |
 |  [AggregateQuerySnapshot](./firestore_lite.aggregatequerysnapshot.md#aggregatequerysnapshot_class) | The results of executing an aggregation query. |
+|  [And](./firestore_lite.and.md#and_class) | <b><i>(BETA)</i></b> |
+|  [ArrayConcat](./firestore_lite.arrayconcat.md#arrayconcat_class) | <b><i>(BETA)</i></b> |
+|  [ArrayContains](./firestore_lite.arraycontains.md#arraycontains_class) | <b><i>(BETA)</i></b> |
+|  [ArrayContainsAll](./firestore_lite.arraycontainsall.md#arraycontainsall_class) | <b><i>(BETA)</i></b> |
+|  [ArrayContainsAny](./firestore_lite.arraycontainsany.md#arraycontainsany_class) | <b><i>(BETA)</i></b> |
+|  [ArrayElement](./firestore_lite.arrayelement.md#arrayelement_class) | <b><i>(BETA)</i></b> |
+|  [ArrayLength](./firestore_lite.arraylength.md#arraylength_class) | <b><i>(BETA)</i></b> |
+|  [ArrayReverse](./firestore_lite.arrayreverse.md#arrayreverse_class) | <b><i>(BETA)</i></b> |
+|  [Avg](./firestore_lite.avg.md#avg_class) | <b><i>(BETA)</i></b> |
+|  [ByteLength](./firestore_lite.bytelength.md#bytelength_class) | <b><i>(BETA)</i></b> |
 |  [Bytes](./firestore_lite.bytes.md#bytes_class) | An immutable object representing an array of bytes. |
+|  [CharLength](./firestore_lite.charlength.md#charlength_class) | <b><i>(BETA)</i></b> |
+|  [CollectionGroupSource](./firestore_lite.collectiongroupsource.md#collectiongroupsource_class) | <b><i>(BETA)</i></b> |
 |  [CollectionReference](./firestore_lite.collectionreference.md#collectionreference_class) | A <code>CollectionReference</code> object can be used for adding documents, getting document references, and querying for documents (using [query()](./firestore_.md#query_9f7b0f4)<!-- -->). |
+|  [CollectionSource](./firestore_lite.collectionsource.md#collectionsource_class) | <b><i>(BETA)</i></b> |
+|  [Constant](./firestore_lite.constant.md#constant_class) | <b><i>(BETA)</i></b> Represents a constant value that can be used in a Firestore pipeline expression.<!-- -->You can create a <code>Constant</code> instance using the static  method:
+```typescript
+// Create a Constant instance for the number 10
+const ten = Constant.of(10);
+
+// Create a Constant instance for the string "hello"
+const hello = Constant.of("hello");
+
+```
+ |
+|  [CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class) | <b><i>(BETA)</i></b> |
+|  [Count](./firestore_lite.count.md#count_class) | <b><i>(BETA)</i></b> |
+|  [DatabaseSource](./firestore_lite.databasesource.md#databasesource_class) | <b><i>(BETA)</i></b> |
+|  [Distinct](./firestore_lite.distinct.md#distinct_class) | <b><i>(BETA)</i></b> |
+|  [Divide](./firestore_lite.divide.md#divide_class) | <b><i>(BETA)</i></b> |
 |  [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) | A <code>DocumentReference</code> refers to a document location in a Firestore database and can be used to write, read, or listen to the location. The document at the referenced location may or may not exist. |
 |  [DocumentSnapshot](./firestore_lite.documentsnapshot.md#documentsnapshot_class) | A <code>DocumentSnapshot</code> contains data read from a document in your Firestore database. The data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->For a <code>DocumentSnapshot</code> that points to a non-existing document, any data access will return 'undefined'. You can use the <code>exists()</code> method to explicitly verify a document's existence. |
+|  [DocumentsSource](./firestore_lite.documentssource.md#documentssource_class) | <b><i>(BETA)</i></b> |
+|  [DotProduct](./firestore_lite.dotproduct.md#dotproduct_class) | <b><i>(BETA)</i></b> |
+|  [EndsWith](./firestore_lite.endswith.md#endswith_class) | <b><i>(BETA)</i></b> |
+|  [Eq](./firestore_lite.eq.md#eq_class) | <b><i>(BETA)</i></b> |
+|  [EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class) | <b><i>(BETA)</i></b> |
+|  [Exists](./firestore_lite.exists.md#exists_class) | <b><i>(BETA)</i></b> |
+|  [ExprWithAlias](./firestore_lite.exprwithalias.md#exprwithalias_class) | <b><i>(BETA)</i></b> |
+|  [Field](./firestore_lite.field.md#field_class) | <b><i>(BETA)</i></b> Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static  method:
+```typescript
+// Create a Field instance for the 'name' field
+const nameField = Field.of("name");
+
+// Create a Field instance for a nested field 'address.city'
+const cityField = Field.of("address.city");
+
+```
+ |
 |  [FieldPath](./firestore_lite.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
+|  [Fields](./firestore_lite.fields.md#fields_class) | <b><i>(BETA)</i></b> |
 |  [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class) | Sentinel values that can be used when writing document fields with <code>set()</code> or <code>update()</code>. |
+|  [FindNearest](./firestore_lite.findnearest.md#findnearest_class) | <b><i>(BETA)</i></b> |
 |  [Firestore](./firestore_lite.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
 |  [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) | An error returned by a Firestore operation. |
+|  [FirestoreFunction](./firestore_lite.firestorefunction.md#firestorefunction_class) | <b><i>(BETA)</i></b> This class defines the base class for Firestore [Pipeline](./firestore_.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like , , or the methods on  (<!-- -->, , etc) to construct new Function instances. |
+|  [GenericStage](./firestore_lite.genericstage.md#genericstage_class) | <b><i>(BETA)</i></b> |
 |  [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
+|  [Gt](./firestore_lite.gt.md#gt_class) | <b><i>(BETA)</i></b> |
+|  [Gte](./firestore_lite.gte.md#gte_class) | <b><i>(BETA)</i></b> |
+|  [If](./firestore_lite.if.md#if_class) | <b><i>(BETA)</i></b> |
+|  [In](./firestore_lite.in.md#in_class) | <b><i>(BETA)</i></b> |
+|  [IsNan](./firestore_lite.isnan.md#isnan_class) | <b><i>(BETA)</i></b> |
+|  [Like](./firestore_lite.like.md#like_class) | <b><i>(BETA)</i></b> |
+|  [Limit](./firestore_lite.limit.md#limit_class) | <b><i>(BETA)</i></b> |
+|  [LogicalMax](./firestore_lite.logicalmax.md#logicalmax_class) | <b><i>(BETA)</i></b> |
+|  [LogicalMin](./firestore_lite.logicalmin.md#logicalmin_class) | <b><i>(BETA)</i></b> |
+|  [Lt](./firestore_lite.lt.md#lt_class) | <b><i>(BETA)</i></b> |
+|  [Lte](./firestore_lite.lte.md#lte_class) | <b><i>(BETA)</i></b> |
+|  [MapGet](./firestore_lite.mapget.md#mapget_class) | <b><i>(BETA)</i></b> |
+|  [Max](./firestore_lite.max.md#max_class) | <b><i>(BETA)</i></b> |
+|  [Min](./firestore_lite.min.md#min_class) | <b><i>(BETA)</i></b> |
+|  [Mod](./firestore_lite.mod.md#mod_class) | <b><i>(BETA)</i></b> |
+|  [Multiply](./firestore_lite.multiply.md#multiply_class) | <b><i>(BETA)</i></b> |
+|  [Neq](./firestore_lite.neq.md#neq_class) | <b><i>(BETA)</i></b> |
+|  [Not](./firestore_lite.not.md#not_class) | <b><i>(BETA)</i></b> |
+|  [Offset](./firestore_lite.offset.md#offset_class) | <b><i>(BETA)</i></b> |
+|  [Or](./firestore_lite.or.md#or_class) | <b><i>(BETA)</i></b> |
+|  [Ordering](./firestore_lite.ordering.md#ordering_class) | <b><i>(BETA)</i></b> Represents an ordering criterion for sorting documents in a Firestore pipeline.<!-- -->You create <code>Ordering</code> instances using the <code>ascending</code> and <code>descending</code> helper functions. |
+|  [Pipeline](./firestore_lite.pipeline.md#pipeline_class) | Base-class implementation |
+|  [PipelineResult](./firestore_lite.pipelineresult.md#pipelineresult_class) | <b><i>(BETA)</i></b> A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the  or  methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
+|  [PipelineSource](./firestore_lite.pipelinesource.md#pipelinesource_class) | <b><i>(BETA)</i></b> Represents the source of a Firestore [Pipeline](./firestore_.pipeline.md#pipeline_class)<!-- -->. |
 |  [Query](./firestore_lite.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
-|  [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking [or()](./firestore_.md#or_e72c712) or [and()](./firestore_.md#and_e72c712) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
+|  [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | A <code>QueryCompositeFilterConstraint</code> is used to narrow the set of documents returned by a Firestore query by performing the logical OR or AND of multiple [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class)<!-- -->s or [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->s. <code>QueryCompositeFilterConstraint</code>s are created by invoking  or  and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryCompositeFilterConstraint</code>. |
 |  [QueryConstraint](./firestore_lite.queryconstraint.md#queryconstraint_class) | A <code>QueryConstraint</code> is used to narrow the set of documents returned by a Firestore query. <code>QueryConstraint</code>s are created by invoking [where()](./firestore_.md#where_0fae4bf)<!-- -->, [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->, [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryConstraint</code>. |
 |  [QueryDocumentSnapshot](./firestore_lite.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
 |  [QueryEndAtConstraint](./firestore_lite.queryendatconstraint.md#queryendatconstraint_class) | A <code>QueryEndAtConstraint</code> is used to exclude documents from the end of a result set returned by a Firestore query. <code>QueryEndAtConstraint</code>s are created by invoking [endAt()](./firestore_.md#endat_9a4477f) or [endBefore()](./firestore_.md#endbefore_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryEndAtConstraint</code>. |
@@ -117,30 +1496,71 @@ https://github.com/firebase/firebase-js-sdk
 |  [QueryOrderByConstraint](./firestore_lite.queryorderbyconstraint.md#queryorderbyconstraint_class) | A <code>QueryOrderByConstraint</code> is used to sort the set of documents returned by a Firestore query. <code>QueryOrderByConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryOrderByConstraint</code>.<!-- -->Note: Documents that do not contain the orderBy field will not be present in the query result. |
 |  [QuerySnapshot](./firestore_lite.querysnapshot.md#querysnapshot_class) | A <code>QuerySnapshot</code> contains zero or more <code>DocumentSnapshot</code> objects representing the results of a query. The documents can be accessed as an array via the <code>docs</code> property or enumerated using the <code>forEach</code> method. The number of documents can be determined via the <code>empty</code> and <code>size</code> properties. |
 |  [QueryStartAtConstraint](./firestore_lite.querystartatconstraint.md#querystartatconstraint_class) | A <code>QueryStartAtConstraint</code> is used to exclude documents from the start of a result set returned by a Firestore query. <code>QueryStartAtConstraint</code>s are created by invoking [startAt()](./firestore_.md#startat_9a4477f) or [startAfter()](./firestore_.md#startafter_9a4477f) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains this <code>QueryStartAtConstraint</code>. |
+|  [RegexContains](./firestore_lite.regexcontains.md#regexcontains_class) | <b><i>(BETA)</i></b> |
+|  [RegexMatch](./firestore_lite.regexmatch.md#regexmatch_class) | <b><i>(BETA)</i></b> |
+|  [ReplaceAll](./firestore_lite.replaceall.md#replaceall_class) | <b><i>(BETA)</i></b> |
+|  [ReplaceFirst](./firestore_lite.replacefirst.md#replacefirst_class) | <b><i>(BETA)</i></b> |
+|  [Reverse](./firestore_lite.reverse.md#reverse_class) | <b><i>(BETA)</i></b> |
+|  [Select](./firestore_lite.select.md#select_class) | <b><i>(BETA)</i></b> |
+|  [Sort](./firestore_lite.sort.md#sort_class) | <b><i>(BETA)</i></b> |
+|  [StartsWith](./firestore_lite.startswith.md#startswith_class) | <b><i>(BETA)</i></b> |
+|  [StrConcat](./firestore_lite.strconcat.md#strconcat_class) | <b><i>(BETA)</i></b> |
+|  [StrContains](./firestore_lite.strcontains.md#strcontains_class) | <b><i>(BETA)</i></b> |
+|  [Subtract](./firestore_lite.subtract.md#subtract_class) | <b><i>(BETA)</i></b> |
+|  [Sum](./firestore_lite.sum.md#sum_class) | <b><i>(BETA)</i></b> |
 |  [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
+|  [TimestampAdd](./firestore_lite.timestampadd.md#timestampadd_class) | <b><i>(BETA)</i></b> |
+|  [TimestampSub](./firestore_lite.timestampsub.md#timestampsub_class) | <b><i>(BETA)</i></b> |
+|  [TimestampToUnixMicros](./firestore_lite.timestamptounixmicros.md#timestamptounixmicros_class) | <b><i>(BETA)</i></b> |
+|  [TimestampToUnixMillis](./firestore_lite.timestamptounixmillis.md#timestamptounixmillis_class) | <b><i>(BETA)</i></b> |
+|  [TimestampToUnixSeconds](./firestore_lite.timestamptounixseconds.md#timestamptounixseconds_class) | <b><i>(BETA)</i></b> |
+|  [ToLower](./firestore_lite.tolower.md#tolower_class) | <b><i>(BETA)</i></b> |
+|  [ToUpper](./firestore_lite.toupper.md#toupper_class) | <b><i>(BETA)</i></b> |
 |  [Transaction](./firestore_lite.transaction.md#transaction_class) | A reference to a transaction.<!-- -->The <code>Transaction</code> object passed to a transaction's <code>updateFunction</code> provides the methods to read and write data within the transaction context. See [runTransaction()](./firestore_.md#runtransaction_6f03ec4)<!-- -->. |
+|  [Trim](./firestore_lite.trim.md#trim_class) | <b><i>(BETA)</i></b> |
+|  [UnixMicrosToTimestamp](./firestore_lite.unixmicrostotimestamp.md#unixmicrostotimestamp_class) | <b><i>(BETA)</i></b> |
+|  [UnixMillisToTimestamp](./firestore_lite.unixmillistotimestamp.md#unixmillistotimestamp_class) | <b><i>(BETA)</i></b> |
+|  [UnixSecondsToTimestamp](./firestore_lite.unixsecondstotimestamp.md#unixsecondstotimestamp_class) | <b><i>(BETA)</i></b> |
+|  [VectorLength](./firestore_lite.vectorlength.md#vectorlength_class) | <b><i>(BETA)</i></b> |
 |  [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with . VectorValue |
+|  [Where](./firestore_lite.where.md#where_class) | <b><i>(BETA)</i></b> |
 |  [WriteBatch](./firestore_lite.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_.writebatch.md#writebatchcommit) is called. |
+|  [Xor](./firestore_lite.xor.md#xor_class) | <b><i>(BETA)</i></b> |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
+|  [Accumulator](./firestore_lite.accumulator.md#accumulator_interface) | <b><i>(BETA)</i></b> An interface that represents an accumulator. |
 |  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
 |  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
+|  [FilterCondition](./firestore_lite.filtercondition.md#filtercondition_interface) | <b><i>(BETA)</i></b> An interface that represents a filter condition. |
+|  [FindNearestOptions](./firestore_lite.findnearestoptions.md#findnearestoptions_interface) | <b><i>(BETA)</i></b> |
 |  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
+|  [Selectable](./firestore_lite.selectable.md#selectable_interface) | <b><i>(BETA)</i></b> An interface that represents a selectable expression. |
 |  [Settings](./firestore_lite.settings.md#settings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
+|  [Stage](./firestore_lite.stage.md#stage_interface) | <b><i>(BETA)</i></b> |
 |  [TransactionOptions](./firestore_lite.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
+
+## Namespaces
+
+|  Namespace | Description |
+|  --- | --- |
+|  [and](./firestore_lite.and.md#and_namespace) |  |
+|  [or](./firestore_lite.or.md#or_namespace) |  |
 
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [AccumulatorTarget](./firestore_lite.md#accumulatortarget) | <b><i>(BETA)</i></b> An accumulator target, which is an expression with an alias that also implements the Accumulator interface. |
 |  [AddPrefixToKeys](./firestore_lite.md#addprefixtokeys) | Returns a new map where every key is prefixed with the outer key appended to a dot. |
 |  [AggregateFieldType](./firestore_lite.md#aggregatefieldtype) | The union of all <code>AggregateField</code> types that are supported by Firestore. |
 |  [AggregateSpecData](./firestore_lite.md#aggregatespecdata) | A type whose keys are taken from an <code>AggregateSpec</code>, and whose values are the result of the aggregation performed by the corresponding <code>AggregateField</code> from the input <code>AggregateSpec</code>. |
 |  [AggregateType](./firestore_lite.md#aggregatetype) | Union type representing the aggregate type to be performed. |
 |  [ChildUpdateFields](./firestore_lite.md#childupdatefields) | Helper for calculating the nested fields for a given type T1. This is needed to distribute union types such as <code>undefined &#124; {...}</code> (happens for optional props) or <code>{a: A} &#124; {b: B}</code>.<!-- -->In this use case, <code>V</code> is used to distribute the union types of <code>T[K]</code> on <code>Record</code>, since <code>T[K]</code> is evaluated as an expression and not distributed.<!-- -->See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributive-conditional-types |
+|  [ExprType](./firestore_lite.md#exprtype) | <b><i>(BETA)</i></b> An enumeration of the different types of expressions. |
+|  [FilterExpr](./firestore_lite.md#filterexpr) | <b><i>(BETA)</i></b> A filter expression, which is an expression that also implements the FilterCondition interface. |
 |  [FirestoreErrorCode](./firestore_lite.md#firestoreerrorcode) | The set of Firestore status codes. The codes are the same at the ones exposed by gRPC here: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md<!-- -->Possible values: - 'cancelled': The operation was cancelled (typically by the caller). - 'unknown': Unknown error or an error from a different error domain. - 'invalid-argument': Client specified an invalid argument. Note that this differs from 'failed-precondition'. 'invalid-argument' indicates arguments that are problematic regardless of the state of the system (e.g. an invalid field name). - 'deadline-exceeded': Deadline expired before operation could complete. For operations that change the state of the system, this error may be returned even if the operation has completed successfully. For example, a successful response from a server could have been delayed long enough for the deadline to expire. - 'not-found': Some requested document was not found. - 'already-exists': Some document that we attempted to create already exists. - 'permission-denied': The caller does not have permission to execute the specified operation. - 'resource-exhausted': Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space. - 'failed-precondition': Operation was rejected because the system is not in a state required for the operation's execution. - 'aborted': The operation was aborted, typically due to a concurrency issue like transaction aborts, etc. - 'out-of-range': Operation was attempted past the valid range. - 'unimplemented': Operation is not implemented or not supported/enabled. - 'internal': Internal errors. Means some invariants expected by underlying system has been broken. If you see one of these errors, something is very broken. - 'unavailable': The service is currently unavailable. This is most likely a transient condition and may be corrected by retrying with a backoff. - 'data-loss': Unrecoverable data loss or corruption. - 'unauthenticated': The request does not have valid authentication credentials for the operation. |
 |  [NestedUpdateFields](./firestore_lite.md#nestedupdatefields) | For each field (e.g. 'bar'), find all nested keys (e.g. {<!-- -->'bar.baz': T1, 'bar.qux': T2<!-- -->}<!-- -->). Intersect them together to make a single map containing all possible keys that are all marked as optional |
 |  [OrderByDirection](./firestore_lite.md#orderbydirection) | The direction of a [orderBy()](./firestore_.md#orderby_006d61f) clause is specified as 'desc' or 'asc' (descending or ascending). |
@@ -149,6 +1569,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [QueryConstraintType](./firestore_lite.md#queryconstrainttype) | Describes the different query constraints available in this SDK. |
 |  [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint) | <code>QueryFilterConstraint</code> is a helper union type that represents [QueryFieldFilterConstraint](./firestore_.queryfieldfilterconstraint.md#queryfieldfilterconstraint_class) and [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class)<!-- -->. |
 |  [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint) | <code>QueryNonFilterConstraint</code> is a helper union type that represents QueryConstraints which are used to narrow or order the set of documents, but that do not explicitly filter on a document field. <code>QueryNonFilterConstraint</code>s are created by invoking [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [startAt()](./firestore_.md#startat_9a4477f)<!-- -->, [startAfter()](./firestore_.md#startafter_9a4477f)<!-- -->, [endBefore()](./firestore_.md#endbefore_9a4477f)<!-- -->, [endAt()](./firestore_.md#endat_9a4477f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78) or [limitToLast()](./firestore_.md#limittolast_ec46c78) and can then be passed to [query()](./firestore_.md#query_9f7b0f4) to create a new query instance that also contains the <code>QueryConstraint</code>. |
+|  [SelectableExpr](./firestore_lite.md#selectableexpr) | <b><i>(BETA)</i></b> A selectable expression, which is an expression that also implements the Selectable interface. |
 |  [SetOptions](./firestore_lite.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [UnionToIntersection](./firestore_lite.md#uniontointersection) | Given a union type <code>U = T1 &#124; T2 &#124; ...</code>, returns an intersected type <code>(T1 &amp; T2 &amp; ...)</code>.<!-- -->Uses distributive conditional types and inference from conditional types. This works because multiple candidates for the same type variable in contra-variant positions causes an intersection type to be inferred. https://www.typescriptlang.org/docs/handbook/advanced-types.html\#type-inference-in-conditional-types https://stackoverflow.com/questions/50374908/transform-union-type-to-intersection-type |
 |  [UpdateData](./firestore_lite.md#updatedata) | Update data (for use with [updateDoc()](./firestore_.md#updatedoc_51a65e3)<!-- -->) that consists of field paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference nested fields within the document. FieldValues can be passed in as property values. |
@@ -363,6 +1784,26 @@ The `DocumentReference` instance.
 
 If the final path has an odd number of segments and does not point to a document.
 
+### pipeline(firestore) {:#pipeline_231a8e0}
+
+Experimental Modular API for console testing.
+
+<b>Signature:</b>
+
+```typescript
+export declare function pipeline(firestore: Firestore): PipelineSource;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  firestore | [Firestore](./firestore_lite.firestore.md#firestore_class) |  |
+
+<b>Returns:</b>
+
+[PipelineSource](./firestore_lite.pipelinesource.md#pipelinesource_class)
+
 ### runTransaction(firestore, updateFunction, options) {:#runtransaction_6f03ec4}
 
 Executes the given `updateFunction` and then attempts to commit the changes applied within the transaction. If any document read within the transaction has changed, Cloud Firestore retries the `updateFunction`<!-- -->. If it fails to commit after 5 attempts, the transaction fails.
@@ -456,6 +1897,29 @@ export declare function count(): AggregateField<number>;
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
 
+### countAll() {:#countall}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that counts the total number of stage inputs.
+
+```typescript
+// Count the total number of users
+countAll().as("totalUsers");
+
+```
+ A new  representing the 'countAll' aggregation.
+
+<b>Signature:</b>
+
+```typescript
+export declare function countAll(): Count;
+```
+<b>Returns:</b>
+
+[Count](./firestore_lite.count.md#count_class)
+
 ### deleteField() {:#deletefield}
 
 Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with `{merge: true}` to mark a field for deletion.
@@ -510,6 +1974,564 @@ export declare function serverTimestamp(): FieldValue;
 
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
 
+### useFirestorePipelines() {:#usefirestorepipelines}
+
+<b>Signature:</b>
+
+```typescript
+export declare function useFirestorePipelines(): void;
+```
+<b>Returns:</b>
+
+void
+
+## function(array, ...)
+
+### arrayConcat(array, elements) {:#arrayconcat_0b3ddb9}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates an array expression with other arrays.
+
+```typescript
+// Combine the 'items' array with two new item arrays
+arrayConcat(Field.of("items"), [Field.of("newItems"), Field.of("otherItems")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayConcat(array: Constant, elements: Constant[]): ArrayConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to concatenate to. |
+|  elements | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The array expressions to concatenate.  A new  representing the concatenated array. |
+
+<b>Returns:</b>
+
+[ArrayConcat](./firestore_lite.arrayconcat.md#arrayconcat_class)
+
+### arrayConcat(array, elements) {:#arrayconcat_21991c1}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates an array expression with other arrays and/or values.
+
+```typescript
+// Combine the 'tags' array with a new array
+arrayConcat(Field.of("tags"), ["newTag1", "newTag2"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayConcat(array: Constant, elements: any[]): ArrayConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to concatenate to. |
+|  elements | any\[\] | The array expressions or single values to concatenate.  A new  representing the concatenated array. |
+
+<b>Returns:</b>
+
+[ArrayConcat](./firestore_lite.arrayconcat.md#arrayconcat_class)
+
+### arrayConcat(array, elements) {:#arrayconcat_f8d5d5e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates a field's array value with other arrays.
+
+```typescript
+// Combine the 'items' array with two new item arrays
+arrayConcat("items", [Field.of("newItems"), Field.of("otherItems")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayConcat(array: string, elements: Constant[]): ArrayConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name containing array values. |
+|  elements | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The array expressions to concatenate.  A new  representing the concatenated array. |
+
+<b>Returns:</b>
+
+[ArrayConcat](./firestore_lite.arrayconcat.md#arrayconcat_class)
+
+### arrayConcat(array, elements) {:#arrayconcat_5a66d99}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates a field's array value with other arrays and/or values.
+
+```typescript
+// Combine the 'tags' array with a new array
+arrayConcat("tags", ["newTag1", "newTag2"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayConcat(array: string, elements: any[]): ArrayConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name containing array values. |
+|  elements | any\[\] | The array expressions or single values to concatenate.  A new  representing the concatenated array. |
+
+<b>Returns:</b>
+
+[ArrayConcat](./firestore_lite.arrayconcat.md#arrayconcat_class)
+
+### arrayContains(array, element) {:#arraycontains_01ea7c0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains a specific element.
+
+```typescript
+// Check if the 'colors' array contains the value of field 'selectedColor'
+arrayContains(Field.of("colors"), Field.of("selectedColor"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContains(array: Constant, element: Constant): ArrayContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The element to search for in the array.  A new  representing the 'array\_contains' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContains](./firestore_lite.arraycontains.md#arraycontains_class)
+
+### arrayContains(array, element) {:#arraycontains_60f8f2f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains a specific element.
+
+```typescript
+// Check if the 'colors' array contains "red"
+arrayContains(Field.of("colors"), "red");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContains(array: Constant, element: any): ArrayContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  element | any | The element to search for in the array.  A new  representing the 'array\_contains' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContains](./firestore_lite.arraycontains.md#arraycontains_class)
+
+### arrayContains(array, element) {:#arraycontains_0ebdbfe}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains a specific element.
+
+```typescript
+// Check if the 'colors' array contains the value of field 'selectedColor'
+arrayContains("colors", Field.of("selectedColor"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContains(array: string, element: Constant): ArrayContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The element to search for in the array.  A new  representing the 'array\_contains' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContains](./firestore_lite.arraycontains.md#arraycontains_class)
+
+### arrayContains(array, element) {:#arraycontains_8f718df}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains a specific value.
+
+```typescript
+// Check if the 'colors' array contains "red"
+arrayContains("colors", "red");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContains(array: string, element: any): ArrayContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  element | any | The element to search for in the array.  A new  representing the 'array\_contains' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContains](./firestore_lite.arraycontains.md#arraycontains_class)
+
+### arrayContainsAll(array, values) {:#arraycontainsall_7b7433a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains all the specified elements.
+
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
+arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAll(array: Constant, values: Constant[]): ArrayContainsAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  values | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_all' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAll](./firestore_lite.arraycontainsall.md#arraycontainsall_class)
+
+### arrayContainsAll(array, values) {:#arraycontainsall_d919466}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains all the specified elements.
+
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1', 'tag2' and "tag3"
+arrayContainsAll(Field.of("tags"), [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAll(array: Constant, values: any[]): ArrayContainsAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  values | any\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_all' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAll](./firestore_lite.arraycontainsall.md#arraycontainsall_class)
+
+### arrayContainsAll(array, values) {:#arraycontainsall_b40e2df}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains all the specified values or expressions.
+
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
+arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAll(array: string, values: Constant[]): ArrayContainsAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  values | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_all' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAll](./firestore_lite.arraycontainsall.md#arraycontainsall_class)
+
+### arrayContainsAll(array, values) {:#arraycontainsall_b08efbb}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains all the specified values or expressions.
+
+```typescript
+// Check if the 'tags' array contains both of the values from field 'tag1' and "tag2"
+arrayContainsAll("tags", [Field.of("tag1"), "SciFi", "Adventure"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAll(array: string, values: any[]): ArrayContainsAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  values | any\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_all' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAll](./firestore_lite.arraycontainsall.md#arraycontainsall_class)
+
+### arrayContainsAny(array, values) {:#arraycontainsany_7b7433a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains any of the specified elements.
+
+```typescript
+// Check if the 'categories' array contains either values from field "cate1" or "Science"
+arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAny(array: Constant, values: Constant[]): ArrayContainsAny;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  values | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_any' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAny](./firestore_lite.arraycontainsany.md#arraycontainsany_class)
+
+### arrayContainsAny(array, values) {:#arraycontainsany_d919466}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an array expression contains any of the specified elements.
+
+```typescript
+// Check if the 'categories' array contains either values from field "cate1" or "Science"
+arrayContainsAny(Field.of("categories"), [Field.of("cate1"), "Science"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAny(array: Constant, values: any[]): ArrayContainsAny;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to check. |
+|  values | any\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_any' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAny](./firestore_lite.arraycontainsany.md#arraycontainsany_class)
+
+### arrayContainsAny(array, values) {:#arraycontainsany_b40e2df}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains any of the specified elements.
+
+```typescript
+// Check if the 'groups' array contains either the value from the 'userGroup' field
+// or the value "guest"
+arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAny(array: string, values: Constant[]): ArrayContainsAny;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  values | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_any' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAny](./firestore_lite.arraycontainsany.md#arraycontainsany_class)
+
+### arrayContainsAny(array, values) {:#arraycontainsany_b08efbb}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's array value contains any of the specified elements.
+
+```typescript
+// Check if the 'groups' array contains either the value from the 'userGroup' field
+// or the value "guest"
+arrayContainsAny("categories", [Field.of("cate1"), "Science"]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayContainsAny(array: string, values: any[]): ArrayContainsAny;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | string | The field name to check. |
+|  values | any\[\] | The elements to check for in the array.  A new  representing the 'array\_contains\_any' comparison. |
+
+<b>Returns:</b>
+
+[ArrayContainsAny](./firestore_lite.arraycontainsany.md#arraycontainsany_class)
+
+### arrayLength(array) {:#arraylength_0bb5dbb}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the length of an array expression.
+
+```typescript
+// Get the number of items in the 'cart' array
+arrayLength(Field.of("cart"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLength(array: Constant): ArrayLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  array | [Constant](./firestore_lite.constant.md#constant_class) | The array expression to calculate the length of.  A new  representing the length of the array. |
+
+<b>Returns:</b>
+
+[ArrayLength](./firestore_lite.arraylength.md#arraylength_class)
+
+## function(condition, ...)
+
+### ifFunction(condition, thenExpr, elseExpr) {:#iffunction_f7b2404}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false.
+
+```typescript
+// If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
+ifFunction(
+    gt("age", 18), Constant.of("Adult"), Constant.of("Minor"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function ifFunction(condition: FilterExpr, thenExpr: Constant, elseExpr: Constant): If;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  condition | [FilterExpr](./firestore_lite.md#filterexpr) | The condition to evaluate. |
+|  thenExpr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to evaluate if the condition is true. |
+|  elseExpr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to evaluate if the condition is false.  A new  representing the conditional expression. |
+
+<b>Returns:</b>
+
+[If](./firestore_lite.if.md#if_class)
+
 ## function(databaseId, ...)
 
 ### getFirestore(databaseId) {:#getfirestore_53dc891}
@@ -536,6 +2558,248 @@ export declare function getFirestore(databaseId: string): Firestore;
 [Firestore](./firestore_lite.firestore.md#firestore_class)
 
 The [Firestore](./firestore_.firestore.md#firestore_class) instance of the provided app.
+
+## function(element, ...)
+
+### inAny(element, others) {:#inany_a73b259}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny(Field.of("category"), [Constant.of("Electronics"), Field.of("primaryType")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function inAny(element: Constant, others: Constant[]): In;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  others | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The values to check against.  A new  representing the 'IN' comparison. |
+
+<b>Returns:</b>
+
+[In](./firestore_lite.in.md#in_class)
+
+### inAny(element, others) {:#inany_f5721c6}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny(Field.of("category"), ["Electronics", Field.of("primaryType")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function inAny(element: Constant, others: any[]): In;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  others | any\[\] | The values to check against.  A new  representing the 'IN' comparison. |
+
+<b>Returns:</b>
+
+[In](./firestore_lite.in.md#in_class)
+
+### inAny(element, others) {:#inany_c6646ea}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny("category", [Constant.of("Electronics"), Field.of("primaryType")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function inAny(element: string, others: Constant[]): In;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | string | The field to compare. |
+|  others | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The values to check against.  A new  representing the 'IN' comparison. |
+
+<b>Returns:</b>
+
+[In](./firestore_lite.in.md#in_class)
+
+### inAny(element, others) {:#inany_e6877aa}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+inAny("category", ["Electronics", Field.of("primaryType")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function inAny(element: string, others: any[]): In;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | string | The field to compare. |
+|  others | any\[\] | The values to check against.  A new  representing the 'IN' comparison. |
+
+<b>Returns:</b>
+
+[In](./firestore_lite.in.md#in_class)
+
+### notInAny(element, others) {:#notinany_a73b259}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny(Field.of("status"), [Constant.of("pending"), Field.of("rejectedStatus")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function notInAny(element: Constant, others: Constant[]): Not;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  others | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The values to check against.  A new  representing the 'NOT IN' comparison. |
+
+<b>Returns:</b>
+
+[Not](./firestore_lite.not.md#not_class)
+
+### notInAny(element, others) {:#notinany_f5721c6}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is not equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny(Field.of("status"), ["pending", Field.of("rejectedStatus")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function notInAny(element: Constant, others: any[]): Not;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  others | any\[\] | The values to check against.  A new  representing the 'NOT IN' comparison. |
+
+<b>Returns:</b>
+
+[Not](./firestore_lite.not.md#not_class)
+
+### notInAny(element, others) {:#notinany_c6646ea}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is not equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny("status", [Constant.of("pending"), Field.of("rejectedStatus")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function notInAny(element: string, others: Constant[]): Not;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | string | The field name to compare. |
+|  others | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The values to check against.  A new  representing the 'NOT IN' comparison. |
+
+<b>Returns:</b>
+
+[Not](./firestore_lite.not.md#not_class)
+
+### notInAny(element, others) {:#notinany_e6877aa}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is not equal to any of the provided values or expressions.
+
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+notInAny("status", ["pending", Field.of("rejectedStatus")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function notInAny(element: string, others: any[]): Not;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  element | string | The field name to compare. |
+|  others | any\[\] | The values to check against.  A new  representing the 'NOT IN' comparison. |
+
+<b>Returns:</b>
+
+[Not](./firestore_lite.not.md#not_class)
 
 ## function(elements, ...)
 
@@ -583,6 +2847,1313 @@ export declare function arrayUnion(...elements: unknown[]): FieldValue;
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`<!-- -->.
 
+## function(expr, ...)
+
+### ascending(expr) {:#ascending_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an [Ordering](./firestore_.ordering.md#ordering_class) that sorts documents in ascending order based on this expression.
+
+```typescript
+// Sort documents by the 'name' field in ascending order
+firestore.pipeline().collection("users")
+  .sort(ascending(Field.of("name")));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function ascending(expr: Constant): Ordering;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to create an ascending ordering for.  A new <code>Ordering</code> for ascending sorting. |
+
+<b>Returns:</b>
+
+[Ordering](./firestore_lite.ordering.md#ordering_class)
+
+### byteLength(expr) {:#bytelength_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the byte length of a string in UTF-8, or just the length of a Blob.
+
+```typescript
+// Calculate the length of the 'myString' field in bytes.
+byteLength(Field.of("myString"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function byteLength(expr: Constant): ByteLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string.  A new  representing the length of the string in bytes. |
+
+<b>Returns:</b>
+
+[ByteLength](./firestore_lite.bytelength.md#bytelength_class)
+
+### charLength(expr) {:#charlength_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the character length of a string expression in UTF-8.
+
+```typescript
+// Get the character length of the 'name' field in UTF-8.
+strLength(Field.of("name"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function charLength(expr: Constant): CharLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to calculate the length of.  A new  representing the length of the string. |
+
+<b>Returns:</b>
+
+[CharLength](./firestore_lite.charlength.md#charlength_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_b4c7dc2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between a field's vector value and a double array.
+
+```typescript
+// Calculate the Cosine distance between the 'location' field and a target location
+cosineDistance("location", [37.7749, -122.4194]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: string, other: number[]): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | number\[\] | The other vector (as an array of doubles) to compare against.  A new  representing the Cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_8d2bd9d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between a field's vector value and a VectorValue.
+
+```typescript
+// Calculate the Cosine distance between the 'location' field and a target location
+cosineDistance("location", new VectorValue([37.7749, -122.4194]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: string, other: VectorValue): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to compare against.  A new  representing the Cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_c9ae0bc}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between a field's vector value and a vector expression.
+
+```typescript
+// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
+cosineDistance("userVector", Field.of("itemVector"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: string, other: Constant): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to compare against.  A new  representing the cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_e701952}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between a vector expression and a double array.
+
+```typescript
+// Calculate the cosine distance between the 'location' field and a target location
+cosineDistance(Field.of("location"), [37.7749, -122.4194]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: Constant, other: number[]): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | number\[\] | The other vector (as an array of doubles) to compare against.  A new  representing the cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_cc2e83e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between a vector expression and a VectorValue.
+
+```typescript
+// Calculate the cosine distance between the 'location' field and a target location
+cosineDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: Constant, other: VectorValue): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to compare against.  A new  representing the cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### cosineDistance(expr, other) {:#cosinedistance_0896fbd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Cosine distance between two vector expressions.
+
+```typescript
+// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
+cosineDistance(Field.of("userVector"), Field.of("itemVector"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function cosineDistance(expr: Constant, other: Constant): CosineDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to compare against.  A new  representing the cosine distance between the two vectors. |
+
+<b>Returns:</b>
+
+[CosineDistance](./firestore_lite.cosinedistance.md#cosinedistance_class)
+
+### descending(expr) {:#descending_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an [Ordering](./firestore_.ordering.md#ordering_class) that sorts documents in descending order based on this expression.
+
+```typescript
+// Sort documents by the 'createdAt' field in descending order
+firestore.pipeline().collection("users")
+  .sort(descending(Field.of("createdAt")));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function descending(expr: Constant): Ordering;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to create a descending ordering for.  A new <code>Ordering</code> for descending sorting. |
+
+<b>Returns:</b>
+
+[Ordering](./firestore_lite.ordering.md#ordering_class)
+
+### dotProduct(expr, other) {:#dotproduct_b4c7dc2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between a field's vector value and a double array.
+
+```typescript
+// Calculate the dot product distance between a feature vector and a target vector
+dotProduct("features", [0.5, 0.8, 0.2]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: string, other: number[]): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | number\[\] | The other vector (as an array of doubles) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### dotProduct(expr, other) {:#dotproduct_8d2bd9d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between a field's vector value and a VectorValue.
+
+```typescript
+// Calculate the dot product distance between a feature vector and a target vector
+dotProduct("features", new VectorValue([0.5, 0.8, 0.2]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: string, other: VectorValue): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### dotProduct(expr, other) {:#dotproduct_c9ae0bc}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between a field's vector value and a vector expression.
+
+```typescript
+// Calculate the dot product distance between two document vectors: 'docVector1' and 'docVector2'
+dotProduct("docVector1", Field.of("docVector2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: string, other: Constant): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### dotProduct(expr, other) {:#dotproduct_e701952}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between a vector expression and a double array.
+
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+dotProduct(Field.of("features"), [0.5, 0.8, 0.2]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: Constant, other: number[]): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to calculate with. |
+|  other | number\[\] | The other vector (as an array of doubles) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### dotProduct(expr, other) {:#dotproduct_cc2e83e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between a vector expression and a VectorValue.
+
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+dotProduct(Field.of("features"), new VectorValue([0.5, 0.8, 0.2]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: Constant, other: VectorValue): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to calculate with. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### dotProduct(expr, other) {:#dotproduct_0896fbd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the dot product between two vector expressions.
+
+```typescript
+// Calculate the dot product between two document vectors: 'docVector1' and 'docVector2'
+dotProduct(Field.of("docVector1"), Field.of("docVector2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function dotProduct(expr: Constant, other: Constant): DotProduct;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to calculate with. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to calculate with.  A new  representing the dot product between the two vectors. |
+
+<b>Returns:</b>
+
+[DotProduct](./firestore_lite.dotproduct.md#dotproduct_class)
+
+### endsWith(expr, suffix) {:#endswith_88569cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value ends with a given postfix.
+
+```typescript
+// Check if the 'filename' field ends with ".txt"
+endsWith("filename", ".txt");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function endsWith(expr: string, suffix: string): EndsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The field name to check. |
+|  suffix | string | The postfix to check for.  A new  representing the 'ends with' comparison. |
+
+<b>Returns:</b>
+
+[EndsWith](./firestore_lite.endswith.md#endswith_class)
+
+### endsWith(expr, suffix) {:#endswith_e2e794e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value ends with a given postfix.
+
+```typescript
+// Check if the 'url' field ends with the value of the 'extension' field
+endsWith("url", Field.of("extension"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function endsWith(expr: string, suffix: Constant): EndsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The field name to check. |
+|  suffix | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the postfix.  A new  representing the 'ends with' comparison. |
+
+<b>Returns:</b>
+
+[EndsWith](./firestore_lite.endswith.md#endswith_class)
+
+### endsWith(expr, suffix) {:#endswith_6308b81}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression ends with a given postfix.
+
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
+endsWith(Field.of("fullName"), "Jr.");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function endsWith(expr: Constant, suffix: string): EndsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to check. |
+|  suffix | string | The postfix to check for.  A new  representing the 'ends with' comparison. |
+
+<b>Returns:</b>
+
+[EndsWith](./firestore_lite.endswith.md#endswith_class)
+
+### endsWith(expr, suffix) {:#endswith_ab1cc39}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression ends with a given postfix.
+
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
+endsWith(Field.of("fullName"), Constant.of("Jr."));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function endsWith(expr: Constant, suffix: Constant): EndsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to check. |
+|  suffix | [Constant](./firestore_lite.constant.md#constant_class) | The postfix to check for.  A new  representing the 'ends with' comparison. |
+
+<b>Returns:</b>
+
+[EndsWith](./firestore_lite.endswith.md#endswith_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_b4c7dc2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between a field's vector value and a double array.
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance("location", [37.7749, -122.4194]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: string, other: number[]): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | number\[\] | The other vector (as an array of doubles) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_8d2bd9d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between a field's vector value and a VectorValue.
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance("location", new VectorValue([37.7749, -122.4194]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: string, other: VectorValue): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_c9ae0bc}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between a field's vector value and a vector expression.
+
+```typescript
+// Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
+euclideanDistance("pointA", Field.of("pointB"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: string, other: Constant): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the first vector. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_e701952}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between a vector expression and a double array.
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+
+euclideanDistance(Field.of("location"), [37.7749, -122.4194]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: Constant, other: number[]): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | number\[\] | The other vector (as an array of doubles) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_cc2e83e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between a vector expression and a VectorValue.
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+euclideanDistance(Field.of("location"), new VectorValue([37.7749, -122.4194]));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: Constant, other: VectorValue): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | The other vector (as a VectorValue) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### euclideanDistance(expr, other) {:#euclideandistance_0896fbd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Calculates the Euclidean distance between two vector expressions.
+
+```typescript
+// Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
+euclideanDistance(Field.of("pointA"), Field.of("pointB"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function euclideanDistance(expr: Constant, other: Constant): EuclideanDistance;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The first vector (represented as an Expr) to compare against. |
+|  other | [Constant](./firestore_lite.constant.md#constant_class) | The other vector (represented as an Expr) to compare against.  A new  representing the Euclidean distance between the two vectors. |
+
+<b>Returns:</b>
+
+[EuclideanDistance](./firestore_lite.euclideandistance.md#euclideandistance_class)
+
+### reverse(expr) {:#reverse_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that reverses a string.
+
+```typescript
+// Reverse the value of the 'myString' field.
+reverse(Field.of("myString"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function reverse(expr: Constant): Reverse;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to reverse.  A new  representing the reversed string. |
+
+<b>Returns:</b>
+
+[Reverse](./firestore_lite.reverse.md#reverse_class)
+
+### startsWith(expr, prefix) {:#startswith_484d9f3}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value starts with a given prefix.
+
+```typescript
+// Check if the 'name' field starts with "Mr."
+startsWith("name", "Mr.");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function startsWith(expr: string, prefix: string): StartsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The field name to check. |
+|  prefix | string | The prefix to check for.  A new  representing the 'starts with' comparison. |
+
+<b>Returns:</b>
+
+[StartsWith](./firestore_lite.startswith.md#startswith_class)
+
+### startsWith(expr, prefix) {:#startswith_7deb5c7}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value starts with a given prefix.
+
+```typescript
+// Check if the 'fullName' field starts with the value of the 'firstName' field
+startsWith("fullName", Field.of("firstName"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function startsWith(expr: string, prefix: Constant): StartsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The field name to check. |
+|  prefix | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the prefix.  A new  representing the 'starts with' comparison. |
+
+<b>Returns:</b>
+
+[StartsWith](./firestore_lite.startswith.md#startswith_class)
+
+### startsWith(expr, prefix) {:#startswith_68300d1}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression starts with a given prefix.
+
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
+startsWith(Field.of("fullName"), "Mr.");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function startsWith(expr: Constant, prefix: string): StartsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to check. |
+|  prefix | string | The prefix to check for.  A new  representing the 'starts with' comparison. |
+
+<b>Returns:</b>
+
+[StartsWith](./firestore_lite.startswith.md#startswith_class)
+
+### startsWith(expr, prefix) {:#startswith_5774b68}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression starts with a given prefix.
+
+```typescript
+// Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
+startsWith(Field.of("fullName"), Field.of("prefix"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function startsWith(expr: Constant, prefix: Constant): StartsWith;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression to check. |
+|  prefix | [Constant](./firestore_lite.constant.md#constant_class) | The prefix to check for.  A new  representing the 'starts with' comparison. |
+
+<b>Returns:</b>
+
+[StartsWith](./firestore_lite.startswith.md#startswith_class)
+
+### timestampToUnixMicros(expr) {:#timestamptounixmicros_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to microseconds since epoch.
+timestampToUnixMicros(Field.of("timestamp"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixMicros(expr: Constant): TimestampToUnixMicros;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp.  A new  representing the number of microseconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixMicros](./firestore_lite.timestamptounixmicros.md#timestamptounixmicros_class)
+
+### timestampToUnixMillis(expr) {:#timestamptounixmillis_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to milliseconds since epoch.
+timestampToUnixMillis(Field.of("timestamp"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixMillis(expr: Constant): TimestampToUnixMillis;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp.  A new  representing the number of milliseconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixMillis](./firestore_lite.timestamptounixmillis.md#timestamptounixmillis_class)
+
+### timestampToUnixSeconds(expr) {:#timestamptounixseconds_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to seconds since epoch.
+timestampToUnixSeconds(Field.of("timestamp"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixSeconds(expr: Constant): TimestampToUnixSeconds;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp.  A new  representing the number of seconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixSeconds](./firestore_lite.timestamptounixseconds.md#timestamptounixseconds_class)
+
+### toLower(expr) {:#tolower_1e536ed}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a string field to lowercase.
+
+```typescript
+// Convert the 'name' field to lowercase
+toLower("name");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function toLower(expr: string): ToLower;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the string.  A new  representing the lowercase string. |
+
+<b>Returns:</b>
+
+[ToLower](./firestore_lite.tolower.md#tolower_class)
+
+### toLower(expr) {:#tolower_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a string expression to lowercase.
+
+```typescript
+// Convert the 'name' field to lowercase
+toLower(Field.of("name"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function toLower(expr: Constant): ToLower;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to convert to lowercase.  A new  representing the lowercase string. |
+
+<b>Returns:</b>
+
+[ToLower](./firestore_lite.tolower.md#tolower_class)
+
+### toUpper(expr) {:#toupper_1e536ed}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a string field to uppercase.
+
+```typescript
+// Convert the 'title' field to uppercase
+toUpper("title");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function toUpper(expr: string): ToUpper;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the string.  A new  representing the uppercase string. |
+
+<b>Returns:</b>
+
+[ToUpper](./firestore_lite.toupper.md#toupper_class)
+
+### toUpper(expr) {:#toupper_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a string expression to uppercase.
+
+```typescript
+// Convert the 'title' field to uppercase
+toUppercase(Field.of("title"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function toUpper(expr: Constant): ToUpper;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to convert to uppercase.  A new  representing the uppercase string. |
+
+<b>Returns:</b>
+
+[ToUpper](./firestore_lite.toupper.md#toupper_class)
+
+### trim(expr) {:#trim_1e536ed}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that removes leading and trailing whitespace from a string field.
+
+```typescript
+// Trim whitespace from the 'userInput' field
+trim("userInput");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function trim(expr: string): Trim;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | string | The name of the field containing the string.  A new  representing the trimmed string. |
+
+<b>Returns:</b>
+
+[Trim](./firestore_lite.trim.md#trim_class)
+
+### trim(expr) {:#trim_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that removes leading and trailing whitespace from a string expression.
+
+```typescript
+// Trim whitespace from the 'userInput' field
+trim(Field.of("userInput"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function trim(expr: Constant): Trim;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to trim.  A new  representing the trimmed string. |
+
+<b>Returns:</b>
+
+[Trim](./firestore_lite.trim.md#trim_class)
+
+### unixMicrosToTimestamp(expr) {:#unixmicrostotimestamp_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'microseconds' field as microseconds since epoch.
+unixMicrosToTimestamp(Field.of("microseconds"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixMicrosToTimestamp(expr: Constant): UnixMicrosToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the number of microseconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixMicrosToTimestamp](./firestore_lite.unixmicrostotimestamp.md#unixmicrostotimestamp_class)
+
+### unixMillisToTimestamp(expr) {:#unixmillistotimestamp_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'milliseconds' field as milliseconds since epoch.
+unixMillisToTimestamp(Field.of("milliseconds"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixMillisToTimestamp(expr: Constant): UnixMillisToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the number of milliseconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixMillisToTimestamp](./firestore_lite.unixmillistotimestamp.md#unixmillistotimestamp_class)
+
+### unixSecondsToTimestamp(expr) {:#unixsecondstotimestamp_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'seconds' field as seconds since epoch.
+unixSecondsToTimestamp(Field.of("seconds"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixSecondsToTimestamp(expr: Constant): UnixSecondsToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the number of seconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixSecondsToTimestamp](./firestore_lite.unixsecondstotimestamp.md#unixsecondstotimestamp_class)
+
+### vectorLength(expr) {:#vectorlength_f3fb767}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the length of a Firestore Vector.
+
+```typescript
+// Get the vector length (dimension) of the field 'embedding'.
+vectorLength(Field.of("embedding"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function vectorLength(expr: Constant): VectorLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the Firestore Vector.  A new  representing the length of the array. |
+
+<b>Returns:</b>
+
+[VectorLength](./firestore_lite.vectorlength.md#vectorlength_class)
+
 ## function(field, ...)
 
 ### average(field) {:#average_aacc3a9}
@@ -605,6 +4176,184 @@ export declare function average(field: string | FieldPath): AggregateField<numbe
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number \| null&gt;
 
+### byteLength(field) {:#bytelength_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob.
+
+```typescript
+// Calculate the length of the 'myString' field in bytes.
+byteLength("myString");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function byteLength(field: string): ByteLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the string.  A new  representing the length of the string in bytes. |
+
+<b>Returns:</b>
+
+[ByteLength](./firestore_lite.bytelength.md#bytelength_class)
+
+### charLength(field) {:#charlength_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the character length of a string field in UTF8.
+
+```typescript
+// Get the character length of the 'name' field in UTF-8.
+strLength("name");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function charLength(field: string): CharLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field containing the string.  A new  representing the length of the string. |
+
+<b>Returns:</b>
+
+[CharLength](./firestore_lite.charlength.md#charlength_class)
+
+### exists(field) {:#exists_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field exists.
+
+```typescript
+// Check if the document has a field named "phoneNumber"
+exists("phoneNumber");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function exists(field: string): Exists;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The field name to check.  A new  representing the 'exists' check. |
+
+<b>Returns:</b>
+
+[Exists](./firestore_lite.exists.md#exists_class)
+
+### replaceAll(field, find, replace) {:#replaceall_b257ab0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring within a string represented by a field with another substring.
+
+```typescript
+// Replace all occurrences of "hello" with "hi" in the 'message' field.
+replaceAll("message", "hello", "hi");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceAll(field: string, find: string, replace: string): ReplaceAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the string to perform the replacement on. |
+|  find | string | The substring to search for. |
+|  replace | string | The substring to replace all occurrences of 'find' with.  A new  representing the string with all occurrences replaced. |
+
+<b>Returns:</b>
+
+[ReplaceAll](./firestore_lite.replaceall.md#replaceall_class)
+
+### replaceFirst(field, find, replace) {:#replacefirst_b257ab0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring within a string represented by a field with another substring.
+
+```typescript
+// Replace the first occurrence of "hello" with "hi" in the 'message' field.
+replaceFirst("message", "hello", "hi");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceFirst(field: string, find: string, replace: string): ReplaceFirst;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the string to perform the replacement on. |
+|  find | string | The substring to search for. |
+|  replace | string | The substring to replace the first occurrence of 'find' with.  A new  representing the string with the first occurrence replaced. |
+
+<b>Returns:</b>
+
+[ReplaceFirst](./firestore_lite.replacefirst.md#replacefirst_class)
+
+### reverse(field) {:#reverse_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that reverses a string represented by a field.
+
+```typescript
+// Reverse the value of the 'myString' field.
+reverse("myString");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function reverse(field: string): Reverse;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the string to reverse.  A new  representing the reversed string. |
+
+<b>Returns:</b>
+
+[Reverse](./firestore_lite.reverse.md#reverse_class)
+
 ### sum(field) {:#sum_aacc3a9}
 
 Create an AggregateField object that can be used to compute the sum of a specified field over a range of documents in the result set of a query.
@@ -624,6 +4373,271 @@ export declare function sum(field: string | FieldPath): AggregateField<number>;
 <b>Returns:</b>
 
 [AggregateField](./firestore_lite.aggregatefield.md#aggregatefield_class)<!-- -->&lt;number&gt;
+
+### timestampAdd(field, unit, amount) {:#timestampadd_565792c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds a specified amount of time to a timestamp represented by a field.
+
+```typescript
+// Add 1 day to the 'timestamp' field.
+timestampAdd("timestamp", "day", 1);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampAdd(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the timestamp. |
+|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
+|  amount | number | The amount of time to add.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampAdd](./firestore_lite.timestampadd.md#timestampadd_class)
+
+### timestampSub(field, unit, amount) {:#timestampsub_565792c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts a specified amount of time from a timestamp represented by a field.
+
+```typescript
+// Subtract 1 day from the 'timestamp' field.
+timestampSub("timestamp", "day", 1);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampSub(field: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the timestamp. |
+|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
+|  amount | number | The amount of time to subtract.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampSub](./firestore_lite.timestampsub.md#timestampsub_class)
+
+### timestampToUnixMicros(field) {:#timestamptounixmicros_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to microseconds since epoch.
+timestampToUnixMicros("timestamp");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixMicros(field: string): TimestampToUnixMicros;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the timestamp.  A new  representing the number of microseconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixMicros](./firestore_lite.timestamptounixmicros.md#timestamptounixmicros_class)
+
+### timestampToUnixMillis(field) {:#timestamptounixmillis_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to milliseconds since epoch.
+timestampToUnixMillis("timestamp");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixMillis(field: string): TimestampToUnixMillis;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the timestamp.  A new  representing the number of milliseconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixMillis](./firestore_lite.timestamptounixmillis.md#timestamptounixmillis_class)
+
+### timestampToUnixSeconds(field) {:#timestamptounixseconds_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+
+```typescript
+// Convert the 'timestamp' field to seconds since epoch.
+timestampToUnixSeconds("timestamp");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampToUnixSeconds(field: string): TimestampToUnixSeconds;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the timestamp.  A new  representing the number of seconds since epoch. |
+
+<b>Returns:</b>
+
+[TimestampToUnixSeconds](./firestore_lite.timestamptounixseconds.md#timestamptounixseconds_class)
+
+### unixMicrosToTimestamp(field) {:#unixmicrostotimestamp_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'microseconds' field as microseconds since epoch.
+unixMicrosToTimestamp("microseconds");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixMicrosToTimestamp(field: string): UnixMicrosToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the number of microseconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixMicrosToTimestamp](./firestore_lite.unixmicrostotimestamp.md#unixmicrostotimestamp_class)
+
+### unixMillisToTimestamp(field) {:#unixmillistotimestamp_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'milliseconds' field as milliseconds since epoch.
+unixMillisToTimestamp("milliseconds");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixMillisToTimestamp(field: string): UnixMillisToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the number of milliseconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixMillisToTimestamp](./firestore_lite.unixmillistotimestamp.md#unixmillistotimestamp_class)
+
+### unixSecondsToTimestamp(field) {:#unixsecondstotimestamp_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
+
+```typescript
+// Interpret the 'seconds' field as seconds since epoch.
+unixSecondsToTimestamp("seconds");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function unixSecondsToTimestamp(field: string): UnixSecondsToTimestamp;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the number of seconds since epoch.  A new  representing the timestamp. |
+
+<b>Returns:</b>
+
+[UnixSecondsToTimestamp](./firestore_lite.unixsecondstotimestamp.md#unixsecondstotimestamp_class)
+
+### vectorLength(field) {:#vectorlength_0fb8cd4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the length of a Firestore Vector represented by a field.
+
+```typescript
+// Get the vector length (dimension) of the field 'embedding'.
+vectorLength("embedding");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function vectorLength(field: string): VectorLength;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  field | string | The name of the field representing the Firestore Vector.  A new  representing the length of the array. |
+
+<b>Returns:</b>
+
+[VectorLength](./firestore_lite.vectorlength.md#vectorlength_class)
 
 ## function(fieldPath, ...)
 
@@ -766,7 +4780,220 @@ export declare function startAt(...fieldValues: unknown[]): QueryStartAtConstrai
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
 
+## function(filter, ...)
+
+### not(filter) {:#not_5520849}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that negates a filter condition.
+
+```typescript
+// Find documents where the 'completed' field is NOT true
+not(eq("completed", true));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function not(filter: FilterExpr): Not;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  filter | [FilterExpr](./firestore_lite.md#filterexpr) | The filter condition to negate.  A new  representing the negated filter condition. |
+
+<b>Returns:</b>
+
+[Not](./firestore_lite.not.md#not_class)
+
+## function(first, ...)
+
+### strConcat(first, elements) {:#strconcat_0f1bdbf}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates string functions, fields or constants together.
+
+```typescript
+// Combine the 'firstName', " ", and 'lastName' fields into a single string
+strConcat("firstName", " ", Field.of("lastName"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strConcat(first: string, ...elements: Array<Constant | string>): StrConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  first | string | The field name containing the initial string value. |
+|  elements | Array&lt;[Constant](./firestore_lite.constant.md#constant_class) \| string&gt; | The expressions (typically strings) to concatenate.  A new  representing the concatenated string. |
+
+<b>Returns:</b>
+
+[StrConcat](./firestore_lite.strconcat.md#strconcat_class)
+
+### strConcat(first, elements) {:#strconcat_1eb0ac1}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that concatenates string expressions together.
+
+```typescript
+// Combine the 'firstName', " ", and 'lastName' fields into a single string
+strConcat(Field.of("firstName"), " ", Field.of("lastName"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strConcat(first: Constant, ...elements: Array<Constant | string>): StrConcat;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  first | [Constant](./firestore_lite.constant.md#constant_class) | The initial string expression to concatenate to. |
+|  elements | Array&lt;[Constant](./firestore_lite.constant.md#constant_class) \| string&gt; | The expressions (typically strings) to concatenate.  A new  representing the concatenated string. |
+
+<b>Returns:</b>
+
+[StrConcat](./firestore_lite.strconcat.md#strconcat_class)
+
 ## function(left, ...)
+
+### add(left, right) {:#add_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds two expressions together.
+
+```typescript
+// Add the value of the 'quantity' field and the 'reserve' field.
+add(Field.of("quantity"), Field.of("reserve"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function add(left: Constant, right: Constant): Add;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to add. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to add.  A new  representing the addition operation. |
+
+<b>Returns:</b>
+
+[Add](./firestore_lite.add.md#add_class)
+
+### add(left, right) {:#add_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds an expression to a constant value.
+
+```typescript
+// Add 5 to the value of the 'age' field
+add(Field.of("age"), 5);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function add(left: Constant, right: any): Add;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to add to. |
+|  right | any | The constant value to add.  A new  representing the addition operation. |
+
+<b>Returns:</b>
+
+[Add](./firestore_lite.add.md#add_class)
+
+### add(left, right) {:#add_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds a field's value to an expression.
+
+```typescript
+// Add the value of the 'quantity' field and the 'reserve' field.
+add("quantity", Field.of("reserve"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function add(left: string, right: Constant): Add;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to add to. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to add.  A new  representing the addition operation. |
+
+<b>Returns:</b>
+
+[Add](./firestore_lite.add.md#add_class)
+
+### add(left, right) {:#add_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds a field's value to a constant value.
+
+```typescript
+// Add 5 to the value of the 'age' field
+add("age", 5);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function add(left: string, right: any): Add;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to add to. |
+|  right | any | The constant value to add.  A new  representing the addition operation. |
+
+<b>Returns:</b>
+
+[Add](./firestore_lite.add.md#add_class)
 
 ### aggregateFieldEqual(left, right) {:#aggregatefieldequal_e80a2b2}
 
@@ -814,6 +5041,1505 @@ boolean
 
 `true` if the objects are "equal", as defined above, or `false` otherwise.
 
+### and(left, right) {:#and_eba7e36}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
+
+```typescript
+// Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
+// the 'status' field is "active"
+const condition = and(gt("age", 18), eq("city", "London"), eq("status", "active"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function and(left: FilterExpr, ...right: FilterExpr[]): And;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [FilterExpr](./firestore_lite.md#filterexpr) | The first filter condition. |
+|  right | [FilterExpr](./firestore_lite.md#filterexpr)<!-- -->\[\] | Additional filter conditions to 'AND' together.  A new  representing the logical 'AND' operation. |
+
+<b>Returns:</b>
+
+[And](./firestore_lite.and.md#and_class)
+
+### divide(left, right) {:#divide_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that divides two expressions.
+
+```typescript
+// Divide the 'total' field by the 'count' field
+divide(Field.of("total"), Field.of("count"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function divide(left: Constant, right: Constant): Divide;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to be divided. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to divide by.  A new  representing the division operation. |
+
+<b>Returns:</b>
+
+[Divide](./firestore_lite.divide.md#divide_class)
+
+### divide(left, right) {:#divide_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that divides an expression by a constant value.
+
+```typescript
+// Divide the 'value' field by 10
+divide(Field.of("value"), 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function divide(left: Constant, right: any): Divide;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to be divided. |
+|  right | any | The constant value to divide by.  A new  representing the division operation. |
+
+<b>Returns:</b>
+
+[Divide](./firestore_lite.divide.md#divide_class)
+
+### divide(left, right) {:#divide_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that divides a field's value by an expression.
+
+```typescript
+// Divide the 'total' field by the 'count' field
+divide("total", Field.of("count"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function divide(left: string, right: Constant): Divide;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to be divided. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to divide by.  A new  representing the division operation. |
+
+<b>Returns:</b>
+
+[Divide](./firestore_lite.divide.md#divide_class)
+
+### divide(left, right) {:#divide_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that divides a field's value by a constant value.
+
+```typescript
+// Divide the 'value' field by 10
+divide("value", 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function divide(left: string, right: any): Divide;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to be divided. |
+|  right | any | The constant value to divide by.  A new  representing the division operation. |
+
+<b>Returns:</b>
+
+[Divide](./firestore_lite.divide.md#divide_class)
+
+### eq(left, right) {:#eq_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if two expressions are equal.
+
+```typescript
+// Check if the 'age' field is equal to an expression
+eq(Field.of("age"), Field.of("minAge").add(10));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function eq(left: Constant, right: Constant): Eq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the equality comparison. |
+
+<b>Returns:</b>
+
+[Eq](./firestore_lite.eq.md#eq_class)
+
+### eq(left, right) {:#eq_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is equal to a constant value.
+
+```typescript
+// Check if the 'age' field is equal to 21
+eq(Field.of("age"), 21);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function eq(left: Constant, right: any): Eq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the equality comparison. |
+
+<b>Returns:</b>
+
+[Eq](./firestore_lite.eq.md#eq_class)
+
+### eq(left, right) {:#eq_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is equal to an expression.
+
+```typescript
+// Check if the 'age' field is equal to the 'limit' field
+eq("age", Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function eq(left: string, right: Constant): Eq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the equality comparison. |
+
+<b>Returns:</b>
+
+[Eq](./firestore_lite.eq.md#eq_class)
+
+### eq(left, right) {:#eq_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is equal to a constant value.
+
+```typescript
+// Check if the 'city' field is equal to string constant "London"
+eq("city", "London");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function eq(left: string, right: any): Eq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the equality comparison. |
+
+<b>Returns:</b>
+
+[Eq](./firestore_lite.eq.md#eq_class)
+
+### gt(left, right) {:#gt_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the first expression is greater than the second expression.
+
+```typescript
+// Check if the 'age' field is greater than 18
+gt(Field.of("age"), Constant(9).add(9));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gt(left: Constant, right: Constant): Gt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the greater than comparison. |
+
+<b>Returns:</b>
+
+[Gt](./firestore_lite.gt.md#gt_class)
+
+### gt(left, right) {:#gt_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is greater than a constant value.
+
+```typescript
+// Check if the 'age' field is greater than 18
+gt(Field.of("age"), 18);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gt(left: Constant, right: any): Gt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the greater than comparison. |
+
+<b>Returns:</b>
+
+[Gt](./firestore_lite.gt.md#gt_class)
+
+### gt(left, right) {:#gt_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is greater than an expression.
+
+```typescript
+// Check if the value of field 'age' is greater than the value of field 'limit'
+gt("age", Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gt(left: string, right: Constant): Gt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the greater than comparison. |
+
+<b>Returns:</b>
+
+[Gt](./firestore_lite.gt.md#gt_class)
+
+### gt(left, right) {:#gt_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is greater than a constant value.
+
+```typescript
+// Check if the 'price' field is greater than 100
+gt("price", 100);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gt(left: string, right: any): Gt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the greater than comparison. |
+
+<b>Returns:</b>
+
+[Gt](./firestore_lite.gt.md#gt_class)
+
+### gte(left, right) {:#gte_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the first expression is greater than or equal to the second expression.
+
+```typescript
+// Check if the 'quantity' field is greater than or equal to the field "threshold"
+gte(Field.of("quantity"), Field.of("threshold"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gte(left: Constant, right: Constant): Gte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Gte](./firestore_lite.gte.md#gte_class)
+
+### gte(left, right) {:#gte_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is greater than or equal to a constant value.
+
+```typescript
+// Check if the 'quantity' field is greater than or equal to 10
+gte(Field.of("quantity"), 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gte(left: Constant, right: any): Gte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Gte](./firestore_lite.gte.md#gte_class)
+
+### gte(left, right) {:#gte_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is greater than or equal to an expression.
+
+```typescript
+// Check if the value of field 'age' is greater than or equal to the value of field 'limit'
+gte("age", Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gte(left: string, right: Constant): Gte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Gte](./firestore_lite.gte.md#gte_class)
+
+### gte(left, right) {:#gte_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is greater than or equal to a constant value.
+
+```typescript
+// Check if the 'score' field is greater than or equal to 80
+gte("score", 80);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function gte(left: string, right: any): Gte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Gte](./firestore_lite.gte.md#gte_class)
+
+### like(left, pattern) {:#like_33ec01b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a case-sensitive wildcard string comparison against a field.
+
+```typescript
+// Check if the 'title' field contains the string "guide"
+like("title", "%guide%");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function like(left: string, pattern: string): Like;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | string | The pattern to search for. You can use "%" as a wildcard character.  A new  representing the 'like' comparison. |
+
+<b>Returns:</b>
+
+[Like](./firestore_lite.like.md#like_class)
+
+### like(left, pattern) {:#like_dd84184}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a case-sensitive wildcard string comparison against a field.
+
+```typescript
+// Check if the 'title' field contains the string "guide"
+like("title", Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function like(left: string, pattern: Constant): Like;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The pattern to search for. You can use "%" as a wildcard character.  A new  representing the 'like' comparison. |
+
+<b>Returns:</b>
+
+[Like](./firestore_lite.like.md#like_class)
+
+### like(left, pattern) {:#like_3aaffe0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a case-sensitive wildcard string comparison.
+
+```typescript
+// Check if the 'title' field contains the string "guide"
+like(Field.of("title"), "%guide%");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function like(left: Constant, pattern: string): Like;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  pattern | string | The pattern to search for. You can use "%" as a wildcard character.  A new  representing the 'like' comparison. |
+
+<b>Returns:</b>
+
+[Like](./firestore_lite.like.md#like_class)
+
+### like(left, pattern) {:#like_a2c3e8b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a case-sensitive wildcard string comparison.
+
+```typescript
+// Check if the 'title' field contains the string "guide"
+like(Field.of("title"), Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function like(left: Constant, pattern: Constant): Like;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The pattern to search for. You can use "%" as a wildcard character.  A new  representing the 'like' comparison. |
+
+<b>Returns:</b>
+
+[Like](./firestore_lite.like.md#like_class)
+
+### logicalMax(left, right) {:#logicalmax_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the larger value between two expressions, based on Firestore's value type ordering.
+
+```typescript
+// Returns the larger value between the 'field1' field and the 'field2' field.
+logicalMax(Field.of("field1"), Field.of("field2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMax(left: Constant, right: Constant): LogicalMax;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The left operand expression. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The right operand expression.  A new  representing the logical max operation. |
+
+<b>Returns:</b>
+
+[LogicalMax](./firestore_lite.logicalmax.md#logicalmax_class)
+
+### logicalMax(left, right) {:#logicalmax_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the larger value between an expression and a constant value, based on Firestore's value type ordering.
+
+```typescript
+// Returns the larger value between the 'value' field and 10.
+logicalMax(Field.of("value"), 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMax(left: Constant, right: any): LogicalMax;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The left operand expression. |
+|  right | any | The right operand constant.  A new  representing the logical max operation. |
+
+<b>Returns:</b>
+
+[LogicalMax](./firestore_lite.logicalmax.md#logicalmax_class)
+
+### logicalMax(left, right) {:#logicalmax_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the larger value between a field and an expression, based on Firestore's value type ordering.
+
+```typescript
+// Returns the larger value between the 'field1' field and the 'field2' field.
+logicalMax("field1", Field.of('field2'));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMax(left: string, right: Constant): LogicalMax;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The left operand field name. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The right operand expression.  A new  representing the logical max operation. |
+
+<b>Returns:</b>
+
+[LogicalMax](./firestore_lite.logicalmax.md#logicalmax_class)
+
+### logicalMax(left, right) {:#logicalmax_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the larger value between a field and a constant value, based on Firestore's value type ordering.
+
+```typescript
+// Returns the larger value between the 'value' field and 10.
+logicalMax("value", 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMax(left: string, right: any): LogicalMax;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The left operand field name. |
+|  right | any | The right operand constant.  A new  representing the logical max operation. |
+
+<b>Returns:</b>
+
+[LogicalMax](./firestore_lite.logicalmax.md#logicalmax_class)
+
+### logicalMin(left, right) {:#logicalmin_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smaller value between two expressions, based on Firestore's value type ordering.
+
+```typescript
+// Returns the smaller value between the 'field1' field and the 'field2' field.
+logicalMin(Field.of("field1"), Field.of("field2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMin(left: Constant, right: Constant): LogicalMin;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The left operand expression. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The right operand expression.  A new  representing the logical min operation. |
+
+<b>Returns:</b>
+
+[LogicalMin](./firestore_lite.logicalmin.md#logicalmin_class)
+
+### logicalMin(left, right) {:#logicalmin_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smaller value between an expression and a constant value, based on Firestore's value type ordering.
+
+```typescript
+// Returns the smaller value between the 'value' field and 10.
+logicalMin(Field.of("value"), 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMin(left: Constant, right: any): LogicalMin;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The left operand expression. |
+|  right | any | The right operand constant.  A new  representing the logical min operation. |
+
+<b>Returns:</b>
+
+[LogicalMin](./firestore_lite.logicalmin.md#logicalmin_class)
+
+### logicalMin(left, right) {:#logicalmin_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smaller value between a field and an expression, based on Firestore's value type ordering.
+
+```typescript
+// Returns the smaller value between the 'field1' field and the 'field2' field.
+logicalMin("field1", Field.of("field2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMin(left: string, right: Constant): LogicalMin;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The left operand field name. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The right operand expression.  A new  representing the logical min operation. |
+
+<b>Returns:</b>
+
+[LogicalMin](./firestore_lite.logicalmin.md#logicalmin_class)
+
+### logicalMin(left, right) {:#logicalmin_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smaller value between a field and a constant value, based on Firestore's value type ordering.
+
+```typescript
+// Returns the smaller value between the 'value' field and 10.
+logicalMin("value", 10);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function logicalMin(left: string, right: any): LogicalMin;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The left operand field name. |
+|  right | any | The right operand constant.  A new  representing the logical min operation. |
+
+<b>Returns:</b>
+
+[LogicalMin](./firestore_lite.logicalmin.md#logicalmin_class)
+
+### lt(left, right) {:#lt_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the first expression is less than the second expression.
+
+```typescript
+// Check if the 'age' field is less than 30
+lt(Field.of("age"), Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lt(left: Constant, right: Constant): Lt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the less than comparison. |
+
+<b>Returns:</b>
+
+[Lt](./firestore_lite.lt.md#lt_class)
+
+### lt(left, right) {:#lt_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is less than a constant value.
+
+```typescript
+// Check if the 'age' field is less than 30
+lt(Field.of("age"), 30);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lt(left: Constant, right: any): Lt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the less than comparison. |
+
+<b>Returns:</b>
+
+[Lt](./firestore_lite.lt.md#lt_class)
+
+### lt(left, right) {:#lt_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is less than an expression.
+
+```typescript
+// Check if the 'age' field is less than the 'limit' field
+lt("age", Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lt(left: string, right: Constant): Lt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the less than comparison. |
+
+<b>Returns:</b>
+
+[Lt](./firestore_lite.lt.md#lt_class)
+
+### lt(left, right) {:#lt_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is less than a constant value.
+
+```typescript
+// Check if the 'price' field is less than 50
+lt("price", 50);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lt(left: string, right: any): Lt;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the less than comparison. |
+
+<b>Returns:</b>
+
+[Lt](./firestore_lite.lt.md#lt_class)
+
+### lte(left, right) {:#lte_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the first expression is less than or equal to the second expression.
+
+```typescript
+// Check if the 'quantity' field is less than or equal to 20
+lte(Field.of("quantity"), Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lte(left: Constant, right: Constant): Lte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the less than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Lte](./firestore_lite.lte.md#lte_class)
+
+### lte(left, right) {:#lte_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is less than or equal to a constant value.
+
+```typescript
+// Check if the 'quantity' field is less than or equal to 20
+lte(Field.of("quantity"), 20);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lte(left: Constant, right: any): Lte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the less than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Lte](./firestore_lite.lte.md#lte_class)
+
+### lte(left, right) {:#lte_674c63f}
+
+Creates an expression that checks if a field's value is less than or equal to an expression.
+
+```typescript
+// Check if the 'quantity' field is less than or equal to the 'limit' field
+lte("quantity", Field.of("limit"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lte(left: string, right: Constant): Lte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the less than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Lte](./firestore_lite.lte.md#lte_class)
+
+### lte(left, right) {:#lte_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is less than or equal to a constant value.
+
+```typescript
+// Check if the 'score' field is less than or equal to 70
+lte("score", 70);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function lte(left: string, right: any): Lte;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the less than or equal to comparison. |
+
+<b>Returns:</b>
+
+[Lte](./firestore_lite.lte.md#lte_class)
+
+### mod(left, right) {:#mod_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the modulo (remainder) of dividing two expressions.
+
+```typescript
+// Calculate the remainder of dividing 'field1' by 'field2'.
+mod(Field.of("field1"), Field.of("field2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mod(left: Constant, right: Constant): Mod;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The dividend expression. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The divisor expression.  A new  representing the modulo operation. |
+
+<b>Returns:</b>
+
+[Mod](./firestore_lite.mod.md#mod_class)
+
+### mod(left, right) {:#mod_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant.
+
+```typescript
+// Calculate the remainder of dividing 'field1' by 5.
+mod(Field.of("field1"), 5);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mod(left: Constant, right: any): Mod;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The dividend expression. |
+|  right | any | The divisor constant.  A new  representing the modulo operation. |
+
+<b>Returns:</b>
+
+[Mod](./firestore_lite.mod.md#mod_class)
+
+### mod(left, right) {:#mod_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression.
+
+```typescript
+// Calculate the remainder of dividing 'field1' by 'field2'.
+mod("field1", Field.of("field2"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mod(left: string, right: Constant): Mod;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The dividend field name. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The divisor expression.  A new  representing the modulo operation. |
+
+<b>Returns:</b>
+
+[Mod](./firestore_lite.mod.md#mod_class)
+
+### mod(left, right) {:#mod_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant.
+
+```typescript
+// Calculate the remainder of dividing 'field1' by 5.
+mod("field1", 5);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mod(left: string, right: any): Mod;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The dividend field name. |
+|  right | any | The divisor constant.  A new  representing the modulo operation. |
+
+<b>Returns:</b>
+
+[Mod](./firestore_lite.mod.md#mod_class)
+
+### multiply(left, right) {:#multiply_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that multiplies two expressions together.
+
+```typescript
+// Multiply the 'quantity' field by the 'price' field
+multiply(Field.of("quantity"), Field.of("price"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function multiply(left: Constant, right: Constant): Multiply;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to multiply. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to multiply.  A new  representing the multiplication operation. |
+
+<b>Returns:</b>
+
+[Multiply](./firestore_lite.multiply.md#multiply_class)
+
+### multiply(left, right) {:#multiply_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that multiplies an expression by a constant value.
+
+```typescript
+// Multiply the value of the 'price' field by 2
+multiply(Field.of("price"), 2);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function multiply(left: Constant, right: any): Multiply;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to multiply. |
+|  right | any | The constant value to multiply by.  A new  representing the multiplication operation. |
+
+<b>Returns:</b>
+
+[Multiply](./firestore_lite.multiply.md#multiply_class)
+
+### multiply(left, right) {:#multiply_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that multiplies a field's value by an expression.
+
+```typescript
+// Multiply the 'quantity' field by the 'price' field
+multiply("quantity", Field.of("price"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function multiply(left: string, right: Constant): Multiply;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to multiply. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to multiply by.  A new  representing the multiplication operation. |
+
+<b>Returns:</b>
+
+[Multiply](./firestore_lite.multiply.md#multiply_class)
+
+### multiply(left, right) {:#multiply_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that multiplies a field's value by a constant value.
+
+```typescript
+// Multiply the 'value' field by 2
+multiply("value", 2);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function multiply(left: string, right: any): Multiply;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to multiply. |
+|  right | any | The constant value to multiply by.  A new  representing the multiplication operation. |
+
+<b>Returns:</b>
+
+[Multiply](./firestore_lite.multiply.md#multiply_class)
+
+### neq(left, right) {:#neq_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if two expressions are not equal.
+
+```typescript
+// Check if the 'status' field is not equal to field 'finalState'
+neq(Field.of("status"), Field.of("finalState"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function neq(left: Constant, right: Constant): Neq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The first expression to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The second expression to compare.  A new <code>Expr</code> representing the inequality comparison. |
+
+<b>Returns:</b>
+
+[Neq](./firestore_lite.neq.md#neq_class)
+
+### neq(left, right) {:#neq_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression is not equal to a constant value.
+
+```typescript
+// Check if the 'status' field is not equal to "completed"
+neq(Field.of("status"), "completed");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function neq(left: Constant, right: any): Neq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the inequality comparison. |
+
+<b>Returns:</b>
+
+[Neq](./firestore_lite.neq.md#neq_class)
+
+### neq(left, right) {:#neq_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is not equal to an expression.
+
+```typescript
+// Check if the 'status' field is not equal to the value of 'expectedStatus'
+neq("status", Field.of("expectedStatus"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function neq(left: string, right: Constant): Neq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to compare to.  A new <code>Expr</code> representing the inequality comparison. |
+
+<b>Returns:</b>
+
+[Neq](./firestore_lite.neq.md#neq_class)
+
+### neq(left, right) {:#neq_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value is not equal to a constant value.
+
+```typescript
+// Check if the 'country' field is not equal to "USA"
+neq("country", "USA");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function neq(left: string, right: any): Neq;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to compare. |
+|  right | any | The constant value to compare to.  A new <code>Expr</code> representing the inequality comparison. |
+
+<b>Returns:</b>
+
+[Neq](./firestore_lite.neq.md#neq_class)
+
+### or(left, right) {:#or_eba7e36}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
+
+```typescript
+// Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
+// the 'status' field is "active"
+const condition = or(gt("age", 18), eq("city", "London"), eq("status", "active"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function or(left: FilterExpr, ...right: FilterExpr[]): Or;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [FilterExpr](./firestore_lite.md#filterexpr) | The first filter condition. |
+|  right | [FilterExpr](./firestore_lite.md#filterexpr)<!-- -->\[\] | Additional filter conditions to 'OR' together.  A new  representing the logical 'OR' operation. |
+
+<b>Returns:</b>
+
+[Or](./firestore_lite.or.md#or_class)
+
 ### queryEqual(left, right) {:#queryequal_7a1f045}
 
 Returns true if the provided queries point to the same collection and apply the same constraints.
@@ -860,6 +6586,246 @@ boolean
 
 true if the references point to the same location in the same Firestore database.
 
+### regexContains(left, pattern) {:#regexcontains_33ec01b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field contains a specified regular expression as a substring.
+
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains("description", "(?i)example");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexContains(left: string, pattern: string): RegexContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | string | The regular expression to use for the search.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[RegexContains](./firestore_lite.regexcontains.md#regexcontains_class)
+
+### regexContains(left, pattern) {:#regexcontains_dd84184}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field contains a specified regular expression as a substring.
+
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains("description", Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexContains(left: string, pattern: Constant): RegexContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The regular expression to use for the search.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[RegexContains](./firestore_lite.regexcontains.md#regexcontains_class)
+
+### regexContains(left, pattern) {:#regexcontains_3aaffe0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression contains a specified regular expression as a substring.
+
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains(Field.of("description"), "(?i)example");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexContains(left: Constant, pattern: string): RegexContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  pattern | string | The regular expression to use for the search.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[RegexContains](./firestore_lite.regexcontains.md#regexcontains_class)
+
+### regexContains(left, pattern) {:#regexcontains_a2c3e8b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression contains a specified regular expression as a substring.
+
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+regexContains(Field.of("description"), Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexContains(left: Constant, pattern: Constant): RegexContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The regular expression to use for the search.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[RegexContains](./firestore_lite.regexcontains.md#regexcontains_class)
+
+### regexMatch(left, pattern) {:#regexmatch_33ec01b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field matches a specified regular expression.
+
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexMatch(left: string, pattern: string): RegexMatch;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | string | The regular expression to use for the match.  A new  representing the regular expression match. |
+
+<b>Returns:</b>
+
+[RegexMatch](./firestore_lite.regexmatch.md#regexmatch_class)
+
+### regexMatch(left, pattern) {:#regexmatch_dd84184}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field matches a specified regular expression.
+
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch("email", Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexMatch(left: string, pattern: Constant): RegexMatch;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The regular expression to use for the match.  A new  representing the regular expression match. |
+
+<b>Returns:</b>
+
+[RegexMatch](./firestore_lite.regexmatch.md#regexmatch_class)
+
+### regexMatch(left, pattern) {:#regexmatch_3aaffe0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression matches a specified regular expression.
+
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch(Field.of("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexMatch(left: Constant, pattern: string): RegexMatch;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to match against. |
+|  pattern | string | The regular expression to use for the match.  A new  representing the regular expression match. |
+
+<b>Returns:</b>
+
+[RegexMatch](./firestore_lite.regexmatch.md#regexmatch_class)
+
+### regexMatch(left, pattern) {:#regexmatch_a2c3e8b}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression matches a specified regular expression.
+
+```typescript
+// Check if the 'email' field matches a valid email pattern
+regexMatch(Field.of("email"), Field.of("pattern"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexMatch(left: Constant, pattern: Constant): RegexMatch;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to match against. |
+|  pattern | [Constant](./firestore_lite.constant.md#constant_class) | The regular expression to use for the match.  A new  representing the regular expression match. |
+
+<b>Returns:</b>
+
+[RegexMatch](./firestore_lite.regexmatch.md#regexmatch_class)
+
 ### snapshotEqual(left, right) {:#snapshotequal_5109204}
 
 Returns true if the provided snapshots are equal.
@@ -882,6 +6848,280 @@ export declare function snapshotEqual<AppModelType, DbModelType extends Document
 boolean
 
 true if the snapshots are equal.
+
+### strContains(left, substring) {:#strcontains_18eaf5d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field contains a specified substring.
+
+```typescript
+// Check if the 'description' field contains "example".
+strContains("description", "example");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strContains(left: string, substring: string): StrContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  substring | string | The substring to search for.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[StrContains](./firestore_lite.strcontains.md#strcontains_class)
+
+### strContains(left, substring) {:#strcontains_f0f1f2f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string field contains a substring specified by an expression.
+
+```typescript
+// Check if the 'description' field contains the value of the 'keyword' field.
+strContains("description", Field.of("keyword"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strContains(left: string, substring: Constant): StrContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The name of the field containing the string. |
+|  substring | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to search for.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[StrContains](./firestore_lite.strcontains.md#strcontains_class)
+
+### strContains(left, substring) {:#strcontains_5fdbd29}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression contains a specified substring.
+
+```typescript
+// Check if the 'description' field contains "example".
+strContains(Field.of("description"), "example");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strContains(left: Constant, substring: string): StrContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  substring | string | The substring to search for.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[StrContains](./firestore_lite.strcontains.md#strcontains_class)
+
+### strContains(left, substring) {:#strcontains_d9d749f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a string expression contains a substring specified by another expression.
+
+```typescript
+// Check if the 'description' field contains the value of the 'keyword' field.
+strContains(Field.of("description"), Field.of("keyword"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function strContains(left: Constant, substring: Constant): StrContains;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the comparison on. |
+|  substring | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to search for.  A new  representing the 'contains' comparison. |
+
+<b>Returns:</b>
+
+[StrContains](./firestore_lite.strcontains.md#strcontains_class)
+
+### subtract(left, right) {:#subtract_be96f75}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts two expressions.
+
+```typescript
+// Subtract the 'discount' field from the 'price' field
+subtract(Field.of("price"), Field.of("discount"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function subtract(left: Constant, right: Constant): Subtract;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to subtract from. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to subtract.  A new  representing the subtraction operation. |
+
+<b>Returns:</b>
+
+[Subtract](./firestore_lite.subtract.md#subtract_class)
+
+### subtract(left, right) {:#subtract_010ba9e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts a constant value from an expression.
+
+```typescript
+// Subtract the constant value 2 from the 'value' field
+subtract(Field.of("value"), 2);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function subtract(left: Constant, right: any): Subtract;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [Constant](./firestore_lite.constant.md#constant_class) | The expression to subtract from. |
+|  right | any | The constant value to subtract.  A new  representing the subtraction operation. |
+
+<b>Returns:</b>
+
+[Subtract](./firestore_lite.subtract.md#subtract_class)
+
+### subtract(left, right) {:#subtract_674c63f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts an expression from a field's value.
+
+```typescript
+// Subtract the 'discount' field from the 'price' field
+subtract("price", Field.of("discount"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function subtract(left: string, right: Constant): Subtract;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to subtract from. |
+|  right | [Constant](./firestore_lite.constant.md#constant_class) | The expression to subtract.  A new  representing the subtraction operation. |
+
+<b>Returns:</b>
+
+[Subtract](./firestore_lite.subtract.md#subtract_class)
+
+### subtract(left, right) {:#subtract_1f46a76}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts a constant value from a field's value.
+
+```typescript
+// Subtract 20 from the value of the 'total' field
+subtract("total", 20);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function subtract(left: string, right: any): Subtract;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | string | The field name to subtract from. |
+|  right | any | The constant value to subtract.  A new  representing the subtraction operation. |
+
+<b>Returns:</b>
+
+[Subtract](./firestore_lite.subtract.md#subtract_class)
+
+### xor(left, right) {:#xor_eba7e36}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple filter conditions.
+
+```typescript
+// Check if only one of the conditions is true: 'age' greater than 18, 'city' is "London",
+// or 'status' is "active".
+const condition = xor(
+    gt("age", 18),
+    eq("city", "London"),
+    eq("status", "active"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function xor(left: FilterExpr, ...right: FilterExpr[]): Xor;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  left | [FilterExpr](./firestore_lite.md#filterexpr) | The first filter condition. |
+|  right | [FilterExpr](./firestore_lite.md#filterexpr)<!-- -->\[\] | Additional filter conditions to 'XOR' together.  A new  representing the logical 'XOR' operation. |
+
+<b>Returns:</b>
+
+[Xor](./firestore_lite.xor.md#xor_class)
 
 ## function(limit, ...)
 
@@ -953,6 +7193,70 @@ export declare function setLogLevel(logLevel: LogLevel): void;
 
 void
 
+## function(mapExpr, ...)
+
+### mapGet(mapExpr, subField) {:#mapget_9715f90}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Accesses a value from a map (object) expression using the provided key.
+
+```typescript
+// Get the 'city' value from the 'address' map field
+mapGet(Field.of("address"), "city");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapGet(mapExpr: Constant, subField: string): MapGet;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpr | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the map. |
+|  subField | string | The key to access in the map.  A new  representing the value associated with the given key in the map. |
+
+<b>Returns:</b>
+
+[MapGet](./firestore_lite.mapget.md#mapget_class)
+
+## function(mapField, ...)
+
+### mapGet(mapField, subField) {:#mapget_b37bbb6}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Accesses a value from a map (object) field using the provided key.
+
+```typescript
+// Get the 'city' value from the 'address' map field
+mapGet("address", "city");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapGet(mapField: string, subField: string): MapGet;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The field name of the map field. |
+|  subField | string | The key to access in the map.  A new  representing the value associated with the given key in the map. |
+
+<b>Returns:</b>
+
+[MapGet](./firestore_lite.mapget.md#mapget_class)
+
 ## function(n, ...)
 
 ### increment(n) {:#increment_5685735}
@@ -980,6 +7284,64 @@ export declare function increment(n: number): FieldValue;
 [FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
 
 The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+## function(name, ...)
+
+### genericFunction(name, params) {:#genericfunction_b886545}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates functions that work on the backend but do not exist in the SDK yet.
+
+```typescript
+// Call a user defined function named "myFunc" with the arguments 10 and 20
+// This is the same of the 'sum(Field.of("price"))', if it did not exist
+genericFunction("sum", [Field.of("price")]);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function genericFunction(name: string, params: Constant[]): FirestoreFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  name | string | The name of the user defined function. |
+|  params | [Constant](./firestore_lite.constant.md#constant_class)<!-- -->\[\] | The arguments to pass to the function.  A new  representing the function call. |
+
+<b>Returns:</b>
+
+[FirestoreFunction](./firestore_lite.firestorefunction.md#firestorefunction_class)
+
+## function(pipeline, ...)
+
+### execute(pipeline) {:#execute_86486e6}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Modular API for console experimentation.
+
+<b>Signature:</b>
+
+```typescript
+export declare function execute<AppModelType>(pipeline: Pipeline<AppModelType>): Promise<Array<PipelineResult<AppModelType>>>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pipeline | [Pipeline](./firestore_lite.pipeline.md#pipeline_class)<!-- -->&lt;AppModelType&gt; | Execute this pipeline. |
+
+<b>Returns:</b>
+
+Promise&lt;Array&lt;[PipelineResult](./firestore_lite.pipelineresult.md#pipelineresult_class)<!-- -->&lt;AppModelType&gt;&gt;&gt;
 
 ## function(query, ...)
 
@@ -1072,6 +7434,26 @@ Promise&lt;[QuerySnapshot](./firestore_lite.querysnapshot.md#querysnapshot_class
 
 A Promise that will be resolved with the results of the query.
 
+### pipeline(query) {:#pipeline_20b2416}
+
+Experimental Modular API for console testing.
+
+<b>Signature:</b>
+
+```typescript
+export declare function pipeline(query: Query): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  query | [Query](./firestore_lite.query.md#query_class) |  |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_lite.pipeline.md#pipeline_class)
+
 ### query(query, compositeFilter, queryConstraints) {:#query_9f7b0f4}
 
 Creates a new immutable instance of [Query](./firestore_.query.md#query_class) that is extended to also include additional query constraints.
@@ -1087,7 +7469,7 @@ export declare function query<AppModelType, DbModelType extends DocumentData>(qu
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  query | [Query](./firestore_lite.query.md#query_class)<!-- -->&lt;AppModelType, DbModelType&gt; | The [Query](./firestore_.query.md#query_class) instance to use as a base for the new constraints. |
-|  compositeFilter | [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using [and()](./firestore_.md#and_e72c712) or [or()](./firestore_.md#or_e72c712)<!-- -->. |
+|  compositeFilter | [QueryCompositeFilterConstraint](./firestore_lite.querycompositefilterconstraint.md#querycompositefilterconstraint_class) | The [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) to apply. Create [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) using  or . |
 |  queryConstraints | [QueryNonFilterConstraint](./firestore_lite.md#querynonfilterconstraint)<!-- -->\[\] | Additional [QueryNonFilterConstraint](./firestore_.md#querynonfilterconstraint)<!-- -->s to apply (e.g. [orderBy()](./firestore_.md#orderby_006d61f)<!-- -->, [limit()](./firestore_.md#limit_ec46c78)<!-- -->). |
 
 <b>Returns:</b>
@@ -1139,7 +7521,7 @@ export declare function and(...queryConstraints: QueryFilterConstraint[]): Query
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a conjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, [or()](./firestore_.md#or_e72c712)<!-- -->, or [and()](./firestore_.md#and_e72c712)<!-- -->. |
+|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a conjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, , or . |
 
 <b>Returns:</b>
 
@@ -1161,7 +7543,7 @@ export declare function or(...queryConstraints: QueryFilterConstraint[]): QueryC
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a disjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, [or()](./firestore_.md#or_e72c712)<!-- -->, or [and()](./firestore_.md#and_e72c712)<!-- -->. |
+|  queryConstraints | [QueryFilterConstraint](./firestore_lite.md#queryfilterconstraint)<!-- -->\[\] | Optional. The list of [QueryFilterConstraint](./firestore_.md#queryfilterconstraint)<!-- -->s to perform a disjunction for. These must be created with calls to [where()](./firestore_.md#where_0fae4bf)<!-- -->, , or . |
 
 <b>Returns:</b>
 
@@ -1571,6 +7953,577 @@ export declare function startAt<AppModelType, DbModelType extends DocumentData>(
 
 A [QueryStartAtConstraint](./firestore_.querystartatconstraint.md#querystartatconstraint_class) to pass to `query()`<!-- -->.
 
+## function(timestamp, ...)
+
+### timestampAdd(timestamp, unit, amount) {:#timestampadd_87db576}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds a specified amount of time to a timestamp.
+
+```typescript
+// Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
+timestampAdd(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampAdd(timestamp: Constant, unit: Constant, amount: Constant): TimestampAdd;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestamp | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp. |
+|  unit | [Constant](./firestore_lite.constant.md#constant_class) | The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'. |
+|  amount | [Constant](./firestore_lite.constant.md#constant_class) | The expression evaluates to amount of the unit.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampAdd](./firestore_lite.timestampadd.md#timestampadd_class)
+
+### timestampAdd(timestamp, unit, amount) {:#timestampadd_46a2d7e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that adds a specified amount of time to a timestamp.
+
+```typescript
+// Add 1 day to the 'timestamp' field.
+timestampAdd(Field.of("timestamp"), "day", 1);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampAdd(timestamp: Constant, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampAdd;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestamp | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp. |
+|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
+|  amount | number | The amount of time to add.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampAdd](./firestore_lite.timestampadd.md#timestampadd_class)
+
+### timestampSub(timestamp, unit, amount) {:#timestampsub_87db576}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts a specified amount of time from a timestamp.
+
+```typescript
+// Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
+timestampSub(Field.of("timestamp"), Field.of("unit"), Field.of("amount"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampSub(timestamp: Constant, unit: Constant, amount: Constant): TimestampSub;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestamp | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp. |
+|  unit | [Constant](./firestore_lite.constant.md#constant_class) | The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'. |
+|  amount | [Constant](./firestore_lite.constant.md#constant_class) | The expression evaluates to amount of the unit.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampSub](./firestore_lite.timestampsub.md#timestampsub_class)
+
+### timestampSub(timestamp, unit, amount) {:#timestampsub_46a2d7e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that subtracts a specified amount of time from a timestamp.
+
+```typescript
+// Subtract 1 day from the 'timestamp' field.
+timestampSub(Field.of("timestamp"), "day", 1);
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampSub(timestamp: Constant, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): TimestampSub;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestamp | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the timestamp. |
+|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
+|  amount | number | The amount of time to subtract.  A new  representing the resulting timestamp. |
+
+<b>Returns:</b>
+
+[TimestampSub](./firestore_lite.timestampsub.md#timestampsub_class)
+
+## function(value, ...)
+
+### avgFunction(value) {:#avgfunction_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that calculates the average (mean) of values from an expression across multiple stage inputs.
+
+```typescript
+// Calculate the average age of users
+avg(Field.of("age")).as("averageAge");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function avgFunction(value: Constant): Avg;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the values to average.  A new  representing the 'avg' aggregation. |
+
+<b>Returns:</b>
+
+[Avg](./firestore_lite.avg.md#avg_class)
+
+### avgFunction(value) {:#avgfunction_7c807cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs.
+
+```typescript
+// Calculate the average age of users
+avg("age").as("averageAge");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function avgFunction(value: string): Avg;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | string | The name of the field containing numeric values to average.  A new  representing the 'avg' aggregation. |
+
+<b>Returns:</b>
+
+[Avg](./firestore_lite.avg.md#avg_class)
+
+### exists(value) {:#exists_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field exists.
+
+```typescript
+// Check if the document has a field named "phoneNumber"
+exists(Field.of("phoneNumber"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function exists(value: Constant): Exists;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | An expression evaluates to the name of the field to check.  A new  representing the 'exists' check. |
+
+<b>Returns:</b>
+
+[Exists](./firestore_lite.exists.md#exists_class)
+
+### isNan(value) {:#isnan_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
+
+```typescript
+// Check if the result of a calculation is NaN
+isNaN(Field.of("value").divide(0));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function isNan(value: Constant): IsNan;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression to check.  A new  representing the 'isNaN' check. |
+
+<b>Returns:</b>
+
+[IsNan](./firestore_lite.isnan.md#isnan_class)
+
+### isNan(value) {:#isnan_7c807cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
+
+```typescript
+// Check if the result of a calculation is NaN
+isNaN("value");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function isNan(value: string): IsNan;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | string | The name of the field to check.  A new  representing the 'isNaN' check. |
+
+<b>Returns:</b>
+
+[IsNan](./firestore_lite.isnan.md#isnan_class)
+
+### max(value) {:#max_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the maximum value of an expression across multiple stage inputs.
+
+```typescript
+// Find the highest score in a leaderboard
+max(Field.of("score")).as("highestScore");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function max(value: Constant): Max;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression to find the maximum value of.  A new  representing the 'max' aggregation. |
+
+<b>Returns:</b>
+
+[Max](./firestore_lite.max.md#max_class)
+
+### max(value) {:#max_7c807cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
+
+```typescript
+// Find the highest score in a leaderboard
+max("score").as("highestScore");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function max(value: string): Max;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | string | The name of the field to find the maximum value of.  A new  representing the 'max' aggregation. |
+
+<b>Returns:</b>
+
+[Max](./firestore_lite.max.md#max_class)
+
+### min(value) {:#min_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the minimum value of an expression across multiple stage inputs.
+
+```typescript
+// Find the lowest price of all products
+min(Field.of("price")).as("lowestPrice");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function min(value: Constant): Min;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression to find the minimum value of.  A new  representing the 'min' aggregation. |
+
+<b>Returns:</b>
+
+[Min](./firestore_lite.min.md#min_class)
+
+### min(value) {:#min_7c807cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
+
+```typescript
+// Find the lowest price of all products
+min("price").as("lowestPrice");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function min(value: string): Min;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | string | The name of the field to find the minimum value of.  A new  representing the 'min' aggregation. |
+
+<b>Returns:</b>
+
+[Min](./firestore_lite.min.md#min_class)
+
+### replaceAll(value, find, replace) {:#replaceall_f06d323}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring within a string with another substring.
+
+```typescript
+// Replace all occurrences of "hello" with "hi" in the 'message' field.
+replaceAll(Field.of("message"), "hello", "hi");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceAll(value: Constant, find: string, replace: string): ReplaceAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the replacement on. |
+|  find | string | The substring to search for. |
+|  replace | string | The substring to replace all occurrences of 'find' with.  A new  representing the string with all occurrences replaced. |
+
+<b>Returns:</b>
+
+[ReplaceAll](./firestore_lite.replaceall.md#replaceall_class)
+
+### replaceAll(value, find, replace) {:#replaceall_26a7926}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring within a string with another substring, where the substring to find and the replacement substring are specified by expressions.
+
+```typescript
+// Replace all occurrences of the value in 'findField' with the value in 'replaceField' in the 'message' field.
+replaceAll(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceAll(value: Constant, find: Constant, replace: Constant): ReplaceAll;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the replacement on. |
+|  find | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to search for. |
+|  replace | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to replace all occurrences of 'find' with.  A new  representing the string with all occurrences replaced. |
+
+<b>Returns:</b>
+
+[ReplaceAll](./firestore_lite.replaceall.md#replaceall_class)
+
+### replaceFirst(value, find, replace) {:#replacefirst_f06d323}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring within a string with another substring.
+
+```typescript
+// Replace the first occurrence of "hello" with "hi" in the 'message' field.
+replaceFirst(Field.of("message"), "hello", "hi");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceFirst(value: Constant, find: string, replace: string): ReplaceFirst;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the replacement on. |
+|  find | string | The substring to search for. |
+|  replace | string | The substring to replace the first occurrence of 'find' with.  A new  representing the string with the first occurrence replaced. |
+
+<b>Returns:</b>
+
+[ReplaceFirst](./firestore_lite.replacefirst.md#replacefirst_class)
+
+### replaceFirst(value, find, replace) {:#replacefirst_26a7926}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring within a string with another substring, where the substring to find and the replacement substring are specified by expressions.
+
+```typescript
+// Replace the first occurrence of the value in 'findField' with the value in 'replaceField' in the 'message' field.
+replaceFirst(Field.of("message"), Field.of("findField"), Field.of("replaceField"));
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function replaceFirst(value: Constant, find: Constant, replace: Constant): ReplaceFirst;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the string to perform the replacement on. |
+|  find | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to search for. |
+|  replace | [Constant](./firestore_lite.constant.md#constant_class) | The expression representing the substring to replace the first occurrence of 'find' with.  A new  representing the string with the first occurrence replaced. |
+
+<b>Returns:</b>
+
+[ReplaceFirst](./firestore_lite.replacefirst.md#replacefirst_class)
+
+### sumFunction(value) {:#sumfunction_f83680a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs.
+
+```typescript
+// Calculate the total revenue from a set of orders
+sum(Field.of("orderAmount")).as("totalRevenue");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function sumFunction(value: Constant): Sum;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | [Constant](./firestore_lite.constant.md#constant_class) | The expression to sum up.  A new  representing the 'sum' aggregation. |
+
+<b>Returns:</b>
+
+[Sum](./firestore_lite.sum.md#sum_class)
+
+### sumFunction(value) {:#sumfunction_7c807cd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that calculates the sum of a field's values across multiple stage inputs.
+
+```typescript
+// Calculate the total revenue from a set of orders
+sum("orderAmount").as("totalRevenue");
+
+```
+
+<b>Signature:</b>
+
+```typescript
+export declare function sumFunction(value: string): Sum;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  value | string | The name of the field containing numeric values to sum up.  A new  representing the 'sum' aggregation. |
+
+<b>Returns:</b>
+
+[Sum](./firestore_lite.sum.md#sum_class)
+
 ## function(values, ...)
 
 ### vector(values) {:#vector_0dbdaf2}
@@ -1594,6 +8547,19 @@ export declare function vector(values?: number[]): VectorValue;
 [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class)
 
 A new `VectorValue` constructed with a copy of the given array of numbers.
+
+## AccumulatorTarget
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An accumulator target, which is an expression with an alias that also implements the Accumulator interface.
+
+<b>Signature:</b>
+
+```typescript
+export declare type AccumulatorTarget = ExprWithAlias<Constant & Accumulator>;
+```
 
 ## AddPrefixToKeys
 
@@ -1651,6 +8617,32 @@ See https://www.typescriptlang.org/docs/handbook/advanced-types.html\#distributi
 
 ```typescript
 export declare type ChildUpdateFields<K extends string, V> = V extends Record<string, unknown> ? AddPrefixToKeys<K, UpdateData<V>> : never;
+```
+
+## ExprType
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An enumeration of the different types of expressions.
+
+<b>Signature:</b>
+
+```typescript
+export declare type ExprType = 'Field' | 'Constant' | 'Function' | 'ListOfExprs' | 'ExprWithAlias';
+```
+
+## FilterExpr
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A filter expression, which is an expression that also implements the FilterCondition interface.
+
+<b>Signature:</b>
+
+```typescript
+export declare type FilterExpr = Constant & FilterCondition;
 ```
 
 ## FirestoreErrorCode
@@ -1737,6 +8729,19 @@ export declare type QueryFilterConstraint = QueryFieldFilterConstraint | QueryCo
 
 ```typescript
 export declare type QueryNonFilterConstraint = QueryOrderByConstraint | QueryLimitConstraint | QueryStartAtConstraint | QueryEndAtConstraint;
+```
+
+## SelectableExpr
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+A selectable expression, which is an expression that also implements the Selectable interface.
+
+<b>Signature:</b>
+
+```typescript
+export declare type SelectableExpr = Constant & Selectable;
 ```
 
 ## SetOptions
