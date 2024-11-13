@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { And, FilterExpr, Or } from '../lite-api/expressions';
-import { and, or } from '../lite-api/overloads';
 import { Pipeline } from '../lite-api/pipeline';
 import { PipelineSource } from '../lite-api/pipeline-source';
 import { newUserDataReader } from '../lite-api/user_data_reader';
@@ -55,13 +53,5 @@ export function useFirestorePipelines(): void {
     // pipeline stages
 
     return pipeline;
-  };
-
-  and._andFunction = function (left: FilterExpr, ...right: FilterExpr[]): And {
-    return new And([left, ...right]);
-  };
-
-  or._orFunction = function (left: FilterExpr, ...right: FilterExpr[]): Or {
-    return new Or([left, ...right]);
   };
 }

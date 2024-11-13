@@ -18,8 +18,6 @@
 import { DocumentKey } from '../model/document_key';
 
 import { Firestore } from './database';
-import { And, FilterExpr, Or } from './expressions';
-import { or, and } from './overloads';
 import { Pipeline } from './pipeline';
 import { PipelineSource } from './pipeline-source';
 import { DocumentReference, Query } from './reference';
@@ -56,13 +54,5 @@ export function useFirestorePipelines(): void {
     // pipeline stages
 
     return pipeline;
-  };
-
-  and._andFunction = function (left: FilterExpr, ...right: FilterExpr[]): And {
-    return new And([left, ...right]);
-  };
-
-  or._orFunction = function (left: FilterExpr, ...right: FilterExpr[]): Or {
-    return new Or([left, ...right]);
   };
 }

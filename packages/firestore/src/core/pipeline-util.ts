@@ -20,9 +20,10 @@ import {
   Expr,
   Field,
   FilterCondition,
-  not
+  not,
+  andFunction,
+  orFunction
 } from '../lite-api/expressions';
-import { and, or } from '../lite-api/overloads';
 import { isNanValue, isNullValue } from '../model/values';
 import {
   ArrayValue as ProtoArrayValue,
@@ -178,51 +179,51 @@ export function toPipelineFilterCondition(
     const field = Field.of(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return and(field.exists(), field.isNaN());
+        return andFunction(field.exists(), field.isNaN());
       } else {
-        return and(field.exists(), not(field.isNaN()));
+        return andFunction(field.exists(), not(field.isNaN()));
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return and(field.exists(), field.eq(null));
+        return andFunction(field.exists(), field.eq(null));
       } else {
-        return and(field.exists(), not(field.eq(null)));
+        return andFunction(field.exists(), not(field.eq(null)));
       }
     } else {
       // Comparison filters
       const value = f.value;
       switch (f.op) {
         case Operator.LESS_THAN:
-          return and(field.exists(), field.lt(value));
+          return andFunction(field.exists(), field.lt(value));
         case Operator.LESS_THAN_OR_EQUAL:
-          return and(field.exists(), field.lte(value));
+          return andFunction(field.exists(), field.lte(value));
         case Operator.GREATER_THAN:
-          return and(field.exists(), field.gt(value));
+          return andFunction(field.exists(), field.gt(value));
         case Operator.GREATER_THAN_OR_EQUAL:
-          return and(field.exists(), field.gte(value));
+          return andFunction(field.exists(), field.gte(value));
         case Operator.EQUAL:
-          return and(field.exists(), field.eq(value));
+          return andFunction(field.exists(), field.eq(value));
         case Operator.NOT_EQUAL:
-          return and(field.exists(), field.neq(value));
+          return andFunction(field.exists(), field.neq(value));
         case Operator.ARRAY_CONTAINS:
-          return and(field.exists(), field.arrayContains(value));
+          return andFunction(field.exists(), field.arrayContains(value));
         case Operator.IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant.of(val)
           );
-          return and(field.exists(), field.in(...values!));
+          return andFunction(field.exists(), field.in(...values!));
         }
         case Operator.ARRAY_CONTAINS_ANY: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant.of(val)
           );
-          return and(field.exists(), field.arrayContainsAny(values!));
+          return andFunction(field.exists(), field.arrayContainsAny(values!));
         }
         case Operator.NOT_IN: {
           const values = value?.arrayValue?.values?.map((val: any) =>
             Constant.of(val)
           );
-          return and(field.exists(), not(field.in(...values!)));
+          return andFunction(field.exists(), not(field.in(...values!)));
         }
         default:
           fail('Unexpected operator');
@@ -234,13 +235,13 @@ export function toPipelineFilterCondition(
         const conditions = f
           .getFilters()
           .map(f => toPipelineFilterCondition(f));
-        return and(conditions[0], ...conditions.slice(1));
+        return andFunction(conditions[0], ...conditions.slice(1));
       }
       case CompositeOperator.OR: {
         const conditions = f
           .getFilters()
           .map(f => toPipelineFilterCondition(f));
-        return or(conditions[0], ...conditions.slice(1));
+        return orFunction(conditions[0], ...conditions.slice(1));
       }
       default:
         fail('Unexpected operator');

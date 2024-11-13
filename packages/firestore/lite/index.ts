@@ -189,9 +189,7 @@ export {
   SelectableExpr,
   Selectable,
   FilterCondition,
-  Accumulator,
-  sum as sumFunction,
-  avg as avgFunction
+  Accumulator
 } from '../src/lite-api/expressions';
 
 export {
@@ -240,9 +238,8 @@ export {
   queryEqual
 } from '../src/lite-api/reference';
 
-export { and, or } from '../src/lite-api/overloads';
-
 export {
+  and,
   endAt,
   endBefore,
   startAt,
@@ -250,6 +247,7 @@ export {
   limit,
   limitToLast,
   where,
+  or,
   orderBy,
   query,
   QueryConstraint,

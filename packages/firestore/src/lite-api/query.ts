@@ -368,6 +368,54 @@ export type QueryFilterConstraint =
   | QueryCompositeFilterConstraint;
 
 /**
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a disjunction of
+ * the given filter constraints. A disjunction filter includes a document if it
+ * satisfies any of the given filters.
+ *
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a disjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
+ */
+export function or(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint {
+  // Only support QueryFilterConstraints
+  queryConstraints.forEach(queryConstraint =>
+    validateQueryFilterConstraint('or', queryConstraint)
+  );
+
+  return QueryCompositeFilterConstraint._create(
+    CompositeOperator.OR,
+    queryConstraints as QueryFilterConstraint[]
+  );
+}
+
+/**
+ * Creates a new {@link QueryCompositeFilterConstraint} that is a conjunction of
+ * the given filter constraints. A conjunction filter includes a document if it
+ * satisfies all of the given filters.
+ *
+ * @param queryConstraints - Optional. The list of
+ * {@link QueryFilterConstraint}s to perform a conjunction for. These must be
+ * created with calls to {@link where}, {@link or}, or {@link and}.
+ * @returns The newly created {@link QueryCompositeFilterConstraint}.
+ */
+export function and(
+  ...queryConstraints: QueryFilterConstraint[]
+): QueryCompositeFilterConstraint {
+  // Only support QueryFilterConstraints
+  queryConstraints.forEach(queryConstraint =>
+    validateQueryFilterConstraint('and', queryConstraint)
+  );
+
+  return QueryCompositeFilterConstraint._create(
+    CompositeOperator.AND,
+    queryConstraints as QueryFilterConstraint[]
+  );
+}
+
+/**
  * A `QueryOrderByConstraint` is used to sort the set of documents returned by a
  * Firestore query. `QueryOrderByConstraint`s are created by invoking
  * {@link orderBy} and can then be passed to {@link (query:1)} to create a new query

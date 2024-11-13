@@ -5686,7 +5686,7 @@ export function countAll(): Count {
  * @param value The expression to count.
  * @return A new {@code Accumulator} representing the 'count' aggregation.
  */
-export function count(value: Expr): Count;
+export function countFunction(value: Expr): Count;
 
 /**
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
@@ -5700,8 +5700,8 @@ export function count(value: Expr): Count;
  * @param value The name of the field to count.
  * @return A new {@code Accumulator} representing the 'count' aggregation.
  */
-export function count(value: string): Count;
-export function count(value: Expr | string): Count {
+export function countFunction(value: string): Count;
+export function countFunction(value: Expr | string): Count {
   const exprValue = value instanceof Expr ? value : Field.of(value);
   return new Count(exprValue, false);
 }
@@ -5720,7 +5720,7 @@ export function count(value: Expr | string): Count {
  * @param value The expression to sum up.
  * @return A new {@code Accumulator} representing the 'sum' aggregation.
  */
-export function sum(value: Expr): Sum;
+export function sumFunction(value: Expr): Sum;
 
 /**
  * @beta
@@ -5736,8 +5736,8 @@ export function sum(value: Expr): Sum;
  * @param value The name of the field containing numeric values to sum up.
  * @return A new {@code Accumulator} representing the 'sum' aggregation.
  */
-export function sum(value: string): Sum;
-export function sum(value: Expr | string): Sum {
+export function sumFunction(value: string): Sum;
+export function sumFunction(value: Expr | string): Sum {
   const exprValue = value instanceof Expr ? value : Field.of(value);
   return new Sum(exprValue, false);
 }
@@ -5756,7 +5756,7 @@ export function sum(value: Expr | string): Sum {
  * @param value The expression representing the values to average.
  * @return A new {@code Accumulator} representing the 'avg' aggregation.
  */
-export function avg(value: Expr): Avg;
+export function avgFunction(value: Expr): Avg;
 
 /**
  * @beta
@@ -5772,8 +5772,8 @@ export function avg(value: Expr): Avg;
  * @param value The name of the field containing numeric values to average.
  * @return A new {@code Accumulator} representing the 'avg' aggregation.
  */
-export function avg(value: string): Avg;
-export function avg(value: Expr | string): Avg {
+export function avgFunction(value: string): Avg;
+export function avgFunction(value: Expr | string): Avg {
   const exprValue = value instanceof Expr ? value : Field.of(value);
   return new Avg(exprValue, false);
 }
@@ -6624,6 +6624,44 @@ export function genericFunction(
   params: Expr[]
 ): FirestoreFunction {
   return new FirestoreFunction(name, params);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
+ *
+ * ```typescript
+ * // Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
+ * // the 'status' field is "active"
+ * const condition = and(gt("age", 18), eq("city", "London"), eq("status", "active"));
+ * ```
+ *
+ * @param left The first filter condition.
+ * @param right Additional filter conditions to 'AND' together.
+ * @return A new {@code Expr} representing the logical 'AND' operation.
+ */
+export function andFunction(left: FilterExpr, ...right: FilterExpr[]): And {
+  return new And([left, ...right]);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
+ *
+ * ```typescript
+ * // Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
+ * // the 'status' field is "active"
+ * const condition = or(gt("age", 18), eq("city", "London"), eq("status", "active"));
+ * ```
+ *
+ * @param left The first filter condition.
+ * @param right Additional filter conditions to 'OR' together.
+ * @return A new {@code Expr} representing the logical 'OR' operation.
+ */
+export function orFunction(left: FilterExpr, ...right: FilterExpr[]): Or {
+  return new Or([left, ...right]);
 }
 
 /**

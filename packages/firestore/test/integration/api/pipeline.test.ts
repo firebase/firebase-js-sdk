@@ -25,10 +25,10 @@ import { Deferred } from '../../util/promise';
 import {
   _internalPipelineToExecutePipelineRequestProto,
   add,
-  and,
+  andFunction,
   arrayContains,
   arrayContainsAny,
-  avg,
+  avgFunction,
   CollectionReference,
   Constant,
   cosineDistance,
@@ -48,7 +48,7 @@ import {
   mapGet,
   neq,
   not,
-  or,
+  orFunction,
   PipelineResult,
   regexContains,
   regexMatch,
@@ -290,7 +290,7 @@ apiDescribe.skip('Pipelines', persistence => {
       .where(eq('genre', 'Science Fiction'))
       .aggregate(
         countAll().as('count'),
-        avg('rating').as('avgRating'),
+        avgFunction('rating').as('avgRating'),
         Field.of('rating').max().as('maxRating')
       )
       .execute();
@@ -329,7 +329,7 @@ apiDescribe.skip('Pipelines', persistence => {
       .pipeline()
       .where(lt(Field.of('published'), 1984))
       .aggregate({
-        accumulators: [avg('rating').as('avgRating')],
+        accumulators: [avgFunction('rating').as('avgRating')],
         groups: ['genre']
       })
       .where(gt('avgRating', 4.3))
@@ -390,7 +390,7 @@ apiDescribe.skip('Pipelines', persistence => {
   it('where with and', async () => {
     const results = await randomCol
       .pipeline()
-      .where(and(gt('rating', 4.5), eq('genre', 'Science Fiction')))
+      .where(andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')))
       .execute();
     expectResults(results, 'book10');
   });
@@ -398,7 +398,7 @@ apiDescribe.skip('Pipelines', persistence => {
   it('where with or', async () => {
     const results = await randomCol
       .pipeline()
-      .where(or(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
+      .where(orFunction(eq('genre', 'Romance'), eq('genre', 'Dystopian')))
       .select('title')
       .execute();
     expectResults(
@@ -643,7 +643,7 @@ apiDescribe.skip('Pipelines', persistence => {
     const results = await randomCol
       .pipeline()
       .where(
-        and(
+        andFunction(
           gt('rating', 4.2),
           lte(Field.of('rating'), 4.5),
           neq('genre', 'Science Fiction')
@@ -667,8 +667,8 @@ apiDescribe.skip('Pipelines', persistence => {
     const results = await randomCol
       .pipeline()
       .where(
-        or(
-          and(gt('rating', 4.5), eq('genre', 'Science Fiction')),
+        orFunction(
+          andFunction(gt('rating', 4.5), eq('genre', 'Science Fiction')),
           lt('published', 1900)
         )
       )
@@ -853,7 +853,7 @@ apiDescribe.skip('Pipelines', persistence => {
         .collection(randomCol.path)
         .where(lt(Field.of('published'), 1984))
         .aggregate({
-          accumulators: [avg('rating').as('avgRating')],
+          accumulators: [avgFunction('rating').as('avgRating')],
           groups: ['genre']
         })
         .where(gt('avgRating', 4.3))
@@ -873,7 +873,7 @@ apiDescribe.skip('Pipelines', persistence => {
       const myPipeline = pipeline(randomCol)
         .where(lt(Field.of('published'), 1984))
         .aggregate({
-          accumulators: [avg('rating').as('avgRating')],
+          accumulators: [avgFunction('rating').as('avgRating')],
           groups: ['genre']
         })
         .where(gt('avgRating', 4.3))

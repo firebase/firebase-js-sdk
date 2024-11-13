@@ -87,9 +87,11 @@ export {
   strConcat,
   mapGet,
   countAll,
-  count as countExpression,
-  sum as sumExpression,
-  avg,
+  countFunction,
+  sumFunction,
+  avgFunction,
+  andFunction,
+  orFunction,
   min,
   max,
   cosineDistance,
@@ -182,8 +184,6 @@ export {
   FilterCondition,
   Accumulator
 } from './lite-api/expressions';
-
-export { and, or } from './lite-api/overloads';
 
 export {
   aggregateFieldEqual,
@@ -284,10 +284,12 @@ export {
 } from './api/reference';
 
 export {
+  and,
   endAt,
   endBefore,
   limit,
   limitToLast,
+  or,
   orderBy,
   OrderByDirection,
   query,
