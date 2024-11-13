@@ -36,7 +36,6 @@ export declare class Query<AppModelType = DocumentData, DbModelType extends Docu
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [pipeline()](./firestore_.query.md#querypipeline) |  | Pipeline query. |
 |  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Removes the current converter. |
 |  [withConverter(converter)](./firestore_.query.md#querywithconverter) |  | Applies a custom data converter to this query, allowing you to use your own custom model objects with Firestore. When you call [getDocs()](./firestore_.md#getdocs_4e56953) with the returned query, the provided converter will convert between Firestore data of type <code>NewDbModelType</code> and your custom type <code>NewAppModelType</code>. |
 
@@ -79,19 +78,6 @@ The type of this Firestore reference.
 ```typescript
 readonly type: 'query' | 'collection';
 ```
-
-## Query.pipeline()
-
-Pipeline query.
-
-<b>Signature:</b>
-
-```typescript
-pipeline(): Pipeline;
-```
-<b>Returns:</b>
-
-[Pipeline](./firestore_.pipeline.md#pipeline_class)
 
 ## Query.withConverter()
 

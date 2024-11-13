@@ -201,62 +201,16 @@ toc:
   - title: firestore
     path: /docs/reference/js/firestore_.md
     section:
-      - title: Accumulator
-        path: /docs/reference/js/firestore_.accumulator.md
-      - title: Add
-        path: /docs/reference/js/firestore_.add.md
-      - title: AddFields
-        path: /docs/reference/js/firestore_.addfields.md
-      - title: Aggregate
-        path: /docs/reference/js/firestore_.aggregate.md
       - title: AggregateField
         path: /docs/reference/js/firestore_.aggregatefield.md
       - title: AggregateQuerySnapshot
         path: /docs/reference/js/firestore_.aggregatequerysnapshot.md
       - title: AggregateSpec
         path: /docs/reference/js/firestore_.aggregatespec.md
-      - title: And
-        path: /docs/reference/js/firestore_.and.md
-      - title: ArrayConcat
-        path: /docs/reference/js/firestore_.arrayconcat.md
-      - title: ArrayContains
-        path: /docs/reference/js/firestore_.arraycontains.md
-      - title: ArrayContainsAll
-        path: /docs/reference/js/firestore_.arraycontainsall.md
-      - title: ArrayContainsAny
-        path: /docs/reference/js/firestore_.arraycontainsany.md
-      - title: ArrayElement
-        path: /docs/reference/js/firestore_.arrayelement.md
-      - title: ArrayLength
-        path: /docs/reference/js/firestore_.arraylength.md
-      - title: ArrayReverse
-        path: /docs/reference/js/firestore_.arrayreverse.md
-      - title: Avg
-        path: /docs/reference/js/firestore_.avg.md
-      - title: ByteLength
-        path: /docs/reference/js/firestore_.bytelength.md
       - title: Bytes
         path: /docs/reference/js/firestore_.bytes.md
-      - title: CharLength
-        path: /docs/reference/js/firestore_.charlength.md
-      - title: CollectionGroupSource
-        path: /docs/reference/js/firestore_.collectiongroupsource.md
       - title: CollectionReference
         path: /docs/reference/js/firestore_.collectionreference.md
-      - title: CollectionSource
-        path: /docs/reference/js/firestore_.collectionsource.md
-      - title: Constant
-        path: /docs/reference/js/firestore_.constant.md
-      - title: CosineDistance
-        path: /docs/reference/js/firestore_.cosinedistance.md
-      - title: Count
-        path: /docs/reference/js/firestore_.count.md
-      - title: DatabaseSource
-        path: /docs/reference/js/firestore_.databasesource.md
-      - title: Distinct
-        path: /docs/reference/js/firestore_.distinct.md
-      - title: Divide
-        path: /docs/reference/js/firestore_.divide.md
       - title: DocumentChange
         path: /docs/reference/js/firestore_.documentchange.md
       - title: DocumentData
@@ -265,86 +219,32 @@ toc:
         path: /docs/reference/js/firestore_.documentreference.md
       - title: DocumentSnapshot
         path: /docs/reference/js/firestore_.documentsnapshot.md
-      - title: DocumentsSource
-        path: /docs/reference/js/firestore_.documentssource.md
-      - title: DotProduct
-        path: /docs/reference/js/firestore_.dotproduct.md
-      - title: EndsWith
-        path: /docs/reference/js/firestore_.endswith.md
-      - title: Eq
-        path: /docs/reference/js/firestore_.eq.md
-      - title: EuclideanDistance
-        path: /docs/reference/js/firestore_.euclideandistance.md
-      - title: Exists
-        path: /docs/reference/js/firestore_.exists.md
       - title: ExperimentalLongPollingOptions
         path: /docs/reference/js/firestore_.experimentallongpollingoptions.md
-      - title: ExprWithAlias
-        path: /docs/reference/js/firestore_.exprwithalias.md
-      - title: Field
-        path: /docs/reference/js/firestore_.field.md
       - title: FieldPath
         path: /docs/reference/js/firestore_.fieldpath.md
-      - title: Fields
-        path: /docs/reference/js/firestore_.fields.md
       - title: FieldValue
         path: /docs/reference/js/firestore_.fieldvalue.md
-      - title: FilterCondition
-        path: /docs/reference/js/firestore_.filtercondition.md
-      - title: FindNearest
-        path: /docs/reference/js/firestore_.findnearest.md
-      - title: FindNearestOptions
-        path: /docs/reference/js/firestore_.findnearestoptions.md
       - title: Firestore
         path: /docs/reference/js/firestore_.firestore.md
       - title: FirestoreDataConverter
         path: /docs/reference/js/firestore_.firestoredataconverter.md
       - title: FirestoreError
         path: /docs/reference/js/firestore_.firestoreerror.md
-      - title: FirestoreFunction
-        path: /docs/reference/js/firestore_.firestorefunction.md
       - title: FirestoreSettings
         path: /docs/reference/js/firestore_.firestoresettings.md
-      - title: GenericStage
-        path: /docs/reference/js/firestore_.genericstage.md
       - title: GeoPoint
         path: /docs/reference/js/firestore_.geopoint.md
-      - title: Gt
-        path: /docs/reference/js/firestore_.gt.md
-      - title: Gte
-        path: /docs/reference/js/firestore_.gte.md
-      - title: If
-        path: /docs/reference/js/firestore_.if.md
-      - title: In
-        path: /docs/reference/js/firestore_.in.md
       - title: Index
         path: /docs/reference/js/firestore_.index.md
       - title: IndexConfiguration
         path: /docs/reference/js/firestore_.indexconfiguration.md
       - title: IndexField
         path: /docs/reference/js/firestore_.indexfield.md
-      - title: IsNan
-        path: /docs/reference/js/firestore_.isnan.md
-      - title: Like
-        path: /docs/reference/js/firestore_.like.md
-      - title: Limit
-        path: /docs/reference/js/firestore_.limit.md
       - title: LoadBundleTask
         path: /docs/reference/js/firestore_.loadbundletask.md
       - title: LoadBundleTaskProgress
         path: /docs/reference/js/firestore_.loadbundletaskprogress.md
-      - title: LogicalMax
-        path: /docs/reference/js/firestore_.logicalmax.md
-      - title: LogicalMin
-        path: /docs/reference/js/firestore_.logicalmin.md
-      - title: Lt
-        path: /docs/reference/js/firestore_.lt.md
-      - title: Lte
-        path: /docs/reference/js/firestore_.lte.md
-      - title: MapGet
-        path: /docs/reference/js/firestore_.mapget.md
-      - title: Max
-        path: /docs/reference/js/firestore_.max.md
       - title: MemoryCacheSettings
         path: /docs/reference/js/firestore_.memorycachesettings.md
       - title: MemoryEagerGarbageCollector
@@ -353,22 +253,6 @@ toc:
         path: /docs/reference/js/firestore_.memorylocalcache.md
       - title: MemoryLruGarbageCollector
         path: /docs/reference/js/firestore_.memorylrugarbagecollector.md
-      - title: Min
-        path: /docs/reference/js/firestore_.min.md
-      - title: Mod
-        path: /docs/reference/js/firestore_.mod.md
-      - title: Multiply
-        path: /docs/reference/js/firestore_.multiply.md
-      - title: Neq
-        path: /docs/reference/js/firestore_.neq.md
-      - title: Not
-        path: /docs/reference/js/firestore_.not.md
-      - title: Offset
-        path: /docs/reference/js/firestore_.offset.md
-      - title: Or
-        path: /docs/reference/js/firestore_.or.md
-      - title: Ordering
-        path: /docs/reference/js/firestore_.ordering.md
       - title: PersistenceSettings
         path: /docs/reference/js/firestore_.persistencesettings.md
       - title: PersistentCacheIndexManager
@@ -383,12 +267,6 @@ toc:
         path: /docs/reference/js/firestore_.persistentsingletabmanager.md
       - title: PersistentSingleTabManagerSettings
         path: /docs/reference/js/firestore_.persistentsingletabmanagersettings.md
-      - title: Pipeline
-        path: /docs/reference/js/firestore_.pipeline.md
-      - title: PipelineResult
-        path: /docs/reference/js/firestore_.pipelineresult.md
-      - title: PipelineSource
-        path: /docs/reference/js/firestore_.pipelinesource.md
       - title: Query
         path: /docs/reference/js/firestore_.query.md
       - title: QueryCompositeFilterConstraint
@@ -409,233 +287,55 @@ toc:
         path: /docs/reference/js/firestore_.querysnapshot.md
       - title: QueryStartAtConstraint
         path: /docs/reference/js/firestore_.querystartatconstraint.md
-      - title: RegexContains
-        path: /docs/reference/js/firestore_.regexcontains.md
-      - title: RegexMatch
-        path: /docs/reference/js/firestore_.regexmatch.md
-      - title: ReplaceAll
-        path: /docs/reference/js/firestore_.replaceall.md
-      - title: ReplaceFirst
-        path: /docs/reference/js/firestore_.replacefirst.md
-      - title: Reverse
-        path: /docs/reference/js/firestore_.reverse.md
-      - title: Select
-        path: /docs/reference/js/firestore_.select.md
-      - title: Selectable
-        path: /docs/reference/js/firestore_.selectable.md
       - title: SnapshotListenOptions
         path: /docs/reference/js/firestore_.snapshotlistenoptions.md
       - title: SnapshotMetadata
         path: /docs/reference/js/firestore_.snapshotmetadata.md
       - title: SnapshotOptions
         path: /docs/reference/js/firestore_.snapshotoptions.md
-      - title: Sort
-        path: /docs/reference/js/firestore_.sort.md
-      - title: Stage
-        path: /docs/reference/js/firestore_.stage.md
-      - title: StartsWith
-        path: /docs/reference/js/firestore_.startswith.md
-      - title: StrConcat
-        path: /docs/reference/js/firestore_.strconcat.md
-      - title: StrContains
-        path: /docs/reference/js/firestore_.strcontains.md
-      - title: Subtract
-        path: /docs/reference/js/firestore_.subtract.md
-      - title: Sum
-        path: /docs/reference/js/firestore_.sum.md
       - title: Timestamp
         path: /docs/reference/js/firestore_.timestamp.md
-      - title: TimestampAdd
-        path: /docs/reference/js/firestore_.timestampadd.md
-      - title: TimestampSub
-        path: /docs/reference/js/firestore_.timestampsub.md
-      - title: TimestampToUnixMicros
-        path: /docs/reference/js/firestore_.timestamptounixmicros.md
-      - title: TimestampToUnixMillis
-        path: /docs/reference/js/firestore_.timestamptounixmillis.md
-      - title: TimestampToUnixSeconds
-        path: /docs/reference/js/firestore_.timestamptounixseconds.md
-      - title: ToLower
-        path: /docs/reference/js/firestore_.tolower.md
-      - title: ToUpper
-        path: /docs/reference/js/firestore_.toupper.md
       - title: Transaction
         path: /docs/reference/js/firestore_.transaction.md
       - title: TransactionOptions
         path: /docs/reference/js/firestore_.transactionoptions.md
-      - title: Trim
-        path: /docs/reference/js/firestore_.trim.md
-      - title: UnixMicrosToTimestamp
-        path: /docs/reference/js/firestore_.unixmicrostotimestamp.md
-      - title: UnixMillisToTimestamp
-        path: /docs/reference/js/firestore_.unixmillistotimestamp.md
-      - title: UnixSecondsToTimestamp
-        path: /docs/reference/js/firestore_.unixsecondstotimestamp.md
       - title: Unsubscribe
         path: /docs/reference/js/firestore_.unsubscribe.md
-      - title: VectorLength
-        path: /docs/reference/js/firestore_.vectorlength.md
       - title: VectorValue
         path: /docs/reference/js/firestore_.vectorvalue.md
-      - title: Where
-        path: /docs/reference/js/firestore_.where.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_.writebatch.md
-      - title: Xor
-        path: /docs/reference/js/firestore_.xor.md
   - title: firestore/lite
     path: /docs/reference/js/firestore_lite.md
     section:
-      - title: Accumulator
-        path: /docs/reference/js/firestore_lite.accumulator.md
-      - title: Add
-        path: /docs/reference/js/firestore_lite.add.md
-      - title: AddFields
-        path: /docs/reference/js/firestore_lite.addfields.md
-      - title: Aggregate
-        path: /docs/reference/js/firestore_lite.aggregate.md
       - title: AggregateField
         path: /docs/reference/js/firestore_lite.aggregatefield.md
       - title: AggregateQuerySnapshot
         path: /docs/reference/js/firestore_lite.aggregatequerysnapshot.md
       - title: AggregateSpec
         path: /docs/reference/js/firestore_lite.aggregatespec.md
-      - title: And
-        path: /docs/reference/js/firestore_lite.and.md
-      - title: ArrayConcat
-        path: /docs/reference/js/firestore_lite.arrayconcat.md
-      - title: ArrayContains
-        path: /docs/reference/js/firestore_lite.arraycontains.md
-      - title: ArrayContainsAll
-        path: /docs/reference/js/firestore_lite.arraycontainsall.md
-      - title: ArrayContainsAny
-        path: /docs/reference/js/firestore_lite.arraycontainsany.md
-      - title: ArrayElement
-        path: /docs/reference/js/firestore_lite.arrayelement.md
-      - title: ArrayLength
-        path: /docs/reference/js/firestore_lite.arraylength.md
-      - title: ArrayReverse
-        path: /docs/reference/js/firestore_lite.arrayreverse.md
-      - title: Avg
-        path: /docs/reference/js/firestore_lite.avg.md
-      - title: ByteLength
-        path: /docs/reference/js/firestore_lite.bytelength.md
       - title: Bytes
         path: /docs/reference/js/firestore_lite.bytes.md
-      - title: CharLength
-        path: /docs/reference/js/firestore_lite.charlength.md
-      - title: CollectionGroupSource
-        path: /docs/reference/js/firestore_lite.collectiongroupsource.md
       - title: CollectionReference
         path: /docs/reference/js/firestore_lite.collectionreference.md
-      - title: CollectionSource
-        path: /docs/reference/js/firestore_lite.collectionsource.md
-      - title: Constant
-        path: /docs/reference/js/firestore_lite.constant.md
-      - title: CosineDistance
-        path: /docs/reference/js/firestore_lite.cosinedistance.md
-      - title: Count
-        path: /docs/reference/js/firestore_lite.count.md
-      - title: DatabaseSource
-        path: /docs/reference/js/firestore_lite.databasesource.md
-      - title: Distinct
-        path: /docs/reference/js/firestore_lite.distinct.md
-      - title: Divide
-        path: /docs/reference/js/firestore_lite.divide.md
       - title: DocumentData
         path: /docs/reference/js/firestore_lite.documentdata.md
       - title: DocumentReference
         path: /docs/reference/js/firestore_lite.documentreference.md
       - title: DocumentSnapshot
         path: /docs/reference/js/firestore_lite.documentsnapshot.md
-      - title: DocumentsSource
-        path: /docs/reference/js/firestore_lite.documentssource.md
-      - title: DotProduct
-        path: /docs/reference/js/firestore_lite.dotproduct.md
-      - title: EndsWith
-        path: /docs/reference/js/firestore_lite.endswith.md
-      - title: Eq
-        path: /docs/reference/js/firestore_lite.eq.md
-      - title: EuclideanDistance
-        path: /docs/reference/js/firestore_lite.euclideandistance.md
-      - title: Exists
-        path: /docs/reference/js/firestore_lite.exists.md
-      - title: ExprWithAlias
-        path: /docs/reference/js/firestore_lite.exprwithalias.md
-      - title: Field
-        path: /docs/reference/js/firestore_lite.field.md
       - title: FieldPath
         path: /docs/reference/js/firestore_lite.fieldpath.md
-      - title: Fields
-        path: /docs/reference/js/firestore_lite.fields.md
       - title: FieldValue
         path: /docs/reference/js/firestore_lite.fieldvalue.md
-      - title: FilterCondition
-        path: /docs/reference/js/firestore_lite.filtercondition.md
-      - title: FindNearest
-        path: /docs/reference/js/firestore_lite.findnearest.md
-      - title: FindNearestOptions
-        path: /docs/reference/js/firestore_lite.findnearestoptions.md
       - title: Firestore
         path: /docs/reference/js/firestore_lite.firestore.md
       - title: FirestoreDataConverter
         path: /docs/reference/js/firestore_lite.firestoredataconverter.md
       - title: FirestoreError
         path: /docs/reference/js/firestore_lite.firestoreerror.md
-      - title: FirestoreFunction
-        path: /docs/reference/js/firestore_lite.firestorefunction.md
-      - title: GenericStage
-        path: /docs/reference/js/firestore_lite.genericstage.md
       - title: GeoPoint
         path: /docs/reference/js/firestore_lite.geopoint.md
-      - title: Gt
-        path: /docs/reference/js/firestore_lite.gt.md
-      - title: Gte
-        path: /docs/reference/js/firestore_lite.gte.md
-      - title: If
-        path: /docs/reference/js/firestore_lite.if.md
-      - title: In
-        path: /docs/reference/js/firestore_lite.in.md
-      - title: IsNan
-        path: /docs/reference/js/firestore_lite.isnan.md
-      - title: Like
-        path: /docs/reference/js/firestore_lite.like.md
-      - title: Limit
-        path: /docs/reference/js/firestore_lite.limit.md
-      - title: LogicalMax
-        path: /docs/reference/js/firestore_lite.logicalmax.md
-      - title: LogicalMin
-        path: /docs/reference/js/firestore_lite.logicalmin.md
-      - title: Lt
-        path: /docs/reference/js/firestore_lite.lt.md
-      - title: Lte
-        path: /docs/reference/js/firestore_lite.lte.md
-      - title: MapGet
-        path: /docs/reference/js/firestore_lite.mapget.md
-      - title: Max
-        path: /docs/reference/js/firestore_lite.max.md
-      - title: Min
-        path: /docs/reference/js/firestore_lite.min.md
-      - title: Mod
-        path: /docs/reference/js/firestore_lite.mod.md
-      - title: Multiply
-        path: /docs/reference/js/firestore_lite.multiply.md
-      - title: Neq
-        path: /docs/reference/js/firestore_lite.neq.md
-      - title: Not
-        path: /docs/reference/js/firestore_lite.not.md
-      - title: Offset
-        path: /docs/reference/js/firestore_lite.offset.md
-      - title: Or
-        path: /docs/reference/js/firestore_lite.or.md
-      - title: Ordering
-        path: /docs/reference/js/firestore_lite.ordering.md
-      - title: Pipeline
-        path: /docs/reference/js/firestore_lite.pipeline.md
-      - title: PipelineResult
-        path: /docs/reference/js/firestore_lite.pipelineresult.md
-      - title: PipelineSource
-        path: /docs/reference/js/firestore_lite.pipelinesource.md
       - title: Query
         path: /docs/reference/js/firestore_lite.query.md
       - title: QueryCompositeFilterConstraint
@@ -656,74 +356,18 @@ toc:
         path: /docs/reference/js/firestore_lite.querysnapshot.md
       - title: QueryStartAtConstraint
         path: /docs/reference/js/firestore_lite.querystartatconstraint.md
-      - title: RegexContains
-        path: /docs/reference/js/firestore_lite.regexcontains.md
-      - title: RegexMatch
-        path: /docs/reference/js/firestore_lite.regexmatch.md
-      - title: ReplaceAll
-        path: /docs/reference/js/firestore_lite.replaceall.md
-      - title: ReplaceFirst
-        path: /docs/reference/js/firestore_lite.replacefirst.md
-      - title: Reverse
-        path: /docs/reference/js/firestore_lite.reverse.md
-      - title: Select
-        path: /docs/reference/js/firestore_lite.select.md
-      - title: Selectable
-        path: /docs/reference/js/firestore_lite.selectable.md
       - title: Settings
         path: /docs/reference/js/firestore_lite.settings.md
-      - title: Sort
-        path: /docs/reference/js/firestore_lite.sort.md
-      - title: Stage
-        path: /docs/reference/js/firestore_lite.stage.md
-      - title: StartsWith
-        path: /docs/reference/js/firestore_lite.startswith.md
-      - title: StrConcat
-        path: /docs/reference/js/firestore_lite.strconcat.md
-      - title: StrContains
-        path: /docs/reference/js/firestore_lite.strcontains.md
-      - title: Subtract
-        path: /docs/reference/js/firestore_lite.subtract.md
-      - title: Sum
-        path: /docs/reference/js/firestore_lite.sum.md
       - title: Timestamp
         path: /docs/reference/js/firestore_lite.timestamp.md
-      - title: TimestampAdd
-        path: /docs/reference/js/firestore_lite.timestampadd.md
-      - title: TimestampSub
-        path: /docs/reference/js/firestore_lite.timestampsub.md
-      - title: TimestampToUnixMicros
-        path: /docs/reference/js/firestore_lite.timestamptounixmicros.md
-      - title: TimestampToUnixMillis
-        path: /docs/reference/js/firestore_lite.timestamptounixmillis.md
-      - title: TimestampToUnixSeconds
-        path: /docs/reference/js/firestore_lite.timestamptounixseconds.md
-      - title: ToLower
-        path: /docs/reference/js/firestore_lite.tolower.md
-      - title: ToUpper
-        path: /docs/reference/js/firestore_lite.toupper.md
       - title: Transaction
         path: /docs/reference/js/firestore_lite.transaction.md
       - title: TransactionOptions
         path: /docs/reference/js/firestore_lite.transactionoptions.md
-      - title: Trim
-        path: /docs/reference/js/firestore_lite.trim.md
-      - title: UnixMicrosToTimestamp
-        path: /docs/reference/js/firestore_lite.unixmicrostotimestamp.md
-      - title: UnixMillisToTimestamp
-        path: /docs/reference/js/firestore_lite.unixmillistotimestamp.md
-      - title: UnixSecondsToTimestamp
-        path: /docs/reference/js/firestore_lite.unixsecondstotimestamp.md
-      - title: VectorLength
-        path: /docs/reference/js/firestore_lite.vectorlength.md
       - title: VectorValue
         path: /docs/reference/js/firestore_lite.vectorvalue.md
-      - title: Where
-        path: /docs/reference/js/firestore_lite.where.md
       - title: WriteBatch
         path: /docs/reference/js/firestore_lite.writebatch.md
-      - title: Xor
-        path: /docs/reference/js/firestore_lite.xor.md
   - title: functions
     path: /docs/reference/js/functions.md
     section:
